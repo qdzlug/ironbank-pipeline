@@ -57,3 +57,9 @@ stage = {
 }
 
 CONTRIBUTOR_STAGES = re.compile(f"({stage['BUILD']}|{stage['STAGE']}|{stage['IMPORT']}")
+
+# GITLAB CI CONSTANTS
+GITLAB_URL = os.environ.get("CI_SERVER_URL") or "https://repo1.dsop.io"
+JOB_ID = os.environ.get("CI_JOB_ID")
+PROJECT_NAME = os.environ.get("CI_PROJECT_NAME")
+CURRENT_BRANCH = os.environ.get("CI_COMMIT_BRANCH")
