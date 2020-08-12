@@ -56,7 +56,7 @@ stage = {
     "IMPORT": 'Import Artifacts'
 }
 
-CONTRIBUTOR_STAGES = re.compile(f"({stage['BUILD']}|{stage['STAGE']}|{stage['IMPORT']}")
+CONTRIBUTOR_STAGES = re.compile(f"({stage['BUILD']}|{stage['STAGE']}|{stage['IMPORT']})")
 
 # GITLAB CI CONSTANTS
 GITLAB_URL = os.environ.get("CI_SERVER_URL") or "https://repo1.dsop.io"

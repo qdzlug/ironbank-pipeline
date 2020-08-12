@@ -84,7 +84,7 @@ def get_git_url() -> str:
         print(e)
 
 
-def set_image_version(version):
+def set_image_version(version: str):
     """
     Function will hold the value of the current image version and expose its value to all functions when needed
     This was necessary due to the Jenkins context no longer being necessary
@@ -138,7 +138,7 @@ def get_image_filename() -> str:
         print(e)
 
 
-def get_version() -> str:
+def get_image_version() -> str:
     """
     Function that returns the image version number if it has been set
     NOTE: Function will raise a TypeError if there it no IMAGE_VERSION set
@@ -155,7 +155,7 @@ def get_version() -> str:
 
 def get_lockname() -> str:
     """
-    Function will return the "lockname", which in the groovy implementation was set to the GIT_URL which is now the CI variable CI_REPOSITORY_URL 
+    Function will return the "lockname", which in the groovy implementation was set to the GIT_URL which is now the CI variable CI_REPOSITORY_URL
     NOTE: This CI variable is subject to be swapped upon confirmation of what the original GIT_URL was
     Return: String
     """
@@ -179,12 +179,12 @@ def get_tag() -> str:
     Return: String
     """
     if CURRENT_BRANCH.lower() == 'development':
-        return f"{get_version()}-development"
+        return f"{get_image_version()}-development"
     elif CURRENT_BRANCH.lower() == 'master':
-        return f"{get_version()}"
+        return f"{get_image_version()}"
     else:
         # All other Contributor branches
-        return f"{get_version()}-testing"
+        return f"{get_image_version()}-testing"
 
 
 def get_public_image_tag() -> str:
