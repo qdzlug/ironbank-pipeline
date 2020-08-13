@@ -3,9 +3,25 @@ from datetime import datetime
 
 from .constants import CURRENT_BRANCH, GITLAB_URL, S3_REPORT_BUCKET, JOB_ID, PROJECT_NAME, LOCK_URL, DCAR_URL
 
+# GLOBALS
+global _IMAGE_DATETIME
+_IMAGE_DATETIME = str(datetime.utcnow()).replace(' ', 'T')
+global _CURRENT_BRANCH
+_CURRENT_BRANCH = CURRENT_BRANCH
+global _GITLAB_URL
+_GITLAB_URL = GITLAB_URL
+global _S3_REPORT_BUCKET
+_S3_REPORT_BUCKET = S3_REPORT_BUCKET
+global _JOB_ID
+_JOB_ID = JOB_ID
+global _PROJECT_NAME
+_PROJECT_NAME = PROJECT_NAME
+global _LOCK_URL
+_LOCK_URL = LOCK_URL
+global _DCAR_URL
+_DCAR_URL = DCAR_URL
+
 _no_version_warning = "Version number must be set - example: '1.0' || Filename is incomplete without a version value"
-global IMAGE_DATETIME
-IMAGE_DATETIME = str(datetime.utcnow()).replace(' ', 'T')
 
 
 def get_basename(path) -> str:
@@ -22,7 +38,7 @@ def get_publish_base_url() -> str:
     This was altered slightly from the Groovy implementation due to the JOB_ID GitLab CI variable which replaces the Jenkins BUILDNUMBER
     Return: String
     """
-    return f"{DCAR_URL}/{S3_REPORT_BUCKET}/{get_root_path()}/{get_datetime()}_{JOB_ID}"
+    return f"{_DCAR_URL}/{_S3_REPORT_BUCKET}/{get_root_path()}/{get_datetime()}_{_JOB_ID}"
 
 
 def get_datetime() -> str:
@@ -30,7 +46,7 @@ def get_datetime() -> str:
     Function returns the global IMAGE_DATETIME so that all usage of the datetime will be of consistent value
     Return: String
     """
-    return IMAGE_DATETIME
+    return _IMAGE_DATETIME
 
 
 def get_root_path() -> str:
@@ -38,7 +54,7 @@ def get_root_path() -> str:
     Function that returns the project-specific bucket path, whether that be testing or production
     Return: String
     """
-    return f"{get_base_bucket_directory()}/{PROJECT_NAME}"
+    return f"{get_base_bucket_directory()}/{_PROJECT_NAME}"
 
 
 def get_base_bucket_directory() -> str:
@@ -63,9 +79,9 @@ def is_production_branch(echo: bool=True) -> bool:
     """
     # CI_COMMIT_REF_NAME
     # CI_COMMIT_BRANCH
-    production = (CURRENT_BRANCH.lower() == "master") or (CURRENT_BRANCH.lower() == "development")
+    production = (_CURRENT_BRANCH.lower() == "master") or (_CURRENT_BRANCH.lower() == "development")
     if echo:
-        print(f"is_production_branch: {CURRENT_BRANCH} - {'YES' if production else 'NO'}")
+        print(f"is_production_branch: {_CURRENT_BRANCH} - {'YES' if production else 'NO'}")
     return production
 
 
@@ -74,7 +90,7 @@ def get_git_url() -> str:
     Function will return the constant GITLAB_URL unless it is not set
     Return: String
     """
-    return GITLAB_URL
+    return _GITLAB_URL
 
 
 def set_image_version(image_version: str):
@@ -82,8 +98,8 @@ def set_image_version(image_version: str):
     Function will hold the value of the current image version and expose its value to all functions when needed
     This was necessary due to the Jenkins context no longer being necessary
     """
-    global IMAGE_VERSION
-    IMAGE_VERSION = image_version
+    global _IMAGE_VERSION
+    _IMAGE_VERSION = image_version
 
 
 def get_tar_filename() -> str:
@@ -93,7 +109,7 @@ def get_tar_filename() -> str:
     Return: String
     """
     if get_image_version() is not None:
-        return f"{PROJECT_NAME}-{get_image_version()}-reports-signature.tar.gz"
+        return f"{_PROJECT_NAME}-{get_image_version()}-reports-signature.tar.gz"
     else:
         raise NameError(_no_version_warning)
 
@@ -104,13 +120,11 @@ def get_image_signature_filename() -> str:
     NOTE: Function will raise a NameError if there is no IMAGE_VERSION set
     Return: String
     """
-    try:
-        if get_image_version() is not None:
-            return f"{PROJECT_NAME}-{get_image_version()}.sig"
-        else:
-            raise NameError(_no_version_warning)
-    except Exception as e:  # pragma: no cover
-        print(e)  # pragma: no cover
+    if get_image_version() is not None:
+        return f"{_PROJECT_NAME}-{get_image_version()}.sig"
+    else:
+        print("IN THE ELSE")
+        raise NameError(_no_version_warning)
 
 
 def get_image_filename() -> str:
@@ -119,13 +133,10 @@ def get_image_filename() -> str:
     NOTE: Function will raise a NameError if there is no IMAGE_VERSION set
     Return: String
     """
-    try:
-        if get_image_version() is not None:
-            return f"{PROJECT_NAME}-{get_image_version()}.tar"
-        else:
-            raise NameError(_no_version_warning)
-    except Exception as e:  # pragma: no cover
-        print(e)  # pragma: no cover
+    if get_image_version() is not None:
+        return f"{_PROJECT_NAME}-{get_image_version()}.tar"
+    else:
+        raise NameError(_no_version_warning)
 
 
 def get_image_version() -> str:
@@ -134,13 +145,10 @@ def get_image_version() -> str:
     NOTE: Function will raise a NameError if there it no IMAGE_VERSION set
     Return: String
     """
-    try:
-        if IMAGE_VERSION is not None:
-            return IMAGE_VERSION
-        else:
-            raise NameError(_no_version_warning)
-    except Exception as e:  # pragma: no cover
-        print(e)  # pragma: no cover
+    if _IMAGE_VERSION is not None:
+        return _IMAGE_VERSION
+    else:
+        raise NameError(_no_version_warning)
 
 
 def get_lockname() -> str:
@@ -149,7 +157,7 @@ def get_lockname() -> str:
     NOTE: This CI variable is subject to be swapped upon confirmation of what the original GIT_URL was
     Return: String
     """
-    return LOCK_URL
+    return _LOCK_URL
 
 
 def get_simple_image_path() -> str:
@@ -157,7 +165,7 @@ def get_simple_image_path() -> str:
     Function will return the simple image path ex. sonarqube/sonarqube to hide details of the layout of the internal registry
     Return: String
     """
-    return f"{PROJECT_NAME}/{PROJECT_NAME}"
+    return f"{_PROJECT_NAME}/{_PROJECT_NAME}"
 
 
 def get_tag() -> str:
@@ -168,9 +176,9 @@ def get_tag() -> str:
     contributor branches:       1.2.3-testing
     Return: String
     """
-    if CURRENT_BRANCH.lower() == 'development':
+    if _CURRENT_BRANCH.lower() == 'development':
         return f"{get_image_version()}-development"
-    elif CURRENT_BRANCH.lower() == 'master':
+    elif _CURRENT_BRANCH.lower() == 'master':
         return f"{get_image_version()}"
     else:
         # All other Contributor branches

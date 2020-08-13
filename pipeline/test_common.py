@@ -4,6 +4,8 @@ from unittest import mock
 from datetime import datetime
 import os
 from . import common
+from . import constants
+
 
 class TestCommon(TestCase):
     def setUp(self):
@@ -46,14 +48,22 @@ class TestCommon(TestCase):
         assert get_root_path() == f"container-scan-reports/{self.project_name}"
         assert get_root_path() != f"testing/container-scan-reports/{self.project_name}"
 
-    def test_get_base_bucket_directory(self):
+    def test_get_base_bucket_directory_production(self):
         # Very similar to the above function, this is being run as though the branch is master
         from .common import get_base_bucket_directory
 
         assert get_base_bucket_directory() == "container-scan-reports"
         assert get_base_bucket_directory() != "testing/container-scan-reports"
 
-    @mock.patch.object(common, 'get_base_bucket_directory', mock.Mock(return_value="testing/container-scan-reports"))
+    @mock.patch.object(common, "is_production_branch", mock.Mock(return_value=False))
+    def test_get_base_bucket_directory_not_production(self):
+        # Very similar to the above function, this is being run as though the branch is master
+        from .common import get_base_bucket_directory
+
+        assert get_base_bucket_directory() == "testing/container-scan-reports"
+        assert get_base_bucket_directory() != "container-scan-reports"
+
+    @mock.patch.object(common, "get_base_bucket_directory", mock.Mock(return_value="testing/container-scan-reports"))
     def test_get_base_bucket_directory_feature(self):
         from . import common
         assert common.get_base_bucket_directory() == "testing/container-scan-reports"
@@ -85,9 +95,11 @@ class TestCommon(TestCase):
         set_image_version(self.test_image_version)
         assert get_tar_filename() == f"{self.project_name}-{get_image_version()}-reports-signature.tar.gz"
 
-        set_image_version(None)
-        TestCase.assertRaises(NameError, NameError)
-        set_image_version(self.test_image_version)
+    @mock.patch.object(common, "get_image_version", mock.Mock(return_value=None))
+    def test_get_tar_filename_if_none(self):
+        from .common import get_tar_filename
+        with self.assertRaises(NameError):
+            get_tar_filename()
 
     def test_get_image_signature_filename(self):
         from .common import get_image_signature_filename, set_image_version, get_image_version
@@ -95,9 +107,11 @@ class TestCommon(TestCase):
         set_image_version(self.test_image_version)
         assert get_image_signature_filename() == f"{self.project_name}-{get_image_version()}.sig"
 
-        set_image_version(None)
-        TestCase.assertRaises(NameError, NameError)
-        set_image_version(self.test_image_version)
+    @mock.patch.object(common, "get_image_version", mock.Mock(return_value=None))
+    def test_get_image_signature_filename_if_none(self):
+        from .common import get_image_signature_filename
+        with self.assertRaises(NameError):
+            get_image_signature_filename()
 
     def test_get_image_filename(self):
         from .common import get_image_filename, set_image_version, get_image_version
@@ -105,9 +119,11 @@ class TestCommon(TestCase):
         set_image_version(self.test_image_version)
         assert get_image_filename() == f"{self.project_name}-{get_image_version()}.tar"
 
-        set_image_version(None)
-        TestCase.assertRaises(NameError, NameError)
-        set_image_version(self.test_image_version)
+    @mock.patch.object(common, "get_image_version", mock.Mock(return_value=None))
+    def test_get_image_filename_if_none(self):
+        from .common import get_image_filename
+        with self.assertRaises(NameError):
+            get_image_filename()
 
     def test_get_image_version(self):
         from .common import get_image_version, set_image_version
@@ -116,9 +132,11 @@ class TestCommon(TestCase):
             set_image_version(self.test_image_version)
         assert get_image_version() == self.test_image_version
 
-        set_image_version(None)
-        TestCase.assertRaises(NameError, NameError)
-        set_image_version(self.test_image_version)
+    @mock.patch.object(common, "_IMAGE_VERSION", None)
+    def test_get_image_version_if_none(self):
+        from .common import get_image_version
+        with self.assertRaises(NameError):
+            get_image_version()
 
     def test_get_lockname(self):
         from .common import get_lockname
@@ -139,7 +157,7 @@ class TestCommon(TestCase):
         assert get_tag() != f"{get_image_version()}-development"
         assert get_tag() != f"{get_image_version()}-testing"
 
-    @mock.patch.object(common, 'get_tag', mock.Mock(return_value="1.1.0-development"))
+    @mock.patch.object(common, '_CURRENT_BRANCH', "development")
     def test_get_tag_development(self):
 
         common.set_image_version(self.test_image_version)
@@ -148,7 +166,7 @@ class TestCommon(TestCase):
         assert common.get_tag() != f"{common.get_image_version()}-testing"
         assert common.get_tag() != f"{common.get_image_version()}"
 
-    @mock.patch.object(common, 'get_tag', mock.Mock(return_value="1.1.0-testing"))
+    @mock.patch.object(common, '_CURRENT_BRANCH', "feature-branch")
     def test_get_tag_feature_branch(self):
         common.set_image_version(self.test_image_version)
 
