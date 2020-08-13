@@ -1,12 +1,11 @@
 import os
 from datetime import datetime
 
-from .constants import *
-
-global IMAGE_DATETIME
-IMAGE_DATETIME = str(datetime.utcnow()).replace(' ', 'T')
+from .constants import CURRENT_BRANCH, GITLAB_URL, S3_REPORT_BUCKET, JOB_ID, PROJECT_NAME, LOCK_URL, DCAR_URL
 
 _no_version_warning = "Version number must be set - example: '1.0' || Filename is incomplete without a version value"
+global IMAGE_DATETIME
+IMAGE_DATETIME = str(datetime.utcnow()).replace(' ', 'T')
 
 
 def get_basename(path) -> str:
@@ -47,17 +46,14 @@ def get_base_bucket_directory() -> str:
     Function that returns the bucket directory for a project, dependent on if it is a production branch (Master/Development) or not
     Return: String
     """
-    try:
-        path = "container-scan-reports"
-        if is_production_branch(False):
-            return path
-        else:
-            return f"testing/{path}"
-    except Exception as e:
-        print(e)
+    path = "container-scan-reports"
+    if is_production_branch(False):
+        return path
+    else:
+        return f"testing/{path}"
 
 
-def is_production_branch(echo=True) -> bool:
+def is_production_branch(echo: bool=True) -> bool:
     """
     Function that returns True/False if the branch is a production branch
     If the branch is Master/Development then it is a production branch
@@ -78,79 +74,73 @@ def get_git_url() -> str:
     Function will return the constant GITLAB_URL unless it is not set
     Return: String
     """
-    try:
-        return GITLAB_URL
-    except Exception as e:
-        print(e)
+    return GITLAB_URL
 
 
-def set_image_version(version: str):
+def set_image_version(image_version: str):
     """
     Function will hold the value of the current image version and expose its value to all functions when needed
     This was necessary due to the Jenkins context no longer being necessary
     """
     global IMAGE_VERSION
-    IMAGE_VERSION = version
+    IMAGE_VERSION = image_version
 
 
 def get_tar_filename() -> str:
     """
     Funciton that will return the filename for the tarball for the project
-    NOTE: Function will raise a TypeError if there is no IMAGE_VERSION set
+    NOTE: Function will raise a NameError if there is no IMAGE_VERSION set
     Return: String
     """
-    try:
-        if IMAGE_VERSION is not None:
-            return f"{PROJECT_NAME}-{IMAGE_VERSION}-reports-signature.tar.gz"
-        else:
-            raise TypeError(_no_version_warning)
-    except Exception as e:
-        print(e)
+    if get_image_version() is not None:
+        return f"{PROJECT_NAME}-{get_image_version()}-reports-signature.tar.gz"
+    else:
+        raise NameError(_no_version_warning)
 
 
 def get_image_signature_filename() -> str:
     """
     Function will return the signature file's filename
-    NOTE: Function will raise a TypeError if there is no IMAGE_VERSION set
+    NOTE: Function will raise a NameError if there is no IMAGE_VERSION set
     Return: String
     """
     try:
-        if IMAGE_VERSION is not None:
-            return f"{PROJECT_NAME}-{IMAGE_VERSION}.sig"
+        if get_image_version() is not None:
+            return f"{PROJECT_NAME}-{get_image_version()}.sig"
         else:
-            raise TypeError(_no_version_warning)
-    except Exception as e:
-        print(e)
+            raise NameError(_no_version_warning)
+    except Exception as e:  # pragma: no cover
+        print(e)  # pragma: no cover
 
 
 def get_image_filename() -> str:
     """
     Function will return the filename of the tar that will be used by "docker load -i"
-    NOTE: Function will raise a TypeError if there is no IMAGE_VERSION set
+    NOTE: Function will raise a NameError if there is no IMAGE_VERSION set
     Return: String
     """
     try:
-        if IMAGE_VERSION is not None:
-            return f"{PROJECT_NAME}-{IMAGE_VERSION}.tar"
+        if get_image_version() is not None:
+            return f"{PROJECT_NAME}-{get_image_version()}.tar"
         else:
-            raise TypeError(_no_version_warning)
-    except Exception as e:
-        print(e)
+            raise NameError(_no_version_warning)
+    except Exception as e:  # pragma: no cover
+        print(e)  # pragma: no cover
 
 
 def get_image_version() -> str:
     """
     Function that returns the image version number if it has been set
-    NOTE: Function will raise a TypeError if there it no IMAGE_VERSION set
+    NOTE: Function will raise a NameError if there it no IMAGE_VERSION set
     Return: String
     """
     try:
         if IMAGE_VERSION is not None:
             return IMAGE_VERSION
         else:
-            raise Exception("Version number must be set - example: '1.0'")
-    except Exception as e:
-        print(e)
+            raise NameError(_no_version_warning)
+    except Exception as e:  # pragma: no cover
+        print(e)  # pragma: no cover
 
 
 def get_lockname() -> str:
