@@ -1,17 +1,18 @@
 .preflight:
   stage: preflight
   allow_failure: true
-  
+
+# TODO: implement check for Dockerfile, LICENSE, and README
+# Possibly check for deployment files?
 folder structure:
   extends: preflight
   allow_failure: true
   script:
     - ls -l accreditation
-    - ls -l documentation
-    - ls -l examples
     - ls -l scripts
     - ls -l README.md
     - ls -l Dockerfile
+    - ls -l LICENSE
 
 # TODO: Check the following (among others):
 # base image vars

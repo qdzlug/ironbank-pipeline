@@ -1,0 +1,28 @@
+stages:
+  # preflight stage
+  # check folder structure, check build variables
+  - preflight
+  # lint stage
+  # yaml lint (ci file, download.yaml), dockerfile lint, wl compare lint
+  - lint
+  # pre-build stage
+  # download artifacts/clamav scan, image signature?
+  - pre-build
+  # build stage
+  # build image w version tag and create tar file
+  - build
+  # post-build stage
+  # clamav scan of the image
+  - post-build
+  # scanning stage
+  # twistlock, oscap, and anchore scans
+  - scanning
+  # create csv output
+  - csv-output
+  # check cve stage
+  - check-cves
+  # publish stage
+  # publish artifacts to S3 (runs on master), push to harbor (runs on master)
+  - publish
+  # VAT stage (runs on dev)
+  - vat
