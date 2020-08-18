@@ -5,7 +5,7 @@ from .constants import CURRENT_BRANCH, GITLAB_URL, S3_REPORT_BUCKET, JOB_ID, PRO
 
 # GLOBALS
 global _IMAGE_DATETIME
-_IMAGE_DATETIME = str(datetime.utcnow()).replace(' ', 'T')
+_IMAGE_DATETIME = datetime.utcnow().isoformat()
 global _CURRENT_BRANCH
 _CURRENT_BRANCH = CURRENT_BRANCH
 global _GITLAB_URL
@@ -24,11 +24,12 @@ _DCAR_URL = DCAR_URL
 _no_version_warning = "Version number must be set - example: '1.0' || Filename is incomplete without a version value"
 
 
-def get_basename(path) -> str:
+def get_basename(path: str) -> str:
     """
     A simple function that will return the basename of a file/image given a specific path
     Return: String
     """
+    assert isinstance(path, str)
     return path.split('/')[-1]
 
 
