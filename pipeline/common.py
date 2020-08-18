@@ -1,5 +1,13 @@
 import os
+import requests
+import urllib3
+import json
+import urllib.parse as url_helper
 from datetime import datetime
+from typing import List
+import boto3
+import botocore
+import re
 
 from .constants import CURRENT_BRANCH, GITLAB_URL, S3_REPORT_BUCKET, JOB_ID, PROJECT_NAME, LOCK_URL, DCAR_URL
 
@@ -22,6 +30,8 @@ global _DCAR_URL
 _DCAR_URL = DCAR_URL
 
 _no_version_warning = "Version number must be set - example: '1.0' || Filename is incomplete without a version value"
+
+_client = boto3.client('s3')
 
 
 def get_basename(path) -> str:
@@ -193,3 +203,40 @@ def get_public_image_tag() -> str:
     Return: String
     """
     return f"{get_simple_image_path()}:{get_tag()}"
+
+
+def path_join(main_path: str, appendage: str) -> str:
+    # Undecided if it should join two paths or just a list of strings - for now, going the two paths route
+    return url_helper.urljoin(main_path, appendage)
+
+
+def validate_s3_bucket_endpoints(json: dict, bucket_name: str) -> List:
+    # check to see if the bucket exists
+    bad_links = []
+    try:
+        bucket_exists = _client.head_bucket(Bucket=f"{bucket_name}")
+        if bucket_exists:
+            json_data = json.loads(json)
+            for key in json_data:
+                if json_data[key].startswith('https://'):
+                    path = re.sub(r'^https:\/\/.*\/ironbank-pipeline-artifacts\/', '', path)
+                    if not _s3_object_exists(key, path):
+                        bad_links.append({str(key): str(path))
+            
+            if len(bad_links) > 0:
+                print("Either elements do not exist in the S3 or the documented path is wrong")
+                print(*bad_links, sep="\n")
+
+    except botocore.exceptions.ClientError as e:
+        print(f"There has been an error with locating the bucket: {bucket_name} - {e}")
+
+
+def _s3_object_exists(current_key, path: str) -> bool:
+    s3 = boto3.resource('s3')
+    bucket = s3.bucket(S3_REPORT_BUCKET)
+    bucket_objects = list(bucket.objects.filter(prefix=path))
+    if len(bucket_objects) > 0 and bucket_objects[0].key == path:
+        return True
+    else:
+        print(f"Error validating {S3_REPORT_BUCKET} S3 element {current_key} at the following path: {path}")
+        return False

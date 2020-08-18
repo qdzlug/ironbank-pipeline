@@ -24,14 +24,13 @@ class TestCommon(TestCase):
     def test_get_basename(self):
         from .common import get_basename
 
-        assert get_basename(self.path) == "path.txt"
+        self.assertEqual(get_basename(self.path), "path.txt")
         assert get_basename(self.path) != self.path
 
     def test_get_publish_base_url(self):
         from .common import get_publish_base_url, get_datetime
 
         assert get_publish_base_url() == f"{self.dcar_url}/{self.s3_report_bucket}/container-scan-reports/{self.project_name}/{get_datetime()}_{self.job_id}"
-        assert get_publish_base_url() != f"{self.dcar_url}/{self.s3_report_bucket}/container-scan-reports/{self.project_name}/{get_datetime()}"
 
     def test_get_datetime(self):
         from .common import get_datetime
