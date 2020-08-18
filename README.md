@@ -23,6 +23,6 @@ The `lint` stage contains multiple jobs and is used to ensure the formatting use
 
 The `yaml lint` and `dockerfile lint` jobs are used to ensure the proper formatting of the following files in each project: `.gitlab-ci.yml`, `download.yaml`/`download.json` file, and `Dockerfile`. 
 
-The `wl compare lint` job ensures that the pipeline run will fail on any branch if the repository structure is incoreect, or if the greylist files can't be retrieved or have a mismatched image name/tag.
+The `wl compare lint` job ensures that the pipeline run will fail on any branch if the repository structure is incorrect, or if the greylist files can't be retrieved or have a mismatched image name/tag.
 
 The `lint` stage does not allow failures.
