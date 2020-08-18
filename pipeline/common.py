@@ -221,8 +221,7 @@ def validate_s3_bucket_endpoints(json: dict, bucket_name: str) -> List:
                 if json_data[key].startswith('https://'):
                     path = re.sub(r'^https:\/\/.*\/ironbank-pipeline-artifacts\/', '', path)
                     if not _s3_object_exists(key, path):
-                        bad_links.append({str(key): str(path))
-            
+                        bad_links.append({str(key): str(path)})
             if len(bad_links) > 0:
                 print("Either elements do not exist in the S3 or the documented path is wrong")
                 print(*bad_links, sep="\n")
