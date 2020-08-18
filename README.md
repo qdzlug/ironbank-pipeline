@@ -1,6 +1,6 @@
 # ironbank-pipeline
 
-## Contributor project requirements to utilize this pipeline
+## Contributor project requirements for ironbank-pipeline use:
 - `.gitlab-ci.yml` file with an $IMG_VERSION variable set
 
 ## ironbank-pipeline directory structure:
