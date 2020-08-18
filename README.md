@@ -1,5 +1,8 @@
 # ironbank-pipeline
 
+## Contributor project requirements to utilize this pipeline
+- `.gitlab-ci.yml` file with an $IMG_VERSION variable set
+
 ## Project directory structure:
 
 `/templates` contains the templates for the pipeline. This includes the `globals.yaml` file, which contains variable references needed for each CI/CD job to run and outlines the jobs required to run. This directory will also contain templates for special cases, such as distroless or scratch images. These special cases will have their own `.yaml` files which override aspects of the `globals.yaml` configuration as needed.
@@ -24,5 +27,3 @@ The `lint` stage contains multiple jobs and is used to ensure the formatting use
 The `yaml lint` and `dockerfile lint` jobs are used to ensure the proper formatting of the following files in each project: `.gitlab-ci.yml`, `download.yaml`/`download.json` file, and `Dockerfile`. 
 
 The `wl compare lint` job ensures that the pipeline run will fail on any branch if the repository structure is incorrect, or if the greylist files can't be retrieved or have a mismatched image name/tag.
-
-The `lint` stage does not allow failures.
