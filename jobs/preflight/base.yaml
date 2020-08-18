@@ -1,0 +1,25 @@
+.preflight:
+  stage: preflight
+  allow_failure: true
+  
+folder structure:
+  extends: preflight
+  allow_failure: true
+  script:
+    - ls -l accreditation
+    - ls -l documentation
+    - ls -l examples
+    - ls -l scripts
+    - ls -l README.md
+    - ls -l Dockerfile
+
+# TODO: Check the following (among others):
+# base image vars
+build variables:
+  extends: preflight
+  allow_failure: true
+  script:
+    - echo testing for VAR_NAME
+    - echo "if [ -z ${VAR_NAME} ]; then exit 1"
+
+  
