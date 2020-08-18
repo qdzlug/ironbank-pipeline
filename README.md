@@ -3,7 +3,7 @@
 ## Contributor project requirements to utilize this pipeline
 - `.gitlab-ci.yml` file with an $IMG_VERSION variable set
 
-## Project directory structure:
+## ironbank-pipeline directory structure:
 
 `/templates` contains the templates for the pipeline. This includes the `globals.yaml` file, which contains variable references needed for each CI/CD job to run and outlines the jobs required to run. This directory will also contain templates for special cases, such as distroless or scratch images. These special cases will have their own `.yaml` files which override aspects of the `globals.yaml` configuration as needed.
 
