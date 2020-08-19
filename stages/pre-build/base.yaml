@@ -28,4 +28,19 @@ import artifacts:
     paths:
       - ${CI_PROJECT_DIR}/pipeline-artifacts/
 
-  
+image signature:
+  extends: pre-build
+  allow_failure: true
+  image: ${DOCKER_REGISTRY_URL}/platform/docker-git-bash:stable
+  services:
+    - name: docker:dind
+  before_script:
+    - docker version
+  script:
+    - IMAGE=$(grep "FROM" Dockerfile | cut -d " " -f2)
+    - docker trust inspect ${IMAGE} | tee ${CI_PROJECT_DIR}/pipeline-artifacts/report-image-trust.txt
+  artifacts:
+    when: always
+    paths:
+      - ${CI_PROJECT_DIR}/pipeline-artifacts/
+
