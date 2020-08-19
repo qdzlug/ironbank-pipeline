@@ -1,0 +1,25 @@
+.build:
+  stage: build
+  allow_failure: true
+  # Need to convert from artifactory
+  image: ${DOCKER_REGISTRY_URL}/platform/docker-git-bash:stable
+  services:
+    - name: docker:dind
+  before_script:
+    - docker version
+    - IMAGE=$(grep "FROM" Dockerfile | cut -d " " -f2)
+    - docker image rm -f ${IMAGE}
+    - docker login -u ${ARTIFACTORY_USERNAME} -p ${ARTIFACTORY_PASSWORD} ${ARTIFACTORY_REGISTRY}
+  script:
+    # Need to modify script so that it utilizes a generic build and pushes to Harbor
+    - docker build -t ubi:${CI_COMMIT_SHA} ${CI_PROJECT_DIR}/ | tee ${CI_PROJECT_DIR}/pipeline-artifacts/build.txt
+    - docker save ubi:${CI_COMMIT_SHA} -o ${CI_PROJECT_DIR}/pipeline-artifacts/ubi7-${CI_COMMIT_SHA}.tar
+    - docker tag ubi:${CI_COMMIT_SHA} ${ARTIFACTORY_REGISTRY}/${ARTIFACTORY_REPOSITORY}/ubi7:latest
+    - docker push ${ARTIFACTORY_REGISTRY}/${ARTIFACTORY_REPOSITORY}/ubi7:latest
+  after_script:
+    - IMAGE=$(grep "FROM" Dockerfile | cut -d " " -f2)
+    - docker image rm -f ${IMAGE}
+  artifacts:
+    when: always
+    paths:
+      - ${CI_PROJECT_DIR}/pipeline-artifacts/
