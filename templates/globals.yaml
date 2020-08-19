@@ -22,7 +22,7 @@ stages:
   # check cve stage
   - check-cves
   # publish stage
-  # publish artifacts to S3 (runs on master), push to harbor (runs on master)
+  # publish artifacts to S3 (runs on master), push to harbor
   - publish
   # VAT stage (runs on dev)
   - vat
