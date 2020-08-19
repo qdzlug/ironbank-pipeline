@@ -11,7 +11,7 @@
     - docker image rm -f ${IMAGE}
     - docker login -u ${ARTIFACTORY_USERNAME} -p ${ARTIFACTORY_PASSWORD} ${ARTIFACTORY_REGISTRY}
   script:
-    # Need to modify script so that it utilizes a generic build and pushes to Harbor
+    # Need to modify script so that it utilizes a generic build. Push to Harbor occurs after scanning conclusion.
     - docker build -t ubi:${CI_COMMIT_SHA} ${CI_PROJECT_DIR}/ | tee ${CI_PROJECT_DIR}/pipeline-artifacts/build.txt
     - docker save ubi:${CI_COMMIT_SHA} -o ${CI_PROJECT_DIR}/pipeline-artifacts/ubi7-${CI_COMMIT_SHA}.tar
     - docker tag ubi:${CI_COMMIT_SHA} ${ARTIFACTORY_REGISTRY}/${ARTIFACTORY_REPOSITORY}/ubi7:latest
