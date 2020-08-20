@@ -1,0 +1,17 @@
+include:
+  - local: jobs/preprocess/base.yml
+
+# clone templates repo as an artifact so it can be used with other jobs
+load scripts:
+  extends: .preprocess
+  image: ${registry_url}/gitlab/gitlab-runner:latest
+  cache: {}
+  script:
+    # May need to include validation here for auth clone
+    - git clone -q --depth 1 "https://repo1.dsop.io/dsop/ironbank-pipeline.git" "${PIPELINE_TEMPLATES_REPO_DIR}"
+    # - git clone https://${CI_BUILD_TOKEN}@gitlab.repo1.dsop.io/dsop/ironbank-pipeline.git
+    - rm -rf ${PIPELINE_TEMPLATES_REPO_DIR}/.git
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - ${PIPELINE_TEMPLATES_REPO_DIR}/
