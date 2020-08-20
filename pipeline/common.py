@@ -1,5 +1,6 @@
 import re
 from datetime import datetime
+from urllib.parse import urlparse
 
 from .constants import CURRENT_BRANCH, GITLAB_URL, S3_REPORT_BUCKET, JOB_ID, PROJECT_NAME, LOCK_URL, DCAR_URL
 
@@ -203,3 +204,11 @@ def validate_aws_region(region: str) -> bool:
     """
     r = re.compile(r'(us(-gov)?|ap|ca|cn|eu|me|sa)-(north|south|east|west|central){1,2}-[1-9]')
     return bool(r.search(region))
+
+def validate_url(url: str) -> bool:
+    """
+    Use urllib's parse to evaluate the validity of a given URI/URL
+    :param url: the url
+    :return: Bool (true if valid, false if not)
+    """
+    return bool(urlparse(url).scheme)

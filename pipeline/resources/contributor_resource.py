@@ -1,12 +1,19 @@
 import json
 import re
 from urllib.parse import urlparse
-from pipeline.common import validate_aws_region
+from pipeline.common import validate_aws_region, validate_url
+import requests
+import responses
 
 class ContributorResourceValidation:
     pass
 
 class ContributorResourceAuth:
+    """
+    Rough translation from ContributorResourceAuth.groovy
+    Makes the same sort of construct for storing authentication details for
+        a specific type of Resource
+    """
     auth_map = {
         'types': ['basic', 'aws', 'x509'],
     }
@@ -17,6 +24,8 @@ class ContributorResourceAuth:
     def __init__(self, auth_dict):
         self.auth_type = auth_dict['type']
         self.id = auth_dict.get('id', 'default-credentials')
+        if self.auth_type == 'aws':
+            self.region = auth_dict['region']
 
     @property
     def auth_type(self):
@@ -46,77 +55,150 @@ class ContributorResourceAuth:
     @region.setter
     def region(self, region):
         if not validate_aws_region(region):
+            raise ValueError(f'Invalid AWS Region: {region}')
+        self._region = region
 
 
 class ContributorResource:
-    internal_docker_repo: str = ''
-    internal_http_repo: str = ''
-    namespace: str = ''
-    context = None
-    validation: ContributorResourceValidation = None
-    auth: ContributorResourceAuth = None
-    url: str = ''
+    """
+    Roughly translated from ContributorResource.groovy
+    Creates a base interface class that other more specific Resource types can inherit from
+    Uses Properties to give a more methodical approach to validation logic per attribute
+        - this makes more sense than a whole "Validate()" function, imho
+    """
+    _internal_docker_repo: str = ''
+    _internal_http_repo: str = ''
+    _namespace: str = ''
+    _context = None
+    _validation: ContributorResourceValidation = None
+    _auth: ContributorResourceAuth = None
+    _url: str = ''
 
-    def sanity_check(self):
-        if not bool(urlparse(self.url).scheme):
-            raise ValueError(f'Invalid URL in Resource: {self.url}')
-        return True
+    @property
+    def internal_docker_repo(self) -> str:
+        return self._internal_docker_repo
+
+    @internal_docker_repo.setter
+    def internal_docker_repo(self, repo: str):
+        if not validate_url(repo):
+            raise ValueError(f'Invalid URL for Docker Repo: {repo}')
+
+    @property
+    def internal_http_repo(self) -> str:
+        return self._internal_http_repo
+
+    @internal_http_repo.setter
+    def internal_http_repo(self, repo: str):
+        if not validate_url(repo):
+            raise ValueError(f'Invalid URL for HTTP Repo: {repo}')
+
+    @property
+    def namespace(self) -> str:
+        return self._namespace
+
+    @namespace.setter
+    def namespace(self, namespace: str):
+        self._namespace = namespace
+
+    @property
+    def context(self) -> str:
+        """
+        TODO: Unsure if this is necessary outside of the groovy code
+        :return:
+        """
+        return self._context
+
+    @context.setter
+    def context(self, context: str):
+        self._context = context
+
+    @property
+    def validation(self) -> ContributorResourceValidation:
+        return self._validation
+
+    @validation.setter
+    def validation(self, validation: ContributorResourceValidation):
+        self._validation = validation
+
+    @property
+    def auth(self) -> ContributorResourceAuth:
+        return self._auth
+
+    @auth.setter
+    def auth(self, auth: ContributorResourceAuth):
+        self._auth = auth
+
+    @property
+    def url(self) -> str:
+        return self._url
+
+    @url.setter
+    def url(self, url: str):
+        if not validate_url(url):
+            raise ValueError(f'Invalid URL: {url}')
 
     def stage_resource(self):
+        """
+        From what I can tell, the old Groovy code was using these two functions
+        to both push and pull resources to/from an internal repository
+        :return:
+        """
         raise NotImplementedError('ContributorResource is an Interface')
 
-    def import_resource(self):
+    def upload_resource(self):
         raise NotImplementedError('ContributorResource is an Interface')
 
 class DockerResource(ContributorResource):
-    def sanity_check(self):
-        raise NotImplementedError('ContributorResource is an Interface')
 
     def stage_resource(self):
         raise NotImplementedError('ContributorResource is an Interface')
 
-    def import_resource(self):
+    def upload_resource(self):
         raise NotImplementedError('ContributorResource is an Interface')
 
 class FileResource(ContributorResource):
 
+    _filename: str = ''
+
     def __init__(self, resource_dict):
         self.url = resource_dict['url']
-        auth = resource_dict['auth']
-        if auth:
-            self.auth = ContributorResourceAuth(auth)
+        auth_data = resource_dict['auth']
+        if auth_data:
+            self.auth = ContributorResourceAuth(auth_data)
 
-    def sanity_check(self):
-        super().sanity_check()
+    @property
+    def filename(self):
+        return self._filename
+
+    @filename.setter
+    def filename(self, filename):
+        self._filename = filename
 
     def stage_resource(self):
-        raise NotImplementedError('ContributorResource is an Interface')
+        pass
 
-    def import_resource(self):
-        raise NotImplementedError('ContributorResource is an Interface')
+    def upload_resource(self):
+        pass
 
 class HTTPResource(FileResource):
-    def sanity_check(self):
-        raise NotImplementedError('ContributorResource is an Interface')
 
     def stage_resource(self):
-        raise NotImplementedError('ContributorResource is an Interface')
+        pass
 
-    def import_resource(self):
-        raise NotImplementedError('ContributorResource is an Interface')
+    def upload_resource(self):
+        pass
 
 class S3Resource(FileResource):
-    def sanity_check(self):
-        raise NotImplementedError('ContributorResource is an Interface')
 
     def stage_resource(self):
-        raise NotImplementedError('ContributorResource is an Interface')
+        pass
 
-    def import_resource(self):
-        raise NotImplementedError('ContributorResource is an Interface')
+    def upload_resource(self):
+        pass
 
 
 def generate_resource(resource_dict: dict):
+
     resource_map = {
         'docker': DockerResource,
         's3': S3Resource,

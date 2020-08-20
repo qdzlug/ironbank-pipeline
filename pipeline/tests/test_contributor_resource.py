@@ -1,7 +1,7 @@
 import os
 import unittest
 from unittest import TestCase
-from unittest import mock
+from mock import patch, mock_open
 from datetime import datetime
 
 # Set up the Environment Variables
@@ -50,6 +50,8 @@ TEST_HTTP_RESOURCE = {
     "tls_verify": True
 }
 
+CONTRIBUTOR_OPEN = 'pipeline.resources.contributor_resource.open'
+
 
 class TestContributorResource(TestCase):
     def setUp(self):
@@ -79,11 +81,11 @@ class TestContributorResource(TestCase):
     def test_interface_functions(self):
         contributor_resource = ContributorResource()
         with self.assertRaises(NotImplementedError):
-            contributor_resource.import_resource()
+            contributor_resource.upload_resource()
         with self.assertRaises(NotImplementedError):
             contributor_resource.stage_resource()
 
-    def test_sanity_check(self):
+    def test_url_validation(self):
         """
         Set up enough values to run the function
         """
@@ -91,16 +93,14 @@ class TestContributorResource(TestCase):
         invalid_url = 'asdflkj.asdflkj.asdflkj'
         contributor_resource = ContributorResource()
         contributor_resource.url = valid_url
-        self.assertTrue(contributor_resource.sanity_check())
 
         with self.assertRaises(ValueError):
             contributor_resource.url = invalid_url
-            contributor_resource.sanity_check()
 
 class TestContributorResourceAuth(TestCase):
     def test_auth_type(self):
         basic_auth_dict = {'type': 'basic'}
-        aws_auth_dict = {'type': 'aws'}
+        aws_auth_dict = {'type': 'aws', 'region': 'us-west-2'}
         x509_auth_dict = {'type': 'x509'}
         basic_auth = ContributorResourceAuth(auth_dict=basic_auth_dict)
         aws_auth = ContributorResourceAuth(auth_dict=aws_auth_dict)
@@ -116,10 +116,11 @@ class TestContributorResourceAuth(TestCase):
 
     def test_id(self):
         valid_id = 'credentials-1'
-        invalid_id = 'credentials 1'
+        invalid_id = 'credentials{0}'
+        invalid_characters = r'<>/{}[\]~ \\,()*&^%$#@!\"\'`~'
 
         valid_dict = {'type': 'basic', 'id': valid_id}
-        invalid_dict = {'type': 'basic', 'id': invalid_id}
+        invalid_dict = {'type': 'basic', 'id': None}
 
         default_auth = ContributorResourceAuth(auth_dict={'type': 'basic'})
         self.assertEqual(default_auth.id, 'default-credentials')
@@ -127,22 +128,61 @@ class TestContributorResourceAuth(TestCase):
         valid_auth = ContributorResourceAuth(auth_dict=valid_dict)
         self.assertEqual(valid_auth.id, valid_id)
 
+        for char in invalid_characters:
+            invalid_dict['id'] = invalid_id.format(char)
+            with self.assertRaises(ValueError):
+                ContributorResourceAuth(auth_dict=invalid_dict)
+
+    def test_region(self):
+        valid_region = 'us-west-2'
+        invalid_region = 'invalid'
+
+        valid_dict = {'type': 'aws', 'region': valid_region}
+        invalid_dict = {'type': 'aws', 'region': invalid_region}
+
+        valid_auth = ContributorResourceAuth(auth_dict=valid_dict)
+        self.assertEqual(valid_auth.region, valid_region)
+
         with self.assertRaises(ValueError):
             ContributorResourceAuth(auth_dict=invalid_dict)
 
-    def test_region(self):
-        
+
+
 
 
 class TestHTTPResource(TestCase):
     def setUp(self):
         self.file_resource = generate_resource(TEST_HTTP_RESOURCE)
 
-    def test_upload(self):
+    @responses.activate
+    def test_stage_resource(self):
         """
         Mock requests/response and call the function
         """
-        pass
+        retval = {
+            'json': 'returnvalue'
+        }
+        responses.add(responses.GET, self.file_resource.internal_http_repo, status=200,
+                      body=json.dumps(retval))
+        responses.add(responses.GET, self.file_resource.internal_http_repo, status=404,
+                      body=json.dumps(retval))
+        responses.add(responses.GET, self.file_resource.internal_http_repo, status=200,
+                      body='json:invalid')
+
+        # Successful response
+        m = mock_open()
+        with patch(CONTRIBUTOR_OPEN, new_callable=m):
+            self.file_resource.stage_resource()
+            # m.assert_called_with()
+
+
+        # 404 response
+        self.file_resource.stage_resource()
+
+        # Successful response with bad data
+        self.file_resource.stage_resource()
+
+
 
     def test_stage(self):
         """
@@ -150,8 +190,7 @@ class TestHTTPResource(TestCase):
         """
         pass
 
-    def test_sanitize(self):
-        self.file_resource.sanity_check()
+
 
 if __name__ == '__main__':
     unittest.main()
