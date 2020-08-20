@@ -134,6 +134,7 @@ def get_image_signature_filename() -> str:
     if get_image_version() is not None:
         return f"{_PROJECT_NAME}-{get_image_version()}.sig"
     else:
+        print("IN THE ELSE")
         raise NameError(_no_version_warning)
 
 

@@ -246,6 +246,17 @@ class TestCommon(TestCase):
         common.set_image_version("1.1.0")
         self.assertEqual(validate_s3_bucket_endpoints(self.test_json, "test_bucket"), [])
 
+    def test_path_join(self):
+        from pipeline.common import path_join
+        self.assertEqual(path_join("this/is/a/test/", "path.txt"), self.path)
+
+    @mock.patch.object(common, '_s3_object_exists', mock.Mock(return_value=True))
+    @mock.patch.object(common, 'validate_s3_bucket_endpoints', mock.Mock(return_value=[])))
+    def test_validate_s3_bucket_endpoints(self):
+        from pipeline.common import validate_s3_bucket_endpoints
+        common.set_image_version("1.1.0")
+        self.assertEqual(validate_s3_bucket_endpoints(self.test_json, "test_bucket"), [])
+
 
 if __name__ == '__main__':
     unittest.main()
