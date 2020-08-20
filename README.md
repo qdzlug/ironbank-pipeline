@@ -1,5 +1,28 @@
 # ironbank-pipeline
 
+
+## Dependencies
+
+Install Python dependencies with the following command:
+```
+pip install -r requirements.txt
+```
+
+## Running Tests
+
+The Python `nose` package is used for finding, running, and assessing the coverage of the unit tests.
+
+Run the tests with the following command:
+```
+nosetests --with-cov
+```
+## Tranlational Information
+
+There were a lot of "common" functions in Arguments.groovy and the corresponding functionality in `common.py` has been documented in that file.
+
+
+
+
 ## Contributor project requirements for ironbank-pipeline use:
 - `.gitlab-ci.yml` file with an $IMG_VERSION variable set
 
@@ -27,21 +50,3 @@ The `lint` stage contains multiple jobs and is used to ensure the formatting use
 The `yaml lint` and `dockerfile lint` jobs are used to ensure the proper formatting of the following files in each project: `.gitlab-ci.yml`, `download.yaml`/`download.json` file, and `Dockerfile`. 
 
 The `wl compare lint` job ensures that the pipeline run will fail on any branch if the repository structure is incorrect, or if the greylist files can't be retrieved or have a mismatched image name/tag.
-## Dependencies
-
-Install Python dependencies with the following command:
-```
-pip install -r requirements.txt
-```
-
-## Running Tests
-
-The Python `nose` package is used for finding, running, and assessing the coverage of the unit tests.
-
-Run the tests with the following command:
-```
-nosetests --with-cov
-```
-## Tranlational Information
-
-There were a lot of "common" functions in Arguments.groovy and the corresponding functionality in `common.py` has been documented in that file.
