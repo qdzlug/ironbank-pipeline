@@ -1,0 +1,39 @@
+.lint:
+  stage: lint
+  allow_failure: true
+  dependencies: []
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - ${CI_PROJECT_DIR}/pipeline-artifacts/
+
+yaml lint:
+  extends: .lint
+  before_script:
+    - apt-get update
+    - apt-get install -y python-pip
+    - pip install yamllint
+    - mkdir -p ${CI_PROJECT_DIR}/pipeline-artifacts/
+  script:
+    - yamllint -c ${CI_PROJECT_DIR}/tests/yamllint.yaml ${CI_PROJECT_DIR}/tests/hadolint.yaml | tee ${CI_PROJECT_DIR}/pipeline-artifacts/lint-yaml.txt
+    - yamllint -c ${CI_PROJECT_DIR}/tests/yamllint.yaml ${CI_PROJECT_DIR}/tests/container-structure-test.yaml | tee ${CI_PROJECT_DIR}/pipeline-artifacts/lint-yaml.txt
+
+dockerfile lint:
+  extends: .lint
+  before_script:
+    - apt-get update
+    - apt-get install -y curl
+    - curl -L https://github.com/hadolint/hadolint/releases/download/v1.17.5/hadolint-Linux-x86_64 -o /usr/local/bin/hadolint
+    - chmod +x /usr/local/bin/hadolint
+    - mkdir -p ${CI_PROJECT_DIR}/pipeline-artifacts
+  script:
+    - hadolint ${CI_PROJECT_DIR}/Dockerfile | tee ${CI_PROJECT_DIR}/pipeline-artifacts/lint-dockerfile.txt
+
+wl compare lint:
+  extends: .lint
+  script:
+    # The following step assumes contributor projects have an environment variable set for the image version 
+    # in the gitlab-ci.yml file.
+    # TODO: output the error for unsuccessful runs
+    - python3 /pipeline/resources/wl_compare_lint.py --image ${CI_PROJECT_PATH} --tag ${IMG_VERSION}

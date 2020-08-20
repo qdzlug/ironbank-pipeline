@@ -1,0 +1,46 @@
+.pre-build:
+  stage: pre-build
+  allow_failure: true
+
+import artifacts:
+  extends: pre-build
+  # Arguments.get().download is used to get download items
+  # dccscrImport() calls ContributorResource, which performs validation of download.yaml file
+  # image: 
+  before_script:
+    - mkdir ${CI_PROJECT_DIR}/pipeline-artifacts/application-artifacts
+    - sudo pip3 install pyyaml --upgrade
+    - docker pull tquinnelly/clamav-alpine:latest
+  script:
+    - python3 ${CI_PROJECT_DIR}/custom-scripts/downloader/downloader.py -i ${CI_PROJECT_DIR}/custom-scripts/downloader/download.yaml -d ${CI_PROJECT_DIR}/pipeline-artifacts/application-artifacts
+    - docker run -v ${CI_PROJECT_DIR}/pipeline-artifacts/application-artifacts:/scan:ro tquinnelly/clamav-alpine:latest | tee ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-artifacts.txt
+    - INFECTED_ARTIFACT_FILES=$(grep -e "^Infected files:" ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-artifacts.txt | cut -d ' ' -f3)
+    - |
+      if [ ${INFECTED_ARTIFACT_FILES} -gt 0 ]
+      then
+        echo Malware detected in vendor/customer artifacts! Number of findings: ${INFECTED_ARTIFACT_FILES}
+        exit 1
+      fi
+  after_script:
+    - docker image rm -f tquinnelly/clamav-alpine:latest
+  artifacts:
+    when: always
+    paths:
+      - ${CI_PROJECT_DIR}/pipeline-artifacts/
+
+image signature:
+  extends: pre-build
+  allow_failure: true
+  image: ${DOCKER_REGISTRY_URL}/platform/docker-git-bash:stable
+  services:
+    - name: docker:dind
+  before_script:
+    - docker version
+  script:
+    - IMAGE=$(grep "FROM" Dockerfile | cut -d " " -f2)
+    - docker trust inspect ${IMAGE} | tee ${CI_PROJECT_DIR}/pipeline-artifacts/report-image-trust.txt
+  artifacts:
+    when: always
+    paths:
+      - ${CI_PROJECT_DIR}/pipeline-artifacts/
+

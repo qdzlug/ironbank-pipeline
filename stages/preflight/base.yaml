@@ -1,0 +1,26 @@
+.preflight:
+  stage: preflight
+  allow_failure: true
+
+# TODO: implement check for Dockerfile, LICENSE, and README
+# Possibly check for deployment files?
+folder structure:
+  extends: preflight
+  allow_failure: true
+  script:
+    - ls -l accreditation
+    - ls -l scripts
+    - ls -l README.md
+    - ls -l Dockerfile
+    - ls -l LICENSE
+
+# TODO: Check the following (among others):
+# base image vars
+build variables:
+  extends: preflight
+  allow_failure: true
+  script:
+    - echo testing for VAR_NAME
+    - echo "if [ -z ${VAR_NAME} ]; then exit 1"
+
+  
