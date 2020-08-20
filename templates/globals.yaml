@@ -31,4 +31,4 @@ stages:
   - vat
 
 include:
-  - local: jobs/preprocess/load-scripts.yaml
+  - local: stages/preprocess/load-scripts.yaml
