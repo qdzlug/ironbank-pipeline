@@ -134,7 +134,6 @@ def get_image_signature_filename() -> str:
     if get_image_version() is not None:
         return f"{_PROJECT_NAME}-{get_image_version()}.sig"
     else:
-        print("IN THE ELSE")
         raise NameError(_no_version_warning)
 
 
@@ -207,13 +206,27 @@ def get_public_image_tag() -> str:
 
 
 def path_join(main_path: str, appendage: str) -> str:
+    """
+    Groovy implementation overcomplicated this - simply using urllib.parse to join two paths
+    Args:
+         main_path: str :: This is the body of the path that will be added to
+         appendage: str :: The end of the new path, ala a filename
+    Return: String
+    """
     # Undecided if it should join two paths or just a list of strings - for now, going the two paths route
     return url_helper.urljoin(main_path, appendage)
 
 
 def validate_s3_bucket_endpoints(json: dict, bucket_name: str) -> List:
+    """
+    Function will check to see if endpoints contained in the JSON data exist in the supplied bucket
+    Args:
+        json: dict :: This is the data, for example latest.json, that contains S3 endpoints for validating
+        bucket_name: str :: The name of the bucket in which to search for the endpoints
+    Return: List
+    """
     # check to see if the bucket exists
-    bad_links = []
+    bad_paths = []
     try:
         bucket_exists = _client.head_bucket(Bucket=f"{bucket_name}")
         if bucket_exists:
@@ -221,24 +234,34 @@ def validate_s3_bucket_endpoints(json: dict, bucket_name: str) -> List:
             for key in json_data:
                 if json_data[key].startswith('https://'):
                     path = re.sub(r'^https:\/\/.*\/ironbank-pipeline-artifacts\/', '', path)
-                    if not _s3_object_exists(key, path):
-                        bad_links.append({str(key): str(path)})
-            if len(bad_links) > 0:
+                    if not _s3_object_exists(path):
+                        print(f"Error validating {S3_REPORT_BUCKET} S3 element {key} at the following path: {path}")
+                        bad_paths.append({str(key): str(path)})
+            if len(bad_paths) > 0:
                 print("Either elements do not exist in the S3 or the documented path is wrong")
-                print(*bad_links, sep="\n")
+                print(*bad_paths, sep="\n")
+                return bad_paths
+            # Will return an empty list if no bad paths are found
+            else:
+                return bad_paths
 
     except botocore.exceptions.ClientError as e:
         print(f"There has been an error with locating the bucket: {bucket_name} - {e}")
 
 
-def _s3_object_exists(current_key, path: str) -> bool:
+def _s3_object_exists(path: str) -> bool:
+    """
+    This helper function will check to see if the path exists in the bucket
+    Args:
+        path: str :: The path being validated in the bucket
+    Return: Bool
+    """
     s3 = boto3.resource('s3')
     bucket = s3.bucket(S3_REPORT_BUCKET)
     bucket_objects = list(bucket.objects.filter(prefix=path))
     if len(bucket_objects) > 0 and bucket_objects[0].key == path:
         return True
     else:
-        print(f"Error validating {S3_REPORT_BUCKET} S3 element {current_key} at the following path: {path}")
         return False
 
 def validate_aws_region(region: str) -> bool:

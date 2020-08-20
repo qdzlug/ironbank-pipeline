@@ -15,11 +15,13 @@ def findFile():
 
     return os.path.abspath(result.split('\n')[0])
 
+
 def fileExists():
-    return findFile().
+    return findFile()
+
 
 def main():
-
+    fileExists()
 
 if __name__ == "__main__":
     main()
