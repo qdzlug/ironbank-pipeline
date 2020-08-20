@@ -26,3 +26,6 @@ stages:
   - publish
   # VAT stage (runs on dev)
   - vat
+
+include:
+  - local: jobs/preprocess/load-scripts.yaml
