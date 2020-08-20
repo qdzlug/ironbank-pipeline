@@ -1,2 +1,2 @@
 include:
-  - local: templates/globals.yml
+  - local: templates/globals.yaml
