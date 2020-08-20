@@ -1,2 +1,5 @@
 include:
   - local: templates/globals.yaml
+
+variables:
+  PIPELINE_TEMPLATES_REPO_DIR: ${ARTIFACT_FOLDER}/pipeline_templates
