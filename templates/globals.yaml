@@ -1,4 +1,7 @@
 stages:
+  # preprocess stage
+  # clone down the templates directory for use in later stages
+  - preprocess
   # preflight stage
   # check folder structure, check build variables
   - preflight
