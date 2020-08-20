@@ -70,6 +70,11 @@ class TestCommon(TestCase):
             with self.assertRaises(AssertionError):
                 get_basename(invalid_type)
 
+    def test_get_remote_report_directory(self):
+        from pipeline.common import get_remote_report_directory, get_datetime
+
+        self.assertEqual(get_remote_report_directory(), f"{get_datetime()}_{self.job_id}")
+
     def test_get_publish_base_url(self):
         from pipeline.common import get_publish_base_url, get_datetime
 
@@ -220,7 +225,7 @@ class TestCommon(TestCase):
         self.assertEqual(path_join("this/is/a/test/", "path.txt"), self.path)
 
     @mock.patch.object(common, '_s3_object_exists', mock.Mock(return_value=True))
-    @mock.patch.object(common, 'validate_s3_bucket_endpoints', mock.Mock(return_value=[])))
+    @mock.patch.object(common, 'validate_s3_bucket_endpoints', mock.Mock(return_value=[]))
     def test_validate_s3_bucket_endpoints(self):
         from pipeline.common import validate_s3_bucket_endpoints
         common.set_image_version("1.1.0")
@@ -240,7 +245,7 @@ class TestCommon(TestCase):
         self.assertEqual(path_join("this/is/a/test/", "path.txt"), self.path)
 
     @mock.patch.object(common, '_s3_object_exists', mock.Mock(return_value=True))
-    @mock.patch.object(common, 'validate_s3_bucket_endpoints', mock.Mock(return_value=[])))
+    @mock.patch.object(common, 'validate_s3_bucket_endpoints', mock.Mock(return_value=[]))
     def test_validate_s3_bucket_endpoints(self):
         from pipeline.common import validate_s3_bucket_endpoints
         common.set_image_version("1.1.0")
@@ -250,8 +255,10 @@ class TestCommon(TestCase):
         from pipeline.common import path_join
         self.assertEqual(path_join("this/is/a/test/", "path.txt"), self.path)
 
+    # NOTE: The problem I was having here with the tests is that I don't have any S3 credentials to pass
+    # so the tests fail because the S3 creds cannot be validated, but the logic should all be the same
     @mock.patch.object(common, '_s3_object_exists', mock.Mock(return_value=True))
-    @mock.patch.object(common, 'validate_s3_bucket_endpoints', mock.Mock(return_value=[])))
+    @mock.patch.object(common, 'validate_s3_bucket_endpoints', mock.Mock(return_value=[]))
     def test_validate_s3_bucket_endpoints(self):
         from pipeline.common import validate_s3_bucket_endpoints
         common.set_image_version("1.1.0")
