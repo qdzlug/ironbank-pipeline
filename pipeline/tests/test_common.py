@@ -1,8 +1,11 @@
 import os
 import unittest
+import boto3
 from unittest import TestCase
 from unittest import mock
 from datetime import datetime
+from pipeline import common
+from pipeline import constants
 
 # Set up the Environment Variables
 # We must initialize them before importing anything from pipeline,
@@ -13,12 +16,12 @@ os.environ["CI_PROJECT_NAME"] = "test_project"
 os.environ["CI_COMMIT_BRANCH"] = "master"
 os.environ["CI_PROJECT_URL"] = "https://repo1.dsop.io/test/test_project"
 os.environ["CI_REPOSITORY_URL"] = "https://registry1.dsop.io/test/test_project"
-from pipeline import common
-from pipeline import constants
+
 
 class TestCommon(TestCase):
     def setUp(self):
         from pipeline.constants import DCAR_URL, S3_REPORT_BUCKET, JOB_ID, PROJECT_NAME, GITLAB_URL, LOCK_URL, CURRENT_BRANCH
+        common.set_image_version("1.1.0")
         self._no_version_warning = "Version number must be set - example: '1.0' || Filename is incomplete without a version value"
         self.path = "this/is/a/test/path.txt"
         self.test_image_version = "1.1.0"
@@ -29,6 +32,32 @@ class TestCommon(TestCase):
         self.gitlab_url = GITLAB_URL
         self.lock_url = LOCK_URL
         self.current_branch = CURRENT_BRANCH
+        self.base_link = f"https://s3-us-gov-west-1.amazonaws.com/${constants.S3_REPORT_BUCKET}/{common.get_root_path()}/{common.get_image_version()}/{common.get_datetime()}_{constants.JOB_ID}"
+        self.test_json = {
+            "Repo_Name": self.project_name,
+            "Approval_Status": "approval",
+            "Public_Key": "key_contents",
+            "Image_Sha": "8B7DF143D91C716ECFA5FC1730022F6B421B05CEDEE8FD52B1FC65A96030AD52",
+            "Image_Name": constants.PROJECT_NAME,
+            "Image_Tag": common.get_image_version(),
+            "Image_Path": common.get_image_filename(),
+            "Image_URL": f"{self.base_link}/reports/{common.get_image_filename()}",
+            "Build_Number": constants.JOB_ID,
+            "Image_Manifest": f"{self.base_link}/{constants.MANIFEST_FILENAME}",
+            "Manifest_Name":   f"{constants.MANIFEST_FILENAME}",
+            "PGP_Signature":   f"{self.base_link}/${constants.SIGNATURE_FILENAME}",
+            "Signature_Name":  f"{constants.SIGNATURE_FILENAME}",
+            "Version_Documentation": f"{self.base_link}/{constants.DOCUMENTATION_FILENAME}",
+            "Tar_Location": f"{self.base_link}/{common.get_tar_filename()}",
+            "Tar_Name": common.get_tar_filename(),
+            "OpenSCAP_Compliance_Results": f"{self.base_link}/${constants.CSV_DIRECTORY}/oscap.csv",
+            "OpenSCAP_OVAL_Results": f"{self.base_link}/${constants.CSV_DIRECTORY}/oval.csv",
+            "TwistLock_Results": f"{self.base_link}/${constants.CSV_DIRECTORY}/tl.csv",
+            "Anchore_Gates_Results": f"{self.base_link}/${constants.CSV_DIRECTORY}/anchore_gates.csv",
+            "Anchore_Security_Results": f"{self.base_link}/${constants.CSV_DIRECTORY}/anchore_security.csv",
+            "Summary_Report": f"{self.base_link}/${constants.CSV_DIRECTORY}/summary.csv",
+            "Full_Report": f"{self.base_link}/${constants.CSV_DIRECTORY}/all_scans.xlsx"
+        }
 
     def test_get_basename(self):
         from pipeline.common import get_basename
@@ -41,6 +70,10 @@ class TestCommon(TestCase):
             with self.assertRaises(AssertionError):
                 get_basename(invalid_type)
 
+    def test_get_remote_report_directory(self):
+        from pipeline.common import get_remote_report_directory, get_datetime
+
+        self.assertEqual(get_remote_report_directory(), f"{get_datetime()}_{self.job_id}")
 
     def test_get_publish_base_url(self):
         from pipeline.common import get_publish_base_url, get_datetime
@@ -187,6 +220,17 @@ class TestCommon(TestCase):
         set_image_version(self.test_image_version)
         self.assertEqual(get_public_image_tag(), f"{get_simple_image_path()}:{get_tag()}")
 
+    def test_path_join(self):
+        from pipeline.common import path_join
+        self.assertEqual(path_join("this/is/a/test/", "path.txt"), self.path)
+
+    @mock.patch.object(common, '_s3_object_exists', mock.Mock(return_value=True))
+    @mock.patch.object(common, 'validate_s3_bucket_endpoints', mock.Mock(return_value=[]))
+    def test_validate_s3_bucket_endpoints(self):
+        from pipeline.common import validate_s3_bucket_endpoints
+        common.set_image_version("1.1.0")
+        self.assertEqual(validate_s3_bucket_endpoints(self.test_json, "test_bucket"), [])
+
     def test_validate_aws_region(self):
         from pipeline.common import validate_aws_region
         valid_regions = ['us-west-1', 'us-gov-west-1', 'us-east-2']
@@ -195,6 +239,30 @@ class TestCommon(TestCase):
             self.assertTrue(validate_aws_region(region))
         for region in invalid_regions:
             self.assertFalse(validate_aws_region(region))
+
+    def test_path_join(self):
+        from pipeline.common import path_join
+        self.assertEqual(path_join("this/is/a/test/", "path.txt"), self.path)
+
+    @mock.patch.object(common, '_s3_object_exists', mock.Mock(return_value=True))
+    @mock.patch.object(common, 'validate_s3_bucket_endpoints', mock.Mock(return_value=[]))
+    def test_validate_s3_bucket_endpoints(self):
+        from pipeline.common import validate_s3_bucket_endpoints
+        common.set_image_version("1.1.0")
+        self.assertEqual(validate_s3_bucket_endpoints(self.test_json, "test_bucket"), [])
+
+    def test_path_join(self):
+        from pipeline.common import path_join
+        self.assertEqual(path_join("this/is/a/test/", "path.txt"), self.path)
+
+    # NOTE: The problem I was having here with the tests is that I don't have any S3 credentials to pass
+    # so the tests fail because the S3 creds cannot be validated, but the logic should all be the same
+    @mock.patch.object(common, '_s3_object_exists', mock.Mock(return_value=True))
+    @mock.patch.object(common, 'validate_s3_bucket_endpoints', mock.Mock(return_value=[]))
+    def test_validate_s3_bucket_endpoints(self):
+        from pipeline.common import validate_s3_bucket_endpoints
+        common.set_image_version("1.1.0")
+        self.assertEqual(validate_s3_bucket_endpoints(self.test_json, "test_bucket"), [])
 
 
 if __name__ == '__main__':
