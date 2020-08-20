@@ -240,3 +240,12 @@ def _s3_object_exists(current_key, path: str) -> bool:
     else:
         print(f"Error validating {S3_REPORT_BUCKET} S3 element {current_key} at the following path: {path}")
         return False
+
+def validate_aws_region(region: str) -> bool:
+    """
+    Use regular expression to ensure AWS region is a valid string
+    :param region: region from resource
+    :return: Bool (true if valid, false if not)
+    """
+    r = re.compile(r'(us(-gov)?|ap|ca|cn|eu|me|sa)-(north|south|east|west|central){1,2}-[1-9]')
+    return bool(r.search(region))
