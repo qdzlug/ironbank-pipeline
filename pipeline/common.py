@@ -1,4 +1,4 @@
-import os
+import re
 from datetime import datetime
 
 from .constants import CURRENT_BRANCH, GITLAB_URL, S3_REPORT_BUCKET, JOB_ID, PROJECT_NAME, LOCK_URL, DCAR_URL
@@ -194,3 +194,12 @@ def get_public_image_tag() -> str:
     Return: String
     """
     return f"{get_simple_image_path()}:{get_tag()}"
+
+def validate_aws_region(region: str) -> bool:
+    """
+    Use regular expression to ensure AWS region is a valid string
+    :param region: region from resource
+    :return: Bool (true if valid, false if not)
+    """
+    r = re.compile(r'(us(-gov)?|ap|ca|cn|eu|me|sa)-(north|south|east|west|central){1,2}-[1-9]')
+    return bool(r.search(region))

@@ -187,6 +187,15 @@ class TestCommon(TestCase):
         set_image_version(self.test_image_version)
         self.assertEqual(get_public_image_tag(), f"{get_simple_image_path()}:{get_tag()}")
 
+    def test_validate_aws_region(self):
+        from pipeline.common import validate_aws_region
+        valid_regions = ['us-west-1', 'us-gov-west-1', 'us-east-2']
+        invalid_regions = ['mother-dearest', 'this_is_wrong', 'inVaLiD.Char\\s']
+        for region in valid_regions:
+            self.assertTrue(validate_aws_region(region))
+        for region in invalid_regions:
+            self.assertFalse(validate_aws_region(region))
+
 
 if __name__ == '__main__':
     unittest.main()
