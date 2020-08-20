@@ -1,5 +1,12 @@
 # ironbank-pipeline
 
+## Dependencies
+
+Install Python dependencies with the following command:
+```
+pip install -r requirements.txt
+```
+
 ## Running Tests
 
 The Python `nose` package is used for finding, running, and assessing the coverage of the unit tests.
