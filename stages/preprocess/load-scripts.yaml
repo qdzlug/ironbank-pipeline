@@ -8,7 +8,7 @@ load scripts:
   image: ${REGISTRY_URL}/redhat/ubi/ubi8:8.2
   cache: {}
   script:
-    - dnf install -y git
+    # - dnf install -y git
     # May need to include validation here for auth clone
     - mkdir -p $"{PIPELINE_REPO_DIR}"
     - git clone -q --depth 50 "https://repo1.dsop.io/dsop/ironbank-pipeline.git" "${PIPELINE_REPO_DIR}"
