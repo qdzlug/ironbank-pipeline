@@ -5,7 +5,7 @@ include:
 load scripts:
   stage: preprocess
   extends: .preprocess
-  image: ${registry_url}/gitlab/gitlab-runner:latest
+  image: ${registry_url}/gitlab/gitlab-runner/gitlab-runner:latest
   cache: {}
   script:
     # May need to include validation here for auth clone
