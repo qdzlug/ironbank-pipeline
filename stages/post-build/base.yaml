@@ -1,0 +1,27 @@
+.post-build:
+  stage: post-build
+  allow_failure: true
+  image: ${DOCKER_REGISTRY_URL}/platform/docker-git-bash:stable
+  services:
+    - name: docker:dind
+  before_script:
+    - apk add tar
+    - docker pull tquinnelly/clamav-alpine:latest
+    - mkdir ${CI_PROJECT_DIR}/imagefs
+  script:
+    - tar -xvf ${CI_PROJECT_DIR}/pipeline-artifacts/ubi7-${CI_COMMIT_SHA}.tar -C ${CI_PROJECT_DIR}/imagefs
+    - docker run -v ${CI_PROJECT_DIR}/imagefs:/scan:ro tquinnelly/clamav-alpine:latest | tee ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-container.txt
+    - INFECTED_CONTAINER_FILES=$(grep -e "^Infected files:" ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-container.txt | cut -d ' ' -f3)
+    - |
+      if [ ${INFECTED_CONTAINER_FILES} -gt 0 ]
+      then
+        echo Malware detected in container! Number of findings: ${INFECTED_CONTAINER_FILES}
+        exit 1
+      fi
+  after_script:
+    - rm -rf ${CI_PROJECT_DIR}/imagefs
+    - docker image rm -f tquinnelly/clamav-alpine:latest
+  artifacts:
+    when: always
+    paths:
+      - ${CI_PROJECT_DIR}/pipeline-artifacts/
