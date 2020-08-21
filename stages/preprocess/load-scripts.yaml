@@ -5,7 +5,7 @@ include:
 load scripts:
   extends: .preprocess
   #  following image is a placeholder, reference to the gl runner we will use for testing
-  image: ${REGISTRY_URL}/opensource/kubernetes-1.18/kubectl-1.18:latest
+  image: ${REGISTRY_URL}/redhat/ubi8/ubi8:8.2
   cache: {}
   script:
     - dnf install -y git
