@@ -1,7 +1,7 @@
 stages:
   # preprocess stage
   # clone down the templates directory for use in later stages
-  # - preprocess
+  - preprocess
   # preflight stage
   # check folder structure, check build variables
   - preflight
@@ -31,5 +31,4 @@ stages:
   - vat
 
 include:
-#   - local: stages/preprocess/load-scripts.yaml
-    - local: stages/preprocess/base.yaml
+  - local: stages/preprocess/load-scripts.yaml
