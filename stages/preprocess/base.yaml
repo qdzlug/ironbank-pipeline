@@ -1,5 +1,5 @@
 .preprocess:
-  stage: .pre
+  stage: preprocess
   allow_failure: false
   except:
     refs:
