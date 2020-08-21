@@ -10,7 +10,7 @@ load scripts:
   script:
     - dnf install -y git
     # May need to include validation here for auth clone
-    - git clone "https://repo1.dsop.io/dsop/ironbank-pipeline.git" "${PIPELINE_REPO_DIR}"
+    - git clone -q --depth 50 "https://repo1.dsop.io/dsop/ironbank-pipeline.git" "${PIPELINE_REPO_DIR}"
     # - git clone https://${CI_BUILD_TOKEN}@gitlab.repo1.dsop.io/dsop/ironbank-pipeline.git
     - rm -rf ${PIPELINE_REPO_DIR}/.git
   artifacts:
