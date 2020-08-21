@@ -5,7 +5,7 @@ include:
 load scripts:
   extends: .preprocess
   #  following image is a placeholder, reference to the gl runner we will use for testing
-  # image: ${registry_url}/gitlab/gitlab-runner/gitlab-runner:latest
+  image: ${registry_url}/gitlab/gitlab-runner/gitlab-runner:latest
   cache: {}
   script:
     # May need to include validation here for auth clone
