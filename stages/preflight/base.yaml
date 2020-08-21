@@ -19,6 +19,7 @@ folder structure:
 
 # TODO: Check the following (among others):
 # base image vars??
+# OPTIONAL FOR BETA PIPELINE
 build variables:
   extends: preflight
   allow_failure: true
