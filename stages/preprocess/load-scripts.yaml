@@ -9,6 +9,7 @@ load scripts:
   cache: {}
   script:
     # May need to include validation here for auth clone
+    - dnf install -y git
     - git clone -q --depth 1 "https://repo1.dsop.io/dsop/ironbank-pipeline.git" "${PIPELINE_REPO_DIR}"
     # - git clone https://${CI_BUILD_TOKEN}@gitlab.repo1.dsop.io/dsop/ironbank-pipeline.git
     - rm -rf ${PIPELINE_REPO_DIR}/.git
