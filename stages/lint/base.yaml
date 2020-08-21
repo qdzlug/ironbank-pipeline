@@ -8,24 +8,27 @@
     paths:
       - ${CI_PROJECT_DIR}/pipeline-artifacts/
 
+# OPTIONAL FOR BETA PIPELINE
 yaml lint:
   extends: .lint
+  # the hardened image we have access to comes with pip installed
+  image: ${registry_url}/redhat/python/python36:pipeline
   before_script:
-    - apt-get update
-    - apt-get install -y python-pip
-    - pip install yamllint
+    - pip3 install --upgrade pip
+    - pip3 install yamllint
     - mkdir -p ${CI_PROJECT_DIR}/pipeline-artifacts/
+  # TODO: get more insight into following commands and intention
   script:
     - yamllint -c ${CI_PROJECT_DIR}/tests/yamllint.yaml ${CI_PROJECT_DIR}/tests/hadolint.yaml | tee ${CI_PROJECT_DIR}/pipeline-artifacts/lint-yaml.txt
     - yamllint -c ${CI_PROJECT_DIR}/tests/yamllint.yaml ${CI_PROJECT_DIR}/tests/container-structure-test.yaml | tee ${CI_PROJECT_DIR}/pipeline-artifacts/lint-yaml.txt
 
+# OPTIONAL FOR BETA PIPELINE
 dockerfile lint:
   extends: .lint
   before_script:
-    - apt-get update
-    - apt-get install -y curl
-    - curl -L https://github.com/hadolint/hadolint/releases/download/v1.17.5/hadolint-Linux-x86_64 -o /usr/local/bin/hadolint
-    - chmod +x /usr/local/bin/hadolint
+    # https://hub.docker.com/r/hadolint/hadolint/dockerfile
+    - docker pull hadolint/hadolint
+    - chmod +x /bin/hadolint
     - mkdir -p ${CI_PROJECT_DIR}/pipeline-artifacts
   script:
     - hadolint ${CI_PROJECT_DIR}/Dockerfile | tee ${CI_PROJECT_DIR}/pipeline-artifacts/lint-dockerfile.txt
@@ -36,4 +39,4 @@ wl compare lint:
     # The following step assumes contributor projects have an environment variable set for the image version 
     # in the gitlab-ci.yml file.
     # TODO: output the error for unsuccessful runs
-    - python3 /pipeline/resources/wl_compare_lint.py --image ${CI_PROJECT_PATH} --tag ${IMG_VERSION}
+    - python3 ${PIPELINE_REPO_DIR}/stages/lint/wl_compare_lint.py --image ${CI_PROJECT_PATH} --tag ${IMG_VERSION}
