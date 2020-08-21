@@ -3,8 +3,9 @@ include:
 
 # clone templates repo as an artifact so it can be used with other jobs
 load scripts:
-  stage: preprocess
+  # stage: preprocess
   extends: .preprocess
+  #  following image is a placeholder, reference to the gl runner we will use for testing
   image: ${registry_url}/gitlab/gitlab-runner/gitlab-runner:latest
   cache: {}
   script:
