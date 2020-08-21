@@ -5,7 +5,7 @@ include:
 load scripts:
   extends: .preprocess
   #  following image is a placeholder, reference to the gl runner we will use for testing
-  image: ${REGISTRY_URL}/opensource/kubernetes-1.18/kubectl:latest
+  image: ${REGISTRY_URL}/opensource/kubernetes-1.18/kubectl-1.18:latest
   cache: {}
   script:
     # May need to include validation here for auth clone
