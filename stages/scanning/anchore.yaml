@@ -2,13 +2,24 @@
   stage: scanning
   allow_failure: false
 
-anchore scan:
-  extends: .anchore scan
-  image: anchore/engine-cli:v0.5.0
-  variables:
-    ANCHORE_CLI_URL: ${ANCHORE_CLI_URL}
-    ANCHORE_CLI_USER: ${ANCHORE_CLI_USER}
-    ANCHORE_CLI_PASS: ${ANCHORE_CLI_PASS}
-    ANCHORE_CLI_SSL_VERIFY: "false"
-    ANCHORE_TIMEOUT: ${ANCHORE_TIMEOUT}
-    ANCHORE_FAIL_ON_POLICY: "false"
+# following code block borrowed from spacecamp as reference if needed
+# anchore scan:
+#   extends: .anchore scan
+#   image: anchore/engine-cli:v0.5.0
+#   variables:
+#     ANCHORE_CLI_URL: ${ANCHORE_CLI_URL}
+#     ANCHORE_CLI_USER: ${ANCHORE_CLI_USER}
+#     ANCHORE_CLI_PASS: ${ANCHORE_CLI_PASS}
+#     ANCHORE_CLI_SSL_VERIFY: "false"
+#     ANCHORE_TIMEOUT: ${ANCHORE_TIMEOUT}
+#     ANCHORE_FAIL_ON_POLICY: "false"
+
+#  steps
+
+#  retrieve current anchore version as needed
+
+# add image to anchore cli, authenticate with creds
+
+# use pipeline_anchore_vuln_report_gen.py to generatr anchore report
+
+# archive artifacts as needed (such as anchore version text file - i.e. the stuff used by VAT and IBFE)

@@ -1,0 +1,9 @@
+# utilize python image
+
+# point to the Twistlock server address
+
+# use twistlock credentials to authenticate
+
+# using the prisma_scan.py file, query the Twistlock server and provide the image of interest and capture scan results
+
+# pass along Twistlock scan results to later stages to publish
