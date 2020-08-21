@@ -1,6 +1,5 @@
 include:
   - local: templates/globals.yaml
-# stages:
-#   - preflight
+
 variables:
   PIPELINE_TEMPLATES_REPO_DIR: ${ARTIFACT_FOLDER}/templates

@@ -8,14 +8,17 @@ folder structure:
   extends: preflight
   allow_failure: true
   script:
-    - ls -l accreditation
-    - ls -l scripts
     - ls -l README.md
     - ls -l Dockerfile
     - ls -l LICENSE
+    - ls -l download.yaml
+    - ls -l scripts
+    - ls -l signatures
+    - ls -l config
+    - ls -l accreditation
 
 # TODO: Check the following (among others):
-# base image vars
+# base image vars??
 build variables:
   extends: preflight
   allow_failure: true

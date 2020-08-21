@@ -35,13 +35,25 @@ There were a lot of "common" functions in Arguments.groovy and the corresponding
 
 ## Pipeline stages
 
+#### preprocess
+
+This stage is used to clone the `ironbank-pipeline` repository from GitLab so that the templates/stages contained within the project can be utilized in later pipeline stages.
+
 #### preflight
 
 The `preflight` stage performs two functions:
-    - displaying the folder structure for the project which is running through the Container Hardening pipeline.
-    - testing/checking the build variables exist.
+    - displaying the folder structure for the project which is running through the Container Hardening pipeline. The `folder structure` job will check for the existence of the following files and/or directories within the project which is being run through the pipeline:
+        - README (required file)
+        - Dockerfile (required file)
+        - LICENSE (required file)
+        - download.yaml (file, not always required)
+        - scripts (directory, not always required)
+        - signatures (directory, not always required)
+        - config (directory, not always required)
+        - accreditation (directory, not always required)
+    - testing/checking the build variables exist using the `build variables` job.
 
-The preflight stage is currently set to allow failures.
+The preflight stage is currently set to allow failures because the `folder structure` job is listing some optional files/directories
 
 #### lint
 
