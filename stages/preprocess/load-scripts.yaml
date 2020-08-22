@@ -10,7 +10,7 @@ load scripts:
   script:
     - mkdir -p $"{PIPELINE_REPO_DIR}"
     - git clone -q --depth 1 "https://repo1.dsop.io/dsop/ironbank-pipeline.git" $"{PIPELINE_REPO_DIR}"
-    - rm -rf ${PIPELINE_REPO_DIR}/.git
+    # - rm -rf ${PIPELINE_REPO_DIR}/.git
   artifacts:
     expire_in: 1 day
     paths:
