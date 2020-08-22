@@ -1,3 +1,13 @@
+version validation:
+  stage: preprocess
+  cache: {}
+  script:
+    - |
+      if [ -z "$IMG_VERSION" ]; then
+        echo "Missing IMG_VERSION variable"
+        exit 1
+      fi
+
 preflight:
   stage: preflight
   allow_failure: true
