@@ -8,14 +8,14 @@
 #         exit 1
 #       fi
 
-.preflight:
-  stage: preflight
+preflight:
+  stage: .preflight
   allow_failure: true
 
 # TODO: implement check for Dockerfile, LICENSE, and README
 # Possibly check for deployment files?
 folder structure:
-  extends: preflight
+  extends: .preflight
   allow_failure: true
   script:
     - ls -l README.md
