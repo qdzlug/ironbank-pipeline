@@ -8,7 +8,7 @@
 #         exit 1
 #       fi
 
-preflight:
+.preflight:
   stage: preflight
   allow_failure: true
 
