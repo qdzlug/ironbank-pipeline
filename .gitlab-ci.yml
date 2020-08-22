@@ -3,4 +3,5 @@ include:
 
 variables:
   # Need some work and verification done on following var
+  ARTIFACT_FOLDER: "ci_artifacts"
   PIPELINE_REPO_DIR: ${ARTIFACT_FOLDER}/templates
