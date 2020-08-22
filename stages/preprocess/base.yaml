@@ -1,4 +1,4 @@
-preprocess:
+.preprocess:
   stage: preprocess
   allow_failure: false
   except:
