@@ -3,7 +3,7 @@ include:
 
 # clone templates repo as an artifact so it can be used with other jobs
 load scripts:
-  extends: .preprocess
+  extends: preprocess
   image: ${REGISTRY_URL}/gitlab/gitlab-runner/gitlab-runner:v13.2.2
   cache: {}
   script:
