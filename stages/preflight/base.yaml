@@ -1,4 +1,4 @@
-.preflight:
+preflight:
   stage: preflight
   allow_failure: true
 
