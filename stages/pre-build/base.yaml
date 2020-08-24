@@ -2,8 +2,8 @@
   stage: pre-build
   allow_failure: true
 
-import artifacts:
-  extends: pre-build
+.import_artifacts:
+  extends: .pre-build
   # Arguments.get().download is used to get download items
   # dccscrImport() calls ContributorResource, which performs validation of download.yaml file
   # image: 
@@ -28,8 +28,8 @@ import artifacts:
     paths:
       - ${CI_PROJECT_DIR}/pipeline-artifacts/
 
-image signature:
-  extends: pre-build
+image_signature:
+  extends: .import_artifacts
   allow_failure: true
   image: ${DOCKER_REGISTRY_URL}/platform/docker-git-bash:stable
   services:
