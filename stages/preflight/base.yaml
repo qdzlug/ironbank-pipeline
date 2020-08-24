@@ -12,7 +12,7 @@ folder_structure:
     - ls -l README.md
     - ls -l Dockerfile
     - ls -l LICENSE
-    - ls -l download.yaml || exit 0
+    - ls -l download.yaml || echo "No download.yaml found"
     - ls -l scripts
     - ls -l signatures
     - ls -l config
