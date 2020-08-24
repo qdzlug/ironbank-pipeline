@@ -59,3 +59,4 @@ include:
 variables:
   ARTIFACT_FOLDER: "ci_artifacts"
   PIPELINE_REPO_DIR: "${ARTIFACT_FOLDER}/ironbank_pipeline"
+  PYTHON_GITLAB_KEY: "${PYTHON_GITLAB_KEY}"

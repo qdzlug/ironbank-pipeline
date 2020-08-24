@@ -19,7 +19,7 @@ yaml lint:
       - $YAML_LINT_DISABLED
   before_script:
     - pip3 install --upgrade pip
-    - pip3 install yamllint gitlab
+    - pip3 install yamllint
     - mkdir -p ${CI_PROJECT_DIR}/pipeline-artifacts/
   # TODO: get more insight into following commands and intention
   script:
