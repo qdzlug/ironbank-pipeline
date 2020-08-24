@@ -13,10 +13,10 @@ folder_structure:
     - ls -l Dockerfile
     - ls -l LICENSE
     - ls -l download.yaml || echo "No download.yaml found"
-    - ls -l scripts
-    - ls -l signatures
-    - ls -l config
-    - ls -l accreditation
+    - ls -l scripts || echo "No download.yaml found"
+    - ls -l signatures || echo "No download.yaml found"
+    - ls -l config || echo "No download.yaml found"
+    - ls -l accreditation || echo "No download.yaml found"
 
 # TODO: Check the following (among others):
 # base image vars??
