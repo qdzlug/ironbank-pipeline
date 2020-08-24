@@ -31,7 +31,7 @@
 image_signature:
   extends: .import_artifacts
   allow_failure: true
-  image: ${DOCKER_REGISTRY_URL}/platform/docker-git-bash:stable
+  image: ${GITLAB_INTERNAL_REGISTRY}/platform/docker-git-bash:stable
   services:
     - name: docker:dind
   before_script:
