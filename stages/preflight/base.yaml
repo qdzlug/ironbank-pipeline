@@ -1,20 +1,11 @@
-# version validation:
-#   stage: preprocess
-#   cache: {}
-#   script:
-#     - |
-#       if [ -z "$IMG_VERSION" ]; then
-#         echo "Missing IMG_VERSION variable"
-#         exit 1
-#       fi
-
 .preflight:
   stage: preflight
+  image: ${REGISTRY_URL}/gitlab/gitlab-runner/gitlab-runner:v13.2.2
   allow_failure: true
+  
 
-# TODO: implement check for Dockerfile, LICENSE, and README
-# Possibly check for deployment files?
-.folder_structure:
+# TODO: Possibly check for deployment files?
+folder_structure:
   extends: .preflight
   allow_failure: true
   script:
@@ -31,7 +22,7 @@
 # base image vars??
 # OPTIONAL FOR BETA PIPELINE
 build variables:
-  extends: .folder_structure
+  extends: folder_structure
   allow_failure: true
   script:
     - |
