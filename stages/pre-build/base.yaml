@@ -6,13 +6,14 @@
   extends: .pre-build
   # Arguments.get().download is used to get download items
   # dccscrImport() calls ContributorResource, which performs validation of download.yaml file
-  # image: 
+  image: image-registry.openshift-image-registry.svc:5000/jenkins/jenkins-oscap-agent:1.1
   before_script:
     - mkdir ${CI_PROJECT_DIR}/pipeline-artifacts/application-artifacts
-    - sudo pip3 install pyyaml --upgrade
-    - docker pull ${GITLAB_INTERNAL_REGISTRY}/tquinnelly/clamav-alpine:latest
+    # - sudo pip3 install pyyaml --upgrade
+    - echo ${GITLAB_INTERNAL_REGISTRY}
+    - docker pull ${GITLAB_INTERNAL_REGISTRY}/clamav:0.102.4
   script:
-    - python3 ${CI_PROJECT_DIR}/custom-scripts/downloader/downloader.py -i ${CI_PROJECT_DIR}/custom-scripts/downloader/download.yaml -d ${CI_PROJECT_DIR}/pipeline-artifacts/application-artifacts
+    - python3 "${PIPELINE_REPO_DIR}/stages/pre-build/downloader.py" -i ${CI_PROJECT_DIR}/download.yaml -d ${CI_PROJECT_DIR}/pipeline-artifacts/application-artifacts
     - docker run -v ${CI_PROJECT_DIR}/pipeline-artifacts/application-artifacts:/scan:ro ${GITLAB_INTERNAL_REGISTRY}/tquinnelly/clamav-alpine:latest | tee ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-artifacts.txt
     - INFECTED_ARTIFACT_FILES=$(grep -e "^Infected files:" ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-artifacts.txt | cut -d ' ' -f3)
     - |
