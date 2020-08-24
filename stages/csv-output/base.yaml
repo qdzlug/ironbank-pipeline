@@ -1,0 +1,3 @@
+.csv-output:
+  stage: csv-output
+  allow_failure: true
