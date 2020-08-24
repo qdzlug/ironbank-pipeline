@@ -1,7 +1,8 @@
 .preflight:
   stage: preflight
-  allow_failure: true
   image: ${REGISTRY_URL}/gitlab/gitlab-runner/gitlab-runner:v13.2.2
+  allow_failure: true
+  
 
 # TODO: Possibly check for deployment files?
 folder_structure:
