@@ -34,5 +34,4 @@ include:
   - local: stages/preprocess/load-scripts.yaml
 #   - local: stages/preprocess/base.yaml
 
-image: ${REGISTRY_URL}/gitlab/gitlab-runner/gitlab-runner:v13.2.2t
-
+image: ${REGISTRY_URL}/gitlab/gitlab-runner/gitlab-runner:v13.2.2
