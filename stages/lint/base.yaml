@@ -12,7 +12,7 @@
 yaml lint:
   extends: .lint
   # the hardened image we have access to comes with pip installed
-  image: ${registry_url}/redhat/python/python36:latest
+  image: ${REGISTRY_URL}/redhat/python/python36:latest
   before_script:
     - pip3 install --upgrade pip
     - pip3 install yamllint
