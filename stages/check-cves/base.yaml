@@ -1,0 +1,3 @@
+.check-cves:
+  stage: check-cves
+  allow_failure: true
