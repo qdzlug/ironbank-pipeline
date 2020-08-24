@@ -13,4 +13,5 @@ load scripts:
   artifacts:
     expire_in: 1 day
     paths:
-      - ${PIPELINE_REPO_DIR}/
+      # - ${PIPELINE_REPO_DIR}/
+      - ./
