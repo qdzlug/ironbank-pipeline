@@ -35,10 +35,9 @@ dockerfile lint:
 
 wl compare lint:
   extends: .lint
-  # image: ${REGISTRY_URL}/redhat/python/python36:3.6
+  image: ${REGISTRY_URL}/redhat/python/python36:3.6
   script:
     # The following step assumes contributor projects have an environment variable set for the image version 
     # in the gitlab-ci.yml file.
     # TODO: output the error for unsuccessful runs
-    - docker pull ${REGISTRY_URL}/redhat/python/python36:3.6
     - python3 ${PIPELINE_REPO_DIR}/stages/lint/wl_compare_lint.py --image ${CI_PROJECT_PATH} --tag ${IMG_VERSION}
