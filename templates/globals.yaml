@@ -57,5 +57,5 @@ include:
 #   - local: stages/preprocess/base.yaml
 
 variables:
-  - ARTIFACT_FOLDER: ci_artifacts
-  - PIPELINE_REPO_DIR: ${ARTIFACT_FOLDER}/templates
+  ARTIFACT_FOLDER: ci_artifacts
+  PIPELINE_REPO_DIR: ${ARTIFACT_FOLDER}/templates
