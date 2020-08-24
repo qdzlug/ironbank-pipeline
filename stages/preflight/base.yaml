@@ -4,8 +4,9 @@
   image: ${REGISTRY_URL}/gitlab/gitlab-runner/gitlab-runner:v13.2.2
 
 # TODO: Possibly check for deployment files?
-.folder_structure:
-  extends: .preflight
+folder_structure:
+  # extends: .preflight
+  stage: preflight
   allow_failure: true
   script:
     - ls -l README.md
