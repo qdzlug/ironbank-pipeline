@@ -24,7 +24,7 @@ import_artifacts:
         exit 1
       fi
   after_script:
-    - docker image rm -f tquinnelly/clamav-alpine:latest
+    - podman image rm -f ${GITLAB_INTERNAL_REGISTRY}/clamav:0.102.4
   artifacts:
     when: always
     paths:
