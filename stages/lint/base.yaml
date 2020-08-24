@@ -13,7 +13,7 @@
 yaml lint:
   extends: .lint
   # the hardened image we have access to comes with pip installed
-  image: ${REGISTRY_URL}/redhat/python/python36:3.6
+  image: image-registry.openshift-image-registry.svc:5000/jenkins/jenkins-oscap-agent:1.1
   except:
     variables:
       - $YAML_LINT_DISABLED
