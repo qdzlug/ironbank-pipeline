@@ -42,7 +42,7 @@ dockerfile lint:
 
 wl compare lint:
   extends: .lint
-  image: ${REGISTRY_URL}/redhat/python/python36:3.6
+  image: image-registry.openshift-image-registry.svc:5000/jenkins/jenkins-oscap-agent:1.1
   dependencies:
     - load scripts
   script:
