@@ -12,12 +12,7 @@ folder_structure:
     - ls -l README.md
     - ls -l Dockerfile
     - ls -l LICENSE
-    - |
-      if [ ls -l download.yaml ]; then
-        echo "download.yaml not found"
-        exit 1
-      fi
-    - ls -l download.yaml
+    - ls -l download.yaml || exit 0
     - ls -l scripts
     - ls -l signatures
     - ls -l config
