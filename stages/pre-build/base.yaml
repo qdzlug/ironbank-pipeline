@@ -10,8 +10,7 @@ import_artifacts:
   image: image-registry.openshift-image-registry.svc:5000/jenkins/jenkins-oscap-agent:1.1
   before_script:
     - mkdir -p ${ARTIFACT_DIR}/pipeline-artifacts/application-artifacts
-    # - sudo pip3 install pyyaml --upgrade
-    - echo ${GITLAB_INTERNAL_REGISTRY}
+    - sudo pip3 install pyyaml --upgrade
     - podman pull ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav:0.102.4
   script:
     - python3 "${PIPELINE_REPO_DIR}/stages/pre-build/downloader.py" -i ${CI_PROJECT_DIR}/download.yaml -d ${CI_PROJECT_DIR}/pipeline-artifacts/application-artifacts
@@ -23,8 +22,8 @@ import_artifacts:
         echo Malware detected in vendor/customer artifacts! Number of findings: ${INFECTED_ARTIFACT_FILES}
         exit 1
       fi
-  after_script:
-    - podman image rm -f ${GITLAB_INTERNAL_REGISTRY}/clamav:0.102.4
+  # after_script:
+  #   - podman image rm -f ${GITLAB_INTERNAL_REGISTRY}/clamav:0.102.4
   artifacts:
     when: always
     paths:
