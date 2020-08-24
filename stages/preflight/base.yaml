@@ -5,7 +5,7 @@
 
 # TODO: implement check for Dockerfile, LICENSE, and README
 # Possibly check for deployment files?
-.folder_structure:
+folder_structure:
   extends: .preflight
   allow_failure: true
   script:
