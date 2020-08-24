@@ -14,7 +14,7 @@
 
 # TODO: implement check for Dockerfile, LICENSE, and README
 # Possibly check for deployment files?
-folder structure:
+.folder_structure:
   extends: .preflight
   allow_failure: true
   script:
@@ -31,7 +31,7 @@ folder structure:
 # base image vars??
 # OPTIONAL FOR BETA PIPELINE
 build variables:
-  extends: preflight
+  extends: .folder_structure
   allow_failure: true
   script:
     - echo testing for VAR_NAME
