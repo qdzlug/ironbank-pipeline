@@ -20,24 +20,36 @@ stages:
 
   ### pre-build stage
   # download artifacts/clamav scan, image signature?
+  # Requirements:
+  # - executor image with Python 3.x installed
+  # - executor image with docker (or podman) installed
   - pre-build
-  # build stage
+  
+  ### build stage
   # build image w version tag and create tar file
+  # Requirements:
+  # - executor image with buildah installed
   - build
-  # post-build stage
+
+  ### post-build stage
   # clamav scan of the image
   - post-build
-  # scanning stage
+  
+  ### scanning stage
   # twistlock, oscap, and anchore scans
   - scanning
-  # create csv output
+  
+  ### create csv output
   - csv-output
-  # check cve stage
+  
+  ### check cve stage
   - check-cves
-  # publish stage
+  
+  ### publish stage
   # publish artifacts to S3 (runs on master), push to harbor
   - publish
-  # VAT stage (runs on dev)
+    
+  ### VAT stage (runs on dev)
   - vat
 
 include:
