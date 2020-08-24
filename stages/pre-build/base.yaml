@@ -10,10 +10,10 @@
   before_script:
     - mkdir ${CI_PROJECT_DIR}/pipeline-artifacts/application-artifacts
     - sudo pip3 install pyyaml --upgrade
-    - docker pull tquinnelly/clamav-alpine:latest
+    - docker pull ${GITLAB_INTERNAL_REGISTRY}/tquinnelly/clamav-alpine:latest
   script:
     - python3 ${CI_PROJECT_DIR}/custom-scripts/downloader/downloader.py -i ${CI_PROJECT_DIR}/custom-scripts/downloader/download.yaml -d ${CI_PROJECT_DIR}/pipeline-artifacts/application-artifacts
-    - docker run -v ${CI_PROJECT_DIR}/pipeline-artifacts/application-artifacts:/scan:ro tquinnelly/clamav-alpine:latest | tee ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-artifacts.txt
+    - docker run -v ${CI_PROJECT_DIR}/pipeline-artifacts/application-artifacts:/scan:ro ${GITLAB_INTERNAL_REGISTRY}/tquinnelly/clamav-alpine:latest | tee ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-artifacts.txt
     - INFECTED_ARTIFACT_FILES=$(grep -e "^Infected files:" ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-artifacts.txt | cut -d ' ' -f3)
     - |
       if [ ${INFECTED_ARTIFACT_FILES} -gt 0 ]
