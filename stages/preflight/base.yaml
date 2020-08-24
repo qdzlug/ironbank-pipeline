@@ -1,6 +1,7 @@
 .preflight:
   stage: preflight
   allow_failure: true
+  image: image: ${REGISTRY_URL}/gitlab/gitlab-runner/gitlab-runner:v13.2.2
 
 # TODO: implement check for Dockerfile, LICENSE, and README
 # Possibly check for deployment files?
