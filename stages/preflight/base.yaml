@@ -5,8 +5,7 @@
 
 # TODO: Possibly check for deployment files?
 folder_structure:
-  # extends: .preflight
-  stage: preflight
+  extends: .preflight
   allow_failure: true
   script:
     - ls -l README.md
