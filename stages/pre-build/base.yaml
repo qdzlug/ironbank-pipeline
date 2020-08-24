@@ -3,7 +3,7 @@
   image: image-registry.openshift-image-registry.svc:5000/jenkins/jenkins-oscap-agent:1.1
   allow_failure: true
 
-.import_artifacts:
+import_artifacts:
   extends: .pre-build
   # Arguments.get().download is used to get download items
   # dccscrImport() calls ContributorResource, which performs validation of download.yaml file
@@ -33,7 +33,7 @@
 # image_signature:
 #   extends: .import_artifacts
 #   allow_failure: true
-#   image: ${GITLAB_INTERNAL_REGISTRY}/platform/docker-git-bash:stable
+#   image: image-registry.openshift-image-registry.svc:5000/jenkins/jenkins-oscap-agent:1.1
 #   services:
 #     - name: docker:dind
 #   before_script:
