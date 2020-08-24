@@ -35,6 +35,7 @@ dockerfile lint:
 
 wl compare lint:
   extends: .lint
+  image: image: ${REGISTRY_URL}/redhat/python/python36:3.6
   script:
     # The following step assumes contributor projects have an environment variable set for the image version 
     # in the gitlab-ci.yml file.
