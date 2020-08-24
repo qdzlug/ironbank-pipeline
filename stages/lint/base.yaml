@@ -1,5 +1,6 @@
 .lint:
   stage: lint
+  image: ${REGISTRY_URL}/redhat/python/python36:3.6
   allow_failure: true
   dependencies: []
   artifacts:
