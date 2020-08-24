@@ -1,5 +1,6 @@
 .pre-build:
   stage: pre-build
+  image: image-registry.openshift-image-registry.svc:5000/jenkins/jenkins-oscap-agent:1.1
   allow_failure: true
 
 .import_artifacts:
