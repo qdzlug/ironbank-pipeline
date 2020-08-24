@@ -27,7 +27,7 @@ build variables:
   script:
     - |
       if [ -z "$IMG_VERSION" ]; then
-        echo "Missing IMG_VERSION variable"
+        echo "Missing IMG_VERSION variable in .gitlab-ci.yml file"
         exit 1
       fi
 
