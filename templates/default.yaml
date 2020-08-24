@@ -1,0 +1,22 @@
+include:
+    - local: templates/globals.yaml
+    
+    - local: stages/preflight/base.yaml
+    
+    - local: stages/lint/base.yaml
+    
+    - local: stages/pre-build/base.yaml
+    
+    - local: stages/build/base.yaml
+    
+    - local: stages/post-build/base.yaml
+    
+    - local: stages/scanning/base.yaml
+    
+    - local: stages/csv-output/base.yaml
+    
+    - local: stages/check-cves/base.yaml
+    
+    - local: stages/publish/base.yaml
+    
+    - local: stages/vat/base.yaml

@@ -1,30 +1,31 @@
 .preflight:
   stage: preflight
-  allow_failure: true
+  image: ${REGISTRY_URL}/gitlab/gitlab-runner/gitlab-runner:v13.2.2
+  
 
-# TODO: implement check for Dockerfile, LICENSE, and README
-# Possibly check for deployment files?
-folder structure:
-  extends: preflight
-  allow_failure: true
+# TODO: Possibly check for deployment files?
+folder_structure:
+  extends: .preflight
   script:
     - ls -l README.md
     - ls -l Dockerfile
     - ls -l LICENSE
-    - ls -l download.yaml
-    - ls -l scripts
-    - ls -l signatures
-    - ls -l config
-    - ls -l accreditation
+    # - ls -l download.yaml || echo "No download.yaml found"
+    # - ls -l scripts || echo "No download.yaml found"
+    # - ls -l signatures || echo "No download.yaml found"
+    # - ls -l config || echo "No download.yaml found"
+    # - ls -l accreditation || echo "No download.yaml found"
 
 # TODO: Check the following (among others):
 # base image vars??
 # OPTIONAL FOR BETA PIPELINE
 build variables:
-  extends: preflight
-  allow_failure: true
+  extends: folder_structure
   script:
-    - echo testing for VAR_NAME
-    - echo "if [ -z ${VAR_NAME} ]; then exit 1"
+    - |
+      if [ -z "$IMG_VERSION" ]; then
+        echo "Missing IMG_VERSION variable in .gitlab-ci.yml file"
+        exit 1
+      fi
 
   

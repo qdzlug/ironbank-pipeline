@@ -1,5 +1,6 @@
 .lint:
   stage: lint
+  image: ${REGISTRY_URL}/redhat/python/python36:3.6
   allow_failure: true
   dependencies: []
   artifacts:
@@ -12,7 +13,10 @@
 yaml lint:
   extends: .lint
   # the hardened image we have access to comes with pip installed
-  image: ${registry_url}/redhat/python/python36:latest
+  image: ${REGISTRY_URL}/redhat/python/python36:3.6
+  except:
+    variables:
+      - $YAML_LINT_DISABLED
   before_script:
     - pip3 install --upgrade pip
     - pip3 install yamllint
@@ -25,6 +29,9 @@ yaml lint:
 # OPTIONAL FOR BETA PIPELINE
 dockerfile lint:
   extends: .lint
+  except:
+    variables:
+      - $DOCKERFILE_LINT_DISABLED
   before_script:
     # https://hub.docker.com/r/hadolint/hadolint/dockerfile
     - docker pull hadolint/hadolint
@@ -35,8 +42,9 @@ dockerfile lint:
 
 wl compare lint:
   extends: .lint
+  image: ${REGISTRY_URL}/redhat/python/python36:3.6
   script:
     # The following step assumes contributor projects have an environment variable set for the image version 
     # in the gitlab-ci.yml file.
     # TODO: output the error for unsuccessful runs
-    - python3 ${PIPELINE_REPO_DIR}/stages/lint/wl_compare_lint.py --image ${CI_PROJECT_PATH} --tag ${IMG_VERSION}
+    - python3 $PIPELINE_REPO_DIR/stages/lint/wl_compare_lint.py --image ${CI_PROJECT_PATH} --tag ${IMG_VERSION}
