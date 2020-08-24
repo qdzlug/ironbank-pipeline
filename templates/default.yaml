@@ -1,0 +1,4 @@
+include:
+    - local: templates/globals.yaml
+    
+    - local: stages/preflight/base.yaml
