@@ -8,8 +8,8 @@
 #         exit 1
 #       fi
 
-preflight:
-  stage: .preflight
+.preflight:
+  stage: preflight
   allow_failure: true
 
 # TODO: implement check for Dockerfile, LICENSE, and README
