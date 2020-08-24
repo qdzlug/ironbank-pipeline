@@ -35,9 +35,9 @@ build variables:
   allow_failure: true
   script:
     - |
-    if [ -z "$IMG_VERSION" ]; then
-      echo "Missing IMG_VERSION variable"
-      exit 1
-    fi
+      if [ -z "$IMG_VERSION" ]; then
+        echo "Missing IMG_VERSION variable"
+        exit 1
+      fi
 
   
