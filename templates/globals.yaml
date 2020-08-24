@@ -1,15 +1,24 @@
 stages:
-  # preprocess stage
+  
+  ### preprocess stage
   # clone down the templates directory for use in later stages
-  #
+  # Requirements:
+  # - executor image with git
   - preprocess
-  # preflight stage
+  
+  ### preflight stage
   # check folder structure, check build variables
+  # Requirements:
+  # - None
   - preflight
-  # lint stage
+  
+  ### lint stage
   # yaml lint (ci file, download.yaml), dockerfile lint, wl compare lint
+  # Requirements:
+  # - executor image with Python 3.x installed
   - lint
-  # pre-build stage
+
+  ### pre-build stage
   # download artifacts/clamav scan, image signature?
   - pre-build
   # build stage
