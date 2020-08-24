@@ -7,11 +7,10 @@ load scripts:
   image: ${REGISTRY_URL}/gitlab/gitlab-runner/gitlab-runner:v13.2.2
   cache: {}
   script:
-    - mkdir -p $"{PIPELINE_REPO_DIR}"
-    - git clone -q --depth 1 "https://repo1.dsop.io/dsop/ironbank-pipeline.git" ${PIPELINE_REPO_DIR}
-    - rm -rf ${PIPELINE_REPO_DIR}/.git
+    - mkdir -p $"{ARTIFACT_FOLDER}"
+    - git clone -q --depth 1 "https://repo1.dsop.io/dsop/ironbank-pipeline.git" ${ARTIFACT_FOLDER}
+    - rm -rf ${ARTIFACT_FOLDER}/.git
   artifacts:
     expire_in: 1 day
     paths:
-      - ${PIPELINE_REPO_DIR}/
-      # - ./
+      - ${ARTIFACT_FOLDER}
