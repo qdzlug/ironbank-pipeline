@@ -22,7 +22,7 @@ folder_structure:
 # base image vars??
 # OPTIONAL FOR BETA PIPELINE
 build variables:
-  extends: .folder_structure
+  extends: folder_structure
   allow_failure: true
   script:
     - |
