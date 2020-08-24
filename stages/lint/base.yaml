@@ -1,6 +1,6 @@
 .lint:
   stage: lint
-  image: ${REGISTRY_URL}/redhat/python/python36:3.6
+  image: image-registry.openshift-image-registry.svc:5000/jenkins/jenkins-oscap-agent:1.1
   allow_failure: true
   dependencies: []
   artifacts:
@@ -19,7 +19,7 @@ yaml lint:
       - $YAML_LINT_DISABLED
   before_script:
     - pip3 install --upgrade pip
-    - pip3 install yamllint
+    - pip3 install yamllint gitlab
     - mkdir -p ${CI_PROJECT_DIR}/pipeline-artifacts/
   # TODO: get more insight into following commands and intention
   script:
