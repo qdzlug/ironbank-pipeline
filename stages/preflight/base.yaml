@@ -34,7 +34,10 @@ build variables:
   extends: .folder_structure
   allow_failure: true
   script:
-    - echo testing for VAR_NAME
-    - echo "if [ -z ${VAR_NAME} ]; then exit 1"
+    - |
+    if [ -z "$IMG_VERSION" ]; then
+      echo "Missing IMG_VERSION variable"
+      exit 1
+    fi
 
   
