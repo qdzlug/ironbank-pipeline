@@ -30,19 +30,19 @@
     paths:
       - ${CI_PROJECT_DIR}/pipeline-artifacts/
 
-image_signature:
-  extends: .import_artifacts
-  allow_failure: true
-  image: ${GITLAB_INTERNAL_REGISTRY}/platform/docker-git-bash:stable
-  services:
-    - name: docker:dind
-  before_script:
-    - docker version
-  script:
-    - IMAGE=$(grep "FROM" Dockerfile | cut -d " " -f2)
-    - docker trust inspect ${IMAGE} | tee ${CI_PROJECT_DIR}/pipeline-artifacts/report-image-trust.txt
-  artifacts:
-    when: always
-    paths:
-      - ${CI_PROJECT_DIR}/pipeline-artifacts/
+# image_signature:
+#   extends: .import_artifacts
+#   allow_failure: true
+#   image: ${GITLAB_INTERNAL_REGISTRY}/platform/docker-git-bash:stable
+#   services:
+#     - name: docker:dind
+#   before_script:
+#     - docker version
+#   script:
+#     - IMAGE=$(grep "FROM" Dockerfile | cut -d " " -f2)
+#     - docker trust inspect ${IMAGE} | tee ${CI_PROJECT_DIR}/pipeline-artifacts/report-image-trust.txt
+#   artifacts:
+#     when: always
+#     paths:
+#       - ${CI_PROJECT_DIR}/pipeline-artifacts/
 
