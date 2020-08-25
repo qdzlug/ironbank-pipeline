@@ -9,26 +9,25 @@ import_artifacts:
   # dccscrImport() calls ContributorResource, which performs validation of download.yaml file
   image: image-registry.openshift-image-registry.svc:5000/jenkins/jenkins-oscap-agent:1.1
   before_script:
-    - mkdir ${CI_PROJECT_DIR}/pipeline-artifacts/application-artifacts
-    # - sudo pip3 install pyyaml --upgrade
-    - echo ${GITLAB_INTERNAL_REGISTRY}
-    - podman pull ${GITLAB_INTERNAL_REGISTRY}/clamav:0.102.4
+    - mkdir -p ${ARTIFACT_DIR}/pipeline-artifacts/application-artifacts
+    - sudo pip3 install pyyaml --upgrade
+    - podman pull ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav:0.102.4
   script:
     - python3 "${PIPELINE_REPO_DIR}/stages/pre-build/downloader.py" -i ${CI_PROJECT_DIR}/download.yaml -d ${CI_PROJECT_DIR}/pipeline-artifacts/application-artifacts
-    - podman run -v ${CI_PROJECT_DIR}/pipeline-artifacts/application-artifacts:/scan:ro ${GITLAB_INTERNAL_REGISTRY}/clamav:0.102.4 | tee ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-artifacts.txt
-    - INFECTED_ARTIFACT_FILES=$(grep -e "^Infected files:" ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-artifacts.txt | cut -d ' ' -f3)
+    - podman run -v ${ARTIFACT_DIR}/pipeline-artifacts/application-artifacts:/scan:ro ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav:0.102.4 | tee ${ARTIFACT_DIR}/pipeline-artifacts/application-artifacts/report-clamav-artifacts.txt
+    - INFECTED_ARTIFACT_FILES=$(grep -e "^Infected files:" ${ARTIFACT_DIR}/pipeline-artifacts/application-artifacts/report-clamav-artifacts.txt | cut -d ' ' -f3)
     - |
       if [ ${INFECTED_ARTIFACT_FILES} -gt 0 ]
       then
         echo Malware detected in vendor/customer artifacts! Number of findings: ${INFECTED_ARTIFACT_FILES}
         exit 1
       fi
-  after_script:
-    - docker image rm -f tquinnelly/clamav-alpine:latest
+  # after_script:
+  #   - podman image rm -f ${GITLAB_INTERNAL_REGISTRY}/clamav:0.102.4
   artifacts:
     when: always
     paths:
-      - ${CI_PROJECT_DIR}/pipeline-artifacts/
+      - ${ARTIFACT_DIR}/pipeline-artifacts/application-artifacts
 
 # image_signature:
 #   extends: .import_artifacts
