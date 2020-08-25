@@ -14,7 +14,7 @@ import_artifacts:
     - podman pull ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav:0.102.4
   script:
     - python3 "${PIPELINE_REPO_DIR}/stages/pre-build/downloader.py" -i ${CI_PROJECT_DIR}/download.yaml -d ${CI_PROJECT_DIR}/pipeline-artifacts/application-artifacts
-    - podman pull ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker
+    - podman pull ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker:dind
     - docker run -v ${ARTIFACT_DIR}/pipeline-artifacts/application-artifacts:/scan:ro ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav:0.102.4 | tee ${ARTIFACT_DIR}/pipeline-artifacts/application-artifacts/report-clamav-artifacts.txt
     - INFECTED_ARTIFACT_FILES=$(grep -e "^Infected files:" ${ARTIFACT_DIR}/pipeline-artifacts/application-artifacts/report-clamav-artifacts.txt | cut -d ' ' -f3)
     - |
