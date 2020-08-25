@@ -41,7 +41,7 @@ def main():
 def does_image_exist(proj, im_name, im_tag, wl_branch):
   filename = get_whitelist_filename(proj, im_name, im_tag)
   wl = get_whitelist_file_contents(proj, filename, wl_branch)
-  if wl['image_name'] != im_name or wl['image_tag'] != im_tag:
+  if wl['image_name'] != im_name[1::] or wl['image_tag'] != im_tag:
     print("Whitelist retrieval error. Check that the project's GitLab reponame matches the whitelist's image name and that the version in the Jenkinsfile matches the whitelist's image tag.\nRepo name and Jenkinsfile version: " + im_name + ":" + im_tag + "\nWhitelist image_name and image_tag: " + wl['image_name'] + ":" + wl['image_tag'], file=sys.stderr)
     sys.exit(1)
   return
@@ -56,7 +56,7 @@ def get_complete_whitelist_for_image(proj, im_name, im_tag, wl_branch):
   if contents['image_name'] == im_name and contents['image_tag'] == im_tag:
     if len(par_image) > 0 and len(par_tag) > 0:
       print("Fetching Whitelisted CVEs from parent: " + par_image + ':' + par_tag)
-      get_complete_whitelist_for_image(proj, par_image, par_tag)
+      get_complete_whitelist_for_image(proj, par_image, par_tag, wl_branch)
   else:
     print("Mismatched image name/tag in " + filename + "\nRetrieved Image Name: " + contents['image_name'] + ":" + contents['image_tag'] + "\nSupplied Image Name: " + im_name + ":" + im_tag + "\nCheck parent image tag in your whitelist file.", file=sys.stderr)
     sys.exit(1)
