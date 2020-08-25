@@ -1,30 +1,31 @@
-.docker-build var-validation:
-  stage: build
-  allow_failure: false
-  cache: {}
-  script:
-    - |               
-
-      if [ -z "$BUILD_REGISTRY" ]; then
-        echo "Missing BUILD_REGISTRY variable"
-        exit 1
-      fi
-    - |
-
-      if [ -z "$VENDOR" ]; then
-        echo "Missing VENDOR variable"
-        exit 1
-      fi
-    - |
-
-      if [ -z "$PRODUCT" ]; then
-        echo "Missing PRODUCT variable"
-        exit 1
-      fi
+#.docker-build var-validation:
+#  stage: build
+#  allow_failure: false
+#  cache: {}
+#  script:
+#      - |               
+#
+#      if [ -z "$BUILD_REGISTRY" ]; then
+#        echo "Missing BUILD_REGISTRY variable"
+#        exit 1
+#      fi
+#    - |
+#
+#      if [ -z "$VENDOR" ]; then
+#        echo "Missing VENDOR variable"
+#        exit 1
+#      fi
+#    - |
+#
+#      if [ -z "$PRODUCT" ]; then
+#        echo "Missing PRODUCT variable"
+#        exit 1
+#      fi
 .build image:
   stage: build image
   allow_failure: false
   image: ${GITLAB_INTERNAL_REGISTRY}/platform/docker-git-bash:stable
+  cache: {}
   services:
     - name: docker:dind
   only:
@@ -41,7 +42,7 @@
       - .previous_version
   variables:
     DOCKER_HOST: tcp://localhost:2375/
-    BUILD_IMAGE: ${BUILD_REGISTRY}/${TEAM}/${APP}
+    BUILD_IMAGE: ${IMAGE_NAME}
   dependencies: []
   before_script:
     # Auth with git
