@@ -31,9 +31,9 @@
   only:
     - master
   except:
-    refs:
-      - tags
-      - triggers
+    #refs:
+    #  - tags
+    #  - triggers
     variables:
       - $DOCKER_BUILD_DISABLED
         #  artifacts:
