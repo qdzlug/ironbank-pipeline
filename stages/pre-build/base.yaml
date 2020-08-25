@@ -34,7 +34,7 @@ import_artifacts:
     paths:
       - ${ARTIFACT_DIR}/pipeline-artifacts/application-artifacts
   variables:
-    DOCKER_HOST: tcp://localhost:2375/    
+    DOCKER_HOST: tcp://docker:2375/    
 
 # image_signature:
 #   extends: .import_artifacts
