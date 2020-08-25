@@ -9,6 +9,8 @@ import_artifacts:
   # Arguments.get().download is used to get download items
   # dccscrImport() calls ContributorResource, which performs validation of download.yaml file
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7
+  services:
+    - name: docker:dind
   before_script:
     - mkdir -p ${ARTIFACT_DIR}/pipeline-artifacts/application-artifacts
     # - sudo pip3 install pyyaml --upgrade
