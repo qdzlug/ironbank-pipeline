@@ -1,25 +1,88 @@
 .build:
   stage: build
-  allow_failure: true
-  # Need to convert from artifactory
+  allow_failure: false
+  cache: {}
+  script:
+    - |
+                    
+      if [ -z "$BUILD_REGISTRY" ]; then
+        echo "Missing BUILD_REGISTRY variable"
+        exit 1
+      fi
+-
+|
+      if [ -z "$VENDOR" ]; then
+        echo "Missing VENDOR variable"
+        exit 1
+      fi
+-
+|
+      if [ -z "$PRODUCT" ]; then
+        echo "Missing PRODUCT variable"
+        exit 1
+      fi
+.build image:
+  stage: build image
+  allow_failure: false
   image: ${GITLAB_INTERNAL_REGISTRY}/platform/docker-git-bash:stable
   services:
     - name: docker:dind
-  before_script:
-    - docker version
-    - IMAGE=$(grep "FROM" Dockerfile | cut -d " " -f2)
-    - docker image rm -f ${IMAGE}
-    - docker login -u ${ARTIFACTORY_USERNAME} -p ${ARTIFACTORY_PASSWORD} ${ARTIFACTORY_REGISTRY}
-  script:
-    # Need to modify script so that it utilizes a generic build. Push to Harbor /ironbank occurs after scanning conclusion.
-    - docker build -t ubi:${CI_COMMIT_SHA} ${CI_PROJECT_DIR}/ | tee ${CI_PROJECT_DIR}/pipeline-artifacts/build.txt
-    - docker save ubi:${CI_COMMIT_SHA} -o ${CI_PROJECT_DIR}/pipeline-artifacts/ubi7-${CI_COMMIT_SHA}.tar
-    - docker tag ubi:${CI_COMMIT_SHA} ${ARTIFACTORY_REGISTRY}/${ARTIFACTORY_REPOSITORY}/ubi7:latest
-    - docker push ${ARTIFACTORY_REGISTRY}/${ARTIFACTORY_REPOSITORY}/ubi7:latest
-  after_script:
-    - IMAGE=$(grep "FROM" Dockerfile | cut -d " " -f2)
-    - docker image rm -f ${IMAGE}
+  only:
+   - master
+  except:
+    refs:
+      - tags
+      - triggers
+    variables:
+      - $DOCKER_BUILD_DISABLED
   artifacts:
-    when: always
     paths:
-      - ${CI_PROJECT_DIR}/pipeline-artifacts/
+      - .version
+      - .previous_version
+  variables:
+    DOCKER_HOST: tcp://localhost:2375/
+    BUILD_IMAGE: ${BUILD_REGISTRY}/${TEAM}/${APP}
+  dependencies: []
+  before_script:
+    # Auth with git
+    - mkdir -p ~/.ssh
+    - ssh-keyscan gitlab.platform1.ninja >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    - echo ${PIPELINE_GITLAB_SSH_KEY} | base64 -d > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - git config --global user.email "space.camper.ninja@gmail.com"
+    - git config --global user.name "pipeline"
+    # Load pipeline-templates repo in order to reuse common scripts
+    - export PIPELINE_TEMPLATES_DIR=$(mktemp -d)
+    - git clone -q --depth 1 "git@gitlab.platform1.ninja:platform/pipeline-templates.git" "$PIPELINE_TEMPLATES_DIR"
+    # Auth with artifactory (docker)
+    - docker login ${ARTIFACTORY_URL} -u ${ARTIFACTORY_USERNAME} -p ${ARTIFACTORY_PASSWORD}
+  script:
+    - echo "list working folder contents..."
+    - ls -al
+    # Prepare for git use - setup ssh key
+    - git remote set-url --push origin git@gitlab.platform1.ninja:${CI_PROJECT_PATH}.git
+    - echo 'ssh -i ~/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $*' > ssh
+    - chmod +x ssh
+    # INSURE current git repo is up to date with tags from remote
+    - GIT_SSH='./ssh' git fetch origin --tags
+    # Commands to bump the tag with an rc value if not present or bump the current rc
+    - CURRENT_VERSION=$(${PIPELINE_TEMPLATES_DIR}/scripts/semver-cli.sh latest)
+    # Save previous version for deploy stage commit messages
+    - echo $CURRENT_VERSION > .previous_version
+    # Get the new  version by bumping an RC
+    - NEW_VERSION=$(${PIPELINE_TEMPLATES_DIR}/scripts/semver-cli.sh bump ${CURRENT_VERSION} rc)
+    - echo "Bumping docker build version from ${CURRENT_VERSION} to ${NEW_VERSION}"
+    # Save semver string to a file to be used later in pipeline
+    - echo $NEW_VERSION > .version
+    # Build the image
+    - DOCKER_BUILDKIT=1 docker build
+      --tag ${BUILD_IMAGE}:$NEW_VERSION
+      --file ./Dockerfile
+      "."
+    # Push the newly bumped build image
+    - docker push ${BUILD_IMAGE}:$NEW_VERSION
+    - echo "Successfully pushed image ${BUILD_IMAGE}:$NEW_VERSION"
+    # save the tag
+    - git tag $NEW_VERSION
+    - GIT_SSH='./ssh' git push origin --tags
