@@ -1,20 +1,22 @@
-.build:
+.docker-build var-validation:
   stage: build
   allow_failure: false
   cache: {}
   script:
-    - |
-                    
+    - |               
+
       if [ -z "$BUILD_REGISTRY" ]; then
         echo "Missing BUILD_REGISTRY variable"
         exit 1
       fi
     - |
+
       if [ -z "$VENDOR" ]; then
         echo "Missing VENDOR variable"
         exit 1
       fi
     - |
+
       if [ -z "$PRODUCT" ]; then
         echo "Missing PRODUCT variable"
         exit 1
