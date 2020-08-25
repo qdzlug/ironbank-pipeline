@@ -20,7 +20,7 @@ def main():
 
   # Make sure image name follows convention of depth of three directories e.g. 'redhat/ubi/ubi8'
   # If not, throw error
-  check_image_name_length(im_name)
+  # check_image_name_length(im_name)
   # get dccscr project object from GitLab
   proj = init(dccscr_project_id)
   # check if image name/tag match whitelist values
@@ -28,11 +28,11 @@ def main():
   # Check that image name/tag match provided project values, and all parent images
   get_complete_whitelist_for_image(proj, im_name, im_tag)
 
-def check_image_name_length(image_name):
-  if not len(image_name.split('/')) == 3:
-    print("Repo name error. Project should be nested three directories deep. e.g. 'redhat/ubi/ubi8'\nCurrent repo name: " + image_name, file=sys.stderr)
-    sys.exit(1)
-  return
+# def check_image_name_length(image_name):
+#   if not len(image_name.split('/')) == 3:
+#     print("Repo name error. Project should be nested three directories deep. e.g. 'redhat/ubi/ubi8'\nCurrent repo name: " + image_name, file=sys.stderr)
+#     sys.exit(1)
+#   return
 
 def does_image_exist(proj, im_name, im_tag):
   filename = get_whitelist_filename(proj, im_name, im_tag)
@@ -59,8 +59,11 @@ def get_complete_whitelist_for_image(proj, im_name, im_tag):
   return
 
 def get_whitelist_filename(project, im_name, im_tag):
-  image_basename = im_name.split('/')[2]
-  filename = im_name + '/' + image_basename + '.greylist'
+  dccscr_project = im_name.split('/')[1::]
+  greylist_name = dccscr_project[-1] + '.greylist'
+  dccscr_project.append(greylist_name)
+  filename = '/'.join(dccscr_project)
+  print(filename)
   return filename
 
 def get_whitelist_file_contents(proj, item_path, item_ref):
