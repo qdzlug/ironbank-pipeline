@@ -7,26 +7,30 @@ import argparse
 
 gitlab_url = "https://repo1.dsop.io"
 dccscr_project_id = 143
-gitlab_key = os.environ['PYTHON_GITLAB_KEY']
+# gitlab_key = os.environ['PYTHON_GITLAB_KEY']
 
 def main():
   parser = argparse.ArgumentParser(description='Lint Whitelist')
   parser.add_argument('--image', help='')
   parser.add_argument('--tag',   help='')
+  parser.add_argument('--glkey', help='')
+  parser.add_argument('--wlbranch', help='')
   args = parser.parse_args()
 
   im_name = args.image
   im_tag = args.tag
+  gitlab_key = args.glkey
+  wl_branch = args.wlbranch
 
   # Make sure image name follows convention of depth of three directories e.g. 'redhat/ubi/ubi8'
   # If not, throw error
   # check_image_name_length(im_name)
   # get dccscr project object from GitLab
-  proj = init(dccscr_project_id)
+  proj = init(dccscr_project_id, gitlab_key)
   # check if image name/tag match whitelist values
-  does_image_exist(proj, im_name, im_tag)
+  does_image_exist(proj, im_name, im_tag, wl_branch)
   # Check that image name/tag match provided project values, and all parent images
-  get_complete_whitelist_for_image(proj, im_name, im_tag)
+  get_complete_whitelist_for_image(proj, im_name, im_tag, wl_branch)
 
 # def check_image_name_length(image_name):
 #   if not len(image_name.split('/')) == 3:
@@ -34,17 +38,17 @@ def main():
 #     sys.exit(1)
 #   return
 
-def does_image_exist(proj, im_name, im_tag):
+def does_image_exist(proj, im_name, im_tag, wl_branch):
   filename = get_whitelist_filename(proj, im_name, im_tag)
-  wl = get_whitelist_file_contents(proj, filename, 'master')
+  wl = get_whitelist_file_contents(proj, filename, wl_branch)
   if wl['image_name'] != im_name or wl['image_tag'] != im_tag:
     print("Whitelist retrieval error. Check that the project's GitLab reponame matches the whitelist's image name and that the version in the Jenkinsfile matches the whitelist's image tag.\nRepo name and Jenkinsfile version: " + im_name + ":" + im_tag + "\nWhitelist image_name and image_tag: " + wl['image_name'] + ":" + wl['image_tag'], file=sys.stderr)
     sys.exit(1)
   return
 
-def get_complete_whitelist_for_image(proj, im_name, im_tag):
+def get_complete_whitelist_for_image(proj, im_name, im_tag, wl_branch):
   filename = get_whitelist_filename(proj, im_name, im_tag)
-  contents = get_whitelist_file_contents(proj, filename, 'master')
+  contents = get_whitelist_file_contents(proj, filename, wl_branch)
 
   par_image = contents['image_parent_name']
   par_tag = contents['image_parent_tag']
@@ -63,7 +67,6 @@ def get_whitelist_filename(project, im_name, im_tag):
   greylist_name = dccscr_project[-1] + '.greylist'
   dccscr_project.append(greylist_name)
   filename = '/'.join(dccscr_project)
-  print(filename)
   return filename
 
 def get_whitelist_file_contents(proj, item_path, item_ref):
@@ -80,7 +83,7 @@ def get_whitelist_file_contents(proj, item_path, item_ref):
     sys.exit(1)
   return contents
 
-def init(pid):
+def init(pid, gitlab_key):
   gl = gitlab.Gitlab(gitlab_url, private_token=gitlab_key)
   return gl.projects.get(pid)
 
