@@ -27,7 +27,7 @@ import_artifacts:
   artifacts:
     when: always
     paths:
-      - ${CI_PROJECT_DIR}/pipeline-artifacts/
+      - ${ARTIFACT_DIR}/pipeline-artifacts/application-artifacts
 
 # image_signature:
 #   extends: .import_artifacts
