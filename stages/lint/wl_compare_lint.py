@@ -41,6 +41,7 @@ def main():
 def does_image_exist(proj, im_name, im_tag, wl_branch):
   filename = get_whitelist_filename(proj, im_name, im_tag)
   wl = get_whitelist_file_contents(proj, filename, wl_branch)
+  im_name = '/'.join(im_name.split('/')[1::])
   if wl['image_name'] != im_name[1::] or wl['image_tag'] != im_tag:
     print("Whitelist retrieval error. Check that the project's GitLab reponame matches the whitelist's image name and that the version in the Jenkinsfile matches the whitelist's image tag.\nRepo name and Jenkinsfile version: " + im_name + ":" + im_tag + "\nWhitelist image_name and image_tag: " + wl['image_name'] + ":" + wl['image_tag'], file=sys.stderr)
     sys.exit(1)
