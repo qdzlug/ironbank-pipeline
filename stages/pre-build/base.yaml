@@ -11,6 +11,7 @@ import_artifacts:
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7
   services:
     - name: docker:19.03.0-dind
+      alias: docker
       #    entrypoint: ["env", "-u", "DOCKER_HOST"]
       #    command: ["dockerd-entrypoint.sh"]
   before_script:
