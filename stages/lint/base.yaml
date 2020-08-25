@@ -46,7 +46,8 @@ wl compare lint:
   dependencies:
     - load scripts
   artifacts:
-    when: never
+    paths:
+      - []
   script:
     # The following step assumes contributor projects have an environment variable set for the image version 
     # in the gitlab-ci.yml file.
