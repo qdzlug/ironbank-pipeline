@@ -24,7 +24,7 @@ def main():
   # If not, throw error
   # check_image_name_length(im_name)
   # get dccscr project object from GitLab
-  proj = init(dccscr_project_id)
+  proj = init(dccscr_project_id, gitlab_key)
   # check if image name/tag match whitelist values
   does_image_exist(proj, im_name, im_tag)
   # Check that image name/tag match provided project values, and all parent images
@@ -81,7 +81,7 @@ def get_whitelist_file_contents(proj, item_path, item_ref):
     sys.exit(1)
   return contents
 
-def init(pid):
+def init(pid, gitlab_key):
   gl = gitlab.Gitlab(gitlab_url, private_token=gitlab_key)
   return gl.projects.get(pid)
 
