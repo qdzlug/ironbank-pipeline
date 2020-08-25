@@ -29,11 +29,11 @@
   services:
     - name: docker:dind
   only:
-   - master
-     #  except:
-     #    refs:
-     #      - tags
-     #      - triggers
+    - master
+  except:
+    refs:
+      - tags
+      - triggers
     variables:
       - $DOCKER_BUILD_DISABLED
         #  artifacts:
