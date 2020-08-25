@@ -11,8 +11,8 @@ import_artifacts:
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7
   services:
     - name: docker:dind
-      entrypoint: ["env", "-u", "DOCKER_HOST"]
-      command: ["dockerd-entrypoint.sh"]
+      #      entrypoint: ["env", "-u", "DOCKER_HOST"]
+      #      command: ["dockerd-entrypoint.sh"]
   before_script:
     - mkdir -p ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts
     # - sudo pip3 install pyyaml --upgrade
@@ -36,7 +36,7 @@ import_artifacts:
     paths:
       - ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts
   variables:
-    DOCKER_HOST: tcp://docker:2375 
+    DOCKER_HOST: tcp://docker:2378 
     DOCKER_TLS_CERTDIR: ""
     DOCKER_DRIVER: overlay2
 
