@@ -63,7 +63,7 @@ def get_whitelist_filename(project, im_name, im_tag):
   greylist_name = dccscr_project[-1] + '.greylist'
   dccscr_project.append(greylist_name)
   filename = '/'.join(dccscr_project)
-
+  print(filename)
   return filename
 
 def get_whitelist_file_contents(proj, item_path, item_ref):
