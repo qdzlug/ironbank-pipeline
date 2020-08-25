@@ -10,7 +10,7 @@ import_artifacts:
   # dccscrImport() calls ContributorResource, which performs validation of download.yaml file
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7
   services:
-    - name: docker:dind
+    - name: docker:19.03.0-dind
       entrypoint: ["env", "-u", "DOCKER_HOST"]
       command: ["dockerd-entrypoint.sh"]
   before_script:
@@ -36,7 +36,7 @@ import_artifacts:
     paths:
       - ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts
   variables:
-    DOCKER_HOST: tcp://localhost:2378 
+    DOCKER_HOST: tcp://localhost:2375 
     DOCKER_TLS_CERTDIR: ""
     DOCKER_DRIVER: overlay2
 
