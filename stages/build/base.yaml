@@ -21,8 +21,8 @@
 #        echo "Missing PRODUCT variable"
 #        exit 1
 #      fi
-.build image:
-  stage: build image
+.build:
+  stage: build
   allow_failure: false
   image: ${GITLAB_INTERNAL_REGISTRY}/platform/docker-git-bash:stable
   cache: {}
