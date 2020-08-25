@@ -22,6 +22,8 @@ def main():
   gitlab_key = args.glkey
   wl_branch = args.wlbranch
 
+  im_name = '/'.join(im_name.split('/')[1::])
+
   # Make sure image name follows convention of depth of three directories e.g. 'redhat/ubi/ubi8'
   # If not, throw error
   # check_image_name_length(im_name)
@@ -39,7 +41,7 @@ def main():
 #   return
 
 def does_image_exist(proj, im_name, im_tag, wl_branch):
-  filename = get_whitelist_filename(proj, im_name, im_tag)
+  filename = get_whitelist_filename(im_name, im_tag)
   wl = get_whitelist_file_contents(proj, filename, wl_branch)
   if wl['image_name'] != im_name or wl['image_tag'] != im_tag:
     print("Whitelist retrieval error. Check that the project's GitLab reponame matches the whitelist's image name and that the version in the Jenkinsfile matches the whitelist's image tag.\nRepo name and Jenkinsfile version: " + im_name + ":" + im_tag + "\nWhitelist image_name and image_tag: " + wl['image_name'] + ":" + wl['image_tag'], file=sys.stderr)
@@ -47,7 +49,7 @@ def does_image_exist(proj, im_name, im_tag, wl_branch):
   return
 
 def get_complete_whitelist_for_image(proj, im_name, im_tag, wl_branch):
-  filename = get_whitelist_filename(proj, im_name, im_tag)
+  filename = get_whitelist_filename(im_name, im_tag)
   contents = get_whitelist_file_contents(proj, filename, wl_branch)
 
   par_image = contents['image_parent_name']
@@ -56,14 +58,14 @@ def get_complete_whitelist_for_image(proj, im_name, im_tag, wl_branch):
   if contents['image_name'] == im_name and contents['image_tag'] == im_tag:
     if len(par_image) > 0 and len(par_tag) > 0:
       print("Fetching Whitelisted CVEs from parent: " + par_image + ':' + par_tag)
-      get_complete_whitelist_for_image(proj, par_image, par_tag)
+      get_complete_whitelist_for_image(proj, par_image, par_tag, wl_branch)
   else:
     print("Mismatched image name/tag in " + filename + "\nRetrieved Image Name: " + contents['image_name'] + ":" + contents['image_tag'] + "\nSupplied Image Name: " + im_name + ":" + im_tag + "\nCheck parent image tag in your whitelist file.", file=sys.stderr)
     sys.exit(1)
   return
 
-def get_whitelist_filename(project, im_name, im_tag):
-  dccscr_project = im_name.split('/')[1::]
+def get_whitelist_filename(im_name, im_tag):
+  dccscr_project = im_name.split('/')
   greylist_name = dccscr_project[-1] + '.greylist'
   dccscr_project.append(greylist_name)
   filename = '/'.join(dccscr_project)

@@ -45,6 +45,8 @@ wl compare lint:
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
   dependencies:
     - load scripts
+  artifacts:
+    paths: []
   script:
     # The following step assumes contributor projects have an environment variable set for the image version 
     # in the gitlab-ci.yml file.
