@@ -41,7 +41,7 @@ def main():
 #   return
 
 def does_image_exist(proj, im_name, im_tag, wl_branch):
-  filename = get_whitelist_filename(proj, im_name, im_tag)
+  filename = get_whitelist_filename(im_name, im_tag)
   wl = get_whitelist_file_contents(proj, filename, wl_branch)
   if wl['image_name'] != im_name or wl['image_tag'] != im_tag:
     print("Whitelist retrieval error. Check that the project's GitLab reponame matches the whitelist's image name and that the version in the Jenkinsfile matches the whitelist's image tag.\nRepo name and Jenkinsfile version: " + im_name + ":" + im_tag + "\nWhitelist image_name and image_tag: " + wl['image_name'] + ":" + wl['image_tag'], file=sys.stderr)
@@ -49,7 +49,7 @@ def does_image_exist(proj, im_name, im_tag, wl_branch):
   return
 
 def get_complete_whitelist_for_image(proj, im_name, im_tag, wl_branch):
-  filename = get_whitelist_filename(proj, im_name, im_tag)
+  filename = get_whitelist_filename(im_name, im_tag)
   contents = get_whitelist_file_contents(proj, filename, wl_branch)
 
   par_image = contents['image_parent_name']
@@ -64,9 +64,9 @@ def get_complete_whitelist_for_image(proj, im_name, im_tag, wl_branch):
     sys.exit(1)
   return
 
-def get_whitelist_filename(project, im_name, im_tag):
+def get_whitelist_filename(im_name, im_tag):
   dccscr_project = im_name.split('/')
-  greylist_name = im_name[-1] + '.greylist'
+  greylist_name = dccscr_project[-1] + '.greylist'
   dccscr_project.append(greylist_name)
   filename = '/'.join(dccscr_project)
   return filename
