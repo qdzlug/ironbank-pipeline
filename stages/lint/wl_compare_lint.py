@@ -7,16 +7,18 @@ import argparse
 
 gitlab_url = "https://repo1.dsop.io"
 dccscr_project_id = 143
-gitlab_key = os.environ['PYTHON_GITLAB_KEY']
+# gitlab_key = os.environ['PYTHON_GITLAB_KEY']
 
 def main():
   parser = argparse.ArgumentParser(description='Lint Whitelist')
   parser.add_argument('--image', help='')
   parser.add_argument('--tag',   help='')
+  parser.add_argument('--glkey', help='')
   args = parser.parse_args()
 
   im_name = args.image
   im_tag = args.tag
+  gitlab_key = args.glkey
 
   # Make sure image name follows convention of depth of three directories e.g. 'redhat/ubi/ubi8'
   # If not, throw error
@@ -63,7 +65,6 @@ def get_whitelist_filename(project, im_name, im_tag):
   greylist_name = dccscr_project[-1] + '.greylist'
   dccscr_project.append(greylist_name)
   filename = '/'.join(dccscr_project)
-
   return filename
 
 def get_whitelist_file_contents(proj, item_path, item_ref):
