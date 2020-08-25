@@ -12,6 +12,7 @@ import_artifacts:
   services:
     - name: docker:dind
   before_script:
+    - export DOCKER_HOST="tcp://localhost:2375"
     - mkdir -p ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts
     # - sudo pip3 install pyyaml --upgrade
     # - docker pull ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/python:pyyaml
@@ -36,7 +37,6 @@ import_artifacts:
   variables:
     DOCKER_HOST: tcp://localhost:2375 
     DOCKER_TLS_CERTDIR: ""
-    DOCKER_DRIVER: "overlay"
 
 # image_signature:
 #   extends: .import_artifacts
