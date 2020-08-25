@@ -37,7 +37,7 @@ import_artifacts:
     paths:
       - ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts
   variables:
-    DOCKER_HOST: tcp://docker:2375 
+    DOCKER_HOST: tcp://docker:2378 
     DOCKER_TLS_CERTDIR: ""
     #  DOCKER_DRIVER: overlay2
 
