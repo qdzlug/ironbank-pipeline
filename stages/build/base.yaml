@@ -9,14 +9,12 @@
         echo "Missing BUILD_REGISTRY variable"
         exit 1
       fi
--
-|
+    - |
       if [ -z "$VENDOR" ]; then
         echo "Missing VENDOR variable"
         exit 1
       fi
--
-|
+    - |
       if [ -z "$PRODUCT" ]; then
         echo "Missing PRODUCT variable"
         exit 1
