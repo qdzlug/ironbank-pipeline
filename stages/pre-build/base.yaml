@@ -12,6 +12,7 @@ import_artifacts:
   services:
     - docker:dind
   before_script:
+    - export DOCKER_TLS_CERTDIR=""
     - mkdir -p ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts
     # - sudo pip3 install pyyaml --upgrade
     # - docker pull ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/python:pyyaml
