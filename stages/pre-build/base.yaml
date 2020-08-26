@@ -12,9 +12,27 @@ import_artifacts:
   services:
     - name: docker:dind
       alias: docker
-      entrypoint: ["cat"]
+      entrypoint: ["env", "-u", "DOCKER_HOST"]
+      command: ["cat"]
+  before_script:
+    - cat
+    #- mkdir -p ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts
+    # - sudo pip3 install pyyaml --upgrade
+    # - docker pull ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/python:pyyaml
+    #- docker pull ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav:0.102.4
   script:
-    - sleep 10000
+    - python3 "${PIPELINE_REPO_DIR}/stages/pre-build/downloader.py" -i ${CI_PROJECT_DIR}/download.yaml -d ${CI_PROJECT_DIR}/pipeline-artifacts/application-artifacts
+    # - podman pull ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker:dind
+    - docker run -v ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts:/scan:ro ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav:0.102.4 | tee ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts/report-clamav-artifacts.txt
+    - INFECTED_ARTIFACT_FILES=$(grep -e "^Infected files:" ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts/report-clamav-artifacts.txt | cut -d ' ' -f3)
+    - |
+      if [ ${INFECTED_ARTIFACT_FILES} -gt 0 ]
+      then
+        echo Malware detected in vendor/customer artifacts! Number of findings: ${INFECTED_ARTIFACT_FILES}
+        exit 1
+      fi
+  # after_script:
+  #   - podman image rm -f ${GITLAB_INTERNAL_REGISTRY}/clamav:0.102.4
   artifacts:
     when: always
     paths:
