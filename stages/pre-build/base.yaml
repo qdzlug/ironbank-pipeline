@@ -12,6 +12,7 @@ import_artifacts:
   services:
     - name: docker:dind
       alias: docker
+      entrypoint: ["cat"]
   script:
     - sleep 10000
   artifacts:
