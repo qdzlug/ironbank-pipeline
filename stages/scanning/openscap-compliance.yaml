@@ -1,0 +1,7 @@
+.openscap compliance:
+  stage: scanning
+
+  # outputs:
+  # oscap-version.txt
+  # report.html
+  # cve-oval.xml

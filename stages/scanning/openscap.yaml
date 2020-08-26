@@ -1,3 +1,0 @@
-.openscap scan:
-  stage: scanning
-  
