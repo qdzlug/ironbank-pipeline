@@ -40,6 +40,7 @@ import_artifacts:
     DOCKER_HOST: tcp://localhost:2375 
     DOCKER_TLS_CERTDIR: ""
     DOCKER_DRIVER: overlay
+    privileged: 'true'
 
 # image_signature:
 #   extends: .import_artifacts
