@@ -1,5 +1,8 @@
 services:
-  - docker:19.03-dind-rootless
+  - name: docker:19.03-dind-rootless
+    command:
+      - --privileged
+      - --experimental
 stages:
   
   ### preprocess stage
