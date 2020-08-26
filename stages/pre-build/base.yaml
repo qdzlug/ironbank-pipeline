@@ -13,7 +13,7 @@ import_artifacts:
     - name: docker:dind
       alias: docker
       #      entrypoint: ["env", "-u", "DOCKER_HOST"]
-      command: ["docker-entrypoint.sh"]
+      command: ["cat"]
   before_script:
     - mkdir -p ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts
     # - sudo pip3 install pyyaml --upgrade
