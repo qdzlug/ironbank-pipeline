@@ -9,12 +9,12 @@ import_artifacts:
   # Arguments.get().download is used to get download items
   # dccscrImport() calls ContributorResource, which performs validation of download.yaml file
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7
-  services:
+  servVices:
     - name: docker:dind
       alias: docker
       entrypoint: ["cat"]
   script:
-    - cat
+    - sleep 10000
   artifacts:
     when: always
     paths:
