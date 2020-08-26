@@ -1,6 +1,6 @@
 .lint:
   stage: lint
-  image: image-registry.openshift-image-registry.svc:5000/jenkins/jenkins-oscap-agent:1.1
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
   allow_failure: true
   dependencies: []
   artifacts:
@@ -13,7 +13,7 @@
 yaml lint:
   extends: .lint
   # the hardened image we have access to comes with pip installed
-  image: image-registry.openshift-image-registry.svc:5000/jenkins/jenkins-oscap-agent:1.1
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
   except:
     variables:
       - $YAML_LINT_DISABLED
@@ -42,7 +42,7 @@ dockerfile lint:
 
 wl compare lint:
   extends: .lint
-  image: image-registry.openshift-image-registry.svc:5000/jenkins/jenkins-oscap-agent:1.1
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
   dependencies:
     - load scripts
   artifacts:
