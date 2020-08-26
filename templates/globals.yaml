@@ -1,3 +1,5 @@
+services:
+  - docker:19.03-dind-rootless
 stages:
   
   ### preprocess stage
