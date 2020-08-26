@@ -41,7 +41,6 @@
         #      - .version
         #    - .previous_version
   variables:
-    DOCKER_HOST: tcp://localhost:2375/
     BUILD_IMAGE: ${GITLAB_INTERNAL_REGISTRY}/${IMAGE_NAME}
   dependencies: []
   #before_script:
