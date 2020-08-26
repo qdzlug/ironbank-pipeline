@@ -1,5 +1,5 @@
 services:
-  - name: --privileged --experimental docker:19.03-dind-rootless
+  - name: docker:19.03-dind-rootless
 
 stages:
   
