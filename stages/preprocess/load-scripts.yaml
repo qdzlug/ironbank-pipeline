@@ -6,8 +6,6 @@ load scripts:
   extends: .preprocess
   image: ${REGISTRY_URL}/gitlab/gitlab-runner/gitlab-runner:v13.2.2
   cache: {}
-  before_script:
-    - docker login ${REGISTRY_URL} -u ${ironbank_robot_user} -p ${ironbank_user_pass}
   script:
     - mkdir -p "${PIPELINE_REPO_DIR}"
     - git clone -q --depth 1 "https://repo1.dsop.io/dsop/ironbank-pipeline.git" "${PIPELINE_REPO_DIR}"
