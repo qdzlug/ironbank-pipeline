@@ -44,6 +44,7 @@ for type in downloads:
             print("===== ARTIFACT: %s" % (item["name"]))
 
             # Validate filename doesn't do anything nefarious
+            # ENSURE Dockerfile is not clobbered by the following regex
             match = re.search(r'^[A-Za-z0-9]+[A-Za-z0-9_\-\.]*[A-Za-z0-9]+$', item["filename"])
             if match is None:
                 print("Filename is has invalid characters. Aborting.")
