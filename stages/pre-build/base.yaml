@@ -15,7 +15,7 @@ import_artifacts:
     - mkdir -p ${ARTIFACT_DIR}/pipeline-artifacts/application-artifacts
     # - sudo pip3 install pyyaml --upgrade
     # - docker pull ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/python:pyyaml
-    - docker pull --privileged ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav:0.102.4
+    - docker pull ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav:0.102.4
   script:
     - python3 "${PIPELINE_REPO_DIR}/stages/pre-build/downloader.py" -i ${CI_PROJECT_DIR}/download.yaml -d ${CI_PROJECT_DIR}/pipeline-artifacts/application-artifacts
     # - podman pull ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker:dind
@@ -34,7 +34,7 @@ import_artifacts:
     paths:
       - ${ARTIFACT_DIR}/pipeline-artifacts/application-artifacts
   variables:
-    DOCKER_HOST: tcp://localhost:2375    
+    DOCKER_HOST: tcp://docker:2375    
 
 # image_signature:
 #   extends: .import_artifacts
