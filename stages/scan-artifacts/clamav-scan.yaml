@@ -1,2 +1,13 @@
-.clamav-scan:
+clamav-scan:
   stage: artifact-scan
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav:0.102.4
+  allow_failure: true
+  dependencies:
+    - import-artifacts
+  variables:
+    ARTIFACT_DIR: ${ARTIFACT_FOLDER}/scan-artifacts/clamav-scan
+  before_script:
+    - mkdir -p "${ARTIFACT_DIR}"
+  script:
+    - freshclam
+    - clamscan -ir ${ARTIFACT_FOLDER}/import-artifacts
