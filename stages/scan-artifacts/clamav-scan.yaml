@@ -10,7 +10,7 @@ clamav-scan:
     - mkdir -p "${ARTIFACT_DIR}"
   script:
     - freshclam
-    - clamscan -ir ${ARTIFACT_FOLDER}/import-artifacts > ${ARTIFACT_DIR}/output.txt
+    - clamscan -ir ${ARTIFACT_FOLDER}/import-artifacts/ > ${ARTIFACT_DIR}/output.txt
     - cat ${ARTIFACT_DIR}/output.txt
   artifacts:
     when: always
