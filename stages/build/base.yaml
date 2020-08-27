@@ -10,6 +10,7 @@ build:
   before_script:
     - cp -r ${ARTIFACT_FOLDER}/import-artifacts/ .
   script:
+    - dnf install -y buildah
     - buildah bud --format=docker ${CI_PROJECT_DIR}:$IMG_VERSION
   artifacts:
     when: always
