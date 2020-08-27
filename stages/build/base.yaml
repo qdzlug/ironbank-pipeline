@@ -11,7 +11,8 @@ build:
     - cp -r ${ARTIFACT_FOLDER}/import-artifacts/ .
   script:
     - dnf install -y buildah
-    - buildah bud --format=docker .
+    - buildah login -u "${ironbank_robot_user}" --password-stdin ${ironbank_robot_pass}
+    - buildah bud --format=docker--storage-driver=vfs .
   artifacts:
     when: always
     paths:
