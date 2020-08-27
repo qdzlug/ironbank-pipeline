@@ -39,45 +39,16 @@ with open(inputFile, "r") as file:
     downloads = yaml.load(file, Loader=yaml.FullLoader)
 
 for type in downloads:
-    if type == "artifacts":
+    if type == "resources":
         for item in downloads[type]:
-            print("===== ARTIFACT: %s" % (item["name"]))
+            print("===== ARTIFACT: %s" % (item["filename"]))
 
             # Validate filename doesn't do anything nefarious
-            # ENSURE Dockerfile is not clobbered by the following regex
             match = re.search(r'^[A-Za-z0-9]+[A-Za-z0-9_\-\.]*[A-Za-z0-9]+$', item["filename"])
             if match is None:
                 print("Filename is has invalid characters. Aborting.")
                 sys.exit(1)
 
-            # Validate username and password exist (if provided)
-            if item["username"] is not None:
-                if item["username"] not in os.environ.keys():
-                    print("Environment variable '%s' does not exist. Aborting." % (item["username"]))
-                    sys.exit(2)
-            if item["password"] is not None:
-                if item["password"] not in os.environ.keys():
-                    print("Environment variable '%s' does not exist. Aborting." % (item["password"]))
-                    sys.exit(2)
-
-            # If username and password is specified, we should download using those credentials
-            if item["username"] is not None and item["password"] is not None:
-                print("Downloading from %s using HTTP basic authentication" % (item["url"]))
-                
-                # Create a password manager and add the tokens
-                password_mgr = urllib.request.HTTPPasswordMgrWithDefaultRealm()
-                password_mgr.add_password(None, item["url"], item["username"], item["password"])
-                handler = urllib.request.HTTPBasicAuthHandler(password_mgr)
-                opener = urllib.request.build_opener(handler)
-                opener.open(item["url"])
-
-                # Download the file
-                response = urllib.request.urlopen(item["url"])
-
-                # Write downloaded file to specified filename
-                f = open(outputDir + '/' + item["filename"], "wb")
-                f.write(response.read())
-                f.close()
             else:
                 print("Downloading from %s" % (item["url"]))
                 urllib.request.urlretrieve(item["url"], outputDir + '/' + item["filename"])
