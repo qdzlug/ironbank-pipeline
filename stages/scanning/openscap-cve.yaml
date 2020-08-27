@@ -1,0 +1,6 @@
+.openscap cve:
+  stage: scanning
+  
+  # outputs:
+  # report-cve.html
+  # report-cve.xml
