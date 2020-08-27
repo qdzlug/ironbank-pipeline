@@ -11,4 +11,8 @@ clamav-scan:
   script:
     - freshclam
     - clamscan -ir ${ARTIFACT_FOLDER}/import-artifacts > ${ARTIFACT_DIR}/output.txt
-    - cat output.txt
+    - cat ${ARTIFACT_DIR}/output.txt
+  artifacts:
+    when: always
+    paths:
+      - ${ARTIFACT_DIR}/
