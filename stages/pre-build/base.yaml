@@ -31,7 +31,7 @@ import_artifacts:
   artifacts:
     when: always
     paths:
-      - ${ARTIFACT_DIR}/pipeline-artifacts/application-artifacts
+      - ${ARTIFACT_DIR}/pipeline-artifacts/application-artifacts/kubernetes.tar.gz
   variables:
     DOCKER_HOST: tcp://docker:2375
 
