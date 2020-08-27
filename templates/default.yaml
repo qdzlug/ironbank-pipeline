@@ -7,7 +7,7 @@ include:
     
     - local: stages/import-artifacts/base.yaml
 
-    - local: stages/scan-artifacts/base.yaml
+    - local: stages/scan-artifacts/clamav-scan.yaml
     
     - local: stages/build/base.yaml
     
