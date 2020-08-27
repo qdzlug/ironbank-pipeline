@@ -4,7 +4,7 @@
   # Need to convert from artifactory
   image: ${GITLAB_INTERNAL_REGISTRY}/platform/docker-git-bash:stable
   services:
-    - name: docker:dind
+    - name: docker:dind-rootless
   before_script:
     - docker version
     - IMAGE=$(grep "FROM" Dockerfile | cut -d " " -f2)
@@ -23,3 +23,7 @@
     when: always
     paths:
       - ${CI_PROJECT_DIR}/pipeline-artifacts/
+  variables:
+    DOCKER_HOST: tcp://docker:2375/    
+    DOCKER_DRIVER: overlay
+    DOCKER_TLS_CERTDIR: ""
