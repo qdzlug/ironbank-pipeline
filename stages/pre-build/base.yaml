@@ -1,14 +1,12 @@
 .pre-build:
   stage: pre-build
-  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
   #image: quay.io/podman/stable:latest
   allow_failure: true
 
 import_artifacts:
   extends: .pre-build
   before_script:
-    - dnf install -y podman skopeo
-    - curl -l https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64 -O /usr/local/bin/notary
     - mkdir -p ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts
     # - sudo pip3 install pyyaml --upgrade
     - podman pull ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav:0.102.4
