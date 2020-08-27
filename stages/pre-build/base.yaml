@@ -7,18 +7,20 @@
 
 import artifacts:
   extends: .pre-build
+  variables:
+    ARTIFACT_DIR: ${ARTIFACT_FOLDER}/pre-build/import-artifacts
   # Arguments.get().download is used to get download items
   # dccscrImport() calls ContributorResource, which performs validation of download.yaml file
   # services:
   #   - name: docker:dind
   before_script:
-    - mkdir -p "${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts"
+    - mkdir -p "${ARTIFACT_DIR}"
   script:
-    - python3 ${PIPELINE_REPO_DIR}/stages/pre-build/downloader.py -i ${CI_PROJECT_DIR}/download.yaml -d ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts
+    - python3 ${PIPELINE_REPO_DIR}/stages/pre-build/downloader.py -i ${CI_PROJECT_DIR}/download.yaml -d ${ARTIFACT_DIR}
   artifacts:
     when: always
     paths:
-      - ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts/
+      - ${ARTIFACT_DIR}/
   # variables:
   #   DOCKER_HOST: tcp://docker:2375
 
