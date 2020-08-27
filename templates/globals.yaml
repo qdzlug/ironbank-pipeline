@@ -55,15 +55,15 @@ stages:
 include:
   - local: stages/preprocess/load-scripts.yaml
 #   - local: stages/preprocess/base.yaml
-services: 
-  - name: docker:dind-rootless
+#services: 
+#  - name: docker:dind-rootless
 
 variables:
   ARTIFACT_FOLDER: "ci_artifacts"
   PIPELINE_REPO_DIR: "${ARTIFACT_FOLDER}/ironbank_pipeline"
   PYTHON_GITLAB_KEY: "${PYTHON_GITLAB_KEY}"
-  DOCKER_TLS_CERTDIR: ""
+#  DOCKER_TLS_CERTDIR: ""
   GIT_SSL_NO_VERIFY: "1"
   # DOCKER_DRIVER: overlay2
-  DOCKER_DRIVER: overlay
-  DOCKER_HOST: tcp://docker:2375
+ # DOCKER_DRIVER: overlay
+ # DOCKER_HOST: tcp://docker:2375
