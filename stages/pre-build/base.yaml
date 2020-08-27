@@ -7,15 +7,13 @@
 import_artifacts:
   extends: .pre-build
   before_script:
-    - sudo dnf install -y podman skopeo
+    - dnf install -y podman skopeo
     - curl -l https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64 -O /usr/local/bin/notary
     - mkdir -p ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts
     # - sudo pip3 install pyyaml --upgrade
-    # - docker pull ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/python:pyyaml
     - podman pull ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav:0.102.4
   script:
     - python3 "${PIPELINE_REPO_DIR}/stages/pre-build/downloader.py" -i ${CI_PROJECT_DIR}/download.yaml -d ${CI_PROJECT_DIR}/pipeline-artifacts/application-artifacts
-    # - podman pull ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker:dind
     - podman run -v ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts:/scan:ro ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav:0.102.4 | tee ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts/report-clamav-artifacts.txt
     #    - INFECTED_ARTIFACT_FILES=$(grep -e "^Infected files:" ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts/report-clamav-artifacts.txt | cut -d ' ' -f3)
     #    - |
