@@ -19,12 +19,17 @@ stages:
   - lint
 
   ### pre-build stage
-  # download artifacts/clamav scan, image signature?
+  # download artifacts/clamav scan
   # Requirements:
   # - executor image with Python 3.x installed
-  # - executor image with docker (or podman) installed
-  - pre-build
+  - import-artifacts
   
+  ### artifact scan stage
+  # use clamav to scan download artifacts
+  # Requirements:
+  # - executor image with docker (or podman) installed
+  - scan-artifacts
+
   ### build stage
   # build image w version tag and create tar file
   # Requirements:

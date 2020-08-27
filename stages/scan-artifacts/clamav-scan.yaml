@@ -1,0 +1,2 @@
+.clamav-scan:
+  stage: artifact-scan
