@@ -7,8 +7,8 @@
 import_artifacts:
   extends: .pre-build
   before_script:
-    - yum install podman skopeo
-    - curl https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64 -O /usr/bin/notary
+    - sudo dnf install -y podman skopeo
+    - curl -l https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64 -O /usr/local/bin/notary
     - mkdir -p ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts
     # - sudo pip3 install pyyaml --upgrade
     # - docker pull ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/python:pyyaml
