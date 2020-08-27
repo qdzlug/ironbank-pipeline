@@ -28,10 +28,10 @@ import_artifacts:
       #fi
   # after_script:
   #   - podman image rm -f ${GITLAB_INTERNAL_REGISTRY}/clamav:0.102.4
-  artifacts:
-    when: always
-    paths:
-      - ${ARTIFACT_DIR}/pipeline-artifacts/application-artifacts/kubernetes.tar.gz
+  #artifacts:
+   # when: always
+    #paths:
+     # - ${ARTIFACT_DIR}/pipeline-artifacts/application-artifacts/
   variables:
     DOCKER_HOST: tcp://docker:2375
 
