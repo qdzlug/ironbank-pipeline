@@ -8,7 +8,7 @@ build:
   variables:
     ARTIFACT_DIR: ${ARTIFACT_FOLDER}/build
   before_script:
-    - cp ${ARTIFACT_FOLDER}/import-artifacts/ .
+    - cp -r ${ARTIFACT_FOLDER}/import-artifacts/ .
   script:
     - buildah bud --format=docker ${CI_PROJECT_DIR}:$IMG_VERSION
   artifacts:
