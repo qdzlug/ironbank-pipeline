@@ -1,16 +1,17 @@
 .post-build:
   stage: post-build
   allow_failure: true
-  image: ${DOCKER_REGISTRY_URL}/platform/docker-git-bash:stable
-  services:
-    - name: docker:dind
+ # image: ${DOCKER_REGISTRY_URL}/platform/docker-git-bash:stable 
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
+
   before_script:
     - apk add tar
-    - docker pull tquinnelly/clamav-alpine:latest
+   # - docker pull tquinnelly/clamav-alpine:latest
+    - podman pull ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav:0.102.4
     - mkdir ${CI_PROJECT_DIR}/imagefs
   script:
     - tar -xvf ${CI_PROJECT_DIR}/pipeline-artifacts/ubi7-${CI_COMMIT_SHA}.tar -C ${CI_PROJECT_DIR}/imagefs
-    - docker run -v ${CI_PROJECT_DIR}/imagefs:/scan:ro tquinnelly/clamav-alpine:latest | tee ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-container.txt
+    - podman run -v ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts:/scan:ro ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav:0.102.4 | tee ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-container.txt
     - INFECTED_CONTAINER_FILES=$(grep -e "^Infected files:" ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-container.txt | cut -d ' ' -f3)
     - |
       if [ ${INFECTED_CONTAINER_FILES} -gt 0 ]
@@ -20,7 +21,7 @@
       fi
   after_script:
     - rm -rf ${CI_PROJECT_DIR}/imagefs
-    - docker image rm -f tquinnelly/clamav-alpine:latest
+    - podman image rm -f ${GITLAB_INTERNAL_REGISTRY}/clamav:0.102.4
   artifacts:
     when: always
     paths:
