@@ -1,12 +1,14 @@
 .pre-build:
   stage: pre-build
-  #image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7
-  image: quay.io/podman/stable:latest
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7
+  #image: quay.io/podman/stable:latest
   allow_failure: true
 
 import_artifacts:
   extends: .pre-build
   before_script:
+    - yum install podman skopeo
+    - curl https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64 -O /usr/bin/notary
     - mkdir -p ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts
     # - sudo pip3 install pyyaml --upgrade
     # - docker pull ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/python:pyyaml
