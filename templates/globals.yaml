@@ -62,7 +62,7 @@ include:
 #   - local: stages/preprocess/base.yaml
 
 variables:
-  ARTIFACT_FOLDER: "ci_artifacts"
+  ARTIFACT_FOLDER: "ci-artifacts"
   PIPELINE_REPO_DIR: "${ARTIFACT_FOLDER}/ironbank_pipeline"
   PYTHON_GITLAB_KEY: "${PYTHON_GITLAB_KEY}"
   IMAGE_NAME: "${CI_PROJECT_PATH}"
