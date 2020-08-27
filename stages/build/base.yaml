@@ -23,6 +23,5 @@
     when: always
     paths:
       - ${CI_PROJECT_DIR}/pipeline-artifacts/
-  variables:
-    DOCKER_HOST: tcp://docker:2375/    
+   
 
