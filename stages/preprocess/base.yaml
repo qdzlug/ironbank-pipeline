@@ -17,4 +17,4 @@ podman test:
     # - vol = podman mount pipeline:img
     - podman pull --tls-verify=false ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7
     - podman tag ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7 pipeline:img
-    - vol = podman mount pipeline:img
+    - $vol = podman mount pipeline:img
