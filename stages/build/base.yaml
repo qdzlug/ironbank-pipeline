@@ -4,7 +4,7 @@ build:
   # Need to convert from artifactory
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
   dependencies:
-    - import-artifacts
+    - import artifacts
   variables:
     ARTIFACT_DIR: ${ARTIFACT_FOLDER}/build
   before_script:
