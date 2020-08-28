@@ -1,15 +1,15 @@
-.post-build:
+.image-av-scan:
   stage: post-build
   allow_failure: true
-  image: ${DOCKER_REGISTRY_URL}/platform/docker-git-bash:stable
-  services:
-    - name: docker:dind
+  image: ${DOCKER_REGISTRY_URL}/dsop/ironbank-pipeline/clamav-podman:latest
+  dependencies:
+    - build
+  variables:
+    ARTIFACT_DIR: ${ARTIFACT_FOLDER}/post-build/clamav-image-scan
   before_script:
-    - apk add tar
-    - docker pull tquinnelly/clamav-alpine:latest
-    - mkdir ${CI_PROJECT_DIR}/imagefs
+    - mkdir -p "${ARTIFACT_DIR}"
   script:
-    - tar -xvf ${CI_PROJECT_DIR}/pipeline-artifacts/ubi7-${CI_COMMIT_SHA}.tar -C ${CI_PROJECT_DIR}/imagefs
+    - freshclam
     - docker run -v ${CI_PROJECT_DIR}/imagefs:/scan:ro tquinnelly/clamav-alpine:latest | tee ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-container.txt
     - INFECTED_CONTAINER_FILES=$(grep -e "^Infected files:" ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-container.txt | cut -d ' ' -f3)
     - |
