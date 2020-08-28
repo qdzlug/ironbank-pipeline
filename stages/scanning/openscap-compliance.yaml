@@ -2,7 +2,6 @@ include:
   - local: stages/scanning/base.yaml
 
 .openscap compliance:
-  extends: scanning
   variables:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/build/openscap-compliance/
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
