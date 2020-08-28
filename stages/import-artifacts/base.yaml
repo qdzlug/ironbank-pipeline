@@ -5,7 +5,7 @@ import artifacts:
   dependencies:
     - load scripts
   variables:
-    ARTIFACT_DIR: ${ARTIFACT_FOLDER}/import-artifacts
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/import-artifacts
   # Arguments.get().download is used to get download items
   # dccscrImport() calls ContributorResource, which performs validation of download.yaml file
   before_script:

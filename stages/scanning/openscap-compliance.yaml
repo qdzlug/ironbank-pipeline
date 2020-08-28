@@ -1,9 +1,19 @@
 include:
   - local: stages/scanning/base.yaml
-  
-.openscap compliance:
-  stage: scanning
 
+.openscap compliance:
+  variables:
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/build/openscap-compliance/
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
+  before_script:
+    - mkdir -p ${ARTIFACT_DIR}
+    - podman load -i ${ARTIFACT_STORAGE}/build/image.tar
+  script:
+    - echo "have we made it here"
+  artifacts:
+    when: always
+    paths:
+      - ${ARTIFACT_DIR}/
   # outputs:
   # oscap-version.txt
   # report.html

@@ -1,15 +1,5 @@
 .scanning:
   stage: scanning
   allow_failure: true
-  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
-  variables:
-    ARTIFACT_DIR: 
   dependencies:
     - post-build
-  before_script:
-    - podman load -i ${ARTIFACT_STORAGE}/
-    #- podman pull --authfile=${DOCKER_AUTH_CONFIG} registry1.dsop.io/ironbank/opensource/kubernetes-1.18/kubectl-1.18:latest
-  artifacts:
-    when: always
-    paths:
-      - ${ARTIFACT_DIR}/ 
