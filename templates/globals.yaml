@@ -66,7 +66,7 @@ include:
 
 variables:
   ARTIFACT_STORAGE: "ci-artifacts"
-  PIPELINE_REPO_DIR: "${ARTIFACT_FOLDER}/ironbank_pipeline"
+  PIPELINE_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank_pipeline"
   PYTHON_GITLAB_KEY: "${PYTHON_GITLAB_KEY}"
   IMAGE_NAME: "${CI_PROJECT_PATH}"
   GIT_SSL_NO_VERIFY: "1"
