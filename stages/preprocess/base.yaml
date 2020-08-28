@@ -15,6 +15,4 @@ podman test:
     # - podman pull --tls-verify=false "${REGISTRY_URL}"/opensource/kubernetes-1.18/kubectl-1.18:v1.18.7
     # - podman tag ${REGISTRY_URL}/opensource/kubernetes-1.18/kubectl:latest pipeline:img
     # - vol = podman mount pipeline:img
-    - |
-      podman login --tls-verify=false -u ${ironbank_robot_user} -p "${ironbank_robot_pass} "registry1.dsop.io
-      podman pull --tls-verify=false "${REGISTRY_URL}"/opensource/kubernetes-1.18/kubectl-1.18:v1.18.7
+    - podman pull --tls-verify=false ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7
