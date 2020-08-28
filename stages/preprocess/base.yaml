@@ -11,7 +11,7 @@ podman test:
   allow_failure: false
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav-podman:temp
   script:
-    - podman login --tls-verify=false -u ${ironbank_robot_user} -p "${ironbank_robot_pass}" registry1.dsop.io
+    - podman login --tls-verify=false -u ${ironbank_robot_user} -p "${ironbank_robot_pass} "registry1.dsop.io
     - podman pull ${REGISTRY_URL}/opensource/kubernetes-1.18/kubectl:latest
     - podman tag ${REGISTRY_URL}/opensource/kubernetes-1.18/kubectl:latest pipeline:img
     - vol = podman mount pipeline:img
