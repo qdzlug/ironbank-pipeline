@@ -16,9 +16,9 @@ podman test:
     # - podman tag ${REGISTRY_URL}/opensource/kubernetes-1.18/kubectl:latest pipeline:img
     # - vol = podman mount pipeline:img
     - podman pull --tls-verify=false ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7
-    - podman ps
+    - podman ps -a
     - podman create ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7
-    - podman ps
-    - VOL=$(podman export)
+    - podman ps -a
+    - VOL=$(podman export 9f18e732a4a7184b3564d61378fcf470860db6eecf5068428500fb0059a1caf0)
     # - podman tag ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7 pipeline:img
     # - VOL=$(podman mount --latest) 
