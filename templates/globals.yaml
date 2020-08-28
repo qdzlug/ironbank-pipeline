@@ -33,7 +33,8 @@ stages:
   ### build stage
   # build image w version tag and create tar file
   # Requirements:
-  # - executor image with buildah installed
+  # - executor image with docker installed
+  # NOTE: Executor image must have docker installed in order to work properly with Notary for image signing
   - build
 
   ### post-build stage
@@ -64,11 +65,10 @@ include:
 #  - name: docker:dind-rootless
 
 variables:
-  ARTIFACT_FOLDER: "ci_artifacts"
+  ARTIFACT_STORAGE: "ci-artifacts"
   PIPELINE_REPO_DIR: "${ARTIFACT_FOLDER}/ironbank_pipeline"
   PYTHON_GITLAB_KEY: "${PYTHON_GITLAB_KEY}"
-  DOCKER_TLS_CERTDIR: ""
+  IMAGE_NAME: "${CI_PROJECT_PATH}"
   GIT_SSL_NO_VERIFY: "1"
-  # DOCKER_DRIVER: overlay2
-  DOCKER_DRIVER: overlay
   DOCKER_HOST: tcp://docker:2375
+  DOCKER_TLS_CERTDIR: ""

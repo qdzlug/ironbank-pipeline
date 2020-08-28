@@ -6,18 +6,20 @@ build:
   dependencies:
     - import artifacts
   variables:
-    ARTIFACT_DIR: ${ARTIFACT_FOLDER}/build
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/build
   before_script:
-    - cp -r ${ARTIFACT_FOLDER}/import-artifacts/ .
+    - cp -r ${ARTIFACT_STORAGE}/import-artifacts/ .
   script:
     # - dnf install -y buildah
     # - export pass=${ironbank_robot_pass}
     # - buildah login -u "${ironbank_robot_user}" --password-stdin $pass registry1.dsop.io
     # - buildah bud --format=docker--storage-driver=vfs .
     - echo "Temporary placeholder"
+    # This will be replaced by actually building the image with the Dockerfile and required artifacts
+    - podman pull --authfile=${DOCKER_AUTH_CONFIG} registry1.dsop.io/ironbank/opensource/kubernetes-1.18/kubectl-1.18:latest
+    - podman save -o image.tar
+    - mv image.tar ${ARTIFACT_DIR}
   artifacts:
     when: always
     paths:
       - ${ARTIFACT_DIR}/
-   
-

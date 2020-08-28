@@ -5,15 +5,12 @@ clamav image scan:
   dependencies:
     - build
   variables:
-    ARTIFACT_DIR: ${ARTIFACT_FOLDER}/post-build/clamav-image-scan
+    CLAMAV_SCANS: ${ARTIFACT_STORAGE}/post-build/clamav-image-scan
   before_script:
-    - mkdir -p "${ARTIFACT_DIR}"
+    - mkdir -p "${CLAMAV_SCAN}"
   script:
-    # - freshclam
     - podman pull --authfile=${DOCKER_AUTH_CONFIG} registry1.dsop.io/ironbank/opensource/kubernetes-1.18/kubectl-1.18:latest
-    # - podman ps -a
-    # - podman create ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7
-    # - podman ps -a
+    # - freshclam
     # - clamscan -irv vol > output.txt
     # - cat output.txt
     # - INFECTED_CONTAINER_FILES=$(grep -e "^Infected files:" ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-container.txt | cut -d ' ' -f3)
@@ -23,7 +20,6 @@ clamav image scan:
     #     echo Malware detected in container! Number of findings: ${INFECTED_CONTAINER_FILES}
     #     exit 1
     #   fi
-
   artifacts:
     when: always
     paths:
