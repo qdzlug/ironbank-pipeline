@@ -22,10 +22,8 @@ image-av-scan:
         echo Malware detected in container! Number of findings: ${INFECTED_CONTAINER_FILES}
         exit 1
       fi
-  after_script:
-    - rm -rf ${CI_PROJECT_DIR}/imagefs
-    - docker image rm -f tquinnelly/clamav-alpine:latest
+
   artifacts:
     when: always
     paths:
-      - ${CI_PROJECT_DIR}/pipeline-artifacts/
+      - ${ARTIFACT_DIR}/
