@@ -9,22 +9,22 @@ clamav image scan:
   before_script:
     - mkdir -p "${ARTIFACT_DIR}"
   script:
-    - freshclam
-    # - podman login --tls-verify=false -u ${ironbank_robot_user} -p "${ironbank_robot_user}" registry1.dsop.io
-    # - podman pull ${REGISTRY_URL}/opensource/kubernetes-1.18/kubectl:latest
-    - podman pull --tls-verify=false ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7
-    - podman ps -a
-    - podman create ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7
-    - podman ps -a
-    - clamscan -irv vol > output.txt
-    - cat output.txt
-    - INFECTED_CONTAINER_FILES=$(grep -e "^Infected files:" ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-container.txt | cut -d ' ' -f3)
-    - |
-      if [ ${INFECTED_CONTAINER_FILES} -gt 0 ]
-      then
-        echo Malware detected in container! Number of findings: ${INFECTED_CONTAINER_FILES}
-        exit 1
-      fi
+    # - freshclam
+    - podman login --tls-verify=false -u ${ironbank_robot_user} -p "${ironbank_robot_user}" registry1.dsop.io
+    - podman pull registry1.dsop.io/ironbank/opensource/kubernetes-1.18/kubectl:latest
+    # - podman pull --tls-verify=false ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7
+    # - podman ps -a
+    # - podman create ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7
+    # - podman ps -a
+    # - clamscan -irv vol > output.txt
+    # - cat output.txt
+    # - INFECTED_CONTAINER_FILES=$(grep -e "^Infected files:" ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-container.txt | cut -d ' ' -f3)
+    # - |
+    #   if [ ${INFECTED_CONTAINER_FILES} -gt 0 ]
+    #   then
+    #     echo Malware detected in container! Number of findings: ${INFECTED_CONTAINER_FILES}
+    #     exit 1
+    #   fi
 
   artifacts:
     when: always
