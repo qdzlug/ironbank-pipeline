@@ -1,3 +1,6 @@
+include:
+  - local: stages/scanning/base.yaml
+
 # utilize python image
 
 # point to the Twistlock server address
