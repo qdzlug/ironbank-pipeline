@@ -1,5 +1,5 @@
 clamav scan:
-  stage: scan-artifacts
+  stage: scan artifacts
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav:0.102.4
   allow_failure: true
   dependencies:

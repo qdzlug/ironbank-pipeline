@@ -1,5 +1,5 @@
-import-artifacts:
-  stage: import-artifacts
+import artifacts:
+  stage: import artifacts
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
   allow_failure: true
   dependencies:
