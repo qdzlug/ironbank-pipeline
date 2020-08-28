@@ -10,7 +10,7 @@ clamav image scan:
     - mkdir -p "${ARTIFACT_DIR}"
   script:
     # - freshclam
-    - podman login --tls-verify=false --authfile=${DOCKER_AUTH_CONFIG} registry1.dsop.io
+    - podman login --authfile=${DOCKER_AUTH_CONFIG} registry1.dsop.io
     - podman pull registry1.dsop.io/ironbank/opensource/kubernetes-1.18/kubectl-1.18:latest
     # - podman pull --tls-verify=false ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7
     # - podman ps -a
