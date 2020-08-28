@@ -1,5 +1,5 @@
 .scanning:
   stage: scanning
   allow_failure: true
-  dependencies:
-    - post-build
+  #  dependencies:
+  #    - post-build
