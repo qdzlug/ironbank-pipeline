@@ -1,7 +1,7 @@
-.image-av-scan:
+image-av-scan:
   stage: post-build
   allow_failure: true
-  image: ${DOCKER_REGISTRY_URL}/dsop/ironbank-pipeline/clamav-podman:latest
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav-podman:latest
   dependencies:
     - build
   variables:
@@ -10,7 +10,11 @@
     - mkdir -p "${ARTIFACT_DIR}"
   script:
     - freshclam
-    - docker run -v ${CI_PROJECT_DIR}/imagefs:/scan:ro tquinnelly/clamav-alpine:latest | tee ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-container.txt
+    - podman pull ${REGISTRY_URL}/opensource/kubernetes-1.18/kubectl:latest
+    - podman tag ${REGISTRY_URL}/opensource/kubernetes-1.18/kubectl:latest pipeline:img
+    - vol = podman mount pipeline:img
+    - clamscan -irv vol > output.txt
+    - cat output.txt
     - INFECTED_CONTAINER_FILES=$(grep -e "^Infected files:" ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-container.txt | cut -d ' ' -f3)
     - |
       if [ ${INFECTED_CONTAINER_FILES} -gt 0 ]
