@@ -3,7 +3,7 @@ clamav scan:
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav:0.102.4
   allow_failure: true
   dependencies:
-    - import-artifacts
+    - import artifacts
   variables:
     ARTIFACT_DIR: ${ARTIFACT_FOLDER}/scan-artifacts/clamav-scan
   before_script:
