@@ -2,9 +2,8 @@
   stage: preflight
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7
   
-
 # TODO: Possibly check for deployment files?
-folder_structure:
+folder structure:
   extends: .preflight
   script:
     - ls -l README.md
@@ -20,7 +19,7 @@ folder_structure:
 # base image vars??
 # OPTIONAL FOR BETA PIPELINE
 build variables:
-  extends: folder_structure
+  extends: folder structure
   script:
     - |
       if [ -z "$IMG_VERSION" ]; then

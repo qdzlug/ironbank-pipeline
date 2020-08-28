@@ -1,0 +1,19 @@
+import artifacts:
+  stage: import artifacts
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
+  allow_failure: true
+  dependencies:
+    - load scripts
+  variables:
+    ARTIFACT_DIR: ${ARTIFACT_FOLDER}/import-artifacts
+  # Arguments.get().download is used to get download items
+  # dccscrImport() calls ContributorResource, which performs validation of download.yaml file
+  before_script:
+    - mkdir -p "${ARTIFACT_DIR}"
+  script:
+    - python3 ${PIPELINE_REPO_DIR}/stages/import-artifacts/downloader.py -i ${CI_PROJECT_DIR}/download.yaml -d ${ARTIFACT_DIR}
+  artifacts:
+    when: always
+    paths:
+      - ${ARTIFACT_DIR}/
+

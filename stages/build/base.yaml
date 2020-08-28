@@ -1,37 +1,21 @@
-.build:
+build:
   stage: build
-  allow_failure: false
-  #image: ${GITLAB_INTERNAL_REGISTRY}/platform/docker-git-bash:stable
-  image: quay.io/podman/stable:latest
-  cache: {}
-  #  services:
-  #  - name: docker:19.03-dind-rootless
-  #    command: ["--experimental"]
-  except:
-    #refs:
-    #  - tags
-    #  - triggers
-    variables:
-      - $DOCKER_BUILD_DISABLED
+  allow_failure: true
+  # Need to convert from artifactory
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
+  dependencies:
+    - import artifacts
   variables:
-    BUILD_IMAGE: ${GITLAB_INTERNAL_REGISTRY}/${IMAGE_NAME}
-  dependencies: []
+    ARTIFACT_DIR: ${ARTIFACT_FOLDER}/build
+  before_script:
+    - cp -r ${ARTIFACT_FOLDER}/import-artifacts/ .
   script:
-    - echo "list working folder contents..."
-    - ls -al
-    - DOCKER_BUILDKIT=1 docker build
-      --tag ${BUILD_IMAGE}:${IMG_VERSION}
-      --file ./Dockerfile
-      "."
-    # Push the newly bumped build image
-    - docker push ${BUILD_IMAGE}:$NEW_VERSION
-    - echo "Successfully pushed image ${BUILD_IMAGE}:$IMG_VERSION"
-  after_script:
-    - IMAGE=$(grep "FROM" Dockerfile | cut -d " " -f2)
-    - docker image rm -f ${IMAGE}
+    # - dnf install -y buildah
+    # - export pass=${ironbank_robot_pass}
+    # - buildah login -u "${ironbank_robot_user}" --password-stdin $pass registry1.dsop.io
+    # - buildah bud --format=docker--storage-driver=vfs .
+    - echo "Temporary placeholder"
   artifacts:
     when: always
     paths:
-      - ${CI_PROJECT_DIR}/pipeline-artifacts/
-  variables:
-    DOCKER_HOST: tcp://docker:2375/    
+      - ${ARTIFACT_DIR}/

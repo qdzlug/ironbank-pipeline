@@ -5,7 +5,9 @@ include:
     
     - local: stages/lint/base.yaml
     
-    - local: stages/pre-build/base.yaml
+    - local: stages/import-artifacts/base.yaml
+
+    - local: stages/scan-artifacts/clamav-scan.yaml
     
     - local: stages/build/base.yaml
     
