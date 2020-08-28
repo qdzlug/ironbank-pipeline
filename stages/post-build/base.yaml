@@ -1,29 +1,6 @@
 clamav image scan:
   stage: post-build
   allow_failure: true
-<<<<<<< HEAD
- # image: ${DOCKER_REGISTRY_URL}/platform/docker-git-bash:stable 
-  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
-
-  before_script:
-    - apk add tar
-   # - docker pull tquinnelly/clamav-alpine:latest
-    - podman pull ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav:0.102.4
-    - mkdir ${CI_PROJECT_DIR}/imagefs
-  script:
-    - tar -xvf ${CI_PROJECT_DIR}/pipeline-artifacts/ubi7-${CI_COMMIT_SHA}.tar -C ${CI_PROJECT_DIR}/imagefs
-    - podman run -v ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts:/scan:ro ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav:0.102.4 | tee ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-container.txt
-    - INFECTED_CONTAINER_FILES=$(grep -e "^Infected files:" ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-container.txt | cut -d ' ' -f3)
-    - |
-      if [ ${INFECTED_CONTAINER_FILES} -gt 0 ]
-      then
-        echo Malware detected in container! Number of findings: ${INFECTED_CONTAINER_FILES}
-        exit 1
-      fi
-  after_script:
-    - rm -rf ${CI_PROJECT_DIR}/imagefs
-    - podman image rm -f ${GITLAB_INTERNAL_REGISTRY}/clamav:0.102.4
-=======
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav-podman:temp
   dependencies:
     - build
@@ -48,8 +25,6 @@ clamav image scan:
     #     echo Malware detected in container! Number of findings: ${INFECTED_CONTAINER_FILES}
     #     exit 1
     #   fi
-
->>>>>>> origin
   artifacts:
     when: always
     paths:
