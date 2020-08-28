@@ -6,9 +6,9 @@
       - tags
   dependencies: []
 
-  podman test:
-    stage: .pre
-    allow_failure: false
-    image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav-podman:temp
-    script:
-      - podman login --tls-verify=false -u ${ironbank_robot_user} -p "${ironbank_robot_pass} "registry1.dsop.io
+podman test:
+  stage: .pre
+  allow_failure: false
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav-podman:temp
+  script:
+    - podman login --tls-verify=false -u ${ironbank_robot_user} -p "${ironbank_robot_pass} "registry1.dsop.io
