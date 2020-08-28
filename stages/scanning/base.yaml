@@ -3,3 +3,5 @@
   allow_failure: true
   #  dependencies:
   #    - post-build
+  include:
+    - local: openscap-compliance.yaml

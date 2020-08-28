@@ -13,9 +13,9 @@ include:
     
     - local: stages/post-build/base.yaml
     
-      #    - local: stages/scanning/base.yaml
+    - local: stages/scanning/base.yaml
       #    Do we want to call out the specific scans to be run with this format?
-    - local: stages/scanning/openscap-compliance.yaml
+      #- local: stages/scanning/openscap-compliance.yaml
     
     - local: stages/csv-output/base.yaml
     
