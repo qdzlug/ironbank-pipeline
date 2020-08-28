@@ -8,6 +8,7 @@ build:
   variables:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/build
   before_script:
+    - mkdir -p ${ARTIFACT_DIR}
     - cp -r ${ARTIFACT_STORAGE}/import-artifacts/ .
   script:
     # - dnf install -y buildah
