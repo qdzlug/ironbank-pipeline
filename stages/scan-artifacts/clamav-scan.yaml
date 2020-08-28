@@ -5,12 +5,12 @@ clamav scan:
   dependencies:
     - import artifacts
   variables:
-    ARTIFACT_DIR: ${ARTIFACT_FOLDER}/scan-artifacts/clamav-scan
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/scan-artifacts/clamav-scan
   before_script:
     - mkdir -p "${ARTIFACT_DIR}"
   script:
     - freshclam
-    - clamscan -irv --max-filesize=4000M --max-scansize=4000M ${ARTIFACT_FOLDER}/import-artifacts/ > ${ARTIFACT_DIR}/import-artifacts-clamav-report.txt
+    - clamscan -irv --max-filesize=4000M --max-scansize=4000M ${ARTIFACT_STORAGE}/import-artifacts/ > ${ARTIFACT_DIR}/import-artifacts-clamav-report.txt
     - cat ${ARTIFACT_DIR}/import-artifacts-clamav-report.txt
     - INFECTED_CONTAINER_FILES=$(grep -e "^Infected files:" ${ARTIFACT_DIR}/import-artifacts-clamav-report.txt | cut -d ' ' -f3)
     - |

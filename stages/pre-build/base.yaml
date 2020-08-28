@@ -7,13 +7,13 @@
 import_artifacts:
   extends: .pre-build
   before_script:
-    - mkdir -p ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts
+    - mkdir -p ${ARTIFACT_STORAGE}/pipeline-artifacts/application-artifacts
     # - sudo pip3 install pyyaml --upgrade
     - podman pull ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav:0.102.4
   script:
-    - python3 "${PIPELINE_REPO_DIR}/stages/pre-build/downloader.py" -i ${CI_PROJECT_DIR}/download.yaml -d ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts
-    - podman run -v ci-artifacts/pipeline-artifacts/application-artifacts/:/scan:ro ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav:0.102.4 | tee ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts/report-clamav-artifacts.txt
-    #    - INFECTED_ARTIFACT_FILES=$(grep -e "^Infected files:" ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts/report-clamav-artifacts.txt | cut -d ' ' -f3)
+    - python3 "${PIPELINE_REPO_DIR}/stages/pre-build/downloader.py" -i ${CI_PROJECT_DIR}/download.yaml -d ${ARTIFACT_STORAGE}/pipeline-artifacts/application-artifacts
+    - podman run -v ci-artifacts/pipeline-artifacts/application-artifacts/:/scan:ro ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav:0.102.4 | tee ${ARTIFACT_STORAGE}/pipeline-artifacts/application-artifacts/report-clamav-artifacts.txt
+    #    - INFECTED_ARTIFACT_FILES=$(grep -e "^Infected files:" ${ARTIFACT_STORAGE}/pipeline-artifacts/application-artifacts/report-clamav-artifacts.txt | cut -d ' ' -f3)
     #    - |
     #      if [ ${INFECTED_ARTIFACT_FILES} -gt 0 ]
     #      then
@@ -25,7 +25,7 @@ import_artifacts:
   artifacts:
     when: always
     paths:
-      - ${ARTIFACT_FOLDER}/pipeline-artifacts/application-artifacts
+      - ${ARTIFACT_STORAGE}/pipeline-artifacts/application-artifacts
 
 # image_signature:
 #   extends: .import_artifacts

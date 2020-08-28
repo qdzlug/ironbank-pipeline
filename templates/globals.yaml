@@ -65,7 +65,7 @@ include:
 #  - name: docker:dind-rootless
 
 variables:
-  ARTIFACT_FOLDER: "ci-artifacts"
+  ARTIFACT_STORAGE: "ci-artifacts"
   PIPELINE_REPO_DIR: "${ARTIFACT_FOLDER}/ironbank_pipeline"
   PYTHON_GITLAB_KEY: "${PYTHON_GITLAB_KEY}"
   IMAGE_NAME: "${CI_PROJECT_PATH}"
