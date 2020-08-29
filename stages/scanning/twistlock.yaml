@@ -1,7 +1,7 @@
 twistlock scan:
   stage: scanning
   allow_failure: true
-  image: ${REGISTRY_URL}/redhat/python/python36:3.6
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
   variables:
     # put all scan outputs in the scan-results folder
     TWISTLOCK_SCANS: ${ARTIFACT_STORAGE}/scan-results/twistlock
