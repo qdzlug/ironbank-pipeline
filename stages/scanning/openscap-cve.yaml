@@ -1,9 +1,21 @@
 include:
   - local: stages/scanning/base.yaml
 
-.openscap cve:
+openscap cve:
   stage: scanning
-  
+  allow_failure: true
+  variables:
+    OPENSCAP_CVE_SCANS: ${ARTIFACT_STORAGE}/scan-results/openscap/
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
+  before_script:
+    - mkdir -p ${OPENSCAP_CVE_SCANS}
+    - podman load -i ${ARTIFACT_STORAGE}/build/image.tar
+  script:
+    - echo "have we made it here"
+  artifacts:
+    when: always
+    paths:
+      - ${OPENSCAP_CVE_SCANS}/
   # outputs:
   # report-cve.html
   # report-cve.xml
