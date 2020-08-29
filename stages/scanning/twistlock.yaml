@@ -2,7 +2,7 @@
 #   - local: stages/scanning/base.yaml
 
 twistlock scan:
-  extends: .scanning
+  stage: scanning
   allow_failure: true
   image: ${REGISTRY_URL}/redhat/python/python36:3.6
   variables:

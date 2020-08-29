@@ -2,7 +2,7 @@
 #   - local: stages/scanning/base.yaml
 
 openscap cve:
-  extends: .scanning
+  stage: scanning
   allow_failure: true
   variables:
     OPENSCAP_CVE_SCANS: ${ARTIFACT_STORAGE}/scan-results/openscap/
