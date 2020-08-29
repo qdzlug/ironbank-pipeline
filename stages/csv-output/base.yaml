@@ -3,7 +3,10 @@ csv-output:
   allow_failure: true
   image: ${REGISTRY_URL}/redhat/python/python36:3.6
   dependencies:
-    - scanning
+    - twistlock scan
+    - openscap cve
+    - openscap compliance
+    - anchore scan
   variables:
     # Put generated csv report in the scan-results folder
     CSV_REPORT: ${ARTIFACT_STORAGE}/scan-results/csv-output
