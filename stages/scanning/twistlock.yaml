@@ -7,7 +7,7 @@ twistlock scan:
   image: ${REGISTRY_URL}/redhat/python/python36:3.6
   variables:
     # put all scan outputs in the scan-results folder
-    - TWISTLOCK_SCANS: ${ARTIFACT_STORAGE}/scan-results/twistlock
+    TWISTLOCK_SCANS: ${ARTIFACT_STORAGE}/scan-results/twistlock
   before_script:
     - mkdir -p "${TWISTLOCK_SCANS}"
   script:
