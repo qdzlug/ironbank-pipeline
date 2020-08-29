@@ -1,4 +1,4 @@
-## FOR MON RETURN OSCAP CONTAINER
+## FOR MON test
 #!/usr/bin/python3
 import os
 import sys 
