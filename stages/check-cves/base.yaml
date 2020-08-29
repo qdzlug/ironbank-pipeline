@@ -1,3 +1,10 @@
-.check-cves:
+check-cves:
   stage: check-cves
   allow_failure: true
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
+  dependencies:
+    - csv-output
+  before_script:
+    - mkdir -p "${TWISTLOCK_SCANS}"
+  script:
+    - python3 ${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py
