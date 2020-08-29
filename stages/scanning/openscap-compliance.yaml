@@ -31,7 +31,7 @@ openscap compliance:
     when: always
     paths:
       - ${ARTIFACT_DIR}/
-  # outputs:
+  # outputs:                              ## TODO TEST AND ARTIFACTS
   # oscap-version.txt
   # report.html
   # cve-oval.xml
