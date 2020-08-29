@@ -7,7 +7,7 @@ clamav image scan:
   variables:
     CLAMAV_SCANS: ${ARTIFACT_STORAGE}/post-build/clamav-image-scan
   before_script:
-    - mkdir -p "${CLAMAV_SCAN}"
+    - mkdir -p "${CLAMAV_SCANS}"
   script:
     - podman pull --authfile=${DOCKER_AUTH_CONFIG} registry1.dsop.io/ironbank/opensource/kubernetes-1.18/kubectl-1.18:latest
     # - freshclam
@@ -23,4 +23,4 @@ clamav image scan:
   artifacts:
     when: always
     paths:
-      - ${ARTIFACT_DIR}/
+      - ${ARTIFACT_STORAGE}/
