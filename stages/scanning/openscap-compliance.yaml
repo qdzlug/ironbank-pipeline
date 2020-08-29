@@ -1,5 +1,5 @@
-include:
-  - local: stages/scanning/base.yaml
+# include:
+#   - local: stages/scanning/base.yaml
 
 .openscap compliance:
   extends: .scanning
