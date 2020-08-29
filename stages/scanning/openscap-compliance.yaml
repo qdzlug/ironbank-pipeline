@@ -1,7 +1,4 @@
-# include:
-#   - local: stages/scanning/base.yaml
-
-.openscap compliance:
+openscap compliance:
   stage: scanning
   allow_failure: true
   variables:
