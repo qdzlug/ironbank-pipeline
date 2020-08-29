@@ -3,7 +3,7 @@
 
 twistlock scan:
   extends: .scanning
-  allow failure: true
+  allow_failure: true
   image: ${REGISTRY_URL}/redhat/python/python36:3.6
   variables:
     # put all scan outputs in the scan-results folder
