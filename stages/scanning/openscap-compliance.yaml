@@ -1,6 +1,9 @@
 openscap compliance:
   stage: scanning
   allow_failure: true
+  except:
+    variables:
+      $DISTROLESS
   variables:
     OPENSCAP_COMPLIANCE_SCANS: ${ARTIFACT_STORAGE}/scan-results/openscap/
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
