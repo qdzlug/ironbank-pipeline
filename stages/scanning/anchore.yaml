@@ -1,9 +1,18 @@
-include:
-  - local: stages/scanning/base.yaml
-
-.anchore scan:
+anchore scan:
   stage: scanning
-  allow_failure: false
+  allow_failure: true
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
+  variables:
+    # put all scan outputs in the scan-results folder
+    ANCHORE_SCANS: ${ARTIFACT_STORAGE}/scan-results/anchore
+  before_script:
+    - mkdir -p "${ANCHORE_SCANS}"
+  script:
+    - python3 ${PIPELINE_REPO_DIR}/stages/scanning/pipeline_anchore_vuln_report_gen.py
+  artifacts:
+    when: always
+    paths:
+      - ${ANCHORE_SCANS}/
 
 # following code block borrowed from spacecamp as reference if needed
 # anchore scan:

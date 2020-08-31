@@ -1,6 +1,18 @@
-include:
-  - local: stages/scanning/base.yaml
-
+twistlock scan:
+  stage: scanning
+  allow_failure: true
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
+  variables:
+    # put all scan outputs in the scan-results folder
+    TWISTLOCK_SCANS: ${ARTIFACT_STORAGE}/scan-results/twistlock
+  before_script:
+    - mkdir -p "${TWISTLOCK_SCANS}"
+  script:
+    - python3 ${PIPELINE_REPO_DIR}/stages/scanning/prisma_scan.py
+  artifacts:
+    when: always
+    paths:
+      - ${TWISTLOCK_SCANS}/
 # utilize python image
 
 # point to the Twistlock server address
