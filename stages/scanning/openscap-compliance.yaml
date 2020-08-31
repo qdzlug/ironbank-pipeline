@@ -16,7 +16,7 @@ openscap compliance:
     - base_image_type=`podman inspect -f '{{index .Labels "com.redhat.component"}}' ${DOCKER_IMAGE_PATH} | awk '{$1=$1};1'`
   script:
     - echo "have we made it here"
-    - if [ "$base_image_type" != "`podman inspect -f '{{index .Labels "os_type"}}' ${DOCKER_IMAGE_PATH} |  awk '{$1=$1};1'`"]  ; then  "labels=`podman inspect -f '{{.Labels}}' ${DOCKER_IMAGE_PATH} |  awk '{$1=$1};1'`";   echo "Unkown image type. Can't choose oscap security guide. lables: ${labels}"; fi
+  #  - if [ "$base_image_type" != "`podman inspect -f '{{index .Labels "os_type"}}' ${DOCKER_IMAGE_PATH} |  awk '{$1=$1};1'`"]  ; then  "labels=`podman inspect -f '{{.Labels}}' ${DOCKER_IMAGE_PATH} |  awk '{$1=$1};1'`";   echo "Unkown image type. Can't choose oscap security guide. lables: ${labels}"; fi
   #  - compliance.py $base_image_type    #FOR MON return result 
   #  - oscap_container= oscap_guides[base_image_type]   #result 
     - oscap_container= `compliance.py $base_image_type`

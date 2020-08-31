@@ -1,4 +1,3 @@
-## FOR MON test
 #!/usr/bin/python3
 import os
 import sys 
