@@ -16,7 +16,7 @@ openscap compliance:
     - OSCAP_VERSION=`curl -fsSLI -o /dev/null -w %{url_effective} https://github.com/ComplianceAsCode/content/releases/latest | grep -Eo "[0-9\\.]+$" | awk '{$1=$1};1'`
     - base_image_type=`podman inspect -f '{{index .Labels "com.redhat.component"}}' ${DOCKER_IMAGE_PATH} | awk '{$1=$1};1'`
     - > 
-      if [ "$base_image_type" != "`podman inspect -f '{{index .Labels "os_type"}}' ${DOCKER_IMAGE_PATH} |  awk '{$1=$1};1'`"]  ; then  "labels=`podman inspect -f '{{.Labels}}' ${DOCKER_IMAGE_PATH} |  awk '{$1=$1};1'`";   echo "Unkown image type. Can't choose oscap security guide. lables: ${labels}"; fi 
+      if [[ "$base_image_type" != "`podman inspect -f '{{index .Labels "os_type"}}' ${DOCKER_IMAGE_PATH} |  awk '{$1=$1};1'`" ]]  ; then  "labels=`podman inspect -f '{{.Labels}}' ${DOCKER_IMAGE_PATH} |  awk '{$1=$1};1'`";   echo "Unkown image type. Can't choose oscap security guide. lables: ${labels}"; fi 
   script:
     - echo "have we made it here"
   #  - if [ "$base_image_type" != "`podman inspect -f '{{index .Labels "os_type"}}' ${DOCKER_IMAGE_PATH} |  awk '{$1=$1};1'`"]  ; then  "labels=`podman inspect -f '{{.Labels}}' ${DOCKER_IMAGE_PATH} |  awk '{$1=$1};1'`";   echo "Unkown image type. Can't choose oscap security guide. lables: ${labels}"; fi
