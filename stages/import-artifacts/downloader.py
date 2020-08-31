@@ -57,7 +57,7 @@ for type in downloads:
             print("Generating checksum")
 
             if item["type"] != "sha256":
-                print("file verification type not supported: %s", % (item["type"]))
+                print("file verification type not supported: '%s'" % (item["type"]))
                 sys.exit(1)
 
             sha256_hash = hashlib.sha256()

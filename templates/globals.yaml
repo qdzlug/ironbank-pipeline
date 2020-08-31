@@ -68,6 +68,7 @@ variables:
   PYTHON_GITLAB_KEY: "${PYTHON_GITLAB_KEY}"
   IMAGE_NAME: "${CI_PROJECT_PATH}"
   GIT_SSL_NO_VERIFY: "1"
+  TARGET_BRANCH: master
 
 # Settings for dind service
   DOCKER_HOST: tcp://docker:2375
