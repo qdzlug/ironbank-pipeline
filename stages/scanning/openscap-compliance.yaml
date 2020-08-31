@@ -12,12 +12,12 @@ openscap compliance:
   before_script:
     - mkdir -p ${ARTIFACT_DIR}
     - podman load -i ${ARTIFACT_STORAGE}/build/image.tar
-    - OSCAP_VERSION=`curl -fsSLI -o /dev/null -w %{url_effective} https://github.com/ComplianceAsCode/content/releases/latest | grep -Eo "[0-9\\.]+$"''').trim() `
+    - OSCAP_VERSION=`curl -fsSLI -o /dev/null -w %{url_effective} https://github.com/ComplianceAsCode/content/releases/latest | grep -Eo "[0-9\\.]+$" | awk '{$1=$1};1'`
     - base_image_type=`podman inspect -f '{{index .Labels "com.redhat.component"}}' ${DOCKER_IMAGE_PATH} | awk '{$1=$1};1'`
   script:
     - echo "have we made it here"
     - if [ "$base_image_type" != "`podman inspect -f '{{index .Labels "os_type"}}' ${DOCKER_IMAGE_PATH} |  awk '{$1=$1};1'`"]  ; then  "labels=`podman inspect -f '{{.Labels}}' ${DOCKER_IMAGE_PATH} |  awk '{$1=$1};1'`";   echo "Unkown image type. Can't choose oscap security guide. lables: ${labels}"; fi
-    - compliance.py $base_image_type    #FOR MON return result 
+  #  - compliance.py $base_image_type    #FOR MON return result 
   #  - oscap_container= oscap_guides[base_image_type]   #result 
     - oscap_container= `compliance.py $base_image_type`
     - curl -L https://github.com/ComplianceAsCode/content/releases/download/v${OSCAP_VERSION}/scap-security-guide-${OSCAP_VERSION}.zip -o scap-security-guide.zip
@@ -25,8 +25,8 @@ openscap compliance:
     - oscap-podman ${DOCKER_IMAGE_PATH} xccdf eval --profile ${oscap_container.profile} --report ${Constant.OSCAP_HTML_FILENAME} \ ${oscap_container.securityGuide} > /dev/null || ls ${Constant.OSCAP_HTML_FILENAME}
     - rm -rf scap-security-guide.zip scap-security-guide-${OSCAP_VERSION}
     - openScapVersionDump=`oscap -V`
-    - openScapVersion=`openScapVersionDump |sed '/[0-9]+[.][0-9]+[.][0-9]+/'
-    - touch $openScapVersion >> oscap-version.txt
+    - openScapVersion=`echo $openScapVersionDump | sed -ne 's/[^0-9]*\(\([0-9]\.\)\{0,4\}[0-9][^.]\).*/\1/p'`
+    - echo $openScapVersion >> oscap-version.txt
   artifacts:
     when: always
     paths:

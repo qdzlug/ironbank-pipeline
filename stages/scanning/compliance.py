@@ -14,7 +14,7 @@ oscap_guides = {ubi8-container: {'profile': 'xccdf_org.ssgproject.content_profil
                 centos8-container: {'profile': 'xccdf_org.ssgproject.content_profile_standard', 'securityGuide': 'scap-security-guide-${OSCAP_VERSION}/ssg-centos8-ds.xml'},
                 centos7-container: {'profile': 'xccdf_org.ssgproject.content_profile_standard', 'securityGuide': 'scap-security-guide-${OSCAP_VERSION}/ssg-centos7-ds.xml'},
                 debian10-container: {'profile': 'xccdf_org.ssgproject.content_profile_anssi_np_nt28_high', 'securityGuide': 'scap-security-guide-${OSCAP_VERSION}/ssg-debian10-ds.xml'},
-                debian9-container: {'profile': 'xccdf_org.ssgproject.content_profile_anssi_np_nt28_high', 'securityGuide': 'scap-security-guide-${OSCAP_VERSION}/ssg-debian9-ds.xml'},
+                debian9-co olntainer: {'profile': 'xccdf_org.ssgproject.content_profile_anssi_np_nt28_high', 'securityGuide': 'scap-security-guide-${OSCAP_VERSION}/ssg-debian9-ds.xml'},
                 ubuntu1804-container: {'profile': 'xccdf_org.ssgproject.content_profile_anssi_np_nt28_high', 'securityGuide': 'scap-security-guide-${OSCAP_VERSION}/ssg-ubuntu1804-ds.xml'},
                 ubuntu1604-container: {'profile': 'xccdf_org.ssgproject.content_profile_anssi_np_nt28_high', 'securityGuide': 'scap-security-guide-${OSCAP_VERSION}/ssg-ubuntu1604-ds.xml'}}
 #print (oscap_guides)
