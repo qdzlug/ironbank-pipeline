@@ -47,7 +47,6 @@ openscap cve:
     paths:
       - ${ARTIFACT_DIR}/report-cve.html
       - ${ARTIFACT_DIR}/report-cve.xml
-    
   # outputs:
   # report-cve.html
   # report-cve.xml

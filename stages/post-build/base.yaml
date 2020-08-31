@@ -23,4 +23,4 @@ clamav image scan:
   artifacts:
     when: always
     paths:
-      - ${ARTIFACT_DIR}/
+      - ${ARTIFACT_STORAGE}/
