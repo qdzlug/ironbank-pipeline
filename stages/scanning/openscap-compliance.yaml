@@ -7,6 +7,7 @@ openscap compliance:
     OSCAP_VERSION: ""
     base_image_type: "" 
     labels: ""
+    DOCKER_IMAGE_PATH: "${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1"
   #  DOCKER_IMAGE_PATH = "${Arguments.get().dccscrRepoImageTag()}"
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
   before_script:
