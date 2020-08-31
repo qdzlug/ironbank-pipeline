@@ -1,5 +1,8 @@
 openscap cve:
   extends: .scanning
+  except:
+    variables:
+      - $DISTROLESS
   variables:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/openscap-cve
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
