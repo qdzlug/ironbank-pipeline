@@ -61,9 +61,9 @@ stages:
 
 include:
   - local: stages/preprocess/load-scripts.yaml
-#   - local: stages/preprocess/base.yaml
-#services: 
-#  - name: docker:dind-rootless
+  #   - local: stages/preprocess/base.yaml
+  #services: 
+  #  - name: docker:dind-rootless
 
 variables:
   ARTIFACT_STORAGE: "ci-artifacts"
