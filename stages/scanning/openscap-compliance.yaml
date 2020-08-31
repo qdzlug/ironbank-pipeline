@@ -1,13 +1,13 @@
 openscap compliance:
   extends: .scanning
+  dependencies:
+    - load scripts
   variables:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/build/openscap-compliance/ 
     OSCAP_VERSION: ""
     base_image_type: "" 
     labels: ""
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
-  dependencies:
-    - load scripts
   before_script:
     - mkdir -p ${ARTIFACT_DIR}
     #${OPENSCAP_COMPLIANCE_SCANS}
