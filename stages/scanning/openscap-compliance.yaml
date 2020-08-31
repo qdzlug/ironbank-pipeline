@@ -1,7 +1,7 @@
 openscap compliance:
   extends: .scanning
-  dependencies:
-    - load scripts
+ # dependencies:
+ #   - load scripts
   variables:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/build/openscap-compliance/ 
     OSCAP_VERSION: ""
