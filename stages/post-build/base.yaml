@@ -11,7 +11,7 @@ clamav image scan:
   script:
     - podman pull --authfile=${DOCKER_AUTH_CONFIG} registry1.dsop.io/ironbank/opensource/kubernetes-1.18/kubectl-1.18:latest
     - podman volume create img-fs
-    - podman run -v img-fs:/img-fs registry1.dsop.io/ironbank/opensource/kubernetes-1.18/kubectl-1.18:latest cp -ax / /img-fs
+    - podman run -v img-fs:/img-fs registry1.dsop.io/ironbank/opensource/kubernetes-1.18/kubectl-1.18:latest cp / /img-fs
     - podman run -it -v img-fs:/img-fs ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav-podman:temp clamscan -ir /img-fs > output.txt
     - cat output.txt
     # - freshclam
