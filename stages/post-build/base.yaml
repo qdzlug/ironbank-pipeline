@@ -8,7 +8,6 @@ clamav image scan:
     CLAMAV_SCANS: ${ARTIFACT_STORAGE}/post-build/clamav-image-scan
   before_script:
     - mkdir -p "${CLAMAV_SCANS}"
-    - cp ${ARTIFACT_STORAGE}/build image.tar .
   script:
     - freshclam
     - clamscan -irv --max-filesize=4000M --max-scansize=4000M ${ARTIFACT_STORAGE}/build/ > ${CLAMAV_SCANS}/scan-image-clamav-report.txt
