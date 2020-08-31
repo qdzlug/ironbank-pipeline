@@ -13,7 +13,7 @@ csv-output:
   before_script:
     - mkdir -p "${CSV_REPORT}"
   script:
-    - python3 ${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py
+    - python3 pipeline_csv_gen.py --oscap ${ARTIFACT_STORAGE}/scanning/openscap-cve/report-cve.html --output-dir ${CVS_REPORT}
   artifacts:
     when: always
     paths:
