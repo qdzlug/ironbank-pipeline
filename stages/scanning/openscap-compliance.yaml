@@ -1,7 +1,7 @@
 openscap compliance:
   extends: .scanning
- # dependencies:
- #   - load scripts
+  dependencies:
+    - load scripts
   variables:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/build/openscap-compliance/ 
     OSCAP_VERSION: ""
@@ -9,8 +9,9 @@ openscap compliance:
     labels: ""
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
   before_script:
-    - mkdir -p ${ARTIFACT_DIR}
-    #${OPENSCAP_COMPLIANCE_SCANS}
+  #  - mkdir -p ${ARTIFACT_DIR}
+    #${OPENSCAP_COMPLIANCE_SCANS} 
+    - mkdir -p ${CI_PROJECT_DIR}/pipeline-artifacts/
     - podman load -i ${ARTIFACT_STORAGE}/build/image.tar
     - DOCKER_IMAGE_PATH=`podman load -i ${ARTIFACT_STORAGE}/build/image.tar | awk '{print $3}'`
     - OSCAP_VERSION=`curl -fsSLI -o /dev/null -w %{url_effective} https://github.com/ComplianceAsCode/content/releases/latest | grep -Eo "[0-9\\.]+$" | awk '{$1=$1};1'`
@@ -37,9 +38,9 @@ openscap compliance:
   artifacts:
     when: always
     paths:
-      - ${ARTIFACT_DIR}oscap-version.txt
-      - ${ARTIFACT_DIR}report.html
-      - ${ARTIFACT_DIR}cve-oval.xml
+      - ${CI_PROJECT_DIR}/pipeline-artifacts/oscap-version.txt
+      - ${CI_PROJECT_DIR}/pipeline-artifacts/report.html
+      - ${CI_PROJECT_DIR}/pipeline-artifacts/cve-oval.xml
   # outputs:                              ## TODO TEST AND ARTIFACTS
   # oscap-version.txt
   # report.html
