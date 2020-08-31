@@ -15,8 +15,16 @@ openscap compliance:
     - OSCAP_VERSION=`curl -fsSLI -o /dev/null -w %{url_effective} https://github.com/ComplianceAsCode/content/releases/latest | grep -Eo "[0-9\\.]+$" | awk '{$1=$1};1'`
     - base_image_type=`podman inspect -f '{{index .Labels "com.redhat.component"}}' ${DOCKER_IMAGE_PATH} | awk '{$1=$1};1'`
   script:
-    - | 
-      if [[ "$base_image_type" != "`podman inspect -f '{{index .Labels "os_type"}}' ${DOCKER_IMAGE_PATH}`" ]]  ; then  "labels=`podman inspect -f '{{.Labels}}' ${DOCKER_IMAGE_PATH}`" ;   echo "Unknown image type. Can't choose oscap security guide. lables: ${labels}" | exit 1; fi 
+    - |
+      base_image_type=$(podman inspect -f '{{index .Labels "com.redhat.component"}}' ${DOCKER_IMAGE_PATH})
+        if [[ $base_image_type == "" ]]; then
+          base_image_type=$(podman inspect -f '{{index .Labels "os_type"}}' ${DOCKER_IMAGE_PATH})
+          if [[ $base_image_type == "" ]]; then 
+            labels=$(podman inspect -f '{{index .Labels}}' ${DOCKER_IMAGE_PATH})
+            echo "Unknown image type. Can't choose security guide. labels: $labels"
+            exit 1
+          fi
+        fi
     - oscap_container= `compliance.py`
     - curl -L https://github.com/ComplianceAsCode/content/releases/download/v${OSCAP_VERSION}/scap-security-guide-${OSCAP_VERSION}.zip -o scap-security-guide.zip
     - unzip -o scap-security-guide.zip
