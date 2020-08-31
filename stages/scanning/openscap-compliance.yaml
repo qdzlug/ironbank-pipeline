@@ -25,7 +25,7 @@ openscap compliance:
             exit 1
           fi
         fi
-    - oscap_container= `python3 compliance.py`
+    - oscap_container= `python3 ${PIPELINE_REPO_DIR}/stages/scanning compliance.py`
     - curl -L https://github.com/ComplianceAsCode/content/releases/download/v${OSCAP_VERSION}/scap-security-guide-${OSCAP_VERSION}.zip -o scap-security-guide.zip
   # - unzip -o scap-security-guide.zip
   #  - oscap-podman ${DOCKER_IMAGE_PATH} xccdf eval --profile ${oscap_container.profile} --report ${Constant.OSCAP_HTML_FILENAME} \ ${oscap_container.securityGuide} > /dev/null || ls ${Constant.OSCAP_HTML_FILENAME}
