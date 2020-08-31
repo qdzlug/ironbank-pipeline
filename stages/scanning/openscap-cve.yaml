@@ -1,9 +1,53 @@
-include:
-  - local: stages/scanning/base.yaml
+openscap cve:
+  extends: .scanning
+  variables:
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/openscap-cve/
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
+  before_script:
+    - mkdir -p ${ARTIFACT_DIR}
+    - export DOCKER_IMAGE_PATH=$(podman load -i ${ARTIFACT_STORAGE}/build/image.tar | awk '{print $3}')
+  script:
+    - |
+      base_image_type=$(podman inspect -f '{{index .Labels "com.redhat.component"}}' ${DOCKER_IMAGE_PATH})
+        if [[ $base_image_type == "" ]]; then
+          base_image_type=$(podman inspect -f '{{index .Labels "os_type"}}' ${DOCKER_IMAGE_PATH})
+          if [[ $base_image_type == "" ]]; then 
+            labels=$(podman inspect -f '{{index .Labels}}' ${DOCKER_IMAGE_PATH})
+            echo "Unknown image type. Can't choose security guide. labels: $labels"
+            exit 1
+          fi
+        fi
 
-.openscap cve:
-  stage: scanning
-  
+    - if [[ $base_image_type == 'ubi8-container' || $base_image_type == 'ubi7-container' ]]; then OVAL_DATA_URL = "https://www.redhat.com/security/data/oval/com.redhat.rhsa-all.xml.bz2"; fi
+ 
+    - if [[ $base_image_type == 'ol8-container' || $base_image_type == 'ol7-container' ]]; then OVAL_DATA_URL = "https://linux.oracle.com/security/oval/com.oracle.elsa-all.xml.bz2"; fi
+      
+    - if [[ $base_image_type == 'debian10-container' ]]; then OVAL_DATA_URL = "https://www.debian.org/security/oval/oval-definitions-buster.xml"; fi
+      
+    - if [[ $base_image_type == 'debian9-container' ]]; then OVAL_DATA_URL = "https://www.debian.org/security/oval/oval-definitions-stretch.xml"; fi
+    
+    - if [[ $base_image_type == 'ubuntu1804-container' ]]; then OVAL_DATA_URL = "https://people.canonical.com/~ubuntu-security/oval/com.ubuntu.bionic.cve.oval.xml.bz2"; fi
+    
+    - if [[ $base_image_type == 'ubuntu1604-container' ]]; then OVAL_DATA_URL = "https://people.canonical.com/~ubuntu-security/oval/com.ubuntu.xenial.cve.oval.xml.bz2"; fi
+
+    - |
+      if [[ $(echo $OVAL_DATA_URL | rev | cut -d. -f1 | rev) == ".bz2" ]]; then
+        curl $OVAL_DATA_URL > cve-oval.xml.bz2
+        bzip2 -d cve-oval.xml.bz2
+      else 
+        curl $OVAL_DATA_URL > cve-oval.xml
+      fi
+
+    - oscap --v
+    - oscap-podman ${DOCKER_IMAGE_PATH} oval eval --results ${ARTIFACT_DIR}/${OSCAP_CVE_XML_FILENAME} --report ${ARTIFACT_DIR}/${OSCAP_CVE_HTML_FILENAME} cve-oval.xml > /dev/null
+    - rm -rf cve-oval.xml
+        
+  artifacts:
+    when: always
+    paths:
+      - ${ARTIFACT_DIR}/report-cve.html
+      - ${ARTIFACT_DIR}/report-cve.xml
+    
   # outputs:
   # report-cve.html
   # report-cve.xml

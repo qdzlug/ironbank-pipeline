@@ -17,6 +17,8 @@ include:
       #    Do we want to call out the specific scans to be run with this format?
     - local: stages/scanning/openscap-compliance.yaml
     
+    - local: stages/scanning/openscap-cve.yaml
+    
     - local: stages/csv-output/base.yaml
     
     - local: stages/check-cves/base.yaml
