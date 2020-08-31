@@ -20,7 +20,6 @@ include:
       #- local: stages/scanning/twistlock.yaml
       #- local: stages/scanning/anchore.yaml
     
-    
     - local: stages/csv-output/base.yaml
     
     - local: stages/check-cves/base.yaml
