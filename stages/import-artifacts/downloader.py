@@ -66,7 +66,7 @@ for type in downloads:
                     sha256_hash.update(byte_block)
 
             # Compare SHA256 checksums
-            if item["sha256"] == sha256_hash.hexdigest():
+            if item["value"] == sha256_hash.hexdigest():
                 print("Checksum verified")
                 print("File saved as '%s'" % (item["filename"]))
             else:

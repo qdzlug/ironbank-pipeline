@@ -7,6 +7,7 @@ csv-output:
     - openscap cve
     - openscap compliance
     - anchore scan
+    - load scripts
   variables:
     # Put generated csv report in the scan-results folder
     CSV_REPORT: ${ARTIFACT_STORAGE}/scan-results/csv-output
