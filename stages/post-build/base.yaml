@@ -8,12 +8,18 @@ clamav image scan:
     CLAMAV_SCANS: ${ARTIFACT_STORAGE}/post-build/clamav-image-scan
   before_script:
     - mkdir -p "${CLAMAV_SCANS}"
+    - cp ${ARTIFACT_STORAGE}/build image.tar .
   script:
-    - podman pull --authfile=${DOCKER_AUTH_CONFIG} registry1.dsop.io/ironbank/opensource/kubernetes-1.18/kubectl-1.18:latest
-    - podman volume create img-fs
-    - podman run -v img-fs:/img-fs registry1.dsop.io/ironbank/opensource/kubernetes-1.18/kubectl-1.18:latest cp / /img-fs
-    - podman run -it -v img-fs:/img-fs ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav-podman:temp clamscan -ir /img-fs > output.txt
-    - cat output.txt
+    - freshclam
+    - clamscan -irv --max-filesize=4000M --max-scansize=4000M ${ARTIFACT_STORAGE}/build/ > ${CLAMAV_SCANS}/scan-image-clamav-report.txt
+    - cat ${ARTIFACT_DIR}/scan-image-clamav-report.txt
+    - INFECTED_CONTAINER_FILES=$(grep -e "^Infected files:" ${ARTIFACT_DIR}/import-artifacts-clamav-report.txt | cut -d ' ' -f3)
+        - |
+          if [ ${INFECTED_CONTAINER_FILES} -gt 0 ]
+          then
+            echo Malware detected in container! Number of findings: ${INFECTED_CONTAINER_FILES}
+            exit 1
+          fi
     # - freshclam
     # - clamscan -irv vol > output.txt
     # - cat output.txt
@@ -27,4 +33,4 @@ clamav image scan:
   artifacts:
     when: always
     paths:
-      - ${ARTIFACT_STORAGE}/
+      - ${CLAMAV_SCANS}/
