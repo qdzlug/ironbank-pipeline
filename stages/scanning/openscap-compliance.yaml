@@ -7,10 +7,9 @@ openscap compliance:
     OSCAP_VERSION: ""
     base_image_type: "" 
     labels: ""
-    DOCKER_IMAGE_PATH: "registry1.dsop.io/ironbank/opensource/kubernetes-1.18/kubectl-1.18"
-  #  DOCKER_IMAGE_PATH = "${Arguments.get().dccscrRepoImageTag()}"
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
   before_script:
+    - DOCKER_IMAGE_PATH=`podman load -i ${ARTIFACT_STORAGE}/build/image.tar | awk '{print $3}'`
     - mkdir -p ${ARTIFACT_DIR}
     - podman load -i ${ARTIFACT_STORAGE}/build/image.tar
     - OSCAP_VERSION=`curl -fsSLI -o /dev/null -w %{url_effective} https://github.com/ComplianceAsCode/content/releases/latest | grep -Eo "[0-9\\.]+$" | awk '{$1=$1};1'`
@@ -33,9 +32,10 @@ openscap compliance:
   artifacts:
     when: always
     paths:
-      - ${ARTIFACT_DIR}/
+      - ${ARTIFACT_DIR}/oscap-version.txt
+      - ${ARTIFACT_DIR}/report.html
+      - ${ARTIFACT_DIR}/cve-oval.xml
   # outputs:                              ## TODO TEST AND ARTIFACTS
   # oscap-version.txt
   # report.html
   # cve-oval.xml
-  # archiveArtifacts artifacts: "${Constant.OSCAP_DIRECTORY}/**"
