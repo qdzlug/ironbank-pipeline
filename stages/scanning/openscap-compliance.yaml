@@ -7,21 +7,17 @@ openscap compliance:
     OSCAP_VERSION: ""
     base_image_type: "" 
     labels: ""
-    DOCKER_IMAGE_PATH: "registry1.dsop.io/ironbank/opensource/kubernetes-1.18/kubectl-1.18"
-  #  DOCKER_IMAGE_PATH = "${Arguments.get().dccscrRepoImageTag()}"
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
   before_script:
     - mkdir -p ${ARTIFACT_DIR}
     - podman load -i ${ARTIFACT_STORAGE}/build/image.tar
+    - DOCKER_IMAGE_PATH=`podman load -i ${ARTIFACT_STORAGE}/build/image.tar | awk '{print $3}'`
     - OSCAP_VERSION=`curl -fsSLI -o /dev/null -w %{url_effective} https://github.com/ComplianceAsCode/content/releases/latest | grep -Eo "[0-9\\.]+$" | awk '{$1=$1};1'`
     - base_image_type=`podman inspect -f '{{index .Labels "com.redhat.component"}}' ${DOCKER_IMAGE_PATH} | awk '{$1=$1};1'`
-    - > 
-      if [ "$base_image_type" != "`podman inspect -f '{{index .Labels "os_type"}}' ${DOCKER_IMAGE_PATH} |  awk '{$1=$1};1'`"]  ; then  "labels=`podman inspect -f '{{.Labels}}' ${DOCKER_IMAGE_PATH} |  awk '{$1=$1};1'`";   echo "Unkown image type. Can't choose oscap security guide. lables: ${labels}"; fi 
   script:
+    - > 
+      if [[ "$base_image_type" != "`podman inspect -f '{{index .Labels "os_type"}}' ${DOCKER_IMAGE_PATH} |  awk '{$1=$1};1'`" ]]  ; then  "labels=`podman inspect -f '{{.Labels}}' ${DOCKER_IMAGE_PATH} |  awk '{$1=$1};1'`";   echo "Unkown image type. Can't choose oscap security guide. lables: ${labels}"; fi 
     - echo "have we made it here"
-  #  - if [ "$base_image_type" != "`podman inspect -f '{{index .Labels "os_type"}}' ${DOCKER_IMAGE_PATH} |  awk '{$1=$1};1'`"]  ; then  "labels=`podman inspect -f '{{.Labels}}' ${DOCKER_IMAGE_PATH} |  awk '{$1=$1};1'`";   echo "Unkown image type. Can't choose oscap security guide. lables: ${labels}"; fi
-  #  - compliance.py $base_image_type    #FOR MON return result 
-  #  - oscap_container= oscap_guides[base_image_type]   #result 
     - oscap_container= `compliance.py`
     - curl -L https://github.com/ComplianceAsCode/content/releases/download/v${OSCAP_VERSION}/scap-security-guide-${OSCAP_VERSION}.zip -o scap-security-guide.zip
     - unzip -o scap-security-guide.zip
@@ -33,9 +29,10 @@ openscap compliance:
   artifacts:
     when: always
     paths:
-      - ${ARTIFACT_DIR}/
+      - ${ARTIFACT_DIR}oscap-version.txt
+      - ${ARTIFACT_DIR}report.html
+      - ${ARTIFACT_DIR}cve-oval.xml
   # outputs:                              ## TODO TEST AND ARTIFACTS
   # oscap-version.txt
   # report.html
   # cve-oval.xml
-  # archiveArtifacts artifacts: "${Constant.OSCAP_DIRECTORY}/**"
