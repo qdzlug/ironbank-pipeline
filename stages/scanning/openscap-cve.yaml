@@ -1,6 +1,3 @@
-include:
-  - local: stages/scanning/base.yaml
-
 openscap cve:
   extends: .scanning
   variables:
