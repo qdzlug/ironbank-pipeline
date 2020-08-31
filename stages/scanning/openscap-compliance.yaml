@@ -26,9 +26,9 @@ openscap compliance:
           fi
         fi
     - oscap_container= `python3 ${PIPELINE_REPO_DIR}/stages/scanning compliance.py`
-    - curl -L https://github.com/ComplianceAsCode/content/releases/download/v${OSCAP_VERSION}/scap-security-guide-${OSCAP_VERSION}.zip -o scap-security-guide.zip
+  #  - curl -L https://github.com/ComplianceAsCode/content/releases/download/v${OSCAP_VERSION}/scap-security-guide-${OSCAP_VERSION}.zip -o scap-security-guide.zip
   # - unzip -o scap-security-guide.zip
-  #  - oscap-podman ${DOCKER_IMAGE_PATH} xccdf eval --profile ${oscap_container.profile} --report ${Constant.OSCAP_HTML_FILENAME} \ ${oscap_container.securityGuide} > /dev/null || ls ${Constant.OSCAP_HTML_FILENAME}
+    - oscap-podman ${DOCKER_IMAGE_PATH} xccdf eval --profile ${oscap_container.profile} --report ${Constant.OSCAP_HTML_FILENAME} \ ${oscap_container.securityGuide} > /dev/null || ls ${Constant.OSCAP_HTML_FILENAME}
   #  - rm -rf scap-security-guide.zip scap-security-guide-${OSCAP_VERSION}
     - openScapVersionDump=`oscap -V`
     - openScapVersion=`echo $openScapVersionDump | sed -ne 's/[^0-9]*\(\([0-9]\.\)\{0,4\}[0-9][^.]\).*/\1/p'`
