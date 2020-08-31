@@ -13,7 +13,7 @@ csv-output:
     CSV_REPORT: ${ARTIFACT_STORAGE}/scan-results/csv-output
   before_script:
     - mkdir -p "${CSV_REPORT}"
-    - pip install bs4
+    - pip install bs4 pandas argparse
   script:
     - python3 ${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py --oscap ${ARTIFACT_STORAGE}/scanning/openscap-cve/report-cve.html --output-dir ${CVS_REPORT}
   artifacts:
