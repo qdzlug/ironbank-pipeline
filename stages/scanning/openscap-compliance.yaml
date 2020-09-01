@@ -9,7 +9,7 @@ openscap compliance:
   dependencies:
   - load scripts
   before_script:
-    - mkdir -p ${ARTIFACT_DIR}
+   # - mkdir -p ${ARTIFACT_DIR}
     #${OPENSCAP_COMPLIANCE_SCANS}
     - podman load -i ${ARTIFACT_STORAGE}/build/image.tar
     - DOCKER_IMAGE_PATH=`podman load -i ${ARTIFACT_STORAGE}/build/image.tar | awk '{print $3}'`
@@ -37,7 +37,7 @@ openscap compliance:
   artifacts:
     when: always
     paths:
-      - ${ARTIFACT_DIR}oscap-version.txt
+      - ${ARTIFACT_STORAGE}oscap-version.txt
       - ${ARTIFACT_DIR}report.html
       - ${ARTIFACT_DIR}cve-oval.xml
   # outputs:                              ## TODO TEST AND ARTIFACTS
