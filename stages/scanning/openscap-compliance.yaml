@@ -4,7 +4,7 @@ openscap compliance:
     variables:
       - $DISTROLESS
   variables:
-    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/build/openscap-compliance/ 
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/scanning/openscap-compliance 
     OSCAP_VERSION: ""
     base_image_type: "" 
     labels: ""
@@ -40,9 +40,9 @@ openscap compliance:
   artifacts:
     when: always
     paths:
-      - ${ARTIFACT_DIR}oscap-version.txt
-      - ${ARTIFACT_DIR}report.html
-      - ${ARTIFACT_DIR}cve-oval.xml
+      - ${ARTIFACT_DIR}/oscap-version.txt
+      - ${ARTIFACT_DIR}/report.html
+      - ${ARTIFACT_DIR}/cve-oval.xml
   # outputs:                              ## TODO TEST AND ARTIFACTS
   # oscap-version.txt
   # report.html
