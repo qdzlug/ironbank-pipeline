@@ -10,8 +10,8 @@ include:
     - local: stages/scan-artifacts/clamav-scan.yaml
     
     - local: stages/build/base.yaml
-    
-    - local: stages/post-build/base.yaml
+    # Removing post-build stage, not needed for beta
+    # - local: stages/post-build/base.yaml
     
     # Scanning files
     - local: stages/scanning/base.yaml

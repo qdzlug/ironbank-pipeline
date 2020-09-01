@@ -11,7 +11,7 @@ include:
     
     - local: stages/build/base.yaml
     
-    - local: stages/post-build/base.yaml
+    # - local: stages/post-build/base.yaml
     
     # Scanning files
     - local: stages/scanning/base.yaml

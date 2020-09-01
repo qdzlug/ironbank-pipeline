@@ -1,5 +1,6 @@
 .scanning:
   stage: .scanning
   allow_failure: true
-  dependencies:
-    - post-build
+  # Removed post build as a dependency for now, not needed for beta
+  # dependencies:
+    # - post-build

@@ -8,6 +8,13 @@ twistlock scan:
   before_script:
     - mkdir -p "${TWISTLOCK_SCANS}"
   script:
+  # Reference: https://docs.paloaltonetworks.com/prisma/prisma-cloud/prisma-cloud-admin/prisma-cloud-devops-security/use-the-prisma-cloud-extension-for-gitlab/use-the-prisma-cloud-extension-for-gitlab-cicd.html#idf7d64c1c-aea5-495d-bf0c-bef458f3ebf7_ida4742433-4f85-4a4e-a76d-3bd74bff1bc8
+  # PHASE 1
+  # TODO: set the base url for the prisma cloud compute console as the value for prisma_cloud_compute_url in GitLab CI/CD
+  # TODO: set the prisma_cloud_compute_username environment variable in GitLab CI/CD
+  # TODO: set the prisma_cloud_compute_password environment variable in GitLab CI/CD
+  # PHASE 2
+  # 
     - python3 ${PIPELINE_REPO_DIR}/stages/scanning/prisma_scan.py
   artifacts:
     when: always
