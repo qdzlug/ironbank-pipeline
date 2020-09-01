@@ -1,7 +1,5 @@
 openscap compliance:
   extends: .scanning
-  dependencies:
-    - load scripts
   variables:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/build/openscap-compliance/ 
     OSCAP_VERSION: ""
@@ -34,6 +32,8 @@ openscap compliance:
     - openScapVersionDump=`oscap -V`
     - openScapVersion=`echo $openScapVersionDump | sed -ne 's/[^0-9]*\(\([0-9]\.\)\{0,4\}[0-9][^.]\).*/\1/p'`
     - echo $openScapVersion >> oscap-version.txt
+  dependencies:
+  - load scripts
   artifacts:
     when: always
     paths:
