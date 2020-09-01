@@ -3,6 +3,8 @@
   allow_failure: true
   #  dependencies:
   #    - post-build
+  before_script:
+  - mkdir -p ${ARTIFACT_DIR}
 include:
   - local: stages/scanning/openscap-compliance.yaml
   - local: stages/scanning/openscap-cve.yaml
