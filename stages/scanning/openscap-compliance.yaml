@@ -1,22 +1,47 @@
 openscap compliance:
-  stage: scanning
-  allow_failure: true
+  extends: .scanning
   except:
     variables:
       - $DISTROLESS
   variables:
-    OPENSCAP_COMPLIANCE_SCANS: ${ARTIFACT_STORAGE}/scan-results/openscap/
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/scanning/openscap-compliance 
+    OSCAP_VERSION: ""
+    base_image_type: "" 
+    labels: ""
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
   before_script:
-    - mkdir -p ${OPENSCAP_COMPLIANCE_SCANS}
+   # - mkdir -p ${ARTIFACT_DIR}
+    #${OPENSCAP_COMPLIANCE_SCANS}
     - podman load -i ${ARTIFACT_STORAGE}/build/image.tar
+    - DOCKER_IMAGE_PATH=`podman load -i ${ARTIFACT_STORAGE}/build/image.tar | awk '{print $3}'`
+    - OSCAP_VERSION=`curl -fsSLI -o /dev/null -w %{url_effective} https://github.com/ComplianceAsCode/content/releases/latest | grep -Eo "[0-9\\.]+$" | awk '{$1=$1};1'`
+    - base_image_type=`podman inspect -f '{{index .Labels "com.redhat.component"}}' ${DOCKER_IMAGE_PATH} | awk '{$1=$1};1'`
   script:
-    - echo "have we made it here"
+    - |
+      base_image_type=$(podman inspect -f '{{index .Labels "com.redhat.component"}}' ${DOCKER_IMAGE_PATH})
+        if [[ $base_image_type == "" ]]; then
+          base_image_type=$(podman inspect -f '{{index .Labels "os_type"}}' ${DOCKER_IMAGE_PATH})
+          if [[ $base_image_type == "" ]]; then 
+            labels=$(podman inspect -f '{{index .Labels}}' ${DOCKER_IMAGE_PATH})
+            echo "Unknown image type. Can't choose security guide. labels: $labels"
+            exit 1
+          fi
+        fi
+    - oscap_container= `python3 ${PIPELINE_REPO_DIR}/stages/scanning/compliance.py`
+  #  - curl -L https://github.com/ComplianceAsCode/content/releases/download/v${OSCAP_VERSION}/scap-security-guide-${OSCAP_VERSION}.zip -o scap-security-guide.zip
+  # - unzip -o scap-security-guide.zip
+    - oscap-podman ${DOCKER_IMAGE_PATH} xccdf eval --profile ${oscap_container.profile} --report ${Constant.OSCAP_HTML_FILENAME} \ ${oscap_container.securityGuide} > /dev/null || ls ${Constant.OSCAP_HTML_FILENAME}
+  #  - rm -rf scap-security-guide.zip scap-security-guide-${OSCAP_VERSION}
+    - openScapVersionDump=`oscap -V`
+    - openScapVersion=`echo $openScapVersionDump | sed -ne 's/[^0-9]*\(\([0-9]\.\)\{0,4\}[0-9][^.]\).*/\1/p'`
+    - echo $openScapVersion >> oscap-version.txt
   artifacts:
     when: always
     paths:
-      - ${OPENSCAP_COMPLIANCE_SCANS}/
-  # outputs:
+      - ${ARTIFACT_DIR}/oscap-version.txt
+      - ${ARTIFACT_DIR}/report.html
+      - ${ARTIFACT_DIR}/cve-oval.xml
+  # outputs:                              ## TODO TEST AND ARTIFACTS
   # oscap-version.txt
   # report.html
   # cve-oval.xml

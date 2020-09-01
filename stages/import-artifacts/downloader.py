@@ -56,13 +56,17 @@ for type in downloads:
             # Calculate SHA256 checksum of downloaded file
             print("Generating checksum")
 
+            if item["type"] != "sha256":
+                print("file verification type not supported: '%s'" % (item["type"]))
+                sys.exit(1)
+
             sha256_hash = hashlib.sha256()
             with open(outputDir + '/' + item["filename"], "rb") as f:
                 for byte_block in iter(lambda: f.read(4096),b""):
                     sha256_hash.update(byte_block)
 
             # Compare SHA256 checksums
-            if item["sha256"] == sha256_hash.hexdigest():
+            if item["value"] == sha256_hash.hexdigest():
                 print("Checksum verified")
                 print("File saved as '%s'" % (item["filename"]))
             else:
