@@ -21,17 +21,40 @@ nosetests --with-cov
 There were a lot of "common" functions in Arguments.groovy and the corresponding functionality in `common.py` has been documented in that file.
 
 
-
-
-## Contributor project requirements for ironbank-pipeline use:
-- `.gitlab-ci.yml` file with an $IMG_VERSION variable set
-
 ## ironbank-pipeline directory structure:
 
 `/templates` contains the templates for the pipeline. This includes the `globals.yaml` file, which contains variable references needed for each CI/CD job to run and outlines the jobs required to run. This directory will also contain templates for special cases, such as distroless or scratch images. These special cases will have their own `.yaml` files which override aspects of the `globals.yaml` configuration as needed.
 
 
 `/stages` contains the stages which are involved in pipeline execution. Each stage of the pipeline has its own folder within this directory containing a `base.yaml` file. The `base.yaml` file dictates the actions and requirements needed for the stage to execute. Additional `.yaml` files can be present within the stage directories in order to separate the jobs which occur within that particular stage.
+
+## Contributor project requirements for ironbank-pipeline use:
+
+- Contributor projects will need to point to the `ironbank-pipeline` project from the `.gitlab-ci.yml` file in their respective projects order to utilize the Container Hardening CI/CD pipeline.
+
+For most projects, add the following block to the `.gitlab-ci.yml` file in the project in order to do this:
+```
+include:
+  - project: 'dsop/ironbank-pipeline'
+    file: '/templates/default.yaml'
+```
+The `default` template will allow images based on UBI to run through the required pipeline steps (whether the image directly uses an UBI base image for its base image, or by using an approved IronBank container with a base UBI image for its base image).
+
+Containers which utilize the distroless base image should instead use the following block in the project's `.gitlab-ci.yml` file:
+```
+include:
+  - project: 'dsop/ironbank-pipeline'
+    file: '/templates/distroless.yaml'
+```
+This will omit the OpenSCAP scans from the pipeline, which are not compatible with containers built on distroless base images.
+
+
+- Contributors will also need to provide the current image version of the container which is being built in the project's `.gitlab-ci.yml` file using the `IMG_VERSION` variable. For example, if the current container version is 2.0.1, the contributor would add the following to the project's `.gitlab-ci.yml` file:
+```
+variables:
+  IMG_VERSION: "2.0.1"
+```
+
 
 ## Pipeline stages
 
@@ -46,11 +69,11 @@ The `preflight` stage performs two functions:
         - README (required file)
         - Dockerfile (required file)
         - LICENSE (required file)
-        - download.yaml (file, not always required)
-        - scripts (directory, not always required)
-        - signatures (directory, not always required)
-        - config (directory, not always required)
-        - accreditation (directory, not always required)
+        - download.yaml (file, not always required, which allows external resources to be validated and used in the container build)
+        - scripts (directory, not always required, which stores any script files needed in the container)
+        - signatures (directory, not always required, which contains signatures needed for validation of any repository or external resource files)
+        - config (directory, not always required, which stores any configuration files needed in the container)
+        - accreditation (directory, not always required, which provides information about approved images)
     - testing/checking the build variables exist using the `build variables` job.
 
 The preflight stage is currently set to allow failures because the `folder structure` job is listing some optional files/directories

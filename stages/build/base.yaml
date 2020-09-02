@@ -14,7 +14,7 @@ build:
     - repo_path="${CI_PROJECT_DIR}"
     - image_path=(${repo_path:13:200})
     # Set the tag to eliminate /build/dsop and matching existing project hierarchy format
-    - harbor_image_path=${STAGING_REGISTRY_URL}/$image_path:${IMAGE_VERSION}
+    - harbor_image_path=${STAGING_REGISTRY_URL}/$image_path:$IMAGE_VERSION
     - dnf install -y buildah skopeo
     - buildah bud --authfile "${DOCKER_AUTH_CONFIG}" --format=docker --storage-driver=vfs -t $harbor_image_path ${ARTIFACT_STORAGE}/import-artifacts/.
     - buildah push --storage-driver=vfs --authfile "${DOCKER_AUTH_CONFIG_STAGING}" $harbor_image_path
