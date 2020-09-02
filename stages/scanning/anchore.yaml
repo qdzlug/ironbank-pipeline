@@ -10,7 +10,7 @@ anchore scan:
   before_script:
     - mkdir -p "${ANCHORE_SCANS}"
   script:
-    - python3 ${PIPELINE_REPO_DIR}/stages/scanning/pipeline_anchore_vuln_report_gen.py
+    - python3 ${PIPELINE_REPO_DIR}/stages/scanning/anchore_scan.py
     - cp -f ${PIPELINE_REPO_DIR}/stages/scanning/anchore_gates.json ${ANCHORE_SCANS}/
     - cp -f ${PIPELINE_REPO_DIR}/stages/scanning/anchore_security.json ${ANCHORE_SCANS}/
   artifacts:
