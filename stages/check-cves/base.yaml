@@ -7,8 +7,6 @@ check-cves:
   variables:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/check-cves
   before_script:
-    - podman load -i ${ARTIFACT_STORAGE}/build/${CI_PROJECT_NAME}-${IMAGE_VERSION}.tar
-    - DOCKER_IMAGE_PATH=`podman load -i ${ARTIFACT_STORAGE}/build/${CI_PROJECT_NAME}-${IMAGE_VERSION}.tar | awk '{print $3}'`
     - repo_path="${CI_PROJECT_DIR}"
     - wl_image_path=(${repo_path:13:200})
   script:

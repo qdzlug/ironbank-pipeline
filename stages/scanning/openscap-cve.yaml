@@ -8,7 +8,7 @@ openscap cve:
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
   before_script:
     - mkdir -p ${ARTIFACT_DIR}
-    - export DOCKER_IMAGE_PATH=$(podman load -i ${ARTIFACT_STORAGE}/build/${CI_PROJECT_NAME}-${IMAGE_VERSION}.tar | awk '{print $3}')
+    - export DOCKER_IMAGE_PATH=$(podman load -i ${ARTIFACT_STORAGE}/build/${CI_PROJECT_NAME}-${IMG_VERSION}.tar | awk '{print $3}')
   script:
     - |
       base_image_type=$(podman inspect -f '{{index .Labels "com.redhat.component"}}' ${DOCKER_IMAGE_PATH})
