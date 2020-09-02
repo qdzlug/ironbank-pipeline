@@ -49,7 +49,9 @@ include:
 This will omit the OpenSCAP scans from the pipeline, which are not compatible with containers built on distroless base images.
 
 
-- Contributors will also need to provide the current image version of the container which is being built in the project's `.gitlab-ci.yml` file using the `IMG_VERSION` variable. For example, if the current container version is 2.0.1, the contributor would add the following to the project's `.gitlab-ci.yml` file:
+- Contributors will also need to provide the current image version of the container which is being built in the project's `.gitlab-ci.yml` file using the `IMG_VERSION` variable. 
+
+For example, if the current container version is 2.0.1, the contributor would add the following to the project's `.gitlab-ci.yml` file:
 ```
 variables:
   IMG_VERSION: "2.0.1"
