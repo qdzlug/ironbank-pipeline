@@ -2,6 +2,8 @@ anchore scan:
   stage: scanning
   allow_failure: true
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
+  dependencies:
+    - build
   variables:
     # put all scan outputs in the scan-results folder
     ANCHORE_SCANS: ${ARTIFACT_STORAGE}/scan-results/anchore

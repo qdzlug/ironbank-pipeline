@@ -12,8 +12,8 @@ openscap compliance:
   before_script:
    # - mkdir -p ${ARTIFACT_DIR}
     #${OPENSCAP_COMPLIANCE_SCANS}
-    - podman load -i ${ARTIFACT_STORAGE}/build/image.tar
-    - DOCKER_IMAGE_PATH=`podman load -i ${ARTIFACT_STORAGE}/build/image.tar | awk '{print $3}'`
+    - podman load -i ${ARTIFACT_STORAGE}/build/${CI_PROJECT_NAME}-${IMAGE_VERSION}.tar
+    - DOCKER_IMAGE_PATH=`podman load -i ${ARTIFACT_STORAGE}/build/${CI_PROJECT_NAME}-${IMAGE_VERSION}.tar | awk '{print $3}'`
     - OSCAP_VERSION=`curl -fsSLI -o /dev/null -w %{url_effective} https://github.com/ComplianceAsCode/content/releases/latest | grep -Eo "[0-9\\.]+$" | awk '{$1=$1};1'`
     - base_image_type=`podman inspect -f '{{index .Labels "com.redhat.component"}}' ${DOCKER_IMAGE_PATH} | awk '{$1=$1};1'`
   script:
