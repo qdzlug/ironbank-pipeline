@@ -28,7 +28,7 @@
         #  --anchore-gates ${ARTIFACT_STORAGE}/scanning/anchore/anchore_gates.json \
         --anchore-gates ${PIPELINE_REPO_DIR}/stages/csv-output/anchore_gates.json \
         --output-dir ${CSV_REPORT}
-      #  - python3 ${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py --oscap ${ARTIFACT_STORAGE}/scanning/openscap-compliance/report.html --oval ${ARTIFACT_STORAGE}/scanning/openscap-cve/report-cve.html --twistlock ${ARTIFACT_STORAGE}/scanning/twistlock/${IMG_VERSION}.json --anchore-sec ${ARTIFACT_STORAGE}/scanning/anchore/anchore_vulns_new.json --anchore-gates ${ARTIFACT_STORAGE}/scanning/anchore/anchore_gates.json --output-dir ${CSV_REPORT}
+        # - python3 ${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py --oscap ${ARTIFACT_STORAGE}/scanning/openscap-compliance/report.html --oval ${ARTIFACT_STORAGE}/scanning/openscap-cve/report-cve.html --twistlock ${ARTIFACT_STORAGE}/scanning/twistlock/${IMG_VERSION}.json --anchore-sec ${ARTIFACT_STORAGE}/scanning/anchore/anchore_vulns_new.json --anchore-gates ${ARTIFACT_STORAGE}/scanning/anchore/anchore_gates.json --output-dir ${CSV_REPORT}
     artifacts:
       when: always
       paths:
