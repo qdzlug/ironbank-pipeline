@@ -1,4 +1,4 @@
-csv-output:
+  csv-output:
   stage: csv-output
   allow_failure: true
   image: ${REGISTRY_URL}/redhat/python/python36:3.6
@@ -13,6 +13,7 @@ csv-output:
     CSV_REPORT: ${ARTIFACT_STORAGE}/scan-results/csv-output
   before_script:
     - mkdir -p "${CSV_REPORT}"
+    - pip3 install --upgrade pip
     - pip3 install bs4 pandas argparse
   script:
     # - |
