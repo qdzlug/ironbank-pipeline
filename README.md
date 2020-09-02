@@ -102,4 +102,4 @@ The `scan artifacts` stage will automatically fail if there are infected files f
 
 #### build
 
-The `build` stage builds the hardened container image. The build stage has access to any resources obtained in the `import artifacts` stage and access to the `Dockerfile` included in the container project repository.
+The `build` stage builds the hardened container image. The build stage has access to any resources obtained in the `import artifacts` stage and access to the `Dockerfile` included in the container project repository. The `build` stage utilizes the arguments provided in the project `Dockerfile` in order to build the project. 
