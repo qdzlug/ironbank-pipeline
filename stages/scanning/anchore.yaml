@@ -11,22 +11,12 @@ anchore scan:
     - mkdir -p "${ANCHORE_SCANS}"
   script:
     - python3 ${PIPELINE_REPO_DIR}/stages/scanning/pipeline_anchore_vuln_report_gen.py
+    - cp -f ${PIPELINE_REPO_DIR}/stages/scanning/anchore_gates.json ${ANCHORE_SCANS}/
+    - cp -f ${PIPELINE_REPO_DIR}/stages/scanning/anchore_security.json ${ANCHORE_SCANS}/
   artifacts:
     when: always
     paths:
       - ${ANCHORE_SCANS}/
-
-# following code block borrowed from spacecamp as reference if needed
-# anchore scan:
-#   extends: .anchore scan
-#   image: anchore/engine-cli:v0.5.0
-#   variables:
-#     ANCHORE_CLI_URL: ${ANCHORE_CLI_URL}
-#     ANCHORE_CLI_USER: ${ANCHORE_CLI_USER}
-#     ANCHORE_CLI_PASS: ${ANCHORE_CLI_PASS}
-#     ANCHORE_CLI_SSL_VERIFY: "false"
-#     ANCHORE_TIMEOUT: ${ANCHORE_TIMEOUT}
-#     ANCHORE_FAIL_ON_POLICY: "false"
 
 #  steps
 
