@@ -12,6 +12,8 @@ import artifacts:
     - mkdir -p "${ARTIFACT_DIR}"
   script:
     - python3 ${PIPELINE_REPO_DIR}/stages/import-artifacts/downloader.py -i ${CI_PROJECT_DIR}/download.yaml -d ${ARTIFACT_DIR}
+    # Copy the project repo contents to provide access to Dockerfile
+    - cp -f ${CI_PROJECT_DIR}/Dockerfile ${ARTIFACT_DIR}
   artifacts:
     when: always
     paths:
