@@ -1,3 +1,7 @@
 .publish:
   stage: publish
   allow_failure: true
+  dependencies:
+    - build
+  before_script:
+    - podman load -i ${IMAGE_FILE}.tar 
