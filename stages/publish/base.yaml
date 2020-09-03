@@ -1,7 +1,12 @@
 .publish:
   stage: publish
   allow_failure: true
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
   dependencies:
     - build
+    - scanning
   before_script:
-    - podman load -i ${IMAGE_FILE}.tar 
+    - podman load -i ${IMAGE_FILE}.tar
+    - tar -xvf ${IMAGE_FILE}.tar manifest.json 
+  script:
+    - skopeo copy --log-level=debug --dest-authfile ${DOCKER_AUTH_CONFIG_TEST} ${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION} docker://${REGISTRY_URL_TEST}/${IM_NAME}:${IMG_VERSION}

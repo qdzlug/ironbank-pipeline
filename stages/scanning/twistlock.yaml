@@ -14,6 +14,7 @@ twistlock scan:
     when: always
     paths:
       - ${TWISTLOCK_SCANS}/
+
 # utilize python image
 
 # point to the Twistlock server address
