@@ -5,12 +5,13 @@ sign_image:
     #TODO: Put these in globals
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
     IMAGE_SIG_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/publish/reports
   dependencies:
     - build
   before_script:
     - podman load -i ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar ${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}
     - echo ${IB_CONTAINER_GPG_KEY} | base64 -d > key
-    - mkdir -p tmp_gpg ${ARTIFACT_STORAGE}/publish/reports
+    - mkdir -p tmp_gpg ${ARTIFACT_DIR}
   script:
     # Upload image to prod Harbor
     - skopeo copy --src-authfile ${DOCKER_AUTH_CONFIG_STAGING} --dest-authfile ${DOCKER_AUTH_CONFIG_TEST} docker://${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION} docker://${TEST_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}
@@ -19,7 +20,7 @@ sign_image:
     - echo "pinentry-mode loopback" >> ./tmp_gpg/gpg.conf
     - gpg --detach-sign --homedir ./tmp_gpg -o ${IMAGE_SIG_FILE}.sig --armor --yes --batch --passphrase ${IB_CONTAINER_SIG_KEY_PASSPHRASE} ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar
     # Stage image for upload
-    - cp ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar ${IMAGE_SIG_FILE}.sig reports/
+    - cp ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar ${IMAGE_SIG_FILE}.sig ${ARTIFACT_DIR}
   artifacts:
     when: always
     paths: 
