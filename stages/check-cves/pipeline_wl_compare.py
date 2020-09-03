@@ -22,6 +22,7 @@ def main():
     parser.add_argument('--twistlock',   help='')
     parser.add_argument('--anchore-sec',   help='')
     parser.add_argument('--anchore-gates',   help='')
+    parser.add_argument('--authentication', help='')
     parser.add_argument('--branch', help='')
     args = parser.parse_args()
     x = pipeline_whitelist_compare(args.image,
@@ -31,6 +32,7 @@ def main():
                                args.twistlock,
                                args.anchore_sec,
                                args.anchore_gates,
+                               args.authentication,
                                args.branch)
     #print(x)
     sys.exit(x)
