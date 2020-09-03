@@ -23,7 +23,7 @@ publish:
     - IMAGE_SHA=$(sha256sum ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar | grep -E '^[a-zA-Z0-9]+' -o)
     - rm -rf tmp_gpg
     - |
-      cat << EOF
+      cat <<EOF > manifest.json
       {
         "critical": {
           "type": "atomic container signature",
@@ -39,5 +39,5 @@ publish:
           "creator": "${GPG_VERSION}"
         }
       }
-      EOF >> manifest.json      
+      EOF
     - cat manifest.json
