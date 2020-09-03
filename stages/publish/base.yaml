@@ -9,7 +9,6 @@ publish:
     - build
   before_script:
     - podman load -i ${IMAGE_FILE}.tar
-    - tar -xvf ${IMAGE_FILE}.tar manifest.json
     - echo ${IB_CONTAINER_GPG_KEY} | base64 -d > key
     - mkdir -p tmp_gpg
   script:
@@ -17,4 +16,7 @@ publish:
     - gpg --homedir ./tmp_gpg --import --batch --passphrase ${IB_CONTAINER_SIG_KEY_PASSPHRASE} key
     - echo "pinentry-mode loopback" >> ./tmp_gpg/gpg.conf
     - gpg --detach-sign --homedir ./tmp_gpg -o ${IMAGE_SIG_FILE}.sig --armor --yes --batch --passphrase ${IB_CONTAINER_SIG_KEY_PASSPHRASE} ${IMAGE_FILE}.tar
-    - ls ./gpg_tmp
+    - ls && ls tmp_gpg
+    - GPG_VERSION=$(gpg --version | grep '(?<=gpg .GnuPG.)([^0-9]+)([0-9]+[.][0-9]+[.][0-9]+)' -oP)
+    - IMAGE_SHA=$(sha256sum ${IMAGE_NAME}.tar | grep -E '^[a-zA-Z0-9]+' -o)
+     
