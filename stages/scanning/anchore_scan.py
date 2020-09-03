@@ -23,8 +23,8 @@ except:
 # Get the arguments
 #
 parser = argparse.ArgumentParser(description="Anchore Image Vuln Report Generator")
-parser.add_argument('--u', metavar='user', default='admin', help='Anchore admin username (default=admin)')
-parser.add_argument('--p', metavar='pass', default='foobar', help='Anchore admin password (default=foobar)')
+parser.add_argument('--username', metavar='user', default='admin', help='Anchore admin username (default=admin)')
+parser.add_argument('--password', metavar='pass', default='foobar', help='Anchore admin password (default=foobar)')
 parser.add_argument('--url', metavar='url', default='http://localhost:8228/v1/', help='Anchore Engine API Service endpoint URL (default=http://localhost:8228/v1/)')
 parser.add_argument('--verify', metavar='verify', default=True, help='Accept self-signed certificates when using TLS/https for anchore endpoint')
 parser.add_argument('--image', metavar='image', default='none', help='Full image tag to get vulnerability info. ex. docker.io/library/alpine:latest')
@@ -44,7 +44,7 @@ def getImageDigest():
     try:
         r = requests.get(
                 request_url,
-                auth=(args.u, args.p),
+                auth=(args.username, args.password),
                 params=payload,
                 verify=args.verify
         )
@@ -77,7 +77,7 @@ def get_vulndb(report_dir, digest):
     try:
         r = requests.get(
                 request_url,
-                auth=(args.u, args.p),
+                auth=(args.username, args.password),
                 verify=args.verify
         )
         body = r.text
@@ -91,7 +91,7 @@ def get_vulndb(report_dir, digest):
                     if (vulnerability["feed_group"] == "vulndb:vulnerabilities"):
                         # "http://anchore-anchore-engine-api:8228/v1" or URL to replace may need to be modified when changes to the Anchore installation occur
                         vulndb_request_url = re.sub("http:\/\/([a-z-_0-9:]*)\/v1", endpoint_url, vulnerability["url"])
-                        r = requests.get(vulndb_request_url, auth=(args.u, args.p))
+                        r = requests.get(vulndb_request_url, auth=(args.username, args.password))
                         body = r.text
 
                         if r.status_code == 200:
@@ -130,7 +130,7 @@ def get_gates(report_dir, digest):
     try:
         r = requests.get(
                 request_url,
-                auth = (args.u, args.p),
+                auth = (args.username, args.password),
                 verify = args.verify
         )
         body = r.text
@@ -172,7 +172,7 @@ def get_security(report_dir, digest):
     try:
         r = requests.get(
                 request_url,
-                auth = (args.u, args.p),
+                auth = (args.username, args.password),
                 verify = args.verify
         )
         body = r.text
@@ -230,19 +230,14 @@ def get_version(report_dir):
     try:
         r = requests.get(
                 request_url,
-                auth = (args.u, args.p),
+                auth = (args.username, args.password),
                 verify = args.verify
         )
         body = r.text
         if r.status_code == 200:
             try:
                 body_json = json.loads(body)
-
-                with open("anchore-version.txt", "w") as f:
-                    json.dump(body_json["service"]["version"], f)
-
-                with open(os.path.join(report_dir, "anchore-version.txt"), "w") as f:
-                    json.dump(body_json["service"]["version"], f)
+                print(f"Anchore Version: {body_json['service']['version']}")
 
             except Exception as err:
                 raise err

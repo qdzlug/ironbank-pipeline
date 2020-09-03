@@ -8,7 +8,7 @@ anchore scan:
   before_script:
     - mkdir -p "${ANCHORE_SCANS}"
   script:
-    - python3 ${PIPELINE_REPO_DIR}/stages/scanning/anchore_scan.py
+    - python3 ${PIPELINE_REPO_DIR}/stages/scanning/anchore_scan.py --u ${anchore_username} --p ${anchore_password} --url ${anchore_server_address} --image ${DOCKER_IMAGE_PATH} --output ${ANCHORE_SCANS}/${IMG_VERSION}.json
     - cp -f ${PIPELINE_REPO_DIR}/stages/scanning/anchore_gates.json ${ANCHORE_SCANS}/
     - cp -f ${PIPELINE_REPO_DIR}/stages/scanning/anchore_security.json ${ANCHORE_SCANS}/
   artifacts:
