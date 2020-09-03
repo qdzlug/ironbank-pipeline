@@ -14,7 +14,7 @@ publish:
     - podman images
       #- tar -xvf ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar manifest.json
     - echo ${IB_CONTAINER_GPG_KEY} | base64 -d > key
-    - mkdir -p tmp_gpg
+    - mkdir -p tmp_gpg reports
   script:
     # Upload image to prod Harbor
     - skopeo copy --src-authfile ${DOCKER_AUTH_CONFIG_STAGING} --dest-authfile ${DOCKER_AUTH_CONFIG_TEST} docker://${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION} docker://${TEST_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}
@@ -23,8 +23,8 @@ publish:
     - echo "pinentry-mode loopback" >> ./tmp_gpg/gpg.conf
     - gpg --detach-sign --homedir ./tmp_gpg -o ${IMAGE_SIG_FILE}.sig --armor --yes --batch --passphrase ${IB_CONTAINER_SIG_KEY_PASSPHRASE} ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar
     - ls && ls tmp_gpg
-    # Clear
-    - rm -rf tmp_gpg/*
+    # Stage image for upload
+    - mv ${IMAGE_FILE}.tar ${IMAGE_SIG_FILE}.sig reports/
     # Gather info for manifest.json
     - GPG_VERSION=$(gpg --version | grep '(?<=gpg .GnuPG.)([^0-9]+)([0-9]+[.][0-9]+[.][0-9]+)' -oP | sed -E 's/ //g')
     - IMAGE_TAR_SHA=$(sha256sum ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar | grep -E '^[a-zA-Z0-9]+' -o)
@@ -49,7 +49,11 @@ publish:
       }
       EOF
     - cat manifest.json
+    # Clear
+    - rm -rf tmp_gpg/*
     # Sign manifest.json
     - gpg --homedir ./tmp_gpg --import --batch --passphrase ${IB_CONTAINER_SIG_KEY_PASSPHRASE} key
     - echo "pinentry-mode loopback" >> ./tmp_gpg/gpg.conf
     - gpg --detach-sign --homedir ./tmp_gpg -o ${SIG_FILE}.sig --armor --yes --batch --passphrase ${IB_CONTAINER_SIG_KEY_PASSPHRASE} manifest.json 
+    # Stage manifest for upload
+    - mv manifest.json ${SIG_FILE}.sig reports/
