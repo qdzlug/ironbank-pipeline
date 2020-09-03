@@ -1,4 +1,4 @@
-.publish:
+publish:
   stage: publish
   allow_failure: true
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
