@@ -6,7 +6,7 @@ publish:
     IMAGE_SIG_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}.sig
   dependencies:
     - build
-    - scanning
+    - .scanning
   before_script:
     - podman load -i ${IMAGE_FILE}.tar
     - tar -xvf ${IMAGE_FILE}.tar manifest.json
