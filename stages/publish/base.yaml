@@ -8,12 +8,12 @@ publish:
   dependencies:
     - build
   before_script:
-    - podman load -i ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar
+    - podman load -i ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar ${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}
+    - podman images
       #    - tar -xvf ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar manifest.json
     - echo ${IB_CONTAINER_GPG_KEY} | base64 -d > key
     - mkdir -p tmp_gpg
   script:
-    - podman images
     - skopeo copy --dest-authfile ${DOCKER_AUTH_CONFIG_TEST} ${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION} docker://${REGISTRY_URL_TEST}/${IM_NAME}:${IMG_VERSION}
     - gpg --homedir ./tmp_gpg --import --batch --passphrase ${IB_CONTAINER_SIG_KEY_PASSPHRASE} key
     - echo "pinentry-mode loopback" >> ./tmp_gpg/gpg.conf
