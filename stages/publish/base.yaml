@@ -2,11 +2,19 @@ publish:
   stage: publish
   allow_failure: true
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
+  variables:
+    IMAGE_SIG_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}.sig
   dependencies:
     - build
     - scanning
   before_script:
     - podman load -i ${IMAGE_FILE}.tar
-    - tar -xvf ${IMAGE_FILE}.tar manifest.json 
+    - tar -xvf ${IMAGE_FILE}.tar manifest.json
+    - echo ${IB_CONTAINER_GPG_KEY} | base64 -d > key
+    - mkdir -p tmp_gpg
   script:
     - skopeo copy --log-level=debug --dest-authfile ${DOCKER_AUTH_CONFIG_TEST} ${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION} docker://${REGISTRY_URL_TEST}/${IM_NAME}:${IMG_VERSION}
+    - gpg --homedir ./tmp_gpg --import --batch --passphrase ${IB_CONTAINER_SIG_KEY_PASSPHRASE} key
+    - echo "pinentry-mode loopback" >> ./tmp_gpg/gpg.conf
+    - gpg --detach-sign --homedir ./tmp_gpg -o ${IMAGE_SIG_FILE}.sig --armor --yes --batch --passphrase ${IB_CONTAINER_SIG_KEY_PASSPHRASE} ${IMAGE_FILE}.tar
+    - ls ./gpg_tmp
