@@ -17,10 +17,10 @@ publish:
     - skopeo copy --src-authfile ${DOCKER_AUTH_CONFIG_STAGING} --dest-authfile ${DOCKER_AUTH_CONFIG_TEST} docker://${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION} docker://${TEST_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}
     - gpg --homedir ./tmp_gpg --import --batch --passphrase ${IB_CONTAINER_SIG_KEY_PASSPHRASE} key
     - echo "pinentry-mode loopback" >> ./tmp_gpg/gpg.conf
-    - gpg --detach-sign --homedir ./tmp_gpg -o ${IMAGE_SIG_FILE}.sig --armor --yes --batch --passphrase ${IB_CONTAINER_SIG_KEY_PASSPHRASE} ${IMAGE_FILE}.tar
+    - gpg --detach-sign --homedir ./tmp_gpg -o ${IMAGE_SIG_FILE}.sig --armor --yes --batch --passphrase ${IB_CONTAINER_SIG_KEY_PASSPHRASE} ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar
     - ls && ls tmp_gpg
     - GPG_VERSION=$(gpg --version | grep '(?<=gpg .GnuPG.)([^0-9]+)([0-9]+[.][0-9]+[.][0-9]+)' -oP)
-    - IMAGE_SHA=$(sha256sum ${IMAGE_NAME}.tar | grep -E '^[a-zA-Z0-9]+' -o)
+    - IMAGE_SHA=$(sha256sum ${ARTIFACT_STORAGE}/build/${IMAGE_NAME}.tar | grep -E '^[a-zA-Z0-9]+' -o)
     - rm -rf tmp_gpg
     - |
       cat << EOF
@@ -40,3 +40,4 @@ publish:
         }
       }
       EOF >> manifest.json      
+    - cat manifest.json
