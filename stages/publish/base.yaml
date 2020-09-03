@@ -3,8 +3,10 @@ publish:
   allow_failure: true
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
   variables:
+    #TODO: Put these in globals
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
     IMAGE_SIG_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
+    SIG_FILE: signature
   dependencies:
     - build
   before_script:
@@ -14,15 +16,20 @@ publish:
     - echo ${IB_CONTAINER_GPG_KEY} | base64 -d > key
     - mkdir -p tmp_gpg
   script:
+    # Upload image to prod Harbor
     - skopeo copy --src-authfile ${DOCKER_AUTH_CONFIG_STAGING} --dest-authfile ${DOCKER_AUTH_CONFIG_TEST} docker://${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION} docker://${TEST_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}
+    # Sign image tar file
     - gpg --homedir ./tmp_gpg --import --batch --passphrase ${IB_CONTAINER_SIG_KEY_PASSPHRASE} key
     - echo "pinentry-mode loopback" >> ./tmp_gpg/gpg.conf
     - gpg --detach-sign --homedir ./tmp_gpg -o ${IMAGE_SIG_FILE}.sig --armor --yes --batch --passphrase ${IB_CONTAINER_SIG_KEY_PASSPHRASE} ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar
     - ls && ls tmp_gpg
+    # Clear
+    - rm -rf tmp_gpg/*
+    # Gather info for manifest.json
     - GPG_VERSION=$(gpg --version | grep '(?<=gpg .GnuPG.)([^0-9]+)([0-9]+[.][0-9]+[.][0-9]+)' -oP | sed -E 's/ //g')
     - IMAGE_TAR_SHA=$(sha256sum ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar | grep -E '^[a-zA-Z0-9]+' -o)
     - IMAGE_PODMAN_SHA=$(podman inspect --format {{'.Digest'}} ${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION})
-    - rm -rf tmp_gpg
+    # Create manifest.json
     - |
       cat <<EOF > manifest.json
       {
@@ -42,3 +49,7 @@ publish:
       }
       EOF
     - cat manifest.json
+    # Sign manifest.json
+    - gpg --homedir ./tmp_gpg --import --batch --passphrase ${IB_CONTAINER_SIG_KEY_PASSPHRASE} key
+    - echo "pinentry-mode loopback" >> ./tmp_gpg/gpg.conf
+    - gpg --detach-sign --homedir ./tmp_gpg -o ${SIG_FILE}.sig --armor --yes --batch --passphrase ${IB_CONTAINER_SIG_KEY_PASSPHRASE} manifest.json 
