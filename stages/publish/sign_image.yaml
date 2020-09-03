@@ -24,4 +24,4 @@ sign_image:
   artifacts:
     when: always
     paths: 
-      - reports/
+      - ${ARTIFACT_DIR}

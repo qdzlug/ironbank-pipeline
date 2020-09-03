@@ -48,4 +48,4 @@ sign_manifest:
   artifacts:
     when: always
     paths:
-      - reports/
+      - ${ARTIFACT_DIR}
