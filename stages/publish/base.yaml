@@ -13,7 +13,7 @@ publish:
     - echo ${IB_CONTAINER_GPG_KEY} | base64 -d > key
     - mkdir -p tmp_gpg
   script:
-    - skopeo copy --log-level=debug --dest-authfile ${DOCKER_AUTH_CONFIG_TEST} ${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION} docker://${REGISTRY_URL_TEST}/${IM_NAME}:${IMG_VERSION}
+    - skopeo copy --dest-authfile ${DOCKER_AUTH_CONFIG_TEST} ${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION} docker://${REGISTRY_URL_TEST}/${IM_NAME}:${IMG_VERSION}
     - gpg --homedir ./tmp_gpg --import --batch --passphrase ${IB_CONTAINER_SIG_KEY_PASSPHRASE} key
     - echo "pinentry-mode loopback" >> ./tmp_gpg/gpg.conf
     - gpg --detach-sign --homedir ./tmp_gpg -o ${IMAGE_SIG_FILE}.sig --armor --yes --batch --passphrase ${IB_CONTAINER_SIG_KEY_PASSPHRASE} ${IMAGE_FILE}.tar
