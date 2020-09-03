@@ -4,6 +4,7 @@ import re
 import requests
 import json
 import csv
+import subprocess
 
 # Hopefully this is there
 # TODO: Import only needed components
@@ -141,8 +142,8 @@ def get_gates(report_dir, digest):
                 # with open("anchoreengine-api-response-evaluation-1.json", "w") as f:
                 #     f.write(body)
 
-                imageid = body_json[0][digest][args.image][0]["detail"]["result"]["image_id"]
-                results = body_json[0][digest][args.image][0]["detail"]["result"]["result"]
+                imageid = body_json[0][digest]["docker.io/" + args.image][0]["detail"]["result"]["image_id"]
+                results = body_json[0][digest]["docker.io/" + args.image][0]["detail"]["result"]["result"]
 
                 results_dict = dict()
 
@@ -266,6 +267,20 @@ def generate_reports():
         os.makedirs(report_dir, 0o755)
 
     print(f"Created Anchore Report Directory: {report_dir}")
+
+    p = subprocess.Popen(["anchore-cli", "image", "add", args.image],
+            stdout = subprocess.PIPE,
+            stderr = subprocess.STDOUT)
+    stdout, stderr = p.communicate()
+    print(stdout)
+    print(stderr)
+
+    p = subprocess.Popen(["anchore-cli", "image", "wait", args.image],
+            stdout = subprocess.PIPE,
+            stderr = subprocess.STDOUT)
+    stdout, stderr = p.communicate()
+    print(stdout)
+    print(stderr)
 
     digest = getImageDigest()
 
