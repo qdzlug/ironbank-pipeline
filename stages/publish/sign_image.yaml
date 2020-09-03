@@ -9,7 +9,6 @@ sign_image:
     - build
   before_script:
     - podman load -i ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar ${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}
-      #- tar -xvf ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar manifest.json
     - echo ${IB_CONTAINER_GPG_KEY} | base64 -d > key
     - mkdir -p tmp_gpg ${ARTIFACT_STORAGE}/publish/reports
   script:

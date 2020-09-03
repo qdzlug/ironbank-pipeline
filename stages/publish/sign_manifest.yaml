@@ -4,13 +4,13 @@ sign_manifest:
   variables:
     #TODO: Put these in globals
     SIG_FILE: signature
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/publish/reports
   dependencies:
     - build
   before_script:
     - podman load -i ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar ${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}
-      #- tar -xvf ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar manifest.json
     - echo ${IB_CONTAINER_GPG_KEY} | base64 -d > key
-    - mkdir -p tmp_gpg ${ARTIFACT_STORAGE}/publish/reports
+    - mkdir -p tmp_gpg ${ARTIFACT_DIR}
   script:
     # Gather info for manifest.json
     - GPG_VERSION=$(gpg --version | grep '(?<=gpg .GnuPG.)([^0-9]+)([0-9]+[.][0-9]+[.][0-9]+)' -oP | sed -E 's/ //g')
@@ -43,7 +43,7 @@ sign_manifest:
     - echo "pinentry-mode loopback" >> ./tmp_gpg/gpg.conf
     - gpg --detach-sign --homedir ./tmp_gpg -o ${SIG_FILE}.sig --armor --yes --batch --passphrase ${IB_CONTAINER_SIG_KEY_PASSPHRASE} manifest.json
     # Stage manifest for upload
-    - mv manifest.json ${SIG_FILE}.sig reports/
+    - mv manifest.json ${SIG_FILE}.sig ${ARTIFACT_DIR}
   artifacts:
     when: always
     paths:
