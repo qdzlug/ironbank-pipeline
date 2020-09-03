@@ -22,7 +22,8 @@ publish:
     - GPG_VERSION=$(gpg --version | grep '(?<=gpg .GnuPG.)([^0-9]+)([0-9]+[.][0-9]+[.][0-9]+)' -oP)
     - IMAGE_SHA=$(sha256sum ${IMAGE_NAME}.tar | grep -E '^[a-zA-Z0-9]+' -o)
     - rm -rf tmp_gpg
-    - cat << EOF
+    - |
+      cat << EOF
       {
         "critical": {
           "type": "atomic container signature",
