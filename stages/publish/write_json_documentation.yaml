@@ -35,6 +35,8 @@ white_json_documentation:
           "version":"${GPG_VERION_INFO}"
         }
         "git": {
+           "branch": "${CI_COMMIT_BRANCH}",
+           "commit": "${CI_COMMIT_SHA}"
         }
         "reports": [
           "twistlock": {
