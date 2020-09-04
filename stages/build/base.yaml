@@ -1,7 +1,7 @@
 build:
   stage: build
   allow_failure: false
-  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/rootless-build:1.0
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
   dependencies:
     - import artifacts
   variables:
