@@ -6,3 +6,4 @@ include:
   - local: /stages/publish/sign_manifest.yaml
   - local: /stages/publish/write_json_documentation.yaml
     #  - local: /stages/publish/upload_to_s3.yaml
+    #  - local: /stages/publish/create_website_mapping.yaml

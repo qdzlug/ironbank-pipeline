@@ -6,8 +6,8 @@ write_json_documentation:
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/publish/reports
     # TODO put back in for full run 
-    OPENSCAP_VERSION: ${ARTIFACT_STORAGE}/scan-results/openscap-compliance/openscap-version.txt
-    #OPENSCAP_VERSION: ""
+    #OPENSCAP_VERSION: ${ARTIFACT_STORAGE}/scan-results/openscap-compliance/openscap-version.txt
+    OPENSCAP_VERSION: ""
     TWISTLOCK_VERSION: ""
   dependencies:
     - build
