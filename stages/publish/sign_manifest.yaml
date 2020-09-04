@@ -1,4 +1,4 @@
-sign_manifest:
+sign manifest:
   extends: .publish
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
   variables:

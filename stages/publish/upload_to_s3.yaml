@@ -1,0 +1,12 @@
+upload to s3:
+  extends: .publish
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
+  variables:
+    #TODO: Put these in globals
+    IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
+    IMAGE_SIG_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
+  dependencies:
+    - build
+  before_script:
+
+  script:

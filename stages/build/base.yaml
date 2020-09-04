@@ -1,14 +1,17 @@
 build:
   stage: build
   allow_failure: false
+  #TODO add this back in once we have rootless-podman working again
+  #image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/rootless-build:1.0
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
   dependencies:
     - import artifacts
   variables:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/build
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
-  tags:
-    - ironbank-isolated
+  #TODO add this back in once we have rootless-podman working again
+    #tags:
+    #- ironbank-isolated
   before_script:
     - mkdir -p ${ARTIFACT_DIR}
     - cp -r ${ARTIFACT_STORAGE}/import-artifacts/* .
