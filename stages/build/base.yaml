@@ -20,7 +20,7 @@ build:
   before_script:
     - mkdir -p ${ARTIFACT_DIR}
     - cp -r ${ARTIFACT_STORAGE}/import-artifacts/* .
-    - dnf install -y buildah
+      #    - dnf install -y buildah
   script:
     - repo_path="${CI_PROJECT_DIR}"
     - image_path=(${repo_path:13:200})
