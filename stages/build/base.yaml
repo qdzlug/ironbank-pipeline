@@ -16,6 +16,8 @@ build:
     - cp -r ${ARTIFACT_STORAGE}/import-artifacts/* .
       #    - dnf install -y buildah
     - cat /proc/sys/user/max_user_namespaces
+    - echo "62456" > /proc/sys/user/max_user_namespaces
+    - cat /proc/sys/user/max_user_namespaces
   script:
     - repo_path="${CI_PROJECT_DIR}"
     - image_path=(${repo_path:13:200})
