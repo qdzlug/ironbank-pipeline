@@ -4,3 +4,4 @@
 include:  
   - local: /stages/publish/sign_image.yaml
   - local: /stages/publish/sign_manifest.yaml
+  - local: /stages/publish/write_jsn_documentation.yaml
