@@ -26,7 +26,7 @@ write_json_documentation:
     # Create manifest.json
     - |
       cat <<EOF > scan-metadata.json
-      {[
+      {
         "buildTag": "${IMG_VERSION}",
         "buildNumber": "${CI_COMMIT_SHA}",
         "approval": ""
@@ -42,7 +42,7 @@ write_json_documentation:
            "branch": "${CI_COMMIT_BRANCH}",
            "commit": "${CI_COMMIT_SHA}"
         },
-        "reports": [
+        "reports": {
           "twistlock": {
             "version": "${TWISTLOCK_VERSION}" 
           },
@@ -52,31 +52,31 @@ write_json_documentation:
           "anchore": {
             "version": "${ANCHORE_VERSION}" 
           }
-        ]
-      ]}
+        }
+      }
       EOF
     - cat scan-metadata.json
     # Create manifest.json
     - |
       cat <<EOF > documentation.json
-      {[
+      {
         "timestamp": "$(date +%FT%T)",
         "git": {
           "hash": "${CI_COMMIT_SHA}",
           "branch": "${CI_COMMIT_BRANCH}"
         },
-        "tools": [
+        "tools": {
           "anchore": {
-            "version": "${ANCHORE_VERSION}",
+            "version": "${ANCHORE_VERSION}"
           },
           "twistlock": {
-            "version": "${TWISTLOCK_VERSION}",
+            "version": "${TWISTLOCK_VERSION}"
           },
           "openSCAP": {
             "version": "${OPENSCAP_VERSION}"
           }
-        ]
-      ]}
+        }
+      }
       EOF
     - cat documentation.json
     # Stage manifest for upload
