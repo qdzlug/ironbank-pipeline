@@ -20,7 +20,7 @@ sign_manifest:
     # Create manifest.json
     - |
       cat <<EOF > manifest.json
-      {
+      {[
         "critical": {
           "type": "atomic container signature",
           "image": {
@@ -34,7 +34,7 @@ sign_manifest:
         "optional": {
           "creator": "${GPG_VERSION}"
         }
-      }
+      ]}
       EOF
     - cat manifest.json
     # Clear

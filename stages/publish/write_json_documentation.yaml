@@ -1,4 +1,4 @@
-white_json_documentation:
+write_json_documentation:
   extends: .publish
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
   variables:
@@ -17,6 +17,8 @@ white_json_documentation:
     # Gather info for scan-metadata.json
     - GPG_VERSION_INFO=$(gpg --version | grep "gpg")
     - ANCHORE_VERSION=$(curl -k ${anchore_server_address}/version)
+    - TWISTLOCK_VERSION=$(echo ${TWISTLOCK_VERSION})
+    - OPENSCAP_VERSION=$(echo ${OPENSCAP_VERSION})
     - IMAGE_TAR_SHA=$(sha256sum ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar | grep -E '^[a-zA-Z0-9]+' -o)
     - IMAGE_PODMAN_SHA=$(podman inspect --format {{'.Digest'}} ${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION})
     # Create manifest.json
@@ -37,13 +39,13 @@ white_json_documentation:
         "git": {
            "branch": "${CI_COMMIT_BRANCH}",
            "commit": "${CI_COMMIT_SHA}"
-        }
+        },
         "reports": [
           "twistlock": {
             "version": "${TWISTLOCK_VERSION}" 
           },
           "openSCAP": {
-            "version": "$(cat ${OPENSCAP_VERSION})" 
+            "version": "${OPENSCAP_VERSION})" 
           },
           "anchore": {
             "version": "${ANCHORE_VERSION}" 
@@ -55,9 +57,24 @@ white_json_documentation:
     # Create manifest.json
     - |
       cat <<EOF > documentation.json
-      {
-        "timestamp": "$(date +%FT%T)"
-      }
+      {[
+        "timestamp": "$(date +%FT%T)",
+        "git": {
+          "hash": "${CI_COMMIT_SHA}",
+          "branch": "${CI_COMMIT_BRANCH}"
+        },
+        "tools": [
+          "anchore": {
+            "version": "${ANCHORE_VERSION}",
+          },
+          "twistlock": {
+            "version": "${TWISTLOCK_VERSION}",
+          },
+          "openSCAP": {
+            "version": "${OPENSCAP_VERSION}"
+          }
+        ]
+      ]}
       EOF
     - cat documentation.json
     # Stage manifest for upload
