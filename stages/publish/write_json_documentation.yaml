@@ -29,7 +29,7 @@ write_json_documentation:
       {
         "buildTag": "${IMG_VERSION}",
         "buildNumber": "${CI_COMMIT_SHA}",
-        "approval": ""
+        "approval": "${IMAGE_APPROVAL_STATUS}"
         "image": {
           "digest": "${IMAGE_TAR_SHA}",
           "sha256": "${IMAGE_PODMAN_SHA}",
