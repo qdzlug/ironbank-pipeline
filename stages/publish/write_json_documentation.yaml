@@ -5,7 +5,7 @@ write_json_documentation:
     #TODO: Put these in globals
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/publish/reports
-    OPENSCAP_VERSION: ${ARTIFACT_STORAGE}/scanning/openscap_-compliance/openscap-version.txt
+    OPENSCAP_VERSION: ${ARTIFACT_STORAGE}/scanning/openscap-compliance/openscap-version.txt
     TWISTLOCK_VERSION: ""
   dependencies:
     - build
