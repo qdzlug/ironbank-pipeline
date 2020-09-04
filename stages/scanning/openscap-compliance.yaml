@@ -4,7 +4,7 @@ openscap compliance:
     variables:
       - $DISTROLESS
   variables:
-    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/scanning/openscap-compliance 
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/scan-results/openscap-compliance 
     OSCAP_VERSION: ""
     OSCAP_FILENAME: ${OSCAP_HTML_FILENAME}
     base_image_type: "" 
@@ -37,8 +37,8 @@ openscap compliance:
     - |   
        export securityGuide=`echo ${oscap_container} | grep -o '"securityGuide": "[^"]*'| grep -o '[^"]*$'`
     - export securityGuide=`echo ${securityGuide} | sed "s/{OSCAP_VERSION}/$OSCAP_VERSION/g"`
-    - export IMAGE_ID=`podman images --filter=reference=${DOCKER_IMAGE_PATH} --format "{{.ID}}"`
-    - oscap-podman ${IMAGE_ID} xccdf eval --profile ${profile} --report report.html ${securityGuide} > /dev/null
+    - echo "IM_ID=(podman inspect --storage-driver=vfs $harbor_image_path --format {{'.Id'}})"
+    - oscap-podman ${IM_ID} xccdf eval --profile ${profile} --report report.html ${securityGuide} > /dev/null
     - ls 
     - rm -rf scap-security-guide.zip scap-security-guide-${OSCAP_VERSION}
     - openScapVersionDump=`oscap -V`
