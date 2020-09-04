@@ -2,8 +2,10 @@ build:
   stage: build
   allow_failure: false
   #TODO add this back in once we have rootless-podman working again
-  #image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/rootless-build:1.0
-  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
+  image: 
+    name: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/rootless-build:1.1
+    command: ["--security-opt","seccomp-unconfined"]
+  #image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
   dependencies:
     - import artifacts
   variables:
