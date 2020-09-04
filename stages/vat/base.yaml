@@ -1,3 +1,37 @@
 .vat:
   stage: vat
+  image: ${REGISTRY_URL}/redhat/python/python36:3.6
   allow_failure: true
+  variables:
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/scan-results/csv-output/
+  tags:
+  before_script:
+  script:
+    - python3 ${PIPELINE_REPO_DIR}/stages/vat/vat_import.py --db 'vat-db' --host mariadb.ironbank-vat-test.svc.cluster.local
+  artifacts:
+    when: always
+    paths:
+      - ${ARTIFACT_DIR}/
+    reports:
+      dotenv: build.env
+
+
+  withCredentials([usernamePassword(usernameVariable: 'USER', passwordVariable: 'PASS', credentialsId: 'vat-db')]){
+    def whitelist = dccscrWhitelist()
+    dccscrExec resource: 'io/dsop/vat_import.py',
+               arguments: """\
+                  --db 'vat-db' \
+                  --user ${USER} \
+                  --host mariadb.ironbank-vat-test.svc.cluster.local  \
+                  --csv_dir ${ARTIFACT_DIR}/ \
+                  --jenkins '${BUILD_NUMBER}' \
+                  --container '${CI_PROJECT_NAME}'\
+                  --version '${IMG_VERSION}'\
+                  --parent '${whitelist.image_parent_name}' \
+                  --password '${PASS}' \
+                  --parent_version '${whitelist.image_parent_tag}'\
+                  --scan_date '${Arguments.get().datetime}' \
+                  --link '${Constant.OSCAP_DIRECTORY}/' \
+                  --debug
+              """
+  }
