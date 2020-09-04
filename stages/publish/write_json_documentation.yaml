@@ -16,7 +16,9 @@ write_json_documentation:
   script:
     # Gather info for scan-metadata.json
     - GPG_VERSION_INFO=$(gpg --version | grep "gpg")
-    - ANCHORE_VERSION=$(curl -k ${anchore_server_address}/version)
+    # TODO add anchore endpoint
+      #- ANCHORE_VERSION=$(curl -k ${anchore_server_address}/version)
+    - ANCHORE_VERSION=""
     - TWISTLOCK_VERSION=$(echo ${TWISTLOCK_VERSION})
     - OPENSCAP_VERSION=$(echo ${OPENSCAP_VERSION})
     - IMAGE_TAR_SHA=$(sha256sum ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar | grep -E '^[a-zA-Z0-9]+' -o)
