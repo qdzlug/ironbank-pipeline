@@ -76,7 +76,7 @@ def http_download(download_item, resource_name, validation_type, checksum_value,
 
     else:
         print("Downloading from %s" % download_item)
-        urllib.request.urlretrieve(download_item, outputDir + '/' + resource_name)
+        urllib.request.urlretrieve(download_item, outputDir + '/external_resources/' + resource_name)
 
         # Calculate SHA256 checksum of downloaded file
         print("Generating checksum")
@@ -86,7 +86,7 @@ def http_download(download_item, resource_name, validation_type, checksum_value,
             sys.exit(1)
 
         sha256_hash = hashlib.sha256()
-        with open(outputDir + '/' + resource_name, "rb") as f:
+        with open(outputDir + '/external_resources/' + resource_name, "rb") as f:
             for byte_block in iter(lambda: f.read(4096),b""):
                 sha256_hash.update(byte_block)
 
