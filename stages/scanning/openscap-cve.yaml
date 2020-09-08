@@ -1,5 +1,4 @@
 openscap cve:
-  extends: .scanning
   except:
     variables:
       - $DISTROLESS

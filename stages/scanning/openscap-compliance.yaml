@@ -1,5 +1,4 @@
 openscap compliance:
-  extends: .scanning
   except:
     variables:
       - $DISTROLESS
