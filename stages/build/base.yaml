@@ -25,7 +25,8 @@ build:
       fi
   script:
     - repo_path="${CI_PROJECT_DIR}"
-    - image_path=(${repo_path:13:200})
+    - echo ${repo_path}
+    - image_path=${repo_path:13:200}
     - echo "IM_NAME=${image_path}" >> build.env
     # Set the tag to eliminate /build/dsop and matching existing project hierarchy format
     - harbor_image_path=${STAGING_REGISTRY_URL}/$image_path:$IMG_VERSION
