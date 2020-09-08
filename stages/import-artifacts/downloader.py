@@ -11,6 +11,8 @@ def main():
     ##### Parse commandline arguments
     inputFile = ""
     outputDir = ""
+    docker_resource = None
+    http_resource = None
     try:
         opts, args = getopt.getopt(sys.argv[1:],"hi:d:",["ifile=","odir="])
     except getopt.GetoptError:
@@ -45,14 +47,21 @@ def main():
             for item in downloads[type]:
                 download_type = resource_type(item["url"])
                 if download_type == "http":
+                    http_resource = True
                     resource_name = item["filename"]
                     validation_type = item["validation"]["type"]
                     checksum_value = item["validation"]["value"]
                     http_download(item["url"], item["filename"], item["validation"]["type"], item["validation"]["value"], outputDir)
                 if download_type == "docker":
+                    docker_resource = True
                     tag_value = item["tag"]
                     docker_download(item["url"], item["tag"], item["tag"])
             # print()  
+    # Check if http or docker resources were downloaded and set environment variables for build stage
+    if http_resource is not None:
+        os.system("echo 'HTTP_RESOURCE=TRUE' >> artifact.env")
+    if docker_resource is not None:
+        os.system("echo 'DOCKER_RESOURCE=TRUE' >> artifact.env")
 
 def resource_type(url):
     check = url
@@ -76,7 +85,7 @@ def http_download(download_item, resource_name, validation_type, checksum_value,
 
     else:
         print("Downloading from %s" % download_item)
-        urllib.request.urlretrieve(download_item, outputDir + '/external_resources/' + resource_name)
+        urllib.request.urlretrieve(download_item, outputDir + "/external-resources/" + resource_name)
 
         # Calculate SHA256 checksum of downloaded file
         print("Generating checksum")
@@ -86,7 +95,7 @@ def http_download(download_item, resource_name, validation_type, checksum_value,
             sys.exit(1)
 
         sha256_hash = hashlib.sha256()
-        with open(outputDir + '/external_resources/' + resource_name, "rb") as f:
+        with open(outputDir + "/external-resources/" + resource_name, "rb") as f:
             for byte_block in iter(lambda: f.read(4096),b""):
                 sha256_hash.update(byte_block)
 
@@ -94,7 +103,6 @@ def http_download(download_item, resource_name, validation_type, checksum_value,
         if checksum_value == sha256_hash.hexdigest():
             print("Checksum verified")
             print("File saved as '%s'" % resource_name)
-            os.system("cp " + resource_name + " ${ARTIFACT_STORAGE}/import-artifacts/external-resources/")
         else:
             os.remove(resource_name)
             print("Checksum failed")
@@ -108,7 +116,6 @@ def docker_download(download_item, tag_value, value_for_tar_name):
     os.system("podman pull " + image)
     print("Tagging image as " + tag_value)
     os.system("podman tag " + image + " " + tag_value)
-    os.system("echo 'DOCKER_RESOURCE=TRUE' >> artifact.env")
     print("Saving " + tag_value + " as tar file")
     os.system("podman save -o " + tar_name + ".tar " + tag_value)
     print("Moving tar file into stage artifacts")
