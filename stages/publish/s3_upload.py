@@ -50,4 +50,4 @@ if __name__ == "__main__":
 
     upload_file(filename = args.filename,
                 bucket   = args.bucket,
-                destname = args.dest-name)
+                destname = args.dest-path)
