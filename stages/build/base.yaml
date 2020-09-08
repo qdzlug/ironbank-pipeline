@@ -1,7 +1,7 @@
 build:
   stage: build
   allow_failure: false 
-  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/rootless-build:1.1
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/rootless-build:1.3
   #image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
   dependencies:
     - import artifacts
@@ -14,10 +14,7 @@ build:
   before_script:
     - mkdir -p ${ARTIFACT_DIR}
     - cp -r ${ARTIFACT_STORAGE}/import-artifacts/* .
-      #    - dnf install -y buildah
-    - cat /proc/sys/user/max_user_namespaces
-    - echo "62456" > /proc/sys/user/max_user_namespaces
-    - cat /proc/sys/user/max_user_namespaces
+      #- echo "62456" > /proc/sys/user/max_user_namespaces
   script:
     - repo_path="${CI_PROJECT_DIR}"
     - image_path=(${repo_path:13:200})
