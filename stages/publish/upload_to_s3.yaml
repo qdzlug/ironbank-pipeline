@@ -10,8 +10,8 @@ upload to s3:
     - build
     - openscap compliance
     - openscap cve
-    - twistlock
-    - anchore
+    - twistlock scan
+    - anchore scan
   before_script:
     - pip install boto3
     - |
