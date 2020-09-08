@@ -49,7 +49,7 @@ write_json_documentation:
             "version": "${TWISTLOCK_VERSION}" 
           },
           "openSCAP": {
-            "version": "${OPENSCAP_VERSION})" 
+            "version": "${OPENSCAP_VERSION}" 
           },
           "anchore": {
             "version": "${ANCHORE_VERSION}" 

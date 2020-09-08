@@ -10,10 +10,13 @@ import artifacts:
   # dccscrImport() calls ContributorResource, which performs validation of download.yaml file
   before_script:
     - mkdir -p "${ARTIFACT_DIR}"
+    - mkdir -p "${ARTIFACT_DIR}"/images/
+    - touch artifact.env
   script:
     - python3 ${PIPELINE_REPO_DIR}/stages/import-artifacts/downloader.py -i ${CI_PROJECT_DIR}/download.yaml -d ${ARTIFACT_DIR}
   artifacts:
     when: always
     paths:
       - ${ARTIFACT_DIR}/
-
+    reports:
+      dotenv: artifact.env

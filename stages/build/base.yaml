@@ -5,16 +5,24 @@ build:
   #image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
   dependencies:
     - import artifacts
+  tags:
+    - ironbank-isolated
   variables:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/build
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
-  #TODO add this back in once we have rootless-build working again
-    #tags:
-    #- ironbank-isolated
   before_script:
     - mkdir -p ${ARTIFACT_DIR}
-    - cp -r ${ARTIFACT_STORAGE}/import-artifacts/* .
-      #- echo "62456" > /proc/sys/user/max_user_namespaces
+    # Load any images used in Dockerfile build
+    - |
+      if [[ ! -z ${DOCKER_RESOURCE} ]]; then
+        for file in ${ARTIFACT_STORAGE}/import-artifacts/images/*; do
+          podman load -i "${file}"
+        done
+      fi
+    - |
+      if [[ -d ${ARTIFACT_STORAGE}/import-artifacts/external-resources ]]; then
+        cp -r ${ARTIFACT_STORAGE}/import-artifacts/external-resources/* .
+      fi
   script:
     - repo_path="${CI_PROJECT_DIR}"
     - image_path=(${repo_path:13:200})
@@ -33,5 +41,4 @@ build:
     paths:
       - ${ARTIFACT_DIR}/
     reports:
-      dotenv: build.env 
-
+      dotenv: build.env
