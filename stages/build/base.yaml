@@ -19,7 +19,7 @@ build:
         done
       fi
     - |
-      if [[ -d ${ARTIFACT_STORAGE}/import-artifacts/external-resources ]]; then
+      if [[ ! -z ${HTTP_RESOURCE} ]]; then
         cp -r ${ARTIFACT_STORAGE}/import-artifacts/external-resources/* .
       fi
   script:
