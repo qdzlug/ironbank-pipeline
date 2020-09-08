@@ -5,39 +5,41 @@ upload to s3:
     #TODO: Put these in globals
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
     SCAN_DIRECTORY: ${ARTIFACT_STORAGE}/scan-results/
-    BASE_BUCKET_DIRECTORY: testing/container-scan-reports
+    BASE_BUCKET_DIRECTORY: "testing/container-scan-reports"
   dependencies:
     - build
   before_script:
+    - pip install boto3
     - |
       if [ "${CI_COMMIT_BRANCH}" == "development"] || [ "${CI_COMMIT_BRANCH}" == "master" ]; then
         export BASE_BUCKET_DIRECTORY="container-scan-reports"
       fi
     - export REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}"
 
-  script:
+  script: 
     - |
-      FILES=${SCAN_DIRECTORY}/*
-      AWS_KEY="${S3_ACCESS_KEY}"
-      AWS_SECRET="${S3_SECRET_KEY}"
-      S3_BUCKET="${S3_REPORT_BUCKET}"
-      S3_BUCKET_PATH="/${CI_PROJECT_NAME}-${IMG_VERSION}/${REPORT_DIRECTORY}"
+      for file in $(find ${SCAN_DIRECTORY} -name "*" -type d); do 
+        python3 s3_upload.py --file $file --bucket ${S3_REPORT_BUCKET} --dest-path ${BASE_BUCKET_DIRECTORY}/${CI_PROJECT_NAME}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/$file; 
+      done
+      #    - |
+      #      FILES=${SCAN_DIRECTORY}/*
+      #      AWS_KEY="${S3_ACCESS_KEY}"
+      #      AWS_SECRET="${S3_SECRET_KEY}"
+      #      S3_BUCKET="${S3_REPORT_BUCKET}"
+      #      S3_BUCKET_PATH="/${CI_PROJECT_NAME}-${IMG_VERSION}/${REPORT_DIRECTORY}"
 
-      bucket=${S3_BUCKET}
-      bucket_path=${S3_BUCKET_PATH}
-      date=$(date +"%a, %d %b %Y %T %z")
-      acl="x-amz-acl:private"
-      content_type="application/octet-stream"
-      sig_string="PUT\n\n$content_type\n$date\n$acl\n/$bucket$bucket_path$file"
-      signature=$(echo -en "${sig_string}" | openssl sha1 -hmac "${AWS_SECRET}" -binary | base64)
+      #      bucket=${S3_BUCKET}
+      #      bucket_path=${S3_BUCKET_PATH}
+      #      date=$(date +"%a, %d %b %Y %T %z")
+      #      acl="x-amz-acl:private"
+      #      content_type="application/octet-stream"
+      #      sig_string="PUT\n\n$content_type\n$date\n$acl\n/$bucket$bucket_path$file"
+      #      signature=$(echo -en "${sig_string}" | openssl sha1 -hmac "${AWS_SECRET}" -binary | base64)
 
-      curl -X PUT -T "$bucket_path/$f" \
-      -H "Host: $bucket.s3.amazonaws.com" \
-      -H "Date: $date" \
-      -H "Content-Type: $content_type" \
-      -H "$acl" \
-      -H "Authorization: AWS ${AWS_KEY}:$signature" \
-      "https://$bucket.s3.amazonaws.com$bucket_path$file"
-
-
-
+      #      curl -X PUT -T "$bucket_path/$f" \
+      #      -H "Host: $bucket.s3.amazonaws.com" \
+      #      -H "Date: $date" \
+      #      -H "Content-Type: $content_type" \
+      #      -H "$acl" \
+      #      -H "Authorization: AWS ${AWS_KEY}:$signature" \
+      #      "https://$bucket.s3.amazonaws.com$bucket_path$file"
