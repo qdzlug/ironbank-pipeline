@@ -37,7 +37,7 @@ openscap compliance:
     - |   
        export securityGuide=`echo ${oscap_container} | grep -o '"securityGuide": "[^"]*'| grep -o '[^"]*$'`
     - export securityGuide=`echo ${securityGuide} | sed "s/{OSCAP_VERSION}/$OSCAP_VERSION/g"`
-    - export IM_ID=(podman inspect --format="{{.Id}}" ${IM_NAME})
+    - export IM_ID=(podman inspect --format="{{.Id}}" ${DOCKER_IMAGE_PATH})
     - echo ${IM_ID}
     - oscap-podman ${IM_ID} xccdf eval --profile ${profile} --report report.html ${securityGuide} > /dev/null
     - ls 
