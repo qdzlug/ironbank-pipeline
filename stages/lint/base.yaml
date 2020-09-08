@@ -45,13 +45,14 @@ wl compare lint:
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
   dependencies:
     - load scripts
-  artifacts:
-    paths: []
-    reports:
-      dotenv: lint.env
   script:
     # The following step assumes contributor projects have an environment variable set for the image version 
     # in the gitlab-ci.yml file.
     # TODO: output the error for unsuccessful runs
     - python3 "${PIPELINE_REPO_DIR}/stages/lint/wl_compare_lint.py" --image ${CI_PROJECT_PATH} --tag ${IMG_VERSION} --glkey "${PYTHON_GL_KEY}" --wlbranch "pipeline-test-project"
+    - touch lint.env
     - echo "IMAGE_APPROVAL_STATUS=${IMAGE_APPROVAL_STATUS}" >> lint.env
+  artifacts:
+    paths: []
+    reports:
+      dotenv: lint.env
