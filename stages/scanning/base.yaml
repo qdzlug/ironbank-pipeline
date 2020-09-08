@@ -1,4 +1,5 @@
-scanning:
+#scanning:
+.scanning:
   stage: scanning
   allow_failure: true
   script: 
