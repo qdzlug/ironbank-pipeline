@@ -30,7 +30,7 @@ def upload_file(file_name, bucket, object_name=None):
     try:
         response = s3_client.upload_file(file_name, bucket, object_name, 
                                          ExtraArgs={
-						    'ACL':'x-amz-acl:private',  
+						    'ACL': 'x-amz-acl:private',  
                                                     'ContentType': 'application/octet-stream'
                                                    }
                                         )
