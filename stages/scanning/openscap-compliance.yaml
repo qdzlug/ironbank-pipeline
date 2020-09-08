@@ -44,11 +44,7 @@ openscap compliance:
     - echo ${profile}
     - echo ${securityGuide}
     - export securityGuide=`echo ${securityGuide} | sed "s/{OSCAP_VERSION}/$OSCAP_VERSION/g"`
-<<<<<<< HEAD
-    - export IM_ID=(podman inspect --format="{{.Id}}" ${DOCKER_IMAGE_PATH})
-=======
-    - export IM_ID=$(podman inspect --format="{{.Id}}" ${IM_NAME})
->>>>>>> dbb5d28dcdbcb2830085b80b32ed106124d26307
+    - export IM_ID=$(podman inspect --format="{{.Id}}" ${DOCKER_IMAGE_PATH})
     - echo ${IM_ID}
     - oscap-podman ${IM_ID} xccdf eval --profile ${profile} --report report.html ${securityGuide} > /dev/null
     - ls 
