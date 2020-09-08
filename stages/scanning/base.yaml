@@ -2,8 +2,6 @@
 .scanning:
   stage: scanning
   allow_failure: true
-  script: 
-  - echo "beginning scans"
   #  dependencies:
   #    - post-build
 include:

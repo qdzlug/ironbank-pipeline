@@ -8,7 +8,10 @@ upload to s3:
     BASE_BUCKET_DIRECTORY: "testing/container-scan-reports"
   dependencies:
     - build
-    - .scanning
+    - openscap compliance
+    - openscap cve
+    - twistlock
+    - anchore
   before_script:
     - pip install boto3
     - |
