@@ -1,6 +1,7 @@
 upload to s3:
   extends: .publish
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
+  needs: ["sign image", "sign manifest", "write json documentation"]
   variables:
     #TODO: Put these in globals
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
