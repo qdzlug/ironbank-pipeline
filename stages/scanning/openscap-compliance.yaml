@@ -1,4 +1,5 @@
 openscap compliance:
+  stage: scanning
   except:
     variables:
       - $DISTROLESS

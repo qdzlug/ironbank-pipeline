@@ -1,4 +1,5 @@
 openscap cve:
+  stage: scanning
   except:
     variables:
       - $DISTROLESS
