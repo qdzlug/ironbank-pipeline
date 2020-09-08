@@ -1,4 +1,5 @@
 openscap compliance:
+  extends: .scanning
   stage: scanning
   except:
     variables:

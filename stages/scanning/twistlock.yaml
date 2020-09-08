@@ -1,4 +1,5 @@
 twistlock scan:
+  extends: .scanning
   stage: scanning
   allow_failure: true
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
