@@ -94,6 +94,7 @@ def http_download(download_item, resource_name, validation_type, checksum_value,
         if checksum_value == sha256_hash.hexdigest():
             print("Checksum verified")
             print("File saved as '%s'" % resource_name)
+            os.system("cp " + resource_name + "${ARTIFACT_STORAGE}/import-artifacts/external-resources/")
         else:
             os.remove(resource_name)
             print("Checksum failed")
