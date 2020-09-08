@@ -15,7 +15,7 @@ upload to s3:
   before_script:
     - pip install boto3
     - |
-      if [ "${CI_COMMIT_BRANCH}" = "development"] || [ "${CI_COMMIT_BRANCH}" = "master" ]; then
+      if [ "${CI_COMMIT_BRANCH}" = "development" ] || [ "${CI_COMMIT_BRANCH}" = "master" ]; then
         export BASE_BUCKET_DIRECTORY="container-scan-reports"
       fi
     - export REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}"
