@@ -9,7 +9,7 @@ import artifacts:
   # Arguments.get().download is used to get download items
   # dccscrImport() calls ContributorResource, which performs validation of download.yaml file
   before_script:
-    - mkdir -p "${ARTIFACT_DIR}"
+    - mkdir -p "${ARTIFACT_DIR}"/external-resources/
     - mkdir -p "${ARTIFACT_DIR}"/images/
     - touch artifact.env
   script:
