@@ -1,6 +1,7 @@
 scanning:
   stage: scanning
   allow_failure: true
+  script: []
   #  dependencies:
   #    - post-build
 include:
