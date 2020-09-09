@@ -32,12 +32,12 @@ def upload_file(file_name, bucket, object_name=None):
                              region_name='us-gov-west-1'
                       )
     try:
-        response = s3_client.upload_file(file_name, bucket, object_name, 
-                                         ExtraArgs={
-						    'ACL': 'x-amz-acl:private',  
-                                                    'ContentType': 'application/octet-stream'
-                                                   }
-                                        )
+        response = s3_client.upload_file(file_name, bucket, object_name)
+                                         #ExtraArgs={
+					#	    'ACL': 'x-amz-acl:private',  
+                                        #            'ContentType': 'application/octet-stream'
+                                        #           }
+                                        #)
     except ClientError as e:
         logging.error(e)
         return False
