@@ -5,7 +5,7 @@ openscap compliance:
     variables:
       - $DISTROLESS
   variables:
-    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/scan-results/openscap-compliance 
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/scan-results/openscap
     OSCAP_VERSION: ""
     OSCAP_FILENAME: ${OSCAP_HTML_FILENAME}
     base_image_type: "" 
