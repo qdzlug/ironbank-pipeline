@@ -10,8 +10,6 @@ load scripts:
     - mkdir -p "${PIPELINE_REPO_DIR}"
     - git clone -q --depth 1 --branch "${TARGET_BRANCH}" "https://repo1.dsop.io/dsop/ironbank-pipeline.git" "${PIPELINE_REPO_DIR}"
     - rm -rf "${PIPELINE_REPO_DIR}/.git"
-    #TODO remove this debug
-    - ls "${PIPELINE_REPO_DIR}/stages/publish/"
   artifacts:
     expire_in: 1 day
     paths:

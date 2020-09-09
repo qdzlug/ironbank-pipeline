@@ -2,11 +2,10 @@ build:
   stage: build
   allow_failure: false 
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/rootless-build:1.3
-  #image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
   dependencies:
     - import artifacts
-      #tags:
-      #  - ironbank-isolated
+  #tags:
+  #  - ironbank-isolated
   variables:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/build
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
@@ -24,9 +23,7 @@ build:
         cp -r ${ARTIFACT_STORAGE}/import-artifacts/external-resources/* .
       fi
   script:
-    - repo_path="${CI_PROJECT_DIR}"
-    - echo ${repo_path}
-    - image_path=${repo_path:13:200}
+    - image_path=$(echo ${CI_PROJECT_PATH} | sed -e 's/.*dsop\/\(.*\)/\1/')
     - echo "IM_NAME=${image_path}" >> build.env
     # Set the tag to eliminate /build/dsop and matching existing project hierarchy format
     - harbor_image_path=${STAGING_REGISTRY_URL}/$image_path:$IMG_VERSION
