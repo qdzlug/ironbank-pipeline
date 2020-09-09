@@ -107,7 +107,7 @@ def twistlock_scan(*, name, tag, username, password, filename, twistlock_api, re
             raise TwistlockTimeout(f"Maximum retries of {MAX_RETRIES} hit while waiting for Twistlock scan to complete")
 
         if report is None:
-            sleep(5)
+            sleep(20)
             retries += 1
 
         else:
