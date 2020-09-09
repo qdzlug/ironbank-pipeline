@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     parser.add_argument('--filename',   help='File to upload')
     parser.add_argument('--bucket',  help='Bucket to upload to')
-    parser.add_argument('--dest-path',   help='S3 object path')
+    parser.add_argument('--dest_path',   help='S3 object path')
     args = parser.parse_args()
 
     upload_file(filename = args.filename,
