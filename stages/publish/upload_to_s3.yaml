@@ -16,6 +16,7 @@ upload to s3:
   before_script:
     - pip install boto3
     - ls "${PIPELINE_REPO_DIR}/stages/publish"
+    - ls "${SCAN_DIRECTORY}"
     - |
       if [ "${CI_COMMIT_BRANCH}" = "development" ] || [ "${CI_COMMIT_BRANCH}" = "master" ]; then
         export BASE_BUCKET_DIRECTORY="container-scan-reports"
