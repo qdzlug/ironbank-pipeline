@@ -16,7 +16,6 @@ upload to s3:
   before_script:
     - pip install boto3
     - ls "${PIPELINE_REPO_DIR}/stages/publish"
-    - find ${SCAN_DIRECTORY} -name "*" -type d
     - |
       if [ "${CI_COMMIT_BRANCH}" = "development" ] || [ "${CI_COMMIT_BRANCH}" = "master" ]; then
         export BASE_BUCKET_DIRECTORY="container-scan-reports"
@@ -25,7 +24,7 @@ upload to s3:
 
   script: 
     - |
-      for file in $(find ${SCAN_DIRECTORY} -name "*" -type d); do 
+      for file in $(find ${SCAN_DIRECTORY} -name "*" -type f); do 
         report_name=$(echo $file | rev | cut -d/ -f1 | rev)
         python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file $file --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${CI_PROJECT_NAME}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/$report_name; 
       done
