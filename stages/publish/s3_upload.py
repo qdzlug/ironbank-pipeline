@@ -4,6 +4,7 @@ import os
 import argparse
 import datetime
 from botocore.exceptions import ClientError
+#from botocore.config import Config
 
 
 def upload_file(file_name, bucket, object_name=None):

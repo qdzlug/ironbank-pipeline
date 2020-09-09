@@ -21,7 +21,8 @@ upload to s3:
         export BASE_BUCKET_DIRECTORY="container-scan-reports"
       fi
     - export REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}"
-
+    - export S3_ACCESS_KEY=${S3_ACCESS_KEY}
+    - export S3_SECRET_KEY=${S3_SECRET_KEY}
   script: 
     - |
       for file in $(find ${SCAN_DIRECTORY} -name "*" -type f); do 
