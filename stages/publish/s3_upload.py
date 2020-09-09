@@ -4,8 +4,6 @@ import os
 import argparse
 import datetime
 from botocore.exceptions import ClientError
-#from botocore.config import Config
-
 
 def upload_file(file_name, bucket, object_name=None):
     """Upload a file to an S3 bucket
@@ -19,7 +17,7 @@ def upload_file(file_name, bucket, object_name=None):
     access_key = os.environ["S3_ACCESS_KEY"]
     secret_key = os.environ["S3_SECRET_KEY"]
 
-#    pipeline_artifacts_config = Config(region_name='us-gov-west-1')
+    ExtraArgs={'ACL': 'x-amz-acl:private', 'ContentType': 'application/octet-stream' }
 
     # If S3 object_name was not specified, use file_name
     if object_name is None:
@@ -32,12 +30,7 @@ def upload_file(file_name, bucket, object_name=None):
                              region_name='us-gov-west-1'
                       )
     try:
-        response = s3_client.upload_file(file_name, bucket, object_name)
-                                         #ExtraArgs={
-					#	    'ACL': 'x-amz-acl:private',  
-                                        #            'ContentType': 'application/octet-stream'
-                                        #           }
-                                        #)
+        response = s3_client.upload_file(file_name, bucket, object_name, extra_args=ExtraArgs)
     except ClientError as e:
         logging.error(e)
         return False
