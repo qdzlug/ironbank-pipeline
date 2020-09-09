@@ -17,7 +17,10 @@ def upload_file(file_name, bucket, object_name=None):
     access_key = os.environ["S3_ACCESS_KEY"]
     secret_key = os.environ["S3_SECRET_KEY"]
 
-    extra_args = {'ACL':'x-amz-acl:private','ContentType':'application/octet-stream'}
+    extra_args = {
+                  'ACL': 'x-amz-acl:private',
+                  'ContentType': 'application/octet-stream'
+                 }
 
     # If S3 object_name was not specified, use file_name
     if object_name is None:
