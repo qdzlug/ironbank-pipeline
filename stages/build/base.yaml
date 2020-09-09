@@ -4,8 +4,8 @@ build:
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/rootless-build:1.3
   dependencies:
     - import artifacts
-  # tags:
-  #   - ironbank-isolated
+  tags:
+    - ironbank-isolated
   variables:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/build
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
