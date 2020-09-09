@@ -48,6 +48,8 @@ if __name__ == "__main__":
     parser.add_argument('--dest',   help='S3 object path')
     args = parser.parse_args()
 
-    upload_file(filename = args.filename,
-                bucket   = args.bucket,
-                dest = args.dest)
+    file_name = args.filename
+    bucket = args.bucket
+    object_name = args.dest
+
+    upload_file(file_name, bucket, object_name)
