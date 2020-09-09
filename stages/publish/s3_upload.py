@@ -30,7 +30,7 @@ def upload_file(file_name, bucket, object_name=None):
                              region_name='us-gov-west-1'
                       )
     try:
-        response = s3_client.upload_file(file_name, bucket, object_name, ExtraArgs)
+        response = s3_client.upload_file(file_name, bucket, object_name, extra_args=ExtraArgs)
     except ClientError as e:
         logging.error(e)
         return False
