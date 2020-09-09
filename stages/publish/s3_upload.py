@@ -17,7 +17,7 @@ def upload_file(file_name, bucket, object_name=None):
     access_key = os.environ["S3_ACCESS_KEY"]
     secret_key = os.environ["S3_SECRET_KEY"]
 
-    ExtraArgs = {'ACL':'x-amz-acl:private','ContentType':'application/octet-stream'}
+    extra_args = {'ACL':'x-amz-acl:private','ContentType':'application/octet-stream'}
 
     # If S3 object_name was not specified, use file_name
     if object_name is None:
@@ -30,7 +30,7 @@ def upload_file(file_name, bucket, object_name=None):
                              region_name='us-gov-west-1'
                       )
     try:
-        response = s3_client.upload_file(file_name, bucket, object_name, extra_args=ExtraArgs)
+        response = s3_client.upload_file(file_name, bucket, object_name, extra_args)
     except ClientError as e:
         logging.error(e)
         return False
