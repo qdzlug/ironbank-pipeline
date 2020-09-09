@@ -18,7 +18,6 @@ def upload_file(file_name, bucket, object_name=None):
     secret_key = os.environ["S3_SECRET_KEY"]
 
     extra_args = {
-                  'ACL': 'x-amz-acl:private',
                   'ContentType': 'application/octet-stream'
                  }
 
