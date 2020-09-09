@@ -263,20 +263,6 @@ def generate_reports():
 
     print(f"Created Anchore Report Directory: {report_dir}")
 
-    p = subprocess.Popen(["anchore-cli", "image", "add", args.image],
-            stdout = subprocess.PIPE,
-            stderr = subprocess.STDOUT)
-    stdout, stderr = p.communicate()
-    print(stdout)
-    print(stderr)
-
-    p = subprocess.Popen(["anchore-cli", "image", "wait", args.image],
-            stdout = subprocess.PIPE,
-            stderr = subprocess.STDOUT)
-    stdout, stderr = p.communicate()
-    print(stdout)
-    print(stderr)
-
     digest = getImageDigest()
 
     get_gates    (report_dir = report_dir, digest = digest)
