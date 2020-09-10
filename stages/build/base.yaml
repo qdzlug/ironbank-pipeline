@@ -17,6 +17,7 @@ build:
         for file in ${ARTIFACT_STORAGE}/import-artifacts/images/*; do
           podman load -i "${file}"
           buildah images
+          buildah containers
         done
       fi
     - |
