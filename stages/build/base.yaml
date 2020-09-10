@@ -19,7 +19,6 @@ build:
     - |
       if [[ ! -z ${DOCKER_RESOURCE} ]]; then
         for file in ${ARTIFACT_STORAGE}/import-artifacts/images/*; do
-          ls ${ARTIFACT_STORAGE}/import-artifacts/images 
           podman load -i ${file} --storage-driver=vfs
         done
       fi
