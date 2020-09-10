@@ -7,7 +7,7 @@ anchore scan:
     ANCHORE_SCANS: ${ARTIFACT_STORAGE}/scan-results/anchore
   before_script:
     - mkdir -p "${ANCHORE_SCANS}"
-    - pip install --user --upgrade anchorecli
+    - pip3 install --user --upgrade anchorecli
   script:
     - anchore-cli --u ${anchore_username} --p ${anchore_password} --url ${anchore_server_address} image add ${DOCKER_IMAGE_PATH}
     - anchore-cli --u ${anchore_username} --p ${anchore_password} --url ${anchore_server_address} image wait ${DOCKER_IMAGE_PATH}
