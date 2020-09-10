@@ -1,7 +1,7 @@
 build:
   stage: build
   allow_failure: false 
-  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/rootless-build:1.3
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/rootless-build:1.4
   dependencies:
     - import artifacts
   tags:
@@ -17,6 +17,7 @@ build:
         for file in ${ARTIFACT_STORAGE}/import-artifacts/images/*; do
           podman load -i "${file}"
           buildah images
+          buildah from --name mattermost/mattermost-operator:v1.6.1 localhost/mattermost/mattermost-operator
           buildah containers
         done
       fi
