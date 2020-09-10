@@ -1,4 +1,7 @@
 build:
+  services:
+    - name: registry:2
+      alias: localhost
   stage: build
   allow_failure: false 
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/rootless-build:1.3
@@ -16,8 +19,7 @@ build:
     - |
       if [[ ! -z ${DOCKER_RESOURCE} ]]; then
         for file in ${ARTIFACT_STORAGE}/import-artifacts/images/*; do
-          podman load -i "${file}"
-          podman images
+          skopeo copy docker-archive:${file} docker://localhost/mattermost/mattermost-operator:v1.6.1
           #          podman create localhost/mattermost/mattermost-operator
           #          podman containers
           #          podman tag mattermost/mattermost-operator mattermost/mattermost-operator:v1.6.1
