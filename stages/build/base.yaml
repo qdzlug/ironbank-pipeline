@@ -10,15 +10,16 @@ build:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/build
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
   before_script:
+    - IM_NAME=$(echo ${CI_PROJECT_PATH} | sed -e 's/.*dsop\/\(.*\)/\1/')
     - mkdir -p ${ARTIFACT_DIR}
     # Load any images used in Dockerfile build
     - |
       if [[ ! -z ${DOCKER_RESOURCE} ]]; then
         for file in ${ARTIFACT_STORAGE}/import-artifacts/images/*; do
-          podman load -i "${file}"
-          podman create localhost/mattermost/mattermost-operator
-          podman containers
-          podman tag mattermost/mattermost-operator mattermost/mattermost-operator:v1.6.1
+          podman load -i "${file}" "${IM_NAME}:${IMG_VERSION}"
+          #          podman create localhost/mattermost/mattermost-operator
+          #          podman containers
+          #          podman tag mattermost/mattermost-operator mattermost/mattermost-operator:v1.6.1
         done
       fi
     - |
@@ -30,10 +31,9 @@ build:
     - ls /var/lib/containers/storage
     - ls /var/lib/containers/storage/overlay-images
   script:
-    - image_path=$(echo ${CI_PROJECT_PATH} | sed -e 's/.*dsop\/\(.*\)/\1/')
-    - echo "IM_NAME=${image_path}" >> build.env
+    - echo "IM_NAME=${IM_NAME}" >> build.env
     # Set the tag to eliminate /build/dsop and matching existing project hierarchy format
-    - harbor_image_path=${STAGING_REGISTRY_URL}/$image_path:$IMG_VERSION
+    - harbor_image_path=${STAGING_REGISTRY_URL}/$IM_NAME:$IMG_VERSION
     - buildah bud --authfile "${DOCKER_AUTH_CONFIG}" --format=docker --storage-driver=vfs -t $harbor_image_path .
     - buildah push --storage-driver=vfs --authfile "${DOCKER_AUTH_CONFIG_STAGING}" $harbor_image_path
     # Provide tar for use in later stages, matching existing tar naming convention
