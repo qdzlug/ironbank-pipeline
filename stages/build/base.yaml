@@ -25,9 +25,7 @@ build:
     - echo "${SATELLITE_URL} satellite" >> /etc/hosts
     - ls /var/lib/containers/
     - ls /var/lib/containers/storage
-    - ls /var/lib/containers/storage/overlay
-    - ls /var/lib/containers/sigstore
-    - skopeo inspect /var/lib/containers/
+    - ls /var/lib/containers/storage/overlay-images
   script:
     - image_path=$(echo ${CI_PROJECT_PATH} | sed -e 's/.*dsop\/\(.*\)/\1/')
     - echo "IM_NAME=${image_path}" >> build.env
