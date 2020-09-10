@@ -5,7 +5,7 @@ build:
   dependencies:
     - import artifacts
   tags:
-   - ironbank-isolated
+    - ironbank-isolated
   variables:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/build
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
