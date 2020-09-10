@@ -16,9 +16,6 @@ build:
       if [[ ! -z ${DOCKER_RESOURCE} ]]; then
         for file in ${ARTIFACT_STORAGE}/import-artifacts/images/*; do
           podman load -i "${file}"
-          podman create localhost/mattermost/mattermost-operator
-          podman containers
-          podman tag mattermost/mattermost-operator mattermost/mattermost-operator:v1.6.1
         done
       fi
     - |
@@ -26,9 +23,6 @@ build:
         cp -r ${ARTIFACT_STORAGE}/import-artifacts/external-resources/* .
       fi
     - echo "${SATELLITE_URL} satellite" >> /etc/hosts
-    - ls /var/lib/containers/
-    - ls /var/lib/containers/storage
-    - ls /var/lib/containers/storage/overlay-images
   script:
     - image_path=$(echo ${CI_PROJECT_PATH} | sed -e 's/.*dsop\/\(.*\)/\1/')
     - echo "IM_NAME=${image_path}" >> build.env
