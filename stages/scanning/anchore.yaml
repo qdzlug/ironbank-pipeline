@@ -4,7 +4,7 @@ anchore scan:
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
   variables:
     # put all scan outputs in the scan-results folder
-    ANCHORE_SCANS: "${ARTIFACT_STORAGE}/scan-results/anchore"
+    ANCHORE_SCANS: ${ARTIFACT_STORAGE}/scan-results/anchore
   before_script:
     - mkdir -p "${ANCHORE_SCANS}"
     - pip3 install --user --upgrade anchorecli
@@ -19,7 +19,7 @@ anchore scan:
   artifacts:
     when: always
     paths:
-      - "${ANCHORE_SCANS}/"
+      - ${ANCHORE_SCANS}/
 
 # TODO: Install the anchore-cli on the runner
 # TODO: Configure the anchore-cli path on the runner
