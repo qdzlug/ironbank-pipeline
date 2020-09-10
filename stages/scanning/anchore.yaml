@@ -16,8 +16,8 @@ anchore scan:
   script:
     - ${ANCHORE_CLI_PATH}/anchore-cli image add ${IMAGE_NAME}
     - ${ANCHORE_CLI_PATH}/anchore-cli image wait --timeout ${anchore_timeout} ${IMAGE_NAME}
-    - python3 ${PIPELINE_REPO_DIR}/stages/scanning/anchore_scan.py --u ${anchore_username} \
-                                                                   --p ${anchore_password} \
+    - python3 ${PIPELINE_REPO_DIR}/stages/scanning/anchore_scan.py --username ${anchore_username} \
+                                                                   --password ${anchore_password} \
                                                                    --url ${anchore_server_address} \
                                                                    --image ${IMAGE_NAME} \
                                                                    --output ${ANCHORE_SCANS}
