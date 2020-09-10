@@ -239,6 +239,9 @@ def get_version(report_dir):
                 body_json = json.loads(body)
                 print(f"Anchore Version: {body_json['service']['version']}")
 
+                with open(os.path.join(report_dir, "anchore-version.txt"), "w") as f:
+                    json.dump(results_dict, f)
+
             except Exception as err:
                 raise err
         else:
@@ -256,7 +259,7 @@ def generate_reports():
     branch_name  = os.getenv("BRANCH_NAME",  default = "branchname")
     build_number = os.getenv("BUILD_NUMBER", default = "buildnumber")
 
-    report_dir = args.output #os.path.join(args.output, f"AnchoreReport.{branch_name}_{build_number}_DEV")
+    report_dir = args.output
 
     if not os.path.exists(report_dir):
         os.makedirs(report_dir, 0o755)
