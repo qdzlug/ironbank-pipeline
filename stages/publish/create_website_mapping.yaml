@@ -1,0 +1,18 @@
+create mapping website:
+  extends: .publish
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
+  variables:
+    #TODO: Put these in globals
+    IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
+    BASE_BUCKET_DIRECTORY: "testing/container-scan-reports" 
+  dependencies:
+    - build
+  before_script:
+    - |
+      if [ "${CI_COMMIT_BRANCH}" == "development"] || [ "${CI_COMMIT_BRANCH}" == "master" ]; then
+        export BASE_BUCKET_DIRECTORY="container-scan-reports"
+      fi
+    - export REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}"
+    - export S3_HTML_LINK=${S3_HTML_LINK_ROOT}/${S3_REPORT_BUCKET}/${BASE_BUCKET_DIRECTORY}/${CI_PROJECT_NAME}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}
+  script:
+

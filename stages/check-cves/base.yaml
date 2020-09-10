@@ -38,7 +38,7 @@ check-cves:
     - wl_image_path=(${repo_path:13:200})
   script:
     # - python3 ${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py --image $wl_image_path --tag $IMG_VERSION --oscap ${ARTIFACT_STORAGE}/scanning/openscap-compliance/report.html --oval ${ARTIFACT_STORAGE}/scanning/openscap-cve/report-cve.html --twistlock ${ARTIFACT_STORAGE}/scanning/twistlock/${IMG_VERSION}.json --anchore-sec ${ARTIFACT_STORAGE}/scanning/anchore/anchore_vulns_new.json --anchore-gates ${ARTIFACT_STORAGE}/scanning/anchore/anchore_gates.json --branch $CI_COMMIT_BRANCH
-    -  - python3 ${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py --image $wl_image_path --tag $IMG_VERSION --oscap ${ARTIFACT_STORAGE}/scanning/openscap-compliance/report.html --oval ${ARTIFACT_STORAGE}/scanning/openscap-cve/report-cve.html --twistlock ${ARTIFACT_STORAGE}/scanning/twistlock/${IMG_VERSION}.json --anchore-sec ${ARTIFACT_STORAGE}/scanning/anchore/anchore_vulns_new.json --anchore-gates ${ARTIFACT_STORAGE}/scanning/anchore/anchore_gates.json --branch pipeline-test-project
+    - python3 ${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py --image $wl_image_path --tag $IMG_VERSION --oscap ${ARTIFACT_STORAGE}/scanning/openscap/report.html --oval ${ARTIFACT_STORAGE}/scanning/openscap/report-cve.html --twistlock ${ARTIFACT_STORAGE}/scanning/twistlock/${IMG_VERSION}.json --anchore-sec ${ARTIFACT_STORAGE}/scanning/anchore/anchore_vulns_new.json --anchore-gates ${ARTIFACT_STORAGE}/scanning/anchore/anchore_gates.json --branch pipeline-test-project
   artifacts:
     when: always
     paths:
