@@ -111,8 +111,8 @@ def http_download(download_item, resource_name, validation_type, checksum_value,
 def docker_download(download_item, tag_value, tar_name):
     print("===== ARTIFACT: %s" % download_item)
     image = download_item.split('//')[1]
-    tar_name.replace('/', '-')
-    tar_name.replace(':', '-')
+    tar_name = tar_name.replace('/', '-')
+    tar_name = tar_name.replace(':', '-')
     print("Pulling " + image)
     os.system("podman pull " + image)
     print("Tagging image as " + tag_value)
