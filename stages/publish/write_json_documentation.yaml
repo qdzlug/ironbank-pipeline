@@ -6,12 +6,13 @@ write json documentation:
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/publish/reports
     # TODO put back in for full run 
-    OPENSCAP_VERSION: ${ARTIFACT_STORAGE}/scan-results/openscap/openscap-version.txt
+    #OPENSCAP_VERSION: ${ARTIFACT_STORAGE}/scan-results/openscap/openscap-version.txt
     #OPENSCAP_VERSION: ""
     TWISTLOCK_VERSION: ""
   dependencies:
     - wl compare lint
     - build
+    - openscap compliance
   before_script:
     - podman load -i ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar ${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}
     - echo ${IB_CONTAINER_GPG_KEY} | base64 -d > key
@@ -22,7 +23,8 @@ write json documentation:
     # TODO add anchore endpoint
       #- ANCHORE_VERSION=$(curl -k ${anchore_server_address}/version)
     - ANCHORE_VERSION=""
-    - OPENSCAP_VERSION=$(cat ${OPENSCAP_VERSION})
+    - TWISTLOCK_VERSION=$(cat ${TWISTLOCK_VERSION})
+    #- OPENSCAP_VERSION=$(cat ${OPENSCAP_VERSION})
     - IMAGE_TAR_SHA=$(sha256sum ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar | grep -E '^[a-zA-Z0-9]+' -o)
     - IMAGE_PODMAN_SHA=$(podman inspect --format {{'.Digest'}} ${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION})
     # Create manifest.json
@@ -49,7 +51,7 @@ write json documentation:
             "version": "${TWISTLOCK_VERSION}" 
           },
           "openSCAP": {
-            "version": "${OPENSCAP_VERSION}" 
+            "version": "${OSCAP_VERSION}" 
           },
           "anchore": {
             "version": "${ANCHORE_VERSION}" 
@@ -86,3 +88,4 @@ write json documentation:
     when: always
     paths:
       - ${ARTIFACT_DIR}
+
