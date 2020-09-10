@@ -6,7 +6,7 @@ write json documentation:
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/publish/reports
     # TODO put back in for full run 
-    OPENSCAP_VERSION: ${ARTIFACT_STORAGE}/scan-results/openscap/openscap-version.txt
+    OPENSCAP_VERSION: ${ARTIFACT_STORAGE}/scan-results/openscap/oscap-version.txt
     #OPENSCAP_VERSION: ""
     TWISTLOCK_VERSION: ""
   dependencies:
