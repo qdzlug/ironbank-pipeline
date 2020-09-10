@@ -5,12 +5,10 @@ vat:
   variables:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/scan-results/csv-output/
     OPENSCAP: ${ARTIFACT_STORAGE}/scan-results/openscap
-  tags:
+  only:
+    - development
   before_script:
-    - |
-      if [ "${CI_COMMIT_BRANCH}" == "development"] || [ "${CI_COMMIT_BRANCH}" == "master" ]; then
-        export BASE_BUCKET_DIRECTORY="container-scan-reports"
-      fi
+    - export BASE_BUCKET_DIRECTORY="container-scan-reports"    
     - export REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}"
     - export S3_HTML_LINK=${S3_REPORT_BUCKET}/${BASE_BUCKET_DIRECTORY}/${CI_PROJECT_NAME}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}
   script:
