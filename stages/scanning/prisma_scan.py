@@ -11,7 +11,7 @@ from time import sleep
 # Postman
 # https://twistlock.spacecamp.ninja/api/v1/registry?name=https://artifactory.spacecamp.ninja/docker/ams/ams-dev-local:latest
 
-MAX_RETRIES = 60
+MAX_RETRIES = 120
 
 class InvalidTwistlockQuery(Exception): pass
 class InvalidTwistlockResponseFormat(Exception): pass
@@ -107,7 +107,7 @@ def twistlock_scan(*, name, tag, username, password, filename, twistlock_api, re
             raise TwistlockTimeout(f"Maximum retries of {MAX_RETRIES} hit while waiting for Twistlock scan to complete")
 
         if report is None:
-            sleep(5)
+            sleep(10)
             retries += 1
 
         else:

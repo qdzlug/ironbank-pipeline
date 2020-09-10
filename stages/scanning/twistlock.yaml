@@ -1,4 +1,5 @@
 twistlock scan:
+  extends: .scanning
   stage: scanning
   allow_failure: true
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
@@ -14,6 +15,7 @@ twistlock scan:
     when: always
     paths:
       - ${TWISTLOCK_SCANS}/
+
 # utilize python image
 
 # point to the Twistlock server address
