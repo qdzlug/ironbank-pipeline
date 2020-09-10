@@ -6,10 +6,11 @@ write json documentation:
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/publish/reports
     # TODO put back in for full run 
-    #OPENSCAP_VERSION: ${ARTIFACT_STORAGE}/scan-results/openscap-compliance/openscap-version.txt
-    OPENSCAP_VERSION: ""
+    OPENSCAP_VERSION: ${ARTIFACT_STORAGE}/scan-results/openscap/openscap-version.txt
+    #OPENSCAP_VERSION: ""
     TWISTLOCK_VERSION: ""
   dependencies:
+    - wl compare lint
     - build
   before_script:
     - podman load -i ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar ${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}
@@ -21,7 +22,6 @@ write json documentation:
     # TODO add anchore endpoint
       #- ANCHORE_VERSION=$(curl -k ${anchore_server_address}/version)
     - ANCHORE_VERSION=""
-    - TWISTLOCK_VERSION=$(cat ${TWISTLOCK_VERSION})
     - OPENSCAP_VERSION=$(cat ${OPENSCAP_VERSION})
     - IMAGE_TAR_SHA=$(sha256sum ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar | grep -E '^[a-zA-Z0-9]+' -o)
     - IMAGE_PODMAN_SHA=$(podman inspect --format {{'.Digest'}} ${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION})
@@ -31,15 +31,15 @@ write json documentation:
       {
         "buildTag": "${IMG_VERSION}",
         "buildNumber": "${CI_COMMIT_SHA}",
-        "approval": "${IMAGE_APPROVAL_STATUS}"
+        "approval": "${IMAGE_APPROVAL_STATUS}",
         "image": {
           "digest": "${IMAGE_TAR_SHA}",
-          "sha256": "${IMAGE_PODMAN_SHA}",
-        }
-        "gpg": {
-          "publicKey": "$(cat ${IB_CONTAINER_GPG_PUBKEY})",
+          "sha256": "${IMAGE_PODMAN_SHA}"
+        },
+        "pgp": {
+          "publicKey": "$(awk '{printf \"%s\\n\", $0}' ${IB_CONTAINER_GPG_PUBKEY})",
           "version":"${GPG_VERSION_INFO}"
-        }
+        },
         "git": {
            "branch": "${CI_COMMIT_BRANCH}",
            "commit": "${CI_COMMIT_SHA}"

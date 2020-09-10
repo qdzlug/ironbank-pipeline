@@ -61,5 +61,3 @@ openscap compliance:
       - ${OSCAP_SCANS}/oscap-version.txt
       - ${OSCAP_SCANS}/report.html
       - ${OSCAP_SCANS}/cve-oval.xml
-   # reports:
-   #   dotenv: build.env

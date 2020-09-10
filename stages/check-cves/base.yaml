@@ -1,29 +1,3 @@
-# check-cves:
-#   stage: check-cves
-#   allow_failure: true
-#   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
-#   dependencies:
-#     - csv-output
-#   variables:
-#     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/check-cves
-#   before_script:
-#     - repo_path="${CI_PROJECT_DIR}"
-#     - wl_image_path=(${repo_path:13:200})
-#   script:
-#     - python3 ${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py --image $wl_image_path --tag $IMG_VERSION --oscap ${ARTIFACT_STORAGE}/scanning/openscap-compliance/report.html --oval ${ARTIFACT_STORAGE}/scanning/openscap-cve/report-cve.html --twistlock ${ARTIFACT_STORAGE}/scanning/twistlock/${IMG_VERSION}.json --anchore-sec ${ARTIFACT_STORAGE}/scanning/anchore/anchore_vulns_new.json --anchore-gates ${ARTIFACT_STORAGE}/scanning/anchore/anchore_gates.json --authentication $PYTHON_GITLAB_KEY --branch $CI_COMMIT_BRANCH
-#   artifacts:
-#     when: always
-#     paths:
-#       - ${ARTIFACT_DIR}/
-
-
-  # ./pipeline_wl_compare.py --image opensource/kubernetes-1.18/kubectl-1.18 --tag v1.18.8 
-  # --oscap reports/openscap/report.html 
-  # --oval reports/openscap/report-cve.html 
-  # --twistlock reports/twistlock/v1.18.8.json 
-  # --anchore-sec reports/anchore/anchore_vulns_new.json 
-  # --anchore-gates reports/anchore/anchore_gates.json --branch master
-
 check-cves:
   stage: check-cves
   allow_failure: true
@@ -37,8 +11,7 @@ check-cves:
     - repo_path="${CI_PROJECT_DIR}"
     - wl_image_path=(${repo_path:13:200})
   script:
-    # - python3 ${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py --image $wl_image_path --tag $IMG_VERSION --oscap ${ARTIFACT_STORAGE}/scanning/openscap-compliance/report.html --oval ${ARTIFACT_STORAGE}/scanning/openscap-cve/report-cve.html --twistlock ${ARTIFACT_STORAGE}/scanning/twistlock/${IMG_VERSION}.json --anchore-sec ${ARTIFACT_STORAGE}/scanning/anchore/anchore_vulns_new.json --anchore-gates ${ARTIFACT_STORAGE}/scanning/anchore/anchore_gates.json --branch $CI_COMMIT_BRANCH
-    - python3 ${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py --image $wl_image_path --tag $IMG_VERSION --oscap ${ARTIFACT_STORAGE}/scanning/openscap/report.html --oval ${ARTIFACT_STORAGE}/scanning/openscap/report-cve.html --twistlock ${ARTIFACT_STORAGE}/scanning/twistlock/${IMG_VERSION}.json --anchore-sec ${ARTIFACT_STORAGE}/scanning/anchore/anchore_vulns_new.json --anchore-gates ${ARTIFACT_STORAGE}/scanning/anchore/anchore_gates.json --branch pipeline-test-project
+    - python3 ${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py --image ${wl_image_path} --tag ${IMG_VERSION} --oscap ${ARTIFACT_STORAGE}/scan-results/openscap-compliance/report.html --oval ${ARTIFACT_STORAGE}/scan-results/openscap-cve/report-cve.html --twistlock ${ARTIFACT_STORAGE}/scan-results/twistlock/${IMG_VERSION}.json --anchore-sec ${ARTIFACT_STORAGE}/scan-results/anchore/anchore_vulns_new.json --anchore-gates ${ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json --glkey "${PYTHON_GL_KEY}" --branch "pipeline-test-project"
   artifacts:
     when: always
     paths:
