@@ -13,13 +13,13 @@ openscap compliance:
     profile: ""
     securityGuide: ""
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
-  # dependencies: 
-  #   - build 
+  #dependencies: 
+   # - build 
   before_script:
     - mkdir -p ${OSCAP_SCANS}
     - export DOCKER_IMAGE_PATH=$(podman load -q -i ${ARTIFACT_STORAGE}/build/${CI_PROJECT_NAME}-${IMG_VERSION}.tar | awk '{print $3}')
     - OSCAP_VERSION=`curl -fsSLI -o /dev/null -w %{url_effective} https://github.com/ComplianceAsCode/content/releases/latest | grep -Eo "[0-9\\.]+$" | awk '{$1=$1};1'`
-    - echo "OSCAP_VERSION=${OSCAP_VERSION}" >> build.env
+    - echo "${OSCAP_VERSION}" >> build.env
     - base_image_type=`podman inspect -f '{{index .Labels "com.redhat.component"}}' ${DOCKER_IMAGE_PATH} | awk '{$1=$1};1'`
   script:
     - |
@@ -61,5 +61,3 @@ openscap compliance:
       - ${OSCAP_SCANS}/oscap-version.txt
       - ${OSCAP_SCANS}/report.html
       - ${OSCAP_SCANS}/cve-oval.xml
-    reports:
-      dotenv: build.env
