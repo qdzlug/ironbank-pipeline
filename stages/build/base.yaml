@@ -16,7 +16,6 @@ build:
       if [[ ! -z ${DOCKER_RESOURCE} ]]; then
         for file in ${ARTIFACT_STORAGE}/import-artifacts/images/*; do
           podman load -i "${file}"
-          skopeo inspect localhost/mattermost/mattermost-operator:v1.6.1
         done
       fi
     - |
@@ -28,6 +27,7 @@ build:
     - ls /var/lib/containers/storage
     - ls /var/lib/containers/storage/overlay
     - ls /var/lib/containers/sigstore
+    - skopeo inspect /var/lib/containers/
   script:
     - image_path=$(echo ${CI_PROJECT_PATH} | sed -e 's/.*dsop\/\(.*\)/\1/')
     - echo "IM_NAME=${image_path}" >> build.env
