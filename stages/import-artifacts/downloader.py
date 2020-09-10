@@ -6,71 +6,120 @@ import getopt
 import hashlib
 import urllib.request
 
-##### Parse commandline arguments
-inputFile = ""
-outputDir = ""
-try:
-    opts, args = getopt.getopt(sys.argv[1:],"hi:d:",["ifile=","odir="])
-except getopt.GetoptError:
-    print('downloader.py -i <inputfile> -d <outputdir>')
-    sys.exit(2)
-for opt, arg in opts:
-    if opt == '-h':
+
+def main():
+    ##### Parse commandline arguments
+    inputFile = ""
+    outputDir = ""
+    docker_resource = None
+    http_resource = None
+    try:
+        opts, args = getopt.getopt(sys.argv[1:],"hi:d:",["ifile=","odir="])
+    except getopt.GetoptError:
         print('downloader.py -i <inputfile> -d <outputdir>')
-        sys.exit()
-    elif opt in ("-i", "--ifile"):
-        inputFile = arg
-    elif opt in ("-d", "--odir"):
-        outputDir = arg
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-h':
+            print('downloader.py -i <inputfile> -d <outputdir>')
+            sys.exit()
+        elif opt in ("-i", "--ifile"):
+            inputFile = arg
+        elif opt in ("-d", "--odir"):
+            outputDir = arg
 
-if inputFile == '':
-    print("No input file specified.")
-    sys.exit(1)
+    if inputFile == '':
+        print("No input file specified.")
+        sys.exit(1)
 
-if outputDir == '':
-    print("No output directory specified. Defaulting to current directory.")
-    outputDir = "."
+    if outputDir == '':
+        print("No output directory specified. Defaulting to current directory.")
+        outputDir = "."
 
-print('Input file:', inputFile)
-print('Output directory:', outputDir)
+    print('Input file:', inputFile)
+    print('Output directory:', outputDir)
 
-##### Read download.yaml file
-with open(inputFile, "r") as file:
-    downloads = yaml.load(file, Loader=yaml.FullLoader)
+    ##### Read download.yaml file
+    with open(inputFile, "r") as file:
+        downloads = yaml.load(file, Loader=yaml.FullLoader)
 
-for type in downloads:
-    if type == "resources":
-        for item in downloads[type]:
-            print("===== ARTIFACT: %s" % (item["filename"]))
+    for type in downloads:
+        if type == "resources":
+            for item in downloads[type]:
+                download_type = resource_type(item["url"])
+                if download_type == "http":
+                    http_resource = True
+                    resource_name = item["filename"]
+                    validation_type = item["validation"]["type"]
+                    checksum_value = item["validation"]["value"]
+                    http_download(item["url"], item["filename"], item["validation"]["type"], item["validation"]["value"], outputDir)
+                if download_type == "docker":
+                    docker_resource = True
+                    tag_value = item["tag"]
+                    docker_download(item["url"], item["tag"], item["tag"])
+            # print()  
+    # Check if http or docker resources were downloaded and set environment variables for build stage
+    if http_resource is not None:
+        os.system("echo 'HTTP_RESOURCE=TRUE' >> artifact.env")
+    if docker_resource is not None:
+        os.system("echo 'DOCKER_RESOURCE=TRUE' >> artifact.env")
 
-            # Validate filename doesn't do anything nefarious
-            match = re.search(r'^[A-Za-z0-9]+[A-Za-z0-9_\-\.]*[A-Za-z0-9]+$', item["filename"])
-            if match is None:
-                print("Filename is has invalid characters. Aborting.")
-                sys.exit(1)
+def resource_type(url):
+    check = url
+    docker_string = "docker://"
+    http_string = "http"
+    if docker_string in check:
+        return "docker"
+    elif http_string in check:
+        return "http"
+    else:
+        return "Error in parsing resource type."    
 
-            else:
-                print("Downloading from %s" % (item["url"]))
-                urllib.request.urlretrieve(item["url"], outputDir + '/' + item["filename"])
+def http_download(download_item, resource_name, validation_type, checksum_value, outputDir):
+    print("===== ARTIFACT: %s" % download_item)
 
-            # Calculate SHA256 checksum of downloaded file
-            print("Generating checksum")
+    # Validate filename doesn't do anything nefarious
+    match = re.search(r'^[A-Za-z0-9]+[A-Za-z0-9_\-\.]*[A-Za-z0-9]+$', resource_name)
+    if match is None:
+        print("Filename is has invalid characters. Aborting.")
+        sys.exit(1)
 
-            if item["type"] != "sha256":
-                print("file verification type not supported: '%s'" % (item["type"]))
-                sys.exit(1)
+    else:
+        print("Downloading from %s" % download_item)
+        urllib.request.urlretrieve(download_item, outputDir + "/external-resources/" + resource_name)
 
-            sha256_hash = hashlib.sha256()
-            with open(outputDir + '/' + item["filename"], "rb") as f:
-                for byte_block in iter(lambda: f.read(4096),b""):
-                    sha256_hash.update(byte_block)
+        # Calculate SHA256 checksum of downloaded file
+        print("Generating checksum")
 
-            # Compare SHA256 checksums
-            if item["value"] == sha256_hash.hexdigest():
-                print("Checksum verified")
-                print("File saved as '%s'" % (item["filename"]))
-            else:
-                os.remove(item["filename"])
-                print("Checksum failed")
-                print("File deleted")
-        print()
+        if validation_type != "sha256":
+            print("file verification type not supported: '%s'" % validation_type)
+            sys.exit(1)
+
+        sha256_hash = hashlib.sha256()
+        with open(outputDir + "/external-resources/" + resource_name, "rb") as f:
+            for byte_block in iter(lambda: f.read(4096),b""):
+                sha256_hash.update(byte_block)
+
+        # Compare SHA256 checksums
+        if checksum_value == sha256_hash.hexdigest():
+            print("Checksum verified")
+            print("File saved as '%s'" % resource_name)
+        else:
+            os.remove(resource_name)
+            print("Checksum failed")
+            print("File deleted")
+
+def docker_download(download_item, tag_value, value_for_tar_name):
+    print("===== ARTIFACT: %s" % download_item)
+    image = download_item.split('//')[1]
+    tar_name = value_for_tar_name.split(':')[-1]
+    print("Pulling " + image)
+    os.system("podman pull " + image)
+    print("Tagging image as " + tag_value)
+    os.system("podman tag " + image + " " + tag_value)
+    print("Saving " + tag_value + " as tar file")
+    os.system("podman save -o " + tar_name + ".tar " + tag_value)
+    print("Moving tar file into stage artifacts")
+    os.system("cp " + tar_name + ".tar ${ARTIFACT_STORAGE}/import-artifacts/images/")
+
+if __name__ == "__main__":  
+    main()

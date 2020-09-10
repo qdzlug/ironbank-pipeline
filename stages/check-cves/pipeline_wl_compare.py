@@ -10,7 +10,7 @@ import argparse
 
 gitlab_url = "https://repo1.dsop.io"
 dccscr_project_id = 143
-gitlab_key = os.environ['PYTHON_GITLAB_KEY']
+# gitlab_key = os.environ['PYTHON_GITLAB_KEY']
 
 
 def main():
@@ -22,6 +22,7 @@ def main():
     parser.add_argument('--twistlock',   help='')
     parser.add_argument('--anchore-sec',   help='')
     parser.add_argument('--anchore-gates',   help='')
+    parser.add_argument('--glkey', help='')
     parser.add_argument('--branch', help='')
     args = parser.parse_args()
     x = pipeline_whitelist_compare(args.image,
@@ -31,13 +32,14 @@ def main():
                                args.twistlock,
                                args.anchore_sec,
                                args.anchore_gates,
+                               args.glkey,
                                args.branch)
     #print(x)
     sys.exit(x)
 
 
-def pipeline_whitelist_compare(image_name, image_version, oscap, oval, twist, anc_sec, anc_gates, branch):
-    proj = init(dccscr_project_id)
+def pipeline_whitelist_compare(image_name, image_version, oscap, oval, twist, anc_sec, anc_gates, glkey, branch):
+    proj = init(dccscr_project_id, glkey)
     if not does_image_exist(proj, image_name, image_version):
         print(image_name, image_version)
         sys.exit(2)
@@ -293,12 +295,9 @@ def get_whitelist_for_image(im_name, contents):
         wl.append(tar)
     return wl
 
-
-def init(pid):
-    gl = gitlab.Gitlab(gitlab_url, private_token=gitlab_key)
-    # gl = gitlab.Gitlab(gitlab_url) #Anonymous Auth
-    #gl.auth()
-    return gl.projects.get(pid)
+def init(pid, gitlab_key):
+  gl = gitlab.Gitlab(gitlab_url, private_token=gitlab_key)
+  return gl.projects.get(pid)
 
 def get_group(gid):
     gl = gitlab.Gitlab(gitlab_url, private_token=gitlab_key)
