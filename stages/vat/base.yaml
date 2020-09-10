@@ -1,37 +1,25 @@
-.vat:
+vat:
   stage: vat
-  image: ${REGISTRY_URL}/redhat/python/python36:3.6
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/python:pyyaml
   allow_failure: true
   variables:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/scan-results/csv-output/
+    OPENSCAP: ${ARTIFACT_STORAGE}/scan-results/openscap
   tags:
   before_script:
+    - |
+      if [ "${CI_COMMIT_BRANCH}" == "development"] || [ "${CI_COMMIT_BRANCH}" == "master" ]; then
+        export BASE_BUCKET_DIRECTORY="container-scan-reports"
+      fi
+    - export REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}"
+    - export S3_HTML_LINK=${S3_REPORT_BUCKET}/${BASE_BUCKET_DIRECTORY}/${CI_PROJECT_NAME}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}
   script:
-    - python3 ${PIPELINE_REPO_DIR}/stages/vat/vat_import.py --db 'vat-db' --host mariadb.ironbank-vat-test.svc.cluster.local
+    - pip3 install --upgrade pip setuptools wheel pandas mysql mysql-connector-python minepy
+    - | 
+        if [ "${CI_COMMIT_BRANCH}" == "development"]; then 
+          python3 ${PIPELINE_REPO_DIR}/stages/vat/vat_import.py --db 'vat-db' --user ${vat_db_connection_user} --host mariadb.ironbank-vat-test.svc.cluster.local --csv_dir ${ARTIFACT_DIR} --jenkins '${BUILD_NUMBER}' --container '${CI_PROJECT_NAME}' --version '${IMG_VERSION}' --parent '${PARENT_NAME}' --password '${vat_db_connection_pass}' --parent_version '${PARENT_TAG}' --scan_date '$(date +%FT%T)' --link '${OPENSCAP}/' --debug
+        fi
   artifacts:
     when: always
     paths:
       - ${ARTIFACT_DIR}/
-    reports:
-      dotenv: build.env
-
-
-#   withCredentials([usernamePassword(usernameVariable: 'USER', passwordVariable: 'PASS', credentialsId: 'vat-db')]){
-#     def whitelist = dccscrWhitelist()
-#     dccscrExec resource: 'io/dsop/vat_import.py',
-#               arguments: """\
-#                   --db 'vat-db' \
-#                   --user ${USER} \
-#                   --host mariadb.ironbank-vat-test.svc.cluster.local  \
-#                   --csv_dir ${ARTIFACT_DIR}/ \
-#                   --jenkins '${BUILD_NUMBER}' \
-#                   --container '${CI_PROJECT_NAME}'\
-#                   --version '${IMG_VERSION}'\
-#                   --parent '${whitelist.image_parent_name}' \
-#                   --password '${PASS}' \
-#                   --parent_version '${whitelist.image_parent_tag}'\
-#                   --scan_date '${Arguments.get().datetime}' \
-#                   --link '${Constant.OSCAP_DIRECTORY}/' \
-#                   --debug
-#               """
-#   }

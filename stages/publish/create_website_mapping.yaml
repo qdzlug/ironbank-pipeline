@@ -5,14 +5,84 @@ create mapping website:
     #TODO: Put these in globals
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
     BASE_BUCKET_DIRECTORY: "testing/container-scan-reports" 
+    AWS_KEY: ${S3_ACCESS_KEY}
+    AWS_SECRET: ${S3_SECRET_KEY}
+    OSCAP_SCANS: ${ARTIFACT_STORAGE}/scanning/openscap
+    CSV_REPORT: ${ARTIFACT_STORAGE}/scan-results/csv-output
+    ANCHORE_SCANS: ${ARTIFACT_STORAGE}/scan-results/anchore
+    TWISTLOCK_SCANS: ${ARTIFACT_STORAGE}/scan-results/twistlock
+    SIG_FILE: signature  
+    IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
+    DOCUMENTATION_FILENAME: documentation.json
   dependencies:
+    - load scripts
     - build
+    - openscap compliance
+    - openscap cve
+    - twistlock scan
+    - anchore scan
   before_script:
     - |
       if [ "${CI_COMMIT_BRANCH}" == "development"] || [ "${CI_COMMIT_BRANCH}" == "master" ]; then
         export BASE_BUCKET_DIRECTORY="container-scan-reports"
       fi
     - export REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}"
-    - export S3_HTML_LINK=${S3_HTML_LINK_ROOT}/${S3_REPORT_BUCKET}/${BASE_BUCKET_DIRECTORY}/${CI_PROJECT_NAME}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}
+    - export S3_HTML_LINK=${S3_REPORT_BUCKET}/${BASE_BUCKET_DIRECTORY}/${CI_PROJECT_NAME}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}
+    - export S3_BUCKET_PATH="/${CI_PROJECT_NAME}-${IMG_VERSION}/${REPORT_DIRECTORY}"
+  
   script:
+    - |
+      cat <<EOF > repo_map.json
+      {[
+        "Repo_Name": ${CI_PROJECT_DIR},
+        "Approval_Status": ${IMAGE_APPROVAL_STATUS},
+        "Public_Key": $(cat ${IB_CONTAINER_GPG_PUBKEY}),
+        "Image_Sha": ${IMAGE_ID},
+        "Image_Name": ${IM_NAME},
+        "Image_Tag":${IMG_VERSION}, 
+        "Image_Path": ${IM_NAME},
+        "Image_URL": "${S3_HTML_LINK}",
+        //old header slug would end here but all in same json key
+        "Build_Number": ${CI_COMMIT_SHA},
+        "Image_Manifest": "${ARTIFACT_STORAGE}/publish/reports/manifest.json",
+        "Manifest_Name":  "manifest.json",
+        "PGP_Signature":   "${ARTIFACT_STORAGE}/publish/reports/${SIG_FILE}.sig",
+        "Signature_Name":  "${SIG_FILE}",
+        "Version_Documentation": "${S3_BUCKET_PATH}/${DOCUMENTATION_FILENAME}",
+        "Tar_Location": "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar",
+        "Tar_Name": ${IMAGE_FILE}.tar,
+        "OpenSCAP_Compliance_Results": "${ARTIFACT_STORAGE}/scan-results/openscap/oscap.csv",
+        "OpenSCAP_OVAL_Results": "${ARTIFACT_STORAGE}/scan-results/openscap/oval.csv",
+        "TwistLock_Results": "${TWISTLOCK_SCANS}/tl.csv"
+        "Anchore_Gates_Results": "${ANCHORE_SCANS}/anchore_gates.csv",
+        "Anchore_Security_Results": "${ANCHORE_SCANS}/anchore_security.csv",
+        "Summary_Report": "${CSV_REPORT}/summary.csv",
+        "Full_Report": "${CSV_REPORT}/all_scans.xlsx",
+        "OpenSCAP_Report": "${OSCAP_SCANS}/report.html",
+        "OVAL_Report": "${OSCAP_SCANS}/report-cve.html"
+      ]}
+      EOF
+    - cat repo_map.json     
+    # - export content_type="application/json"
+    - echo "Creating new repo_map.json"
+    - export date=`date +%Y%m%d`
+    - export dateFormatted=`date -R`
+    - export fileName="repo_map.json"
+    - export relativePath="/${S3_REPORT_BUCKET}/${fileName}"
+    - export contentType="application/octet-stream"
+    - export stringToSign="PUT\n\n${contentType}\n${dateFormatted}\n${relativePath}"
+    - export s3AccessKey="${S3_ACCESS_KEY}"
+    - export s3SecretKey="${S3_SECRET_KEY}"
+    - export signature=`echo -en ${stringToSign} | openssl sha1 -hmac ${S3_SECRET_KEY} -binary | base64`
+    - | 
+      curl -X PUT -T "${fileName}" \
+      -H "Host: ${S3_REPORT_BUCKET}.s3-us-gov-west-1.amazonaws.com" \
+      -H "Date: ${dateFormatted}" \
+      -H "Content-Type: ${contentType}" \
+      -H "Authorization: AWS ${S3_ACCESS_KEY}:${signature}" \
+      http://${S3_REPORT_BUCKET}.s3-us-gov-west-1.amazonaws.com/${S3_HTML_LINK}/${fileName}
+  artifacts:
+    when: always
+    paths: 
+      - ${ARTIFACT_DIR} 
 
