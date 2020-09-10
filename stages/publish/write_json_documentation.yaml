@@ -27,6 +27,7 @@ write json documentation:
     - OPENSCAP_VERSION=$(cat ${OPENSCAP_VERSION})
     - IMAGE_TAR_SHA=$(sha256sum ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar | grep -E '^[a-zA-Z0-9]+' -o)
     - IMAGE_PODMAN_SHA=$(podman inspect --format {{'.Digest'}} ${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION})
+    - GPG_PUB_KEY=$(awk '{printf "%s\\n", $0}' ${IB_CONTAINER_GPG_PUBKEY})
     # Create manifest.json
     - |
       cat <<EOF > scan-metadata.json
@@ -39,7 +40,7 @@ write json documentation:
           "sha256": "${IMAGE_PODMAN_SHA}"
         },
         "pgp": {
-          "publicKey": "$(awk '{printf '"'%s\\n'"', $0}' ${IB_CONTAINER_GPG_PUBKEY})",
+          "publicKey": "${GPG_PUB_KEY}",
           "version":"${GPG_VERSION_INFO}"
         },
         "git": {
