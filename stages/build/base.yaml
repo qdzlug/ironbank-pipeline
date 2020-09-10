@@ -21,10 +21,6 @@ build:
         for file in ${ARTIFACT_STORAGE}/import-artifacts/images/*; do
           ls ${ARTIFACT_STORAGE}/import-artifacts/images 
           podman load -i ${file} --storage-driver=vfs
-          #skopeo copy docker-archive:${file} docker://registry/mattermost/mattermost-operator:v1.6.1
-          #          podman create localhost/mattermost/mattermost-operator
-          #          podman containers
-          #          podman tag mattermost/mattermost-operator mattermost/mattermost-operator:v1.6.1
         done
       fi
     - |
