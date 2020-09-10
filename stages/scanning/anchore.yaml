@@ -9,14 +9,18 @@ anchore scan:
     - mkdir -p "${ANCHORE_SCANS}"
     - pip3 install --user --upgrade anchorecli
     - export ANCHORE_CLI_PATH=$(python3 -m site --user-base)/bin
-    # - export DOCKER_IMAGE_PATH="$(podman load -q -i ${ARTIFACT_STORAGE}/build/${CI_PROJECT_NAME}-${IMG_VERSION}.tar | awk '{print $3}')"
+    - export ANCHORE_CLI_URL=${anchore_server_address}
+    - export ANCHORE_CLI_USER=${anchore_username}
+    - export ANCHORE_CLI_PASS=${anchore_password}
     - export IMAGE_NAME="${REGISTRY1_URL}/ironbank-staging/${IM_NAME}:${IMG_VERSION}"
   script:
-    - ${ANCHORE_CLI_PATH}/anchore-cli --u ${anchore_username} --p ${anchore_password} --url ${anchore_server_address} image add ${IMAGE_NAME}
-    - ${ANCHORE_CLI_PATH}/anchore-cli --u ${anchore_username} --p ${anchore_password} --url ${anchore_server_address} image wait ${IMAGE_NAME}
-    - python3 ${PIPELINE_REPO_DIR}/stages/scanning/anchore_scan.py --u ${anchore_username} --p ${anchore_password} --url ${anchore_server_address} --image ${IMAGE_NAME} --output ${ANCHORE_SCANS}
-    # - cp -f ${PIPELINE_REPO_DIR}/stages/scanning/anchore_gates.json ${ANCHORE_SCANS}/
-    # - cp -f ${PIPELINE_REPO_DIR}/stages/scanning/anchore_security.json ${ANCHORE_SCANS}/
+    - ${ANCHORE_CLI_PATH}/anchore-cli image add ${IMAGE_NAME}
+    - ${ANCHORE_CLI_PATH}/anchore-cli image wait --timeout ${anchore_timeout} ${IMAGE_NAME}
+    - python3 ${PIPELINE_REPO_DIR}/stages/scanning/anchore_scan.py --u ${anchore_username} \
+                                                                   --p ${anchore_password} \
+                                                                   --url ${anchore_server_address} \
+                                                                   --image ${IMAGE_NAME} \
+                                                                   --output ${ANCHORE_SCANS}
   artifacts:
     when: always
     paths:
