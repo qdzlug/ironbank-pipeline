@@ -16,8 +16,9 @@ build:
       if [[ ! -z ${DOCKER_RESOURCE} ]]; then
         for file in ${ARTIFACT_STORAGE}/import-artifacts/images/*; do
           podman load -i "${file}"
-          buildah images
-          skopeo inspect docker-daemon://localhost/mattermost/mattermost-operator 
+          podman create -name mattermost/mattermost-operator localhost/mattermost/mattermost-operator
+          podman containers
+          podman tag mattermost/mattermost-operator mattermost/mattermost-operator:v1.6.1
         done
       fi
     - |
