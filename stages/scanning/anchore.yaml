@@ -8,12 +8,12 @@ anchore scan:
   before_script:
     - mkdir -p "${ANCHORE_SCANS}"
     - pip3 install --user --upgrade anchorecli
-    - export ANCHORE_CLI_PATH="$(python3 -m site --user-base)/bin"
+    - export ANCHORE_CLI_PATH=$(python3 -m site --user-base)/bin
     - export DOCKER_IMAGE_PATH="$(podman load -q -i ${ARTIFACT_STORAGE}/build/${CI_PROJECT_NAME}-${IMG_VERSION}.tar | awk '{print $3}')"
   script:
-    - "${ANCHORE_CLI_PATH}"/anchore-cli --u "${anchore_username}" --p "${anchore_password}" --url "${anchore_server_address}" image add "${DOCKER_IMAGE_PATH}"
-    - "${ANCHORE_CLI_PATH}"/anchore-cli --u "${anchore_username}" --p "${anchore_password}" --url "${anchore_server_address}" image wait "${DOCKER_IMAGE_PATH}"
-    - python3 "${PIPELINE_REPO_DIR}"/stages/scanning/anchore_scan.py --u "${anchore_username}" --p "${anchore_password}" --url "${anchore_server_address}" --image "${DOCKER_IMAGE_PATH}" --output "${ANCHORE_SCANS}"
+    - ${ANCHORE_CLI_PATH}/anchore-cli --u ${anchore_username} --p ${anchore_password} --url ${anchore_server_address} image add ${DOCKER_IMAGE_PATH}
+    - ${ANCHORE_CLI_PATH}/anchore-cli --u ${anchore_username} --p ${anchore_password} --url ${anchore_server_address} image wait ${DOCKER_IMAGE_PATH}
+    - python3 ${PIPELINE_REPO_DIR}/stages/scanning/anchore_scan.py --u ${anchore_username} --p ${anchore_password} --url ${anchore_server_address} --image ${DOCKER_IMAGE_PATH} --output ${ANCHORE_SCANS}
     # - cp -f ${PIPELINE_REPO_DIR}/stages/scanning/anchore_gates.json ${ANCHORE_SCANS}/
     # - cp -f ${PIPELINE_REPO_DIR}/stages/scanning/anchore_security.json ${ANCHORE_SCANS}/
   artifacts:
