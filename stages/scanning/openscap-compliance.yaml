@@ -1,4 +1,5 @@
 openscap compliance:
+  extends: .scanning
   stage: scanning
   except:
     variables:
@@ -16,7 +17,7 @@ openscap compliance:
    # - build 
   before_script:
     - mkdir -p ${OSCAP_SCANS}
-    - export DOCKER_IMAGE_PATH=$(podman load -i ${ARTIFACT_STORAGE}/build/${CI_PROJECT_NAME}-${IMG_VERSION}.tar | awk '{print $3}')
+    - export DOCKER_IMAGE_PATH=$(podman load -q -i ${ARTIFACT_STORAGE}/build/${CI_PROJECT_NAME}-${IMG_VERSION}.tar | awk '{print $3}')
     - OSCAP_VERSION=`curl -fsSLI -o /dev/null -w %{url_effective} https://github.com/ComplianceAsCode/content/releases/latest | grep -Eo "[0-9\\.]+$" | awk '{$1=$1};1'`
     - echo "${OSCAP_VERSION}" >> build.env
     - base_image_type=`podman inspect -f '{{index .Labels "com.redhat.component"}}' ${DOCKER_IMAGE_PATH} | awk '{$1=$1};1'`

@@ -1,10 +1,11 @@
 openscap cve:
+  stage: scanning
   extends: .scanning
   except:
     variables:
       - $DISTROLESS
   variables:
-    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/scan-results/openscap-cve
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/scan-results/openscap
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
   before_script:
     - mkdir -p ${ARTIFACT_DIR}
@@ -50,6 +51,3 @@ openscap cve:
     paths:
       - ${ARTIFACT_DIR}/report-cve.html
       - ${ARTIFACT_DIR}/report-cve.xml
-  # outputs:
-  # report-cve.html
-  # report-cve.xml
