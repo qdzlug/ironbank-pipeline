@@ -16,7 +16,7 @@ build:
       if [[ ! -z ${DOCKER_RESOURCE} ]]; then
         for file in ${ARTIFACT_STORAGE}/import-artifacts/images/*; do
           podman load -i "${file}"
-          skopeo copy localhost/mattermost/mattermost-operator:v1.6.1 docker://mattermost/mattermost-operator:v1.6.1
+          skopeo inspect localhost/mattermost/mattermost-operator:v1.6.1
         done
       fi
     - |
