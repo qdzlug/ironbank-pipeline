@@ -27,9 +27,6 @@ build:
         cp -r ${ARTIFACT_STORAGE}/import-artifacts/external-resources/* .
       fi
     - echo "${SATELLITE_URL} satellite" >> /etc/hosts
-    - ls /var/lib/containers/
-    - ls /var/lib/containers/storage
-    - ls /var/lib/containers/storage/overlay-images
   script:
     - echo "IM_NAME=${IM_NAME}" >> build.env
     # Set the tag to eliminate /build/dsop and matching existing project hierarchy format
