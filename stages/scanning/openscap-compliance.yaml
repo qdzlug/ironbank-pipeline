@@ -13,8 +13,9 @@ openscap compliance:
     profile: ""
     securityGuide: ""
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
-  #dependencies: 
-   # - build 
+  dependencies: 
+    - load scripts
+    - build 
   before_script:
     - mkdir -p ${OSCAP_SCANS}
     - export DOCKER_IMAGE_PATH=$(podman load -q -i ${ARTIFACT_STORAGE}/build/${CI_PROJECT_NAME}-${IMG_VERSION}.tar | awk '{print $3}')
