@@ -10,7 +10,7 @@ anchore scan:
     - pip3 install --user --upgrade anchorecli
     - export ANCHORE_CLI_PATH=$(python3 -m site --user-base)/bin
     # - export DOCKER_IMAGE_PATH="$(podman load -q -i ${ARTIFACT_STORAGE}/build/${CI_PROJECT_NAME}-${IMG_VERSION}.tar | awk '{print $3}')"
-    - export IMAGE_NAME="${REGISTRY1_URL}/ironbank-staging/${IM_NAME}"
+    - export IMAGE_NAME="${REGISTRY1_URL}/ironbank-staging/${IM_NAME}:${IMG_VERSION}"
   script:
     - ${ANCHORE_CLI_PATH}/anchore-cli --u ${anchore_username} --p ${anchore_password} --url ${anchore_server_address} image add ${IMAGE_NAME}
     - ${ANCHORE_CLI_PATH}/anchore-cli --u ${anchore_username} --p ${anchore_password} --url ${anchore_server_address} image wait ${IMAGE_NAME}
@@ -24,6 +24,7 @@ anchore scan:
 
 # TODO: Install the anchore-cli on the runner
 # TODO: Configure the anchore-cli path on the runner
+# TODO: Add the Dockerfile with anchore-cli add
 #  steps
 
 #  retrieve current anchore version as needed
