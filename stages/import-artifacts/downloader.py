@@ -108,7 +108,7 @@ def http_download(download_item, resource_name, validation_type, checksum_value,
             print("Checksum failed")
             print("File deleted")
 
-def docker_download(download_item, tag_value, tar_name)
+def docker_download(download_item, tag_value, tar_name):
     print("===== ARTIFACT: %s" % download_item)
     image = download_item.split('//')[1]
     tar_name.replace('/', '-')
