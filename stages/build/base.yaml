@@ -16,7 +16,8 @@ build:
     - |
       if [[ ! -z ${DOCKER_RESOURCE} ]]; then
         for file in ${ARTIFACT_STORAGE}/import-artifacts/images/*; do
-          podman load -i "${file}" "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}"
+          podman load -i "${file}"
+          podman images
           #          podman create localhost/mattermost/mattermost-operator
           #          podman containers
           #          podman tag mattermost/mattermost-operator mattermost/mattermost-operator:v1.6.1
