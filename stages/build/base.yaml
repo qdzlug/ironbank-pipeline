@@ -17,7 +17,7 @@ build:
         for file in ${ARTIFACT_STORAGE}/import-artifacts/images/*; do
           podman load -i "${file}"
           buildah images
-          skopeo inspect docker-daemon://localhost/mattermost/mattermost-operator 
+          skopeo inspect docker://localhost/mattermost/mattermost-operator 
         done
       fi
     - |
