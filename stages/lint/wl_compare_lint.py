@@ -59,7 +59,7 @@ def get_complete_whitelist_for_image(proj, im_name, im_tag, wl_branch):
     if len(par_image) > 0 and len(par_tag) > 0:
       print("Fetching Whitelisted CVEs from parent: " + par_image + ':' + par_tag)
       get_complete_whitelist_for_image(proj, par_image, par_tag, wl_branch)
-      os.environ["IMAGE_APPROVAL_STATUS"] = contents["approval_status"]
+      os.putenv("IMAGE_APPROVAL_STATUS", contents['approval_status'])
   else:
     print("Mismatched image name/tag in " + filename + "\nRetrieved Image Name: " + contents['image_name'] + ":" + contents['image_tag'] + "\nSupplied Image Name: " + im_name + ":" + im_tag + "\nCheck parent image tag in your whitelist file.", file=sys.stderr)
     sys.exit(1)
