@@ -19,6 +19,7 @@ build:
     - |
       if [[ ! -z ${DOCKER_RESOURCE} ]]; then
         for file in ${ARTIFACT_STORAGE}/import-artifacts/images/*; do
+          ls ${file}
           podman load -i ${file} --storage-driver=vfs
           #skopeo copy docker-archive:${file} docker://registry/mattermost/mattermost-operator:v1.6.1
           #          podman create localhost/mattermost/mattermost-operator
