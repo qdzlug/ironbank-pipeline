@@ -11,7 +11,7 @@ write json documentation:
     TWISTLOCK_VERSION: ""
   dependencies:
     - wl compare lint
-    - openscap-compliance
+    - openscap compliance
     - anchore scan
     - build
   before_script:
