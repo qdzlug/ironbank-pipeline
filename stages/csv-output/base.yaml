@@ -20,4 +20,4 @@ csv-output:
   artifacts:
     when: always
     paths:
-        - ${CSV_REPORT}
+      - ${CSV_REPORT}
