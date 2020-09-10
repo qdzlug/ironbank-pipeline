@@ -39,7 +39,7 @@ write json documentation:
           "sha256": "${IMAGE_PODMAN_SHA}"
         },
         "pgp": {
-          "publicKey": "$(awk '{printf \"%s\\n\", $0}' ${IB_CONTAINER_GPG_PUBKEY})",
+          "publicKey": "$(awk '{printf '"'%s\\n'"', $0}' ${IB_CONTAINER_GPG_PUBKEY})",
           "version":"${GPG_VERSION_INFO}"
         },
         "git": {
