@@ -1,26 +1,6 @@
 # ironbank-pipeline
 
 
-## Dependencies
-
-Install Python dependencies with the following command:
-```
-pip install -r requirements.txt
-```
-
-## Running Tests
-
-The Python `nose` package is used for finding, running, and assessing the coverage of the unit tests.
-
-Run the tests with the following command:
-```
-nosetests --with-cov
-```
-## Tranlational Information
-
-There were a lot of "common" functions in Arguments.groovy and the corresponding functionality in `common.py` has been documented in that file.
-
-
 ## ironbank-pipeline directory structure:
 
 `/templates` contains the templates for the pipeline. This includes the `globals.yaml` file, which contains variable references needed for each CI/CD job to run and outlines the jobs required to run. This directory will also contain templates for special cases, such as distroless or scratch images. These special cases will have their own `.yaml` files which override aspects of the `globals.yaml` configuration as needed.
@@ -102,4 +82,27 @@ The `scan artifacts` stage will automatically fail if there are infected files f
 
 #### build
 
-The `build` stage builds the hardened container image. The build stage has access to any resources obtained in the `import artifacts` stage and access to the `Dockerfile` included in the container project repository. The `build` stage utilizes the arguments provided in the project `Dockerfile` in order to build the project. 
+The `build` stage builds the hardened container image. The build stage has access to any resources obtained in the `import artifacts` stage and access to the `Dockerfile` included in the container project repository. An egress policy has been set up to ensure that there are no external calls to the internet from this stage. The `build` stage utilizes the base image arguments provided in the project `Dockerfile` in order to build the project. It will pull approved versions of images from Harbor for use as the base image in the container build.
+
+
+#### scanning
+
+The `scanning` stage is comprised of multiple image scanning jobs which run in parallel. The scanning jobs are described below.
+
+##### anchore scan
+
+The Anchore scan will generate CVE and compliance-related findings. 
+
+Stage artifacts: 
+- `anchore-version.txt` - contains the Anchore version which is being used for this job
+- `anchore_api_gates_full.json`
+- `anchore_gates.json`
+- `anchore_security.json`
+
+##### openscap compliance 
+
+
+##### openscap cve
+
+
+##### twistlock scan
