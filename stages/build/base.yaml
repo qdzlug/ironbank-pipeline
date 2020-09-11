@@ -1,7 +1,4 @@
 build:
-  #services:
-  #  - name: registry:2
-  #    alias: registry
   stage: build
   allow_failure: false 
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/rootless-build:1.3

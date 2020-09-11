@@ -1,16 +1,17 @@
 write json documentation:
-  extends: .publish
+  extends: .documentation
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
   variables:
     #TODO: Put these in globals
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
-    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/publish/reports
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation/reports
     # TODO put back in for full run 
-    #OPENSCAP_VERSION: ${ARTIFACT_STORAGE}/scan-results/openscap/openscap-version.txt
-    #OPENSCAP_VERSION: ""
+    OPENSCAP_VERSION: ${ARTIFACT_STORAGE}/scan-results/openscap/oscap-version.txt
     TWISTLOCK_VERSION: ""
   dependencies:
     - wl compare lint
+    - openscap compliance
+    - anchore scan
     - build
     - openscap compliance
   before_script:
@@ -27,6 +28,7 @@ write json documentation:
     #- OPENSCAP_VERSION=$(cat ${OPENSCAP_VERSION})
     - IMAGE_TAR_SHA=$(sha256sum ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar | grep -E '^[a-zA-Z0-9]+' -o)
     - IMAGE_PODMAN_SHA=$(podman inspect --format {{'.Digest'}} ${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION})
+    - GPG_PUB_KEY=$(awk '{printf "%s\\n", $0}' ${IB_CONTAINER_GPG_PUBKEY})
     # Create manifest.json
     - |
       cat <<EOF > scan-metadata.json
@@ -39,7 +41,7 @@ write json documentation:
           "sha256": "${IMAGE_PODMAN_SHA}"
         },
         "pgp": {
-          "publicKey": "$(awk '{printf \"%s\\n\", $0}' ${IB_CONTAINER_GPG_PUBKEY})",
+          "publicKey": "${GPG_PUB_KEY}",
           "version":"${GPG_VERSION_INFO}"
         },
         "git": {

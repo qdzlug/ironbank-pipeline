@@ -1,5 +1,5 @@
 create mapping website:
-  extends: .publish
+  extends: .documentation
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
   variables:
     #TODO: Put these in globals
@@ -44,9 +44,9 @@ create mapping website:
         "Image_URL": "${S3_HTML_LINK}",
         //old header slug would end here but all in same json key
         "Build_Number": ${CI_COMMIT_SHA},
-        "Image_Manifest": "${ARTIFACT_STORAGE}/publish/reports/manifest.json",
+        "Image_Manifest": "${ARTIFACT_STORAGE}/documentation/reports/manifest.json",
         "Manifest_Name":  "manifest.json",
-        "PGP_Signature":   "${ARTIFACT_STORAGE}/publish/reports/${SIG_FILE}.sig",
+        "PGP_Signature":   "${ARTIFACT_STORAGE}/documentation/reports/${SIG_FILE}.sig",
         "Signature_Name":  "${SIG_FILE}",
         "Version_Documentation": "${S3_BUCKET_PATH}/${DOCUMENTATION_FILENAME}",
         "Tar_Location": "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar",
