@@ -7,15 +7,25 @@ anchore scan:
     ANCHORE_SCANS: ${ARTIFACT_STORAGE}/scan-results/anchore
   before_script:
     - mkdir -p "${ANCHORE_SCANS}"
+
+    # Install anchore-cli
+    # TODO: Install the anchore-cli on the runner
     - pip3 install --user --upgrade anchorecli
+
+    # The anchore-cli is not installed along the normal path so set
+    # the path appropriately.
+    # TODO: Configure the anchore-cli path on the runner
     - export ANCHORE_CLI_PATH=$(python3 -m site --user-base)/bin
+
     - export ANCHORE_CLI_URL=${anchore_server_address}
     - export ANCHORE_CLI_USER=${anchore_username}
     - export ANCHORE_CLI_PASS=${anchore_password}
+    - export ANCHORE_DEBUG=${anchore_debug}
     - export ANCHORE_SCAN_DIRECTORY=${ANCHORE_SCANS}
     - export IMAGE_NAME="${REGISTRY1_URL}/ironbank-staging/${IM_NAME}:${IMG_VERSION}"
     - export IMAGE_ID=${IMAGE_ID}
   script:
+    - env
     - ${ANCHORE_CLI_PATH}/anchore-cli image add ${IMAGE_NAME}
     - ${ANCHORE_CLI_PATH}/anchore-cli image wait --timeout ${anchore_timeout} ${IMAGE_NAME}
     - python3 ${PIPELINE_REPO_DIR}/stages/scanning/anchore_scan.py
@@ -24,15 +34,9 @@ anchore scan:
     paths:
       - ${ANCHORE_SCANS}/
 
-# TODO: Install the anchore-cli on the runner
-# TODO: Configure the anchore-cli path on the runner
+# Anchore Scanning stage
+#
+# This stage currently installs anchore-cli and then sets up the environment
+# to access the Anchore instance. The anchore_scan.py script makes use of the
+# environment variables as well to configure access.
 # TODO: Add the Dockerfile with anchore-cli add
-#  steps
-
-#  retrieve current anchore version as needed
-
-# add image to anchore cli, authenticate with creds
-
-# use pipeline_anchore_vuln_report_gen.py to generate anchore report
-
-# archive artifacts as needed (such as anchore version text file - i.e. the stuff used by VAT and IBFE)
