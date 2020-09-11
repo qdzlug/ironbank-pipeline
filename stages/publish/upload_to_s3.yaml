@@ -5,6 +5,7 @@ upload to s3:
     #TODO: Put these in globals
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
     SCAN_DIRECTORY: ${ARTIFACT_STORAGE}/scan-results/
+    DOCUMENTATION_DIRECTORY: ${ARTIFACT_STORAGE}/documentation/
     BASE_BUCKET_DIRECTORY: "testing/container-scan-reports"
   dependencies:
     - sign image
@@ -15,19 +16,23 @@ upload to s3:
   before_script:
     - pip install boto3
     - |
-      if [ "${CI_COMMIT_BRANCH}" = "development" ] || [ "${CI_COMMIT_BRANCH}" = "master" ]; then
+      if [ "${CI_COMMIT_BRANCH}" = "master" ]; then
         export BASE_BUCKET_DIRECTORY="container-scan-reports"
       fi
-    - export REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}"
+    - export REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}/reports"
+    - export REMOTE_DOCUMENTATION_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}"
     - export IMAGE_PATH=$(echo ${CI_PROJECT_PATH} | sed -e 's/.*dsop\/\(.*\)/\1/')
   script:
     - |
-      for file in $(find ${SCAN_DIRECTORY} -name "*" -type f); do
-        report_name=$(echo $file | rev | cut -d/ -f1-2 | rev)
-        python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file $file --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/$report_name ;
-      done
+      report_name="repo_map.json"
+      python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file ${ARTIFACT_STORAGE}/documentation/repo_map.json --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/$report_name
     - |
       for file in $(find ${DOCUMENTATION_DIRECTORY} -name "*" -type f); do
+        object_path=$(echo ${file#"${ARTIFACTS_DIR}/documentation"})
+        python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file $file --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_DOCUMENTATION_DIRECTORY}/$object_path ;
+      done
+    - |
+      for file in $(find ${SCAN_DIRECTORY} -name "*" -type f); do
         report_name=$(echo $file | rev | cut -d/ -f1-2 | rev)
         python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file $file --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/$report_name ;
       done

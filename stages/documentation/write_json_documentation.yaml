@@ -62,6 +62,7 @@ write json documentation:
       }
       EOF
     - cat scan-metadata.json
+    - mv scan-metadata.json ${ARTIFACT_DIR}
     # Create manifest.json
     - |
       cat <<EOF > documentation.json
@@ -85,6 +86,7 @@ write json documentation:
       }
       EOF
     - cat documentation.json
+    - mv documentation.json ${ARTIFACT_DIR}/reports/
     # Stage manifest for upload
   artifacts:
     when: always

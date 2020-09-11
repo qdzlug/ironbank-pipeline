@@ -44,7 +44,6 @@ create mapping website:
         "Image_Tag":${IMG_VERSION}, 
         "Image_Path": ${IM_NAME},
         "Image_URL": "${S3_HTML_LINK}",
-        //old header slug would end here but all in same json key
         "Build_Number": ${CI_COMMIT_SHA},
         "Image_Manifest": "${ARTIFACT_STORAGE}/documentation/reports/manifest.json",
         "Manifest_Name":  "manifest.json",
@@ -67,23 +66,23 @@ create mapping website:
     - cat repo_map.json
     - cp repo_map.json ${ARTIFACT_DIR}
     # - export content_type="application/json"
-    - echo "Creating new repo_map.json"
-    - export date=`date +%Y%m%d`
-    - export dateFormatted=`date -R`
-    - export fileName="repo_map.json"
-    - export relativePath="/${S3_REPORT_BUCKET}/${fileName}"
-    - export contentType="application/octet-stream"
-    - export stringToSign="PUT\n\n${contentType}\n${dateFormatted}\n${relativePath}"
-    - export s3AccessKey="${S3_ACCESS_KEY}"
-    - export s3SecretKey="${S3_SECRET_KEY}"
-    - export signature=`echo -en ${stringToSign} | openssl sha1 -hmac ${S3_SECRET_KEY} -binary | base64`
-    - | 
-      curl -X PUT -T "${fileName}" \
-      -H "Host: ${S3_REPORT_BUCKET}.s3-us-gov-west-1.amazonaws.com" \
-      -H "Date: ${dateFormatted}" \
-      -H "Content-Type: ${contentType}" \
-      -H "Authorization: AWS ${S3_ACCESS_KEY}:${signature}" \
-      http://${S3_REPORT_BUCKET}.s3-us-gov-west-1.amazonaws.com/${S3_HTML_LINK}/${fileName}
+    #- echo "Creating new repo_map.json"
+    #- export date=`date +%Y%m%d`
+    #- export dateFormatted=`date -R`
+    #- export fileName="repo_map.json"
+    #- export relativePath="/${S3_REPORT_BUCKET}/${fileName}"
+    #- export contentType="application/octet-stream"
+    #- export stringToSign="PUT\n\n${contentType}\n${dateFormatted}\n${relativePath}"
+    #- export s3AccessKey="${S3_ACCESS_KEY}"
+    #- export s3SecretKey="${S3_SECRET_KEY}"
+    #- export signature=`echo -en ${stringToSign} | openssl sha1 -hmac ${S3_SECRET_KEY} -binary | base64`
+    #- | 
+    #  curl -X PUT -T "${fileName}" \
+    #  -H "Host: ${S3_REPORT_BUCKET}.s3-us-gov-west-1.amazonaws.com" \
+    #  -H "Date: ${dateFormatted}" \
+    #  -H "Content-Type: ${contentType}" \
+    #  -H "Authorization: AWS ${S3_ACCESS_KEY}:${signature}" \
+    #  http://${S3_REPORT_BUCKET}.s3-us-gov-west-1.amazonaws.com/${S3_HTML_LINK}/${fileName}
   artifacts:
     when: always
     paths: 
