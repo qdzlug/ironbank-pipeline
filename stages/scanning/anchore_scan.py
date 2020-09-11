@@ -13,7 +13,7 @@ class Anchore():
 
     """
 
-    def __init__(self, url, username, password, verify, image, output, debugon = True):
+    def __init__(self, url, username, password, verify, image, output, imageid, debugon = True):
         self.url      = url
         self.username = username
         self.password = password
@@ -21,7 +21,7 @@ class Anchore():
         self.image    = image
         self.output   = output
         self.debugon  = debugon
-        self.digest   = self.__get_image_digest()
+        self.imageid  = imageid
 
 
     """
@@ -30,7 +30,7 @@ class Anchore():
     """
     def __debug(self, msg):
         if self.debugon:
-            print(msg)
+            print(f"DEBUG:  {msg}")
 
     """
     Internal api response fetcher. Will check for a valid return code and ensure the response
@@ -67,18 +67,8 @@ class Anchore():
     """
 
     """
-    def __get_image_digest(self):
-        url = f"{self.url}/images"
-        payload = {'fulltag': self.image, 'history': 'false'}
-        image_list = self.__get_anchore_api_json(url, payload)
-        image_digest = image_list[0]["imageDigest"]
-        if image_digest == None:
-            raise Exception("Image Digest does not Exist")
-        return image_digest
-
-
-
     def get_version(self):
+        print(f"Getting Anchore version")
         url = f"{self.url}/version"
         version_json = self.__get_anchore_api_json(url)
         filename = os.path.join(self.output, "anchore-version.txt")
@@ -90,8 +80,9 @@ class Anchore():
 
     """
     def get_vulns(self):
+        print(f"Getting vulnerability results")
         try:
-            vuln_dict = self.__get_anchore_api_json(f"{self.url}/images/{self.digest}/vuln/all")
+            vuln_dict = self.__get_anchore_api_json(f"{self.url}/images/by_id/{self.imageid}/vuln/all")
 
             for vulnerability in vuln_dict['vulnerabilities']:
                 # If VulnDB record found, retrive set of reference URLs associated with the record.
@@ -122,7 +113,8 @@ class Anchore():
 
     """
     def get_compliance(self):
-        request_url = f"{self.url}/images/{self.digest}/check?tag={self.image}&detail=true"
+        print(f"Getting compliance results")
+        request_url = f"{self.url}/images/by_id/{self.imageid}/check?tag={self.image}&detail=true"
         body_json = self.__get_anchore_api_json(request_url)
 
         # Save the API response
@@ -130,13 +122,13 @@ class Anchore():
         self.__debug(f"Writing to {filename}")
         with open(filename, "w") as f:
             json.dump(body_json, f)
-        imageid = body_json[0][self.digest][self.image][0]["detail"]["result"]["image_id"]
-        results = body_json[0][self.digest][self.image][0]["detail"]["result"]["result"]
 
-        results_dict = dict()
+        digest = list(body_json[0].keys())[0]
+        results = body_json[0][digest]["docker.io/" + self.image][0]["detail"]["result"]["result"]
 
         # Grab the subset of data used in anchore_gates.json
-        results_dict[imageid] = results[imageid]
+        results_dict = dict()
+        results_dict[self.imageid] = results[self.imageid]
 
         filename = os.path.join(self.output, "anchore_gates.json")
         self.__debug(f"Writing to {filename}")
@@ -156,7 +148,8 @@ def main():
             password = os.getenv("ANCHORE_CLI_PASS",       default = "foobar"),
             verify   = os.getenv("ANCHORE_VERIFY",         default = True),
             image    = os.getenv("IMAGE_NAME",             default = "none"),
-            output   = os.getenv("ANCHORE_SCAN_DIRECTORY", default = ".")
+            output   = os.getenv("ANCHORE_SCAN_DIRECTORY", default = "."),
+            imageid  = os.getenv("IMAGE_ID",               default = "none")
     )
 
     anchore.get_vulns()
