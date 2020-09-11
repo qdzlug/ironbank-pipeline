@@ -1,5 +1,5 @@
 upload to s3:
-  extends: publish
+  extends: .publish
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/python:pyyaml
   variables:
     #TODO: Put these in globals

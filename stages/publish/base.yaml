@@ -3,6 +3,6 @@
   allow_failure: true
 
 include:
-  - /stages/publish/upload_to_s3.yaml
-  - /stages/publish/harbor.yaml
+  - local: /stages/publish/upload_to_s3.yaml
+  - local: /stages/publish/harbor.yaml
 
