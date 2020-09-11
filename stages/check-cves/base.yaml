@@ -3,8 +3,11 @@ check-cves:
   allow_failure: true
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
   dependencies:
-    - csv-output
     - load scripts
+    - twistlock scan
+    - openscap cve
+    - openscap compliance
+    - anchore scan
   variables:
     CHECK_CVE_RESULTS: ${ARTIFACT_STORAGE}/check-cves
   before_script:
