@@ -4,7 +4,19 @@
 # This stage currently installs anchore-cli and then sets up the environment
 # to access the Anchore instance. The anchore_scan.py script makes use of the
 # environment variables as well to configure access.
-# TODO: Add the Dockerfile with anchore-cli add
+#
+# NOTE: The anchore_debug and anchore_timeout variables are set as environment
+#       variables in the gitlab dsop group. This allows them to be modified
+#       without needing to submit code changes.
+#
+# Test command:
+#   ANCHORE_CLI_PASS=<pass> \
+#   ANCHORE_CLI_URL=https://anchore-api.admin.dsop.io \
+#   ANCHORE_CLI_USER=<user> \
+#   ANCHORE_SCAN_DIRECTORY=<outdir> \
+#   ANCHORE_DEBUG=True \
+#   IMAGE_NAME=registry1.dsop.io/ironbank-staging/opensource/pipeline-test-project/kubectl:v1.18.8 \
+#   IMAGE_ID=<id> python3 anchore_scan.py
 #
 
 anchore scan:
@@ -36,6 +48,7 @@ anchore scan:
     - export IMAGE_ID=${IMAGE_ID}
 
   script:
+    # TODO: Add the Dockerfile with anchore-cli add
     - ${ANCHORE_CLI_PATH}/anchore-cli image add ${IMAGE_NAME}
     - ${ANCHORE_CLI_PATH}/anchore-cli image wait --timeout ${anchore_timeout} ${IMAGE_NAME}
     - python3 ${PIPELINE_REPO_DIR}/stages/scanning/anchore_scan.py
