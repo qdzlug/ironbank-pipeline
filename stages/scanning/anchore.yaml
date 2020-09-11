@@ -14,6 +14,7 @@ anchore scan:
     - export ANCHORE_CLI_PASS=${anchore_password}
     - export ANCHORE_SCAN_DIRECTORY=${ANCHORE_SCANS}
     - export IMAGE_NAME="${REGISTRY1_URL}/ironbank-staging/${IM_NAME}:${IMG_VERSION}"
+    - export IMAGE_ID=${IMAGE_ID}
   script:
     - ${ANCHORE_CLI_PATH}/anchore-cli image add ${IMAGE_NAME}
     - ${ANCHORE_CLI_PATH}/anchore-cli image wait --timeout ${anchore_timeout} ${IMAGE_NAME}

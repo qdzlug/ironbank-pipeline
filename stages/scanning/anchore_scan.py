@@ -139,7 +139,7 @@ class Anchore():
             json.dump(body_json, f)
 
         digest = list(body_json[0].keys())[0]
-        results = body_json[0][digest]["docker.io/" + self.image][0]["detail"]["result"]["result"]
+        results = body_json[0][digest][self.image][0]["detail"]["result"]["result"]
 
         # Grab the subset of data used in anchore_gates.json
         results_dict = dict()
