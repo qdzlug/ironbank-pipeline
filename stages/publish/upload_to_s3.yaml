@@ -11,7 +11,7 @@ upload to s3:
     - sign image
     - sign manifest
     - write json documentation
-    - create website mapping
+    - create mapping website
   before_script:
     - pip install boto3
     - ls "${PIPELINE_REPO_DIR}/stages/documentation"
