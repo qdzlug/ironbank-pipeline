@@ -13,31 +13,35 @@ class Anchore():
 
     """
 
-    def __init__(self, url, username, password, verify, image, output, imageid, debugon = True):
+    def __init__(self, url, username, password, verify, image, output, imageid, debug):
         self.url      = url
         self.username = username
         self.password = password
         self.verify   = verify
         self.image    = image
         self.output   = output
-        self.debugon  = debugon
         self.imageid  = imageid
+        self.debug    = debug
 
 
-    """
-    Internal debug printer
-
-    """
     def __debug(self, msg):
-        if self.debugon:
+        """
+        Internal debug printer
+
+        """
+        if self.debug:
             print(f"DEBUG:  {msg}")
 
-    """
-    Internal api response fetcher. Will check for a valid return code and ensure the response
-    has valid json. Once everything has been validated it will return a dictionary of the json.
 
-    """
     def __get_anchore_api_json(self, url, payload = ""):
+        """
+        Internal api response fetcher. Will check for a valid return code and
+        ensure the response has valid json. Once everything has been validated
+        it will return a dictionary of the json.
+
+         payload - request payload for anchore api
+
+        """
         self.__debug(f"Fetching {url}")
         try:
             r = requests.get(
@@ -64,10 +68,11 @@ class Anchore():
         return json.loads(body)
 
 
-    """
-
-    """
     def get_version(self):
+        """
+        Fetch the Anchore version and write it to an artifact.
+
+        """
         print(f"Getting Anchore version")
         url = f"{self.url}/version"
         version_json = self.__get_anchore_api_json(url)
@@ -76,10 +81,15 @@ class Anchore():
         with open(filename, "w") as f:
             json.dump(version_json["service"]["version"], f)
 
-    """
 
-    """
     def get_vulns(self):
+        """
+        Fetch the vulnerability data for the scanned image. Will parse the
+        vulnerability response and look for VulnDB records. When a VulnDB record
+        is found, the URL points to a pod name which is not publicly accessible
+        so it will reach back out to Anchore to gather the correct vulnerability data.
+
+        """
         print(f"Getting vulnerability results")
         try:
             vuln_dict = self.__get_anchore_api_json(f"{self.url}/images/by_id/{self.imageid}/vuln/all")
@@ -87,7 +97,8 @@ class Anchore():
             for vulnerability in vuln_dict['vulnerabilities']:
                 # If VulnDB record found, retrive set of reference URLs associated with the record.
                 if (vulnerability["feed_group"] == "vulndb:vulnerabilities"):
-                    # "http://anchore-anchore-engine-api:8228/v1" or URL to replace may need to be modified when changes to the Anchore installation occur
+                    # "http://anchore-anchore-engine-api:8228/v1" or URL to replace may
+                    #  need to be modified when changes to the Anchore installation occur
                     vulndb_request_url = re.sub("http:\/\/([a-z-_0-9:]*)\/v1", self.url, vulnerability["url"])
                     vulndb_dict = self.__get_anchore_api_json(vulndb_request_url)
                     for vulndb_vuln in vulndb_dict["vulnerabilities"]:
@@ -109,10 +120,14 @@ class Anchore():
             raise err
 
 
-    """
-
-    """
     def get_compliance(self):
+        """
+        Fetch the compliance results for the Anchore policy bundle. Will write
+        out the actual API response that contains the results, along with the
+        subset of the results that was previously used to parse into the findings
+        spreadsheet.
+
+        """
         print(f"Getting compliance results")
         request_url = f"{self.url}/images/by_id/{self.imageid}/check?tag={self.image}&detail=true"
         body_json = self.__get_anchore_api_json(request_url)
@@ -149,7 +164,8 @@ def main():
             verify   = os.getenv("ANCHORE_VERIFY",         default = True),
             image    = os.getenv("IMAGE_NAME",             default = "none"),
             output   = os.getenv("ANCHORE_SCAN_DIRECTORY", default = "."),
-            imageid  = os.getenv("IMAGE_ID",               default = "none")
+            imageid  = os.getenv("IMAGE_ID",               default = "none"),
+            debug    = os.getenv("ANCHORE_DEBUG",          default = False),
     )
 
     anchore.get_vulns()
