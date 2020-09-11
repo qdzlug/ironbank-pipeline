@@ -1,12 +1,10 @@
-include: /stages/publish/base.yaml
-
 sign image:
-  extends: .publish
+  extends: .dcoumentation
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
   variables:
     #TODO: Put these in globals
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
-    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/publish/reports
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation/reports
   dependencies:
     - build
   before_script:

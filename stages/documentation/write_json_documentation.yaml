@@ -1,10 +1,10 @@
 write json documentation:
-  extends: .publish
+  extends: .documentation
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
   variables:
     #TODO: Put these in globals
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
-    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/publish/reports
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation/reports
     # TODO put back in for full run 
     OPENSCAP_VERSION: ${ARTIFACT_STORAGE}/scan-results/openscap/oscap-version.txt
     TWISTLOCK_VERSION: ""

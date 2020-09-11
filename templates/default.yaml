@@ -19,6 +19,8 @@ include:
     
     - local: stages/check-cves/base.yaml
     
-    - local: stages/publish/base.yaml
+    - local: stages/documentation/base.yaml
+
+    - local: stages/publish/upload_to_s3.yaml
     
     - local: stages/vat/base.yaml

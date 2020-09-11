@@ -52,6 +52,9 @@ stages:
   ### check cve stage
   - check-cves
   
+  ### Sign image and manifest and write documentation
+  - documentation
+
   ### publish stage
   # publish artifacts to S3 (runs on master), push to harbor
   - publish
