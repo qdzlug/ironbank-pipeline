@@ -1,3 +1,24 @@
+#
+# Anchore Scanning stage
+#
+# This stage currently installs anchore-cli and then sets up the environment
+# to access the Anchore instance. The anchore_scan.py script makes use of the
+# environment variables as well to configure access.
+#
+# NOTE: The anchore_debug and anchore_timeout variables are set as environment
+#       variables in the gitlab dsop group. This allows them to be modified
+#       without needing to submit code changes.
+#
+# Test command:
+#   ANCHORE_CLI_PASS=<pass> \
+#   ANCHORE_CLI_URL=https://anchore-api.admin.dsop.io \
+#   ANCHORE_CLI_USER=<user> \
+#   ANCHORE_SCAN_DIRECTORY=<outdir> \
+#   ANCHORE_DEBUG=True \
+#   IMAGE_NAME=registry1.dsop.io/ironbank-staging/opensource/pipeline-test-project/kubectl:v1.18.8 \
+#   IMAGE_ID=<id> python3 anchore_scan.py
+#
+
 anchore scan:
   extends: .scanning
   stage: scanning
@@ -7,21 +28,33 @@ anchore scan:
     ANCHORE_SCANS: ${ARTIFACT_STORAGE}/scan-results/anchore
   before_script:
     - mkdir -p "${ANCHORE_SCANS}"
+
+    # Install anchore-cli
+    # TODO: Install the anchore-cli on the runner
+    - pip3 install --user --upgrade anchorecli
+
+    # The anchore-cli is not installed along the normal path so set
+    # the path appropriately.
+    # TODO: Configure the anchore-cli path on the runner
+    - export ANCHORE_CLI_PATH=$(python3 -m site --user-base)/bin
+
+    # Set up the environment for the anchore-cli commands and anchore_scan.py script
+    - export ANCHORE_CLI_URL=${anchore_server_address}
+    - export ANCHORE_CLI_USER=${anchore_username}
+    - export ANCHORE_CLI_PASS=${anchore_password}
+    - export ANCHORE_DEBUG=${anchore_debug}
+    - export ANCHORE_SCAN_DIRECTORY=${ANCHORE_SCANS}
+    - export IMAGE_NAME="${REGISTRY1_URL}/ironbank-staging/${IM_NAME}:${IMG_VERSION}"
+    - export IMAGE_ID=${IMAGE_ID}
+
   script:
+    # TODO: Add the Dockerfile with anchore-cli add
+    - ${ANCHORE_CLI_PATH}/anchore-cli image add ${IMAGE_NAME}
+    - ${ANCHORE_CLI_PATH}/anchore-cli image wait --timeout ${anchore_timeout} ${IMAGE_NAME}
     - python3 ${PIPELINE_REPO_DIR}/stages/scanning/anchore_scan.py
-    - cp -f ${PIPELINE_REPO_DIR}/stages/scanning/anchore_gates.json ${ANCHORE_SCANS}/
-    - cp -f ${PIPELINE_REPO_DIR}/stages/scanning/anchore_security.json ${ANCHORE_SCANS}/
+
   artifacts:
     when: always
     paths:
       - ${ANCHORE_SCANS}/
 
-#  steps
-
-#  retrieve current anchore version as needed
-
-# add image to anchore cli, authenticate with creds
-
-# use pipeline_anchore_vuln_report_gen.py to generatr anchore report
-
-# archive artifacts as needed (such as anchore version text file - i.e. the stuff used by VAT and IBFE)
