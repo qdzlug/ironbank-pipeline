@@ -12,6 +12,7 @@ anchore scan:
     - export ANCHORE_CLI_URL=${anchore_server_address}
     - export ANCHORE_CLI_USER=${anchore_username}
     - export ANCHORE_CLI_PASS=${anchore_password}
+    - export ANCHORE_SCAN_DIRECTORY=${ANCHORE_SCANS}
     - export IMAGE_NAME="${REGISTRY1_URL}/ironbank-staging/${IM_NAME}:${IMG_VERSION}"
   script:
     - ${ANCHORE_CLI_PATH}/anchore-cli image add ${IMAGE_NAME}
