@@ -1,26 +1,6 @@
 # ironbank-pipeline
 
 
-## Dependencies
-
-Install Python dependencies with the following command:
-```
-pip install -r requirements.txt
-```
-
-## Running Tests
-
-The Python `nose` package is used for finding, running, and assessing the coverage of the unit tests.
-
-Run the tests with the following command:
-```
-nosetests --with-cov
-```
-## Tranlational Information
-
-There were a lot of "common" functions in Arguments.groovy and the corresponding functionality in `common.py` has been documented in that file.
-
-
 ## ironbank-pipeline directory structure:
 
 `/templates` contains the templates for the pipeline. This includes the `globals.yaml` file, which contains variable references needed for each CI/CD job to run and outlines the jobs required to run. This directory will also contain templates for special cases, such as distroless or scratch images. These special cases will have their own `.yaml` files which override aspects of the `globals.yaml` configuration as needed.
@@ -46,7 +26,7 @@ include:
   - project: 'dsop/ironbank-pipeline'
     file: '/templates/distroless.yaml'
 ```
-This will omit the OpenSCAP scans from the pipeline, which are not compatible with containers built on distroless base images.
+This will omit the OpenSCAP scan jobs from the pipeline. OSCAP scanning is not compatible with containers built on distroless base images.
 
 
 - Contributors will also need to provide the current image version of the container which is being built in the project's `.gitlab-ci.yml` file using the `IMG_VERSION` variable. 
@@ -67,16 +47,17 @@ This stage is used to clone the `ironbank-pipeline` repository from GitLab so th
 #### preflight
 
 The `preflight` stage performs two functions:
-    - displaying the folder structure for the project which is running through the Container Hardening pipeline. The `folder structure` job will check for the existence of the following files and/or directories within the project which is being run through the pipeline:
-        - README (required file)
-        - Dockerfile (required file)
-        - LICENSE (required file)
-        - download.yaml (file, not always required, which allows external resources to be validated and used in the container build)
-        - scripts (directory, not always required, which stores any script files needed in the container)
-        - signatures (directory, not always required, which contains signatures needed for validation of any repository or external resource files)
-        - config (directory, not always required, which stores any configuration files needed in the container)
-        - accreditation (directory, not always required, which provides information about approved images)
-    - testing/checking the build variables exist using the `build variables` job.
+
+  - displaying the folder structure for the project which is running through the Container Hardening pipeline. The `folder structure` job will check for the existence of the following files and/or directories within the project which is being run through the pipeline:
+      - README (required file)
+      - Dockerfile (required file)
+      - LICENSE (required file)
+      - download.yaml (file, not always required, which allows external resources to be validated and used in the container build)
+      - scripts (directory, not always required, which stores any script files needed in the container)
+      - signatures (directory, not always required, which contains signatures needed for validation of any repository or external resource files)
+      - config (directory, not always required, which stores any configuration files needed in the container)
+      - accreditation (directory, not always required, which provides information about approved images)
+  - testing/checking the build variables exist using the `build variables` job.
 
 The preflight stage is currently set to allow failures because the `folder structure` job is listing some optional files/directories
 
@@ -102,4 +83,27 @@ The `scan artifacts` stage will automatically fail if there are infected files f
 
 #### build
 
-The `build` stage builds the hardened container image. The build stage has access to any resources obtained in the `import artifacts` stage and access to the `Dockerfile` included in the container project repository. The `build` stage utilizes the arguments provided in the project `Dockerfile` in order to build the project. 
+The `build` stage builds the hardened container image. The build stage has access to any resources obtained in the `import artifacts` stage and access to the `Dockerfile` included in the container project repository. An egress policy has been set up to ensure that there are no external calls to the internet from this stage. The `build` stage utilizes the base image arguments provided in the project `Dockerfile` in order to build the project. It will pull approved versions of images from Harbor for use as the base image in the container build.
+
+
+#### scanning
+
+The `scanning` stage is comprised of multiple image scanning jobs which run in parallel. The scanning jobs are described below.
+
+##### anchore scan
+
+The Anchore scan will generate CVE and compliance-related findings. 
+
+Stage artifacts: 
+- `anchore-version.txt` - contains the Anchore version which is being used for this job
+- `anchore_api_gates_full.json`
+- `anchore_gates.json`
+- `anchore_security.json`
+
+##### openscap compliance 
+
+
+##### openscap cve
+
+
+##### twistlock scan

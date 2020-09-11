@@ -10,7 +10,6 @@ import argparse
 
 gitlab_url = "https://repo1.dsop.io"
 dccscr_project_id = 143
-# gitlab_key = os.environ['PYTHON_GITLAB_KEY']
 
 
 def main():
@@ -40,11 +39,7 @@ def main():
 
 def pipeline_whitelist_compare(image_name, image_version, oscap, oval, twist, anc_sec, anc_gates, glkey, branch):
     proj = init(dccscr_project_id, glkey)
-    if not does_image_exist(proj, image_name, image_version):
-        print(image_name, image_version)
-        sys.exit(2)
-
-    image_whitelist = get_complete_whitelist_for_image(proj, image_name, image_version)
+    image_whitelist = get_complete_whitelist_for_image(proj, image_name, image_version, branch)
 
     wl_set = set()
     for image in image_whitelist:
@@ -238,20 +233,11 @@ def get_oscap_fails(oscap_file):
             cces.append(ret)
         return cces
 
-
-def does_image_exist(proj, im_name, im_tag):
-    filename = get_whitelist_filename(proj, im_name, im_tag)
-    wl = get_whitelist_file_contents(proj, filename, 'master')
-    if wl['image_name'] == im_name and wl['image_tag'] == im_tag:
-        return True
-    else:
-        print("Whitelist retrieval error. Check that the project's GitLab reponame matches the whitelist's image name and that the version in the Jenkinsfile matches the whitelist's image tag.\nRepo name and Jenkinsfile version: " + im_name + ":" + im_tag + "\nWhitelist image_name and image_tag: " + wl['image_name'] + ":" + wl['image_tag'], file=sys.stderr)
-    return False
-
-
-def get_whitelist_filename(project, im_name, im_tag):
-    image_basename = im_name.split('/')[2]
-    filename = im_name + '/' + image_basename + '.greylist'
+def get_whitelist_filename(im_name, im_tag):
+    dccscr_project = im_name.split('/')
+    greylist_name = dccscr_project[-1] + '.greylist'
+    dccscr_project.append(greylist_name)
+    filename = '/'.join(dccscr_project)
     return filename
 
 
@@ -259,31 +245,32 @@ def get_whitelist_file_contents(proj, item_path, item_ref):
     try:
         f = proj.files.get(file_path=item_path, ref=item_ref)
     except:
-        print("Error retrieving whitelist file:", sys.exc_info()[1])
-        print("Whitelist retrieval attempted: " + item_path)
-        sys.exit(4)
+        print("Error retrieving whitelist file:", sys.exc_info()[1], file=sys.stderr)
+        print("Whitelist retrieval attempted: " + item_path, file=sys.stderr)
+        sys.exit(1)
     try:
         contents = json.loads(f.decode())
     except ValueError as error:
-        print("JSON object issue: %s") % error
+        print("JSON object issue: %s", file=sys.stderr) % error
+        sys.exit(1)
     return contents
 
-def get_complete_whitelist_for_image(proj, im_name, im_tag, total_wl=[]):
-    filename = get_whitelist_filename(proj, im_name, im_tag)
-    contents = get_whitelist_file_contents(proj, filename, 'master')
+def get_complete_whitelist_for_image(proj, im_name, im_tag, branch, total_wl=[]):
+    filename = get_whitelist_filename(im_name, im_tag)
+    contents = get_whitelist_file_contents(proj, filename, branch)
 
     par_image = contents['image_parent_name']
     par_tag = contents['image_parent_tag']
 
-    if contents['image_name'] == im_name and contents['image_tag'] == im_tag:
-        for x in get_whitelist_for_image(im_name, contents):
-            total_wl.append(x)
-        if len(par_image) > 0 and len(par_tag) > 0:
-            print("Fetching Whitelisted CVEs from parent: " + par_image + ':' + par_tag)
-            get_complete_whitelist_for_image(proj, par_image, par_tag)
-    else:
-        print("Mismatched image name/tag in " + filename + "\nRetrieved Image Name: " + contents['image_name'] + ":" + contents['image_tag'] + "\nSupplied Image Name: " + im_name + ":" + im_tag + "\nCheck parent image tag in your whitelist file.", file=sys.stderr)
-        sys.exit(3)
+    # if contents['image_name'] == im_name and contents['image_tag'] == im_tag:
+    for x in get_whitelist_for_image(im_name, contents):
+        total_wl.append(x)
+    if len(par_image) > 0 and len(par_tag) > 0:
+        print("Fetching Whitelisted CVEs from parent: " + par_image + ':' + par_tag)
+        get_complete_whitelist_for_image(proj, par_image, par_tag, branch)
+    # else:
+    #     print("Mismatched image name/tag in " + filename + "\nRetrieved Image Name: " + contents['image_name'] + ":" + contents['image_tag'] + "\nSupplied Image Name: " + im_name + ":" + im_tag + "\nCheck parent image tag in your whitelist file.", file=sys.stderr)
+    #     sys.exit(1)
 
     return total_wl
 
@@ -296,12 +283,8 @@ def get_whitelist_for_image(im_name, contents):
     return wl
 
 def init(pid, gitlab_key):
-  gl = gitlab.Gitlab(gitlab_url, private_token=gitlab_key)
-  return gl.projects.get(pid)
-
-def get_group(gid):
     gl = gitlab.Gitlab(gitlab_url, private_token=gitlab_key)
-    return gl.groups.get(gid)
+    return gl.projects.get(pid)
 
 
 def set_default(obj):
