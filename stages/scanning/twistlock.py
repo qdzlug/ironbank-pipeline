@@ -11,8 +11,6 @@ from time import sleep
 # Postman
 # https://twistlock.spacecamp.ninja/api/v1/registry?name=https://artifactory.spacecamp.ninja/docker/ams/ams-dev-local:latest
 
-MAX_RETRIES = 120
-
 class InvalidTwistlockQuery(Exception): pass
 class InvalidTwistlockResponseFormat(Exception): pass
 class TwistlockTimeout(Exception): pass
@@ -84,7 +82,7 @@ class Twist():
 
 
 
-def twistlock_scan(*, name, tag, username, password, filename, twistlock_api, registry, imageid):
+def twistlock_scan(*, name, tag, username, password, filename, twistlock_api, registry, imageid, timeout):
     twist = Twist( registry = registry,
                    username = username,
                    password = password,
@@ -97,25 +95,22 @@ def twistlock_scan(*, name, tag, username, password, filename, twistlock_api, re
     print(f"Starting Prisma scan for {imageid}")
     twist.add_image(name, tag)
 
-    done = False
-    retries = 0
-    while not done:
-        print(f"Waiting on Prisma scan [{retries}/{MAX_RETRIES}]...")
+    sleep_time = 10
+    retries = int(timeout / sleep_time)
+
+    for n in range(retries):
+        print(f"Waiting {sleep_time} seconds on Prisma scan [{n}/{retries}]...")
         report = twist.query_scan_results(imageid)
 
-        if retries > MAX_RETRIES:
-            raise TwistlockTimeout(f"Maximum retries of {MAX_RETRIES} hit while waiting for Twistlock scan to complete")
-
         if report is None:
-            sleep(10)
-            retries += 1
-
+            sleep(sleep_time)
         else:
-            done = True
-            f = open(filename, 'w')
-            json.dump(report,f)
-            f.close()
+            with open(filename, 'w') as f:
+                json.dump(report, f)
             print("Prisma Report completed")
+            break
+    else:
+        raise TwistlockTimeout(f"Maximum retries of {retries} hit while waiting for Twistlock scan to complete")
 
 
 
@@ -123,14 +118,15 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description = 'DCCSCR processing of CVE reports from various sources')
 
-    parser.add_argument('--name',      help='Name of the image')
-    parser.add_argument('--tag',       help='Image tag')
-    parser.add_argument('--username',  help='Twistlock username')
-    parser.add_argument('--password',  help='Twistlock password')
-    parser.add_argument('--filename',  help='Output file for api response')
-    parser.add_argument('--imageid',   help='Image ID for current image')
-    parser.add_argument('--registry',  help='Nexus URL')
-    parser.add_argument('--api_url',   help='Twistlock URL')
+    parser.add_argument('--name',      help = 'Name of the image')
+    parser.add_argument('--tag',       help = 'Image tag')
+    parser.add_argument('--username',  help = 'Twistlock username')
+    parser.add_argument('--password',  help = 'Twistlock password')
+    parser.add_argument('--filename',  help = 'Output file for api response')
+    parser.add_argument('--imageid',   help = 'Image ID for current image')
+    parser.add_argument('--registry',  help = 'Nexus URL')
+    parser.add_argument('--api_url',   help = 'Twistlock URL')
+    parser.add_argument('--timeout',   help = 'Twistlock scan timeout in seconds', type = int, default = 2400)
     args = parser.parse_args()
 
     twistlock_scan( registry     = args.registry,
@@ -140,4 +136,5 @@ if __name__ == "__main__":
                     username      = args.username,
                     password      = args.password,
                     filename      = args.filename,
-                    imageid       = args.imageid )
+                    imageid       = args.imageid,
+                    timeout       = args.timeout )
