@@ -4,7 +4,7 @@ write json documentation:
   variables:
     #TODO: Put these in globals
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
-    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation/reports
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
     # TODO put back in for full run 
     OPENSCAP_VERSION: ${ARTIFACT_STORAGE}/scan-results/openscap/oscap-version.txt
     TWISTLOCK_VERSION: ""
