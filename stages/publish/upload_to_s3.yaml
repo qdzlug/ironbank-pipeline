@@ -26,6 +26,11 @@ upload to s3:
         report_name=$(echo $file | rev | cut -d/ -f1-2 | rev)
         python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file $file --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/$report_name ;
       done
+    - |
+      for file in $(find ${DOCUMENTATION_DIRECTORY} -name "*" -type f); do
+        report_name=$(echo $file | rev | cut -d/ -f1-2 | rev)
+        python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file $file --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/$report_name ;
+      done
       #    - |
       #      FILES=${SCAN_DIRECTORY}/*
       #      AWS_KEY="${S3_ACCESS_KEY}"

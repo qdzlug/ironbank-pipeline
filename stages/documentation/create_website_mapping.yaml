@@ -14,6 +14,7 @@ create mapping website:
     SIG_FILE: signature  
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
     DOCUMENTATION_FILENAME: documentation.json
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
   dependencies:
     - load scripts
     - build
@@ -29,6 +30,7 @@ create mapping website:
     - export REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}"
     - export S3_HTML_LINK=${S3_REPORT_BUCKET}/${BASE_BUCKET_DIRECTORY}/${CI_PROJECT_NAME}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}
     - export S3_BUCKET_PATH="/${CI_PROJECT_NAME}-${IMG_VERSION}/${REPORT_DIRECTORY}"
+    - mkidr -p ${ARTIFACT_DIR}
   
   script:
     - |
@@ -62,7 +64,8 @@ create mapping website:
         "OVAL_Report": "${OSCAP_SCANS}/report-cve.html"
       ]}
       EOF
-    - cat repo_map.json     
+    - cat repo_map.json
+    - cp repo_map.json ${ARTIFACT_DIR}
     # - export content_type="application/json"
     - echo "Creating new repo_map.json"
     - export date=`date +%Y%m%d`
