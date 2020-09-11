@@ -1,3 +1,12 @@
+#
+# Anchore Scanning stage
+#
+# This stage currently installs anchore-cli and then sets up the environment
+# to access the Anchore instance. The anchore_scan.py script makes use of the
+# environment variables as well to configure access.
+# TODO: Add the Dockerfile with anchore-cli add
+#
+
 anchore scan:
   extends: .scanning
   stage: scanning
@@ -17,6 +26,7 @@ anchore scan:
     # TODO: Configure the anchore-cli path on the runner
     - export ANCHORE_CLI_PATH=$(python3 -m site --user-base)/bin
 
+    # Set up the environment for the anchore-cli commands and anchore_scan.py script
     - export ANCHORE_CLI_URL=${anchore_server_address}
     - export ANCHORE_CLI_USER=${anchore_username}
     - export ANCHORE_CLI_PASS=${anchore_password}
@@ -24,19 +34,14 @@ anchore scan:
     - export ANCHORE_SCAN_DIRECTORY=${ANCHORE_SCANS}
     - export IMAGE_NAME="${REGISTRY1_URL}/ironbank-staging/${IM_NAME}:${IMG_VERSION}"
     - export IMAGE_ID=${IMAGE_ID}
+
   script:
-    - env
     - ${ANCHORE_CLI_PATH}/anchore-cli image add ${IMAGE_NAME}
     - ${ANCHORE_CLI_PATH}/anchore-cli image wait --timeout ${anchore_timeout} ${IMAGE_NAME}
     - python3 ${PIPELINE_REPO_DIR}/stages/scanning/anchore_scan.py
+
   artifacts:
     when: always
     paths:
       - ${ANCHORE_SCANS}/
 
-# Anchore Scanning stage
-#
-# This stage currently installs anchore-cli and then sets up the environment
-# to access the Anchore instance. The anchore_scan.py script makes use of the
-# environment variables as well to configure access.
-# TODO: Add the Dockerfile with anchore-cli add

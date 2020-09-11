@@ -20,6 +20,8 @@ class Anchore():
         self.verify   = verify
         self.image    = image
         self.output   = output
+        if "sha256:" in imageid:
+            imageid = imageid.split(":")[1]
         self.imageid  = imageid
         self.debug    = debug
 
