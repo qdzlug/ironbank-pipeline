@@ -1,6 +1,5 @@
 upload to s3:
-  stage: publish
-  allow_failure: true
+  extends: .publish
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/python:pyyaml
   variables:
     #TODO: Put these in globals
@@ -12,9 +11,9 @@ upload to s3:
     - sign manifest
     - write json documentation
     - create mapping website
+    - load scripts
   before_script:
     - pip install boto3
-    - ls "${PIPELINE_REPO_DIR}/stages/documentation"
     - |
       if [ "${CI_COMMIT_BRANCH}" = "development" ] || [ "${CI_COMMIT_BRANCH}" = "master" ]; then
         export BASE_BUCKET_DIRECTORY="container-scan-reports"

@@ -12,8 +12,6 @@ sign image:
     - echo ${IB_CONTAINER_GPG_KEY} | base64 -d > key
     - mkdir -p tmp_gpg ${ARTIFACT_DIR}
   script:
-    # Upload image to prod Harbor
-    - skopeo copy --src-authfile ${DOCKER_AUTH_CONFIG_STAGING} --dest-authfile ${DOCKER_AUTH_CONFIG_TEST} docker://${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION} docker://${TEST_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}
     # Sign image tar file
     - gpg --homedir ./tmp_gpg --import --batch --passphrase ${IB_CONTAINER_SIG_KEY_PASSPHRASE} key
     - echo "pinentry-mode loopback" >> ./tmp_gpg/gpg.conf

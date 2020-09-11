@@ -1,0 +1,8 @@
+harbor:
+  extends: .publish
+  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/rootless-build:1.3
+  dependencies:
+    - build
+  script:
+    # Upload image to prod Harbor
+    - skopeo copy --src-authfile ${DOCKER_AUTH_CONFIG_STAGING} --dest-authfile ${DOCKER_AUTH_CONFIG_TEST} docker://${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION} docker://${TEST_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}
