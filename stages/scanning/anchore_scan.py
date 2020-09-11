@@ -25,6 +25,7 @@ class Anchore():
 
 
     """
+    Internal debug printer
 
     """
     def __debug(self, msg):
@@ -32,6 +33,8 @@ class Anchore():
             print(msg)
 
     """
+    Internal api response fetcher. Will check for a valid return code and ensure the response
+    has valid json. Once everything has been validated it will return a dictionary of the json.
 
     """
     def __get_anchore_api_json(self, url, payload = ""):
@@ -53,7 +56,7 @@ class Anchore():
                 except:
                     raise Exception("Got 200 response but is not valid JSON")
             else:
-                raise Exception("Non-200 response recieved from Anchore " + str(r.status_code) + " - " + r.text)
+                raise Exception(f"Non-200 response recieved from Anchore {str(r.status_code)} - {r.text}")
         except Exception as err:
             raise err
 
@@ -127,8 +130,8 @@ class Anchore():
         self.__debug(f"Writing to {filename}")
         with open(filename, "w") as f:
             json.dump(body_json, f)
-        imageid = body_json[0][self.digest]["docker.io/" + self.image][0]["detail"]["result"]["image_id"]
-        results = body_json[0][self.digest]["docker.io/" + self.image][0]["detail"]["result"]["result"]
+        imageid = body_json[0][self.digest][self.image][0]["detail"]["result"]["image_id"]
+        results = body_json[0][self.digest][self.image][0]["detail"]["result"]["result"]
 
         results_dict = dict()
 
