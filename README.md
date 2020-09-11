@@ -49,14 +49,14 @@ This stage is used to clone the `ironbank-pipeline` repository from GitLab so th
 The `preflight` stage performs two functions:
 
   - displaying the folder structure for the project which is running through the Container Hardening pipeline. The `folder structure` job will check for the existence of the following files and/or directories within the project which is being run through the pipeline:
-        - README (required file)
-        - Dockerfile (required file)
-        - LICENSE (required file)
-        - download.yaml (file, not always required, which allows external resources to be validated and used in the container build)
-        - scripts (directory, not always required, which stores any script files needed in the container)
-        - signatures (directory, not always required, which contains signatures needed for validation of any repository or external resource files)
-        - config (directory, not always required, which stores any configuration files needed in the container)
-        - accreditation (directory, not always required, which provides information about approved images)
+      - README (required file)
+      - Dockerfile (required file)
+      - LICENSE (required file)
+      - download.yaml (file, not always required, which allows external resources to be validated and used in the container build)
+      - scripts (directory, not always required, which stores any script files needed in the container)
+      - signatures (directory, not always required, which contains signatures needed for validation of any repository or external resource files)
+      - config (directory, not always required, which stores any configuration files needed in the container)
+      - accreditation (directory, not always required, which provides information about approved images)
   - testing/checking the build variables exist using the `build variables` job.
 
 The preflight stage is currently set to allow failures because the `folder structure` job is listing some optional files/directories
