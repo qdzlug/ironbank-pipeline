@@ -19,6 +19,7 @@ def upload_file(file_name, bucket, object_name=None):
 
     extra_args = {
                   'ContentType': 'application/octet-stream'
+                  'ACL': 'private'
                  }
 
     # If S3 object_name was not specified, use file_name

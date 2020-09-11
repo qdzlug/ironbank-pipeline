@@ -1,3 +1,5 @@
+include: /stages/publish/base.yaml
+
 sign image:
   extends: .publish
   image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/all-in-one-fedora:1.0
