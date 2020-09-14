@@ -2,7 +2,7 @@ twistlock scan:
   extends: .scanning
   stage: scanning
   allow_failure: true
-  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
+  image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1
   variables:
     # put all scan outputs in the scan-results folder
     TWISTLOCK_SCANS: ${ARTIFACT_STORAGE}/scan-results/twistlock
@@ -15,21 +15,3 @@ twistlock scan:
     when: always
     paths:
       - ${TWISTLOCK_SCANS}/
-
-# utilize python image
-
-# point to the Twistlock server address
-
-# use twistlock credentials to authenticate
-
-# using the prisma_scan.py file, query the Twistlock server and provide the image of interest and capture scan results
-
-# pass along Twistlock scan results to later stages to publish
-# IF NEEDED....
-# Reference: https://docs.paloaltonetworks.com/prisma/prisma-cloud/prisma-cloud-admin/prisma-cloud-devops-security/use-the-prisma-cloud-extension-for-gitlab/use-the-prisma-cloud-extension-for-gitlab-cicd.html#idf7d64c1c-aea5-495d-bf0c-bef458f3ebf7_ida4742433-4f85-4a4e-a76d-3bd74bff1bc8
-  # PHASE 1
-  # TODO: set the base url for the prisma cloud compute console as the value for prisma_cloud_compute_url in GitLab CI/CD
-  # TODO: set the prisma_cloud_compute_username environment variable in GitLab CI/CD
-  # TODO: set the prisma_cloud_compute_password environment variable in GitLab CI/CD
-  # PHASE 2
-  #

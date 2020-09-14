@@ -46,7 +46,7 @@ This stage is used to clone the `ironbank-pipeline` repository from GitLab so th
 
 #### preflight
 
-The `preflight` stage performs two functions:
+The `preflight` stage performs two functions, which are described below:
 
   - displaying the folder structure for the project which is running through the Container Hardening pipeline. The `folder structure` job will check for the existence of the following files and/or directories within the project which is being run through the pipeline:
       - README (required file)
@@ -57,6 +57,7 @@ The `preflight` stage performs two functions:
       - signatures (directory, not always required, which contains signatures needed for validation of any repository or external resource files)
       - config (directory, not always required, which stores any configuration files needed in the container)
       - accreditation (directory, not always required, which provides information about approved images)
+  
   - testing/checking the build variables exist using the `build variables` job.
 
 The preflight stage is currently set to allow failures because the `folder structure` job is listing some optional files/directories
@@ -94,7 +95,7 @@ The `scanning` stage is comprised of multiple image scanning jobs which run in p
 
 The Anchore scan will generate CVE and compliance-related findings. 
 
-Stage artifacts: 
+Job artifacts: 
 - `anchore-version.txt` - contains the Anchore version which is being used for this job
 - `anchore_api_gates_full.json`
 - `anchore_gates.json`
@@ -102,8 +103,33 @@ Stage artifacts:
 
 ##### openscap compliance 
 
+The OpenSCAP compliance scan will check for any compliance-related findings.
+
+Job artifacts:
+- oscap-version.txt
+- report.html
+- cve-oval.xml
 
 ##### openscap cve
 
+The OpenSCAP CVE scan will check for CVE findings in the image.
+
+Job artifacts:
+- report-cve.html
+- report-cve.xml
 
 ##### twistlock scan
+
+The Twistlock scan will check for CVE findings in the image.
+
+Job artifacts:
+- {img_version}.json
+
+
+#### csv-output
+
+The `csv-output` stage will generate CSV files for the various scans and the `all-scans.xlsx` file. These documents can be found in the artifacts for this stage. 
+
+The generated documents serve two purposes at the moment: 
+- the creation of `all-scans.xlsx` so that Containher Hardening team members can access the list of findings for the container they are working on. This file can be accessed by vendors as well. The `all-scans.xlsx` file is a compilation of the findings generated from the Twistlock, Anchore, and OpenSCAP scans in the `scanning` stage and is used as the location for submitting justifications.
+- the CSV files from each of the scans are used by the VAT. 

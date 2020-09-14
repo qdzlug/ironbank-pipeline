@@ -1,6 +1,6 @@
 .preflight:
   stage: preflight
-  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7
+  image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/docker-git-bash-python:3.7
   
 # TODO: Possibly check for deployment files?
 folder structure:

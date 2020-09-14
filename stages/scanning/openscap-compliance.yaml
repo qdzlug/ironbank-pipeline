@@ -12,7 +12,7 @@ openscap compliance:
     labels: ""
     profile: ""
     securityGuide: ""
-  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
+  image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1
   dependencies: 
     - load scripts
     - build 
