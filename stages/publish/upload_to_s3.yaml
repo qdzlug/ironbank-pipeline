@@ -31,7 +31,7 @@ upload to s3:
       report_name="repo_map.json"
       python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file ${ARTIFACT_STORAGE}/documentation/repo_map.json --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/$report_name
     - |
-      for file in $(find ${DOCUMENTATION_DIRECTORY} -name "*" -type f); do
+      for file in $(find ${DOCUMENTATION_DIRECTORY}/reports/ -name "*" -type f); do
         object_path=$(echo ${file#"$ARTIFACT_STORAGE/documentation/"})
         python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file $file --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_DOCUMENTATION_DIRECTORY}/$object_path ;
       done
