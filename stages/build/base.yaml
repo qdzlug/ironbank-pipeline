@@ -39,5 +39,6 @@ build:
     when: always
     paths:
       - ${ARTIFACT_DIR}/
+    expire_in: 1 week
     reports:
       dotenv: build.env

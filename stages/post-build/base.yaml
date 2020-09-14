@@ -33,3 +33,4 @@ clamav image scan:
     when: always
     paths:
       - ${CLAMAV_SCANS}/
+    expire_in: 1 week
