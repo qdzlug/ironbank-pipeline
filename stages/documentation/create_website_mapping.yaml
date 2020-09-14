@@ -42,7 +42,6 @@ create mapping website:
         "Image_Tag":${IMG_VERSION}, 
         "Image_Path": ${IM_NAME},
         "Image_URL": "${S3_HTML_LINK}",
-        //old header slug would end here but all in same json key
         "Build_Number": ${CI_COMMIT_SHA},
         "Image_Manifest": "${ARTIFACT_STORAGE}/documentation/reports/manifest.json",
         "Manifest_Name":  "manifest.json",
@@ -52,7 +51,7 @@ create mapping website:
         "Tar_Location": "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar",
         "Tar_Name": ${IMAGE_FILE}.tar,
         "OpenSCAP_Compliance_Results": "${ARTIFACT_STORAGE}/scan-results/openscap/oscap.csv",
-        "OpenSCAP_OVAL_Results": "${ARTIFACT_STORAGE}/scan-results/openscap/oval.csv",
+        "OpenSCAP_OVAL_Results": "${ARTIFACT_STORAGE}/scan-results/openscap-cve/oval.csv",
         "TwistLock_Results": "${TWISTLOCK_SCANS}/tl.csv"
         "Anchore_Gates_Results": "${ANCHORE_SCANS}/anchore_gates.csv",
         "Anchore_Security_Results": "${ANCHORE_SCANS}/anchore_security.csv",
