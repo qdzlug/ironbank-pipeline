@@ -22,7 +22,7 @@ create mapping website:
     - openscap cve
     - twistlock scan
     - anchore scan
-    - lint
+    - wl compare lint
   before_script:
     - |
       if [ "${CI_COMMIT_BRANCH}" == "master" ]; then
