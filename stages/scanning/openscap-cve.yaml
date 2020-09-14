@@ -51,3 +51,4 @@ openscap cve:
     paths:
       - ${ARTIFACT_DIR}/report-cve.html
       - ${ARTIFACT_DIR}/report-cve.xml
+    expire_in: 1 week

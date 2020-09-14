@@ -58,3 +58,4 @@ openscap compliance:
       - ${OSCAP_SCANS}/oscap-version.txt
       - ${OSCAP_SCANS}/report.html
       - ${OSCAP_SCANS}/cve-oval.xml
+    expire_in: 1 week

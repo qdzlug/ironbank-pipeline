@@ -57,4 +57,5 @@ anchore scan:
     when: always
     paths:
       - ${ANCHORE_SCANS}/
+    expire_in: 1 week
 

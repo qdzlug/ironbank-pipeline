@@ -21,3 +21,4 @@ csv-output:
     when: always
     paths:
       - ${CSV_REPORT}
+    expire_in: 1 week

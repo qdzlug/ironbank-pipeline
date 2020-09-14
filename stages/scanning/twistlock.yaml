@@ -15,3 +15,4 @@ twistlock scan:
     when: always
     paths:
       - ${TWISTLOCK_SCANS}/
+    expire_in: 1 week
