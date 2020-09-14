@@ -51,7 +51,7 @@ create mapping website:
         "Tar_Location": "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar",
         "Tar_Name": ${IMAGE_FILE}.tar,
         "OpenSCAP_Compliance_Results": "${ARTIFACT_STORAGE}/scan-results/openscap/oscap.csv",
-        "OpenSCAP_OVAL_Results": "${ARTIFACT_STORAGE}/scan-results/openscap-cve/oval.csv",
+        "OpenSCAP_OVAL_Results": "${ARTIFACT_STORAGE}/scan-results/openscap/oval.csv",
         "TwistLock_Results": "${TWISTLOCK_SCANS}/tl.csv"
         "Anchore_Gates_Results": "${ANCHORE_SCANS}/anchore_gates.csv",
         "Anchore_Security_Results": "${ANCHORE_SCANS}/anchore_security.csv",
