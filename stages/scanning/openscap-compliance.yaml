@@ -6,7 +6,6 @@ openscap compliance:
       - $DISTROLESS
   variables:
     OSCAP_SCANS: ${ARTIFACT_STORAGE}/scan-results/openscap 
-    OSCAP_VERSION: ""
     OSCAP_FILENAME: ${OSCAP_HTML_FILENAME}
     base_image_type: "" 
     labels: ""
@@ -34,7 +33,6 @@ openscap compliance:
             exit 1
           fi
         fi
-    - base_image_type="ubi7-container"
     - export oscap_container=`python3 ${PIPELINE_REPO_DIR}/stages/scanning/compliance.py --oscap-version $OSCAP_VERSION --image-type ${base_image_type}`
     - export oscap_container=`echo ${oscap_container} | sed s/\'/\"/g`
     - echo "${oscap_container}"
