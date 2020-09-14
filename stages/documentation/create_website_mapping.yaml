@@ -22,13 +22,15 @@ create mapping website:
     - openscap cve
     - twistlock scan
     - anchore scan
+    - lint
   before_script:
     - |
-      if [ "${CI_COMMIT_BRANCH}" == "development"] || [ "${CI_COMMIT_BRANCH}" == "master" ]; then
+      if [ "${CI_COMMIT_BRANCH}" == "master" ]; then
         export BASE_BUCKET_DIRECTORY="container-scan-reports"
       fi
     - export REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}"
     - export S3_HTML_LINK=${S3_REPORT_BUCKET}/${BASE_BUCKET_DIRECTORY}/${CI_PROJECT_NAME}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}
+    - GPG_PUB_KEY=$(awk '{printf "%s\\n", $0}' ${IB_CONTAINER_GPG_PUBKEY})
     - export S3_BUCKET_PATH="/${CI_PROJECT_NAME}-${IMG_VERSION}/${REPORT_DIRECTORY}"
     - mkdir -p ${ARTIFACT_DIR}
   
@@ -36,22 +38,22 @@ create mapping website:
     - |
       cat <<EOF > repo_map.json
       {[
-        "Repo_Name": ${CI_PROJECT_DIR},
-        "Approval_Status": ${IMAGE_APPROVAL_STATUS},
-        "Public_Key": $(cat ${IB_CONTAINER_GPG_PUBKEY}),
-        "Image_Sha": ${IMAGE_ID},
-        "Image_Name": ${IM_NAME},
-        "Image_Tag":${IMG_VERSION}, 
-        "Image_Path": ${IM_NAME},
+        "Repo_Name": "${CI_PROJECT_DIR}",
+        "Approval_Status": "${IMAGE_APPROVAL_STATUS}",
+        "Public_Key": "${GPG_PUB_KEY}",
+        "Image_Sha": "${IMAGE_ID}",
+        "Image_Name": "${IM_NAME}",
+        "Image_Tag": "${IMG_VERSION}", 
+        "Image_Path": "${IM_NAME}",
         "Image_URL": "${S3_HTML_LINK}",
-        "Build_Number": ${CI_COMMIT_SHA},
+        "Build_Number": "${CI_COMMIT_SHA}",
         "Image_Manifest": "${ARTIFACT_STORAGE}/documentation/reports/manifest.json",
         "Manifest_Name":  "manifest.json",
         "PGP_Signature":   "${ARTIFACT_STORAGE}/documentation/reports/${SIG_FILE}.sig",
         "Signature_Name":  "${SIG_FILE}",
         "Version_Documentation": "${S3_BUCKET_PATH}/${DOCUMENTATION_FILENAME}",
         "Tar_Location": "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar",
-        "Tar_Name": ${IMAGE_FILE}.tar,
+        "Tar_Name": "${IMAGE_FILE}.tar",
         "OpenSCAP_Compliance_Results": "${ARTIFACT_STORAGE}/scan-results/openscap/oscap.csv",
         "OpenSCAP_OVAL_Results": "${ARTIFACT_STORAGE}/scan-results/openscap-cve/oval.csv",
         "TwistLock_Results": "${TWISTLOCK_SCANS}/tl.csv"
@@ -65,24 +67,6 @@ create mapping website:
       EOF
     - cat repo_map.json
     - cp repo_map.json ${ARTIFACT_DIR}
-    # - export content_type="application/json"
-    #- echo "Creating new repo_map.json"
-    #- export date=`date +%Y%m%d`
-    #- export dateFormatted=`date -R`
-    #- export fileName="repo_map.json"
-    #- export relativePath="/${S3_REPORT_BUCKET}/${fileName}"
-    #- export contentType="application/octet-stream"
-    #- export stringToSign="PUT\n\n${contentType}\n${dateFormatted}\n${relativePath}"
-    #- export s3AccessKey="${S3_ACCESS_KEY}"
-    #- export s3SecretKey="${S3_SECRET_KEY}"
-    #- export signature=`echo -en ${stringToSign} | openssl sha1 -hmac ${S3_SECRET_KEY} -binary | base64`
-    #- | 
-    #  curl -X PUT -T "${fileName}" \
-    #  -H "Host: ${S3_REPORT_BUCKET}.s3-us-gov-west-1.amazonaws.com" \
-    #  -H "Date: ${dateFormatted}" \
-    #  -H "Content-Type: ${contentType}" \
-    #  -H "Authorization: AWS ${S3_ACCESS_KEY}:${signature}" \
-    #  http://${S3_REPORT_BUCKET}.s3-us-gov-west-1.amazonaws.com/${S3_HTML_LINK}/${fileName}
   artifacts:
     when: always
     paths: 

@@ -17,6 +17,7 @@ def upload_file(file_name, bucket, object_name=None):
     access_key = os.environ["S3_ACCESS_KEY"]
     secret_key = os.environ["S3_SECRET_KEY"]
 
+    #TODO: Add signature
     extra_args = {
                   'ContentType': 'application/octet-stream',
                   'ACL': 'private'
