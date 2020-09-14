@@ -35,7 +35,7 @@ openscap compliance:
           fi
         fi
     - base_image_type="ubi7-container"
-    - export oscap_container=`python3 ${PIPELINE_REPO_DIR}/stages/scanning/compliance.py`
+    - export oscap_container=`python3 ${PIPELINE_REPO_DIR}/stages/scanning/compliance.py --oscap-version $OSCAP_VERSION --image-type ${base_image_type}`
     - export oscap_container=`echo ${oscap_container} | sed s/\'/\"/g`
     - echo "${oscap_container}"
     - curl -L https://github.com/ComplianceAsCode/content/releases/download/v${OSCAP_VERSION}/scap-security-guide-${OSCAP_VERSION}.zip -o scap-security-guide.zip
