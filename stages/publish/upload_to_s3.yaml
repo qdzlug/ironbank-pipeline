@@ -4,8 +4,8 @@ upload to s3:
   variables:
     #TODO: Put these in globals
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
-    SCAN_DIRECTORY: ${ARTIFACT_STORAGE}/scan-results/
-    DOCUMENTATION_DIRECTORY: ${ARTIFACT_STORAGE}/documentation/
+    SCAN_DIRECTORY: ${ARTIFACT_STORAGE}/scan-results
+    DOCUMENTATION_DIRECTORY: ${ARTIFACT_STORAGE}/documentation
     BASE_BUCKET_DIRECTORY: "testing/container-scan-reports"
   dependencies:
     - sign image
