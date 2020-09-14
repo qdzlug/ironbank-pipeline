@@ -56,6 +56,4 @@ openscap compliance:
   artifacts:
     when: always
     paths:  
-      - ${OSCAP_SCANS}/oscap-version.txt
-      - ${OSCAP_SCANS}/report.html
-      - ${OSCAP_SCANS}/cve-oval.xml
+      - ${OSCAP_SCANS}

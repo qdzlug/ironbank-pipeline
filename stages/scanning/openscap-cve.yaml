@@ -49,5 +49,4 @@ openscap cve:
   artifacts:
     when: always
     paths:
-      - ${ARTIFACT_DIR}/report-cve.html
-      - ${ARTIFACT_DIR}/report-cve.xml
+      - ${ARTIFACT_DIR}
