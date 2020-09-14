@@ -2,7 +2,7 @@ twistlock scan:
   extends: .scanning
   stage: scanning
   allow_failure: true
-  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/jenkins-oscap-agent:1.1
+  image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1
   variables:
     # put all scan outputs in the scan-results folder
     TWISTLOCK_SCANS: ${ARTIFACT_STORAGE}/scan-results/twistlock
