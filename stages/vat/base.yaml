@@ -1,6 +1,6 @@
 vat:
   stage: vat
-  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/python:pyyaml
+  image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml
   allow_failure: true
   variables:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/scan-results/csv-output/

@@ -4,7 +4,7 @@ include:
 # clone templates repo as an artifact so it can be used with other jobs
 load scripts:
   extends: .preprocess
-  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/docker-git-bash-python:3.7
+  image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/docker-git-bash-python:3.7
   cache: {}
   script:
     - mkdir -p "${PIPELINE_REPO_DIR}"

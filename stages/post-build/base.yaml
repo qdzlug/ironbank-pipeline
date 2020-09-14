@@ -1,7 +1,7 @@
 clamav image scan:
   stage: post-build
   allow_failure: true
-  image: ${GITLAB_INTERNAL_REGISTRY}/dsop/ironbank-pipeline/clamav-podman:temp
+  image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/clamav-podman:temp
   dependencies:
     - build
   variables:
