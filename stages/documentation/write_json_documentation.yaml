@@ -86,7 +86,7 @@ write json documentation:
       }
       EOF
     - cat documentation.json
-    - mv documentation.json ${ARTIFACT_DIR}/reports/
+    - mv documentation.json ${ARTIFACT_DIR}/reports
     # Stage manifest for upload
   artifacts:
     when: always
