@@ -1,5 +1,5 @@
-csv-output:
-  stage: csv-output
+csv output:
+  stage: csv output
   allow_failure: true
   image: ${REGISTRY_URL}/redhat/python/python36:3.6
   dependencies:
