@@ -7,10 +7,6 @@ openscap compliance:
   variables:
     OSCAP_SCANS: ${ARTIFACT_STORAGE}/scan-results/openscap 
     OSCAP_FILENAME: ${OSCAP_HTML_FILENAME}
-    base_image_type: "" 
-    labels: ""
-    profile: ""
-    securityGuide: ""
   image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1
   dependencies: 
     - load scripts
@@ -21,32 +17,27 @@ openscap compliance:
     - echo ${DOCKER_IMAGE_PATH}
     - OSCAP_VERSION=`curl -fsSLI -o /dev/null -w %{url_effective} https://github.com/ComplianceAsCode/content/releases/latest | grep -Eo "[0-9\\.]+$" | awk '{$1=$1};1'`
     - echo "${OSCAP_VERSION}" >> build.env
-    - base_image_type=`podman inspect -f '{{index .Labels "com.redhat.component"}}' ${DOCKER_IMAGE_PATH} | awk '{$1=$1};1'`
+    - base_image_type=$(podman inspect -f '{{index .Labels "com.redhat.component"}}' ${DOCKER_IMAGE_PATH})
   script:
     - |
-      base_image_type=$(podman inspect -f '{{index .Labels "com.redhat.component"}}' ${DOCKER_IMAGE_PATH})
-        if [[ $base_image_type == "" ]]; then
-          base_image_type=$(podman inspect -f '{{index .Labels "os_type"}}' ${DOCKER_IMAGE_PATH})
-          if [[ $base_image_type == "" ]]; then 
-            labels=$(podman inspect -f '{{index .Labels}}' ${DOCKER_IMAGE_PATH})
-            echo "Unknown image type. Can't choose security guide. labels: $labels"
-            exit 1
-          fi
+      if [[ $base_image_type == "" ]]; then
+        base_image_type=$(podman inspect -f '{{index .Labels "os_type"}}' ${DOCKER_IMAGE_PATH})
+        if [[ $base_image_type == "" ]]; then 
+          labels=$(podman inspect -f '{{index .Labels}}' ${DOCKER_IMAGE_PATH})
+          echo "Unknown image type. Can't choose security guide. labels: $labels"
+          exit 1
         fi
-    - export oscap_container=`python3 ${PIPELINE_REPO_DIR}/stages/scanning/compliance.py --oscap-version $OSCAP_VERSION --image-type ${base_image_type}`
-    - export oscap_container=`echo ${oscap_container} | sed s/\'/\"/g`
+      fi
+    - export oscap_container=`python3 ${PIPELINE_REPO_DIR}/stages/scanning/compliance.py --oscap-version $OSCAP_VERSION --image-type ${base_image_type} | sed s/\'/\"/g`
     - echo "${oscap_container}"
     - curl -L https://github.com/ComplianceAsCode/content/releases/download/v${OSCAP_VERSION}/scap-security-guide-${OSCAP_VERSION}.zip -o scap-security-guide.zip
     - unzip -qq -o scap-security-guide.zip
-    - |
-       export profile=`echo ${oscap_container} | grep -o '"profile": "[^"]*'| grep -o '[^"]*$'` 
-    - |   
-       export securityGuide=`echo ${oscap_container} | grep -o '"securityGuide": "[^"]*'| grep -o '[^"]*$'`
+    - export profile=`echo ${oscap_container} | grep -o '"profile": "[^"]*'| grep -o '[^"]*$'` 
+    - export securityGuide=`echo ${oscap_container} | grep -o '"securityGuide": "[^"]*'| grep -o '[^"]*$'`
     - echo ${profile}
     - echo ${securityGuide}
     - export securityGuide=`echo ${securityGuide} | sed "s/{OSCAP_VERSION}/$OSCAP_VERSION/g"`
-    - export IM_ID=$(podman inspect --format="{{.Id}}" ${DOCKER_IMAGE_PATH})
-    - oscap-podman ${DOCKER_IMAGE_PATH} xccdf eval --profile ${profile} --report report.html ${securityGuide}
+    - oscap-podman ${DOCKER_IMAGE_PATH} xccdf eval --profile ${profile} --report report.html ${securityGuide} --verbose DEVEL
     - rm -rf scap-security-guide.zip scap-security-guide-${OSCAP_VERSION}
     - openScapVersionDump=`oscap -V`
     - openScapVersion=`echo $openScapVersionDump | sed -ne 's/[^0-9]*\(\([0-9]\.\)\{0,4\}[0-9][^.]\).*/\1/p'`
