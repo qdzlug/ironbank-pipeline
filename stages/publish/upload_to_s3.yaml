@@ -43,12 +43,6 @@ upload to s3:
         echo $file
         python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file $file --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/$report_name ;
       done
-    - |
-      for file in $(find ${CSV_DIRECTORY} -name "*" -type f); do
-        report_name=$(echo $file | rev | cut -d/ -f1-2 | rev)
-        echo $file
-        python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file $file --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/$report_name ;
-      done
       #NOTE: keeping this around until we determine if we need to keep the signature generation in the upload to s3 via s3_upload.py
       #    - |
       #      FILES=${SCAN_DIRECTORY}/*
