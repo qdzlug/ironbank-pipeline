@@ -15,7 +15,7 @@
 For most projects, add the following block to the `.gitlab-ci.yml` file in the project in order to do this:
 ```
 include:
-  - project: 'dsop/ironbank-pipeline'
+  - project: 'ironbank-tools/ironbank-pipeline'
     file: '/templates/default.yaml'
 ```
 The `default` template will allow images based on UBI to run through the required pipeline steps (whether the image directly uses an UBI base image for its base image, or by using an approved IronBank container with a base UBI image for its base image).
@@ -23,13 +23,13 @@ The `default` template will allow images based on UBI to run through the require
 Containers which utilize the distroless base image should instead use the following block in the project's `.gitlab-ci.yml` file:
 ```
 include:
-  - project: 'dsop/ironbank-pipeline'
+  - project: 'ironbank-tools/ironbank-pipeline'
     file: '/templates/distroless.yaml'
 ```
 This will omit the OpenSCAP scan jobs from the pipeline. OSCAP scanning is not compatible with containers built on distroless base images.
 
 
-- Contributors will also need to provide the current image version of the container which is being built in the project's `.gitlab-ci.yml` file using the `IMG_VERSION` variable. 
+- Contributors will also need to provide the current image version of the container which is being built in the project's `.gitlab-ci.yml` file using the `IMG_VERSION` variable.
 
 For example, if the current container version is 2.0.1, the contributor would add the following to the project's `.gitlab-ci.yml` file:
 ```
@@ -57,7 +57,7 @@ The `preflight` stage performs two functions, which are described below:
       - signatures (directory, not always required, which contains signatures needed for validation of any repository or external resource files)
       - config (directory, not always required, which stores any configuration files needed in the container)
       - accreditation (directory, not always required, which provides information about approved images)
-  
+
   - testing/checking the build variables exist using the `build variables` job.
 
 The preflight stage is currently set to allow failures because the `folder structure` job is listing some optional files/directories
@@ -66,13 +66,13 @@ The preflight stage is currently set to allow failures because the `folder struc
 
 The `lint` stage contains multiple jobs and is used to ensure the formatting used in various project files is valid.
 
-The `yaml lint` and `dockerfile lint` jobs are used to ensure the proper formatting of the following files in each project: `.gitlab-ci.yml`, `download.yaml`/`download.json` file, and `Dockerfile`. 
+The `yaml lint` and `dockerfile lint` jobs are used to ensure the proper formatting of the following files in each project: `.gitlab-ci.yml`, `download.yaml`/`download.json` file, and `Dockerfile`.
 
 The `wl compare lint` job ensures that the pipeline run will fail on any branch if the repository structure is incorrect, or if the greylist files can't be retrieved or have a mismatched image name/tag.
 
 #### import artifacts
 
-The `import artifacts` stage will import any external resources (resources from the internet) provided in the `download.yaml` file for use during the container build. The `import artifacts` stage will download the external resources and validate that the checksums calculated upon download match the checksums provided in the `download.yaml` file. 
+The `import artifacts` stage will import any external resources (resources from the internet) provided in the `download.yaml` file for use during the container build. The `import artifacts` stage will download the external resources and validate that the checksums calculated upon download match the checksums provided in the `download.yaml` file.
 
 Assuming this stage validates that the external resources are indeed the ones intended to be used within the container build, it passes along the external resources as artifacts in order to be used in the later `scan-artifacts` and `build` stages.
 
@@ -93,15 +93,15 @@ The `scanning` stage is comprised of multiple image scanning jobs which run in p
 
 ##### anchore scan
 
-The Anchore scan will generate CVE and compliance-related findings. 
+The Anchore scan will generate CVE and compliance-related findings.
 
-Job artifacts: 
+Job artifacts:
 - `anchore-version.txt` - contains the Anchore version which is being used for this job
 - `anchore_api_gates_full.json`
 - `anchore_gates.json`
 - `anchore_security.json`
 
-##### openscap compliance 
+##### openscap compliance
 
 The OpenSCAP compliance scan will check for any compliance-related findings.
 
@@ -128,8 +128,8 @@ Job artifacts:
 
 #### csv-output
 
-The `csv-output` stage will generate CSV files for the various scans and the `all-scans.xlsx` file. These documents can be found in the artifacts for this stage. 
+The `csv-output` stage will generate CSV files for the various scans and the `all-scans.xlsx` file. These documents can be found in the artifacts for this stage.
 
-The generated documents serve two purposes at the moment: 
+The generated documents serve two purposes at the moment:
 - the creation of `all-scans.xlsx` so that Containher Hardening team members can access the list of findings for the container they are working on. This file can be accessed by vendors as well. The `all-scans.xlsx` file is a compilation of the findings generated from the Twistlock, Anchore, and OpenSCAP scans in the `scanning` stage and is used as the location for submitting justifications.
-- the CSV files from each of the scans are used by the VAT. 
+- the CSV files from each of the scans are used by the VAT.
