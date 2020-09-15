@@ -39,7 +39,7 @@ create mapping website:
         "Image_Tag": "${IMG_VERSION}", 
         "Image_Path": "${REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}",
         "Image_URL": "${S3_HTML_LINK}",
-        "Build_Number": "${CI_COMMIT_SHA}",
+        "Build_Number": "${CI_PIPELINE_ID}",
         "Image_Manifest": "${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/manifest.json",
         "Manifest_Name": "manifest.json",
         "PGP_Signature": "${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${SIG_FILE}.sig",
