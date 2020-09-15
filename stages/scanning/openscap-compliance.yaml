@@ -22,7 +22,7 @@ openscap compliance:
     - |
       if [[ $base_image_type == "" ]]; then
         base_image_type=$(podman inspect -f '{{index .Labels "os_type"}}' ${DOCKER_IMAGE_PATH})
-        if [[ $base_image_type == "" ]]; then
+        if [[ $base_image_type == "" ]]; then 
           labels=$(podman inspect -f '{{index .Labels}}' ${DOCKER_IMAGE_PATH})
           echo "Unknown image type. Can't choose security guide. labels: $labels"
           exit 1
@@ -39,13 +39,9 @@ openscap compliance:
     - echo ${profile}
     - echo ${securityGuide}
     - export securityGuide=`echo ${securityGuide} | sed "s/{OSCAP_VERSION}/$OSCAP_VERSION/g"`
-    # - |
-    #   { SUCCESS=0; oscap-podman ${DOCKER_IMAGE_PATH} xccdf eval --verbose ERROR --fetch-remote-resources --profile ${profile} --report report.html ${securityGuide} || SUCCESS=$?; }
     - |
-      oscap-podman ${DOCKER_IMAGE_PATH} xccdf eval --verbose ERROR \
-      --profile ${profile} \
-      --report report.html \
-      ${securityGuide} || ls report.html
+      { SUCCESS=0; oscap-podman ${DOCKER_IMAGE_PATH} xccdf eval --verbose ERROR --fetch-remote-resources --profile ${profile} --report report.html ${securityGuide} || SUCCESS=$?; }
+    -  ls report.html
     - rm -rf scap-security-guide.zip scap-security-guide-${OSCAP_VERSION}
     - openScapVersionDump=`oscap -V`
     - openScapVersion=`echo $openScapVersionDump | sed -ne 's/[^0-9]*\(\([0-9]\.\)\{0,4\}[0-9][^.]\).*/\1/p'`

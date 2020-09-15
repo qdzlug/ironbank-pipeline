@@ -43,12 +43,10 @@ openscap cve:
       fi
 
     - oscap --v
-    - oscap-podman ${DOCKER_IMAGE_PATH} oval eval --results ${ARTIFACT_DIR}/${OSCAP_CVE_XML_FILENAME} --report ${ARTIFACT_DIR}/${OSCAP_CVE_HTML_FILENAME} cve-oval.xml > /dev/null
+    - oscap-podman ${DOCKER_IMAGE_PATH} oval eval --results ${ARTIFACT_DIR}/${OSCAP_CVE_XML_FILENAME} --report ${ARTIFACT_DIR}/${OSCAP_CVE_HTML_FILENAME} cve-oval.xml
     - rm -rf cve-oval.xml
         
   artifacts:
     when: always
     paths:
-      - ${ARTIFACT_DIR}/report-cve.html
-      - ${ARTIFACT_DIR}/report-cve.xml
-    expire_in: 1 week
+      - ${ARTIFACT_DIR}
