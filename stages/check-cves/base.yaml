@@ -9,7 +9,7 @@ check cves:
     - openscap compliance
     - anchore scan
   variables:
-    CHECK_CVE_RESULTS: ${ARTIFACT_STORAGE}/check-cves
+    CHECK_CVE_RESULTS: ${ARTIFACT_STORAGE}/csvs
   before_script:
     - repo_path="${CI_PROJECT_DIR}"
     - wl_image_path=$(echo ${CI_PROJECT_PATH} | sed -e 's/.*dsop\/\(.*\)/\1/')
