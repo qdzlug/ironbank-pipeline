@@ -39,7 +39,7 @@ openscap compliance:
     - echo ${profile}
     - echo ${securityGuide}
     - export securityGuide=`echo ${securityGuide} | sed "s/{OSCAP_VERSION}/$OSCAP_VERSION/g"`
-    - oscap-podman ${DOCKER_IMAGE_PATH} xccdf eval --verbose DEVEL --fetch-remote-resources --profile ${profile} --report report.html ${securityGuide}
+    - { SUCCESS=0; oscap-podman ${DOCKER_IMAGE_PATH} xccdf eval --verbose ERROR --fetch-remote-resources --profile ${profile} --report report.html ${securityGuide} || SUCESS=$?; }
     - rm -rf scap-security-guide.zip scap-security-guide-${OSCAP_VERSION}
     - openScapVersionDump=`oscap -V`
     - openScapVersion=`echo $openScapVersionDump | sed -ne 's/[^0-9]*\(\([0-9]\.\)\{0,4\}[0-9][^.]\).*/\1/p'`
