@@ -4,15 +4,14 @@ create mapping website:
   variables:
     #TODO: Put these in globals
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
-    BASE_BUCKET_DIRECTORY: "testing/container-scan-reports" 
+    BASE_BUCKET_DIRECTORY: "testing/container-scan-reports"
     AWS_KEY: ${S3_ACCESS_KEY}
     AWS_SECRET: ${S3_SECRET_KEY}
     OSCAP_SCANS: ${ARTIFACT_STORAGE}/scanning/openscap
     CSV_REPORT: ${ARTIFACT_STORAGE}/scan-results/csv-output
     ANCHORE_SCANS: ${ARTIFACT_STORAGE}/scan-results/anchore
     TWISTLOCK_SCANS: ${ARTIFACT_STORAGE}/scan-results/twistlock
-    SIG_FILE: signature  
-    IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
+    SIG_FILE: signature
     DOCUMENTATION_FILENAME: documentation.json
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
   dependencies:
@@ -36,7 +35,7 @@ create mapping website:
   
   script:
     - |
-      cat <<EOF > repo_map.json
+      cat <<EOF > "${ARTIFACT_DIR}/repo_map.json"
       {[
         "Repo_Name": "${CI_PROJECT_DIR}",
         "Approval_Status": "${IMAGE_APPROVAL_STATUS}",
@@ -65,8 +64,7 @@ create mapping website:
         "OVAL_Report": "${OSCAP_SCANS}/report-cve.html"
       ]}
       EOF
-    - cat repo_map.json
-    - cp repo_map.json ${ARTIFACT_DIR}
+    - cat "${ARTIFACT_DIR}/repo_map.json"
   artifacts:
     when: always
     paths: 

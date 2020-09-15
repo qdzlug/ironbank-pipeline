@@ -3,13 +3,18 @@ twistlock scan:
   stage: scanning
   allow_failure: true
   image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1
+  dependencies:
+    - load scripts
+    - build
   variables:
     # put all scan outputs in the scan-results folder
     TWISTLOCK_SCANS: ${ARTIFACT_STORAGE}/scan-results/twistlock
   before_script:
     - mkdir -p "${TWISTLOCK_SCANS}"
   script:
-    - python3 ${PIPELINE_REPO_DIR}/stages/scanning/twistlock.py --registry=${REGISTRY1_URL} --api_url=${twistlock_server_address}/api/v1 --name=ironbank-staging/${IM_NAME} --tag=${IMG_VERSION} --username=${twistlock_user} --password=${twistlock_password} --filename=${TWISTLOCK_SCANS}/${IMG_VERSION}.json --imageid=${IMAGE_ID} --timeout ${twistlock_timeout}
+  - set -x
+  - python3 ${PIPELINE_REPO_DIR}/stages/scanning/twistlock.py --registry=${REGISTRY1_URL} --api_url=${twistlock_server_address}/api/v1 --name=ironbank-staging/${IM_NAME} --tag=${IMG_VERSION}-${CI_COMMIT_SHORT_SHA} --username=${twistlock_user} --password=${twistlock_password} --filename=${TWISTLOCK_SCANS}/${IMG_VERSION}.json --imageid=${IMAGE_ID} --timeout ${twistlock_timeout}
+  - set +x
 
   artifacts:
     when: always
