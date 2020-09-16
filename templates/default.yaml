@@ -26,4 +26,4 @@ include:
   - local: stages/vat/base.yaml
 
 variables:
-  IMG_VERSION: "$(python3 ${PIPELINE_REPO_DIR}/templates/version.py)"
+  IMG_VERSION: $(python3 ${PIPELINE_REPO_DIR}/templates/version.py)
