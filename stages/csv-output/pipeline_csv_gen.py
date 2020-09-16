@@ -93,6 +93,7 @@ def convert_to_excel():
 
 #Blank OSCAP Report
 def generate_blank_oscap_report():
+    print('DEBUG: ' + str(csv_dir))
     oscap_report = open(csv_dir + 'oscap.csv', 'w', encoding="utf-8")
     csv_writer = csv.writer(oscap_report)
     csv_writer.writerow(['','','','','','','','',''])
