@@ -17,17 +17,23 @@ import argparse
 
 def parse_jenkins():
     print("Jenkinsfile exists, attempting to extract image version")
-    version_regex = r"(?<=version:)[ \t]+((?<![\\])['\"])((?:.(?!(?<![\\])\1))*.?)\1"
+    version_regex = r"(?<=version:)[ \t]+((?<![\\])['\"])((?:.(?!(?<![\\])\1))*.?)"
 
     with open("Jenkinsfile", "r") as jf:
         for line in jf:
             v = re.search(version_regex, line)
             if v is None:
                 continue
-            v = v.group().strip()
-            # Ensure consistency with quotations
+
+            # Python re module does not support dynamic length for a look-behind
+            # no capture expression so the spaces (that I found at least) so the
+            # leading spaces will be captured. Also the beginning quote is used
+            # as the back-reference group so it will be captured. Strip the
+            # whitespace and remove the beginning quote.
+            v = v.group().strip()[1:]
+
             print(f"Discovered version: {v}")
-            return "\"" + v[1:-1] + "\""
+            return v
 
     return None
 
