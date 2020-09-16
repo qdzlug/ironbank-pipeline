@@ -7,11 +7,12 @@ load scripts:
   image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/docker-git-bash-python:3.7
   cache: {}
   script:
-    - echo "${IMG_VERSION}"
     - mkdir -p "${PIPELINE_REPO_DIR}"
     - git clone -q --depth 1 --branch "${TARGET_BRANCH}" "https://repo1.dsop.io/ironbank-tools/ironbank-pipeline.git" "${PIPELINE_REPO_DIR}"
     - rm -rf "${PIPELINE_REPO_DIR}/.git"
+    - python3 "${PIPELINE_REPO_DIR/stages/preprocess/version.py" >> "set_image_version.sh"
   artifacts:
     expire_in: 1 day
     paths:
       - "${PIPELINE_REPO_DIR}"
+      - "set_image_version.sh"

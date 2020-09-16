@@ -24,6 +24,3 @@ include:
   - local: stages/publish/base.yaml
 
   - local: stages/vat/base.yaml
-
-variables:
-  IMG_VERSION: $(python3 ${PIPELINE_REPO_DIR}/templates/version.py)
