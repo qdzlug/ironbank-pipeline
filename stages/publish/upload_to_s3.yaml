@@ -64,3 +64,4 @@ upload to s3:
       #      -H "$acl" \
       #      -H "Authorization: AWS ${AWS_KEY}:$signature" \
       #      "https://$bucket.s3.amazonaws.com$bucket_path$file"
+

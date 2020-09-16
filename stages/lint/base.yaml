@@ -2,7 +2,8 @@
   stage: lint
   image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1
   allow_failure: true
-  dependencies: []
+  dependencies:
+    - load scripts
   artifacts:
     when: always
     expire_in: 1 week
@@ -46,7 +47,7 @@ wl compare lint:
   dependencies:
     - load scripts
   script:
-    # The following step assumes contributor projects have an environment variable set for the image version 
+    # The following step assumes contributor projects have an environment variable set for the image version
     # in the gitlab-ci.yml file.
     # TODO: output the error for unsuccessful runs
     - touch lint.env
@@ -56,3 +57,4 @@ wl compare lint:
     paths: []
     reports:
       dotenv: lint.env
+

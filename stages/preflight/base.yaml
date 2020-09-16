@@ -2,8 +2,10 @@
   stage: preflight
   image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/docker-git-bash-python:3.7
 
+  # Load in the IMG_VERSION variable from the load scripts env
   dependencies:
     - load scripts
+
 # TODO: Possibly check for deployment files?
 folder structure:
   extends: .preflight
@@ -28,10 +30,4 @@ build variables:
         echo "Missing IMG_VERSION variable in .gitlab-ci.yml file"
         exit 1
       fi
-    - |
-      if [ -z "$IMAGE_VERSION" ]; then
-        echo "Missing IMAGE_VERSION variable in environment"
-        exit 1
-      fi
-      echo "IMAGE_VERSION: ${IMAGE_VERSION}"
 

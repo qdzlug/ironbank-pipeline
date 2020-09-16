@@ -32,7 +32,7 @@ create mapping website:
     - GPG_PUB_KEY=$(awk '{printf "%s\\n", $0}' ${IB_CONTAINER_GPG_PUBKEY})
     - export S3_BUCKET_PATH="/${CI_PROJECT_NAME}-${IMG_VERSION}/${REPORT_DIRECTORY}"
     - mkdir -p ${ARTIFACT_DIR}
-  
+
   script:
     - |
       cat <<EOF > "${ARTIFACT_DIR}/repo_map.json"
@@ -42,7 +42,7 @@ create mapping website:
         "Public_Key": "${GPG_PUB_KEY}",
         "Image_Sha": "${IMAGE_ID}",
         "Image_Name": "${IM_NAME}",
-        "Image_Tag": "${IMG_VERSION}", 
+        "Image_Tag": "${IMG_VERSION}",
         "Image_Path": "${IM_NAME}",
         "Image_URL": "${S3_HTML_LINK}",
         "Build_Number": "${CI_COMMIT_SHA}",
@@ -67,7 +67,7 @@ create mapping website:
     - cat "${ARTIFACT_DIR}/repo_map.json"
   artifacts:
     when: always
-    paths: 
-      - ${ARTIFACT_DIR} 
+    paths:
+      - ${ARTIFACT_DIR}
     expire_in: 1 week
 

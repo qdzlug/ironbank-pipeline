@@ -20,3 +20,4 @@ check cves:
     paths:
       - ${CHECK_CVE_RESULTS}/
     expire_in: 1 week
+
