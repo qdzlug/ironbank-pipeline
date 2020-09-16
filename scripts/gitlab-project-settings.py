@@ -26,3 +26,11 @@ for group_project in group.projects.list(all=True, per_page=1000, include_subgro
     # https://docs.gitlab.com/ee/ci/pipelines/settings.html#custom-ci-configuration-path
     project.ci_config_path = CI_CONFIG_PATH
     project.save()
+
+    # Remove old Jenkins webhooks
+    for hook in project.hooks.list():
+        if "jenkins.dsop.io" in hook.url:
+            logging.info(f"Removing webhook: {hook.url}")
+            hook.delete()
+        else:
+            logging.warn(f"Keeping non-Jenkins webhook: {hook.url}")
