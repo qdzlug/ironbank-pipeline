@@ -133,3 +133,18 @@ The `csv-output` stage will generate CSV files for the various scans and the `al
 The generated documents serve two purposes at the moment:
 - the creation of `all-scans.xlsx` so that Containher Hardening team members can access the list of findings for the container they are working on. This file can be accessed by vendors as well. The `all-scans.xlsx` file is a compilation of the findings generated from the Twistlock, Anchore, and OpenSCAP scans in the `scanning` stage and is used as the location for submitting justifications.
 - the CSV files from each of the scans are used by the VAT.
+
+
+#### check cves
+
+The `check cves` stage is configured to prevent the publishing of images which do not have whitelisted vulnerabilities. This stage checks the `dccscr-whitelists` repository to retrieve the whitelist for the image and will verify that the scan results generated from the `csv-output` stage do not contain any findings which have not been justified/whitelisted. This prevents the image from being published to the IronBank website or the Harbor registry with security vulnerabilities we are not aware of or have been justified and approved. 
+
+In time, this stage will utilize the VAT tool to compare the whitelisted vulnerabilities instead of the whitelists. 
+
+
+#### documentation
+
+The `documentation` stage consists of multiple jobs.
+
+- `create mapping website` - this job provides a `repo_map.json` file which contains comprehensive information about the container as well as the location of various files within our storage mechanism. This allows the IronBank website to retrieve the information for display on the IronBank website.
+- `sign image` - this job will do a gpg signing of the image so that end users can validate that the image is from the IronBank and the one they intend to download.
