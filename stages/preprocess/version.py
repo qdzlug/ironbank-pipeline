@@ -1,12 +1,11 @@
 ##
 #
+# Parse out the version from either a manifest or the Jenkinsfile
 #
 # Test for
 #   - download.yaml (switch to manifest.yaml)
-#   - version.txt
+#   - download.json (switch to manifest.json)
 #   - Jenkinsfile
-#
-# Parse into IMG_VERSION
 #
 ##
 
@@ -18,8 +17,11 @@ import yaml
 import json
 import logging
 
+
+
 # TODO: add a debug variable inherited from the pipeline to determine logging level
 logging.basicConfig(level = logging.INFO, format = "%(levelname)s: %(message)s")
+
 
 
 def parse_jenkins():
@@ -100,9 +102,11 @@ def main():
         logging.error(" field in your download.yaml file.")
         # TODO: Refer to an issue or documentation somewhere that users can
         # TODO:  read to understand this error.
+        return 1
     else:
         with open(args.output, "w") as artifact:
             artifact.write(f"IMG_VERSION={version}")
+        return 0
 
 
 
