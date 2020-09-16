@@ -19,7 +19,7 @@ import json
 import logging
 
 # TODO: add a debug variable inherited from the pipeline to determine logging level
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level = logging.INFO, format = "%(levelname)s: %(message)s")
 
 
 def parse_jenkins():

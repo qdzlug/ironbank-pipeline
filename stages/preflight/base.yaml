@@ -27,8 +27,11 @@ build variables:
   script:
     - |
       if [ -z "$IMG_VERSION" ]; then
-        echo "Missing IMG_VERSION variable. Check the previous stage (load scripts)"
-        echo "Do you have the appropriate file in your repository?"
+        echo
+        echo "ERROR: Missing IMG_VERSION variable. Check the previous stage (load scripts)"
+        echo "ERROR: Do you have the appropriate file in your repository?"
+        echo
+        # TODO: Reference documentation about this issue
         exit 1
       fi
 
