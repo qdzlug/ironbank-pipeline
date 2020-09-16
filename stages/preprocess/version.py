@@ -16,10 +16,14 @@ import sys
 import argparse
 import yaml
 import json
+import logging
+
+# TODO: add a debug variable inherited from the pipeline to determine logging level
+logging.basicConfig(level=logging.INFO)
 
 
 def parse_jenkins():
-    print("Jenkinsfile exists, attempting to extract image version")
+    logging.info("Jenkinsfile exists, attempting to extract image version")
     version_regex = r"(?<=version:)[ \t]+((?<![\\])['\"])((?:.(?!(?<![\\])\1))*.?)"
 
     with open("Jenkinsfile", "r") as jf:
@@ -35,7 +39,7 @@ def parse_jenkins():
             # whitespace and remove the beginning quote.
             v = v.group().strip()[1:]
 
-            print(f"Discovered version: {v}")
+            logging.info(f"Discovered version: {v}")
             return v
 
     return None
@@ -45,37 +49,37 @@ def parse_jenkins():
 def parse():
 
     if os.path.isfile("download.yaml"):
-        print("download.yaml exists, attempting to extract image version")
+        logging.info("download.yaml exists, attempting to extract image version")
         with open("download.yaml", "r") as yf:
             try:
                 data = yaml.load(yf, Loader=yaml.FullLoader)
                 v = data["version"]
-                print(f"Discovered version: {v}")
+                logging.info(f"Discovered version: {v}")
                 return v
             except Exception as e:
-                print("Version not found in download.yaml")
+                logging.info("Version not found in download.yaml")
     else:
-        print("Not found: download.yaml")
+        logging.info("Not found: download.yaml")
 
 
     if os.path.isfile("download.json"):
-        print("download.json exists, attempting to extract image version")
+        logging.info("download.json exists, attempting to extract image version")
         with open("download.json", "r") as jf:
             try:
                 data = json.load(jf)
                 v = data["version"]
-                print(f"Discovered version: {v}")
+                logging.info(f"Discovered version: {v}")
                 return v
             except Exception as e:
-                print("Version not found in download.json")
+                logging.info("Version not found in download.json")
     else:
-        print("Not found: download.json")
+        logging.info("Not found: download.json")
 
 
     if os.path.isfile("Jenkinsfile"):
         return parse_jenkins()
     else:
-        print("Not found: Jenkinsfile")
+        logging.info("Not found: Jenkinsfile")
 
     return None
 
@@ -92,7 +96,10 @@ def main():
     version = parse()
 
     if version is None:
-        print("Could not parse version")
+        logging.error("Could not parse version out of repo. Please include a version")
+        logging.error(" field in your download.yaml file.")
+        # TODO: Refer to an issue or documentation somewhere that users can
+        # TODO:  read to understand this error.
     else:
         with open(args.output, "w") as artifact:
             artifact.write(f"IMG_VERSION={version}")
