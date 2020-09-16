@@ -22,5 +22,5 @@ csv output:
   artifacts:
     when: always
     paths:
-      - ${CSV_REPORT}
+      - ${CSV_REPORT}/
     expire_in: 1 week
