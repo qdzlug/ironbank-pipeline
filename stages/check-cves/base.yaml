@@ -8,15 +8,8 @@ check cves:
     - openscap cve
     - openscap compliance
     - anchore scan
-  variables:
-    CHECK_CVE_RESULTS: ${ARTIFACT_STORAGE}/csvs
   before_script:
     - repo_path="${CI_PROJECT_DIR}"
     - wl_image_path=$(echo ${CI_PROJECT_PATH} | sed -e 's/.*dsop\/\(.*\)/\1/')
   script:
     - python3 ${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py --image ${wl_image_path} --tag ${IMG_VERSION} --oscap ${ARTIFACT_STORAGE}/scan-results/openscap/report.html --oval ${ARTIFACT_STORAGE}/scan-results/openscap/report-cve.html --twistlock ${ARTIFACT_STORAGE}/scan-results/twistlock/${IMG_VERSION}.json --anchore-sec ${ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json --anchore-gates ${ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json --glkey "${PYTHON_GL_KEY}" --branch "pipeline-test-project"
-  artifacts:
-    when: always
-    paths:
-      - ${CHECK_CVE_RESULTS}/
-    expire_in: 1 week
