@@ -1,5 +1,5 @@
-csv-output:
-  stage: csv-output
+csv output:
+  stage: csv output
   allow_failure: true
   image: ${REGISTRY_URL}/redhat/python/python36:3.6
   dependencies:
@@ -10,7 +10,7 @@ csv-output:
     - load scripts
   variables:
     # Put generated csv report in the scan-results folder
-    CSV_REPORT: ${ARTIFACT_STORAGE}/scan-results/csv-output/
+    CSV_REPORT: ${ARTIFACT_STORAGE}/scan-results/csvs/
   before_script:
     - mkdir -p "${CSV_REPORT}"
     - pip3 install --upgrade pip

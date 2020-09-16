@@ -47,10 +47,10 @@ stages:
   - scanning
 
   ### create csv output
-  - csv-output
+  - csv output
 
   ### check cve stage
-  - check-cves
+  - check cves
 
   ### Sign image and manifest and write documentation
   - documentation

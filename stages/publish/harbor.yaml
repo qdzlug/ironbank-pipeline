@@ -8,5 +8,5 @@ harbor:
     - load scripts
   script:
     # Upload image to prod Harbor
-    - skopeo copy --src-authfile ${DOCKER_AUTH_CONFIG_STAGING} --dest-authfile ${DOCKER_AUTH_CONFIG_TEST} docker://${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION} docker://${TEST_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}
+    - skopeo copy --src-authfile ${DOCKER_AUTH_CONFIG_STAGING} --dest-authfile ${DOCKER_AUTH_CONFIG_TEST} docker://${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}-${CI_PIPELINE_ID} docker://${TEST_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}
 

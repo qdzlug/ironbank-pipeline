@@ -17,7 +17,7 @@ def main():
     parser.add_argument('--oval', help='location of the oval scan HTML file')
     parser.add_argument('--anchore-sec', help='location of the anchore_security.json scan file')
     parser.add_argument('--anchore-gates', help='location of the anchore_gates.json scan file')
-    parser.add_argument('-o', '--output-dir', help='directory in which to write CSV output', default='./')
+    parser.add_argument('-o', '--output-dir', dest='output_dir', help='directory in which to write CSV output', default='./')
     args = parser.parse_args()
 
     csv_dir = args.output_dir
