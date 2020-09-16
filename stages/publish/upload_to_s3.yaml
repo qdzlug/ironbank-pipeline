@@ -16,7 +16,6 @@ upload to s3:
     - twistlock scan
     - openscap cve
     - openscap compliance
-    - check cves
     - csv output
     - load scripts
   before_script:
