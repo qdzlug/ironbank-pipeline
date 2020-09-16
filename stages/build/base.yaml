@@ -29,10 +29,10 @@ build:
     # Set the tag to eliminate /build/dsop and matching existing project hierarchy format
     - harbor_image_path=${STAGING_REGISTRY_URL}/$IM_NAME:$IMG_VERSION
     - buildah bud --authfile "${DOCKER_AUTH_CONFIG}" --format=docker --storage-driver=vfs -t $harbor_image_path  .
-    - buildah tag --storage-driver=vfs $harbor_image_path  $harbor_image_path-${CI_COMMIT_SHORT_SHA}
-    - buildah push --storage-driver=vfs --authfile "${DOCKER_AUTH_CONFIG_STAGING}" $harbor_image_path-${CI_COMMIT_SHORT_SHA}
+    - buildah tag --storage-driver=vfs $harbor_image_path  $harbor_image_path-${CI_PIPELINE_ID}
+    - buildah push --storage-driver=vfs --authfile "${DOCKER_AUTH_CONFIG_STAGING}" $harbor_image_path-${CI_PIPELINE_ID}
     # Provide tar for use in later stages, matching existing tar naming convention
-    - skopeo copy --src-authfile "${DOCKER_AUTH_CONFIG_STAGING}" docker://$harbor_image_path-${CI_COMMIT_SHORT_SHA} docker-archive:${ARTIFACT_DIR}/${IMAGE_FILE}.tar
+    - skopeo copy --src-authfile "${DOCKER_AUTH_CONFIG_STAGING}" docker://$harbor_image_path-${CI_PIPELINE_ID} docker-archive:${ARTIFACT_DIR}/${IMAGE_FILE}.tar
     - echo "IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs $harbor_image_path --format {{'.Id'}})" >> build.env
 
   artifacts:

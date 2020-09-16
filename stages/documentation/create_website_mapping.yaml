@@ -5,14 +5,8 @@ create mapping website:
     #TODO: Put these in globals
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
     BASE_BUCKET_DIRECTORY: "testing/container-scan-reports"
-    AWS_KEY: ${S3_ACCESS_KEY}
-    AWS_SECRET: ${S3_SECRET_KEY}
-    OSCAP_SCANS: ${ARTIFACT_STORAGE}/scanning/openscap
-    CSV_REPORT: ${ARTIFACT_STORAGE}/scan-results/csv-output
-    ANCHORE_SCANS: ${ARTIFACT_STORAGE}/scan-results/anchore
-    TWISTLOCK_SCANS: ${ARTIFACT_STORAGE}/scan-results/twistlock
     SIG_FILE: signature
-    DOCUMENTATION_FILENAME: documentation.json
+    DOCUMENTATION_FILENAME: documentation
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
   dependencies:
     - load scripts
@@ -27,10 +21,10 @@ create mapping website:
       if [ "${CI_COMMIT_BRANCH}" == "master" ]; then
         export BASE_BUCKET_DIRECTORY="container-scan-reports"
       fi
-    - export REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}"
-    - export S3_HTML_LINK=${S3_REPORT_BUCKET}/${BASE_BUCKET_DIRECTORY}/${CI_PROJECT_NAME}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}
+    - REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}/reports"
+    - REMOTE_DOCUMENTATION_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}"
+    - S3_HTML_LINK="https://s3-us-gov-west-1.amazonaws.com/${S3_REPORT_BUCKET}/${BASE_BUCKET_DIRECTORY}/${CI_PROJECT_NAME}/${IMG_VERSION}"
     - GPG_PUB_KEY=$(awk '{printf "%s\\n", $0}' ${IB_CONTAINER_GPG_PUBKEY})
-    - export S3_BUCKET_PATH="/${CI_PROJECT_NAME}-${IMG_VERSION}/${REPORT_DIRECTORY}"
     - mkdir -p ${ARTIFACT_DIR}
   
   script:
@@ -41,27 +35,28 @@ create mapping website:
         "Approval_Status": "${IMAGE_APPROVAL_STATUS}",
         "Public_Key": "${GPG_PUB_KEY}",
         "Image_Sha": "${IMAGE_ID}",
-        "Image_Name": "${IM_NAME}",
+        "Image_Name": "${CI_PROJECT_NAME}",
         "Image_Tag": "${IMG_VERSION}", 
-        "Image_Path": "${IM_NAME}",
+        "Image_Path": "${REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}",
         "Image_URL": "${S3_HTML_LINK}",
-        "Build_Number": "${CI_COMMIT_SHA}",
-        "Image_Manifest": "${ARTIFACT_STORAGE}/documentation/reports/manifest.json",
-        "Manifest_Name":  "manifest.json",
-        "PGP_Signature":   "${ARTIFACT_STORAGE}/documentation/reports/${SIG_FILE}.sig",
-        "Signature_Name":  "${SIG_FILE}",
-        "Version_Documentation": "${S3_BUCKET_PATH}/${DOCUMENTATION_FILENAME}",
-        "Tar_Location": "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar",
+        "Build_Number": "${CI_PIPELINE_ID}",
+        "Image_Manifest": "${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/manifest.json",
+        "Manifest_Name": "manifest.json",
+        "PGP_Signature": "${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${SIG_FILE}.sig",
+        "Signature_Name": "${SIG_FILE}.sig",
+        "Version_Documentation": "${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${DOCUMENTATION_FILENAME}.json",
+        "Tar_Location": "${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${IMAGE_FILE}.tar",
         "Tar_Name": "${IMAGE_FILE}.tar",
-        "OpenSCAP_Compliance_Results": "${ARTIFACT_STORAGE}/scan-results/openscap/oscap.csv",
-        "OpenSCAP_OVAL_Results": "${ARTIFACT_STORAGE}/scan-results/openscap/oval.csv",
-        "TwistLock_Results": "${TWISTLOCK_SCANS}/tl.csv",
-        "Anchore_Gates_Results": "${ANCHORE_SCANS}/anchore_gates.csv",
-        "Anchore_Security_Results": "${ANCHORE_SCANS}/anchore_security.csv",
-        "Summary_Report": "${CSV_REPORT}/summary.csv",
-        "Full_Report": "${CSV_REPORT}/all_scans.xlsx",
-        "OpenSCAP_Report": "${OSCAP_SCANS}/report.html",
-        "OVAL_Report": "${OSCAP_SCANS}/report-cve.html"
+        "OpenSCAP_Compliance_Results": "${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/oscap.csv",
+        "OpenSCAP_OVAL_Results": "${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/oval.csv",
+        "TwistLock_Results": "${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/tl.csv",
+        "Anchore_Gates_Results": "${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/anchore_gates.csv",
+        "Anchore_Security_Results": "${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/anchore_security.csv",
+        "Summary_Report": "${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/summary.csv",
+        "Full_Report": "${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/all_scans.xlsx",
+        "OpenSCAP_Report": "${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/openscap/report.html",
+        "OVAL_Report": "${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/openscap/report-cve.html",
+        "Signature_Name": "${SIG_FILE}.sig"
       ]}
       EOF
     - cat "${ARTIFACT_DIR}/repo_map.json"

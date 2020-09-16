@@ -3,7 +3,7 @@ vat:
   image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml
   allow_failure: true
   variables:
-    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/scan-results/csv-output/
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/scan-results/csvs/
     OPENSCAP: ${ARTIFACT_STORAGE}/scan-results/openscap
   only:
     - development
