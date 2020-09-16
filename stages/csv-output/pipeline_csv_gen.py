@@ -21,6 +21,7 @@ def main():
     args = parser.parse_args()
 
     csv_dir = args.output_dir
+    print('saving reports to: ' + str(csv_dir))
     if not os.path.exists(csv_dir):
         os.mkdir(csv_dir)
 
