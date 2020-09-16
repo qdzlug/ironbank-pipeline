@@ -14,6 +14,9 @@ import os.path
 import re
 import sys
 import argparse
+import yaml
+import json
+
 
 def parse_jenkins():
     print("Jenkinsfile exists, attempting to extract image version")
@@ -43,18 +46,31 @@ def parse():
 
     if os.path.isfile("download.yaml"):
         print("download.yaml exists, attempting to extract image version")
+        with open("download.yaml", "r") as yf:
+            try:
+                data = yaml.load(yf, Loader=yaml.FullLoader)
+                v = data["version"]
+                print(f"Discovered version: {v}")
+                return v
+            except Exception as e:
+                print("Version not found in download.yaml")
     else:
         print("Not found: download.yaml")
 
+
     if os.path.isfile("download.json"):
         print("download.json exists, attempting to extract image version")
+        with open("download.json", "r") as jf:
+            try:
+                data = json.load(jf)
+                v = data["version"]
+                print(f"Discovered version: {v}")
+                return v
+            except Exception as e:
+                print("Version not found in download.json")
     else:
         print("Not found: download.json")
 
-    if os.path.isfile("version.txt"):
-        print("version.txt exists, attempting to extract image version")
-    else:
-        print("Not found: version.txt")
 
     if os.path.isfile("Jenkinsfile"):
         return parse_jenkins()
