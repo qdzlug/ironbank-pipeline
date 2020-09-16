@@ -26,6 +26,7 @@ def parse_jenkins():
                 continue
             v = v.group().strip()
             # Ensure consistency with quotations
+            print(f"Discovered version: {v}")
             return "\"" + v[1:-1] + "\""
 
     return None
