@@ -133,3 +133,12 @@ The `csv-output` stage will generate CSV files for the various scans and the `al
 The generated documents serve two purposes at the moment:
 - the creation of `all-scans.xlsx` so that Containher Hardening team members can access the list of findings for the container they are working on. This file can be accessed by vendors as well. The `all-scans.xlsx` file is a compilation of the findings generated from the Twistlock, Anchore, and OpenSCAP scans in the `scanning` stage and is used as the location for submitting justifications.
 - the CSV files from each of the scans are used by the VAT.
+
+
+### Adding a project pipeline in settings
+Go to the settings for a specific project
+
+`Settings` > `CI / CD` > `General pipelines` > `Custom CI configuration path`
+Enter the following: `templates/default.yaml@ironbank-tools/ironbank-pipeline`
+
+This will point the project towards the default pipeline in ironbank-pipeline.
