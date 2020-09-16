@@ -73,7 +73,7 @@ def main():
         print("Could not parse version")
     else:
         with open(args.output, "w") as artifact:
-            artifact.write(version)
+            artifact.write(f"IMAGE_VERSION={version}")
 
 
 

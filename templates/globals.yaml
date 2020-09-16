@@ -1,17 +1,17 @@
 stages:
-  
+
   ### preprocess stage
   # clone down the templates directory for use in later stages
   # Requirements:
   # - executor image with git
   - preprocess
-  
+
   ### preflight stage
   # check folder structure, check build variables
   # Requirements:
   # - None
   - preflight
-  
+
   ### lint stage
   # yaml lint (ci file, download.yaml), dockerfile lint, wl compare lint
   # Requirements:
@@ -23,7 +23,7 @@ stages:
   # Requirements:
   # - executor image with Python 3.x installed
   - import artifacts
-  
+
   ### artifact scan stage
   # use clamav to scan download artifacts
   # Requirements:
@@ -41,24 +41,24 @@ stages:
   # clamav scan of the image
   # REMOVING STAGE, NOT NEEDED FOR BETA
   # - post-build
-  
+
   ### scanning stage
   # twistlock, oscap, and anchore scans
   - scanning
-  
+
   ### create csv output
   - csv-output
-  
+
   ### check cve stage
   - check-cves
-  
+
   ### Sign image and manifest and write documentation
   - documentation
 
   ### publish stage
   # publish artifacts to S3 (runs on master), push to harbor
   - publish
-    
+
   ### VAT stage (runs on dev)
   - vat
 
