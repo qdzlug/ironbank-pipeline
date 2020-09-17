@@ -137,9 +137,9 @@ The generated documents serve two purposes at the moment:
 
 #### check cves
 
-The `check cves` stage is configured to prevent the publishing of images which do not have whitelisted vulnerabilities. This stage checks the `dccscr-whitelists` repository to retrieve the whitelist for the image and will verify that the scan results generated from the `csv-output` stage do not contain any findings which have not been justified/whitelisted. This prevents the image from being published to the IronBank website or the Harbor registry with security vulnerabilities we are not aware of or have been justified and approved. 
+The `check cves` stage is configured to prevent the publishing of images which do not have whitelisted vulnerabilities. This stage checks the `dccscr-whitelists` repository to retrieve the whitelist for the image and will verify that the scan results generated from the `csv-output` stage do not contain any findings which have not been justified/whitelisted. This prevents the image from being published to the IronBank website or the Harbor registry with security vulnerabilities we are not aware of or have been justified and approved.
 
-In time, this stage will utilize the VAT tool to compare the whitelisted vulnerabilities instead of the whitelists. 
+In time, this stage will utilize the VAT tool to compare the whitelisted vulnerabilities instead of the whitelists.
 
 
 #### documentation
@@ -148,3 +148,12 @@ The `documentation` stage consists of multiple jobs.
 
 - `create mapping website` - this job provides a `repo_map.json` file which contains comprehensive information about the container as well as the location of various files within our storage mechanism. This allows the IronBank website to retrieve the information for display on the IronBank website.
 - `sign image` - this job will do a gpg signing of the image so that end users can validate that the image is from the IronBank and the one they intend to download.
+
+
+### Adding a project pipeline in settings
+Go to the settings for a specific project
+
+`Settings` > `CI / CD` > `General pipelines` > `Custom CI configuration path`
+Enter the following: `templates/default.yaml@ironbank-tools/ironbank-pipeline`
+
+This will point the project towards the default pipeline in ironbank-pipeline.

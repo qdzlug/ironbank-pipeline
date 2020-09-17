@@ -5,10 +5,11 @@ write json documentation:
     #TODO: Put these in globals
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
-    # TODO put back in for full run 
+    # TODO put back in for full run
     OPENSCAP_VERSION: ${ARTIFACT_STORAGE}/scan-results/openscap/oscap-version.txt
     TWISTLOCK_VERSION: ""
   dependencies:
+    - load scripts
     - wl compare lint
     - openscap compliance
     - anchore scan
@@ -50,13 +51,13 @@ write json documentation:
         },
         "reports": {
           "twistlock": {
-            "version": "${TWISTLOCK_VERSION}" 
+            "version": "${TWISTLOCK_VERSION}"
           },
           "openSCAP": {
-            "version": "${OSCAP_VERSION}" 
+            "version": "${OSCAP_VERSION}"
           },
           "anchore": {
-            "version": "${ANCHORE_VERSION}" 
+            "version": "${ANCHORE_VERSION}"
           }
         }
       }

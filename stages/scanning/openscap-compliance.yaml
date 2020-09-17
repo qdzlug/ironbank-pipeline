@@ -5,12 +5,13 @@ openscap compliance:
     variables:
       - $DISTROLESS
   variables:
-    OSCAP_SCANS: ${ARTIFACT_STORAGE}/scan-results/openscap 
+    OSCAP_SCANS: ${ARTIFACT_STORAGE}/scan-results/openscap
     OSCAP_FILENAME: ${OSCAP_HTML_FILENAME}
   image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1
-  dependencies: 
+  # Load in the IMG_VERSION variable from load scripts env
+  dependencies:
     - load scripts
-    - build 
+    - build
   before_script:
     - mkdir -p ${OSCAP_SCANS}
     - export DOCKER_IMAGE_PATH=$(podman load -i ${ARTIFACT_STORAGE}/build/${CI_PROJECT_NAME}-${IMG_VERSION}.tar | awk '{print $3}')
@@ -22,7 +23,7 @@ openscap compliance:
     - |
       if [[ $base_image_type == "" ]]; then
         base_image_type=$(podman inspect -f '{{index .Labels "os_type"}}' ${DOCKER_IMAGE_PATH})
-        if [[ $base_image_type == "" ]]; then 
+        if [[ $base_image_type == "" ]]; then
           labels=$(podman inspect -f '{{index .Labels}}' ${DOCKER_IMAGE_PATH})
           echo "Unknown image type. Can't choose security guide. labels: $labels"
           exit 1
@@ -33,7 +34,7 @@ openscap compliance:
     - curl -L https://github.com/ComplianceAsCode/content/releases/download/v${OSCAP_VERSION}/scap-security-guide-${OSCAP_VERSION}.zip -o scap-security-guide.zip
     - unzip -qq -o scap-security-guide.zip
     - |
-      export profile=`echo ${oscap_container} | grep -o '"profile": "[^"]*'| grep -o '[^"]*$'` 
+      export profile=`echo ${oscap_container} | grep -o '"profile": "[^"]*'| grep -o '[^"]*$'`
     - |
       export securityGuide=`echo ${oscap_container} | grep -o '"securityGuide": "[^"]*'| grep -o '[^"]*$'`
     - echo ${profile}
@@ -50,6 +51,7 @@ openscap compliance:
     - cat build.env
   artifacts:
     when: always
-    paths:  
+    paths:
       - ${OSCAP_SCANS}
     expire_in: 1 week
+
