@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 ##
 #
 # Parse out the version from either a manifest or the Jenkinsfile
