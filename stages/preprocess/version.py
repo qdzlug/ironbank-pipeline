@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 ##
 #
 # Parse out the version from either a manifest or the Jenkinsfile
@@ -98,10 +99,8 @@ def main():
     version = parse()
 
     if version is None:
-        logging.error("Could not parse version out of repo. Please include a version")
-        logging.error(" field in your download.yaml file.")
-        # TODO: Refer to an issue or documentation somewhere that users can
-        # TODO:  read to understand this error.
+        logging.error("Could not parse version out of repo. Please include a version field in your download.yaml file.")
+        logging.error("Reference this MR on how to update the version field appropriately: https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/-/merge_requests/30")
         return 1
     else:
         with open(args.output, "w") as artifact:
