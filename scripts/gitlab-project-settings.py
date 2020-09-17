@@ -14,7 +14,7 @@ CI_CONFIG_PATH = "templates/default.yaml@ironbank-tools/ironbank-pipeline"
 logging.basicConfig(level=logging.INFO)
 
 project_name = sys.argv[1]
-gl = gitlab.Gitlab("http://repo1.dsop.io/", private_token=os.environ["PRIVATE_TOKEN"])
+gl = gitlab.Gitlab("https://repo1.dsop.io/", private_token=os.environ["PRIVATE_TOKEN"])
 
 logging.info(f"Fetching group: {project_name}")
 group = gl.groups.get(project_name)
