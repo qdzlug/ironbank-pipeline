@@ -10,6 +10,7 @@ import logging
 import logging.handlers
 import os
 import re
+import ast
 
 import pandas
 import numpy
@@ -130,12 +131,21 @@ def parse_anchore_security(as_path):
   """
     anchore_security = pandas.read_csv(as_path)
     # grab the relevant columns we are homogenizing
-    d_f = anchore_security[["cve", "severity", "vuln", "url"]]
+    d_f = anchore_security[["cve", "severity", "package", "url", "package_path"]]
 
     # copy vuln column to package
-    d_f["package"] = d_f["vuln"]
+    d_f["description"] = d_f["package"]
 
-    d_f.rename(columns={"cve": "finding", "vuln": "description", "url": "link"}, inplace=True)
+    d_f.rename(columns={"cve": "finding", "url": "link"}, inplace=True)
+    d_f["link"] = d_f["link"].apply(parse_anchore_json)
+    d_f["description"] = d_f["description"] + "\n" + d_f["link"]
+
+    # Temporarily Removing imported link and replacing with None
+    d_f.drop(columns=["link"], inplace=True)
+    d_f = d_f.assign(link=None)
+
+    # REMOVE THIS ONCE PACKAGE PATH FIELD IS ADDED TO DB
+    # d_f.drop(columns=["package_path"], inplace=True)
 
     # needed to add empty row to match twistlock
     d_f = d_f.assign(score="")
@@ -150,26 +160,23 @@ def parse_twistlock_security(tl_path):
   Creates dataframe  with standarized columns for a twistlock scan
   Return a dataframe
   """
+
     twistlock = pandas.read_csv(tl_path)
 
     # convert severity to high from important
     twistlock.replace(to_replace="important", value="high", regex=True, inplace=True)
+    twistlock.replace(to_replace="moderate", value="medium", regex=True, inplace=True)
 
-    # grab the relevant columns we are homogenizing and check what type of keys
-    # are in this type of twistlock report
-    if set(["cve"]).issubset(twistlock.columns):
-        d_f = twistlock[["cve", "severity", "desc", "link", "cvss", "packageName", "packageVersion"]]
-        d_f.rename(
-            columns={"cve": "finding", "desc": "description", "cvss": "score"}, inplace=True,
-        )
-    else:
-        d_f = twistlock[["id", "severity", "desc", "link", "cvss", "packageName", "packageVersion"]]
-        d_f.rename(
-            columns={"id": "finding", "desc": "description", "cvss": "score"}, inplace=True,
-        )
+    # grab the relevant columns we are homogenizing
+    d_f = twistlock[["id", "severity", "desc", "link", "cvss", "packageName", "packageVersion"]]
+    d_f.rename(
+        columns={"id": "finding", "desc": "description", "cvss": "score"}, inplace=True,)
 
     d_f["package"] = d_f["packageName"] + "-" + d_f["packageVersion"]
     d_f.drop(columns=["packageName", "packageVersion"], inplace=True)
+
+    d_f = d_f.assign(package_path="N/A")
+
     logs.debug("twistlock dataframe:")
     logs.debug(d_f)
 
@@ -180,23 +187,43 @@ def parse_anchore_compliance(ac_path):
     """
   @return dataframe with standarized columns for anchore compliance scan
   """
+    columns = ['image_id',
+            'repo_tag',
+            'trigger_id',
+            'gate',
+            'trigger',
+            'check_output',
+            'gate_action',
+            'policy_id',
+            'matched_rule_id',
+            'whitelist_id',
+            'whitelist_name']
+    d_f = pandas.read_csv(ac_path, names=columns)
+    # Drop bad header row
+    d_f = d_f.drop(d_f.index[0])
 
-    d_f = pandas.read_csv(ac_path, usecols=[2, 5])
-    logs.debug(d_f)
-    # This removes the rows where the trigger_id does not contain "+"
-    anchore_compliance = d_f[d_f["trigger_id"].str.find("+") > -1]
+    # This removes the rows where the gate does <> 'vulnerabilities'
+    anchore_compliance = d_f[(d_f['gate'] != 'vulnerabilities')]
+
+    logs.debug(anchore_compliance)
 
     # grab the relevant columns we are homogenizing
-    d_f = anchore_compliance[["trigger_id", "check_output"]]
-    df_split = d_f["trigger_id"].str.split("+", n=1, expand=True)
-    d_f["finding"] = df_split[0]
-    d_f["description"] = df_split[1]
-    d_f.drop(columns=["trigger_id"], inplace=True)
+    d_f = anchore_compliance[["trigger_id", "check_output", "gate_action", "gate", "trigger", "policy_id"]]
 
-    df_split = d_f["check_output"].str.split(" - ", n=2, expand=True)
-    d_f["severity"] = df_split[0].str.split(" ", n=1, expand=True)[0]
-    d_f["link"] = df_split[2].str.split(")", n=1, expand=True)[0]
-    d_f.drop(columns=["check_output"], inplace=True)
+    # Prepend the action with "ga_" to distinguish from other severity types
+    d_f['gate_action'] = 'ga_' + d_f['gate_action'].astype(str)
+
+    d_f.rename(columns={"trigger_id": "finding",
+                        "gate_action": "severity",
+                        "check_output": "description"}, inplace=True)
+
+    d_f["description"] = d_f["description"] + "\n Gate: " + d_f["gate"]
+    d_f["description"] = d_f["description"] + "\n Trigger: " + d_f["trigger"]
+    d_f["description"] = d_f["description"] + "\n Policy ID: " + d_f["policy_id"]
+    d_f.drop(columns=["gate", "trigger", "policy_id"], inplace=True)
+
+    # No link available for this scan
+    d_f = d_f.assign(link=None)
 
     # needed to add empty row to match twistlock
     d_f = d_f.assign(score="")
@@ -204,7 +231,9 @@ def parse_anchore_compliance(ac_path):
     # This field is not used by the compliance scans
     d_f = d_f.assign(package="N/A")
 
-    logs.debug("anchore xompliance dataframe:")
+    d_f = d_f.assign(package_path="N/A")
+
+    logs.debug("anchore compliance dataframe:")
     logs.debug(d_f)
 
     return d_f
@@ -258,7 +287,7 @@ def parse_oscap_security(ov_path):
     logs.debug("parse oscap security")
     d_f = pandas.read_csv(ov_path)
 
-    # This keeps the rows where the result = fail
+    # This keeps the rows where the result is "true" - pandas loads it as a boolean
     oscap_security = d_f[d_f["result"] == True]
 
     # grab the relevant columns we are homogenizing
@@ -286,6 +315,8 @@ def parse_oscap_security(ov_path):
     # needed to add empty row to match twistlock
     d_f = d_f.assign(score="")
 
+    d_f = d_f.assign(package_path="N/A")
+
     # The following will split into rows by each package in the list.
     # Each row is duplicated with a package in each list.
     df_split = d_f.explode("package").reset_index(drop=True)
@@ -304,8 +335,10 @@ def parse_oscap_compliance(os_path):
     report_link = os.path.join(args.link, "report.html")
     d_f = pandas.read_csv(os_path)
 
-    # This keeps the rows where the result is fail
-    oscap_compliance = d_f[d_f["result"] == "fail"]
+    # This keeps the rows where the result is fail or notchecked or error
+    oscap_compliance = d_f[(d_f["result"] == "fail") |
+                           (d_f["result"] == "notchecked") |
+                           (d_f["result"] == "error")]
 
     # grab the relevant columns we are homogenizing
     d_f = oscap_compliance[["severity", "identifiers", "refs", "title"]]
@@ -322,8 +355,10 @@ def parse_oscap_compliance(os_path):
     # needed to add empty row to match twistlock
     d_f = d_f.assign(score="")
 
-    # This field is not used ny the compliance scans
+    # This field is not used by the compliance scans
     d_f = d_f.assign(package="N/A")
+
+    d_f = d_f.assign(package_path="N/A")
 
     logs.debug("oscap compliance dataframe:")
     logs.debug(d_f)
@@ -423,6 +458,9 @@ def insert_scan(data, iid, scan_source):
   ### check cve_approval that cveid and imageid exists ?
       create new entry in cve_approvals : no op
   """
+
+    logs.debug("insert_scan")
+
     if data.empty:
         logs.warning(data)
         return
@@ -433,7 +471,8 @@ def insert_scan(data, iid, scan_source):
             cursor.execute(
                 "INSERT INTO `scan_results`"
                 + "(`id`, `imageid`, `finding`, `jenkins_run`, `scan_date`, "
-                + "`scan_source`, `severity`, `link`, `score`, `description`, `package`)"
+                + "`scan_source`, `severity`, `link`, `score`, `description`, "
+                + "`package`, `package_path`)"
                 + " VALUES (NULL,'"
                 + str(iid)
                 + "', '"
@@ -442,32 +481,37 @@ def insert_scan(data, iid, scan_source):
                 + str(args.jenkins)
                 + "', '"
                 + args.scan_date
-                + "', %s, %s, %s, %s, %s, %s)",
-                (scan_source, row["severity"], row["link"], row["score"], row["description"],row["package"]),
+                + "', %s, %s, %s, %s, %s, %s, %s)",
+                (scan_source, row["severity"], row["link"], row["score"], row["description"],row["package"],row["package_path"]),
             )
+
             # search for an image id and finding in findings approvals table
             # if nothing is returned then insert it
             cursor.execute(
                 "SELECT id FROM `findings_approvals` WHERE "
-                + "imageid=%s and finding=%s and scan_source=%s and package=%s",
-                (iid, row["finding"], scan_source, row["package"]),
+                + "imageid=%s and finding=%s and scan_source=%s and "
+                + "package=%s and package_path=%s",
+                (iid, row["finding"], scan_source, row["package"], row["package_path"]),
             )
             logs.debug(
-                "inserting new findings values row=%d imageid=%s and finding=%s and scan_source=%s and package=%s",
+                "inserting new findings values row=%d imageid=%s and finding=%s and scan_source=%s and package=%s and package_path=%s",
                 index,
                 iid,
                 row["finding"],
                 scan_source,
-                row["package"]
+                row["package"],
+                row["package_path"]
             )
             results = cursor.fetchone()
             if results is None:
-                # it doesnt exist so insert it
+
+                # it doesn't exist so insert it
                 cursor.execute(
                     "INSERT INTO `findings_approvals` "
-                    + "(`imageid`, `finding`, `is_inheritable`, `scan_source`, `package`) "
-                    + "VALUES (%s, %s, '1', %s, %s)",
-                    (iid, row["finding"], scan_source, row["package"]),
+                    + "(`imageid`, `finding`, `is_inheritable`, `scan_source`, "
+                    + "`package`, `package_path`)"
+                    + "VALUES (%s, %s, '1', %s, %s, %s)",
+                    (iid, row["finding"], scan_source, row["package"], row["package_path"]),
                 )
     except Error as error:
         logs.error(error)
@@ -482,6 +526,7 @@ def update_inheritance_id(findings):
   @params int image id
   @params dataframe with all the findings that are inheritable and the id they are associated with
   """
+    logs.debug("insert_scan")
     parent_id = get_parent_id()
     # this would have been checked when generating the findings but just in case check again
     if parent_id is None:
@@ -494,27 +539,60 @@ def update_inheritance_id(findings):
             sql = (
                 "SELECT id FROM `findings_approvals` WHERE imageid='"
                 + str(parent_id)
+                + "' and scan_source='"
+                + row["scan_source"]
                 + "' and finding='"
                 + row["finding"]
+                + "' and package='"
+                + row["package"]
+                + "' and package_path='"
+                + row["package_path"]
                 + "'"
             )
+
             logs.debug("For row=%d, Executing %s", i, sql)
             cursor.execute(sql)
             result = cursor.fetchone()
             if result is not None:
+                logs.debug("Updating inherited_id for %s", (str(row["id"])))
                 cursor.execute(
                     "UPDATE `findings_approvals` SET inherited_id=%s WHERE id=%s",
                     (result[0], row["id"]),
                 )
                 # entering as user account 1 but we should create a
                 # default service account to tag actions like this TODO
+
                 sql = (
-                    "INSERT INTO `findings_log` "
-                    + "(`approval_id`, `date_time`, `user_id`, `type`, `text`)  VALUES ("
-                    + str(row["id"])
-                    + ", NOW(), '1', 'Inherited', 'Inherited from parent')"
+                    "SELECT * FROM `findings_log` "
+                    + "WHERE `approval_id` = "
+                    + (str(row["id"]))
+                    + " and `type` =  'Inherited'"
                 )
                 cursor.execute(sql)
+                i_finding = cursor.fetchone()
+                if i_finding is None:
+                    sql = (
+                        "INSERT INTO `findings_log` "
+                        + "(`approval_id`, `date_time`, `user_id`, `type`, `text`)  VALUES ("
+                        + str(row["id"])
+                        + ", NOW(), '1', 'Inherited', 'Inherited from parent')"
+                    )
+                    cursor.execute(sql)
+            else:
+                # Resets inherited id to NULL if finding is not inherited
+                logs.debug("Resetting inheritance for approval_id " + (str(row["id"])))
+                cursor.execute(
+                    "UPDATE `findings_approvals` SET inherited_id=NULL WHERE id=" + str(row["id"])
+                )
+                # Deletes Inherited Log
+                sql = (
+                    "DELETE FROM `findings_log` "
+                    + "WHERE `approval_id` = "
+                    +  (str(row["id"]))
+                    + " and `type` =  'Inherited'"
+                )
+                cursor.execute(sql)
+
         conn.commit()
     except Error as error:
         logs.error(error)
@@ -525,37 +603,58 @@ def update_inheritance_id(findings):
 
 def update_in_current_scan(iid, findings, scan_source):
     """
-  check if any findings are no longer in the current scan
-  we are going to reset all the in_current_results to 1 and then let the algo flip those
-  as we run through and determine what is in the current scan
-  @param findings dataframe
-  @param iid imageid
-  """
+    check if any findings are no longer in the current scan
+    we are going to reset all the in_current_results to 1 and
+    then flip the findings not in the current scan (dataframe)
+    @param findings dataframe
+    @param iid imageid
+    @param scan_source current scan type
+    """
 
     if findings.empty:
         logs.warning(findings)
         return
     conn = connect_to_db()
     try:
+
+        # Set all the findings to 1 for the image ID and the scan source
         cursor = conn.cursor()
         cursor.execute(
             "UPDATE `findings_approvals` "
             + "SET in_current_scan=1  WHERE imageid=%s  and scan_source=%s",
             (iid, scan_source),
         )
+
+        # Query for all the findings for the image ID and the scan source
         cursor.execute(
-            "SELECT id, finding FROM `findings_approvals` WHERE imageid=%s  and scan_source=%s",
+        "SELECT id, finding, package, package_path FROM "
+            + "`findings_approvals` WHERE imageid=%s  and scan_source=%s",
             (iid, scan_source),
         )
+
+        # Load the query into a dataframe
         d_f = pandas.DataFrame(cursor.fetchall())
         if not d_f.empty:
             d_f.columns = cursor.column_names
-            notin = d_f[~d_f.finding.isin(findings.finding)]
-            logs.debug(notin)
-            for i, row in notin.iterrows():
-                sql = "UPDATE `findings_approvals` SET in_current_scan=0 WHERE id=" + str(row["id"])
+
+            # Remove the current scan from all the findings list
+            for i, row in findings.iterrows():
+                d_f.drop(d_f[(d_f['finding'] == row['finding']) &
+                             (d_f['package'] == row['package']) &
+                             (d_f['package_path'] == row['package_path'])].index,
+                             inplace = True)
+
+            # Loop for the remaining rows which are not in the current scan
+            logs.debug(d_f)
+            for i, row in d_f.iterrows():
+
+                # Set the finding to not in scan
+                sql = (
+                    "UPDATE `findings_approvals` SET in_current_scan=0 WHERE id="
+                    + str(row["id"]))
                 logs.debug("For row=%d, Executing %s", i, sql)
                 cursor.execute(sql)
+
             conn.commit()
     except Error as error:
         logs.error(error)
@@ -649,8 +748,7 @@ def get_all_inheritable_findings(iid):
             logs.info("no parent exists to inherit from")
             return None
         sql = (
-            "SELECT id, finding FROM findings_approvals WHERE is_inheritable=1 "
-            + "and inherited_id IS NULL and imageid="
+            "SELECT id, finding, scan_source, package, package_path FROM findings_approvals WHERE is_inheritable=1 and imageid="
             + str(iid)
         )
         cursor.execute(sql)
@@ -688,13 +786,25 @@ def remove_lame_header_row(mod_me):
     with open(mod_me, "r+") as input_file:
         temp = input_file.readline()
         # if "'','','',''," in temp:
-        if ",,,,,," in temp:
+        if ",,,," in temp:
             logs.debug("*****************REMOVING HEADER LINE***********************")
             data = input_file.read()  # read the rest
             input_file.seek(0)  # set the cursor to the top of the file
             input_file.write(data)  # write the data back
             input_file.truncate()  # set the file size to the current size
 
+
+def parse_anchore_json(links):
+    """
+    @params string of either a url or a list of dicts
+    Returns a URL If list, returns string of sources and urls
+    """
+    try:
+        source_list = ast.literal_eval(links)
+        link_string = ''.join((item['source'] + ": " + item['url'] + "\n") for item in source_list)
+        return link_string
+    except:
+        return links
 
 def main():
     """
