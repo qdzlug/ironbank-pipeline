@@ -5,4 +5,4 @@ include:
   - local: /stages/documentation/sign_image.yaml
   - local: /stages/documentation/sign_manifest.yaml
   - local: /stages/documentation/write_json_documentation.yaml
-  - local: /stages/documentation/create_website_mapping.yaml
+  #- local: /stages/documentation/create_website_mapping.yaml

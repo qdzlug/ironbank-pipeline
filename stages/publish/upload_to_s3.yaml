@@ -6,31 +6,81 @@ upload to s3:
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
     SCAN_DIRECTORY: ${ARTIFACT_STORAGE}/scan-results
     DOCUMENTATION_DIRECTORY: ${ARTIFACT_STORAGE}/documentation
-    BASE_BUCKET_DIRECTORY: "testing/container-scan-reports"
+    BUILD_DIRECTORY: ${ARTIFACT_STORAGE}/build
+    SIG_FILE: signature
+    BASE_BUCKET_DIRECTORY: "container-scan-reports"
+    DOCUMENTATION_FILENAME: documentation
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
   dependencies:
+    - build
     - sign image
     - sign manifest
     - write json documentation
-    - create mapping website
     - anchore scan
     - twistlock scan
     - openscap cve
     - openscap compliance
     - csv output
     - load scripts
+    - wl compare lint
   before_script:
+    - mkdir -p ${ARTIFACT_DIR}
     - pip install boto3
     - |
-      if [ "${CI_COMMIT_BRANCH}" = "master" ]; then
+      if [ "${CI_COMMIT_BRANCH}" == "master" ]; then
         export BASE_BUCKET_DIRECTORY="container-scan-reports"
+      else
+        export BASE_BUCKET_DIRECTORY="testing/container-scan-reports"
       fi
-    - export REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}/reports"
-    - export REMOTE_DOCUMENTATION_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}"
+    - export REMOTE_REPORT_DIRECTORY="${CI_PIPELINE_ID}/reports"
+    - export REMOTE_DOCUMENTATION_DIRECTORY="${CI_PIPELINE_ID}"
     - export IMAGE_PATH=$(echo ${CI_PROJECT_PATH} | sed -e 's/.*dsop\/\(.*\)/\1/')
+    - S3_HTML_LINK="https://s3-us-gov-west-1.amazonaws.com/${S3_REPORT_BUCKET}/${BASE_BUCKET_DIRECTORY}/${CI_PROJECT_NAME}/${IMG_VERSION}"
+    - GPG_PUB_KEY=$(awk '{printf "%s\\n", $0}' ${IB_CONTAINER_GPG_PUBKEY})
+    - |
+       export FILES=${SCAN_DIRECTORY}/*
+       export S3_BUCKET="${S3_REPORT_BUCKET}"
+       export S3_BUCKET_PATH="/${BASE_BUCKET_DIRECTORY}/${IM_NAME}"
+       export bucket=${S3_BUCKET}
+       export bucket_path=${S3_BUCKET_PATH}
+       export date="`date +'%a, %d %b %Y %H:%M:%S %z'`"
+       export content_type="application/json"
+       export sig_string="GET\n\n${content_type}\n${date}\n/$bucket$bucket_path/repo_map.json"
+       export signature=$(echo -en ${sig_string} | openssl sha1 -hmac ${S3_SECRET_KEY} -binary | base64)
+
+       res=$(curl -H "Host: $bucket.s3-us-gov-west-1.amazonaws.com"  -H "Date: $date" -H "Content-Type: $content_type" -H "Authorization: AWS ${S3_ACCESS_KEY}:$signature" -s -o /dev/null -w '%{http_code}\n' https://$bucket.s3-us-gov-west-1.amazonaws.com$bucket_path/repo_map.json)
+        if ((res == 404)); then
+            echo "no prior repo_map."
+            export job_type=2
+        else
+            export job_type=1
+            echo "updating from latest."
+            curl -H "Host: $bucket.s3-us-gov-west-1.amazonaws.com" \
+            -H "Date: $date" \
+            -H "Content-Type: $content_type" \
+            -H "Authorization: AWS ${S3_ACCESS_KEY}:$signature" \
+            "https://$bucket.s3-us-gov-west-1.amazonaws.com${bucket_path}/repo_map.json" -o repo_map.json
+        fi
+    #- cat repo_map.json
+    - python3 "${PIPELINE_REPO_DIR}/stages/publish/create_repo_map.py" --repo_name="${IM_NAME}" --approval_status="${IMAGE_APPROVAL_STATUS}" --public_key="${GPG_PUB_KEY}" --image_sha="${IMAGE_ID}" --image_name="${CI_PROJECT_NAME}" --image_tag="${IMG_VERSION}" --image_path="${REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}" --image_url="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${IMAGE_FILE}.tar" --build_number="${CI_PIPELINE_ID}" --image_manifest="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/manifest.json" --manifest_name="manifest.json" --pgp_signature="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${SIG_FILE}.sig" --signature_name="${SIG_FILE}.sig" --version_documentation="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${DOCUMENTATION_FILENAME}.json" --tar_location="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${REPORT_TAR_NAME}" --tar_name="${IMAGE_FILE}.tar" --openscap_compliance_results="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/oscap.csv" --openscap_oval_results="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/oval.csv" --twistlock_results="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/tl.csv" --anchore_gates_results="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/anchore_gates.csv" --anchore_security_results="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/anchore_security.csv" --summary_report="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/summary.csv" --full_report="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/all_scans.xlsx" --openscap_report="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/openscap/report.html" --oval_report="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/openscap/report-cve.html" --signature_name="${SIG_FILE}.sig" --output_dir="${ARTIFACT_DIR}" --job_type="${job_type}"
+    - mkdir reports
+    - |
+      for file in $(find ${DOCUMENTATION_DIRECTORY} -name "*" -type f); do
+        dest_file=$(echo $file | rev | cut -d/ -f1 | rev )
+        cp $file reports/$dest_file
+      done
+    - |
+      for file in $(find ${SCAN_DIRECTORY} -name "*" -type f); do
+        dest_file=$(echo $file | rev | cut -d/ -f1 | rev )
+        cp $file reports/$dest_file
+      done
+    - cp ${BUILD_DIRECTORY}/${CI_PROJECT_NAME}-${IMG_VERSION}.tar reports/${CI_PROJECT_NAME}-${IMG_VERSION}.tar
+    - ls reports
+    - tar -zcvf ${CI_PROJECT_NAME}-${IMG_VERSION}-reports-signature.tar.gz reports
+    - export REPORT_TAR_NAME=${CI_PROJECT_NAME}-${IMG_VERSION}-reports-signature.tar.gz
   script:
     - |
-      report_name="repo_map.json"
-      python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file ${ARTIFACT_STORAGE}/documentation/repo_map.json --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/$report_name
+      python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file repo_map.json --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IM_NAME}/repo_map.json
     - |
       for file in $(find ${DOCUMENTATION_DIRECTORY} -name "*" -type f); do
         object_path=$(echo ${file#"$ARTIFACT_STORAGE/documentation/"})
@@ -42,33 +92,6 @@ upload to s3:
         echo $file
         python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file $file --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/$report_name ;
       done
-    - | 
-      for file in $(find ${CI_PROJECT_DIR} -name "README.md" -o -name "LICENSE" -type f); do
-        report_name=$(echo $file | rev | cut -d/ -f1-2 | rev)
-        echo $file
-        python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file $file --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/$report_name ;
-      done
-      #NOTE: keeping this around until we determine if we need to keep the signature generation in the upload to s3 via s3_upload.py
-      #    - |
-      #      FILES=${SCAN_DIRECTORY}/*
-      #      AWS_KEY="${S3_ACCESS_KEY}"
-      #      AWS_SECRET="${S3_SECRET_KEY}"
-      #      S3_BUCKET="${S3_REPORT_BUCKET}"
-      #      S3_BUCKET_PATH="/${CI_PROJECT_NAME}-${IMG_VERSION}/${REPORT_DIRECTORY}"
-
-      #      bucket=${S3_BUCKET}
-      #      bucket_path=${S3_BUCKET_PATH}
-      #      date=$(date +"%a, %d %b %Y %T %z")
-      #      acl="x-amz-acl:private"
-      #      content_type="application/octet-stream"
-      #      sig_string="PUT\n\n$content_type\n$date\n$acl\n/$bucket$bucket_path$file"
-      #      signature=$(echo -en "${sig_string}" | openssl sha1 -hmac "${AWS_SECRET}" -binary | base64)
-
-      #      curl -X PUT -T "$bucket_path/$f" \
-      #      -H "Host: $bucket.s3.amazonaws.com" \
-      #      -H "Date: $date" \
-      #      -H "Content-Type: $content_type" \
-      #      -H "$acl" \
-      #      -H "Authorization: AWS ${AWS_KEY}:$signature" \
-      #      "https://$bucket.s3.amazonaws.com$bucket_path$file"
-
+    - python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file LICENSE --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/LICENSE ;
+    - python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file README.md --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/README.md ;
+    - python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file ${REPORT_TAR_NAME} --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/${REPORT_TAR_NAME} ;
