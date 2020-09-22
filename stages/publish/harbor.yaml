@@ -6,7 +6,10 @@ harbor:
   dependencies:
     - build
     - load scripts
+  before_script:
+    - echo ${DOCKER_AUTH_CONFIG_STAGING} | base64 -d >> staging_auth.json
+    - echo ${DOCKER_AUTH_CONFIG_TEST} | base64 -d >> test_auth.json
   script:
     # Upload image to prod Harbor
-    - skopeo copy --src-authfile ${DOCKER_AUTH_CONFIG_STAGING} --dest-authfile ${DOCKER_AUTH_CONFIG_TEST} docker://${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}-${CI_PIPELINE_ID} docker://${TEST_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}
+    - skopeo copy --src-authfile staging_auth.json --dest-authfile test_auth.json docker://${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}-${CI_PIPELINE_ID} docker://${TEST_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}
 

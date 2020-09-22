@@ -2,6 +2,7 @@
   stage: publish
   allow_failure: true
 include:
+ # - local: /stages/publish/s3_phase.yaml
   - local: /stages/publish/upload_to_s3.yaml
   - local: /stages/publish/harbor.yaml
 

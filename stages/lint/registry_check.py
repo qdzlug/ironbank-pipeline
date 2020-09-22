@@ -6,7 +6,7 @@ parser = argparse.ArgumentParser(description='Ensure proper registry usage in Do
 parser.add_argument('--dockerfile-path', help='path to Dockerfile to parse')
 args = parser.parse_args()
 
-filepath = args.dockerfile_path
+filepath = args.dockerfile-path
 registry_string = "ARG BASE_REGISTRY=registry1.dsop.io/ironbank"
 print("\nSearching for " + registry_string + " in file to confirm Registry1 ironbank is being used as the base registry in image build.\n")
 with open(filepath) as f:
