@@ -1,6 +1,7 @@
 upload to s3:
   extends: .publish
   image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml
+  resource_group: s3_phase
   variables:
     #TODO: Put these in globals
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
@@ -92,6 +93,8 @@ upload to s3:
         echo $file
         python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file $file --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/$report_name ;
       done
-    - python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file LICENSE --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/LICENSE ;
-    - python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file README.md --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/README.md ;
+    - file=$(find . -name "LICENSE*" -type f | rev | cut -d/ -f1 | rev)
+    - python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file $file --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/$file ;
+    - file=$(find . -name "README*" -type f | rev | cut -d/ -f1 | rev)
+    - python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file $file --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/$file ;
     - python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file ${REPORT_TAR_NAME} --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/${REPORT_TAR_NAME} ;
