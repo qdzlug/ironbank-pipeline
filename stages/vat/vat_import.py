@@ -36,9 +36,9 @@ parser.add_argument("-c", "--container", help="Container VENDOR/PRODUCT/CONTAINE
 parser.add_argument(
     "-v", "--version", help="Container Version from VENDOR/PRODUCT/CONTAINER/VERSION format",
 )
-parser.add_argument("-pc", "--parent", help="Parent VENDOR/PRODUCT/CONTAINER")
+parser.add_argument("-pc", "--parent", help="Parent VENDOR/PRODUCT/CONTAINER", required=False)
 parser.add_argument(
-    "-pv", "--parent_version", help="Parent Version from VENDOR/PRODUCT/CONTAINER/VERSION format",
+    "-pv", "--parent_version", help="Parent Version from VENDOR/PRODUCT/CONTAINER/VERSION format", required=False
 )
 parser.add_argument("-l", "--link", help="S3 Link to openscap reports directory", required=True)
 parser.add_argument("--debug", help="debug true changes log level", action="store_true")
