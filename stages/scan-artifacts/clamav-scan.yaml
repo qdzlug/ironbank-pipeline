@@ -1,7 +1,7 @@
 clamav scan:
   stage: scan artifacts
   image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/clamav:0.102.4
-  allow_failure: true
+  allow_failure: false
   dependencies:
     - import artifacts
   variables:

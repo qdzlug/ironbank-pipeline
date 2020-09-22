@@ -1,7 +1,7 @@
 #scanning:
 .scanning:
   stage: scanning
-  allow_failure: true
+  allow_failure: false
   #  dependencies:
   #    - post-build
 include:

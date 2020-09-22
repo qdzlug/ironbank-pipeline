@@ -1,6 +1,6 @@
 .documentation:
   stage: documentation
-  allow_failure: true
+  allow_failure: false
 include:  
   - local: /stages/documentation/sign_image.yaml
   - local: /stages/documentation/sign_manifest.yaml

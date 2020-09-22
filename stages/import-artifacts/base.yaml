@@ -1,7 +1,7 @@
 import artifacts:
   stage: import artifacts
   image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/all-in-one-fedora:1.0
-  allow_failure: true
+  allow_failure: false
   dependencies:
     - load scripts
   variables:

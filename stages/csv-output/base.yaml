@@ -1,6 +1,6 @@
 csv output:
   stage: csv output
-  allow_failure: true
+  allow_failure: false
   image: ${REGISTRY_URL}/redhat/python/python36:3.6
   dependencies:
     - twistlock scan
