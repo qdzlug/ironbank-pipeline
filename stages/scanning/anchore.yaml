@@ -23,6 +23,10 @@ anchore scan:
   extends: .scanning
   stage: scanning
   image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1
+  # Load in the IMG_VERSION variable from load scripts env
+  dependencies:
+    - load scripts
+    - build
   variables:
     # put all scan outputs in the scan-results folder
     ANCHORE_SCANS: ${ARTIFACT_STORAGE}/scan-results/anchore

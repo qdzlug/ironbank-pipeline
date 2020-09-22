@@ -22,3 +22,4 @@ csv output:
     paths:
       - ${CSV_REPORT}
     expire_in: 1 week
+
