@@ -32,6 +32,8 @@ parser.add_argument('--summary_report', help='')
 parser.add_argument('--full_report', help='')
 parser.add_argument('--openscap_report', help='')
 parser.add_argument('--oval_report', help='')
+parser.add_argument('--project_license', help='')
+parser.add_argument('--project_readme', help='')
 parser.add_argument('--job_type', help='')
 parser.add_argument('--output_dir', dest='output_dir', help='directory in which to write CSV output', default='./')
 args = parser.parse_args()
@@ -60,6 +62,8 @@ summary_report = args.summary_report
 full_report = args.full_report
 openscap_report = args.openscap_report
 oval_report = args.oval_report
+project_license = args.project_license
+project_readme = args.project_readme
 signature_name = args.signature_name
 output_dir = args.output_dir
 
@@ -87,6 +91,8 @@ new = {build_number:
         'Image_Name': image_name,
         'Version_Documentation': version_documentation,
         'OVAL_Report': oval_report,
+        'PROJECT_FILE': project_license,
+        'PROJECT_README': project_readme,
         'Tar_Location': tar_location,
         'Full_Report': full_report,
         'Repo_Name': repo_name
