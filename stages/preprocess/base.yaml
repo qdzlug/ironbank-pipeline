@@ -1,6 +1,6 @@
 .preprocess:
   stage: .pre
-  allow_failure: false
+  
   except:
     refs:
       - tags

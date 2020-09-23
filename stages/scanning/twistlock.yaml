@@ -1,7 +1,7 @@
 twistlock scan:
   extends: .scanning
   stage: scanning
-  allow_failure: ${ALLOW_FAILURE}
+  
   image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1
   # Load in the IMG_VERSION variable from load scripts env
   dependencies:
