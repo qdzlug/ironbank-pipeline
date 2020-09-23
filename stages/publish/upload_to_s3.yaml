@@ -9,7 +9,7 @@ upload to s3:
     DOCUMENTATION_DIRECTORY: ${ARTIFACT_STORAGE}/documentation
     BUILD_DIRECTORY: ${ARTIFACT_STORAGE}/build
     SIG_FILE: signature
-    BASE_BUCKET_DIRECTORY: "container-scan-reports"
+    BASE_BUCKET_DIRECTORY: "testing/container-scan-reports"
     DOCUMENTATION_FILENAME: documentation
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
   dependencies:
@@ -30,8 +30,6 @@ upload to s3:
     - |
       if [ "${CI_COMMIT_BRANCH}" == "master" ]; then
         export BASE_BUCKET_DIRECTORY="container-scan-reports"
-      else
-        export BASE_BUCKET_DIRECTORY="testing/container-scan-reports"
       fi
     - export REMOTE_REPORT_DIRECTORY="${CI_PIPELINE_ID}/reports"
     - export REMOTE_DOCUMENTATION_DIRECTORY="${CI_PIPELINE_ID}"
@@ -62,19 +60,10 @@ upload to s3:
             -H "Authorization: AWS ${S3_ACCESS_KEY}:$signature" \
             "https://$bucket.s3-us-gov-west-1.amazonaws.com${bucket_path}/repo_map.json" -o repo_map.json
         fi
-    #- cat repo_map.json
     - python3 "${PIPELINE_REPO_DIR}/stages/publish/create_repo_map.py" --repo_name="${IM_NAME}" --approval_status="${IMAGE_APPROVAL_STATUS}" --public_key="${GPG_PUB_KEY}" --image_sha="${IMAGE_ID}" --image_name="${CI_PROJECT_NAME}" --image_tag="${IMG_VERSION}" --image_path="${REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}" --image_url="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${IMAGE_FILE}.tar" --build_number="${CI_PIPELINE_ID}" --image_manifest="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/manifest.json" --manifest_name="manifest.json" --pgp_signature="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${SIG_FILE}.sig" --signature_name="${SIG_FILE}.sig" --version_documentation="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${DOCUMENTATION_FILENAME}.json" --tar_location="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${REPORT_TAR_NAME}" --tar_name="${IMAGE_FILE}.tar" --openscap_compliance_results="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/oscap.csv" --openscap_oval_results="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/oval.csv" --twistlock_results="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/tl.csv" --anchore_gates_results="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/anchore_gates.csv" --anchore_security_results="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/anchore_security.csv" --summary_report="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/summary.csv" --full_report="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/all_scans.xlsx" --openscap_report="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/openscap/report.html" --oval_report="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/openscap/report-cve.html" --signature_name="${SIG_FILE}.sig" --output_dir="${ARTIFACT_DIR}" --job_type="${job_type}"
     - mkdir reports
-    - |
-      for file in $(find ${DOCUMENTATION_DIRECTORY} -name "*" -type f); do
-        dest_file=$(echo $file | rev | cut -d/ -f1 | rev )
-        cp $file reports/$dest_file
-      done
-    - |
-      for file in $(find ${SCAN_DIRECTORY} -name "*" -type f); do
-        dest_file=$(echo $file | rev | cut -d/ -f1 | rev )
-        cp $file reports/$dest_file
-      done
+    - cp -r ${DOCUMENTATION_DIRECTORY}/reports/* reports/
+    - cp -r ${SCAN_DIRECTORY}/* reports/
     - cp ${BUILD_DIRECTORY}/${CI_PROJECT_NAME}-${IMG_VERSION}.tar reports/${CI_PROJECT_NAME}-${IMG_VERSION}.tar
     - ls reports
     - tar -zcvf ${CI_PROJECT_NAME}-${IMG_VERSION}-reports-signature.tar.gz reports
