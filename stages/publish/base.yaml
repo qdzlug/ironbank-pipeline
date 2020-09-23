@@ -1,6 +1,6 @@
 .publish:
   stage: publish
-  allow_failure: true
+  allow_failure: ${ALLOW_FAILURE}
 include:
  # - local: /stages/publish/s3_phase.yaml
   - local: /stages/publish/upload_to_s3.yaml
