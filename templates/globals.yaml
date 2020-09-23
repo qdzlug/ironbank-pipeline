@@ -73,10 +73,6 @@ variables:
   GIT_SSL_NO_VERIFY: "1"
   TARGET_BRANCH: master
 
-# Settings for dind service
-#  DOCKER_HOST: tcp://docker:2375
-#  DOCKER_TLS_CERTDIR: ""
-
 # Scan reports
   OSCAP_CVE_XML_FILENAME: "report-cve.xml"
   OSCAP_CVE_HTML_FILENAME: "report-cve.html"
