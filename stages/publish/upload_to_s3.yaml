@@ -68,6 +68,9 @@ upload to s3:
     - cp -r ${DOCUMENTATION_DIRECTORY}/reports/* reports/
     - cp -r ${SCAN_DIRECTORY}/* reports/
     - cp ${BUILD_DIRECTORY}/${CI_PROJECT_NAME}-${IMG_VERSION}.tar reports/${CI_PROJECT_NAME}-${IMG_VERSION}.tar
+    - PROJECT_LICENSE=$(find . -name "LICENSE*" -type f -maxdepth 1 | rev | cut -d/ -f1 | rev)
+    - PROJECT_README=$(find . -name "README*" -type f -maxdepth 1 | rev | cut -d/ -f1 | rev)
+    - cp $PROJECT_LICENSE $PROJECT_README reports/
     - ls reports
     - tar -zcvf ${CI_PROJECT_NAME}-${IMG_VERSION}-reports-signature.tar.gz reports
     - export REPORT_TAR_NAME=${CI_PROJECT_NAME}-${IMG_VERSION}-reports-signature.tar.gz
@@ -85,8 +88,6 @@ upload to s3:
         echo $file
         python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file $file --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/$report_name ;
       done
-    - file=$(find . -name "LICENSE*" -type f -maxdepth 1 | rev | cut -d/ -f1 | rev)
-    - python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file $file --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/$file
-    - file=$(find . -name "README*" -type f -maxdepth 1 | rev | cut -d/ -f1 | rev)
-    - python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file $file --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/$file
+    - python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file $PROJECT_README --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/$PROJECT_README
+    - python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file $PROJECT_LICENSE --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/$PROJECT_LICENSE
     - python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file ${REPORT_TAR_NAME} --bucket ${S3_REPORT_BUCKET} --dest ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/${REPORT_TAR_NAME}
