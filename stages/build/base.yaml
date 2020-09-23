@@ -25,7 +25,7 @@ build:
         cp -r ${ARTIFACT_STORAGE}/import-artifacts/external-resources/* .
       fi
     - echo "${SATELLITE_URL} satellite" >> /etc/hosts
-    - echo ${DOCKER_AUTH_CONFIG_PROD} | base64 -d >> prod_auth.json
+    - echo ${DOCKER_AUTH_CONFIG_PULL} | base64 -d >> prod_auth.json
     - echo ${DOCKER_AUTH_CONFIG_STAGING} | base64 -d >> staging_auth.json
   script:
     - echo "IM_NAME=${IM_NAME}" >> build.env
