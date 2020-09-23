@@ -1,7 +1,7 @@
 vat:
   stage: vat
   image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml
-  allow_failure: ${ALLOW_FAILURE}
+  
   # Load in the IMG_VERSION variable from load scripts env
   dependencies:
     - load scripts

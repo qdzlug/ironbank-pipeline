@@ -1,6 +1,6 @@
 .documentation:
   stage: documentation
-  allow_failure: false
+  
   only:
     - development
     - master

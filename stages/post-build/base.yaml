@@ -1,5 +1,6 @@
 clamav image scan:
   stage: post-build
+
   image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/clamav-podman:temp
   dependencies:
     - build
