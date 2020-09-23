@@ -1,9 +1,9 @@
 .documentation:
   stage: documentation
   
-  only:
-    - development
-    - master
+  # only:
+  #   - development
+  #   - master
 include:
   - local: /stages/documentation/sign_image.yaml
   - local: /stages/documentation/sign_manifest.yaml
