@@ -76,6 +76,3 @@ variables:
 # Scan reports
   OSCAP_CVE_XML_FILENAME: "report-cve.xml"
   OSCAP_CVE_HTML_FILENAME: "report-cve.html"
-
-# For debugging entire pipeline
-  ALLOW_FAILURE: false

@@ -1,9 +1,8 @@
 .preprocess:
   stage: .pre
-  allow_failure: ${ALLOW_FAILURE}
+  allow_failure: false
   except:
     refs:
       - tags
   dependencies: []
 
-    

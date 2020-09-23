@@ -1,10 +1,10 @@
 .documentation:
   stage: documentation
-  allow_failure: ${ALLOW_FAILURE}
+  allow_failure: false
   only:
     - development
     - master
-include:  
+include:
   - local: /stages/documentation/sign_image.yaml
   - local: /stages/documentation/sign_manifest.yaml
   - local: /stages/documentation/write_json_documentation.yaml
