@@ -67,7 +67,7 @@ class Twist():
     # It was determined that the version file was not actually being used so it was removed
     # and the version is just printed to console if available and will not cause errors in
     # the pipeline if not.
-    def print_version(self):
+    def print_version(self, version_file):
         print(f"Fetching twistlock version from {self.base_url}/version")
         r = requests.get(f"{self.base_url}/version", auth = HTTPBasicAuth(self.username, self.password))
 
@@ -75,6 +75,8 @@ class Twist():
             print(f"Skipping twistlock version, query responded with {r.status_code}")
         else:
             print(f"Twistlock version {r.text}")
+            with open(version_file, 'w') as f:
+                f.write(r.text)
         print("\n")
 
 
@@ -82,14 +84,14 @@ class Twist():
 
 
 
-def twistlock_scan(*, name, tag, username, password, filename, twistlock_api, registry, imageid, timeout):
+def twistlock_scan(*, name, tag, username, password, version_file, filename, twistlock_api, registry, imageid, timeout):
     twist = Twist( registry = registry,
                    username = username,
                    password = password,
                    url = twistlock_api )
 
     # Capture the console version
-    twist.print_version()
+    twist.print_version(version_file)
 
     # Scan the image
     print(f"Starting Prisma scan for {imageid}")
@@ -122,7 +124,8 @@ if __name__ == "__main__":
     parser.add_argument('--tag',       help = 'Image tag')
     parser.add_argument('--username',  help = 'Twistlock username')
     parser.add_argument('--password',  help = 'Twistlock password')
-    parser.add_argument('--filename',  help = 'Output file for api response')
+    parser.add_argument('--version_file',  help=  'Output file directory')
+    parser.add_argument('--filename',  help = 'Output filename for api response')
     parser.add_argument('--imageid',   help = 'Image ID for current image')
     parser.add_argument('--registry',  help = 'Nexus URL')
     parser.add_argument('--api_url',   help = 'Twistlock URL')
@@ -135,6 +138,7 @@ if __name__ == "__main__":
                     tag           = args.tag,
                     username      = args.username,
                     password      = args.password,
+                    version_file  = args.version_file,
                     filename      = args.filename,
                     imageid       = args.imageid,
                     timeout       = args.timeout )
