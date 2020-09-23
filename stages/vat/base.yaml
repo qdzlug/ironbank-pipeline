@@ -9,8 +9,8 @@ vat:
   variables:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/scan-results/csvs/
     OPENSCAP: ${ARTIFACT_STORAGE}/scan-results/openscap
-    #  only:
-    #    - development
+  only:
+    - development
   before_script:
     - export BASE_BUCKET_DIRECTORY="container-scan-reports"
     - export REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}"
