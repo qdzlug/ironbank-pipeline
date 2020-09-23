@@ -6,8 +6,9 @@ write json documentation:
     IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
     # TODO put back in for full run
-    OPENSCAP_VERSION: ${ARTIFACT_STORAGE}/scan-results/openscap/oscap-version.txt
-    TWISTLOCK_VERSION: ""
+    OPENSCAP_VERSION_FILE: ${ARTIFACT_STORAGE}/scan-results/openscap/oscap-version.txt
+    TWISTLOCK_VERSION_FILE: ${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock-version.txt
+    ANCHORE_VERSION_FILE: ${ARTIFACT_STORAGE}/scan-results/anchore/anchore-version.txt
   dependencies:
     - load scripts
     - wl compare lint
@@ -24,8 +25,9 @@ write json documentation:
     - GPG_VERSION_INFO=$(gpg --version | grep "gpg")
     # TODO add anchore endpoint
       #- ANCHORE_VERSION=$(curl -k ${anchore_server_address}/version)
-    - ANCHORE_VERSION=""
-    - TWISTLOCK_VERSION=$(cat ${TWISTLOCK_VERSION})
+    - OPENSCAP_VERSION=$(cat "${OPENSCAP_VERSION_FILE}")
+    - ANCHORE_VERSION=$(cat "${ANCHORE_VERSION_FILE}")
+    - TWISTLOCK_VERSION=$(cat "${TWISTLOCK_VERSION_FILE}")
     #- OPENSCAP_VERSION=$(cat ${OPENSCAP_VERSION})
     - IMAGE_TAR_SHA=$(sha256sum ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar | grep -E '^[a-zA-Z0-9]+' -o)
     - IMAGE_PODMAN_SHA=$(podman inspect --format {{'.Digest'}} ${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION})
