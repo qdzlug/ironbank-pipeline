@@ -27,8 +27,8 @@ write json documentation:
     # TODO add anchore endpoint
       #- ANCHORE_VERSION=$(curl -k ${anchore_server_address}/version)
     - OPENSCAP_VERSION=$(cat "${OPENSCAP_VERSION_FILE}")
-    - ANCHORE_VERSION=$(cat "${ANCHORE_VERSION_FILE}")
-    - TWISTLOCK_VERSION=$(cat "${TWISTLOCK_VERSION_FILE}")
+    - ANCHORE_VERSION=$(cat "${ANCHORE_VERSION_FILE}" | sed 's/"//g')
+    - TWISTLOCK_VERSION=$(cat "${TWISTLOCK_VERSION_FILE}" | sed 's/"//g')
     #- OPENSCAP_VERSION=$(cat ${OPENSCAP_VERSION})
     - IMAGE_TAR_SHA=$(sha256sum ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar | grep -E '^[a-zA-Z0-9]+' -o)
     - IMAGE_PODMAN_SHA=$(podman inspect --format {{'.Digest'}} ${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION})
@@ -49,8 +49,8 @@ write json documentation:
           "version":"${GPG_VERSION_INFO}"
         },
         "git": {
-           "branch": "${CI_COMMIT_BRANCH}",
-           "commit": "${CI_COMMIT_SHA}"
+          "branch": "${CI_COMMIT_BRANCH}",
+          "commit": "${CI_COMMIT_SHA}"
         },
         "reports": {
           "twistlock": {

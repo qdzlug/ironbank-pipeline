@@ -77,8 +77,6 @@ def main():
         }
     }
 
-
-
     if existing_repomap:
         with open('repo_map.json') as f:
             data = json.load(f)
