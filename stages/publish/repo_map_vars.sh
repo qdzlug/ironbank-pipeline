@@ -27,5 +27,5 @@ export openscap_report="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/openscap/repo
 export oval_report="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/openscap/report-cve.html" 
 export signature_name="${SIG_FILE}.sig" 
 export output_dir="${ARTIFACT_DIR}" 
-export project_license="${PROJECT_LICENSE}"
-export project_readme="${PROJECT_README}"
+export project_license="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_LICENSE}"
+export project_readme="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_README}"
