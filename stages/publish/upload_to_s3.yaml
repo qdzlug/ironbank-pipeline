@@ -43,6 +43,7 @@ upload to s3:
       export GPG_PUB_KEY=$(awk '{printf "%s\\n", $0}' ${IB_CONTAINER_GPG_PUBKEY})
       export PROJECT_README=$(find . -name "README*" -type f -maxdepth 1 | rev | cut -d/ -f1 | rev)
       export PROJECT_LICENSE=$(find . -name "LICENSE*" -type f -maxdepth 1 | rev | cut -d/ -f1 | rev)
+    - source repo_map_vars.sh
     - python3 ${PIPELINE_REPO_DIR}/stages/publish/create_repo_map.py --target ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/repo_map.json
     - mkdir reports
     - cp -r ${DOCUMENTATION_DIRECTORY}/reports/* reports/
