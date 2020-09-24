@@ -39,12 +39,6 @@ def main():
 
     existing_repomap = get_repomap(object_name)
 
-#    command = shlex.split("bash -c 'source repo_map_vars.sh && env'")
-#    proc = subprocess.Popen(command, stdout = subprocess.PIPE)
-#    for line in proc.stdout:
-#        (key, _, value) = line.decode().partition("=")
-#        os.environ[key] = value.strip('\n')
-
     new_data = {os.environ.get("build_number"):
         {
         'Anchore_Gates_Results': os.environ.get("anchore_gates_results"),

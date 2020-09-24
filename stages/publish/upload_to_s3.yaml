@@ -12,10 +12,12 @@ upload to s3:
     DOCUMENTATION_DIRECTORY: ${ARTIFACT_STORAGE}/documentation
     BUILD_DIRECTORY: ${ARTIFACT_STORAGE}/build
     SIG_FILE: signature
-    BASE_BUCKET_DIRECTORY: "testing/container-scan-reports"
+    BASE_BUCKET_DIRECTORY: testing/container-scan-reports
     DOCUMENTATION_FILENAME: documentation
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
     REPORT_TAR_NAME: ${CI_PROJECT_NAME}-${IMG_VERSION}-reports-signature.tar.gz
+    REMOTE_REPORT_DIRECTORY: ${CI_PIPELINE_ID}/reports
+    REMOTE_DOCUMENTATION_DIRECTORY: ${CI_PIPELINE_ID}
   dependencies:
     - build
     - sign image
@@ -33,16 +35,14 @@ upload to s3:
     - pip install boto3 ushlex
     - |
       if [ "${CI_COMMIT_BRANCH}" == "master" ]; then
-        export BASE_BUCKET_DIRECTORY="container-scan-reports"
+        BASE_BUCKET_DIRECTORY="container-scan-reports"
       fi
     - |
-      export REMOTE_REPORT_DIRECTORY="${CI_PIPELINE_ID}/reports"
-      export REMOTE_DOCUMENTATION_DIRECTORY="${CI_PIPELINE_ID}"
-      export IMAGE_PATH=$(echo ${CI_PROJECT_PATH} | sed -e 's/.*dsop\/\(.*\)/\1/')
-      export S3_HTML_LINK="https://s3-us-gov-west-1.amazonaws.com/${S3_REPORT_BUCKET}/${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}"
-      export GPG_PUB_KEY=$(awk '{printf "%s\\n", $0}' ${IB_CONTAINER_GPG_PUBKEY})
-      export PROJECT_README=$(find . -name "README*" -type f -maxdepth 1 | rev | cut -d/ -f1 | rev)
-      export PROJECT_LICENSE=$(find . -name "LICENSE*" -type f -maxdepth 1 | rev | cut -d/ -f1 | rev)
+      IMAGE_PATH=$(echo ${CI_PROJECT_PATH} | sed -e 's/.*dsop\/\(.*\)/\1/')
+      S3_HTML_LINK="https://s3-us-gov-west-1.amazonaws.com/${S3_REPORT_BUCKET}/${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}"
+      GPG_PUB_KEY=$(awk '{printf "%s\\n", $0}' ${IB_CONTAINER_GPG_PUBKEY})
+      PROJECT_README=$(find . -name "README*" -type f -maxdepth 1 | rev | cut -d/ -f1 | rev)
+      PROJECT_LICENSE=$(find . -name "LICENSE*" -type f -maxdepth 1 | rev | cut -d/ -f1 | rev)
     - source ${PIPELINE_REPO_DIR}/stages/publish/repo_map_vars.sh
     - python3 ${PIPELINE_REPO_DIR}/stages/publish/create_repo_map.py --target ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/repo_map.json
     - mkdir reports
