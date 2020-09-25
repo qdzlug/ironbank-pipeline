@@ -49,7 +49,7 @@ wl compare lint:
     # in the gitlab-ci.yml file.
     # TODO: output the error for unsuccessful runs
     - touch lint.env
-    - python3 "${PIPELINE_REPO_DIR}/stages/lint/wl_compare_lint.py" --image ${CI_PROJECT_PATH} --tag ${IMG_VERSION} --glkey "${PYTHON_GL_KEY}" --wlbranch "pipeline-test-project"
+    - python3 "${PIPELINE_REPO_DIR}/stages/lint/wl_compare_lint.py" --image ${CI_PROJECT_PATH} --tag ${IMG_VERSION} --glkey "${PYTHON_GL_KEY}" --wlbranch "${WL_TARGET_BRANCH}"
     - cat lint.env
   artifacts:
     paths: []
