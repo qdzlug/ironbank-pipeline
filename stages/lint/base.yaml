@@ -48,8 +48,7 @@ wl compare lint:
     # The following step assumes contributor projects have an environment variable set for the image version
     # in the gitlab-ci.yml file.
     # TODO: output the error for unsuccessful runs
-    - touch lint.env
-    - python3 "${PIPELINE_REPO_DIR}/stages/lint/wl_compare_lint.py" --image ${CI_PROJECT_PATH} --tag ${IMG_VERSION} --glkey "${PYTHON_GL_KEY}" --wlbranch "${WL_TARGET_BRANCH}"
+    - python3 "${PIPELINE_REPO_DIR}/stages/lint/wl_compare_lint.py" --image ${CI_PROJECT_PATH} --tag ${IMG_VERSION} --glkey "${PYTHON_GL_KEY}" --wlbranch "${WL_TARGET_BRANCH}" > lint.env
     - cat lint.env
   artifacts:
     paths: []
