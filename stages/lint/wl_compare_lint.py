@@ -72,7 +72,7 @@ def get_complete_whitelist_for_image(proj, im_name, im_tag, wl_branch, child_ima
     sys.exit(1)
   
   # BASE_REGISTRY is a constant value
-  print(f"BASE_REGISTRY=${os.environ['REGISTRY_URL']}")
+  print(f"BASE_REGISTRY={os.environ['REGISTRY_URL']}")
   return
 
 def get_whitelist_filename(im_name, im_tag):
