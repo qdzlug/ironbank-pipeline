@@ -73,10 +73,6 @@ def get_complete_whitelist_for_image(proj, im_name, im_tag, wl_branch, child_ima
     print("Mismatched image name/tag in " + filename + "\nRetrieved Image Name: " + contents['image_name'] + ":" + contents['image_tag'] + "\nSupplied Image Name: " + im_name + ":" + im_tag + "\nCheck parent image tag in your whitelist file.", file=sys.stderr)
     sys.exit(1)
     
-  # BASE_REGISTRY is a constant value
-  print(f"BASE_REGISTRY={os.environ['REGISTRY_URL']}")
-  return
-
 def get_whitelist_filename(im_name, im_tag):
   dccscr_project = im_name.split('/')
   greylist_name = dccscr_project[-1] + '.greylist'
