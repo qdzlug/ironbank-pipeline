@@ -106,17 +106,17 @@ Job artifacts:
 The OpenSCAP compliance scan will check for any compliance-related findings.
 
 Job artifacts:
-- oscap-version.txt
-- report.html
-- cve-oval.xml
+- `oscap-version.txt`
+- `report.html`
+- `cve-oval.xml`
 
 ##### openscap cve
 
 The OpenSCAP CVE scan will check for CVE findings in the image.
 
 Job artifacts:
-- report-cve.html
-- report-cve.xml
+- `report-cve.html`
+- `report-cve.xml`
 
 ##### twistlock scan
 
