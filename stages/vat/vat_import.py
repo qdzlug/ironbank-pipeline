@@ -611,10 +611,22 @@ def update_in_current_scan(iid, findings, scan_source):
     @param scan_source current scan type
     """
 
+    conn = connect_to_db()
     if findings.empty:
         logs.warning(findings)
+
+        # This is for the special case where a finding existed and the following
+        # run there were no findings for the scan_source so set not in_current_scan
+        # for existing findings from previous runs.
+        cursor = conn.cursor()
+        sql = (
+            "UPDATE `findings_approvals` SET in_current_scan=0 WHERE imageid="
+            + str(iid) + " and scan_source='" + scan_source + "'")
+        logs.debug("Executing %s", sql)
+        cursor.execute(sql)
+        conn.commit()
         return
-    conn = connect_to_db()
+
     try:
 
         # Set all the findings to 1 for the image ID and the scan source
@@ -628,7 +640,7 @@ def update_in_current_scan(iid, findings, scan_source):
         # Query for all the findings for the image ID and the scan source
         cursor.execute(
         "SELECT id, finding, package, package_path FROM "
-            + "`findings_approvals` WHERE imageid=%s  and scan_source=%s",
+            + "`findings_approvals` WHERE imageid=%s and scan_source=%s",
             (iid, scan_source),
         )
 
