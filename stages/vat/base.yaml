@@ -18,7 +18,7 @@ vat:
     - IM_NAME=$(echo ${CI_PROJECT_PATH} | sed -e 's/.*dsop\/\(.*\)/\1/')
   script:
     - pip3 install --upgrade pip setuptools wheel pandas mysql mysql-connector-python minepy python-gitlab
-    - python3 "${PIPELINE_REPO_DIR}/stages/vat/get_parent_info.py" --image ${CI_PROJECT_PATH} --tag ${IMG_VERSION} --glkey "${PYTHON_GL_KEY}" --wlbranch 'pipeline-test-project' --output 'environment.sh'
+    - python3 "${PIPELINE_REPO_DIR}/stages/vat/get_parent_info.py" --image ${CI_PROJECT_PATH} --tag ${IMG_VERSION} --glkey "${PYTHON_GL_KEY}" --wlbranch "${WL_TARGET_BRANCH}" --output 'environment.sh'
     - source environment.sh
     - cat environment.sh
     - python3 ${PIPELINE_REPO_DIR}/stages/vat/vat_import.py --db ${vat_db_database_name} --user ${vat_db_connection_user} --host ${vat_db_host} --csv_dir ${ARTIFACT_DIR} --jenkins ${CI_PIPELINE_ID} --container ${IM_NAME} --version ${IMG_VERSION} --parent "${PARENT_NAME}" --password ${vat_db_connection_pass} --parent_version "${PARENT_TAG}" --scan_date $(date +%FT%T) --link ${OPENSCAP}/ --debug
