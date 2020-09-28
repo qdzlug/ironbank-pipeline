@@ -60,6 +60,9 @@ def get_complete_whitelist_for_image(proj, im_name, im_tag, wl_branch):
       print("Fetching Whitelisted CVEs from parent: " + par_image + ':' + par_tag)
       get_complete_whitelist_for_image(proj, par_image, par_tag, wl_branch)
       os.environ["IMAGE_APPROVAL_STATUS"] = contents['approval_status']
+      os.environ["BASE_REGISTRY"] = contents['base_registry']
+      os.environ["BASE_IMAGE"] = contents['image_parent_name']
+      os.environ["BASE_TAG"] = contents['image_parent_tag']
       os.system('echo "IMAGE_APPROVAL_STATUS=${IMAGE_APPROVAL_STATUS}" >> lint.env')
   else:
     print("Mismatched image name/tag in " + filename + "\nRetrieved Image Name: " + contents['image_name'] + ":" + contents['image_tag'] + "\nSupplied Image Name: " + im_name + ":" + im_tag + "\nCheck parent image tag in your whitelist file.", file=sys.stderr)
