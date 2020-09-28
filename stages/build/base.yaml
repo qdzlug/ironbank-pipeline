@@ -5,6 +5,7 @@ build:
   dependencies:
     - import artifacts
     - load scripts
+    - lint
   tags:
     - ironbank-isolated
   variables:
