@@ -31,7 +31,7 @@ build:
     - echo "IM_NAME=${IM_NAME}" >> build.env
     # Set the tag to eliminate /build/dsop and matching existing project hierarchy format
     - harbor_image_path=${STAGING_REGISTRY_URL}/$IM_NAME:$IMG_VERSION
-    - buildah bud --authfile prod_auth.json --format=docker --storage-driver=vfs -t $harbor_image_path  .
+    - buildah bud --build-arg "BASE_REGISTRY=${BASE_REGISTRY}" --build-arg "BASE_IMAGE=${BASE_IMAGE}" --build-arg "BASE_TAG=${BASE_TAG}" --authfile prod_auth.json --format=docker --storage-driver=vfs -t $harbor_image_path  .
     - buildah tag --storage-driver=vfs $harbor_image_path  $harbor_image_path-${CI_PIPELINE_ID}
     - buildah push --storage-driver=vfs --authfile staging_auth.json $harbor_image_path-${CI_PIPELINE_ID}
     # Provide tar for use in later stages, matching existing tar naming convention
