@@ -22,7 +22,8 @@ def main():
     parser.add_argument('--anchore-sec',   help='')
     parser.add_argument('--anchore-gates',   help='')
     parser.add_argument('--glkey', help='')
-    parser.add_argument('--branch', help='')
+    parser.add_argument('--proj_branch', help='')
+    parser.add_argument('--wl_branch', help='')
     args = parser.parse_args()
     x = pipeline_whitelist_compare(args.image,
                                args.tag,
@@ -32,14 +33,15 @@ def main():
                                args.anchore_sec,
                                args.anchore_gates,
                                args.glkey,
-                               args.branch)
+                               args.proj_branch,
+                               args.wl_branch)
     #print(x)
     sys.exit(x)
 
 
-def pipeline_whitelist_compare(image_name, image_version, oscap, oval, twist, anc_sec, anc_gates, glkey, branch):
+def pipeline_whitelist_compare(image_name, image_version, oscap, oval, twist, anc_sec, anc_gates, glkey, proj_branch, wl_branch):
     proj = init(dccscr_project_id, glkey)
-    image_whitelist = get_complete_whitelist_for_image(proj, image_name, image_version, branch)
+    image_whitelist = get_complete_whitelist_for_image(proj, image_name, image_version, wl_branch)
 
     wl_set = set()
     for image in image_whitelist:
@@ -97,7 +99,7 @@ def pipeline_whitelist_compare(image_name, image_version, oscap, oval, twist, an
         print("Vuln Set Delta Length: ", len(delta))
         print("Scans are not passing 100%. Vuln Set Delta Length: " + str(len(delta)), file=sys.stderr)
 
-        if branch == 'master':
+        if proj_branch == 'master':
             return 1
         else:
             # Return 0 exit code even though non-whitelisted vulns found as branch is not master
@@ -255,9 +257,9 @@ def get_whitelist_file_contents(proj, item_path, item_ref):
         sys.exit(1)
     return contents
 
-def get_complete_whitelist_for_image(proj, im_name, im_tag, branch, total_wl=[]):
+def get_complete_whitelist_for_image(proj, im_name, im_tag, wl_branch, total_wl=[]):
     filename = get_whitelist_filename(im_name, im_tag)
-    contents = get_whitelist_file_contents(proj, filename, branch)
+    contents = get_whitelist_file_contents(proj, filename, wl_branch)
 
     par_image = contents['image_parent_name']
     par_tag = contents['image_parent_tag']
@@ -267,7 +269,7 @@ def get_complete_whitelist_for_image(proj, im_name, im_tag, branch, total_wl=[])
         total_wl.append(x)
     if len(par_image) > 0 and len(par_tag) > 0:
         print("Fetching Whitelisted CVEs from parent: " + par_image + ':' + par_tag)
-        get_complete_whitelist_for_image(proj, par_image, par_tag, branch)
+        get_complete_whitelist_for_image(proj, par_image, par_tag, wl_branch)
     # else:
     #     print("Mismatched image name/tag in " + filename + "\nRetrieved Image Name: " + contents['image_name'] + ":" + contents['image_tag'] + "\nSupplied Image Name: " + im_name + ":" + im_tag + "\nCheck parent image tag in your whitelist file.", file=sys.stderr)
     #     sys.exit(1)
