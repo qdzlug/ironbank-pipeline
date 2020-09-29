@@ -72,7 +72,7 @@ variables:
   PYTHON_GITLAB_KEY: "${PYTHON_GITLAB_KEY}"
   GIT_SSL_NO_VERIFY: "1"
   TARGET_BRANCH: nodownloadfile
-  WL_TARGET_BRANCH: nodownloadfile
+  WL_TARGET_BRANCH: pipeline-test-project
 
 # Scan reports
   OSCAP_CVE_XML_FILENAME: "report-cve.xml"
