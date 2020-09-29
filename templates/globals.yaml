@@ -71,8 +71,8 @@ variables:
   PIPELINE_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank_pipeline"
   PYTHON_GITLAB_KEY: "${PYTHON_GITLAB_KEY}"
   GIT_SSL_NO_VERIFY: "1"
-  TARGET_BRANCH: master
-  WL_TARGET_BRANCH: master
+  TARGET_BRANCH: nodownloadfile
+  WL_TARGET_BRANCH: nodownloadfile
 
 # Scan reports
   OSCAP_CVE_XML_FILENAME: "report-cve.xml"
