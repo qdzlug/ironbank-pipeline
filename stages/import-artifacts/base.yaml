@@ -1,12 +1,12 @@
 import artifacts:
   stage: import artifacts
   image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/all-in-one-fedora:1.0
-  
+
   dependencies:
     - load scripts
   variables:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/import-artifacts
-    
+
   # Arguments.get().download is used to get download items
   # dccscrImport() calls ContributorResource, which performs validation of download.yaml file
   before_script:
@@ -25,9 +25,11 @@ import artifacts:
       fi
   script:
     - |
-      if [ $JSON_PRESENT ]; then 
+      if [ $JSON_PRESENT ]; then
         python3 ${PIPELINE_REPO_DIR}/stages/import-artifacts/downloader.py -i "${ARTIFACT_DIR}"/converted-file/download.yaml -d ${ARTIFACT_DIR}
-      else
+      fi
+    - |
+      if [ -f ${CI_PROJECT_DIR}/download.yaml ]; then
         python3 ${PIPELINE_REPO_DIR}/stages/import-artifacts/downloader.py -i ${CI_PROJECT_DIR}/download.yaml -d ${ARTIFACT_DIR}
       fi
   artifacts:
