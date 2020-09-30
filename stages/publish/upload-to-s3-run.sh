@@ -5,8 +5,10 @@ pip install boto3
 if [ "${CI_COMMIT_BRANCH}" == "master" ]; then
     export BASE_BUCKET_DIRECTORY="container-scan-reports"
 fi
-export REMOTE_REPORT_DIRECTORY="${CI_PIPELINE_ID}/reports"
-export REMOTE_DOCUMENTATION_DIRECTORY="${CI_PIPELINE_ID}"
+directory_date=$(date --utc '+%FT%T.%3N')
+export directory_date
+export REMOTE_DOCUMENTATION_DIRECTORY="${directory_date}_${CI_PIPELINE_ID}"
+export REMOTE_REPORT_DIRECTORY="${REMOTE_DOCUMENTATION_DIRECTORY}/reports"
 IMAGE_PATH=$(echo "${CI_PROJECT_PATH}" | sed -e 's/.*dsop\/\(.*\)/\1/')
 export IMAGE_PATH
 S3_HTML_LINK="https://s3-us-gov-west-1.amazonaws.com/${S3_REPORT_BUCKET}/${BASE_BUCKET_DIRECTORY}/${CI_PROJECT_NAME}/${IMG_VERSION}"
