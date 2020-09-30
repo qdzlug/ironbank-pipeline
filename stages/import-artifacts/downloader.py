@@ -68,12 +68,24 @@ def main():
                     docker_download(item["url"], item["tag"], item["tag"])
                 if download_type == "s3":
                     s3_resource = True
-            # print()
-    # Check if http or docker resources were downloaded and set environment variables for build stage
+                    if "auth" in item:
+                        if item["auth"]["type"] == "s3":
+                            credential_id = item["auth"]["id"].replace("-","_")
+                            password = b64decode(os.getenv("ACCESS_KEY_" + credential_id)).decode("utf-8")
+                            username = b64decode(os.getenv("SECRET_KEY_" + credential_id)).decode("utf-8")
+                         s3_download(item["url"], item["filename"], item["validation"]["type"], item["validation"]["value"], outputDir, username, password)
+                        else:
+                            print("Unrecognized auth type provided for S3 resource, failing")
+                            sys.exit(1)
+                    else:
+                        s3_download(item["url"], item["filename"], item["validation"]["type"], item["validation"]["value"], outputDir)
+    # Check if http, s3 or docker resources were downloaded and set environment variables for build stage
     if http_resource is not None:
         os.system("echo 'HTTP_RESOURCE=TRUE' >> artifact.env")
     if docker_resource is not None:
         os.system("echo 'DOCKER_RESOURCE=TRUE' >> artifact.env")
+    if s3_resource is not None:
+        os.system("echo 'S3_RESOURCE=TRUE' >> artifact.env")
 
 def resource_type(url):
     check = url

@@ -21,7 +21,7 @@ build:
         done
       fi
     - |
-      if [[ ! -z ${HTTP_RESOURCE} ]]; then
+      if [[ ! -z ${HTTP_RESOURCE}  || ! -z ${S3_RESOURCE} ]]; then
         cp -r ${ARTIFACT_STORAGE}/import-artifacts/external-resources/* .
       fi
     - echo "${SATELLITE_URL} satellite" >> /etc/hosts
