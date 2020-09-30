@@ -1,0 +1,1 @@
+This template is **ONLY** used for enhancement requests. Bug reporting or new feature request issues should use the other template options for issue submission.
