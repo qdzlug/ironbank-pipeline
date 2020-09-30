@@ -1,43 +1,19 @@
 import artifacts:
   stage: import artifacts
-  image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/all-in-one-fedora:1.0
+  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/all-in-one-fedora:1.0"
 
   dependencies:
     - load scripts
   variables:
-    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/import-artifacts
-
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/import-artifacts"
   # Arguments.get().download is used to get download items
   # dccscrImport() calls ContributorResource, which performs validation of download.yaml file
-  before_script:
-    - mkdir -p "${ARTIFACT_DIR}"/external-resources/ "${ARTIFACT_DIR}"/images/
-    - touch artifact.env
-    - |
-      if [ -f ${CI_PROJECT_DIR}/download.json ]; then
-        echo "download.json file found. Converting json to yaml."
-        JSON_PRESENT=true
-      fi
-    - |
-      if [ $JSON_PRESENT ]; then
-        mkdir -p "${ARTIFACT_DIR}"/converted-file/
-        touch "${ARTIFACT_DIR}"/converted-file/download.yaml
-        python3 ${PIPELINE_REPO_DIR}/stages/import-artifacts/json_yaml_converter.py -i ${CI_PROJECT_DIR}/download.json -o "${ARTIFACT_DIR}"/converted-file/download.yaml
-      fi
   script:
-    - pip3 install requests
-    - |
-      if [ $JSON_PRESENT ]; then
-        python3 ${PIPELINE_REPO_DIR}/stages/import-artifacts/downloader.py -i "${ARTIFACT_DIR}"/converted-file/download.yaml -d ${ARTIFACT_DIR}
-      fi
-    - |
-      if [ -f ${CI_PROJECT_DIR}/download.yaml ]; then
-        python3 ${PIPELINE_REPO_DIR}/stages/import-artifacts/downloader.py -i ${CI_PROJECT_DIR}/download.yaml -d ${ARTIFACT_DIR}
-      fi
+    - '"${PIPELINE_REPO_DIR}/stages/import-artifacts/import-run.sh"'
   artifacts:
     when: always
     paths:
-      - ${ARTIFACT_DIR}/
+      - "${ARTIFACT_DIR}/"
     expire_in: 1 week
     reports:
       dotenv: artifact.env
-

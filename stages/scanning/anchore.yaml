@@ -22,44 +22,19 @@
 anchore scan:
   extends: .scanning
   stage: scanning
-  image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1
+  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1"
   # Load in the IMG_VERSION variable from load scripts env
   dependencies:
     - load scripts
     - build
   variables:
     # put all scan outputs in the scan-results folder
-    ANCHORE_SCANS: ${ARTIFACT_STORAGE}/scan-results/anchore
-  before_script:
-    - mkdir -p "${ANCHORE_SCANS}"
-
-    # Install anchore-cli
-    # TODO: Install the anchore-cli on the runner
-    - pip3 install --user --upgrade anchorecli
-
-    # The anchore-cli is not installed along the normal path so set
-    # the path appropriately.
-    # TODO: Configure the anchore-cli path on the runner
-    - export ANCHORE_CLI_PATH=$(python3 -m site --user-base)/bin
-
-    # Set up the environment for the anchore-cli commands and anchore_scan.py script
-    - export ANCHORE_CLI_URL=${anchore_server_address}
-    - export ANCHORE_CLI_USER=${anchore_username}
-    - export ANCHORE_CLI_PASS=${anchore_password}
-    - export ANCHORE_DEBUG=${anchore_debug}
-    - export ANCHORE_SCAN_DIRECTORY=${ANCHORE_SCANS}
-    - export IMAGE_NAME="${REGISTRY1_URL}/ironbank-staging/${IM_NAME}:${IMG_VERSION}-${CI_PIPELINE_ID}"
-    - export IMAGE_ID=${IMAGE_ID}
-
+    ANCHORE_SCANS: "${ARTIFACT_STORAGE}/scan-results/anchore"
   script:
     # TODO: Add the Dockerfile with anchore-cli add
-    - ${ANCHORE_CLI_PATH}/anchore-cli image add ${IMAGE_NAME}
-    - ${ANCHORE_CLI_PATH}/anchore-cli image wait --timeout ${anchore_timeout} ${IMAGE_NAME}
-    - python3 ${PIPELINE_REPO_DIR}/stages/scanning/anchore_scan.py
-
+    - '"${PIPELINE_REPO_DIR}/stages/scanning/anchore-run.sh"'
   artifacts:
     when: always
     paths:
-      - ${ANCHORE_SCANS}/
+      - "${ANCHORE_SCANS}/"
     expire_in: 1 week
-
