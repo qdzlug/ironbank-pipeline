@@ -15,13 +15,11 @@ build:
     - mkdir -p ${ARTIFACT_DIR}
     # Load any images used in Dockerfile build
     - |
-      if [[ ! -z ${DOCKER_RESOURCE} ]]; then
-        for file in ${ARTIFACT_STORAGE}/import-artifacts/images/*; do
-          podman load -i ${file} --storage-driver=vfs
-        done
-      fi
-    - |
-      if [[ ! -z ${HTTP_RESOURCE}  || ! -z ${S3_RESOURCE} ]]; then
+      for file in $(find ${ARTIFACT_STORAGE}/import-artifacts/images/ -name "*.tar"); do
+        echo "loading image $file"
+        podman load -i $file --storage-driver=vfs
+      done
+      if [[ -d ${ARTIFACT_STORAGE}/import-artifacts/external-resources/ ]]; then
         cp -r ${ARTIFACT_STORAGE}/import-artifacts/external-resources/* .
       fi
     - echo "${SATELLITE_URL} satellite" >> /etc/hosts
