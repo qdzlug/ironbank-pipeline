@@ -55,8 +55,8 @@ def main():
                     if "auth" in item:
                         if item["auth"]["type"] == "basic":
                             credential_id = item["auth"]["id"].replace("-","_")
-                            password = b64decode(os.getenv("CREDENTIAL_PASSWORD_" + credential_id))
-                            username = b64decode(os.getenv("CREDENTIAL_USERNAME_" + credential_id))
+                            password = b64decode(os.getenv("CREDENTIAL_PASSWORD_" + credential_id)).decode("utf-8")
+                            username = b64decode(os.getenv("CREDENTIAL_USERNAME_" + credential_id)).decode("utf-8")
                             http_download(item["url"], item["filename"], item["validation"]["type"], item["validation"]["value"], outputDir, username, password)
                         else:
                             print("Non Basic auth type provided for HTTP resource, failing")
