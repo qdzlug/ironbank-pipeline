@@ -1,6 +1,6 @@
 .documentation:
   stage: documentation
-  
+
   only:
     - development
     - master

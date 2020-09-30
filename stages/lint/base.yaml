@@ -1,6 +1,6 @@
 .lint:
   stage: lint
-  image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1
+  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1"
 
   dependencies:
     - load scripts
@@ -8,7 +8,7 @@
     when: always
     expire_in: 1 week
     paths:
-      - ${CI_PROJECT_DIR}/pipeline-artifacts/
+      - "${CI_PROJECT_DIR}/pipeline-artifacts/"
 
 # OPTIONAL FOR BETA PIPELINE
 # yaml lint:
@@ -20,11 +20,11 @@
 #   before_script:
 #     - pip3 install --upgrade pip
 #     - pip3 install yamllint
-#     - mkdir -p ${CI_PROJECT_DIR}/pipeline-artifacts/
+#     - mkdir -p "${CI_PROJECT_DIR}/pipeline-artifacts/"
 #   # TODO: get more insight into following commands and intention
 #   script:
-#     - yamllint -c ${CI_PROJECT_DIR}/tests/yamllint.yaml ${CI_PROJECT_DIR}/tests/hadolint.yaml | tee ${CI_PROJECT_DIR}/pipeline-artifacts/lint-yaml.txt
-#     - yamllint -c ${CI_PROJECT_DIR}/tests/yamllint.yaml ${CI_PROJECT_DIR}/tests/container-structure-test.yaml | tee ${CI_PROJECT_DIR}/pipeline-artifacts/lint-yaml.txt
+#     - yamllint -c "${CI_PROJECT_DIR}/tests/yamllint.yaml" "${CI_PROJECT_DIR}/tests/hadolint.yaml" | tee "${CI_PROJECT_DIR}/pipeline-artifacts/lint-yaml.txt"
+#     - yamllint -c "${CI_PROJECT_DIR}/tests/yamllint.yaml" "${CI_PROJECT_DIR}/tests/container-structure-test.yaml" | tee "${CI_PROJECT_DIR}/pipeline-artifacts/lint-yaml.txt"
 
 # # OPTIONAL FOR BETA PIPELINE
 # dockerfile lint:
@@ -36,9 +36,9 @@
 #     # https://hub.docker.com/r/hadolint/hadolint/dockerfile
 #     - docker pull hadolint/hadolint
 #     - chmod +x /bin/hadolint
-#     - mkdir -p ${CI_PROJECT_DIR}/pipeline-artifacts
+#     - mkdir -p "${CI_PROJECT_DIR}/pipeline-artifacts"
 #   script:
-#     - hadolint ${CI_PROJECT_DIR}/Dockerfile | tee ${CI_PROJECT_DIR}/pipeline-artifacts/lint-dockerfile.txt
+#     - hadolint "${CI_PROJECT_DIR}/Dockerfile" | tee "${CI_PROJECT_DIR}/pipeline-artifacts/lint-dockerfile.txt"
 
 wl compare lint:
   extends: .lint
@@ -48,10 +48,8 @@ wl compare lint:
     # The following step assumes contributor projects have an environment variable set for the image version
     # in the gitlab-ci.yml file.
     # TODO: output the error for unsuccessful runs
-    - python3 "${PIPELINE_REPO_DIR}/stages/lint/wl_compare_lint.py" --image ${CI_PROJECT_PATH} --tag ${IMG_VERSION} --glkey "${PYTHON_GL_KEY}" --wlbranch "${WL_TARGET_BRANCH}" > lint.env
-    - cat lint.env
+    - '"${PIPELINE_REPO_DIR}/stages/lint/wl-compare-run.sh"'
   artifacts:
     paths: []
     reports:
       dotenv: lint.env
-

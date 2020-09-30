@@ -1,27 +1,21 @@
 clamav scan:
   stage: scan artifacts
-  image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/clamav:0.102.4
+  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/clamav:0.102.4"
 
   dependencies:
     - import artifacts
+    - load scripts
   variables:
-    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/scan-artifacts/clamav-scan
+    KUBERNETES_MEMORY_REQUEST: 16Gi
+    KUBERNETES_MEMORY_LIMIT: 20Gi
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-artifacts/clamav-scan"
   before_script:
     - mkdir -p "${ARTIFACT_DIR}"
   script:
-    - freshclam
-    - clamscan -irv --max-filesize=4000M --max-scansize=4000M ${ARTIFACT_STORAGE}/import-artifacts/ >> ${ARTIFACT_DIR}/import-artifacts-clamav-report.txt
-    - cat ${ARTIFACT_DIR}/import-artifacts-clamav-report.txt
-    - INFECTED_CONTAINER_FILES=$(grep -e "^Infected files:" ${ARTIFACT_DIR}/import-artifacts-clamav-report.txt | cut -d ' ' -f3)
-    - |
-      if [ ${INFECTED_CONTAINER_FILES} -gt 0 ]
-      then
-        echo Malware detected in container! Number of findings: ${INFECTED_CONTAINER_FILES}
-        exit 1
-      fi
+    - '"${PIPELINE_REPO_DIR}/stages/scan-artifacts/clamav-run.sh"'
 
   artifacts:
     when: always
     paths:
-      - ${ARTIFACT_DIR}/
+      - "${ARTIFACT_DIR}/"
     expire_in: 1 week

@@ -1,7 +1,7 @@
 csv output:
   stage: csv output
-  
-  image: ${REGISTRY_URL}/redhat/python/python36:3.6
+
+  image: "${REGISTRY_URL}/redhat/python/python36:3.6"
   dependencies:
     - twistlock scan
     - openscap cve
@@ -10,16 +10,23 @@ csv output:
     - load scripts
   variables:
     # Put generated csv report in the scan-results folder
-    CSV_REPORT: ${ARTIFACT_STORAGE}/scan-results/csvs/
+    CSV_REPORT: "${ARTIFACT_STORAGE}/scan-results/csvs/"
   before_script:
     - mkdir -p "${CSV_REPORT}"
     - pip3 install --upgrade pip
     - pip3 install bs4 pandas argparse openpyxl
   script:
-    - python3 ${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py --oscap ${ARTIFACT_STORAGE}/scan-results/openscap/report.html --oval ${ARTIFACT_STORAGE}/scan-results/openscap/report-cve.html --twistlock ${ARTIFACT_STORAGE}/scan-results/twistlock/${IMG_VERSION}.json --anchore-sec ${ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json --anchore-gates ${ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json --output-dir ${CSV_REPORT}
+    - |
+      python3 "${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py" \
+        --oscap "${ARTIFACT_STORAGE}/scan-results/openscap/report.html" \
+        --oval "${ARTIFACT_STORAGE}/scan-results/openscap/report-cve.html" \
+        --twistlock "${ARTIFACT_STORAGE}/scan-results/twistlock/${IMG_VERSION}.json" \
+        --anchore-sec "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json" \
+        --anchore-gates "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json" \
+        --output-dir "${CSV_REPORT}"
   artifacts:
     when: always
     paths:
-      - ${CSV_REPORT}
+      - "${CSV_REPORT}"
     expire_in: 1 week
 
