@@ -97,6 +97,8 @@ def http_download(download_item, resource_name, validation_type, checksum_value,
     if match is None:
         print("Filename is has invalid characters. Aborting.")
         sys.exit(1)
+    print("password: " + password)
+    print("username: " + username)
 
     else:
         auth = None
