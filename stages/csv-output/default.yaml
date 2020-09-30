@@ -20,4 +20,6 @@ default:
     paths:
       - "${CSV_REPORT}"
     expire_in: 1 week
-
+  variables:
+    # Put generated csv report in the scan-results folder
+    CSV_REPORT: "${ARTIFACT_STORAGE}/scan-results/csvs/"
