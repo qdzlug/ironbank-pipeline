@@ -15,8 +15,6 @@ include:
 
     # Scanning files
     - local: stages/scanning/base.yaml
-    - local: stages/scanning/twistlock.yaml
-    - local: stages/scanning/anchore.yaml
 
     - local: stages/csv-output/distroless.yaml
 
