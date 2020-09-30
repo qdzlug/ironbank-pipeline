@@ -24,6 +24,7 @@ import artifacts:
         python3 ${PIPELINE_REPO_DIR}/stages/import-artifacts/json_yaml_converter.py -i ${CI_PROJECT_DIR}/download.json -o "${ARTIFACT_DIR}"/converted-file/download.yaml
       fi
   script:
+    - pip3 install requests
     - |
       if [ $JSON_PRESENT ]; then
         python3 ${PIPELINE_REPO_DIR}/stages/import-artifacts/downloader.py -i "${ARTIFACT_DIR}"/converted-file/download.yaml -d ${ARTIFACT_DIR}
