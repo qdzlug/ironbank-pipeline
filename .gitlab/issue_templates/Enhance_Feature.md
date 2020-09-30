@@ -23,4 +23,4 @@ This template is **ONLY** used for enhancement requests. Bug reporting or new fe
 * 
 * 
 
-/label Enhancement
+/label ~Enhancement
