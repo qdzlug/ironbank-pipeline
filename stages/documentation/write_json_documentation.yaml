@@ -1,14 +1,14 @@
 write json documentation:
   extends: .documentation
-  image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/all-in-one-fedora:1.0
+  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/all-in-one-fedora:1.0"
   variables:
     #TODO: Put these in globals
-    IMAGE_FILE: ${CI_PROJECT_NAME}-${IMG_VERSION}
-    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
+    IMAGE_FILE: "${CI_PROJECT_NAME}-${IMG_VERSION}"
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/documentation"
     # TODO put back in for full run
-    OPENSCAP_VERSION_FILE: ${ARTIFACT_STORAGE}/scan-results/openscap/oscap-version.txt
-    TWISTLOCK_VERSION_FILE: ${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock-version.txt
-    ANCHORE_VERSION_FILE: ${ARTIFACT_STORAGE}/scan-results/anchore/anchore-version.txt
+    OPENSCAP_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/openscap/oscap-version.txt"
+    TWISTLOCK_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock-version.txt"
+    ANCHORE_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/anchore/anchore-version.txt"
   dependencies:
     - load scripts
     - wl compare lint
@@ -17,84 +17,11 @@ write json documentation:
     - twistlock scan
     - build
     - openscap compliance
-  before_script:
-    - podman load -i ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar ${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}
-    - echo ${IB_CONTAINER_GPG_KEY} | base64 -d > key
-    - mkdir -p tmp_gpg ${ARTIFACT_DIR}/reports
   script:
-    # Gather info for scan-metadata.json
-    - GPG_VERSION_INFO=$(gpg --version | grep "gpg")
-    # TODO add anchore endpoint
-      #- ANCHORE_VERSION=$(curl -k ${anchore_server_address}/version)
-    - OPENSCAP_VERSION=$(cat "${OPENSCAP_VERSION_FILE}")
-    - ANCHORE_VERSION=$(cat "${ANCHORE_VERSION_FILE}" | sed 's/"//g')
-    - TWISTLOCK_VERSION=$(cat "${TWISTLOCK_VERSION_FILE}" | sed 's/"//g')
-    #- OPENSCAP_VERSION=$(cat ${OPENSCAP_VERSION})
-    - IMAGE_TAR_SHA=$(sha256sum ${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar | grep -E '^[a-zA-Z0-9]+' -o)
-    - IMAGE_PODMAN_SHA=$(podman inspect --format {{'.Digest'}} ${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION})
-    - GPG_PUB_KEY=$(awk '{printf "%s\\n", $0}' ${IB_CONTAINER_GPG_PUBKEY})
-    # Create manifest.json
-    - |
-      cat <<EOF > scan-metadata.json
-      {
-        "buildTag": "${IMG_VERSION}",
-        "buildNumber": "${CI_COMMIT_SHA}",
-        "approval": "${IMAGE_APPROVAL_STATUS}",
-        "image": {
-          "digest": "${IMAGE_TAR_SHA}",
-          "sha256": "${IMAGE_PODMAN_SHA}"
-        },
-        "pgp": {
-          "publicKey": "${GPG_PUB_KEY}",
-          "version":"${GPG_VERSION_INFO}"
-        },
-        "git": {
-          "branch": "${CI_COMMIT_BRANCH}",
-          "commit": "${CI_COMMIT_SHA}"
-        },
-        "reports": {
-          "twistlock": {
-            "version": "${TWISTLOCK_VERSION}"
-          },
-          "openSCAP": {
-            "version": "${OPENSCAP_VERSION}"
-          },
-          "anchore": {
-            "version": "${ANCHORE_VERSION}"
-          }
-        }
-      }
-      EOF
-    - cat scan-metadata.json
-    - mv scan-metadata.json ${ARTIFACT_DIR}
-    # Create manifest.json
-    - |
-      cat <<EOF > documentation.json
-      {
-        "timestamp": "$(date +%FT%T)",
-        "git": {
-          "hash": "${CI_COMMIT_SHA}",
-          "branch": "${CI_COMMIT_BRANCH}"
-        },
-        "tools": {
-          "anchore": {
-            "version": "${ANCHORE_VERSION}"
-          },
-          "twistlock": {
-            "version": "${TWISTLOCK_VERSION}"
-          },
-          "openSCAP": {
-            "version": "${OPENSCAP_VERSION}"
-          }
-        }
-      }
-      EOF
-    - cat documentation.json
-    - mv documentation.json ${ARTIFACT_DIR}/reports
-    # Stage manifest for upload
+    - '"${PIPELINE_REPO_DIR}/stages/documentation/write-json-docs-run.sh"'
   artifacts:
     when: always
     paths:
-      - ${ARTIFACT_DIR}
+      - "${ARTIFACT_DIR}"
     expire_in: 1 week
 

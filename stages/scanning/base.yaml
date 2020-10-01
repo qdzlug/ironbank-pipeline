@@ -1,7 +1,7 @@
 #scanning:
 .scanning:
   stage: scanning
-  
+
   #  dependencies:
   #    - post-build
 include:

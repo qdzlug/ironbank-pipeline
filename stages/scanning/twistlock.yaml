@@ -1,23 +1,32 @@
 twistlock scan:
   extends: .scanning
   stage: scanning
-  
-  image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1
+
+  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1"
   # Load in the IMG_VERSION variable from load scripts env
   dependencies:
     - load scripts
     - build
   variables:
     # put all scan outputs in the scan-results folder
-    TWISTLOCK_SCANS: ${ARTIFACT_STORAGE}/scan-results/twistlock
+    TWISTLOCK_SCANS: "${ARTIFACT_STORAGE}/scan-results/twistlock"
   before_script:
     - mkdir -p "${TWISTLOCK_SCANS}"
   script:
-  - python3 ${PIPELINE_REPO_DIR}/stages/scanning/twistlock.py --registry=${REGISTRY1_URL} --api_url=${twistlock_server_address}/api/v1 --name=ironbank-staging/${IM_NAME} --tag=${IMG_VERSION}-${CI_PIPELINE_ID} --username=${twistlock_user} --password=${twistlock_password} --version_file="${TWISTLOCK_SCANS}/twistlock-version.txt" --filename=${TWISTLOCK_SCANS}/${IMG_VERSION}.json --imageid=${IMAGE_ID} --timeout ${twistlock_timeout}
-
+    - |
+      python3 "${PIPELINE_REPO_DIR}/stages/scanning/twistlock.py" \
+        --registry="${REGISTRY1_URL}" \
+        --api_url="${twistlock_server_address}/api/v1" \
+        --name="ironbank-staging/${IM_NAME}" \
+        --tag="${IMG_VERSION}-${CI_PIPELINE_ID}" \
+        --username="${twistlock_user}" \
+        --password="${twistlock_password}" \
+        --version_file="${TWISTLOCK_SCANS}/twistlock-version.txt" \
+        --filename="${TWISTLOCK_SCANS}/${IMG_VERSION}.json" \
+        --imageid="${IMAGE_ID}" \
+        --timeout "${twistlock_timeout}"
   artifacts:
     when: always
     paths:
-      - ${TWISTLOCK_SCANS}/
+      - "${TWISTLOCK_SCANS}/"
     expire_in: 1 week
-

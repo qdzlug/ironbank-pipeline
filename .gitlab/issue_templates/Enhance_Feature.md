@@ -22,3 +22,5 @@ This template is **ONLY** used for enhancement requests. Bug reporting or new fe
 <!--- What is the acceptance criteria for this new feature? -->
 * 
 * 
+
+/label ~Enhancement

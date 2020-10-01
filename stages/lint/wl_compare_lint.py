@@ -7,7 +7,6 @@ import argparse
 
 gitlab_url = "https://repo1.dsop.io"
 dccscr_project_id = 143
-# gitlab_key = os.environ['PYTHON_GITLAB_KEY']
 
 def main():
   parser = argparse.ArgumentParser(description='Lint Whitelist')
@@ -72,7 +71,7 @@ def get_complete_whitelist_for_image(proj, im_name, im_tag, wl_branch, child_ima
   else:
     print("Mismatched image name/tag in " + filename + "\nRetrieved Image Name: " + contents['image_name'] + ":" + contents['image_tag'] + "\nSupplied Image Name: " + im_name + ":" + im_tag + "\nCheck parent image tag in your whitelist file.", file=sys.stderr)
     sys.exit(1)
-    
+
 def get_whitelist_filename(im_name, im_tag):
   dccscr_project = im_name.split('/')
   greylist_name = dccscr_project[-1] + '.greylist'
