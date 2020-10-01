@@ -1,5 +1,5 @@
 #!/bin/bash
-set -Eeuo pipefail
+set -Eexuo pipefail
 python3 "${PIPELINE_REPO_DIR}/stages/lint/wl_compare_lint.py" \
   --image "${CI_PROJECT_PATH}" \
   --tag "${IMG_VERSION}" \
