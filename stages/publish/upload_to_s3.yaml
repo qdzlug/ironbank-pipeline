@@ -2,9 +2,9 @@ upload to s3:
   extends: .publish
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml"
   resource_group: s3_phase
-  #only:
-  #- master
-  #- development
+  only:
+  - master
+  - development
   variables:
     #TODO: Put these in globals
     IMAGE_FILE: "${CI_PROJECT_NAME}-${IMG_VERSION}"
