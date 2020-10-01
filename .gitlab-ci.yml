@@ -4,15 +4,15 @@ shellcheck:
   allow_failure: true
   script:
     - |
-        set -o pipefail
-        set +e # remove gitlab ci setting
         shopt -s nullglob
         files=$(echo stages/*/*.sh)
         if [ -n "$files" ]
         then
           shellcheck --format=gcc -- $files
-          ret=$?
         fi
+    - |
+        set -o pipefail
+        set +e # remove gitlab ci setting
         echo "# Scanning embedded scripts..."
         ret=0
         IFS=$'\n' # Minor bug: newlines in filenames will still be processed incorrectly
