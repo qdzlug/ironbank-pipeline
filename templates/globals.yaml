@@ -60,7 +60,7 @@ stages:
   - publish
 
   ### VAT stage (runs on dev)
- # - vat
+  - vat
 
 include:
   - local: stages/preprocess/load-scripts.yaml
