@@ -14,6 +14,8 @@ GPG_PUB_KEY=$(awk '{printf "%s\\n", $0}' ${IB_CONTAINER_GPG_PUBKEY})
 PROJECT_README=$(find . -name "README*" -type f -maxdepth 1 | rev | cut -d/ -f1 | rev)
 PROJECT_LICENSE=$(find . -name "LICENSE*" -type f -maxdepth 1 | rev | cut -d/ -f1 | rev)
 
+directory_date=$(date --utc '+%FT%T.%3N')
+
 source ${PIPELINE_REPO_DIR}/stages/publish/repo_map_vars.sh
 
 python3 ${PIPELINE_REPO_DIR}/stages/publish/create_repo_map.py --target ${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/repo_map.json

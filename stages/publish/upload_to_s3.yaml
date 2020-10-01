@@ -16,8 +16,6 @@ upload to s3:
     DOCUMENTATION_FILENAME: documentation
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
     REPORT_TAR_NAME: ${CI_PROJECT_NAME}-${IMG_VERSION}-reports-signature.tar.gz
-    REMOTE_REPORT_DIRECTORY: ${CI_PIPELINE_ID}/reports
-    REMOTE_DOCUMENTATION_DIRECTORY: ${CI_PIPELINE_ID}
   dependencies:
     - build
     - sign image

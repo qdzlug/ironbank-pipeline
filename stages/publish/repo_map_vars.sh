@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export REMOTE_DOCUMENTATION_DIRECTORY="${directory_date}_${CI_PIPELINE_ID}"
+export REMOTE_REPORT_DIRECTORY="${REMOTE_DOCUMENTATION_DIRECTORY}/reports"
 export repo_name="${IM_NAME}" 
 export approval_status="${IMAGE_APPROVAL_STATUS}" 
 export public_key="${GPG_PUB_KEY}" 
