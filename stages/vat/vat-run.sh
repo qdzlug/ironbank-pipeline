@@ -9,6 +9,7 @@ pip3 install --upgrade pip setuptools wheel pandas mysql mysql-connector-python 
 #   --glkey "${PYTHON_GL_KEY}" --wlbranch "${WL_TARGET_BRANCH}" --output 'environment.sh'
 # source environment.sh
 # cat environment.sh
+set +u
 python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
   --db "${vat_db_database_name}" \
   --user "${vat_db_connection_user}" \
