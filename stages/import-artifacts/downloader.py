@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import re
 import os
+import subprocess
 import sys
 import yaml
 import getopt
@@ -51,12 +52,11 @@ def main():
             for item in downloads[type]:
                 download_type = resource_type(item["url"])
                 if download_type == "http":
-                    http_resource = True
                     if "auth" in item:
                         if item["auth"]["type"] == "basic":
                             credential_id = item["auth"]["id"].replace("-","_")
-                            password = b64decode(os.getenv("CREDENTIAL_PASSWORD_" + credential_id)).decode("utf-8")
-                            username = b64decode(os.getenv("CREDENTIAL_USERNAME_" + credential_id)).decode("utf-8")
+                            password = b64decode(os.getenv("CREDENTIAL_PASSWORD_" + credential_id))
+                            username = b64decode(os.getenv("CREDENTIAL_USERNAME_" + credential_id))
                             http_download(item["url"], item["filename"], item["validation"]["type"], item["validation"]["value"], outputDir, username, password)
                         else:
                             print("Non Basic auth type provided for HTTP resource, failing")
@@ -64,16 +64,10 @@ def main():
                     else:
                         http_download(item["url"], item["filename"], item["validation"]["type"], item["validation"]["value"], outputDir)
                 if download_type == "docker":
-                    docker_resource = True
                     docker_download(item["url"], item["tag"], item["tag"])
-                if download_type == "s3":
-                    s3_resource = True
-            # print()
-    # Check if http or docker resources were downloaded and set environment variables for build stage
-    if http_resource is not None:
-        os.system("echo 'HTTP_RESOURCE=TRUE' >> artifact.env")
-    if docker_resource is not None:
-        os.system("echo 'DOCKER_RESOURCE=TRUE' >> artifact.env")
+                else: 
+                    print("Unrecognized auth type provided for docker resource, failing")
+                    sys.exit(1)
 
 def resource_type(url):
     check = url
@@ -129,7 +123,6 @@ def http_download(download_item, resource_name, validation_type, checksum_value,
             print("File deleted")
             sys.exit(1)
 
-
 def generate_checksum(validation_type, checksum_value, outputDir, resource_name):
     if validation_type == "sha256":
         sha256_hash = hashlib.sha256()
@@ -151,13 +144,25 @@ def docker_download(download_item, tag_value, tar_name):
     tar_name = tar_name.replace('/', '-')
     tar_name = tar_name.replace(':', '-')
     print("Pulling " + image)
-    os.system("podman pull " + image)
-    print("Tagging image as " + tag_value)
-    os.system("podman tag " + image + " " + tag_value)
-    print("Saving " + tag_value + " as tar file")
-    os.system("podman save -o " + tar_name + ".tar " + tag_value)
-    print("Moving tar file into stage artifacts")
-    os.system("cp " + tar_name + ".tar ${ARTIFACT_STORAGE}/import-artifacts/images/")
+
+    retry_count = 0
+    while True:
+        try:
+            subprocess.run(["podman", "pull", image], check=True)
+            print("Tagging image as " + tag_value)
+            subprocess.run(["podman", "tag", image, tag_value], check=True)
+            print("Saving " + tag_value + " as tar file")
+            subprocess.run(["podman", "save",  "-o", tar_name + ".tar", tag_value], check=True)
+            print("Moving tar file into stage artifacts")
+            shutil.copy(tar_name + ".tar", os.getenv("ARTIFACT_STORAGE") + "/import-artifacts/images/")
+        except subprocess.CalledProcessError as e:
+            if  retry_count > 1:
+                print("Docker resource failed to pull, please check download.yaml configuration")
+                sys.exit(1)
+            else:
+                print("Docker resource failed to pull, retrying: " + retry_count + "/3")
+                retry_count += 1
+        break
 
 if __name__ == "__main__":
     main()
