@@ -15,9 +15,9 @@ include:
 
   - local: stages/scanning/base.yaml
 
-  - local: stages/csv-output/default.yaml
+  - local: stages/csv-output/base.yaml
 
-  - local: stages/check-cves/default.yaml
+  - local: stages/check-cves/base.yaml
 
   - local: stages/documentation/base.yaml
 

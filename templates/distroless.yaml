@@ -15,9 +15,9 @@ include:
 
   - local: stages/scanning/base.yaml
 
-  - local: stages/csv-output/distroless.yaml
+  - local: stages/csv-output/base.yaml
 
-  - local: stages/check-cves/distroless.yaml
+  - local: stages/check-cves/base.yaml
 
   - local: stages/documentation/base.yaml
 
