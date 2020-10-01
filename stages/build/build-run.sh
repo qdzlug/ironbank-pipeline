@@ -20,6 +20,7 @@ echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >> staging_auth.json
 echo "IM_NAME=${IM_NAME}" >> build.env
 # Set the tag to eliminate /build/dsop and matching existing project hierarchy format
 HARBOR_IMAGE_PATH="${STAGING_REGISTRY_URL}/$IM_NAME:$IMG_VERSION"
+set +u
 buildah bud \
     --build-arg "BASE_REGISTRY=${REGISTRY_URL}" \
     --build-arg "BASE_IMAGE=${BASE_IMAGE}" \
@@ -29,6 +30,7 @@ buildah bud \
     --storage-driver=vfs \
     -t "${HARBOR_IMAGE_PATH}" \
     .
+set -u
 buildah tag --storage-driver=vfs "${HARBOR_IMAGE_PATH}"  "${HARBOR_IMAGE_PATH}-${CI_PIPELINE_ID}"
 buildah push --storage-driver=vfs --authfile staging_auth.json "${HARBOR_IMAGE_PATH}-${CI_PIPELINE_ID}"
 # Provide tar for use in later stages, matching existing tar naming convention
