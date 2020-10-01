@@ -12,7 +12,7 @@ if [[ -n "${DOCKER_RESOURCE:-}" ]]; then
 fi
 
 if [[ -n "${HTTP_RESOURCE:-}" ]]; then
-    cp -r "${ARTIFACT_STORAGE}"/import-artifacts/external-resources/* .
+    cp -r -v "${ARTIFACT_STORAGE}"/import-artifacts/external-resources/* .
 fi
 echo "${SATELLITE_URL} satellite" >> /etc/hosts
 echo "${DOCKER_AUTH_CONFIG_PULL}" | base64 -d >> prod_auth.json
