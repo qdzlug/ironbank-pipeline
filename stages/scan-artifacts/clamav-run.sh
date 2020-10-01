@@ -1,7 +1,7 @@
 #!/bin/bash
 set -Eu
 freshclam
-for filename in q${ARTIFACT_STORAGE}/import-artifacts/; do
+for filename in ${ARTIFACT_STORAGE}/import-artifacts/; do
     clamscan -irv --max-filesize=4000M --max-scansize=4000M "${filename}" >> "${ARTIFACT_DIR}/import-artifacts-clamav-report.txt"
 done
 clamscan -irv --max-filesize=4000M --max-scansize=4000M "${ARTIFACT_STORAGE}/import-artifacts/" >> "${ARTIFACT_DIR}/import-artifacts-clamav-report.txt"
