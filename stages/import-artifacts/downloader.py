@@ -68,15 +68,11 @@ def main():
                     docker_download(item["url"], item["tag"], item["tag"])
                 if download_type == "s3":
                     if "auth" in item:
-                        if item["auth"]["type"] == "s3":
-                            credential_id = item["auth"]["id"].replace("-","_")
-                            password = b64decode(os.getenv("S3_ACCESS_KEY_" + credential_id))
-                            username = b64decode(os.getenv("S3_SECRET_KEY_" + credential_id))
-                            region = item["auth"]["region"]
-                            s3_download(item["url"], item["filename"], item["validation"]["type"], item["validation"]["value"], outputDir, username, password, region)
-                        else:
-                            print("Unrecognized auth type provided for S3 resource, failing")
-                            sys.exit(1)
+                        credential_id = item["auth"]["id"].replace("-","_")
+                        password = b64decode(os.getenv("S3_ACCESS_KEY_" + credential_id))
+                        username = b64decode(os.getenv("S3_SECRET_KEY_" + credential_id))
+                        region = item["auth"]["region"]
+                        s3_download(item["url"], item["filename"], item["validation"]["type"], item["validation"]["value"], outputDir, username, password, region)
                     else:
                         s3_download(item["url"], item["filename"], item["validation"]["type"], item["validation"]["value"], outputDir)
 
