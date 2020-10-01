@@ -1,18 +1,22 @@
 #!/bin/bash
 set -Eeuo pipefail
+shopt -s nullglob # Allow images/* and external-resources/* to match nothing
+
 IM_NAME=$(echo "${CI_PROJECT_PATH}" | sed -e 's/.*dsop\/\(.*\)/\1/')
 export IM_NAME
+
 mkdir -p "${ARTIFACT_DIR}"
+
 # Load any images used in Dockerfile build
-if [ -d "${ARTIFACT_STORAGE}/import-artifacts/images" ]; then
-  for file in ${ARTIFACT_STORAGE}/import-artifacts/images/*; do
-    echo "loading image $file"
-    podman load -i $file --storage-driver=vfs
-  done
-fi
-if [ -d "${ARTIFACT_STORAGE}/import-artifacts/external-resources/" ]; then
-    cp -r -v "${ARTIFACT_STORAGE}/import-artifacts/external-resources/*" .
-fi
+for file in ${ARTIFACT_STORAGE}/import-artifacts/images/*; do
+  echo "loading image $file"
+  podman load -i "$file" --storage-driver=vfs
+done
+
+# Load HTTP and S3 external resources
+for file in "${ARTIFACT_STORAGE}"/import-artifacts/external-resources/*; do
+    cp -v "$file" .
+done
 
 echo "${SATELLITE_URL} satellite" >> /etc/hosts
 echo "${DOCKER_AUTH_CONFIG_PULL}" | base64 -d >> prod_auth.json
@@ -33,4 +37,4 @@ buildah tag --storage-driver=vfs "${HARBOR_IMAGE_PATH}"  "${HARBOR_IMAGE_PATH}-$
 buildah push --storage-driver=vfs --authfile staging_auth.json "${HARBOR_IMAGE_PATH}-${CI_PIPELINE_ID}"
 # Provide tar for use in later stages, matching existing tar naming convention
 skopeo copy --src-authfile staging_auth.json "docker://${HARBOR_IMAGE_PATH}-${CI_PIPELINE_ID}" "docker-archive:${ARTIFACT_DIR}/${IMAGE_FILE}.tar"
-echo "IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${HARBOR_IMAGE_PATH}" --format {{'.Id'}})" >> build.env
+echo "IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${HARBOR_IMAGE_PATH}" --format '{{.Id}}')" >> build.env

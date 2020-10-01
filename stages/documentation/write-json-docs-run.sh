@@ -7,12 +7,12 @@ mkdir -p tmp_gpg "${ARTIFACT_DIR}/reports"
 GPG_VERSION_INFO=$(gpg --version | grep "gpg")
 # TODO add anchore endpoint
 #- ANCHORE_VERSION=$(curl -k ${anchore_server_address}/version)
-OPENSCAP_VERSION=$(cat "${OPENSCAP_VERSION_FILE}")
-ANCHORE_VERSION=$(cat "${ANCHORE_VERSION_FILE}" | sed 's/"//g')
-TWISTLOCK_VERSION=$(cat "${TWISTLOCK_VERSION_FILE}" | sed 's/"//g')
-#- OPENSCAP_VERSION=$(cat ${OPENSCAP_VERSION})
+OPENSCAP_VERSION=$(< "${OPENSCAP_VERSION_FILE}")
+ANCHORE_VERSION=$(sed 's/"//g' "${ANCHORE_VERSION_FILE}")
+TWISTLOCK_VERSION=$(sed 's/"//g' "${TWISTLOCK_VERSION_FILE}")
+#- OPENSCAP_VERSION=$(< ${OPENSCAP_VERSION})
 IMAGE_TAR_SHA=$(sha256sum "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" | grep -E '^[a-zA-Z0-9]+' -o)
-IMAGE_PODMAN_SHA=$(podman inspect --format {{'.Digest'}} "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}")
+IMAGE_PODMAN_SHA=$(podman inspect --format '{{.Digest}}' "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}")
 GPG_PUB_KEY=$(awk '{printf "%s\\n", $0}' "${IB_CONTAINER_GPG_PUBKEY}")
 # Create manifest.json
 

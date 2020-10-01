@@ -5,7 +5,7 @@ echo "${IB_CONTAINER_GPG_KEY}" | base64 -d > key
 mkdir -p tmp_gpg "${ARTIFACT_DIR}"
 GPG_VERSION=$(gpg --version | grep '(?<=gpg .GnuPG.)([^0-9]+)([0-9]+[.][0-9]+[.][0-9]+)' -oP | sed -E 's/ //g')
 IMAGE_TAR_SHA=$(sha256sum "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" | grep -E '^[a-zA-Z0-9]+' -o)
-IMAGE_PODMAN_SHA=$(podman inspect --format {{'.Digest'}} "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}")
+IMAGE_PODMAN_SHA=$(podman inspect --format '{{.Digest}}' "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}")
 # Create manifest.json
 
 cat <<EOF > manifest.json
