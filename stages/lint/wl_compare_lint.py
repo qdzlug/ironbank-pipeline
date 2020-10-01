@@ -7,7 +7,6 @@ import argparse
 
 gitlab_url = "https://repo1.dsop.io"
 dccscr_project_id = 143
-# gitlab_key = os.environ['PYTHON_GITLAB_KEY']
 
 def main():
   parser = argparse.ArgumentParser(description='Lint Whitelist')
@@ -48,7 +47,7 @@ def does_image_exist(proj, im_name, im_tag, wl_branch):
     sys.exit(1)
   return
 
-def get_complete_whitelist_for_image(proj, im_name, im_tag, wl_branch):
+def get_complete_whitelist_for_image(proj, im_name, im_tag, wl_branch, child_image_depth=0):
   filename = get_whitelist_filename(im_name, im_tag)
   contents = get_whitelist_file_contents(proj, filename, wl_branch)
 
@@ -57,14 +56,21 @@ def get_complete_whitelist_for_image(proj, im_name, im_tag, wl_branch):
 
   if contents['image_name'] == im_name and contents['image_tag'] == im_tag:
     if len(par_image) > 0 and len(par_tag) > 0:
-      print("Fetching Whitelisted CVEs from parent: " + par_image + ':' + par_tag)
-      get_complete_whitelist_for_image(proj, par_image, par_tag, wl_branch)
-      os.environ["IMAGE_APPROVAL_STATUS"] = contents['approval_status']
-      os.system('echo "IMAGE_APPROVAL_STATUS=${IMAGE_APPROVAL_STATUS}" >> lint.env')
+      print("Fetching Whitelisted CVEs from parent: " + par_image + ':' + par_tag, file=sys.stderr)
+      get_complete_whitelist_for_image(proj, par_image, par_tag, wl_branch, child_image_depth=child_image_depth+1)
+      # Only output IMAGE_APPROVAL_STATUS on the child image (not for parent images)
+      if child_image_depth == 0:
+        print(f"IMAGE_APPROVAL_STATUS={contents['approval_status']}")
+        print(f"BASE_IMAGE={contents['image_parent_name']}") # empty string for base image
+        print(f"BASE_TAG={contents['image_parent_tag']}") # empty string for base image
+        # BASE_REGISTRY is a constant value
+        print(f"BASE_REGISTRY=${os.environ['REGISTRY_URL']}")
+      else:
+        if contents['approval_status'] != 'approved':
+          print(f"WARNING: unapproved parent image: {contents['image_name']}:{contents['image_tag']}", file=sys.stderr)
   else:
     print("Mismatched image name/tag in " + filename + "\nRetrieved Image Name: " + contents['image_name'] + ":" + contents['image_tag'] + "\nSupplied Image Name: " + im_name + ":" + im_tag + "\nCheck parent image tag in your whitelist file.", file=sys.stderr)
     sys.exit(1)
-  return
 
 def get_whitelist_filename(im_name, im_tag):
   dccscr_project = im_name.split('/')
