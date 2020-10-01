@@ -8,7 +8,6 @@ import getopt
 import hashlib
 import urllib.request
 import requests
-import boto3
 from requests.auth import HTTPBasicAuth
 import shutil
 from base64 import b64decode
