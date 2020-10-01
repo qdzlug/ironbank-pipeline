@@ -21,7 +21,7 @@ include:
 
   - local: stages/documentation/base.yaml
 
- # - local: stages/vat/base.yaml
+  - local: stages/vat/base.yaml
 
 
 variables:
