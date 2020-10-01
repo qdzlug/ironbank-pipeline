@@ -65,9 +65,6 @@ def main():
                         http_download(item["url"], item["filename"], item["validation"]["type"], item["validation"]["value"], outputDir)
                 if download_type == "docker":
                     docker_download(item["url"], item["tag"], item["tag"])
-                else: 
-                    print("Unrecognized auth type provided for docker resource, failing")
-                    sys.exit(1)
 
 def resource_type(url):
     check = url
