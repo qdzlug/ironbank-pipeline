@@ -12,10 +12,10 @@ upload to s3:
     DOCUMENTATION_DIRECTORY: "${ARTIFACT_STORAGE}/documentation"
     BUILD_DIRECTORY: "${ARTIFACT_STORAGE}/build"
     SIG_FILE: signature
-    BASE_BUCKET_DIRECTORY: "testing/container-scan-reports"
+    BASE_BUCKET_DIRECTORY: testing/container-scan-reports
     DOCUMENTATION_FILENAME: documentation
-    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/documentation"
-    REPORT_TAR_NAME: "${CI_PROJECT_NAME}-${IMG_VERSION}-reports-signature.tar.gz"
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
+    REPORT_TAR_NAME: ${CI_PROJECT_NAME}-${IMG_VERSION}-reports-signature.tar.gz
   dependencies:
     - build
     - sign image
