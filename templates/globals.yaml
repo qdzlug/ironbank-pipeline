@@ -70,8 +70,8 @@ variables:
   ARTIFACT_STORAGE: "ci-artifacts"
   PIPELINE_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank_pipeline"
   GIT_SSL_NO_VERIFY: "1"
-  TARGET_BRANCH: distrolessv2
-  WL_TARGET_BRANCH: pipeline-test-project
+  TARGET_BRANCH: master
+  WL_TARGET_BRANCH: master
 
 # Scan reports
   OSCAP_CVE_XML_FILENAME: "report-cve.xml"
