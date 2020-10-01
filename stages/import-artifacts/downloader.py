@@ -8,6 +8,7 @@ import getopt
 import hashlib
 import urllib.request
 import requests
+#import boto3
 from requests.auth import HTTPBasicAuth
 import shutil
 from base64 import b64decode
@@ -65,21 +66,27 @@ def main():
                         http_download(item["url"], item["filename"], item["validation"]["type"], item["validation"]["value"], outputDir)
                 if download_type == "docker":
                     docker_download(item["url"], item["tag"], item["tag"])
-                else: 
-                    print("Unrecognized auth type provided for docker resource, failing")
-                    sys.exit(1)
+                #if download_type == "s3":
+                    #if "auth" in item:
+                        #credential_id = item["auth"]["id"].replace("-","_")
+                        #password = b64decode(os.getenv("S3_ACCESS_KEY_" + credential_id))
+                        #username = b64decode(os.getenv("S3_SECRET_KEY_" + credential_id))
+                        #region = item["auth"]["region"]
+                        #s3_download(item["url"], item["filename"], item["validation"]["type"], item["validation"]["value"], outputDir, username, password, region)
+                    #else:
+                        #s3_download(item["url"], item["filename"], item["validation"]["type"], item["validation"]["value"], outputDir)
 
 def resource_type(url):
     check = url
     docker_string = "docker://"
     http_string = "http"
-    s3_string = "s3://"
+    #s3_string = "s3://"
     if docker_string in check:
         return "docker"
     elif http_string in check:
         return "http"
-    elif s3_string in check:
-        return "s3"
+    #elif s3_string in check:
+        #return "s3"
     else:
         return "Error in parsing resource type."
 
@@ -122,6 +129,50 @@ def http_download(download_item, resource_name, validation_type, checksum_value,
             print("Checksum failed")
             print("File deleted")
             sys.exit(1)
+
+#def s3_download(download_item, resource_name, validation_type, checksum_value, outputDir, username=None, password=None, region=None):
+    #print("===== ARTIFACT: %s" % download_item)
+    
+    #bucket = download_item.split('s3://')[1].split('/')[0]
+    #object_name = download_item[len('s3://' + bucket + '/'):]
+    # Validate filename doesn't do anything nefarious
+    #match = re.search(r'^[A-Za-z0-9]+[A-Za-z0-9_\-\.]*[A-Za-z0-9]+$', resource_name)
+    #if match is None:
+        #print("Filename is has invalid characters. Aborting.")
+        #sys.exit(1)
+   
+    #s3_client = boto3.client('s3',
+                         #aws_access_key_id=username,
+                         #aws_secret_access_key=password,
+                         #region_name=region
+                      #)
+
+    #try:
+        #response = s3_client.download_file(bucket, object_name, resource_name)
+    #except ClientError as e:
+        #logging.error(e)
+        #return False
+    #return True 
+    
+    # Calculate SHA256 checksum of downloaded file
+    #print("Checking file verification type")
+    #if validation_type != "sha256" and validation_type != "sha512":
+        #print("file verification type not supported: '%s'" % validation_type)
+        #sys.exit(1)
+
+        #print("Generating checksum")
+        #checksum_value_from_calc = generate_checksum(validation_type, checksum_value, outputDir, resource_name)
+
+        # Compare checksums
+        #print("comparing checksum values: " + str(checksum_value_from_calc.hexdigest()) + " vs " + str(checksum_value))
+        #if checksum_value_from_calc.hexdigest() == checksum_value:
+            #print("Checksum verified")
+            #print("File saved as '%s'" % resource_name)
+        #else:
+            #os.remove(outputDir + "/external-resources/" + resource_name)
+            #print("Checksum failed")
+            #print("File deleted")
+            #sys.exit(1)
 
 def generate_checksum(validation_type, checksum_value, outputDir, resource_name):
     if validation_type == "sha256":
