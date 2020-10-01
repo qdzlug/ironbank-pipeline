@@ -22,7 +22,7 @@ echo "IM_NAME=${IM_NAME}" >> build.env
 # Set the tag to eliminate /build/dsop and matching existing project hierarchy format
 HARBOR_IMAGE_PATH="${STAGING_REGISTRY_URL}/$IM_NAME:$IMG_VERSION"
 buildah bud \
-    --build-arg "BASE_REGISTRY=${REGISTRY_URL}" \
+    --build-arg "BASE_REGISTRY=${BASE_REGISTRY}" \
     --build-arg "BASE_IMAGE=${BASE_IMAGE:-}" \
     --build-arg "BASE_TAG=${BASE_TAG:-}" \
     --authfile prod_auth.json \
