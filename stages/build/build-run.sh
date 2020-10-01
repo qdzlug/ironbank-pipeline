@@ -4,12 +4,14 @@ IM_NAME=$(echo "${CI_PROJECT_PATH}" | sed -e 's/.*dsop\/\(.*\)/\1/')
 export IM_NAME
 mkdir -p "${ARTIFACT_DIR}"
 # Load any images used in Dockerfile build
-for file in $(find ${ARTIFACT_STORAGE}/import-artifacts/images/ -name "*.tar"); do
+if [ -d "${ARTIFACT_STORAGE}/import-artifacts/images" ]; then
+  for file in ${ARTIFACT_STORAGE}/import-artifacts/images/*; do
     echo "loading image $file"
     podman load -i $file --storage-driver=vfs
-done
-if [[ -d ${ARTIFACT_STORAGE}/import-artifacts/external-resources/ ]]; then
-    cp -r -v "${ARTIFACT_STORAGE}"/import-artifacts/external-resources/* .
+  done
+fi
+if [ -d "${ARTIFACT_STORAGE}/import-artifacts/external-resources/" ]; then
+    cp -r -v "${ARTIFACT_STORAGE}/import-artifacts/external-resources/*" .
 fi
 
 echo "${SATELLITE_URL} satellite" >> /etc/hosts
