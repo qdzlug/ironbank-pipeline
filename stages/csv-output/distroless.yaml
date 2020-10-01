@@ -2,6 +2,9 @@ include:
   - local: stages/csv-output/base.yaml
 distroless:
   extends: .csv-output
+  variables:
+    # Put generated csv report in the scan-results folder
+    CSV_REPORT: "${ARTIFACT_STORAGE}/scan-results/csvs/"
   before_script:
     - mkdir -p "${CSV_REPORT}"
     - pip3 install --upgrade pip
@@ -18,6 +21,3 @@ distroless:
     paths:
       - "${CSV_REPORT}"
     expire_in: 1 week
-  variables:
-    # Put generated csv report in the scan-results folder
-    CSV_REPORT: "${ARTIFACT_STORAGE}/scan-results/csvs/"
