@@ -7,6 +7,7 @@ mkdir -p "${ARTIFACT_DIR}"
 
 if [[ -n "${DOCKER_RESOURCE:-}" ]]; then
     for file in "${ARTIFACT_STORAGE}"/import-artifacts/images/*; do
+        echo "${file}"
         podman load -i "${file}" --storage-driver=vfs
     done
 fi
