@@ -10,7 +10,7 @@ shellcheck:
         files=$(echo stages/*/*.sh)
         if [ -n "$files" ]
         then
-          shellcheck --format=gcc -- $files
+          shellcheck --exclude=SC2153 --format=gcc -- $files
           ret=$?
         fi
         echo "# Scanning embedded scripts..."
@@ -19,7 +19,7 @@ shellcheck:
         for file in $(find . -name '*.yaml' -o  -name '*.yml')
         do
             echo "# $file"
-            yq -r '.[] | objects | .before_script, .script, .after_script | select(. != null) | join("\n")' "$file" | shellcheck --format=gcc -s bash -
+            yq -r '.[] | objects | .before_script, .script, .after_script | select(. != null) | join("\n")' "$file" | shellcheck --exclude=SC2153 --format=gcc -s bash -
             yq_ret=$?
             if [ $yq_ret -ne 0 ]
             then
