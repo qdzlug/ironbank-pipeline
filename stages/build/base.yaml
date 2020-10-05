@@ -1,6 +1,10 @@
-.build:
+build:
   stage: build
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/rootless-build:1.3"
+  <<: *build_dev
+  variables: &build_dev 
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
+    IMAGE_FILE: "${CI_PROJECT_NAME}-${IMG_VERSION}"
   dependencies:
     - import artifacts
     - load scripts
@@ -17,20 +21,9 @@
     reports:
       dotenv: build.env
 
-build-dev:
+.build-dev:
   except:
     - master
-  extends: .build
-  variables:
-    BASE_REGISTRY: ${BASE_REGISTRY}-staging 
-    DOCKER_AUTH_CONFIG_PULL: ${DOCKER_AUTH_CONFIG_PULL_STAGING}
-    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
-    IMAGE_FILE: "${CI_PROJECT_NAME}-${IMG_VERSION}"
-
-build-master:
-  extends: .build
-  only:
-    - master
-  variables:
-    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
-    IMAGE_FILE: "${CI_PROJECT_NAME}-${IMG_VERSION}"
+  variables: &build_dev
+    BASE_REGISTRY: "${BASE_REGISTRY}-staging" 
+    DOCKER_AUTH_CONFIG_PULL: "${DOCKER_AUTH_CONFIG_PULL_STAGING}"
