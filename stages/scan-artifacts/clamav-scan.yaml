@@ -6,8 +6,6 @@ clamav scan:
     - import artifacts
     - load scripts
   variables:
-    KUBERNETES_MEMORY_REQUEST: 16Gi
-    KUBERNETES_MEMORY_LIMIT: 20Gi
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-artifacts/clamav-scan"
   before_script:
     - mkdir -p "${ARTIFACT_DIR}"
