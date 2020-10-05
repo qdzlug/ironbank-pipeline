@@ -94,9 +94,9 @@ def resource_type(url):
 def http_download(download_item, resource_name, validation_type, checksum_value, outputDir, username=None, password=None):
     print("===== ARTIFACT: %s" % download_item)
     # Validate filename doesn't do anything nefarious
-    match = re.search(r'^[A-Za-z0-9]+[A-Za-z0-9_\-\.]*[A-Za-z0-9]+$', resource_name)
+    match = re.search(r'^[A-Za-z0-9][^/\x00]*', resource_name)
     if match is None:
-        print("Filename is has invalid characters. Aborting.")
+        print("Filename is has invalid characters. Filename must start with a letter or a number. Aborting.")
         sys.exit(1)
 
     auth = None
@@ -136,9 +136,9 @@ def s3_download(download_item, resource_name, validation_type, checksum_value, o
     bucket = download_item.split('s3://')[1].split('/')[0]
     object_name = download_item[len('s3://' + bucket + '/'):]
     # Validate filename doesn't do anything nefarious
-    match = re.search(r'^[A-Za-z0-9]+[A-Za-z0-9_\-\.]*[A-Za-z0-9]+$', resource_name)
+    match = re.search(r'^[A-Za-z0-9][^/\x00]*', resource_name)
     if match is None:
-        print("Filename is has invalid characters. Aborting.")
+        print("Filename is has invalid characters. Filename must start with a letter or a number. Aborting.")
         sys.exit(1)
    
     s3_client = boto3.client('s3',
