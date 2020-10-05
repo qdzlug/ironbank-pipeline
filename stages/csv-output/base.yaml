@@ -1,7 +1,7 @@
 csv output:
   stage: csv output
 
-  image: "${REGISTRY_URL}/redhat/python/python36:3.6"
+  image: "${BASE_REGISTRY}/redhat/python/python36:3.6"
   dependencies:
     - twistlock scan
     - openscap cve
