@@ -18,6 +18,7 @@ for file in "${ARTIFACT_STORAGE}"/import-artifacts/external-resources/*; do
     cp -v "$file" .
 done
 
+echo "${BASE_REGISTRY} ${BASE_IMAGE} ${BASE_TAG}"
 echo "${SATELLITE_URL} satellite" >> /etc/hosts
 echo "${DOCKER_AUTH_CONFIG_PULL}" | base64 -d >> /tmp/prod_auth.json
 echo "IM_NAME=${IM_NAME}" >> build.env
