@@ -39,9 +39,10 @@ buildah bud \
     --label dccscr.ironbank.approval.status="${IMAGE_APPROVAL_STATUS}" \
     --label dccscr.ironbank.approval.url="TBD" \
     --label dccscr.ironbank.url="TBD" \
-    --label dcar_status="${IMAGE_APPROVAL_STATUS}"
+    --label dcar_status="${IMAGE_APPROVAL_STATUS}" \
     --authfile /tmp/prod_auth.json \
     --format=docker \
+    --loglevel=3 \
     --storage-driver=vfs \
     -t "${HARBOR_IMAGE_PATH}" \
     .
