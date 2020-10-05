@@ -14,7 +14,7 @@ if [ "${CI_COMMIT_BRANCH}" != "master"  ]; then
 fi
 
 # Load any images used in Dockerfile build
-for file in ${ARTIFACT_STORAGE}/import-artifacts/images/*; do
+for file in "${ARTIFACT_STORAGE}"/import-artifacts/images/*; do
   echo "loading image $file"
   podman load -i "$file" --storage-driver=vfs
 done
@@ -34,8 +34,21 @@ buildah bud \
     --build-arg "BASE_REGISTRY=${BASE_REGISTRY}" \
     --build-arg "BASE_IMAGE=${BASE_IMAGE:-}" \
     --build-arg "BASE_TAG=${BASE_TAG:-}" \
+    --label dccscr.git.commit.id="${CI_COMMIT_SHA}" \
+    --label dccscr.git.commit.url="${CI_PROJECT_URL}/tree/${CI_COMMIT_SHA}" \
+    --label dccscr.git.url="${CI_PROJECT_URL}.git" \
+    --label dccscr.git.branch="${CI_COMMIT_BRANCH}" \
+    --label dccscr.image.version="${IMG_VERSION}" \
+    --label dccscr.image.build.date="$(date --utc)" \
+    --label dccscr.image.build.id="${CI_PIPELINE_ID}" \
+    --label dccscr.image.name="${CI_PROJECT_NAME}" \
+    --label dccscr.ironbank.approval.status="${IMAGE_APPROVAL_STATUS}" \
+    --label dccscr.ironbank.approval.url="TBD" \
+    --label dccscr.ironbank.url="TBD" \
+    --label dcar_status="${IMAGE_APPROVAL_STATUS}" \
     --authfile /tmp/prod_auth.json \
     --format=docker \
+    --loglevel=3 \
     --storage-driver=vfs \
     -t "${HARBOR_IMAGE_PATH}" \
     .
