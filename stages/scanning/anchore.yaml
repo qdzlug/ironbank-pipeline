@@ -26,8 +26,7 @@ anchore scan:
   # Load in the IMG_VERSION variable from load scripts env
   dependencies:
     - load scripts
-    - build-dev
-    - build-master
+    - build
   variables:
     # put all scan outputs in the scan-results folder
     ANCHORE_SCANS: "${ARTIFACT_STORAGE}/scan-results/anchore"

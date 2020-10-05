@@ -15,8 +15,7 @@ write json documentation:
     - openscap compliance
     - anchore scan
     - twistlock scan
-    - build-dev
-    - build-master
+    - build
     - openscap compliance
   script:
     - '"${PIPELINE_REPO_DIR}/stages/documentation/write-json-docs-run.sh"'

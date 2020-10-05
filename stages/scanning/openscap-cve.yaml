@@ -7,8 +7,7 @@ openscap cve:
   # Load in the IMG_VERSION variable from load scripts env
   dependencies:
     - load scripts
-    - build-dev
-    - build-master
+    - build
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/openscap"
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1"

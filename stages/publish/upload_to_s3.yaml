@@ -17,8 +17,7 @@ upload to s3:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
     REPORT_TAR_NAME: ${CI_PROJECT_NAME}-${IMG_VERSION}-reports-signature.tar.gz
   dependencies:
-    - build-dev
-    - build-master
+    - build
     - sign image
     - sign manifest
     - write json documentation
