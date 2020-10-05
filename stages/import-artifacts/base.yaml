@@ -5,8 +5,6 @@ import artifacts:
     - load scripts
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/import-artifacts"
-  # Arguments.get().download is used to get download items
-  # dccscrImport() calls ContributorResource, which performs validation of download.yaml file
   script:
     - '"${PIPELINE_REPO_DIR}/stages/import-artifacts/import-run.sh"'
   artifacts:
