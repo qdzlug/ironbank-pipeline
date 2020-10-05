@@ -7,9 +7,6 @@
     - wl compare lint
   tags:
     - ironbank-isolated
-  variables:
-    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
-    IMAGE_FILE: "${CI_PROJECT_NAME}-${IMG_VERSION}"
   script:
     - '"${PIPELINE_REPO_DIR}/stages/build/build-run.sh"'
   artifacts:
@@ -27,8 +24,13 @@ build-dev:
   variables:
     BASE_REGISTRY: ${BASE_REGISTRY}-staging 
     DOCKER_AUTH_CONFIG_PULL: ${DOCKER_AUTH_CONFIG_PULL_STAGING}
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
+    IMAGE_FILE: "${CI_PROJECT_NAME}-${IMG_VERSION}"
 
 build-master:
   extends: .build
   only:
     - master
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
+    IMAGE_FILE: "${CI_PROJECT_NAME}-${IMG_VERSION}"
