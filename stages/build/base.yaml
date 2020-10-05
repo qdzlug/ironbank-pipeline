@@ -1,5 +1,5 @@
 .build:
-  stage: .build
+  stage: build
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/rootless-build:1.3"
   dependencies:
     - import artifacts
@@ -29,6 +29,6 @@ build-dev:
     DOCKER_AUTH_CONFIG_PULL: ${DOCKER_AUTH_CONFIG_PULL_STAGING}
 
 build-master:
+  extends: .build
   only:
     - master
-  extends: .build
