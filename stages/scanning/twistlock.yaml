@@ -6,7 +6,8 @@ twistlock scan:
   # Load in the IMG_VERSION variable from load scripts env
   dependencies:
     - load scripts
-    - build
+    - build-dev
+    - build-master
   variables:
     # put all scan outputs in the scan-results folder
     TWISTLOCK_SCANS: "${ARTIFACT_STORAGE}/scan-results/twistlock"

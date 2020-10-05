@@ -7,7 +7,8 @@ sign manifest:
     IMAGE_FILE: "${CI_PROJECT_NAME}-${IMG_VERSION}"
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/documentation/reports"
   dependencies:
-    - build
+    - build-master
+    - build-dev
     - load scripts
   script:
     # Gather info for manifest.json

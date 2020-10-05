@@ -11,7 +11,8 @@ openscap compliance:
   # Load in the IMG_VERSION variable from load scripts env
   dependencies:
     - load scripts
-    - build
+    - build-dev
+    - build-master
   script:
     - '"${PIPELINE_REPO_DIR}/stages/scanning/oscap-compliance-run.sh"'
   artifacts:

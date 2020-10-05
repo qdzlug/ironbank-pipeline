@@ -63,15 +63,12 @@ def get_complete_whitelist_for_image(proj, im_name, im_tag, wl_branch, child_ima
         print(f"IMAGE_APPROVAL_STATUS={contents['approval_status']}")
         print(f"BASE_IMAGE={contents['image_parent_name']}") # empty string for base image
         print(f"BASE_TAG={contents['image_parent_tag']}") # empty string for base image
-        # BASE_REGISTRY is a constant value
-        print(f"BASE_REGISTRY={os.environ['REGISTRY_URL']}")
       else:
         if contents['approval_status'] != 'approved':
           print(f"WARNING: unapproved parent image: {contents['image_name']}:{contents['image_tag']}", file=sys.stderr)
     # Output IMAGE_APPROVAL_STATUS for base images like UBI
     elif child_image_depth == 0:
       print(f"IMAGE_APPROVAL_STATUS={contents['approval_status']}")
-      print(f"BASE_REGISTRY={os.environ['REGISTRY_URL']}")
   else:
     print("Mismatched image name/tag in " + filename + "\nRetrieved Image Name: " + contents['image_name'] + ":" + contents['image_tag'] + "\nSupplied Image Name: " + im_name + ":" + im_tag + "\nCheck parent image tag in your whitelist file.", file=sys.stderr)
     sys.exit(1)

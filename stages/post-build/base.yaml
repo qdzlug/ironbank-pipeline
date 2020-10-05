@@ -4,7 +4,8 @@ clamav image scan:
   image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/clamav-podman:temp
   dependencies:
     - load scripts
-    - build
+    - build-master
+    - build-dev
   variables:
     CLAMAV_SCANS: ${ARTIFACT_STORAGE}/post-build/clamav-image-scan
   before_script:

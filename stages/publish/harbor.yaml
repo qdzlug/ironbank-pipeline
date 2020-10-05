@@ -4,7 +4,7 @@ harbor:
   only:
     - master
   dependencies:
-    - build
+    - build-master
     - load scripts
   script:
     - echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >> staging_auth.json
