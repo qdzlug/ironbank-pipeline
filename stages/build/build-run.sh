@@ -7,6 +7,12 @@ export IM_NAME
 
 mkdir -p "${ARTIFACT_DIR}"
 
+# Determine source registry based on branch
+if [ "${CI_COMMIT_BRANCH}" != "master"  ]; then
+  BASE_REGISTRY="${BASE_REGISTRY}-staging"
+  DOCKER_AUTH_CONFIG_PULL="${DOCKER_AUTH_CONFIG_PULL_STAGING}"
+fi
+
 # Load any images used in Dockerfile build
 for file in ${ARTIFACT_STORAGE}/import-artifacts/images/*; do
   echo "loading image $file"
