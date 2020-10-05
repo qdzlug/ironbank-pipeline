@@ -1,11 +1,14 @@
 .build-dev:
   stage: build
+  tags:
+    - ironbank-isolated
   except:
     - master
   variables:
     BASE_REGISTRY: "${BASE_REGISTRY}-staging" 
     DOCKER_AUTH_CONFIG_PULL: "${DOCKER_AUTH_CONFIG_PULL_STAGING}"
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
+    IMAGE_FILE: "${CI_PROJECT_NAME}-${IMG_VERSION}"
 
 build:
   extends: .build-dev
@@ -14,8 +17,6 @@ build:
     - import artifacts
     - load scripts
     - wl compare lint
-  tags:
-    - ironbank-isolated
   script:
     - '"${PIPELINE_REPO_DIR}/stages/build/build-run.sh"'
   artifacts:
