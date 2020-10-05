@@ -94,7 +94,7 @@ def resource_type(url):
 def http_download(download_item, resource_name, validation_type, checksum_value, outputDir, username=None, password=None):
     print("===== ARTIFACT: %s" % download_item)
     # Validate filename doesn't do anything nefarious
-    match = re.search(r'^[A-Za-z0-9]+[A-Za-z0-9_\-\.]*[A-Za-z0-9]+$', resource_name)
+    match = re.search(r'^[A-Za-z0-9]+[A-Za-z0-9_\-\.+]*[A-Za-z0-9]+$', resource_name)
     if match is None:
         print("Filename is has invalid characters. Aborting.")
         sys.exit(1)
