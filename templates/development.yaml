@@ -1,7 +1,7 @@
 include:
   # Removing globals template from inclusion so we can overwrite variables.
   # - local: templates/globals.yaml
-
+  - local: stages/preprocess/load-scripts.yaml
   - local: stages/preflight/base.yaml
 
   - local: stages/lint/base.yaml
