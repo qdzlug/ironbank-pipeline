@@ -23,5 +23,5 @@ python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
   --password "${vat_db_connection_pass}" \
   --parent_version "${BASE_TAG:-}" \
   --scan_date "$(date +%FT%T)" \
-  --link "${OPENSCAP}/"
-#  --debug "${DEBUG}"
+  --link "${OPENSCAP}/" \
+  --debug

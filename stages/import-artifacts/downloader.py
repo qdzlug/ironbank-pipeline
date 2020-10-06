@@ -13,21 +13,8 @@ from botocore.exceptions import ClientError
 from requests.auth import HTTPBasicAuth
 import shutil
 from base64 import b64decode
-import logging
-from distutils import util
-
-
 
 def main():
-    # Get logging level, set manually when running pipeline
-    debug = bool(util.strtobool(os.getenv("DEBUG", default = False)))
-    if debug is True:
-        logging.basicConfig(level = logging.DEBUG, format = "%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
-        logging.info("Set the log level to debug")
-    else:
-        logging.basicConfig(level = logging.INFO, format = "%(levelname)s: %(message)s")
-        logging.info("Set the log level to info")
-
     ##### Parse commandline arguments
     inputFile = ""
     outputDir = ""

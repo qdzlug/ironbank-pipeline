@@ -8,7 +8,6 @@ from pathlib import Path
 import argparse
 import logging
 import logging.handlers
-from distutils import util
 import os
 import re
 import ast
@@ -847,14 +846,10 @@ if __name__ == "__main__":
     LOG_FILE = "vat_import_logging.out"
     handler = logging.handlers.RotatingFileHandler(LOG_FILE, maxBytes=(1048576 * 5), backupCount=3)
     handler.setFormatter(formatter)
-        # Get logging level, set manually when running pipeline
-    debug = bool(util.strtobool(os.getenv("DEBUG", default = False)))
-    if debug is True:
-        logging.basicConfig(level = logging.DEBUG, format = "%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
-        logging.info("Set the log level to debug")
+    if args.debug:
+        logs.setLevel(logging.DEBUG)
     else:
-        logging.basicConfig(level = logging.INFO, format = "%(levelname)s: %(message)s")
-        logging.info("Set the log level to info")
+        logs.setLevel(logging.INFO)
 
     logs.addHandler(console)
     logs.addHandler(handler)
