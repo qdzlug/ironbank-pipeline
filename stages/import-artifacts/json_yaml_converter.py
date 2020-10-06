@@ -5,16 +5,13 @@ import getopt
 import yaml
 import json
 import logging
-from distutils import util
 
 # Get logging level, set manually when running pipeline
-debug = bool(util.strtobool(os.getenv("DEBUG", default = False)))
-if debug is True:
-    logging.basicConfig(level = logging.DEBUG, format = "%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
-    logging.info("Set the log level to debug")
+loglevel = os.environ.get('LOGLEVEL', 'INFO').upper()
+if loglevel == 'DEBUG':
+    logging.basicConfig(level=loglevel, format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
 else:
-    logging.basicConfig(level = logging.INFO, format = "%(levelname)s: %(message)s")
-    logging.info("Set the log level to info")
+    logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
 
 inputFile = ""
 outputFile = ""

@@ -6,7 +6,6 @@ from requests.auth import HTTPBasicAuth
 from time import sleep
 import logging
 import os
-from distutils import util
 
 # Twistlock API
 # https://docs.twistlock.com/docs/latest/api/api_reference.html#registry_get
@@ -121,13 +120,11 @@ def twistlock_scan(*, name, tag, username, password, version_file, filename, twi
 
 if __name__ == "__main__":
     # Get logging level, set manually when running pipeline
-    debug = bool(util.strtobool(os.getenv("DEBUG", default = False)))
-    if debug is True:
-        logging.basicConfig(level = logging.DEBUG, format = "%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
-        logging.info("Set the log level to debug")
+    loglevel = os.environ.get('LOGLEVEL', 'INFO').upper()
+    if loglevel == 'DEBUG':
+        logging.basicConfig(level=loglevel, format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
     else:
-        logging.basicConfig(level = logging.INFO, format = "%(levelname)s: %(message)s")
-        logging.info("Set the log level to info")
+        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
 
     parser = argparse.ArgumentParser(description = 'DCCSCR processing of CVE reports from various sources')
 
