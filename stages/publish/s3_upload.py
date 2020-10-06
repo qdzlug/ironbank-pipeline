@@ -4,6 +4,8 @@ import os
 import argparse
 import datetime
 from botocore.exceptions import ClientError
+import logging
+from distutils import util
 
 def upload_file(file_name, bucket, object_name=None):
     """Upload a file to an S3 bucket
@@ -41,6 +43,14 @@ def upload_file(file_name, bucket, object_name=None):
     return True
 
 if __name__ == "__main__":
+    # Get logging level, set manually when running pipeline
+    debug = bool(util.strtobool(os.getenv("DEBUG", default = False)))
+    if debug is True:
+        logging.basicConfig(level = logging.DEBUG, format = "%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
+        logging.info("Set the log level to debug")
+    else:
+        logging.basicConfig(level = logging.INFO, format = "%(levelname)s: %(message)s")
+        logging.info("Set the log level to info")
 
     parser = argparse.ArgumentParser(description = 'Uploading various reports and files to DCCSCR S3')
 
