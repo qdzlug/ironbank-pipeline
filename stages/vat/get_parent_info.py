@@ -4,12 +4,22 @@ import sys
 import os
 import json
 import argparse
+import logging
+from distutils import util
 
 
 gitlab_url = "https://repo1.dsop.io" 
 dccscr_project_id = 143   
 
 def main():
+    # Get logging level, set manually when running pipeline
+    debug = bool(util.strtobool(os.getenv("DEBUG", default = False)))
+    if debug is True:
+        logging.basicConfig(level = logging.DEBUG, format = "%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
+        logging.info("Set the log level to debug")
+    else:
+        logging.basicConfig(level = logging.INFO, format = "%(levelname)s: %(message)s")
+        logging.info("Set the log level to info")
     parser = argparse.ArgumentParser(description='Parent Envs')
     parser.add_argument('--image', help='')
     parser.add_argument('--tag', help='')
