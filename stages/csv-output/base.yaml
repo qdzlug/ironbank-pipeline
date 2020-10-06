@@ -1,7 +1,6 @@
 csv output:
   stage: csv output
-
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1"
+  image: "${BASE_REGISTRY}/redhat/python/python36:3.6"
   dependencies:
     - twistlock scan
     - openscap cve
