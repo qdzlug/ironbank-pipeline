@@ -74,7 +74,7 @@ variables:
   WL_TARGET_BRANCH: master
 
 # Controls if ironbank-staging is the source registry for base images
-  STAGING_REGISTRY_BASE: "false"
+  STAGING_REGISTRY_BASE: 'false'
 
 # Scan reports
   OSCAP_CVE_XML_FILENAME: "report-cve.xml"
