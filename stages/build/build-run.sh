@@ -8,7 +8,7 @@ export IM_NAME
 mkdir -p "${ARTIFACT_DIR}"
 
 # Determine source registry based on branch
-if ${STAGING_BASE_IMAGE}; then
+if [ -n "${STAGING_BASE_IMAGE}" ]; then
   BASE_REGISTRY="${BASE_REGISTRY}-staging"
   DOCKER_AUTH_CONFIG_PULL="${DOCKER_AUTH_CONFIG_STAGING}"
 fi
