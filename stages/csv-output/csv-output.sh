@@ -5,7 +5,7 @@ mkdir -p "${CSV_REPORT}"
 pip3 install --upgrade pip
 pip3 install bs4 pandas argparse openpyxl gitpython
 
-if [[ "${DISTROLESS:-}"]]; then
+if [[ "${DISTROLESS:-}" ]]; then
     python3 "${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py" \
         --twistlock "${ARTIFACT_STORAGE}/scan-results/twistlock/${IMG_VERSION}.json" \
         --anchore-sec "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json" \
