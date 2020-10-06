@@ -12,7 +12,7 @@ import sys
 import getopt
 
 ##### The InheritableTriggerIds variable contains a list of Anchore compliance trigger_ids
-##### that are inheritable by child images. 
+##### that are inheritable by child images.
 inheritableTriggerIds = [
     '639f6f1177735759703e928c14714a59',
     'c2e44319ae5b3b040044d8ae116d1c2f',
@@ -79,7 +79,7 @@ def getAllGreylistFiles(whitelistDir, sourceImage, sourceImageGreylistFile):
         print("No parent image")
     else:
         baseImage = data['image_parent_name']
- 
+
     print("The following base image greylist files have been identified...")
 
     # Add all parent image greylists to allFiles
@@ -123,7 +123,7 @@ def getJustifications(whitelistDir, allFiles, sourceImageGreylistFile):
                 data = json.load(f)
             except ValueError as e:
                 print("Error processing file: " + file, file=sys.stderr)
- 
+
         # Check to see if the application is in approved status
         if "approval_status" in data.keys() and data["approval_status"] == "approved":
             # Get a list of all the whitelisted findings
@@ -151,9 +151,9 @@ def getJustifications(whitelistDir, allFiles, sourceImageGreylistFile):
                             cveAnchore[trigger_id] = finding["justification"]
                         else:
                             cveAnchore[cveID] = "Inherited from base image."
-                            if trigger_id in inheritableTriggerIds: 
+                            if trigger_id in inheritableTriggerIds:
                                 cveAnchore[trigger_id] = "Inherited from base image."
-                        
+
 
                     # OpenSCAP finding
                     elif finding["vuln_source"] == "OpenSCAP":
@@ -181,7 +181,7 @@ def justificationsOpenscap(wb, justifications):
 
             if id in justifications.keys():
                 cell_justification.value = justifications[id]
-            
+
             # Apply appropriate highlighting to justification cell
             if cell_justification.value == None:
                 cell_justification.fill = PatternFill(fill_type=None)
@@ -212,10 +212,10 @@ def justificationsTwistlock(wb, justifications):
             cell3 = sheet.cell(row = r, column = 5)
             cell4 = sheet.cell(row = r, column = 6)
             id = cell.value + "-" + cell3.value + "-" + cell4.value
-            
+
             if id in justifications.keys():
                 cell_justification.value = justifications[id]
-            
+
             # Apply appropriate highlighting to justification cell
             if cell_justification.value == None:
                 cell_justification.fill = PatternFill(start_color='00ffff00', end_color='00ffff00', fill_type='solid')
@@ -242,7 +242,7 @@ def justificationsAnchore(wb, justifications):
             if id in justifications.keys():
                 cell_justification.value = justifications[id]
 
-            # Apply appropriate highlighting to justification cell    
+            # Apply appropriate highlighting to justification cell
             if cell_justification.value == None:
                 cell_justification.fill = PatternFill(start_color='00ffff00', end_color='00ffff00', fill_type='solid')
             elif cell_justification.value == 'Inherited from base image.':
@@ -265,11 +265,11 @@ def justificationsAnchoreComp(wb, justifications, inheritableTriggerIds):
             cell_justification = sheet.cell(row = r, column = 12)
             if cell2.value == 'package':
                 cell_justification.value = "See Anchore CVE Results sheet"
-                
+
             id = cell.value
             if id in justifications.keys():
                 cell_justification.value = justifications[id]
-           
+
             # Apply appropriate highlighting to justification cell
             if cell_justification.value == None:
                 cell_justification.fill = PatternFill(start_color='00ffff00', end_color='00ffff00', fill_type='solid')
@@ -279,7 +279,7 @@ def justificationsAnchoreComp(wb, justifications, inheritableTriggerIds):
                 cell_justification.fill = PatternFill(start_color='96969696', end_color='96969696', fill_type='solid')
             else:
                 cell_justification.fill = PatternFill(start_color='0000b0f0', end_color='0000b0f0', fill_type='solid')
- 
+
 
 
 def setColumnWidth(sheet, column, width, wrap=False):
@@ -345,7 +345,7 @@ def main(argv, inheritableTriggerIds):
     sourceImageGreylistFile = ""
     global allFiles
     allFiles = []
-   
+
     # Whitelist directory
     global whitelistDir
     whitelistDir = "dccscr-whitelists"
@@ -403,4 +403,3 @@ def main(argv, inheritableTriggerIds):
 
 if __name__ == "__main__":
     main(sys.argv[1:], inheritableTriggerIds)
-
