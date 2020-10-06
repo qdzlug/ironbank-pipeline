@@ -7,7 +7,7 @@ mkdir -p tmp_gpg "${ARTIFACT_DIR}/reports"
 GPG_VERSION_INFO=$(gpg --version | grep "gpg")
 # TODO add anchore endpoint
 #- ANCHORE_VERSION=$(curl -k ${anchore_server_address}/version)
-if [[ $DISTROLESS ]]; then
+if [[ "${DISTROLESS:-}" ]]; then
     ANCHORE_VERSION=$(cat "${ANCHORE_VERSION_FILE}" | sed 's/"//g')
     TWISTLOCK_VERSION=$(cat "${TWISTLOCK_VERSION_FILE}" | sed 's/"//g')
 else

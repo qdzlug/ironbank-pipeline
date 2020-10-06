@@ -41,8 +41,7 @@ def cloneWhitelist(whitelistDir, whitelistRepo):
             print("Error: %s : %s" % (whitelistDir, e.strerror))
 
     # Clone the dccscr-whitelists repo
-   # git.Git(".").clone(whitelistRepo)
-    Repo.clone_from(whitelistRepo, "dccscr-whitelists", branch='pipeline-test-project')
+    git.Git(".").clone(whitelistRepo)
 
 
 
