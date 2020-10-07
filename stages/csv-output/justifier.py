@@ -40,8 +40,9 @@ def cloneWhitelist(whitelistDir, whitelistRepo):
         except OSError as e:
             print("Error: %s : %s" % (whitelistDir, e.strerror))
 
+    dccscrWhitelistBranch = os.getenv("WL_TARGET_BRANCH")
     # Clone the dccscr-whitelists repo
-    git.Git(".").clone(whitelistRepo)
+    git.Repo.clone_from(whitelistRepo, os.path.join('./', 'dccscr-whitelists'), branch=dccscrWhitelistBranch)
 
 
 
