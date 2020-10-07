@@ -8,7 +8,6 @@ if [[ "${DISTROLESS:-}" ]]; then
         --twistlock "${ARTIFACT_STORAGE}/scan-results/twistlock/${IMG_VERSION}.json" \
         --anchore-sec "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json" \
         --anchore-gates "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json" \
-        --glkey "${PYTHON_GITLAB_KEY}" \
         --proj_branch "${CI_COMMIT_BRANCH}"\
         --wl_branch "${WL_TARGET_BRANCH}"
 else
@@ -20,7 +19,6 @@ else
         --twistlock "${ARTIFACT_STORAGE}/scan-results/twistlock/${IMG_VERSION}.json" \
         --anchore-sec "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json" \
         --anchore-gates "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json" \
-        --glkey "${PYTHON_GITLAB_KEY}" \
         --proj_branch "${CI_COMMIT_BRANCH}"\
         --wl_branch "${WL_TARGET_BRANCH}"
 fi
