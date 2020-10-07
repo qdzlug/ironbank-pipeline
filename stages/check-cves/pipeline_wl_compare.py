@@ -21,7 +21,6 @@ def main():
     parser.add_argument('--twistlock',   help='')
     parser.add_argument('--anchore-sec',   help='')
     parser.add_argument('--anchore-gates',   help='')
-    parser.add_argument('--glkey', help='')
     parser.add_argument('--proj_branch', help='')
     parser.add_argument('--wl_branch', help='')
     args = parser.parse_args()
@@ -32,15 +31,14 @@ def main():
                                args.twistlock,
                                args.anchore_sec,
                                args.anchore_gates,
-                               args.glkey,
                                args.proj_branch,
                                args.wl_branch)
     #print(x)
     sys.exit(x)
 
 
-def pipeline_whitelist_compare(image_name, image_version, oscap, oval, twist, anc_sec, anc_gates, glkey, proj_branch, wl_branch):
-    proj = init(dccscr_project_id, glkey)
+def pipeline_whitelist_compare(image_name, image_version, oscap, oval, twist, anc_sec, anc_gates, proj_branch, wl_branch):
+    proj = init(dccscr_project_id)
     image_whitelist = get_complete_whitelist_for_image(proj, image_name, image_version, wl_branch)
 
     wl_set = set()
@@ -284,8 +282,8 @@ def get_whitelist_for_image(im_name, contents):
         wl.append(tar)
     return wl
 
-def init(pid, gitlab_key):
-    gl = gitlab.Gitlab(gitlab_url, private_token=gitlab_key)
+def init(pid):
+    gl = gitlab.Gitlab(gitlab_url)
     return gl.projects.get(pid)
 
 
