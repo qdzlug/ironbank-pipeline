@@ -12,21 +12,22 @@ pip3 install --upgrade pip setuptools wheel pandas mysql mysql-connector-python 
 # source environment.sh
 # cat environment.sh
 echo "${CI_PROJECT_DIR}" | grep -e 'pipeline-test-project';
+
 if [[ $? = 0 ]]; then
-    echo "Skipping vat. Cannot push to VAT when working with pipeline test projects..." ;
+  echo "Skipping vat. Cannot push to VAT when working with pipeline test projects..."
 else
-    python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
-      --db "${vat_db_database_name}" \
-      --user "${vat_db_connection_user}" \
-      --host "${vat_db_host}" \
-      --csv_dir "${ARTIFACT_DIR}" \
-      --jenkins "${CI_PIPELINE_ID}" \
-      --container "${IM_NAME}" \
-      --version "${IMG_VERSION}" \
-      --parent "${BASE_IMAGE:-}" \
-      --password "${vat_db_connection_pass}" \
-      --parent_version "${BASE_TAG:-}" \
-      --scan_date "$(date +%FT%T)" \
-      --link "${OPENSCAP}/" \
-      --debug
+  python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
+    --db "${vat_db_database_name}" \
+    --user "${vat_db_connection_user}" \
+    --host "${vat_db_host}" \
+    --csv_dir "${ARTIFACT_DIR}" \
+    --jenkins "${CI_PIPELINE_ID}" \
+    --container "${IM_NAME}" \
+    --version "${IMG_VERSION}" \
+    --parent "${BASE_IMAGE:-}" \
+    --password "${vat_db_connection_pass}" \
+    --parent_version "${BASE_TAG:-}" \
+    --scan_date "$(date +%FT%T)" \
+    --link "${OPENSCAP}/" \
+    --debug
 fi
