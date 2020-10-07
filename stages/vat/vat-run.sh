@@ -1,5 +1,6 @@
 #!/bin/bash
 set -Eeuo pipefail
+set -x
 export BASE_BUCKET_DIRECTORY="container-scan-reports"
 REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}"
 export REMOTE_REPORT_DIRECTORY
@@ -16,18 +17,5 @@ if [ $? = 0 ]; then
     echo "Skipping vat. Cannot push to VAT when working with pipeline test projects..." ;
 fi
 else
-    python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
-      --db "${vat_db_database_name}" \
-      --user "${vat_db_connection_user}" \
-      --host "${vat_db_host}" \
-      --csv_dir "${ARTIFACT_DIR}" \
-      --jenkins "${CI_PIPELINE_ID}" \
-      --container "${IM_NAME}" \
-      --version "${IMG_VERSION}" \
-      --parent "${BASE_IMAGE:-}" \
-      --password "${vat_db_connection_pass}" \
-      --parent_version "${BASE_TAG:-}" \
-      --scan_date "$(date +%FT%T)" \
-      --link "${OPENSCAP}/" \
-      --debug
+    echo "would be python script"
 fi
