@@ -54,6 +54,10 @@ def pipeline_whitelist_compare(image_name, image_version, oscap, oval, twist, an
 #   If oscap is equal to None then OpenSCAP was skipped in pipeline and the comparison will also be skipped
     if oscap is not None:
         oscap_cves = get_oscap_fails(oscap)
+        oscap_notchecked = get_oscap_notchecked(oscap)
+        for oscap in oscap_notchecked:
+            oscap_cves.append(oscap)
+            
         # print("Oscap Set Length: ", len(oscap_cves))
         for oscap in oscap_cves:
             vuln_set.add(oscap['identifiers'])
@@ -232,6 +236,55 @@ def get_oscap_fails(oscap_file):
             }
             cces.append(ret)
         return cces
+
+def get_oscap_notchecked(oscap_file):
+    with open(oscap_file,'r', encoding="utf-8") as of:
+        soup = BeautifulSoup(of, 'html.parser')
+        divs = soup.find('div', id="result-details")
+
+
+        scan_date = soup.find("th", text='Finished at')
+        finished_at = scan_date.find_next_sibling("td").text
+        # print(finished_at.text)
+        regex = re.compile('.*rule-detail-notchecked.*')
+        # id_regex = re.compile('.*rule-detail-.*')
+        notchecked = divs.find_all("div", {"class": regex})
+        # all = divs.find_all("div", {"class": id_regex})
+
+        cces_notchecked = []
+        for x in notchecked:
+            title = x.find("h3", {"class": "panel-title"}).text
+            table = x.find("table", {"class": "table table-striped table-bordered"})
+
+            ruleid = table.find("td", text="Rule ID").find_next_sibling("td").text
+            result = table.find("td", text="Result").find_next_sibling("td").text
+            severity = table.find("td", text="Severity").find_next_sibling("td").text
+            ident = table.find("td", text="Identifiers and References").find_next_sibling("td")
+            if ident.find("abbr"):
+                identifiers = ident.find("abbr").text
+
+            references = ident.find_all("a", href=True)
+            refs = []
+            for j in references:
+                refs.append(j.text)
+
+            desc = table.find("td", text="Description").find_next_sibling("td").text
+            rationale = table.find("td", text="Rationale").find_next_sibling("td").text
+
+            ret = {
+                'title': title,
+                # 'table': table,
+                'ruleid': ruleid,
+                'result': result,
+                'severity': severity,
+                'identifiers': identifiers,
+                'refs': refs,
+                'desc': desc,
+                'rationale': rationale,
+                'scanned_date': finished_at
+            }
+            cces_notchecked.append(ret)
+        return cces_notchecked
 
 def get_whitelist_filename(im_name, im_tag):
     dccscr_project = im_name.split('/')
