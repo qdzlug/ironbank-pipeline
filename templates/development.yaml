@@ -1,7 +1,72 @@
+stages:
+
+  ### preprocess stage
+  # clone down the templates directory for use in later stages
+  # Requirements:
+  # - executor image with git
+  - preprocess
+
+  ### preflight stage
+  # check folder structure, check build variables
+  # Requirements:
+  # - None
+  - preflight
+
+  ### lint stage
+  # yaml lint (ci file, download.yaml), dockerfile lint, wl compare lint
+  # Requirements:
+  # - executor image with Python 3.x installed
+  - lint
+
+  ### pre-build stage
+  # download artifacts/clamav scan
+  # Requirements:
+  # - executor image with Python 3.x installed
+  - import artifacts
+
+  ### artifact scan stage
+  # use clamav to scan download artifacts
+  # Requirements:
+  # - executor image with docker (or podman) installed
+  - scan artifacts
+
+  ### build stage
+  # build image w version tag and create tar file
+  # Requirements:
+  # - executor image with docker installed
+  # NOTE: Executor image must have docker installed in order to work properly with Notary for image signing
+  - build
+
+  ### post-build stage
+  # clamav scan of the image
+  # REMOVING STAGE, NOT NEEDED FOR BETA
+  # - post-build
+
+  ### scanning stage
+  # twistlock, oscap, and anchore scans
+  - scanning
+
+  ### create csv output
+  - csv output
+
+  ### check cve stage
+  - check cves
+
+  ### Sign image and manifest and write documentation
+  - documentation
+
+  ### publish stage
+  # publish artifacts to S3 (runs on master), push to harbor
+  - publish
+
+  # Removing for development runs
+  ### VAT stage (runs on dev)
+  # - vat
+
 include:
   # Removing globals template from inclusion so we can overwrite variables.
   # - local: templates/globals.yaml
-
+  - local: stages/preprocess/load-scripts.yaml
   - local: stages/preflight/base.yaml
 
   - local: stages/lint/base.yaml
@@ -34,3 +99,7 @@ variables:
   GIT_SSL_NO_VERIFY: "1"
   TARGET_BRANCH: development
   WL_TARGET_BRANCH: master
+
+  # Scan reports
+  OSCAP_CVE_XML_FILENAME: "report-cve.xml"
+  OSCAP_CVE_HTML_FILENAME: "report-cve.html"
