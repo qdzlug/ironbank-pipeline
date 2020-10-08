@@ -10,6 +10,16 @@
 
 ## Contributor project requirements for ironbank-pipeline use:
 
+- #### Adding a project pipeline in settings
+
+The IronBank pipelines team will control the project configuration. As a result, projects *must not* contain a `.gitlab-ci.yml` In order for a project to enable 
+Go to the settings for a specific project
+
+`Settings` > `CI / CD` > `General pipelines` > `Custom CI configuration path`
+Enter the following: `templates/default.yaml@ironbank-tools/ironbank-pipeline`
+
+This will point the project towards the default pipeline in ironbank-pipeline.
+
 - Contributor projects will need to point to the `ironbank-pipeline` project from the `.gitlab-ci.yml` file in their respective projects order to utilize the Container Hardening CI/CD pipeline.
 
 For most projects, add the following block to the `.gitlab-ci.yml` file in the project in order to do this:
@@ -150,10 +160,4 @@ The `documentation` stage consists of multiple jobs.
 - `sign image` - this job will do a gpg signing of the image so that end users can validate that the image is from the IronBank and the one they intend to download.
 
 
-### Adding a project pipeline in settings
-Go to the settings for a specific project
 
-`Settings` > `CI / CD` > `General pipelines` > `Custom CI configuration path`
-Enter the following: `templates/default.yaml@ironbank-tools/ironbank-pipeline`
-
-This will point the project towards the default pipeline in ironbank-pipeline.
