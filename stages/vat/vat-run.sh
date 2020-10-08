@@ -1,5 +1,9 @@
 #!/bin/bash
 set -Eeuo pipefail
+if [[ $(echo "${CI_PROJECT_DIR}" | grep -e 'pipeline-test-project') ]]; then
+  echo "Skipping vat. Cannot push to VAT when working with pipeline test projects..."
+  exit 0
+fi
 export BASE_BUCKET_DIRECTORY="container-scan-reports"
 REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}"
 export REMOTE_REPORT_DIRECTORY
@@ -10,11 +14,7 @@ export IM_NAME
 #   --glkey "${PYTHON_GL_KEY}" --wlbranch "${WL_TARGET_BRANCH}" --output 'environment.sh'
 # source environment.sh
 # cat environment.sh
-echo "${CI_PROJECT_DIR}" | grep -e 'pipeline-test-project';
 
-if [[ $? = 0 ]]; then
-  echo "Skipping vat. Cannot push to VAT when working with pipeline test projects..."
-else
   pip3 install --upgrade pip setuptools wheel pandas mysql mysql-connector-python minepy python-gitlab
 
   python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
@@ -31,4 +31,3 @@ else
     --scan_date "$(date +%FT%T)" \
     --link "${OPENSCAP}/" \
     --debug
-fi
