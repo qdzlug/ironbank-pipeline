@@ -5,11 +5,17 @@ stages:
   - preprocess
   - test
 
-repo test:
+harbor test:
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/rootless-build:1.3"
-
+  stage: test
   script:
-    - '"${PIPELINE_REPO_DIR}/templates/test.sh"'
+    - '"${PIPELINE_REPO_DIR}/templates/harbor-test.sh"'
+
+s3 test:
+  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/rootless-build:1.3"
+  stage: test
+  script:
+    - '"${PIPELINE_REPO_DIR}/templates/s3-test.sh"'
 
 # include:
   # - local: templates/globals.yaml
