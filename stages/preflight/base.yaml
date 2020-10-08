@@ -12,9 +12,9 @@ folder structure:
   script:
     - |
         set -x
-        [[ -f README.md ]] | tee output.txt
-        [[ -f Dockerfile ]] | tee output.txt
-        [[ -f "LICENSE" || -f "LICENSE.md" || -f "LICENSE.txt" || -f "LICENSE.adoc" ]] | tee output.txt
+        [[ -f README.md ]] || tee output.txt
+        [[ -f Dockerfile ]] || tee output.txt
+        [[ -f "LICENSE" || -f "LICENSE.md" || -f "LICENSE.txt" || -f "LICENSE.adoc" ]] || tee output.txt
     - cat output.txt
     # - ls -l download.yaml || echo "No download.yaml found"
     # - ls -l scripts || echo "No download.yaml found"
