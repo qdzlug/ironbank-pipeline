@@ -99,6 +99,7 @@ def main():
                         type = str,
                         help = "Output directory to write to")
     args = parser.parse_args()
+    logging.info("test")
     version = parse()
     if version is None:
         logging.error("Could not parse version out of repo. Please include a version field in your download.yaml file.")
