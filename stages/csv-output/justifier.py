@@ -40,6 +40,7 @@ def cloneWhitelist(whitelistDir, whitelistRepo):
         except OSError as e:
             print("Error: %s : %s" % (whitelistDir, e.strerror))
 
+    # Clone the dccscr-whitelists repo
     dccscrWhitelistBranch = os.getenv("WL_TARGET_BRANCH")
     # Clone the dccscr-whitelists repo
     git.Repo.clone_from(whitelistRepo, os.path.join('./', 'dccscr-whitelists'), branch=dccscrWhitelistBranch)
@@ -205,7 +206,10 @@ def justificationsTwistlock(wb, justifications):
         else:
             cell2 = sheet.cell(row = r, column = 3)
             cell_justification = sheet.cell(row = r, column = 10)
-            id = cell.value + "-" + cell2.value
+            if cell2.value == None:
+                id = cell.value
+            else:
+                id = cell.value + "-" + cell2.value
 
             if id in justifications.keys():
                 cell_justification.value = justifications[id]
