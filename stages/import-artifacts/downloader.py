@@ -105,6 +105,7 @@ def http_download(download_item, resource_name, validation_type, checksum_value,
 
     print("Downloading from %s" % download_item)
     with requests.get(download_item, allow_redirects=True, stream=True, auth=auth) as r:
+        r.raw.decode_content = True
         r.raise_for_status()
         with open(outputDir + "/external-resources/" + resource_name, 'wb') as f:
             shutil.copyfileobj(r.raw, f, length=16*1024*1024)
