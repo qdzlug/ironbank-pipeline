@@ -46,6 +46,7 @@ def cloneWhitelist(whitelistDir, whitelistRepo):
     git.Repo.clone_from(whitelistRepo, os.path.join('./', 'dccscr-whitelists'), branch=dccscrWhitelistBranch)
 
 
+
 ##### Get the greylist for the source image
 def getSourceImageGreylistFile(whitelistDir, sourceImage):
     sourceImageGreylistFile = ""
