@@ -91,7 +91,7 @@ def main():
         logging.debug("Log level set to debug")
     else:
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
-
+        logging.info("Log level set to info")
     parser = argparse.ArgumentParser(description = "Version parser arguments")
     parser.add_argument("--output",
                         metavar = "output",
