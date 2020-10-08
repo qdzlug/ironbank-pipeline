@@ -21,13 +21,11 @@ def main():
   parser = argparse.ArgumentParser(description='Lint Whitelist')
   parser.add_argument('--image', help='')
   parser.add_argument('--tag',   help='')
-  parser.add_argument('--glkey', help='')
   parser.add_argument('--wlbranch', help='')
   args = parser.parse_args()
 
   im_name = args.image
   im_tag = args.tag
-  gitlab_key = args.glkey
   wl_branch = args.wlbranch
 
   im_name = '/'.join(im_name.split('/')[1::])
@@ -36,7 +34,7 @@ def main():
   # If not, throw error
   # check_image_name_length(im_name)
   # get dccscr project object from GitLab
-  proj = init(dccscr_project_id, gitlab_key)
+  proj = init(dccscr_project_id)
   # check if image name/tag match whitelist values
   does_image_exist(proj, im_name, im_tag, wl_branch)
   # Check that image name/tag match provided project values, and all parent images
@@ -103,8 +101,8 @@ def get_whitelist_file_contents(proj, item_path, item_ref):
     sys.exit(1)
   return contents
 
-def init(pid, gitlab_key):
-  gl = gitlab.Gitlab(gitlab_url, private_token=gitlab_key)
+def init(pid):
+  gl = gitlab.Gitlab(gitlab_url)
   return gl.projects.get(pid)
 
 if __name__ == "__main__":

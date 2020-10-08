@@ -7,8 +7,8 @@ import argparse
 import logging
 
 
-gitlab_url = "https://repo1.dsop.io" 
-dccscr_project_id = 143   
+gitlab_url = "https://repo1.dsop.io"
+dccscr_project_id = 143
 
 def main():
     # Get logging level, set manually when running pipeline
@@ -21,21 +21,19 @@ def main():
     parser = argparse.ArgumentParser(description='Parent Envs')
     parser.add_argument('--image', help='')
     parser.add_argument('--tag', help='')
-    parser.add_argument('--glkey', help='')
     parser.add_argument('--wlbranch', help='')
     parser.add_argument('--output', help='')
     args = parser.parse_args()
 
     im_name = args.image
     im_tag = args.tag
-    gitlab_key = args.glkey
     wl_branch = args.wlbranch
     output = args.output
 
     im_name = '/'.join(im_name.split('/')[1::])
     # get dccscr project object from GitLab
-    proj = init(dccscr_project_id, gitlab_key)
-    
+    proj = init(dccscr_project_id)
+
     get_parent_info(proj, im_name, im_tag, wl_branch, output)
 
 def get_whitelist_filename(im_name, im_tag):
@@ -71,8 +69,8 @@ def get_parent_info(proj, im_name, im_tag, wl_branch, output):
         environment.write(f"export PARENT_NAME={par_image}\n")
         environment.write(f"export PARENT_TAG={par_tag}")
 
-def init(pid, gitlab_key):
-  gl = gitlab.Gitlab(gitlab_url, private_token=gitlab_key)
+def init(pid):
+  gl = gitlab.Gitlab(gitlab_url)
   return gl.projects.get(pid)
 
 if __name__ == "__main__":
