@@ -19,7 +19,7 @@ def main():
     if loglevel == 'DEBUG':
         logging.basicConfig(level=loglevel, format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
     else:
-        logging.basicConfig(level=LOGLEVEL, format="%(levelname)s: %(message)s")
+        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
 
 
     parser = argparse.ArgumentParser(description='DCCSCR processing of CVE reports from various sources')
