@@ -15,7 +15,7 @@ folder structure:
         echo "${OUTPUT1}"
         OUTPUT2=$([[ -f Dockerfile ]])
         echo "${OUTPUT2}"
-        OUTPUT3=$([[ -f "LICENSE" || -f "LICENSE.md" || -f "LICENSE.txt" || -f "LICENSE.txt" ]])
+        OUTPUT3=$([[ -f "LICENSE" || -f "LICENSE.md" || -f "LICENSE.txt" || -f "LICENSE.adoc" ]])
         echo "${OUTPUT3}"
     # - ls -l download.yaml || echo "No download.yaml found"
     # - ls -l scripts || echo "No download.yaml found"
