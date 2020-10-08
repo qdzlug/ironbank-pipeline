@@ -10,12 +10,9 @@
 folder structure:
   extends: .preflight
   script:
-    - |
-        set -x
-        [[ -f README.md ]] || tee output.txt
-        [[ -f Dockerfile ]] || tee output.txt
-        [[ -f "LICENSE" || -f "LICENSE.md" || -f "LICENSE.txt" || -f "LICENSE.adoc" ]] || tee output.txt
-    - cat output.txt
+    - [[ -f README.md ]] 
+    - [[ -f Dockerfile ]] 
+    - [[ -f "LICENSE" || -f "LICENSE.md" || -f "LICENSE.txt" || -f "LICENSE.adoc" ]] 
     # - ls -l download.yaml || echo "No download.yaml found"
     # - ls -l scripts || echo "No download.yaml found"
     # - ls -l signatures || echo "No download.yaml found"
