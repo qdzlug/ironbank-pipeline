@@ -11,3 +11,4 @@ check cves:
 
   script:
       - '"${PIPELINE_REPO_DIR}/stages/check-cves/check-cves.sh"'
+  allow_failure: true
