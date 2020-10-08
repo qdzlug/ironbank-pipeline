@@ -12,7 +12,7 @@ folder structure:
   script:
     - [ -f README.md ]
     - [ -f Dockerfile ] 
-    - [ -f "LICENSE" || -f "LICENSE.md" || -f "LICENSE.txt" || -f "LICENSE.adoc" ] 
+    - [ -f "LICENSE" ] || [ -f "LICENSE.md" ] || [ -f "LICENSE.txt" ] || [ -f "LICENSE.adoc" ]
     # - ls -l download.yaml || echo "No download.yaml found"
     # - ls -l scripts || echo "No download.yaml found"
     # - ls -l signatures || echo "No download.yaml found"
