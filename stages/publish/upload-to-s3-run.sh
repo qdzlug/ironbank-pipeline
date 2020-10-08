@@ -41,6 +41,17 @@ for file in $(find "${SCAN_DIRECTORY}" -name "*" -type f); do
     python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "$file" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/$report_name" ;
 done
 
-python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "${PROJECT_README}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_README}"
-python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "${PROJECT_LICENSE}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_LICENSE}"
-python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "${REPORT_TAR_NAME}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/${REPORT_TAR_NAME}"
+if [ "${CI_COMMIT_BRANCH}" == "master" ]; then
+        echo "${CI_PROJECT_DIR}" | grep -e 'pipeline-test-project';
+        if [[ $? = 0 ]]; then
+            echo "Skipping publish. Cannot publish when working with pipeline test projects master branch..."
+        else
+            python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "${PROJECT_README}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_README}"
+            python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "${PROJECT_LICENSE}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_LICENSE}"
+            python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "${REPORT_TAR_NAME}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/${REPORT_TAR_NAME}"
+        fi
+else
+    python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "${PROJECT_README}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_README}"
+    python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "${PROJECT_LICENSE}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_LICENSE}"
+    python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "${REPORT_TAR_NAME}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/${REPORT_TAR_NAME}"
+fi
