@@ -41,8 +41,9 @@ def cloneWhitelist(whitelistDir, whitelistRepo):
             print("Error: %s : %s" % (whitelistDir, e.strerror))
 
     # Clone the dccscr-whitelists repo
-    git.Git(".").clone(whitelistRepo)
-
+    dccscrWhitelistBranch = os.getenv("WL_TARGET_BRANCH")
+    # Clone the dccscr-whitelists repo
+    git.Repo.clone_from(whitelistRepo, os.path.join('./', 'dccscr-whitelists'), branch=dccscrWhitelistBranch)
 
 
 ##### Get the greylist for the source image
