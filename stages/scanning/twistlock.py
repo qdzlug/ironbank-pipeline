@@ -123,9 +123,10 @@ if __name__ == "__main__":
     loglevel = os.environ.get('LOGLEVEL', 'INFO').upper()
     if loglevel == 'DEBUG':
         logging.basicConfig(level=loglevel, format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
+        logging.debug("Log level set to debug")
     else:
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
-
+        logging.info("Log level set to info")
     parser = argparse.ArgumentParser(description = 'DCCSCR processing of CVE reports from various sources')
 
     parser.add_argument('--name',      help = 'Name of the image')

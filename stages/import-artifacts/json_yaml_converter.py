@@ -10,8 +10,10 @@ import logging
 loglevel = os.environ.get('LOGLEVEL', 'INFO').upper()
 if loglevel == 'DEBUG':
     logging.basicConfig(level=loglevel, format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
+    logging.debug("Log level set to debug")
 else:
     logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
+    logging.info("Log level set to info")
 
 inputFile = ""
 outputFile = ""

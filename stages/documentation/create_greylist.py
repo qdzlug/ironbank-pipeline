@@ -61,7 +61,7 @@ def connect_to_db():
   """
     conn = None
     try:
-        conn = mysql.connector.connect(buffered=True, 
+        conn = mysql.connector.connect(buffered=True,
             host=args.host, database=args.db, user=args.user, passwd=args.password
         )
         if conn.is_connected():
@@ -73,7 +73,7 @@ def connect_to_db():
         logs.error(err)
         if conn is not None and conn.is_connected():
             conn.close()
-            
+
     return conn
 
 
@@ -167,13 +167,6 @@ def create_greylist(conn, approvalStatus, approved_date, user_id):
 
 
 def main():
-    # Get logging level, set manually when running pipeline
-    loglevel = os.environ.get('LOGLEVEL', 'INFO').upper()
-    if loglevel == 'DEBUG':
-        logging.basicConfig(level=loglevel, format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
-    else:
-        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
-
     # Connect to database
     print("Connecting to database...", end="", flush=True)
     conn = connect_to_db()
@@ -199,19 +192,14 @@ def main():
 if __name__ == "__main__":
     args = parser.parse_args()
     logs = logging.getLogger("findings")
-    formatter = logging.Formatter("%(levelname)-8s %(message)s")
-    console = logging.StreamHandler()
-    console.setFormatter(formatter)
-    LOG_FILE = "import_justifications_logging.out"
-    handler = logging.handlers.RotatingFileHandler(LOG_FILE, maxBytes=(1048576 * 5), backupCount=3)
-    handler.setFormatter(formatter)
-    if args.debug:
-        logs.setLevel(logging.DEBUG)
+    # Get logging level, set manually when running pipeline
+    loglevel = os.environ.get('LOGLEVEL', 'INFO').upper()
+    if loglevel == 'DEBUG':
+        logging.basicConfig(level=loglevel, format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
+        logging.debug("Log level set to debug")
     else:
-        logs.setLevel(logging.INFO)
-
-    logs.addHandler(console)
-    logs.addHandler(handler)
+        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
+        logging.info("Log level set to info")
     logs.info("\n*****************************\n\n")
     logs.info("SQL Agent\n\n*****************************\n\n")
     logs.info("Args\n----------------------------")
