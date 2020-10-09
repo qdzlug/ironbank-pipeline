@@ -14,7 +14,6 @@ load scripts:
     - 'rm -rf "${PIPELINE_REPO_DIR}/.git"'
     - 'python3 "${PIPELINE_REPO_DIR}"/stages/preprocess/version.py --output "${IMAGE_VERSION_ARTIFACT}"'
     - 'python3 "${PIPELINE_REPO_DIR}"/stages/preprocess/special_path_lookup.py --output "${IMAGE_VERSION_ARTIFACT}"'
-    - cat version.env
   artifacts:
     when: always
     expire_in: 1 day
