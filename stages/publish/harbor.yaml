@@ -7,7 +7,8 @@ harbor:
     - build
     - load scripts
   script:
-    - if [[ "${SPECIAL_IMAGE_PATH}" ]]; then
+    - |
+      if [[ "${SPECIAL_IMAGE_PATH}" ]]; then
         "${PIPELINE_REPO_DIR}/stages/publish/special-upload-to-harbor.sh"
       fi
     - '"${PIPELINE_REPO_DIR}/stages/publish/upload-to-harbor.sh"'
