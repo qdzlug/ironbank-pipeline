@@ -48,8 +48,8 @@ def main():
     special_path = parse_special_path()
 
     if special_path is None:
-        logging.error("It does not appear that a special image path was specified. Using default image path value.")
-        # return 1
+        logging.info("It does not appear that a special image path was specified. Using default image path value.")
+        return 0
     else:
         with open(args.output, "a") as artifact:
             artifact.write(f"SPECIAL_IMAGE_PATH={special_path}")
