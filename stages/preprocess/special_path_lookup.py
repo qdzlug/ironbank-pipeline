@@ -52,7 +52,7 @@ def main():
         return 0
     else:
         with open(args.output, "a") as artifact:
-            artifact.write(f"SPECIAL_IMAGE_PATH={special_path}")
+            artifact.write(f"\nSPECIAL_IMAGE_PATH={special_path}")
         return 0
 
 
