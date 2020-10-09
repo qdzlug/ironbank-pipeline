@@ -10,7 +10,7 @@ import json
 import fnmatch
 import sys
 import getopt
-
+import logging
 ##### The InheritableTriggerIds variable contains a list of Anchore compliance trigger_ids
 ##### that are inheritable by child images.
 inheritableTriggerIds = [
