@@ -115,6 +115,7 @@ def http_download(download_item, resource_name, validation_type, checksum_value,
 
     print("Downloading from %s" % download_item)
     with requests.get(download_item, allow_redirects=True, stream=True, auth=auth) as r:
+        r.raw.decode_content = True
         r.raise_for_status()
         with open(outputDir + "/external-resources/" + resource_name, 'wb') as f:
             shutil.copyfileobj(r.raw, f, length=16*1024*1024)
@@ -142,7 +143,7 @@ def http_download(download_item, resource_name, validation_type, checksum_value,
 
 def s3_download(download_item, resource_name, validation_type, checksum_value, outputDir, username=None, password=None, region=None):
     print("===== ARTIFACT: %s" % download_item)
-    
+
     bucket = download_item.split('s3://')[1].split('/')[0]
     object_name = download_item[len('s3://' + bucket + '/'):]
     # Validate filename doesn't do anything nefarious
@@ -150,7 +151,7 @@ def s3_download(download_item, resource_name, validation_type, checksum_value, o
     if match is None:
         print("Filename is has invalid characters. Filename must start with a letter or a number. Aborting.")
         sys.exit(1)
-   
+
     s3_client = boto3.client('s3',
                          aws_access_key_id=username,
                          aws_secret_access_key=password,
@@ -162,7 +163,7 @@ def s3_download(download_item, resource_name, validation_type, checksum_value, o
     except ClientError as e:
         logging.error(e)
         return False
-    
+
     # Calculate SHA256 checksum of downloaded file
     print("Checking file verification type")
     if validation_type != "sha256" and validation_type != "sha512":
