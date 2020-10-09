@@ -45,7 +45,6 @@ def parse_jenkins():
 
 
 def parse():
-    logging.info("test")
     if os.path.isfile("download.yaml"):
         logging.info("download.yaml exists, attempting to extract image version")
         with open("download.yaml", "r") as yf:
