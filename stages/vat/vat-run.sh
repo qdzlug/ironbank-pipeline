@@ -16,7 +16,7 @@ export IM_NAME
 # cat environment.sh
 
   pip3 install --upgrade pip setuptools wheel minepy python-gitlab
-  pip3 -r install "${PIPELINE_REPO_DIR}/stages/vat/requirements.txt"
+  pip3 install -r "${PIPELINE_REPO_DIR}/stages/vat/requirements.txt"
 
   python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
     --db "vat-db" \
