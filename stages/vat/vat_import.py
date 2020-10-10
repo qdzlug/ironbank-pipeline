@@ -101,7 +101,7 @@ def parse_csvs():
             remove_lame_header_row(ac_path)
             try:
                 data_dict["anchore_comp"] = parse_anchore_compliance(ac_path)
-            except
+            except:
                 logs.error("Failed to parse anchore compliance")
         ov_path = csv_dir.joinpath("oval.csv")
         if ov_path.exists():
