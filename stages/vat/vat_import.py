@@ -85,32 +85,32 @@ def parse_csvs():
             remove_lame_header_row(tl_path)
             try:
                 data_dict["twistlock_cve"] = parse_twistlock_security(tl_path)
-            except Exception as err:
-                logs.error("Failed to parse twistlock: " + err)
+            except:
+                logs.error("Failed to parse twistlock")
         as_path = csv_dir.joinpath("anchore_security.csv")
         if as_path.exists():
             logs.debug("Parsing Anchore Security CSV\n")
             remove_lame_header_row(as_path)
             try:
                 data_dict["anchore_cve"] = parse_anchore_security(as_path)
-            except Exception as err:
-                logs.error("Failed to parse anchore cve: " + err)
+            except:
+                logs.error("Failed to parse anchore cve")
         ac_path = csv_dir.joinpath("anchore_gates.csv")
         if ac_path.exists():
             logs.debug("Parsing Anchore Compliance CSV\n")
             remove_lame_header_row(ac_path)
             try:
                 data_dict["anchore_comp"] = parse_anchore_compliance(ac_path)
-            except Exception as err:
-                logs.error("Failed to parse anchore compliance: " + err)
+            except
+                logs.error("Failed to parse anchore compliance")
         ov_path = csv_dir.joinpath("oval.csv")
         if ov_path.exists():
             logs.debug("Parsing OSCAP Security CSV\n")
             remove_lame_header_row(ov_path)
             try:
                 data_dict["oscap_cve"] = parse_oscap_security(ov_path)
-            except Exception as err:
-                logs.error("Failed to parse oscap cve: " + err)
+            except:
+                logs.error("Failed to parse oscap cve")
         os_path = csv_dir.joinpath("oscap.csv")
         if os_path.exists():
             logs.debug("Parsing OSCAP Compliance CSV\n")
