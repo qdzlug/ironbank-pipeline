@@ -85,7 +85,7 @@ def parse_csvs():
             remove_lame_header_row(tl_path)
             try:
                 data_dict["twistlock_cve"] = parse_twistlock_security(tl_path)
-            except Error as err:
+            except Exception as err:
                 logs.error("Failed to parse twistlock: " + err)
         as_path = csv_dir.joinpath("anchore_security.csv")
         if as_path.exists():
@@ -93,7 +93,7 @@ def parse_csvs():
             remove_lame_header_row(as_path)
             try:
                 data_dict["anchore_cve"] = parse_anchore_security(as_path)
-            except Error as err:
+            except Exception as err:
                 logs.error("Failed to parse anchore cve: " + err)
         ac_path = csv_dir.joinpath("anchore_gates.csv")
         if ac_path.exists():
@@ -101,7 +101,7 @@ def parse_csvs():
             remove_lame_header_row(ac_path)
             try:
                 data_dict["anchore_comp"] = parse_anchore_compliance(ac_path)
-            except Error as err:
+            except Exception as err:
                 logs.error("Failed to parse anchore compliance: " + err)
         ov_path = csv_dir.joinpath("oval.csv")
         if ov_path.exists():
@@ -109,7 +109,7 @@ def parse_csvs():
             remove_lame_header_row(ov_path)
             try:
                 data_dict["oscap_cve"] = parse_oscap_security(ov_path)
-            except Error as err:
+            except Exception as err:
                 logs.error("Failed to parse oscap cve: " + err)
         os_path = csv_dir.joinpath("oscap.csv")
         if os_path.exists():
@@ -388,6 +388,8 @@ def get_oscap_comp_finding(references):
     findings = list(filter(lambda x: oscap_finding_regex.match(x), ref_list))
     logs.debug("Completed regex filter")
     finding = findings[0] if findings else ref_list[0]
+    logs.debug("Finding:")
+    logs.debug(finding)
     return finding
 
 def check_container():
