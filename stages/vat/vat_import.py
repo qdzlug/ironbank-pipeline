@@ -332,25 +332,32 @@ def parse_oscap_compliance(os_path):
     """
     @return dataframe with standarized columns for OSCAP compliance scan
     """
+    logs.debug("In parse compliance")
     report_link = os.path.join(args.link, "report.html")
+    logs.debug("Report Link: " + report_link)
     d_f = pandas.read_csv(os_path)
+    logs.debug("Dataframe retrieved")
 
     # This keeps the rows where the result is fail or notchecked or error
     oscap_compliance = d_f[(d_f["result"] == "fail") |
                            (d_f["result"] == "notchecked") |
                            (d_f["result"] == "error")]
+    logs.debug("Keeping pertinent Data")
 
     # grab the relevant columns we are homogenizing
     d_f = oscap_compliance[["severity", "identifiers", "refs", "title"]]
     d_f.replace(to_replace="unknown", value="low", regex=True, inplace=True)
+    logs.debug("Replaced Sev values")
 
     # This is used where the identifier has not been set in the column (NaN)
     # It will replace these rows with data from the refs column.
     d_f['identifiers'] = d_f['identifiers'].replace(numpy.nan, d_f['refs'].apply(get_oscap_comp_finding))
     d_f.drop(columns=["refs"], inplace=True)
+    logs.debug("Replaced Finding values")
 
     d_f.rename(columns={"identifiers": "finding", "title": "description"}, inplace=True)
     d_f = d_f.assign(link=report_link)
+    logs.debug("Renamed Columns")
 
     # needed to add empty row to match twistlock
     d_f = d_f.assign(score="")
@@ -373,9 +380,13 @@ def get_oscap_comp_finding(references):
     :param references: stringified array of strings
     :return: str
     """
+    logs.debug("In get comp findings")
     oscap_finding_regex = re.compile("^OL.*$|^CCE-.*$")
+    logs.debug("completed regex compile")
     ref_list = eval(references)
+    logs.debug("Completed Eval")
     findings = list(filter(lambda x: oscap_finding_regex.match(x), ref_list))
+    logs.debug("Completed regex filter")
     finding = findings[0] if findings else ref_list[0]
     return finding
 
