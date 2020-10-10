@@ -12,5 +12,6 @@ vat:
     OPENSCAP: "${ARTIFACT_STORAGE}/scan-results/openscap"
   only:
     - development
+    - vat_oscap_issue
   script:
     - '"${PIPELINE_REPO_DIR}/stages/vat/vat-run.sh"'
