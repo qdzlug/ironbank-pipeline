@@ -31,6 +31,7 @@ cat manifest.json
 rm -rf tmp_gpg/*
 # Sign manifest.json
 gpg --homedir ./tmp_gpg --import --batch --passphrase "${IB_CONTAINER_SIG_KEY_PASSPHRASE}" key
+ls -al ./tmp_gpg
 echo "pinentry-mode loopback" >> ./tmp_gpg/gpg.conf
 gpg --detach-sign --homedir ./tmp_gpg -o "${SIG_FILE}.sig" --armor --yes --batch --passphrase "${IB_CONTAINER_SIG_KEY_PASSPHRASE}" manifest.json
 # Stage manifest for upload
