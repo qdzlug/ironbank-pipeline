@@ -10,12 +10,12 @@
 folder structure:
   extends: .preflight
   script:
-    - set -xv
     - |
-        [[ -f README.md ]]
+        let "fileExists = [[ -f README.md ]]"
+        echo "$fileExists"
         [[ -f Dockerfile ]]
         [[ -f "LICENSE" || -f "LICENSE.md" || -f "LICENSE.txt" || -f "LICENSE.adoc" ]]
-    - set +xv
+
     # - ls -l download.yaml || echo "No download.yaml found"
     # - ls -l scripts || echo "No download.yaml found"
     # - ls -l signatures || echo "No download.yaml found"
