@@ -10,7 +10,7 @@ import json
 import fnmatch
 import sys
 import getopt
-
+import logging
 ##### The InheritableTriggerIds variable contains a list of Anchore compliance trigger_ids
 ##### that are inheritable by child images.
 inheritableTriggerIds = [
@@ -322,6 +322,14 @@ def setAllColumnWidths(wb):
 
 ##### Main function
 def main(argv, inheritableTriggerIds):
+    # Get logging level, set manually when running pipeline
+    loglevel = os.environ.get('LOGLEVEL', 'INFO').upper()
+    if loglevel == 'DEBUG':
+        logging.basicConfig(level=loglevel, format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
+        logging.debug("Log level set to debug")
+    else:
+        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
+        logging.info("Log level set to info")
     # Process command-line arguments
     sourceFile = ""
     outputFile = ""

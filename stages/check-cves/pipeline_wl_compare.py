@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 import re
 import os
 import argparse
+import logging
 
 
 gitlab_url = "https://repo1.dsop.io"
@@ -13,6 +14,16 @@ dccscr_project_id = 143
 
 
 def main():
+    # Get logging level, set manually when running pipeline
+    loglevel = os.environ.get('LOGLEVEL', 'INFO').upper()
+    if loglevel == 'DEBUG':
+        logging.basicConfig(level=loglevel, format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
+        logging.debug("Log level set to debug")
+    else:
+        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
+        logging.info("Log level set to info")
+
+
     parser = argparse.ArgumentParser(description='DCCSCR processing of CVE reports from various sources')
     parser.add_argument('--image', help='')
     parser.add_argument('--tag',   help='')
