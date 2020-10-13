@@ -7,9 +7,19 @@ import json
 import os
 import pandas
 import argparse
+import logging
 
 def main():
     global csv_dir
+
+    # Get logging level, set manually when running pipeline
+    loglevel = os.environ.get('LOGLEVEL', 'INFO').upper()
+    if loglevel == 'DEBUG':
+        logging.basicConfig(level=loglevel, format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
+        logging.debug("Log level set to debug")
+    else:
+        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
+        logging.info("Log level set to info")
 
     parser = argparse.ArgumentParser(description='DCCSCR processing of CVE reports from various sources')
     parser.add_argument('--twistlock', help='location of the twistlock JSON scan file')

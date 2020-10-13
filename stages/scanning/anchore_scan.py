@@ -4,6 +4,7 @@ import requests
 import json
 import os
 import sys
+import logging
 
 
 
@@ -156,7 +157,14 @@ class Anchore():
 
 
 def main():
-
+    # Get logging level, set manually when running pipeline
+    loglevel = os.environ.get('LOGLEVEL', 'INFO').upper()
+    if loglevel == 'DEBUG':
+        logging.basicConfig(level=loglevel, format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
+        logging.debug("Log level set to debug")
+    else:
+        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
+        logging.info("Log level set to info")
     endpoint_url = re.sub("\/+$", '', os.getenv("ANCHORE_CLI_URL", default = "http://localhost:8228/v1/"))
 
     anchore = Anchore(
