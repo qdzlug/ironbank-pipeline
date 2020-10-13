@@ -2,6 +2,7 @@
 import os
 import sys 
 import argparse
+import logging
 
 def get_oscap_guide(oscap_version, base_image_type):
 
@@ -25,7 +26,14 @@ def get_oscap_guide(oscap_version, base_image_type):
     sys.exit(1)
 
 if __name__ == "__main__":
-
+    # Get logging level, set manually when running pipeline
+    loglevel = os.environ.get('LOGLEVEL', 'INFO').upper()
+    if loglevel == 'DEBUG':
+        logging.basicConfig(level=loglevel, format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
+        logging.debug("Log level set to debug")
+    else:
+        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
+        logging.info("Log level set to info")
     parser = argparse.ArgumentParser(description = 'Retrieve OSCAP security guide for image')
 
     parser.add_argument('--oscap-version', dest='version',  help='OSCAP Version')
