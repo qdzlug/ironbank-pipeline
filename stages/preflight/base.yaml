@@ -11,12 +11,16 @@ folder structure:
   extends: .preflight
   script:
     - |
-        [[ -f README.md ]]
-        echo $?
-        [[ -f Dockerfile ]]
-        echo $?
-        [[ -f "LICENSE" || -f "LICENSE.md" || -f "LICENSE.txt" || -f "LICENSE.adoc" ]]
-        echo $?
+        if [[ ! -f README.md ]] then
+          echo "README.md not found"
+        fi
+        if [[ ! -f Dockerfile ]] then
+          echo "Docker file not found"
+        fi
+        if [[ ! -f "LICENSE" || ! -f "LICENSE.md" || ! -f "LICENSE.txt" || ! -f "LICENSE.adoc" ]] then
+          echo "LICENSE not found"
+        fi
+
 
     # - ls -l download.yaml || echo "No download.yaml found"
     # - ls -l scripts || echo "No download.yaml found"
