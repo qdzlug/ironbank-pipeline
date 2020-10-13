@@ -11,13 +11,13 @@ folder structure:
   extends: .preflight
   script:
     - |
-        if [[ ! -f README.md ]]; then
+        if ! [[ -f README.md ]]; then
           echo "README.md not found"
         fi
-        if [[ ! -f Dockerfile ]]; then
+        if ! [[ -f Dockerfile ]]; then
           echo "Docker file not found"
         fi
-        if [[ ! -f "LICENSE" || ! -f "LICENSE.md" || ! -f "LICENSE.txt" || ! -f "LICENSE.adoc" ]]; then
+        if ! [[ -f "LICENSE" || -f "LICENSE.md" || -f "LICENSE.txt" || -f "LICENSE.adoc" ]]; then
           echo "LICENSE not found"
         fi
 
