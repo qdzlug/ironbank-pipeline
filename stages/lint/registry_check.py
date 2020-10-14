@@ -1,6 +1,16 @@
 #!/usr/bin/python3
 import sys
 import argparse
+import logging
+
+# Get logging level, set manually when running pipeline
+loglevel = os.environ.get('LOGLEVEL', 'INFO').upper()
+if loglevel == 'DEBUG':
+    logging.basicConfig(level=loglevel, format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
+    logging.debug("Log level set to debug")
+else:
+    logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
+    logging.info("Log level set to info")
 
 parser = argparse.ArgumentParser(description='Ensure proper registry usage in Dockerfiles')
 parser.add_argument('--dockerfile-path', help='path to Dockerfile to parse')

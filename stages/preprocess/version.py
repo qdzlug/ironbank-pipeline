@@ -20,11 +20,6 @@ import logging
 
 
 
-# TODO: add a debug variable inherited from the pipeline to determine logging level
-logging.basicConfig(level = logging.INFO, format = "%(levelname)s: %(message)s")
-
-
-
 def parse_jenkins():
     logging.info("Jenkinsfile exists, attempting to extract image version")
     version_regex = r"(?<=version:)[ \t]+((?<![\\])['\"])((?:.(?!(?<![\\])\1))*.?)"
@@ -50,7 +45,6 @@ def parse_jenkins():
 
 
 def parse():
-
     if os.path.isfile("download.yaml"):
         logging.info("download.yaml exists, attempting to extract image version")
         with open("download.yaml", "r") as yf:
@@ -89,6 +83,14 @@ def parse():
 
 
 def main():
+    # Get logging level, set manually when running pipeline
+    loglevel = os.environ.get('LOGLEVEL', 'INFO').upper()
+    if loglevel == 'DEBUG':
+        logging.basicConfig(level=loglevel, format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
+        logging.debug("Log level set to debug")
+    else:
+        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
+        logging.info("Log level set to info")
     parser = argparse.ArgumentParser(description = "Version parser arguments")
     parser.add_argument("--output",
                         metavar = "output",
@@ -97,7 +99,6 @@ def main():
                         help = "Output directory to write to")
     args = parser.parse_args()
     version = parse()
-
     if version is None:
         logging.error("Could not parse version out of repo. Please include a version field in your download.yaml file.")
         logging.error("Reference this MR on how to update the version field appropriately: https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/-/merge_requests/30")

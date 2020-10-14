@@ -13,8 +13,20 @@ from botocore.exceptions import ClientError
 from requests.auth import HTTPBasicAuth
 import shutil
 from base64 import b64decode
+import logging
+
+
 
 def main():
+    # Get logging level, set manually when running pipeline
+    loglevel = os.environ.get('LOGLEVEL', 'INFO').upper()
+    if loglevel == 'DEBUG':
+        logging.basicConfig(level=loglevel, format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
+        logging.debug("Log level set to debug")
+    else:
+        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
+        logging.info("Log level set to info")
+
     ##### Parse commandline arguments
     inputFile = ""
     outputDir = ""
@@ -105,6 +117,7 @@ def http_download(download_item, resource_name, validation_type, checksum_value,
 
     print("Downloading from %s" % download_item)
     with requests.get(download_item, allow_redirects=True, stream=True, auth=auth) as r:
+        r.raw.decode_content = True
         r.raise_for_status()
         with open(outputDir + "/external-resources/" + resource_name, 'wb') as f:
             shutil.copyfileobj(r.raw, f, length=16*1024*1024)

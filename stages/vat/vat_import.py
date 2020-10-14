@@ -840,19 +840,14 @@ def main():
 if __name__ == "__main__":
     args = parser.parse_args()
     logs = logging.getLogger("findings")
-    formatter = logging.Formatter("%(levelname)-8s %(message)s")
-    console = logging.StreamHandler()
-    console.setFormatter(formatter)
-    LOG_FILE = "vat_import_logging.out"
-    handler = logging.handlers.RotatingFileHandler(LOG_FILE, maxBytes=(1048576 * 5), backupCount=3)
-    handler.setFormatter(formatter)
-    if args.debug:
-        logs.setLevel(logging.DEBUG)
+    # Get logging level, set manually when running pipeline
+    loglevel = os.environ.get('LOGLEVEL', 'INFO').upper()
+    if loglevel == 'DEBUG':
+        logging.basicConfig(level=loglevel, format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
+        logging.debug("Log level set to debug")
     else:
-        logs.setLevel(logging.INFO)
-
-    logs.addHandler(console)
-    logs.addHandler(handler)
+        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
+        logging.info("Log level set to info")
     logs.info("\n*****************************\n\n")
     logs.info("SQL Agent\n\n*****************************\n\n")
     logs.info("Args\n----------------------------")
