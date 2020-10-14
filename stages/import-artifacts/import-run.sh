@@ -3,7 +3,7 @@ set -Eeuo pipefail
 mkdir -p "${ARTIFACT_DIR}/external-resources/" "${ARTIFACT_DIR}/images/"
 touch artifact.env
 
-pip3 install requests boto3
+pip3 install --user requests boto3
 
 if [ -f "${CI_PROJECT_DIR}"/download.json ]; then
     echo "download.json file found. Converting json to yaml."
