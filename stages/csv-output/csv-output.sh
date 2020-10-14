@@ -2,8 +2,8 @@
 set -Eeuo pipefail
 
 mkdir -p "${CSV_REPORT}"
-pip3 install --upgrade pip
-pip3 install bs4 pandas argparse openpyxl gitpython
+# pip3 install --upgrade pip
+# pip3 install bs4 pandas argparse openpyxl gitpython
 
 if [[ "${DISTROLESS:-}" ]]; then
     python3 "${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py" \
