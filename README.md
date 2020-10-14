@@ -46,7 +46,7 @@ The `preflight` stage performs two functions, which are described below:
       - README (required file)
       - Dockerfile (required file)
       - LICENSE (required file)
-      - download.yaml (file, not always required, which allows external resources to be validated and used in the container build)
+      - download.yaml/download.json (file, not always required, which allows external resources to be validated and used in the container build)
       - scripts (directory, not always required, which stores any script files needed in the container)
       - signatures (directory, not always required, which contains signatures needed for validation of any repository or external resource files)
       - config (directory, not always required, which stores any configuration files needed in the container)
@@ -117,7 +117,7 @@ Job artifacts:
 The Twistlock scan will check for CVE findings in the image.
 
 Job artifacts:
-- {img_version}.json
+- `{img_version}.json`
 
 
 #### csv-output
