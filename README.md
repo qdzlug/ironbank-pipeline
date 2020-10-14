@@ -12,40 +12,24 @@
 
 - #### Adding a project pipeline in settings
 
-The IronBank pipelines team will control the project configuration. As a result, projects *must not* contain a `.gitlab-ci.yml` In order for a project to enable 
+The IronBank pipelines team will control the project configuration. As a result, projects *must not* contain a `.gitlab-ci.yml` The IronBank Pipelines team has set up project templates which are used in the creation of the repo. The template provides a CI configuration path which enables the pipeline for the project. In the event this was not created for the project, the following steps outline how it must be changed:
+
 Go to the settings for a specific project
 
 `Settings` > `CI / CD` > `General pipelines` > `Custom CI configuration path`
+
 Enter the following: `templates/default.yaml@ironbank-tools/ironbank-pipeline`
 
 This will point the project towards the default pipeline in ironbank-pipeline.
 
-- Contributor projects will need to point to the `ironbank-pipeline` project from the `.gitlab-ci.yml` file in their respective projects order to utilize the Container Hardening CI/CD pipeline.
-
-For most projects, add the following block to the `.gitlab-ci.yml` file in the project in order to do this:
-```
-include:
-  - project: 'ironbank-tools/ironbank-pipeline'
-    file: '/templates/default.yaml'
-```
 The `default` template will allow images based on UBI to run through the required pipeline steps (whether the image directly uses an UBI base image for its base image, or by using an approved IronBank container with a base UBI image for its base image).
 
-Containers which utilize the distroless base image should instead use the following block in the project's `.gitlab-ci.yml` file:
-```
-include:
-  - project: 'ironbank-tools/ironbank-pipeline'
-    file: '/templates/distroless.yaml'
-```
+Containers which utilize the distroless base image should instead use the `distroless` template instead of the `default` pipeline template. Please reach out to the IronBank Pipelines team or the Container Hardening team for assistance in getting this changed. The `Custom CI configuration path` for distroless-based container projects will be the following:
+
+`templates/distroless.yaml@ironbank-tools/ironbank-pipeline`
+
 This will omit the OpenSCAP scan jobs from the pipeline. OSCAP scanning is not compatible with containers built on distroless base images.
 
-
-- Contributors will also need to provide the current image version of the container which is being built in the project's `.gitlab-ci.yml` file using the `IMG_VERSION` variable.
-
-For example, if the current container version is 2.0.1, the contributor would add the following to the project's `.gitlab-ci.yml` file:
-```
-variables:
-  IMG_VERSION: "2.0.1"
-```
 
 
 ## Pipeline stages
