@@ -218,14 +218,15 @@ def docker_download(download_item, tag_value, tar_name, username=None, password=
     tar_name = tar_name.replace(':', '-')
     print("Pulling " + image)
 
-    pull_str = f"podman pull {image}"
+    pull_cmd = ["podman", "pull"]
     if username and password:
-        pull_str = f"{pull_str} --creds {username}:{password}"
-
+        pull_cmd += ["--creds", f"{username}:{password}"]
+    pull_cmd += ["--", image]
+  
     retry_count = 0
     while True:
         try:
-            subprocess.run(pull_str.split(" "), check=True)
+            subprocess.run(pull_cmd , check=True)
             print("Tagging image as " + tag_value)
             subprocess.run(["podman", "tag", image, tag_value], check=True)
             print("Saving " + tag_value + " as tar file")
