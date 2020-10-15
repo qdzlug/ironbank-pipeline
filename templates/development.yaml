@@ -1,5 +1,4 @@
 stages:
-
   ### preprocess stage
   # clone down the templates directory for use in later stages
   # Requirements:
@@ -89,7 +88,7 @@ include:
 
   # Do not want development branch runs to utilize VAT tool
   # - local: stages/vat/base.yaml
-  
+
   - local: stages/publish/base.yaml
 
 variables:

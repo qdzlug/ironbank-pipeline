@@ -7,7 +7,7 @@ load scripts:
   image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/docker-git-bash-python:3.7
   cache: {}
   variables:
-      IMAGE_VERSION_ARTIFACT: "version.env"
+    IMAGE_VERSION_ARTIFACT: "version.env"
   script:
     - 'mkdir -p "${PIPELINE_REPO_DIR}"'
     - 'git clone -q --depth 1 --branch "${TARGET_BRANCH}" "https://repo1.dsop.io/ironbank-tools/ironbank-pipeline.git" "${PIPELINE_REPO_DIR}"'
@@ -21,4 +21,3 @@ load scripts:
       - "${PIPELINE_REPO_DIR}"
     reports:
       dotenv: "${IMAGE_VERSION_ARTIFACT}"
-
