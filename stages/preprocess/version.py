@@ -99,20 +99,9 @@ def main():
                         help = "Output directory to write to")
     args = parser.parse_args()
     version = parse()
-    version = "../../" + version
-    logging.debug("String changed to: " + version)
+    #check and replace path traversal in version
     traversal_re = re.compile("\.\.\/*")
     version = re.sub(traversal_re, "", version)
-    logging.debug("Re Test 1: " + version)
-    version = "../" + version + "../"
-    logging.debug("String changed to: " + version)
-    version = re.sub(traversal_re, "", version)
-    logging.debug("Re Test 2: " + version)
-    version = "../../"
-    logging.debug("String changed to: " + version)
-    version = re.sub(traversal_re, "", version)
-    logging.debug("Re Test 3: " + version)
-    #TODO: Add or case if the string is blank due to IMG_VERSION being ../../ before sub
     if version is None or version is "":
         logging.error("Could not parse version out of repo. Please include a version field in your download.yaml file.")
         logging.error("Reference this MR on how to update the version field appropriately: https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/-/merge_requests/30")
