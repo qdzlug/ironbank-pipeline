@@ -100,6 +100,8 @@ def main():
     args = parser.parse_args()
     version = parse()
     #create regex to check if path traversal is in version
+    #TEST
+    version = "/" + version
     slash_re = re.compile("\/+")
     if version is None or version is "" or len(slash_re.findall(version)) > 0:
         logging.error("Could not parse version out of repo. Please include a version field in your download.yaml file.")
