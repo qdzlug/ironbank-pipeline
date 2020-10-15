@@ -19,7 +19,6 @@ import json
 import logging
 
 
-
 def parse_jenkins():
     logging.info("Jenkinsfile exists, attempting to extract image version")
     version_regex = r"(?<=version:)[ \t]+((?<![\\])['\"])((?:.(?!(?<![\\])\1))*.?)"
@@ -43,7 +42,6 @@ def parse_jenkins():
     return None
 
 
-
 def parse():
     if os.path.isfile("download.yaml"):
         logging.info("download.yaml exists, attempting to extract image version")
@@ -58,7 +56,6 @@ def parse():
     else:
         logging.info("Not found: download.yaml")
 
-
     if os.path.isfile("download.json"):
         logging.info("download.json exists, attempting to extract image version")
         with open("download.json", "r") as jf:
@@ -72,7 +69,6 @@ def parse():
     else:
         logging.info("Not found: download.json")
 
-
     if os.path.isfile("Jenkinsfile"):
         return parse_jenkins()
     else:
@@ -81,22 +77,26 @@ def parse():
     return None
 
 
-
 def main():
     # Get logging level, set manually when running pipeline
-    loglevel = os.environ.get('LOGLEVEL', 'INFO').upper()
-    if loglevel == 'DEBUG':
-        logging.basicConfig(level=loglevel, format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s")
+    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
+    if loglevel == "DEBUG":
+        logging.basicConfig(
+            level=loglevel,
+            format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
+        )
         logging.debug("Log level set to debug")
     else:
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
-    parser = argparse.ArgumentParser(description = "Version parser arguments")
-    parser.add_argument("--output",
-                        metavar = "output",
-                        default = "get_version.sh",
-                        type = str,
-                        help = "Output directory to write to")
+    parser = argparse.ArgumentParser(description="Version parser arguments")
+    parser.add_argument(
+        "--output",
+        metavar="output",
+        default="get_version.sh",
+        type=str,
+        help="Output directory to write to",
+    )
     args = parser.parse_args()
     version = parse()
     #create regex to check if path traversal is in version
@@ -105,8 +105,12 @@ def main():
         logging.error("The format for IMG_VERSION is invalid. Please make sure that the value for your version field has a valid format in your download.yaml file")
         return 1
     if version is None:
-        logging.error("Could not parse version out of repo. Please include a version field in your download.yaml file.")
-        logging.error("Reference this MR on how to update the version field appropriately: https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/-/merge_requests/30")
+        logging.error(
+            "Could not parse version out of repo. Please include a version field in your download.yaml file."
+        )
+        logging.error(
+            "Reference this MR on how to update the version field appropriately: https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/-/merge_requests/30"
+        )
         return 1
     else:
         with open(args.output, "w") as artifact:
@@ -114,7 +118,5 @@ def main():
         return 0
 
 
-
 if __name__ == "__main__":
     sys.exit(main())
-
