@@ -237,7 +237,7 @@ def docker_download(download_item, tag_value, tar_name, username=None, password=
                 print("Docker resource failed to pull, please check download.yaml configuration")
                 sys.exit(1)
             else:
-                print("Docker resource failed to pull, retrying: " + retry_count + "/3")
+                print(f"Docker resource failed to pull, retrying: {retry_count} /3")
                 retry_count += 1
         break
 
