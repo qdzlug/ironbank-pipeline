@@ -78,7 +78,17 @@ def main():
                     else:
                         http_download(item["url"], item["filename"], item["validation"]["type"], item["validation"]["value"], outputDir)
                 if download_type == "docker":
-                    docker_download(item["url"], item["tag"], item["tag"])
+                    if "auth" in item:
+                        if item["auth"]["type"] == "basic":
+                            credential_id = item["auth"]["id"].replace("-","_")
+                            password = b64decode(os.getenv("CREDENTIAL_PASSWORD_" + credential_id)).decode('utf-8')
+                            username = b64decode(os.getenv("CREDENTIAL_USERNAME_" + credential_id)).decode('utf-8')
+                            docker_download(item["url"], item["tag"], item["tag"], username, password)
+                        else:
+                            print("Non Basic auth type provided for Docker resource, failing")
+                            sys.exit(1)
+                    else:
+                        docker_download(item["url"], item["tag"], item["tag"])
                 if download_type == "s3":
                     if "auth" in item:
                         credential_id = item["auth"]["id"].replace("-","_")
@@ -201,17 +211,22 @@ def generate_checksum(validation_type, checksum_value, outputDir, resource_name)
                 return sha512_hash
 
 
-def docker_download(download_item, tag_value, tar_name):
+def docker_download(download_item, tag_value, tar_name, username=None, password=None):
     print("===== ARTIFACT: %s" % download_item)
     image = download_item.split('//')[1]
     tar_name = tar_name.replace('/', '-')
     tar_name = tar_name.replace(':', '-')
     print("Pulling " + image)
 
+    pull_cmd = ["podman", "pull"]
+    if username and password:
+        pull_cmd += ["--creds", f"{username}:{password}"]
+    pull_cmd += ["--", image]
+  
     retry_count = 0
     while True:
         try:
-            subprocess.run(["podman", "pull", image], check=True)
+            subprocess.run(pull_cmd , check=True)
             print("Tagging image as " + tag_value)
             subprocess.run(["podman", "tag", image, tag_value], check=True)
             print("Saving " + tag_value + " as tar file")
@@ -223,7 +238,7 @@ def docker_download(download_item, tag_value, tar_name):
                 print("Docker resource failed to pull, please check download.yaml configuration")
                 sys.exit(1)
             else:
-                print("Docker resource failed to pull, retrying: " + retry_count + "/3")
+                print(f"Docker resource failed to pull, retrying: {retry_count} /3")
                 retry_count += 1
         break
 
