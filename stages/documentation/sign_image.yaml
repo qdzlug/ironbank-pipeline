@@ -16,4 +16,3 @@ sign image:
     paths:
       - "${ARTIFACT_DIR}"
     expire_in: 1 week
-
