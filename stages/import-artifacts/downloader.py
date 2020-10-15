@@ -80,6 +80,7 @@ def main():
                 if download_type == "docker":
                     if "auth" in item:
                         if item["auth"]["type"] == "basic":
+                            credential_id = item["auth"]["id"].replace("-","_")
                             password = b64decode(os.getenv("CREDENTIAL_PASSWORD_" + credential_id))
                             username = b64decode(os.getenv("CREDENTIAL_USERNAME_" + credential_id))
                             docker_download(item["url"], item["tag"], item["tag"], username, password)
