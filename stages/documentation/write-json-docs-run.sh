@@ -73,21 +73,27 @@ cat <<EOF > documentation.json
 {
     "timestamp": "$(date +%FT%T)",
     "git": {
-        "hash": "${CI_COMMIT_SHA}",
-        "branch": "${CI_COMMIT_BRANCH}"
+        "hash": "",
+        "branch": ""
     },
     "tools": {
             "anchore": {
-            "version": "${ANCHORE_VERSION}"
+            "version": ""
         },
             "twistlock": {
-            "version": "${TWISTLOCK_VERSION}"
+            "version": ""
         },
             "openSCAP": {
-            "version": "${OPENSCAP_VERSION}"
+            "version": ""
         }
     }
 }
 EOF
+echo `jq --arg CI_COMMIT_SHA "${CI_COMMIT_SHA}" '.git.hash = $CI_COMMIT_SHA' documentation.json` > documentation.json
+echo `jq --arg CI_COMMIT_BRANCH "${CI_COMMIT_BRANCH}" '.git.branch = $CI_COMMIT_BRANCH' documentation.json` > documentation.json
+echo `jq --arg ANCHORE_VERSION "${ANCHORE_VERSION}" '.tools.anchore.version = $ANCHORE_VERSION' documentation.json` > documentation.json
+echo `jq --arg TWISTLOCK_VERSION "${TWISTLOCK_VERSION}" '.tools.twistlock.version = $TWISTLOCK_VERSION' documentation.json` > documentation.json
+echo `jq --arg OPENSCAP_VERSION "${OPENSCAP_VERSION}" '.tools.openSCAP.version = $OPENSCAP_VERSION' documentation.json` > documentation.json
+jq . documentation.json > documentation.tmp && mv documentation.tmp documentation.json
 cat documentation.json
 mv documentation.json "${ARTIFACT_DIR}/reports"
