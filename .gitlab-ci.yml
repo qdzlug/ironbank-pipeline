@@ -1,4 +1,9 @@
+stages:
+  - format
+  - lint
+
 shellcheck:
+  stage: lint
   image: registry.dsop.io/ironbank-tools/ironbank-pipeline/shellcheck
   # TODO: remove allow_failure
   allow_failure: true
@@ -27,3 +32,39 @@ shellcheck:
             fi
         done
         exit "$ret"
+
+black:
+  stage: format
+  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml"
+  # TODO: remove allow_failure
+  script:
+    - pip install git+git://github.com/psf/black
+    - black --check --diff --color -t py36 ./
+
+pylama:
+  stage: lint
+  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml"
+  # TODO: remove allow_failure
+  allow_failure: true
+  dependencies:
+    - black
+  script:
+    - pip install pylama
+    - pylama -i E501
+## ignore line errors as blacks has been ran against code.
+prettier:
+  stage: format
+  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/all-in-one-fedora:1.0"
+  script:
+    - curl -sL https://rpm.nodesource.com/setup_12.x | bash -
+    - dnf install -y nodejs
+    - npx prettier -c ./
+
+shfmt:
+  stage: format
+  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/all-in-one-fedora:1.0"
+  script:
+    - dnf install wget -y
+    - wget https://github.com/mvdan/sh/releases/download/v3.1.2/shfmt_v3.1.2_linux_amd64
+    - chmod a+x shfmt_v3.1.2_linux_amd64
+    - ./shfmt_v3.1.2_linux_amd64 -d ./
