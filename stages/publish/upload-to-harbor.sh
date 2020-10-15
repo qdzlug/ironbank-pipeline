@@ -9,9 +9,9 @@ echo "${DOCKER_AUTH_CONFIG_PROD}" | base64 -d >prod_auth.json
 
 # Upload image to prod Harbor
 skopeo copy --src-authfile staging_auth.json --dest-authfile prod_auth.json \
-"docker://${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}-${CI_PIPELINE_ID}" \
-"docker://${REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}"
+  "docker://${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}-${CI_PIPELINE_ID}" \
+  "docker://${REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}"
 # Copy from staging to prod with latest tag
 skopeo copy --src-authfile staging_auth.json --dest-authfile prod_auth.json \
-"docker://${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}-${CI_PIPELINE_ID}" \
-"docker://${REGISTRY_URL}/${IM_NAME}:latest"
+  "docker://${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}-${CI_PIPELINE_ID}" \
+  "docker://${REGISTRY_URL}/${IM_NAME}:latest"
