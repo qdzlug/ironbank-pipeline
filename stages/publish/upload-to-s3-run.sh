@@ -1,14 +1,14 @@
 #!/bin/bash
 set -Eeuo pipefail
 if [[ $(echo "${CI_PROJECT_DIR}" | grep -e 'pipeline-test-project') ]] && [ "${CI_COMMIT_BRANCH}" == "master" ]; then
-    echo "Skipping publish. Cannot publish when working with pipeline test projects master branch..."
-    exit 0
+  echo "Skipping publish. Cannot publish when working with pipeline test projects master branch..."
+  exit 0
 fi
 mkdir -p "${ARTIFACT_DIR}"
 
 pip install boto3 ushlex
 if [ "${CI_COMMIT_BRANCH}" == "master" ]; then
-    BASE_BUCKET_DIRECTORY="container-scan-reports"
+  BASE_BUCKET_DIRECTORY="container-scan-reports"
 fi
 
 IMAGE_PATH=$(echo "${CI_PROJECT_PATH}" | sed -e 's/.*dsop\/\(.*\)/\1/')
@@ -34,14 +34,14 @@ tar -zcvf "${REPORT_TAR_NAME}" reports
 
 python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file repo_map.json --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IM_NAME}/repo_map.json"
 for file in $(find "${DOCUMENTATION_DIRECTORY}" -name "*" -type f); do
-    object_path="${file#"$ARTIFACT_STORAGE/documentation/"}"
-    python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "$file" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_DOCUMENTATION_DIRECTORY}/$object_path" ;
+  object_path="${file#"$ARTIFACT_STORAGE/documentation/"}"
+  python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "$file" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_DOCUMENTATION_DIRECTORY}/$object_path"
 done
 
 for file in $(find "${SCAN_DIRECTORY}" -name "*" -type f); do
-    report_name=$(echo "$file" | rev | cut -d/ -f1-2 | rev)
-    echo "$file"
-    python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "$file" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/$report_name" ;
+  report_name=$(echo "$file" | rev | cut -d/ -f1-2 | rev)
+  echo "$file"
+  python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "$file" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/$report_name"
 done
 
 python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "${PROJECT_README}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_README}"

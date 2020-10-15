@@ -21,41 +21,41 @@ done
 
 # Load HTTP and S3 external resources
 for file in "${ARTIFACT_STORAGE}"/import-artifacts/external-resources/*; do
-    cp -v "$file" .
+  cp -v "$file" .
 done
 
-echo "${SATELLITE_URL} satellite" >> /etc/hosts
-echo "${DOCKER_AUTH_CONFIG_PULL}" | base64 -d >> /tmp/prod_auth.json
-echo "IM_NAME=${IM_NAME}" >> build.env
-echo "/tmp/prod_auth.json" >> .dockerignore
+echo "${SATELLITE_URL} satellite" >>/etc/hosts
+echo "${DOCKER_AUTH_CONFIG_PULL}" | base64 -d >>/tmp/prod_auth.json
+echo "IM_NAME=${IM_NAME}" >>build.env
+echo "/tmp/prod_auth.json" >>.dockerignore
 # Set the tag to eliminate /build/dsop and matching existing project hierarchy format
 HARBOR_IMAGE_PATH="${STAGING_REGISTRY_URL}/$IM_NAME:$IMG_VERSION"
 buildah bud \
-    --build-arg "BASE_REGISTRY=${BASE_REGISTRY}" \
-    --build-arg "BASE_IMAGE=${BASE_IMAGE:-}" \
-    --build-arg "BASE_TAG=${BASE_TAG:-}" \
-    --label dccscr.git.commit.id="${CI_COMMIT_SHA}" \
-    --label dccscr.git.commit.url="${CI_PROJECT_URL}/tree/${CI_COMMIT_SHA}" \
-    --label dccscr.git.url="${CI_PROJECT_URL}.git" \
-    --label dccscr.git.branch="${CI_COMMIT_BRANCH}" \
-    --label dccscr.image.version="${IMG_VERSION}" \
-    --label dccscr.image.build.date="$(date --utc)" \
-    --label dccscr.image.build.id="${CI_PIPELINE_ID}" \
-    --label dccscr.image.name="${CI_PROJECT_NAME}" \
-    --label dccscr.ironbank.approval.status="${IMAGE_APPROVAL_STATUS}" \
-    --label dccscr.ironbank.approval.url="TBD" \
-    --label dccscr.ironbank.url="TBD" \
-    --label dcar_status="${IMAGE_APPROVAL_STATUS}" \
-    --authfile /tmp/prod_auth.json \
-    --format=docker \
-    --loglevel=3 \
-    --storage-driver=vfs \
-    -t "${HARBOR_IMAGE_PATH}" \
-    .
-buildah tag --storage-driver=vfs "${HARBOR_IMAGE_PATH}"  "${HARBOR_IMAGE_PATH}-${CI_PIPELINE_ID}"
-echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >> staging_auth.json
+  --build-arg "BASE_REGISTRY=${BASE_REGISTRY}" \
+  --build-arg "BASE_IMAGE=${BASE_IMAGE:-}" \
+  --build-arg "BASE_TAG=${BASE_TAG:-}" \
+  --label dccscr.git.commit.id="${CI_COMMIT_SHA}" \
+  --label dccscr.git.commit.url="${CI_PROJECT_URL}/tree/${CI_COMMIT_SHA}" \
+  --label dccscr.git.url="${CI_PROJECT_URL}.git" \
+  --label dccscr.git.branch="${CI_COMMIT_BRANCH}" \
+  --label dccscr.image.version="${IMG_VERSION}" \
+  --label dccscr.image.build.date="$(date --utc)" \
+  --label dccscr.image.build.id="${CI_PIPELINE_ID}" \
+  --label dccscr.image.name="${CI_PROJECT_NAME}" \
+  --label dccscr.ironbank.approval.status="${IMAGE_APPROVAL_STATUS}" \
+  --label dccscr.ironbank.approval.url="TBD" \
+  --label dccscr.ironbank.url="TBD" \
+  --label dcar_status="${IMAGE_APPROVAL_STATUS}" \
+  --authfile /tmp/prod_auth.json \
+  --format=docker \
+  --loglevel=3 \
+  --storage-driver=vfs \
+  -t "${HARBOR_IMAGE_PATH}" \
+  .
+buildah tag --storage-driver=vfs "${HARBOR_IMAGE_PATH}" "${HARBOR_IMAGE_PATH}-${CI_PIPELINE_ID}"
+echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
 buildah push --storage-driver=vfs --authfile staging_auth.json "${HARBOR_IMAGE_PATH}-${CI_PIPELINE_ID}"
 buildah push --storage-driver=vfs --authfile staging_auth.json "${HARBOR_IMAGE_PATH}"
 # Provide tar for use in later stages, matching existing tar naming convention
 skopeo copy --src-authfile staging_auth.json "docker://${HARBOR_IMAGE_PATH}-${CI_PIPELINE_ID}" "docker-archive:${ARTIFACT_DIR}/${IMAGE_FILE}.tar"
-echo "IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${HARBOR_IMAGE_PATH}" --format '{{.Id}}')" >> build.env
+echo "IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${HARBOR_IMAGE_PATH}" --format '{{.Id}}')" >>build.env
