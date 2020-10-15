@@ -22,78 +22,14 @@ IMAGE_PODMAN_SHA=$(podman inspect --format '{{.Digest}}' "${STAGING_REGISTRY_URL
 GPG_PUB_KEY=$(awk '{printf "%s\\n", $0}' "${IB_CONTAINER_GPG_PUBKEY}")
 # Create manifest.json
 
-cat <<EOF > scan-metadata.json
-{
-    "buildTag": "",
-    "buildNumber": "",
-    "approval": "",
-    "image": {
-        "digest": "",
-        "sha256": ""
-    },
-    "pgp": {
-        "publicKey": "",
-        "version":""
-    },
-    "git": {
-        "branch": "",
-        "commit": ""
-    },
-    "reports": {
-        "twistlock": {
-            "version": ""
-        },
-        "openSCAP": {
-            "version": ""
-        },
-        "anchore": {
-            "version": ""
-        }
-    }
-}
-EOF
-echo `jq --arg IMG_VERSION "${IMG_VERSION}" '.buildTag = $IMG_VERSION' scan-metadata.json` > scan-metadata.json
-echo `jq --arg CI_COMMIT_SHA "${CI_COMMIT_SHA}" '.buildNumber = $CI_COMMIT_SHA' scan-metadata.json` > scan-metadata.json
-echo `jq --arg IMAGE_APPROVAL_STATUS "${IMAGE_APPROVAL_STATUS}" '.approval = $IMAGE_APPROVAL_STATUS' scan-metadata.json` > scan-metadata.json
-echo `jq --arg IMAGE_TAR_SHA "${IMAGE_TAR_SHA}" '.image.digest = $IMAGE_TAR_SHA' scan-metadata.json` > scan-metadata.json
-echo `jq --arg IMAGE_PODMAN_SHA "${IMAGE_PODMAN_SHA}" '.image.sha256 = $IMAGE_PODMAN_SHA' scan-metadata.json` > scan-metadata.json
-echo `jq --arg GPG_PUB_KEY "${GPG_PUB_KEY}" '.pgp.publicKey = $GPG_PUB_KEY' scan-metadata.json` > scan-metadata.json
-echo `jq --arg GPG_VERSION_INFO "${GPG_VERSION_INFO}" '.pgp.version = $GPG_VERSION_INFO' scan-metadata.json` > scan-metadata.json
-echo `jq --arg CI_COMMIT_BRANCH "${CI_COMMIT_BRANCH}" '.git.branch = $CI_COMMIT_BRANCH' scan-metadata.json` > scan-metadata.json
-echo `jq --arg CI_COMMIT_SHA "${CI_COMMIT_SHA}" '.git.commit = $CI_COMMIT_SHA' scan-metadata.json` > scan-metadata.json
-echo `jq --arg TWISTLOCK_VERSION "${TWISTLOCK_VERSION}" '.reports.twistlock.version = $TWISTLOCK_VERSION' scan-metadata.json` > scan-metadata.json
-echo `jq --arg OPENSCAP_VERSION "${OPENSCAP_VERSION}" '.reports.openSCAP.version = $OPENSCAP_VERSION' scan-metadata.json` > scan-metadata.json
-echo `jq --arg ANCHORE_VERSION "${ANCHORE_VERSION}" '.reports.anchore.version = $ANCHORE_VERSION' scan-metadata.json` > scan-metadata.json
+IMG_VERSION="${IMG_VERSION}" CI_COMMIT_SHA="${CI_COMMIT_SHA}" IMAGE_APPROVAL_STATUS="${IMAGE_APPROVAL_STATUS}" IMAGE_TAR_SHA="${IMAGE_TAR_SHA}" IMAGE_PODMAN_SHA="${IMAGE_PODMAN_SHA}" GPG_PUB_KEY="${GPG_PUB_KEY}" GPG_VERSION_INFO="${GPG_VERSION_INFO}" CI_COMMIT_BRANCH="${CI_COMMIT_BRANCH}" TWISTLOCK_VERSION="${TWISTLOCK_VERSION}" OPENSCAP_VERSION="${OPENSCAP_VERSION}" ANCHORE_VERSION="${ANCHORE_VERSION}" jq -n -c '{"buildTag": env.IMG_VERSION,"buildNumber": env.CI_COMMIT_SHA,"approval": env.IMAGE_APPROVAL_STATUS,"image":{"digest": env.IMAGE_TAR_SHA,"sha256": env.IMAGE_PODMAN_SHA },"pgp":{"publicKey": env.GPG_PUB_KEY,"version": env.GPG_VERSION_INFO },"git":{"branch": env.CI_COMMIT_BRANCH,"commit": env.CI_COMMIT_SHA },"reports":{"twistlock":{"version": env.TWISTLOCK_VERSION },"openSCAP":{"version": env.OPENSCAP_VERSION },"anchore":{"version": env.ANCHORE_VERSION}}}' > scan-metadata.json
 jq . scan-metadata.json > scan-metadata.tmp && mv scan-metadata.tmp scan-metadata.json
+cat scan-metadata.json
 cat scan-metadata.json
 mv scan-metadata.json "${ARTIFACT_DIR}"
 # Create manifest.json
 
-cat <<EOF > documentation.json
-{
-    "timestamp": "$(date +%FT%T)",
-    "git": {
-        "hash": "",
-        "branch": ""
-    },
-    "tools": {
-            "anchore": {
-            "version": ""
-        },
-            "twistlock": {
-            "version": ""
-        },
-            "openSCAP": {
-            "version": ""
-        }
-    }
-}
-EOF
-echo `jq --arg CI_COMMIT_SHA "${CI_COMMIT_SHA}" '.git.hash = $CI_COMMIT_SHA' documentation.json` > documentation.json
-echo `jq --arg CI_COMMIT_BRANCH "${CI_COMMIT_BRANCH}" '.git.branch = $CI_COMMIT_BRANCH' documentation.json` > documentation.json
-echo `jq --arg ANCHORE_VERSION "${ANCHORE_VERSION}" '.tools.anchore.version = $ANCHORE_VERSION' documentation.json` > documentation.json
-echo `jq --arg TWISTLOCK_VERSION "${TWISTLOCK_VERSION}" '.tools.twistlock.version = $TWISTLOCK_VERSION' documentation.json` > documentation.json
-echo `jq --arg OPENSCAP_VERSION "${OPENSCAP_VERSION}" '.tools.openSCAP.version = $OPENSCAP_VERSION' documentation.json` > documentation.json
+CI_COMMIT_SHA="${CI_COMMIT_SHA}" CI_COMMIT_BRANCH="${CI_COMMIT_BRANCH}" TWISTLOCK_VERSION="${TWISTLOCK_VERSION}" OPENSCAP_VERSION="${OPENSCAP_VERSION}" ANCHORE_VERSION="${ANCHORE_VERSION}" jq -n -c '{"timestamp":"$(date +%FT%T)","git":{"hash": env.CI_COMMIT_SHA,"branch": env.CI_COMMIT_BRANCH},"tools":{"anchore":{"version": env.ANCHORE_VERSION},"twistlock":{"version": env.TWISTLOCK_VERSION},"openSCAP":{"version": env.OPENSCAP_VERSION}}}' > documentation.json
 jq . documentation.json > documentation.tmp && mv documentation.tmp documentation.json
 cat documentation.json
 mv documentation.json "${ARTIFACT_DIR}/reports"
