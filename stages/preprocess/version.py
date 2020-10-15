@@ -102,10 +102,9 @@ def main():
     #create regex to check if path traversal is in version
     #TEST
     version = "/" + version
-    slash_re = re.compile("\/+")
-    if len(slash_re.findall(version)) > 0 or version is "":
-        logging.error("The format for IMG_VERSION is invalid. Please make sure that the \
-            value for your version field has a valid format in your download.yaml file")
+    slash_re = re.compile("[a-zA-Z0-9_\][a-zA-Z0-9_.\-]*")
+    if slash_re.fullmatch(version) == None or version == "":
+        logging.error("The format for IMG_VERSION is invalid. Please make sure that the value for your version field has a valid format in your download.yaml file")
         return 1
     if version is None:
         logging.error("Could not parse version out of repo. Please include a version field in your download.yaml file.")
