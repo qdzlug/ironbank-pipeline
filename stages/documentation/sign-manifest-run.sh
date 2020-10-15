@@ -9,8 +9,8 @@ IMAGE_TAR_SHA=$(sha256sum "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" | grep -
 IMAGE_PODMAN_SHA=$(podman inspect --format '{{.Digest}}' "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}")
 # Create manifest.json
 
-IMAGE_PODMAN_SHA="${IMAGE_PODMAN_SHA}" IMAGE_TAR_SHA="${IMAGE_TAR_SHA}" Path="${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}" GPG_VERSION="${GPG_VERSION}" jq -n -c '{"critical":{"type":"atomic container signature","image":{"podman-manifest-digest": env.IMAGE_PODMAN_SHA,"image-tar-sha256-checksum": env.IMAGE_TAR_SHA},"identity":{"podman-reference": env.Path }},"optional":{"creator": env.GPG_VERSION}}' > manifest.json
-jq . manifest.json > manifest.tmp && mv manifest.tmp manifest.json
+IMAGE_PODMAN_SHA="${IMAGE_PODMAN_SHA}" IMAGE_TAR_SHA="${IMAGE_TAR_SHA}" Path="${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}" GPG_VERSION="${GPG_VERSION}" jq -n -c '{"critical":{"type":"atomic container signature","image":{"podman-manifest-digest": env.IMAGE_PODMAN_SHA,"image-tar-sha256-checksum": env.IMAGE_TAR_SHA},"identity":{"podman-reference": env.Path }},"optional":{"creator": env.GPG_VERSION}}' >manifest.json
+jq . manifest.json >manifest.tmp && mv manifest.tmp manifest.json
 cat manifest.json
 # Sign manifest.json
 gpg --import --batch --passphrase "${IB_CONTAINER_SIG_KEY_PASSPHRASE}" key

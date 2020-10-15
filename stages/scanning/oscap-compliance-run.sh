@@ -26,5 +26,5 @@ echo "securityGuide: ${securityGuide}"
 oscap-podman "${DOCKER_IMAGE_PATH}" xccdf eval --verbose ERROR --fetch-remote-resources --profile "${profile}" --report report.html "${securityGuide}" || true
 ls report.html
 rm -rf "scap-security-guide.zip scap-security-guide-${OSCAP_VERSION}"
-echo "${OSCAP_VERSION}" >> "${OSCAP_SCANS}/oscap-version.txt"
+echo "${OSCAP_VERSION}" >>"${OSCAP_SCANS}/oscap-version.txt"
 cp report.html "${OSCAP_SCANS}/report.html"
