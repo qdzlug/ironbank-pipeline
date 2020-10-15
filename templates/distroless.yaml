@@ -23,6 +23,5 @@ include:
 
   - local: stages/vat/base.yaml
 
-
 variables:
-    DISTROLESS: "true"
+  DISTROLESS: "true"
