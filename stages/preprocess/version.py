@@ -99,10 +99,9 @@ def main():
                         help = "Output directory to write to")
     args = parser.parse_args()
     version = parse()
-    #check and replace path traversal in version
-    traversal_re = re.compile("\.\.\/*")
-    version = re.sub(traversal_re, "", version)
-    if version is None or version is "":
+    #create regex to check if path traversal is in version
+    slash_re = re.compile("\/+")
+    if version is None or version is "" or len(slash_re.findall(version)) > 0:
         logging.error("Could not parse version out of repo. Please include a version field in your download.yaml file.")
         logging.error("Reference this MR on how to update the version field appropriately: https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/-/merge_requests/30")
         return 1
