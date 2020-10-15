@@ -52,6 +52,7 @@ pylama:
     - pip install pylama
     - pylama -i E501
 ## ignore line errors as blacks has been ran against code.
+
 prettier:
   stage: format
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/all-in-one-fedora:1.0"
