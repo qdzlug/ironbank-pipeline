@@ -50,7 +50,7 @@ pylama:
     - black
   script:
     - pip install pylama
-    - pylama -i E501
+    - pylama
 ## ignore line errors as blacks has been ran against code.
 
 prettier:
