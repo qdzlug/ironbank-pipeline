@@ -101,7 +101,9 @@ def main():
     version = parse()
     #create regex to check if path traversal is in version
     wl_re = re.compile("[a-zA-Z0-9_\][a-zA-Z0-9_.\-]*")
-    if wl_re.fullmatch(version) == None or version == "":
+    print(len(version))
+    print(version)
+    if wl_re.fullmatch(version) == None or version == "" or len(version) > 128:
         logging.error("The format for IMG_VERSION is invalid. Please make sure that the value for your version field has a valid format in your download.yaml file")
         return 1
     if version is None:
