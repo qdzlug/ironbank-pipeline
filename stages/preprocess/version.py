@@ -103,7 +103,11 @@ def main():
     #TEST
     version = "/" + version
     slash_re = re.compile("\/+")
-    if version is None or version is "" or len(slash_re.findall(version)) > 0:
+    if len(slash_re.findall(version)) > 0 or version is "":
+        logging.error("The format for IMG_VERSION is invalid. Please make sure that the \
+            value for your version field has a valid format in your download.yaml file")
+        return 1
+    if version is None:
         logging.error("Could not parse version out of repo. Please include a version field in your download.yaml file.")
         logging.error("Reference this MR on how to update the version field appropriately: https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/-/merge_requests/30")
         return 1
