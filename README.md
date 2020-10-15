@@ -8,33 +8,38 @@
 
 `/stages` contains the stages which are involved in pipeline execution. Each stage of the pipeline has its own folder within this directory containing a `base.yaml` file. The `base.yaml` file dictates the actions and requirements needed for the stage to execute. Additional `.yaml` files can be present within the stage directories in order to separate the jobs which occur within that particular stage.
 
+
 ## Contributor project requirements for ironbank-pipeline use:
 
 - #### Adding a project pipeline in settings
 
-The Iron Bank pipelines team will control the project configuration. As a result, projects *must not* contain a `.gitlab-ci.yml` The Iron Bank Pipelines team has set up project templates which are used in the creation of the repo. The template provides a CI configuration path which enables the pipeline for the project. In the event this was not created for the project, the following steps outline how it must be changed:
+The Iron Bank pipelines team will control the project configuration. As a result, projects *must not* contain a `.gitlab-ci.yml` The Iron Bank Pipelines team has set up project templates which are used in the creation of the repo. The template provides a CI configuration path which enables the pipeline for the project. 
 
-Go to the settings for a specific project
+The following steps outline how the custom CI configuration path is set:
 
 `Settings` > `CI / CD` > `General pipelines` > `Custom CI configuration path`
 
-Enter the following: `templates/default.yaml@ironbank-tools/ironbank-pipeline`
+The following is provided: `templates/default.yaml@ironbank-tools/ironbank-pipeline`
 
 This will point the project towards the default pipeline in ironbank-pipeline.
 
 The `default` template will allow images based on UBI to run through the required pipeline steps (whether the image directly uses an UBI base image for its base image, or by using an approved Iron Bank container with a base UBI image for its base image).
 
-Containers which utilize the distroless base image should instead use the `distroless` template instead of the `default` pipeline template. Please reach out to the Iron Bank Pipelines team or the Container Hardening team for assistance in getting this changed. The `Custom CI configuration path` for distroless-based container projects will be the following:
+Containers which utilize the distroless base image should instead use the `distroless` template instead of the `default` pipeline template. Please reach out to the Iron Bank Pipelines team or the Container Hardening team for assistance in getting this changed. 
+
+The `Custom CI configuration path` for distroless-based container projects will be the following:
 
 `templates/distroless.yaml@ironbank-tools/ironbank-pipeline`
 
-This will omit the OpenSCAP scan jobs from the pipeline. OSCAP scanning is not compatible with containers built on distroless base images.
+The distroless template omits the OpenSCAP scan jobs from the pipeline. OSCAP scanning is not compatible with containers built on distroless base images.
 
-## Pipeline notes
+
+## Pipeline artifacts
 
 To access artifacts for each job, select the job in the UI on the `CI/CD -> Pipelines` page by clicking on the button for that job. In the top right hand corner of the screen, there is a box which says "Job artifacts" and contains buttons which say "Keep", "Download", and "Browse". Select the button which corresponds to the option you want. 
 
 Job artifacts are removed after one week in most cases. A new pipeline run will need to occur in order to produce job artifacts after this period of time.
+
 
 ## Pipeline stages
 
@@ -59,6 +64,7 @@ The `preflight` stage performs two functions, which are described below:
       - config (directory, not always required, which stores any configuration files needed in the container)
       - accreditation (directory, not always required, which provides information about approved images)
 
+
   - testing/checking the build variables exist using the `build variables` job.
 
 #### lint
@@ -72,6 +78,7 @@ The `wl compare lint` job ensures that the pipeline run will fail on any branch 
 Job artifacts: 
 - project variables which are used in later pipeline stages.
 
+
 #### import artifacts
 
 The `import artifacts` stage will import any external resources (resources from the internet) provided in the `download.yaml` file for use during the container build. The `import artifacts` stage will download the external resources and validate that the checksums calculated upon download match the checksums provided in the `download.yaml` file.
@@ -82,6 +89,7 @@ Job artifacts:
 - (if provided) - external resources provided in `download.yaml/download.json` such as binaries, tarballs, RPMs, etc.
 - (if provided) - images - a tar format of images pulled from public registries, as provided in `download.yaml/download.json`.
 
+
 #### scan artifacts
 
 The `scan artifacts` stage performs an anti-virus/malware scan on the resources obtained in the `import artifacts` stage (if the project includes a `download.yaml` file). This will help guard against any malicious software/code being used in the container build. This stage utilizes ClamAV scans to perform the anti-virus/malware scanning. The scans database is updated each pipeline run, using the `freshclam` command, so that the list of vulnerabilities in the scanning database is always up to date.
@@ -89,7 +97,8 @@ The `scan artifacts` stage performs an anti-virus/malware scan on the resources 
 The `scan artifacts` stage will automatically fail if there are infected files found in the resources downloaded in the `import artifacts stage`.
 
 Job artifacts:
-- `import-artifacts-clamav-report.txt` (if external resources/images are used in the build process) - contains the results of the ClamAV scan.
+- (if external resources/images are used in the build process) `import-artifacts-clamav-report.txt` - contains the results of the ClamAV scan.
+
 
 #### build
 
@@ -99,6 +108,7 @@ The `build` stage will push the built image to the Registry1 staging registry.
 
 Job artifacts:
 - tar file of the image which was built. Contributors can download this artifact and use it on their machine with `docker load -i <image>.tar`.
+
 
 #### scanning
 
@@ -157,6 +167,7 @@ Job artifacts:
 - `summary.csv` - compilation of all scan results in CSV format.
 - `tl.csv` - Twistlock results in CSV format.
 
+
 #### check cves
 
 The `check cves` stage is configured to prevent the publishing of images which do not have whitelisted vulnerabilities. This stage checks the `dccscr-whitelists` repository to retrieve the whitelist for the image and will verify that the scan results generated from the `csv-output` stage do not contain any findings which have not been justified/whitelisted. This prevents the image from being published to the Iron Bank website or the Harbor registry with security vulnerabilities we are not aware of or have been justified and approved.
@@ -193,6 +204,7 @@ This job provides a `repo_map.json` file which contains comprehensive informatio
 Job artifacts:
 - `scan_metadata.json` - provides metadata from the scans.
 
+
 #### publish
 
 This stage will not run on feature branches.
@@ -201,6 +213,7 @@ The `publish` stage consists of multiple jobs:
 
 - `harbor` - this stage will push built images to `registry1.dsop.io/ironbank` on master branch runs. This job does not run on development branches because the push to the Registry1 staging project occurs earlier in the pipeline.
 - `upload to s3` - this stage will upload artifacts which are displayed/utilized by the Iron Bank website on master branch runs. The artifacts uploaded include scan reports, project README, project LICENSE, and others. This job will occur on development branch runs as well - it will push to a different S3 bucket than the master branch runsm 
+
 
 #### vat
 
