@@ -1,5 +1,6 @@
 #!/bin/bash
 set -Eeo pipefail
+dnf install jq -y
 podman load -i "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}"
 echo "${IB_CONTAINER_GPG_KEY}" | base64 -d > key
 mkdir -p tmp_gpg "${ARTIFACT_DIR}/reports"
@@ -23,34 +24,47 @@ GPG_PUB_KEY=$(awk '{printf "%s\\n", $0}' "${IB_CONTAINER_GPG_PUBKEY}")
 
 cat <<EOF > scan-metadata.json
 {
-    "buildTag": "${IMG_VERSION}",
-    "buildNumber": "${CI_COMMIT_SHA}",
-    "approval": "${IMAGE_APPROVAL_STATUS}",
+    "buildTag": "",
+    "buildNumber": "",
+    "approval": "",
     "image": {
-        "digest": "${IMAGE_TAR_SHA}",
-        "sha256": "${IMAGE_PODMAN_SHA}"
+        "digest": "",
+        "sha256": ""
     },
     "pgp": {
-        "publicKey": "${GPG_PUB_KEY}",
-        "version":"${GPG_VERSION_INFO}"
+        "publicKey": "",
+        "version":""
     },
     "git": {
-        "branch": "${CI_COMMIT_BRANCH}",
-        "commit": "${CI_COMMIT_SHA}"
+        "branch": "",
+        "commit": ""
     },
     "reports": {
         "twistlock": {
-            "version": "${TWISTLOCK_VERSION}"
+            "version": ""
         },
         "openSCAP": {
-            "version": "${OPENSCAP_VERSION}"
+            "version": ""
         },
         "anchore": {
-            "version": "${ANCHORE_VERSION}"
+            "version": ""
         }
     }
 }
 EOF
+echo `jq --arg IMG_VERSION "${IMG_VERSION}" '.buildTag = $IMG_VERSION' scan-metadata.json` > scan-metadata.json
+echo `jq --arg CI_COMMIT_SHA "${CI_COMMIT_SHA}" '.buildNumber = $CI_COMMIT_SHA' scan-metadata.json` > scan-metadata.json
+echo `jq --arg IMAGE_APPROVAL_STATUS "${IMAGE_APPROVAL_STATUS}" '.approval = $IMAGE_APPROVAL_STATUS' scan-metadata.json` > scan-metadata.json
+echo `jq --arg IMAGE_TAR_SHA "${IMAGE_TAR_SHA}" '.image.digest = $IMAGE_TAR_SHA' scan-metadata.json` > scan-metadata.json
+echo `jq --arg IMAGE_PODMAN_SHA "${IMAGE_PODMAN_SHA}" '.image.sha256 = $IMAGE_PODMAN_SHA' scan-metadata.json` > scan-metadata.json
+echo `jq --arg GPG_PUB_KEY "${GPG_PUB_KEY}" '.pgp.publicKey = $GPG_PUB_KEY' scan-metadata.json` > scan-metadata.json
+echo `jq --arg GPG_VERSION_INFO "${GPG_VERSION_INFO}" '.pgp.version = $GPG_VERSION_INFO' scan-metadata.json` > scan-metadata.json
+echo `jq --arg CI_COMMIT_BRANCH "${CI_COMMIT_BRANCH}" '.git.branch = $CI_COMMIT_BRANCH' scan-metadata.json` > scan-metadata.json
+echo `jq --arg CI_COMMIT_SHA "${CI_COMMIT_SHA}" '.git.commit = $CI_COMMIT_SHA' scan-metadata.json` > scan-metadata.json
+echo `jq --arg TWISTLOCK_VERSION "${TWISTLOCK_VERSION}" '.reports.twistlock.version = $TWISTLOCK_VERSION' scan-metadata.json` > scan-metadata.json
+echo `jq --arg OPENSCAP_VERSION "${OPENSCAP_VERSION}" '.reports.openSCAP.version = $OPENSCAP_VERSION' scan-metadata.json` > scan-metadata.json
+echo `jq --arg ANCHORE_VERSION "${ANCHORE_VERSION}" '.reports.anchore.version = $ANCHORE_VERSION' scan-metadata.json` > scan-metadata.json
+jq . scan-metadata.json > scan-metadata.tmp && mv scan-metadata.tmp scan-metadata.json
 cat scan-metadata.json
 mv scan-metadata.json "${ARTIFACT_DIR}"
 # Create manifest.json

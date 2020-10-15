@@ -1,5 +1,6 @@
 #!/bin/bash
 set -Eeuo pipefail
+dnf install jq -y
 podman load -i "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}"
 echo "${IB_CONTAINER_GPG_KEY}" | base64 -d > key
 mkdir -p "${ARTIFACT_DIR}"
@@ -13,18 +14,23 @@ cat <<EOF > manifest.json
     "critical": {
             "type": "atomic container signature",
             "image": {
-            "podman-manifest-digest": "${IMAGE_PODMAN_SHA}",
-            "image-tar-sha256-checksum": "${IMAGE_TAR_SHA}"
+            "podman-manifest-digest": "",
+            "image-tar-sha256-checksum": ""
         },
     "identity": {
-        "podman-reference": "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}"
+        "podman-reference": ""
         }
 },
 "optional": {
-    "creator": "${GPG_VERSION}"
+    "creator": ""
 }
 }
 EOF
+echo `jq --arg IMAGE_PODMAN_SHA "${IMAGE_PODMAN_SHA}" '.critical.image["podman-manifest-digest"] = $IMAGE_PODMAN_SHA' manifest.json` > manifest.json
+echo `jq --arg IMAGE_TAR_SHA "${IMAGE_TAR_SHA}" '.critical.image["image-tar-sha256-checksum"] = $IMAGE_TAR_SHA' manifest.json` > manifest.json
+echo `jq --arg STAGING_REGISTRY_URL "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}" '.critical.identity["podman-reference"] = $STAGING_REGISTRY_URL' manifest.json` > manifest.json
+echo `jq --arg GPG_VERSION "${GPG_VERSION}" '.optional.creator = $GPG_VERSION' manifest.json` > manifest.json
+jq . manifest.json > manifest.tmp && mv manifest.tmp manifest.json
 cat manifest.json
 # Sign manifest.json
 gpg --import --batch --passphrase "${IB_CONTAINER_SIG_KEY_PASSPHRASE}" key
