@@ -10,4 +10,4 @@ check cves:
     - anchore scan
 
   script:
-      - '"${PIPELINE_REPO_DIR}/stages/check-cves/check-cves.sh"'
+    - '"${PIPELINE_REPO_DIR}/stages/check-cves/check-cves.sh"'

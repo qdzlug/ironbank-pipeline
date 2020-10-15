@@ -19,8 +19,8 @@ echo "${oscap_container}"
 curl -L "https://github.com/ComplianceAsCode/content/releases/download/v${OSCAP_VERSION}/scap-security-guide-${OSCAP_VERSION}.zip" -o scap-security-guide.zip
 unzip -qq -o scap-security-guide.zip
 
-profile=$(echo "${oscap_container}" | grep -o '"profile": "[^"]*'| grep -o '[^"]*$')
-securityGuide=$(echo "${oscap_container}" | grep -o '"securityGuide": "[^"]*'| grep -o '[^"]*$')
+profile=$(echo "${oscap_container}" | grep -o '"profile": "[^"]*' | grep -o '[^"]*$')
+securityGuide=$(echo "${oscap_container}" | grep -o '"securityGuide": "[^"]*' | grep -o '[^"]*$')
 echo "profile: ${profile}"
 echo "securityGuide: ${securityGuide}"
 oscap-podman "${DOCKER_IMAGE_PATH}" xccdf eval --verbose ERROR --fetch-remote-resources --profile "${profile}" --report report.html "${securityGuide}" || true

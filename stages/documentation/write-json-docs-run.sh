@@ -2,19 +2,19 @@
 set -Eeo pipefail
 dnf install jq -y
 podman load -i "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}"
-echo "${IB_CONTAINER_GPG_KEY}" | base64 -d > key
+echo "${IB_CONTAINER_GPG_KEY}" | base64 -d >key
 mkdir -p tmp_gpg "${ARTIFACT_DIR}/reports"
 # Gather info for scan-metadata.json
 GPG_VERSION_INFO=$(gpg --version | grep "gpg")
 # TODO add anchore endpoint
 #- ANCHORE_VERSION=$(curl -k ${anchore_server_address}/version)
 if [[ "${DISTROLESS:-}" ]]; then
-    ANCHORE_VERSION=$(cat "${ANCHORE_VERSION_FILE}" | sed 's/"//g')
-    TWISTLOCK_VERSION=$(cat "${TWISTLOCK_VERSION_FILE}" | sed 's/"//g')
+  ANCHORE_VERSION=$(cat "${ANCHORE_VERSION_FILE}" | sed 's/"//g')
+  TWISTLOCK_VERSION=$(cat "${TWISTLOCK_VERSION_FILE}" | sed 's/"//g')
 else
-    OPENSCAP_VERSION=$(cat "${OPENSCAP_VERSION_FILE}")
-    ANCHORE_VERSION=$(cat "${ANCHORE_VERSION_FILE}" | sed 's/"//g')
-    TWISTLOCK_VERSION=$(cat "${TWISTLOCK_VERSION_FILE}" | sed 's/"//g')
+  OPENSCAP_VERSION=$(cat "${OPENSCAP_VERSION_FILE}")
+  ANCHORE_VERSION=$(cat "${ANCHORE_VERSION_FILE}" | sed 's/"//g')
+  TWISTLOCK_VERSION=$(cat "${TWISTLOCK_VERSION_FILE}" | sed 's/"//g')
 fi
 #- OPENSCAP_VERSION=$(cat ${OPENSCAP_VERSION})
 IMAGE_TAR_SHA=$(sha256sum "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" | grep -E '^[a-zA-Z0-9]+' -o)

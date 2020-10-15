@@ -4,23 +4,22 @@ This template is **ONLY** used for enhancement requests. Bug reporting or new fe
 
 <!--- What current feature should be improved? -->
 
-
 ## Purpose
 
 <!--- If it is not obvious, state what purpose this enhancement would serve -->
 
-
 ## Plan
 
 <!--- What needs to be done in order to implement the enhancement? How do we test if implementation is successful? -->
-* 
-* 
 
+-
+-
 
 ## Acceptance Criteria
 
 <!--- What is the acceptance criteria for this new feature? -->
-* 
-* 
+
+-
+-
 
 /label ~Enhancement
