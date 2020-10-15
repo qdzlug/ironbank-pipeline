@@ -113,7 +113,7 @@ def main():
     version = re.sub(traversal_re, "", version)
     logging.debug("Re Test 3: " + version)
     #TODO: Add or case if the string is blank due to IMG_VERSION being ../../ before sub
-    if version is None:
+    if version is None or version is "":
         logging.error("Could not parse version out of repo. Please include a version field in your download.yaml file.")
         logging.error("Reference this MR on how to update the version field appropriately: https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/-/merge_requests/30")
         return 1
