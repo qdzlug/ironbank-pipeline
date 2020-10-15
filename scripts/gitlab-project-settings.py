@@ -18,7 +18,9 @@ gl = gitlab.Gitlab("https://repo1.dsop.io/", private_token=os.environ["PRIVATE_T
 
 logging.info(f"Fetching group: {project_name}")
 group = gl.groups.get(project_name)
-for group_project in group.projects.list(all=True, per_page=1000, include_subgroups=True):
+for group_project in group.projects.list(
+    all=True, per_page=1000, include_subgroups=True
+):
     logging.info(f"Updating project: {group_project.name_with_namespace}")
     project = gl.projects.get(group_project.id)
 

@@ -15,20 +15,20 @@ export IM_NAME
 # source environment.sh
 # cat environment.sh
 
-  pip3 install --upgrade pip setuptools wheel minepy python-gitlab
-  pip3 install -r "${PIPELINE_REPO_DIR}/stages/vat/requirements.txt"
+pip3 install --upgrade pip setuptools wheel minepy python-gitlab
+pip3 install -r "${PIPELINE_REPO_DIR}/stages/vat/requirements.txt"
 
-  python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
-    --db "${vat_db_database_name}" \
-    --user "${vat_db_connection_user}" \
-    --host "${vat_db_host}" \
-    --csv_dir "${ARTIFACT_DIR}" \
-    --jenkins "${CI_PIPELINE_ID}" \
-    --container "${IM_NAME}" \
-    --version "${IMG_VERSION}" \
-    --parent "${BASE_IMAGE:-}" \
-    --password "${vat_db_connection_pass}" \
-    --parent_version "${BASE_TAG:-}" \
-    --scan_date "$(date +%FT%T)" \
-    --link "${OPENSCAP}/" \
-    --debug
+python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
+  --db "${vat_db_database_name}" \
+  --user "${vat_db_connection_user}" \
+  --host "${vat_db_host}" \
+  --csv_dir "${ARTIFACT_DIR}" \
+  --jenkins "${CI_PIPELINE_ID}" \
+  --container "${IM_NAME}" \
+  --version "${IMG_VERSION}" \
+  --parent "${BASE_IMAGE:-}" \
+  --password "${vat_db_connection_pass}" \
+  --parent_version "${BASE_TAG:-}" \
+  --scan_date "$(date +%FT%T)" \
+  --link "${OPENSCAP}/" \
+  --debug
