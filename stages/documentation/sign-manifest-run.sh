@@ -8,9 +8,11 @@ GPG_VERSION=$(gpg --version | grep '(?<=gpg .GnuPG.)([^0-9]+)([0-9]+[.][0-9]+[.]
 IMAGE_TAR_SHA=$(sha256sum "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" | grep -E '^[a-zA-Z0-9]+' -o)
 IMAGE_PODMAN_SHA=$(podman inspect --format '{{.Digest}}' "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}")
 # Create manifest.json
-
-IMAGE_PODMAN_SHA="${IMAGE_PODMAN_SHA}" IMAGE_TAR_SHA="${IMAGE_TAR_SHA}" PODMAN_REFERENCE="${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}" GPG_VERSION="${GPG_VERSION}" \
-  jq -n -c '
+export IMAGE_PODMAN_SHA
+export MAGE_TAR_SHA
+export PODMAN_REFERENCE="${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}"
+export GPG_VERSION
+  jq -n '
 {
   "critical": {
     "type": "atomic container signature",
@@ -26,7 +28,6 @@ IMAGE_PODMAN_SHA="${IMAGE_PODMAN_SHA}" IMAGE_TAR_SHA="${IMAGE_TAR_SHA}" PODMAN_R
     "creator": env.GPG_VERSION
   }
 }' >manifest.json
-jq . manifest.json >manifest.tmp && mv manifest.tmp manifest.json
 cat manifest.json
 
 # Sign manifest.json
