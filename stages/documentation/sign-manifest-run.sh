@@ -24,8 +24,8 @@ jq -n -c '
   "optional": {
     "creator": env.GPG_VERSION
   }
-}' > manifest.json
-jq . manifest.json > manifest.tmp && mv manifest.tmp manifest.json
+}' >manifest.json
+jq . manifest.json >manifest.tmp && mv manifest.tmp manifest.json
 cat manifest.json
 
 # Sign manifest.json

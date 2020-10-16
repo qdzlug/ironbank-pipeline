@@ -50,8 +50,8 @@ jq -n -c '
       "version": env.ANCHORE_VERSION
     }
   }
-}' > scan-metadata.json
-jq . scan-metadata.json > scan-metadata.tmp && mv scan-metadata.tmp scan-metadata.json
+}' >scan-metadata.json
+jq . scan-metadata.json >scan-metadata.tmp && mv scan-metadata.tmp scan-metadata.json
 cat scan-metadata.json
 mv scan-metadata.json "${ARTIFACT_DIR}"
 # Create manifest.json
@@ -74,7 +74,7 @@ jq -n -c '
       "version": env.OPENSCAP_VERSION
     }
   }
-}' > documentation.json
-jq . documentation.json > documentation.tmp && mv documentation.tmp documentation.json
+}' >documentation.json
+jq . documentation.json >documentation.tmp && mv documentation.tmp documentation.json
 cat documentation.json
 mv documentation.json "${ARTIFACT_DIR}/reports"
