@@ -10,7 +10,7 @@ IMAGE_PODMAN_SHA=$(podman inspect --format '{{.Digest}}' "${STAGING_REGISTRY_URL
 # Create manifest.json
 
 IMAGE_PODMAN_SHA="${IMAGE_PODMAN_SHA}" IMAGE_TAR_SHA="${IMAGE_TAR_SHA}" PODMAN_REFERENCE="${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}" GPG_VERSION="${GPG_VERSION}" \
-jq -n -c '
+  jq -n -c '
 {
   "critical": {
     "type": "atomic container signature",
