@@ -12,7 +12,7 @@ export IMAGE_PODMAN_SHA
 export MAGE_TAR_SHA
 export PODMAN_REFERENCE="${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}"
 export GPG_VERSION
-  jq -n '
+jq -n '
 {
   "critical": {
     "type": "atomic container signature",

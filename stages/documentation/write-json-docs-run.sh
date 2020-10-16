@@ -34,7 +34,7 @@ export TWISTLOCK_VERSION
 export OPENSCAP_VERSION
 export ANCHORE_VERSION
 export CI_COMMIT_BRANCH
-  jq -n '
+jq -n '
 {
   "buildTag": env.IMG_VERSION,
   "buildNumber": env.CI_COMMIT_SHA,
@@ -67,7 +67,7 @@ cat scan-metadata.json
 mv scan-metadata.json "${ARTIFACT_DIR}"
 # Create manifest.json
 
-  jq -n '
+jq -n '
 {
   "timestamp": "$(date +%FT%T)",
   "git": {
