@@ -9,6 +9,7 @@ IMAGE_TAR_SHA=$(sha256sum "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" | grep -
 IMAGE_PODMAN_SHA=$(podman inspect --format '{{.Digest}}' "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}")
 # Create manifest.json
 
+IMAGE_PODMAN_SHA="${IMAGE_PODMAN_SHA}" IMAGE_TAR_SHA="${IMAGE_TAR_SHA}" PODMAN_REFERENCE="${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}" GPG_VERSION="${GPG_VERSION}" \
 jq -n -c '
 {
   "critical": {
