@@ -39,7 +39,7 @@ black:
   # TODO: remove allow_failure
   script:
     - pip install git+git://github.com/psf/black
-    - black --check --diff --color -t py36 ./
+    - black --check --diff --color -t py36 .
 
 pylama:
   stage: lint
@@ -59,7 +59,7 @@ prettier:
   script:
     - curl -sL https://rpm.nodesource.com/setup_12.x | bash -
     - dnf install -y nodejs
-    - npx prettier -c ./
+    - npx prettier -c .
 
 shfmt:
   stage: format
@@ -68,4 +68,4 @@ shfmt:
     - dnf install wget -y
     - wget https://github.com/mvdan/sh/releases/download/v3.1.2/shfmt_v3.1.2_linux_amd64
     - chmod a+x shfmt_v3.1.2_linux_amd64
-    - ./shfmt_v3.1.2_linux_amd64 -d ./
+    - ./shfmt_v3.1.2_linux_amd64 -d .
