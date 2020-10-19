@@ -1,7 +1,5 @@
 vat:
   stage: vat
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml"
-
   # Load in the IMG_VERSION variable from load scripts env
   dependencies:
     - load scripts

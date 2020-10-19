@@ -1,6 +1,5 @@
 sign manifest:
   extends: .documentation
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/all-in-one-fedora:1.0"
   variables:
     #TODO: Put these in globals
     SIG_FILE: signature

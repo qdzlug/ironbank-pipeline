@@ -1,3 +1,4 @@
+image: ${GITLAB_INTERNAL_REGISTRY}/ib-pipeline-image:0.1
 stages:
   ### preprocess stage
   # clone down the templates directory for use in later stages
