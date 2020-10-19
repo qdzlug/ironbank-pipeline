@@ -389,19 +389,6 @@ def get_twistlock_full(twistlock_file):
                     "vecStr": vecStr,
                 }
                 cves.append(ret)
-        else:
-            ret = {
-                "id": "",
-                "cvss": "",
-                "desc": "",
-                "link": "",
-                "packageName": "",
-                "packageVersion": "",
-                "severity": "",
-                "status": "",
-                "vecStr": "",
-            }
-            cves.append(ret)
     return cves
 
 
