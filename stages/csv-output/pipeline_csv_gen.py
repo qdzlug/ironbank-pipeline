@@ -401,7 +401,7 @@ def get_twistlock_full(twistlock_file):
                 "status": "",
                 "vecStr": "",
             }
-            cves.append()
+            cves.append(ret)
     return cves
 
 
