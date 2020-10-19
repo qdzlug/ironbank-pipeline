@@ -219,27 +219,25 @@ def justificationsTwistlock(wb, justifications):
 
             cell3 = sheet.cell(row=r, column=5)
             cell4 = sheet.cell(row=r, column=6)
-            try:
-                id = cell.value + "-" + cell3.value + "-" + cell4.value
 
-                if id in justifications.keys():
-                    cell_justification.value = justifications[id]
+            id = cell.value + "-" + cell3.value + "-" + cell4.value
 
-                # Apply appropriate highlighting to justification cell
-                if cell_justification.value == None:
-                    cell_justification.fill = PatternFill(
-                        start_color="00ffff00", end_color="00ffff00", fill_type="solid"
-                    )
-                elif cell_justification.value == "Inherited from base image.":
-                    cell_justification.fill = PatternFill(
-                        start_color="0000b050", end_color="0000b050", fill_type="solid"
-                    )
-                else:
-                    cell_justification.fill = PatternFill(
-                        start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
-                    )
-            except:
-                print("Unable to process Twistlock justifications.")
+            if id in justifications.keys():
+                cell_justification.value = justifications[id]
+
+            # Apply appropriate highlighting to justification cell
+            if cell_justification.value == None:
+                cell_justification.fill = PatternFill(
+                    start_color="00ffff00", end_color="00ffff00", fill_type="solid"
+                )
+            elif cell_justification.value == "Inherited from base image.":
+                cell_justification.fill = PatternFill(
+                    start_color="0000b050", end_color="0000b050", fill_type="solid"
+                )
+            else:
+                cell_justification.fill = PatternFill(
+                    start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
+                )
 
 ##### Process Anchore justifications
 def justificationsAnchore(wb, justifications):
@@ -427,7 +425,10 @@ def main(argv, inheritableTriggerIds):
 
     # Apply Twistlock justifications
     print("Processing Twistlock Vulnerability Results... ", end="", flush=True)
-    justificationsTwistlock(wb, jTwistlock)
+    try:
+        justificationsTwistlock(wb, jTwistlock)
+    except:
+        print("Unable to provide TL justifications.")
     print("done.")
 
     # Apply Anchore justifications
