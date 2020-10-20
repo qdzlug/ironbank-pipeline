@@ -86,6 +86,8 @@ Job artifacts:
 - (if provided) - external resources provided in `download.yaml/download.json` such as binaries, tarballs, RPMs, etc.
 - (if provided) - images - a tar format of images pulled from public registries, as provided in `download.yaml/download.json`.
 
+For more information on this stage, please refer to the `README.md` file [located here](https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/-/blob/master/stages/import-artifacts/README.md).
+
 #### scan artifacts
 
 The `scan artifacts` stage performs an anti-virus/malware scan on the resources obtained in the `import artifacts` stage (if the project includes a `download.yaml` file). This will help guard against any malicious software/code being used in the container build. This stage utilizes ClamAV scans to perform the anti-virus/malware scanning. The scans database is updated each pipeline run, using the `freshclam` command, so that the list of vulnerabilities in the scanning database is always up to date.
@@ -105,6 +107,8 @@ The `build` stage will push the built image to the Registry1 staging registry.
 Job artifacts:
 
 - tar file of the image which was built. Contributors can download this artifact and use it on their machine with `docker load -i <image>.tar`.
+
+For more information on this stage, please refer to the `README.md` file [located here](https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/-/blob/master/stages/build/README.md).
 
 #### scanning
 
