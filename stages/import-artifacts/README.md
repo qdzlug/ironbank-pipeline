@@ -1,6 +1,7 @@
 # import artifacts stage
 
 This stage will run if there is a `download.yaml` or `download.json` file included in the project repository. The stage will be skipped automatically in the event there are no external resources requiired. The purpose of the `download.yaml/download.json` file is to pull in any external resources for use in the container build. These resources can include, but are not limited to:
+
 - Docker images (such as Docker Hub, Google Container Registry, quay.io)
 - RPM/package files (from open source projects, RHEL RPMs, CentOS, etc. for example)
 - tarballs (from Amazon S3, open source project pages, company project pages, etc.)
