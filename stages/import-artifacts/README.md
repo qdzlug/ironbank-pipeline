@@ -5,7 +5,7 @@ This stage will run if there is a `download.yaml` or `download.json` file includ
 - RPM/package files (from open source projects, RHEL RPMs, CentOS, etc. for example)
 - tarballs (from Amazon S3, open source project pages, company project pages, etc.)
 
-An example of a properly formatted `download.yaml` file with a variety of external resource sources is shown below:
+An example of a properly formatted `download.yaml` file with a variety of external resource types is shown below:
 
 ```
 resources:
@@ -21,6 +21,18 @@ resources:
       value: "6CBE0B6E25C46D894B29D9393E79E23B6EB2824A4BA019D1AF6945DAC25ECC68"
   - url: "docker://docker.io/istio/operator@sha256:7af9cf4c7ff7dc66f469bc1b230772c229d3de7e8f160f826f59b495bbc309db"
     tag: "istio/operator:1.6.12"
-  - url: "https://example.url.com/requires-authentication-credentials"
+  - url: "https://example.url.com/requires-authentication-credentials/example-file.ext"
+    filename: "example-file.ext"
+    validation:
+      type: sha256
+      value: 87ce779576a0bccf41bcee68814a42865ccf24f12705af69635d6e099d6396mb
+    auth:
+      type: "basic"
+      id: "example-credential"
 ```
 
+### Notes
+
+- "docker://" must be appended when attempting to pull an image (ex. - `docker://docker.io/istio/operator@sha256:7af9cf4c7ff7dc66f469bc1b230772c229d3de7e8f160f826f59b495bbc309db` or `"docker://gcr.io/distroless/base-debian10@sha256:f4a1b1083db512748a305a32ede1d517336c8b5bead1c06c6eac2d40dcaab6ad"`). The sha256 of the particular image you are attempting to pull must be included as well.
+- If any of the external resources require authentication, work with a member of the Iron Bank pipelines team in order to get the necessary credentials added to the project's CI/CD variables. Ensure there are no underscores included in the `id` field of the `auth` section in `download.yaml/download.json`.
+- Ensure that the `filename` and/or `tag` of the external resource matches the reference in the project's `Dockerfile` to that resource. Otherwise, the build will not work properly because the external resource or image will not have a name which matches in the `Dockerfile`.
