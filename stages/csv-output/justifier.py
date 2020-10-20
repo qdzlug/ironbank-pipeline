@@ -238,7 +238,6 @@ def justificationsTwistlock(wb, justifications):
                     start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
                 )
 
-
 ##### Process Anchore justifications
 def justificationsAnchore(wb, justifications):
     sheet = wb["Anchore CVE Results"]
@@ -420,22 +419,34 @@ def main(argv, inheritableTriggerIds):
 
     # Apply OpenSCAP compliance justifications
     print("Processing OpenSCAP Compliance Results... ", end="", flush=True)
-    justificationsOpenscap(wb, jOpenscap)
+    try:
+        justificationsOpenscap(wb, jOpenscap)
+    except:
+        print("Unable to provide OpenSCAP Compliance justifications.")
     print("done.")
 
     # Apply Twistlock justifications
     print("Processing Twistlock Vulnerability Results... ", end="", flush=True)
-    justificationsTwistlock(wb, jTwistlock)
+    try:
+        justificationsTwistlock(wb, jTwistlock)
+    except:
+        print("Unable to provide TL justifications.")
     print("done.")
 
     # Apply Anchore justifications
     print("Processing Anchore CVE Results... ", end="", flush=True)
-    justificationsAnchore(wb, jAnchore)
+    try:
+        justificationsAnchore(wb, jAnchore)
+    except:
+        print("Unable to apply Anchore CVE justifications.")
     print("done.")
 
     # Apply Anchore compliance justifications
     print("Processing Anchore Compliance Results... ", end="", flush=True)
-    justificationsAnchoreComp(wb, jAnchore, inheritableTriggerIds)
+    try:
+        justificationsAnchoreComp(wb, jAnchore, inheritableTriggerIds)
+    except:
+        print("Unable to apply Anchore Compliance justifications.")
     print("done.")
 
     print("Formatting... ", end="", flush=True)
