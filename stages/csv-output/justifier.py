@@ -238,6 +238,7 @@ def justificationsTwistlock(wb, justifications):
                     start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
                 )
 
+
 ##### Process Anchore justifications
 def justificationsAnchore(wb, justifications):
     sheet = wb["Anchore CVE Results"]
