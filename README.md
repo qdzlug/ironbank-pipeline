@@ -77,7 +77,7 @@ Job artifacts:
 
 #### import artifacts
 
-The `import artifacts` stage will import any external resources (resources from the internet) provided in the `download.yaml/download.json` file for use during the container build. The `import artifacts` stage will download the external resources and validate that the checksums calculated upon download match the checksums provided in the `download.yaml` file.
+The `import artifacts` stage will import any external resources (resources from the internet) provided in the `download.yaml` or `download.json` file for use during the container build. The `import artifacts` stage will download the external resources and validate that the checksums calculated upon download match the checksums provided in the `download.yaml` file.
 
 Assuming this stage validates that the external resources are indeed the ones intended to be used within the container build, it passes along the external resources as artifacts in order to be used in the later `scan-artifacts` and `build` stages.
 
