@@ -14,7 +14,7 @@ FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}
 
 ### Notes
 
-- When referencing an external resource from the `download.yaml/download.json` file in the `import artifacts` stage in the `Dockerfile` build, the filename of the resource must match up exactly with the reference to it in the `Dockerfile`. For example, if the downloaded resource's filename in `download.yaml/download.json` is `tar1.tar`, the associated `Dockerfile` command would be `COPY tar1.tar /`.
+- When referencing an external resource from the `download.yaml` or `download.json` file in the `import artifacts` stage in the `Dockerfile` build, the filename of the resource must match up exactly with the reference to it in the `Dockerfile`. For example, if the downloaded resource's filename in `download.yaml/download.json` is `tar1.tar`, the associated `Dockerfile` command would be `COPY tar1.tar /`.
 - The above applies to images retrieved in the `import artifacts` stage as well. The `tag` for the image provided in `download.yaml/download.json` must match the reference to it in the `Dockerfile`. For example, when retrieving the Istio Operator image from Docker Hub, the tag might be `"istio/operator:1.7.3"`. The reference in the `Dockerfile` would then be `FROM istio/operator:1.7.3`. Do not provide the url to the public location where the image resides because the pipeline will not retrieve it.
 
 ### Common Issues
