@@ -35,5 +35,5 @@ resources:
 ### Notes
 
 - "docker://" must be appended when attempting to pull an image (ex. - `docker://docker.io/istio/operator@sha256:7af9cf4c7ff7dc66f469bc1b230772c229d3de7e8f160f826f59b495bbc309db` or `"docker://gcr.io/distroless/base-debian10@sha256:f4a1b1083db512748a305a32ede1d517336c8b5bead1c06c6eac2d40dcaab6ad"`). The sha256 of the particular image you are attempting to pull must be included as well.
-- If any of the external resources require authentication, work with a member of the Iron Bank pipelines team in order to get the necessary credentials added to the project's CI/CD variables. Ensure there are no underscores included in the `id` field of the `auth` section in `download.yaml/download.json`.
+- If any of the external resources require authentication, work with a member of the Iron Bank pipelines team in order to get the necessary credentials added to the project's CI/CD variables. Ensure there are no underscores included in the `id` field of the `auth` section in `download.yaml` or `download.json`.
 - Ensure that the `filename` and/or `tag` of the external resource matches the reference in the project's `Dockerfile` to that resource. Otherwise, the build will not work properly because the external resource or image will not have a name which matches in the `Dockerfile`.
