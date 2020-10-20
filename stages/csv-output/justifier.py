@@ -219,7 +219,6 @@ def justificationsTwistlock(wb, justifications):
 
             cell3 = sheet.cell(row=r, column=5)
             cell4 = sheet.cell(row=r, column=6)
-
             id = cell.value + "-" + cell3.value + "-" + cell4.value
 
             if id in justifications.keys():
