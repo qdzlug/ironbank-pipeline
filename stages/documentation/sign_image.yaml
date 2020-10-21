@@ -1,6 +1,6 @@
 sign image:
   extends: .documentation
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1"
+  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/rootless-build:1.3"
   variables:
     #TODO: Put these in globals
     IMAGE_FILE: "${CI_PROJECT_NAME}-${IMG_VERSION}"
