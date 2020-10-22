@@ -3,7 +3,7 @@ set -Eeuo pipefail
 mkdir -p "${ANCHORE_SCANS}"
 # Install anchore-cli
 # TODO: Install the anchore-cli on the runner
-# pip3 install --user --upgrade anchorecli
+pip3 install --user --upgrade anchorecli
 # The anchore-cli is not installed along the normal path so set
 # the path appropriately.
 # TODO: Configure the anchore-cli path on the runner
