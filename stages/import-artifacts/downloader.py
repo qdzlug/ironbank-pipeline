@@ -323,10 +323,20 @@ def docker_download(download_item, tag_value, tar_name, username=None, password=
         try:
             subprocess.run(pull_cmd, check=True)
             print("Tagging image as " + tag_value)
-            subprocess.run(["podman", "tag", image, tag_value, "--storage-driver=vfs"], check=True)
+            subprocess.run(
+                ["podman", "tag", image, tag_value, "--storage-driver=vfs"], check=True
+            )
             print("Saving " + tag_value + " as tar file")
             subprocess.run(
-                ["podman", "save", "-o", tar_name + ".tar", tag_value, "--storage-driver=vfs"], check=True
+                [
+                    "podman",
+                    "save",
+                    "-o",
+                    tar_name + ".tar",
+                    tag_value,
+                    "--storage-driver=vfs",
+                ],
+                check=True,
             )
             print("Moving tar file into stage artifacts")
             shutil.copy(
