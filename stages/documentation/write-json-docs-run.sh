@@ -34,6 +34,8 @@ export TWISTLOCK_VERSION
 export OPENSCAP_VERSION
 export ANCHORE_VERSION
 export CI_COMMIT_BRANCH
+timestamp="$(date +%FT%T)"
+export timestamp
 jq -n '
 {
   "buildTag": env.IMG_VERSION,
@@ -69,7 +71,7 @@ mv scan-metadata.json "${ARTIFACT_DIR}"
 
 jq -n '
 {
-  "timestamp": "$(date +%FT%T)",
+  "timestamp": env.timestamp,
   "git": {
     "hash": env.CI_COMMIT_SHA,
     "branch": env.CI_COMMIT_BRANCH
