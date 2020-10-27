@@ -1,9 +1,5 @@
 sign manifest:
   extends: .documentation
-<<<<<<< HEAD
-=======
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/rootless-build:1.3"
->>>>>>> 72654963f90945e9bb2bc119713b1830668a06d0
   variables:
     #TODO: Put these in globals
     SIG_FILE: signature
