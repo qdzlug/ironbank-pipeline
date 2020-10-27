@@ -77,7 +77,7 @@ Job artifacts:
 
 #### import artifacts
 
-The `import artifacts` stage will import any external resources (resources from the internet) provided in the `download.yaml` file for use during the container build. The `import artifacts` stage will download the external resources and validate that the checksums calculated upon download match the checksums provided in the `download.yaml` file.
+The `import artifacts` stage will import any external resources (resources from the internet) provided in the `download.yaml` or `download.json` file for use during the container build. The `import artifacts` stage will download the external resources and validate that the checksums calculated upon download match the checksums provided in the `download.yaml` file.
 
 Assuming this stage validates that the external resources are indeed the ones intended to be used within the container build, it passes along the external resources as artifacts in order to be used in the later `scan-artifacts` and `build` stages.
 
@@ -85,6 +85,8 @@ Job artifacts:
 
 - (if provided) - external resources provided in `download.yaml/download.json` such as binaries, tarballs, RPMs, etc.
 - (if provided) - images - a tar format of images pulled from public registries, as provided in `download.yaml/download.json`.
+
+For more information on this stage, please refer to the `README.md` file [located here](https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/-/blob/master/stages/import-artifacts/README.md).
 
 #### scan artifacts
 
@@ -105,6 +107,8 @@ The `build` stage will push the built image to the Registry1 staging registry.
 Job artifacts:
 
 - tar file of the image which was built. Contributors can download this artifact and use it on their machine with `docker load -i <image>.tar`.
+
+For more information on this stage, please refer to the `README.md` file [located here](https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/-/blob/master/stages/build/README.md).
 
 #### scanning
 
