@@ -1,6 +1,5 @@
 upload to s3:
   extends: .publish
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml"
   resource_group: s3_phase
   only:
     - master
