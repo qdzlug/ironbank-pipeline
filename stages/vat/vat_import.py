@@ -370,8 +370,12 @@ def parse_oscap_compliance(os_path):
 
     # This is used where the identifier has not been set in the column (NaN)
     # It will replace these rows with data from the refs column.
-    d_f['identifiers'] = d_f.apply(lambda x: get_oscap_comp_finding(x['refs'])
-        if pandas.isnull(x['identifiers']) else x['identifiers'], axis=1)
+    d_f["identifiers"] = d_f.apply(
+        lambda x: get_oscap_comp_finding(x["refs"])
+        if pandas.isnull(x["identifiers"])
+        else x["identifiers"],
+        axis=1,
+    )
 
     d_f.drop(columns=["refs"], inplace=True)
 
