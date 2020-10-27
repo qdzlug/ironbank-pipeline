@@ -33,13 +33,13 @@ export CI_COMMIT_BRANCH
 export TWISTLOCK_VERSION
 export OPENSCAP_VERSION
 export ANCHORE_VERSION
-export CI_COMMIT_BRANCH
+export CI_PIPELINE_ID
 timestamp="$(date +%FT%T)"
 export timestamp
 jq -n '
 {
   "buildTag": env.IMG_VERSION,
-  "buildNumber": env.CI_COMMIT_SHA,
+  "buildNumber": env.CI_PIPELINE_ID,
   "approval": env.IMAGE_APPROVAL_STATUS,
   "image": {
     "digest": env.IMAGE_TAR_SHA,
