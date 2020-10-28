@@ -19,6 +19,8 @@ fi
 gun="${1}"
 tag="${2}"
 echo "${DOCKER_AUTH_CONFIG_PROD}" | base64 -d >prod_auth.json
+echo "${NOTARY_DELEGATION_CERT}" | base64 -d >delegation.crt
+echo "${NOTARY_DELEGATION_KEY}" | base64 -d >delegation.key
 
 # Load image from tarball
 podman load -i "${ARTIFACT_STOAGE}/build/${IMAGE_FILE}.tar" "$gun:$tag" --storage-driver=vfs
@@ -50,11 +52,13 @@ notary -v -s "${NOTARY_URL}" -d trust-dir-root key rotate "$gun" snapshot -r
 # Trust the new delegate for the gun
 # This works even if the GUN doesn't exist yet
 NOTARY_AUTH="${NOTARY_SIGNER_AUTH}" \
-notary -v -s "${NOTARY_URL}" -d trust-dir-root delegation add -p "$gun" targets/releases delegation/delegation.crt --all-paths
+notary -v -s "${NOTARY_URL}" -d trust-dir-root delegation add -p "$gun" targets/releases delegation.crt --all-paths
 
 # Import the delegation key
-notary -d trust-dir-delegate/ key import "${NOTARY_DELEGATION_KEY}"
+notary -d trust-dir-delegate/ key import delegation.key
 
 # Sign the image with the delegation key
 NOTARY_AUTH="${NOTARY_SIGNER_AUTH}" \
 notary -v -s "${NOTARY_URL}" -d trust-dir-delegate add -p --roles=targets/releases "$gun" "$tag" "manifest.json"
+NOTARY_AUTH="${NOTARY_SIGNER_AUTH}" \
+notary -v -s "${NOTARY_URL}" -d trust-dir-delegate add -p --roles=targets/releases "$gun" latest "manifest.json"
