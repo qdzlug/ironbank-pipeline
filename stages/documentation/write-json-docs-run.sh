@@ -33,11 +33,13 @@ export CI_COMMIT_BRANCH
 export TWISTLOCK_VERSION
 export OPENSCAP_VERSION
 export ANCHORE_VERSION
-export CI_COMMIT_BRANCH
+export CI_PIPELINE_ID
+TIMESTAMP="$(date +%FT%T)"
+export TIMESTAMP
 jq -n '
 {
   "buildTag": env.IMG_VERSION,
-  "buildNumber": env.CI_COMMIT_SHA,
+  "buildNumber": env.CI_PIPELINE_ID,
   "approval": env.IMAGE_APPROVAL_STATUS,
   "image": {
     "digest": env.IMAGE_TAR_SHA,
@@ -69,7 +71,7 @@ mv scan-metadata.json "${ARTIFACT_DIR}"
 
 jq -n '
 {
-  "timestamp": "$(date +%FT%T)",
+  "timestamp": env.TIMESTAMP,
   "git": {
     "hash": env.CI_COMMIT_SHA,
     "branch": env.CI_COMMIT_BRANCH
