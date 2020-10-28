@@ -1,11 +1,6 @@
 #!/bin/bash
 set -Eeuo pipefail
 
-curl -LO https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64
-mv ./notary-Linux-amd64 /usr/local/bin/
-mv /usr/local/bin/notary-Linux-amd64 /usr/local/bin/notary
-chmod 755 /usr/local/bin/notary
-
 if [[ $(echo "${CI_PROJECT_DIR}" | grep -e 'pipeline-test-project') ]]; then
   echo "Skipping Harbor Upload. Cannot push to Harbor when working with pipeline test projects..."
   exit 0
