@@ -14,7 +14,7 @@ def parse_special_path():
         logging.info("download.yaml exists, attempting to extract special image path")
         with open("download.yaml", "r") as yf:
             try:
-                data = yaml.safe_load(yf, Loader=yaml.FullLoader)
+                data = yaml.safe_load(yf)
                 special_path = data["special-image-path"]
                 logging.info(f"Discovered special path: {special_path}")
                 return special_path

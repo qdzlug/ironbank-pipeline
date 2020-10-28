@@ -47,7 +47,7 @@ def parse():
         logging.info("download.yaml exists, attempting to extract image version")
         with open("download.yaml", "r") as yf:
             try:
-                data = yaml.safe_load(yf, Loader=yaml.FullLoader)
+                data = yaml.safe_load(yf)
                 v = data["version"]
                 logging.info(f"Discovered version: {v}")
                 return v
