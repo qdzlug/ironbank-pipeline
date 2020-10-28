@@ -8,6 +8,7 @@ GPG_VERSION=$(gpg --version | grep '(?<=gpg .GnuPG.)([^0-9]+)([0-9]+[.][0-9]+[.]
 IMAGE_TAR_SHA=$(sha256sum "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" | grep -E '^[a-zA-Z0-9]+' -o)
 IMAGE_PODMAN_SHA=$(podman inspect --format '{{.Digest}}' "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}")
 # Create manifest.json
+export IMAGE_TAR_SHA
 export IMAGE_PODMAN_SHA
 export MAGE_TAR_SHA
 export PODMAN_REFERENCE="${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}"
