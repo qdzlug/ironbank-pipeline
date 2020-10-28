@@ -34,7 +34,7 @@ export TWISTLOCK_VERSION
 export OPENSCAP_VERSION
 export ANCHORE_VERSION
 export CI_PIPELINE_ID
-TIMESTAMP="$(date +%FT%T)"
+TIMESTAMP="$(date --utc '+%FT%T.%3NZ')"
 export TIMESTAMP
 jq -n '
 {
