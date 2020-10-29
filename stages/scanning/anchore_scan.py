@@ -54,10 +54,10 @@ class Anchore:
 
             if r.status_code == 200:
                 # test that the response is valid JSON
-                self.__debug(f"Got response from Anchore. Testing if valid json")
+                self.__debug("Got response from Anchore. Testing if valid json")
                 try:
                     json.loads(body)
-                except:
+                except json.JSONDecodeError:
                     raise Exception("Got 200 response but is not valid JSON")
             else:
                 raise Exception(
@@ -66,7 +66,7 @@ class Anchore:
         except Exception as err:
             raise err
 
-        self.__debug(f"Json is valid")
+        self.__debug("Json is valid")
         return json.loads(body)
 
     def get_version(self):
@@ -74,7 +74,7 @@ class Anchore:
         Fetch the Anchore version and write it to an artifact.
 
         """
-        print(f"Getting Anchore version")
+        print("Getting Anchore version")
         url = f"{self.url}/version"
         version_json = self.__get_anchore_api_json(url)
         filename = os.path.join(self.output, "anchore-version.txt")
@@ -90,7 +90,7 @@ class Anchore:
         so it will reach back out to Anchore to gather the correct vulnerability data.
 
         """
-        print(f"Getting vulnerability results")
+        print("Getting vulnerability results")
         try:
             vuln_dict = self.__get_anchore_api_json(
                 f"{self.url}/images/by_id/{self.imageid}/vuln/all"
@@ -102,7 +102,7 @@ class Anchore:
                     # "http://anchore-anchore-engine-api:8228/v1" or URL to replace may
                     #  need to be modified when changes to the Anchore installation occur
                     vulndb_request_url = re.sub(
-                        "http:\/\/([a-z-_0-9:]*)\/v1", self.url, vulnerability["url"]
+                        "http://([a-z-_0-9:]*)/v1", self.url, vulnerability["url"]
                     )
                     vulndb_dict = self.__get_anchore_api_json(vulndb_request_url)
                     for vulndb_vuln in vulndb_dict["vulnerabilities"]:
@@ -131,7 +131,7 @@ class Anchore:
         spreadsheet.
 
         """
-        print(f"Getting compliance results")
+        print("Getting compliance results")
         request_url = (
             f"{self.url}/images/by_id/{self.imageid}/check?tag={self.image}&detail=true"
         )
@@ -169,7 +169,7 @@ def main():
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
     endpoint_url = re.sub(
-        "\/+$", "", os.getenv("ANCHORE_CLI_URL", default="http://localhost:8228/v1/")
+        "/+$", "", os.getenv("ANCHORE_CLI_URL", default="http://localhost:8228/v1/")
     )
 
     anchore = Anchore(
