@@ -23,19 +23,19 @@ podman load -i "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" "$gun:$tag" --stora
 podman tag "$gun:$tag" "$gun:latest" --storage-driver=vfs
 
 # Upload image to prod Harbor
-podman push --dest-authfile prod_auth.json \
+podman push --authfile prod_auth.json \
   "docker://$gun:$tag" \
   --storage-driver=vfs
 # Copy from staging to prod with latest tag
-podman push --dest-authfile prod_auth.json \
+podman push --authfile prod_auth.json \
   "docker://$gun:latest" \
   --storage-driver=vfs
 
 # Capture image digest for the image we just published
 image_version_digest=$(podman inspect "$gun:$tag" | jq --arg gun "$gun" -r '(.[0].RepoDigests | map(select(startswith($gun + "@sha256"))))[0] | split(":")[1]')
 
-# Can we remove the skopeo dpendency here? podman inspect doesn't output --raw and therefore might mess with the manifest.json sha
-skopeo inspect --raw "docker://${gun}:${tag}" >manifest.json
+# Can we remove the skopeo dependency here? podman inspect doesn't output --raw and therefore might mess with the manifest.json sha
+skopeo inspect --authfile prod_auth.json --raw "docker://${gun}:${tag}" >manifest.json
 
 # There's a chance for a TOCTOU attack/bug here. Make sure the digest matches this file:
 echo "${image_version_digest} manifest.json" | sha256sum --check
