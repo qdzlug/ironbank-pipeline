@@ -61,7 +61,7 @@ def main():
 
     ##### Read download.yaml file
     with open(inputFile, "r") as file:
-        downloads = yaml.load(file, Loader=yaml.FullLoader)
+        downloads = yaml.safe_load(file)
 
     for type in downloads:
         if type == "resources":
