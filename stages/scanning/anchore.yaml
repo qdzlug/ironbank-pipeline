@@ -21,7 +21,7 @@
 
 anchore scan:
   extends: .scanning
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1"
+  image: "${REGISTRY_URL}/anchore/cli/cli:0.8.2"
   stage: scanning
   # Load in the IMG_VERSION variable from load scripts env
   dependencies:
@@ -31,7 +31,6 @@ anchore scan:
     # put all scan outputs in the scan-results folder
     ANCHORE_SCANS: "${ARTIFACT_STORAGE}/scan-results/anchore"
   script:
-    # TODO: Add the Dockerfile with anchore-cli add
     - '"${PIPELINE_REPO_DIR}/stages/scanning/anchore-run.sh"'
   artifacts:
     when: always
