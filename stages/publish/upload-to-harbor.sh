@@ -25,25 +25,21 @@ podman tag "$gun:$tag" "$gun:latest" --storage-driver=vfs
 podman push --authfile prod_auth.json \
   "docker://$gun:$tag" \
   --storage-driver=vfs
+  --digestfile tag_digest
+
 # Copy from staging to prod with latest tag
 podman push --authfile prod_auth.json \
   "docker://$gun:latest" \
-  --storage-driver=vfs
-
-# Capture image digest for the image we just published
-image_version_digest=$(podman inspect "$gun:$tag" | jq --arg gun "$gun" -r '(.[0].RepoDigests | map(select(startswith($gun + "@sha256"))))[0] | split(":")[1]')
+  --storage-driver=vfs \
+  --digestfile latest_digest
 
 # Can we remove the skopeo dependency here? podman inspect doesn't output --raw and therefore might mess with the manifest.json sha
-skopeo inspect --authfile prod_auth.json --raw "docker://${gun}:${tag}" >manifest.json
-
-#testing
-echo "checking manifest.json" && cat manifest.json
-
-echo "image_version_digest: $image_version_digest"
-echo "manifest.json | sha256sum"
+skopeo inspect --authfile prod_auth.json --raw "docker://${gun}:${tag}" >tag_manifest.json
+skopeo inspect --authfile prod_auth.json --raw "docker://${gun}:latest" >latest_manifest.json
 
 # There's a chance for a TOCTOU attack/bug here. Make sure the digest matches this file:
-echo "${image_version_digest} manifest.json" | sha256sum --check
+echo "$(cut -d: -f2 tag_digest) tag_manifest.json" | sha256sum --check
+echo "$(cut -d: -f2 latest_digest) latest_manifest.json" | sha256sum --check
 
 # Import the delegation key
 notary -d trust-dir-delegate/ key import delegation.key
