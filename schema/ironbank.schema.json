@@ -1,0 +1,38 @@
+{
+	"$schema": "https://json-schema.org/draft/2019-09/schema",
+    "$id": "https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/schema/ironbank.schema.json",
+    "title": "IronBank",
+    "description": "Metadata surrounding an Iron Bank Container",
+    "type": "object",
+    "properties": {
+        "apiVersion": {
+            "description": "Version of Iron Bank metadata file",
+            "type": "string"
+        },
+        "name": {
+            "description": "",
+            "type": "string"
+        },
+        "tags": {
+            "description": "",
+            "type": "string"
+        },
+        "args": {
+            "description": "",
+            "type": "string"
+        },
+        "labels": {
+            "description": "",
+            "type": "string"
+        },
+        "resources": {
+            "description": "",
+            "type": "string"
+        },
+        "maintainers": {
+            "description": "",
+            "type": "string"
+        }
+    },
+    "required": [ "apiVersion", "name", "tags", "args", "labels", "resources", "maintainers" ]
+}
