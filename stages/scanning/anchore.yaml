@@ -31,7 +31,6 @@ anchore scan:
     # put all scan outputs in the scan-results folder
     ANCHORE_SCANS: "${ARTIFACT_STORAGE}/scan-results/anchore"
   script:
-    # TODO: Add the Dockerfile with anchore-cli add
     - '"${PIPELINE_REPO_DIR}/stages/scanning/anchore-run.sh"'
   artifacts:
     when: always
