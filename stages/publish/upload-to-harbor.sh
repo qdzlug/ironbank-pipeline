@@ -37,6 +37,12 @@ image_version_digest=$(podman inspect "$gun:$tag" | jq --arg gun "$gun" -r '(.[0
 # Can we remove the skopeo dependency here? podman inspect doesn't output --raw and therefore might mess with the manifest.json sha
 skopeo inspect --authfile prod_auth.json --raw "docker://${gun}:${tag}" >manifest.json
 
+#testing
+echo "checking manifest.json" && cat manifest.json
+
+echo "image_version_digest: $image_version_digest"
+echo "manifest.json | sha256sum"
+
 # There's a chance for a TOCTOU attack/bug here. Make sure the digest matches this file:
 echo "${image_version_digest} manifest.json" | sha256sum --check
 
