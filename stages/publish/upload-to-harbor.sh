@@ -19,7 +19,7 @@ echo "${DOCKER_AUTH_CONFIG_TEST}" | base64 -d >prod_auth.json
 echo "${NOTARY_DELEGATION_KEY}" | base64 -d >delegation.key
 
 # Load image from tarball
-podman load -i "${ARTIFACT_STOAGE}/build/${IMAGE_FILE}.tar" "$gun:$tag" --storage-driver=vfs
+podman load -i "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" "$gun:$tag" --storage-driver=vfs
 podman tag "$gun:$tag" "$gun:latest" --storage-driver=vfs
 
 # Upload image to prod Harbor
@@ -44,7 +44,5 @@ echo "${image_version_digest} manifest.json" | sha256sum --check
 notary -d trust-dir-delegate/ key import delegation.key
 
 # Sign the image with the delegation key
-NOTARY_AUTH="${NOTARY_SIGNER_AUTH}" \
 notary -v -s "${NOTARY_URL}" -d trust-dir-delegate add -p --roles=targets/releases "$gun" "$tag" "manifest.json"
-NOTARY_AUTH="${NOTARY_SIGNER_AUTH}" \
 notary -v -s "${NOTARY_URL}" -d trust-dir-delegate add -p --roles=targets/releases "$gun" latest "manifest.json"
