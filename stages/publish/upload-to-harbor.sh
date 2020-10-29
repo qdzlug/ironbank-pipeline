@@ -14,7 +14,6 @@ fi
 gun="${1}"
 tag="${2}"
 echo "${DOCKER_AUTH_CONFIG_PROD}" | base64 -d >prod_auth.json
-echo "${NOTARY_DELEGATION_CERT}" | base64 -d >delegation.crt
 echo "${NOTARY_DELEGATION_KEY}" | base64 -d >delegation.key
 
 # Load image from tarball
@@ -38,16 +37,6 @@ skopeo inspect --raw "docker://${gun}:${tag}" >manifest.json
 
 # There's a chance for a TOCTOU attack/bug here. Make sure the digest matches this file:
 echo "${image_version_digest} manifest.json" | sha256sum --check
-
-# Rotate the snapshot key to ensure the delegate user never needs it
-# A snapshot and target key will be generated for root, but I don't know if we need to archive them?
-NOTARY_AUTH="${NOTARY_SIGNER_AUTH}" \
-notary -v -s "${NOTARY_URL}" -d trust-dir-root key rotate "$gun" snapshot -r
-
-# Trust the new delegate for the gun
-# This works even if the GUN doesn't exist yet
-NOTARY_AUTH="${NOTARY_SIGNER_AUTH}" \
-notary -v -s "${NOTARY_URL}" -d trust-dir-root delegation add -p "$gun" targets/releases delegation.crt --all-paths
 
 # Import the delegation key
 notary -d trust-dir-delegate/ key import delegation.key
