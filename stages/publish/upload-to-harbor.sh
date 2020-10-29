@@ -1,10 +1,11 @@
 #!/bin/bash
 set -Eeuo pipefail
 
-if [[ $(echo "${CI_PROJECT_DIR}" | grep -e 'pipeline-test-project') ]]; then
-  echo "Skipping Harbor Upload. Cannot push to Harbor when working with pipeline test projects..."
-  exit 0
-fi
+# Removed for testing
+#if [[ $(echo "${CI_PROJECT_DIR}" | grep -e 'pipeline-test-project') ]]; then
+#  echo "Skipping Harbor Upload. Cannot push to Harbor when working with pipeline test projects..."
+#  exit 0
+#fi
 
 if [ -z "${1}" ] || [ -z "${2}" ]; then
   echo '$gun or $tag not provided as arguments, exiting'
@@ -13,7 +14,8 @@ fi
 
 gun="${1}"
 tag="${2}"
-echo "${DOCKER_AUTH_CONFIG_PROD}" | base64 -d >prod_auth.json
+# Changed for testing
+echo "${DOCKER_AUTH_CONFIG_TEST}" | base64 -d >prod_auth.json
 echo "${NOTARY_DELEGATION_KEY}" | base64 -d >delegation.key
 
 # Load image from tarball
