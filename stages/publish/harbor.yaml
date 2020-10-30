@@ -5,6 +5,7 @@ harbor:
   dependencies:
     - build
     - load scripts
+    - wl compare lint
   script:
     - |
       if [[ "${SPECIAL_IMAGE_PATH}" ]]; then
