@@ -82,7 +82,10 @@ def get_complete_whitelist_for_image(
     par_image = contents["image_parent_name"]
     par_tag = contents["image_parent_tag"]
 
-    if contents['approval_status'] != "approved" and os.environ.get("CI_COMMIT_BRANCH").lower() == "master":
+    if (
+        contents["approval_status"] != "approved"
+        and os.environ.get("CI_COMMIT_BRANCH").lower() == "master"
+    ):
         print(f"Error: unapproved image running on master branch", file=sys.stderr)
         sys.exit(1)
 
