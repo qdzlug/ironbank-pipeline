@@ -15,7 +15,7 @@
             "type": "string"
         },
         "tags": {
-            "description": "",
+            "description": "Tags to tag an image with when pushed to registry1",
             "type": "array",
             "items": {
                 "type": "string"
@@ -35,10 +35,13 @@
                     "type": "string"
                 }
             },
-            "required": [ "BASE_IMAGE_NAME", "BASE_IMAGE_TAG" ]
+            "required": [
+                "BASE_IMAGE_NAME",
+                "BASE_IMAGE_TAG"
+            ]
         },
         "labels": {
-            "description": "",
+            "description": "Labels added to Iron Bank containers",
             "type": "object",
             "properties": {
                 "org.opencontainers.image.title": {
@@ -111,11 +114,23 @@
                         "type": "boolean"
                     }
                 },
-                "required": [ "name", "username", "email" ]
+                "required": [
+                    "name",
+                    "username",
+                    "email"
+                ]
             },
             "minItems": 1,
             "uniqueItems": true
         }
     },
-    "required": [ "apiVersion", "name", "tags", "args", "labels", "resources", "maintainers" ]
+    "required": [
+        "apiVersion",
+        "name",
+        "tags",
+        "args",
+        "labels",
+        "resources",
+        "maintainers"
+    ]
 }
