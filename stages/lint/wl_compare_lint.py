@@ -98,6 +98,10 @@ def get_complete_whitelist_for_image(
             # Only output IMAGE_APPROVAL_STATUS on the child image (not for parent images)
             if child_image_depth == 0:
                 print(f"IMAGE_APPROVAL_STATUS={contents['approval_status']}")
+                print(os.environ.get("CI_COMMIT_BRANCH", file=sys.stderr))
+                if contents['approval_status'] != "approved" and os.environ.get("CI_COMMIT_BRANCH").lower() == "master":
+                    print(f"WARNING: unapproved image running on master branch", file=sys.stderr)
+                    sys.exit(1)
                 print(
                     f"BASE_IMAGE={contents['image_parent_name']}"
                 )  # empty string for base image
@@ -113,6 +117,10 @@ def get_complete_whitelist_for_image(
         # Output IMAGE_APPROVAL_STATUS for base images like UBI
         elif child_image_depth == 0:
             print(f"IMAGE_APPROVAL_STATUS={contents['approval_status']}")
+            print(os.environ.get("CI_COMMIT_BRANCH", file=sys.stderr))
+            if contents['approval_status'] != "approved" and os.environ.get("CI_COMMIT_BRANCH").lower() == "master":
+                print(f"WARNING: unapproved image running on master branch", file=sys.stderr)
+                sys.exit(1)
     else:
         print(
             "Mismatched image name/tag in "
