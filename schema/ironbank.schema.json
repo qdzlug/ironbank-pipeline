@@ -30,8 +30,28 @@
             "type": "string"
         },
         "maintainers": {
-            "description": "",
-            "type": "string"
+            "description": "Maintainers for this specific container",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "username": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "cht_member": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [ "name", "username", "email" ]
+            },
+            "minItems": 1,
+            "uniqueItems": true
         }
     },
     "required": [ "apiVersion", "name", "tags", "args", "labels", "resources", "maintainers" ]
