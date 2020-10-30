@@ -1,12 +1,6 @@
 #!/bin/bash
 set -Eeuo pipefail
 
-#check image approval status, fail if not approved
-if [ "${CI_COMMIT_BRANCH}" == "master" ] && [ "${IMAGE_APPROVAL_STATUS}" != "approved" ]; then
-  echo "Skipping Harbor Upload. Cannot publish images that are not approved."
-  exit 1
-fi
-
 if [[ $(echo "${CI_PROJECT_DIR}" | grep -e 'pipeline-test-project') ]]; then
   echo "Skipping Harbor Upload. Cannot push to Harbor when working with pipeline test projects..."
   exit 0
