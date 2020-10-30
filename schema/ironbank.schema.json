@@ -10,7 +10,7 @@
             "type": "string"
         },
         "name": {
-            "description": "",
+            "description": "Name of the Iron Bank container | should this be path?",
             "type": "string"
         },
         "tags": {
