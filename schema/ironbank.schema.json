@@ -10,7 +10,8 @@
             "type": "string"
         },
         "name": {
-            "description": "Name of the Iron Bank container | should this be path?",
+            "$comment": "Should this be path?",
+            "description": "Name of the Iron Bank container",
             "type": "string"
         },
         "tags": {
@@ -23,8 +24,18 @@
             "uniqueItems": true
         },
         "args": {
+            "$comment": "Do we want more args than this?",
             "description": "",
-            "type": "string"
+            "type": "object",
+            "properties": {
+                "BASE_IMAGE_NAME": {
+                    "type": "string"
+                },
+                "BASE_IMAGE_TAG": {
+                    "type": "string"
+                }
+            },
+            "required": [ "BASE_IMAGE_NAME", "BASE_IMAGE_TAG" ]
         },
         "labels": {
             "description": "",
