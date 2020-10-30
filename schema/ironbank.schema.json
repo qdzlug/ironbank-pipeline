@@ -10,7 +10,7 @@
             "type": "string"
         },
         "name": {
-            "$comment": "Should this be path?",
+            "$comment": "TODO: Should this be path?",
             "description": "Name of the Iron Bank container",
             "type": "string"
         },
@@ -24,8 +24,8 @@
             "uniqueItems": true
         },
         "args": {
-            "$comment": "Do we want more args than this?",
-            "description": "",
+            "$comment": "TODO: Do we want more args than this?",
+            "description": "Arguments passed to image build",
             "type": "object",
             "properties": {
                 "BASE_IMAGE_NAME": {
@@ -39,7 +39,54 @@
         },
         "labels": {
             "description": "",
-            "type": "string"
+            "type": "object",
+            "properties": {
+                "org.opencontainers.image.title": {
+                    "type": "string"
+                },
+                "org.opencontainers.image.description": {
+                    "type": "string"
+                },
+                "org.opencontainers.image.licenses": {
+                    "type": "string"
+                },
+                "org.opencontainers.image.url": {
+                    "$comment": "TODO: regex url",
+                    "type": "string"
+                },
+                "org.opencontainers.image.vendor": {
+                    "type": "string"
+                },
+                "org.opencontainers.image.version": {
+                    "type": "string"
+                },
+                "io.dsop.ironbank.image.keywords": {
+                    "$comment": "TODO: lock this down to specific keywords",
+                    "type": "string"
+                },
+                "io.dsop.ironbank.image.type": {
+                    "$comment": "TODO: lock this down to specific keywords",
+                    "type": "string"
+                },
+                "io.dsop.ironbank.product.name": {
+                    "type": "string"
+                },
+                "maintainer": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "org.opencontainers.image.title",
+                "org.opencontainers.image.description",
+                "org.opencontainers.image.licenses",
+                "org.opencontainers.image.url",
+                "org.opencontainers.image.vendor",
+                "org.opencontainers.image.version",
+                "io.dsop.ironbank.image.keywords",
+                "io.dsop.ironbank.image.type",
+                "io.dsop.ironbank.product.name",
+                "maintainer"
+            ]
         },
         "resources": {
             "description": "",
