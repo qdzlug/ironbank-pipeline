@@ -1,5 +1,5 @@
 {
-	"$schema": "https://json-schema.org/draft/2019-09/schema",
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
     "$id": "https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/schema/ironbank.schema.json",
     "title": "IronBank",
     "description": "Metadata surrounding an Iron Bank Container",
@@ -92,8 +92,55 @@
             ]
         },
         "resources": {
-            "description": "",
-            "type": "string"
+            "$comment": "Is this strictly required?",
+            "description": "Resources to download before building the image",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "url": {
+                        "type": "string"
+                    },
+                    "tag": {
+                        "$comment": "Used for docker resources",
+                        "type": "string"
+                    },
+                    "validation": {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "type": "string"
+                            },
+                            "value": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "type",
+                            "value"
+                        ]
+                    },
+                    "auth": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "region": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "region"
+                        ]
+                    }
+                },
+                "required": [
+                    "url"
+                ]
+            },
+            "uniqueItems": true
         },
         "maintainers": {
             "description": "Maintainers for this specific container",
