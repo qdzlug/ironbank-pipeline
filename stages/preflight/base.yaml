@@ -1,6 +1,5 @@
 .preflight:
   stage: preflight
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/docker-git-bash-python:3.7"
 
   # Load in the IMG_VERSION variable from the load scripts env
   dependencies:

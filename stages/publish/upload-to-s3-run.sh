@@ -6,7 +6,7 @@ if [[ $(echo "${CI_PROJECT_DIR}" | grep -e 'pipeline-test-project') ]] && [ "${C
 fi
 mkdir -p "${ARTIFACT_DIR}"
 
-pip install boto3 ushlex
+# pip install boto3 ushlex
 if [ "${CI_COMMIT_BRANCH}" == "master" ]; then
   BASE_BUCKET_DIRECTORY="container-scan-reports"
 fi
