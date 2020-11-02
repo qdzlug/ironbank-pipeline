@@ -6,6 +6,6 @@ The following files are checked in the `folder structure` job of the `preflight`
 
 - `README.md` - this file is required in order to have a hardened container approved.
 - `Dockerfile` - the build stage will fail if a `Dockerfile` is not found in the project repository. It is checked for here in the `preflight` stage in order to reduce resources for a project which would not have a passing pipeline. Please refer to the Container Hardening Contributor Onboarding guide for guidance on the content to include in the `README.md` file.
-- `LICENSE` files - acceptable extensions include `.md`, `.txt`, and `.adoc`. 
+- `LICENSE` files - acceptable extensions include `.md`, `.txt`, and `.adoc`.
 
 The `build variables` job of the `preflight` stage will also check for the presence of the `IMG_VERSION` variable in the project repository. This variable must be set in order to properly tag the built container in Registry1 and on the Iron Bank website. This job will fail if the `IMG_VERSION` variable is not set.
