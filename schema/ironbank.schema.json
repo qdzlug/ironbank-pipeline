@@ -54,6 +54,7 @@
                     "type": "string"
                 },
                 "org.opencontainers.image.licenses": {
+                    "$comment": "Made temporarily optional",
                     "$comment": "See https://spdx.org/licenses/",
                     "type": "string"
                 },
@@ -68,14 +69,17 @@
                     "type": "string"
                 },
                 "io.dsop.ironbank.image.keywords": {
-                    "$comment": "TODO: lock this down to specific keywords [use an enum]",
+                    "$comment": "Made temporarily optional",
+                    "$comment": "TODO: Make a decision on whether to lock this down to specific keywords [use an enum]",
                     "type": "string"
                 },
                 "io.dsop.ironbank.image.type": {
+                    "$comment": "Made temporarily optional",
                     "$comment": "TODO: lock this down to specific keywords",
                     "type": "string"
                 },
                 "io.dsop.ironbank.product.name": {
+                    "$comment": "Made temporarily optional",
                     "type": "string"
                 },
                 "maintainer": {
@@ -85,13 +89,9 @@
             "required": [
                 "org.opencontainers.image.title",
                 "org.opencontainers.image.description",
-                "org.opencontainers.image.licenses",
                 "org.opencontainers.image.url",
                 "org.opencontainers.image.vendor",
                 "org.opencontainers.image.version",
-                "io.dsop.ironbank.image.keywords",
-                "io.dsop.ironbank.image.type",
-                "io.dsop.ironbank.product.name",
                 "maintainer"
             ]
         },
