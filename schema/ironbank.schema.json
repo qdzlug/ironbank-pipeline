@@ -4,6 +4,7 @@
     "title": "IronBank",
     "description": "Metadata surrounding an Iron Bank Container",
     "type": "object",
+    "$comment": "TODO: Figure out if there is a blacklist",
     "properties": {
         "apiVersion": {
             "description": "Version of Iron Bank metadata file",
@@ -29,9 +30,11 @@
             "type": "object",
             "properties": {
                 "BASE_IMAGE_NAME": {
+                    "$comment": "TODO: Handle empty strings in pipeline code for special cases [ubi/scratch]",
                     "type": "string"
                 },
                 "BASE_IMAGE_TAG": {
+                    "$comment": "TODO: Handle empty strings in pipeline code for special cases [ubi/scratch]",
                     "type": "string"
                 }
             },
@@ -51,11 +54,12 @@
                     "type": "string"
                 },
                 "org.opencontainers.image.licenses": {
+                    "$comment": "See https://spdx.org/licenses/",
                     "type": "string"
                 },
                 "org.opencontainers.image.url": {
-                    "$comment": "TODO: regex url",
-                    "type": "string"
+                    "type": "string",
+                    "format": "uri"
                 },
                 "org.opencontainers.image.vendor": {
                     "type": "string"
@@ -64,7 +68,7 @@
                     "type": "string"
                 },
                 "io.dsop.ironbank.image.keywords": {
-                    "$comment": "TODO: lock this down to specific keywords",
+                    "$comment": "TODO: lock this down to specific keywords [use an enum]",
                     "type": "string"
                 },
                 "io.dsop.ironbank.image.type": {
@@ -177,7 +181,6 @@
         "tags",
         "args",
         "labels",
-        "resources",
         "maintainers"
     ]
 }
