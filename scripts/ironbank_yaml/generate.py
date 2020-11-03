@@ -9,6 +9,7 @@ import logging
 import argparse
 import requests
 
+# TODO: Remove this
 import pprint
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
@@ -27,8 +28,7 @@ def fetch_file(url, file, branch):
     try:
         r = requests.get(url=url)
     except requests.exceptions.RequestException as e:
-        logger.info(e)
-        raise requests.exceptions.RequestException
+        raise e
 
     if r.status_code == 200:
         return r.text
@@ -58,7 +58,7 @@ def prepare_data(greylist, download, jenkinsfile=None):
         greylist_dict = json.loads(greylist)
         greylist_dict.pop("whitelisted_vulnerabilities")
     except json.JSONDecodeError as e:
-        raise json.JSONDecodeError(e)
+        raise e
 
     return_dict.update(greylist_dict)
 
@@ -72,7 +72,7 @@ def prepare_data(greylist, download, jenkinsfile=None):
         try:
             download_dict = yaml.safe_load(download)
         except yaml.YAMLError as e:
-            raise yaml.YAMLError(e)
+            raise e
 
     return_dict.update(download_dict)
 
@@ -92,8 +92,8 @@ def build_ironbank_yaml(alldata):
 def generate(greylist_path, repo1_url, group="dsop"):
     project_path = "/".join(greylist_path.split("/")[:-1])
 
-    project_url = f"{repo1_url}/{pathlib.Path(group, project_path)}"
-    greylist_url = f"{repo1_url}/{pathlib.Path(group, 'dccscr-whitelists')}"
+    project_url = f"{repo1_url}/{group}/{project_path}"
+    greylist_url = f"{repo1_url}/{group}/dccscr-whitelists"
 
     try:
         greylist = fetch_file(
@@ -101,8 +101,8 @@ def generate(greylist_path, repo1_url, group="dsop"):
             file=f"{greylist_path}",
             branch="master",
         )
-        # if greylist is None:
-        #     raise FileNotFound("Did not find greylist")
+        if greylist is None:
+            raise FileNotFound("Did not find greylist")
 
         download = fetch_file(
             url=project_url, file="download.json", branch="development"
@@ -120,10 +120,10 @@ def generate(greylist_path, repo1_url, group="dsop"):
         except requests.exceptions.RequestException:
             pass
 
-    # except FileNotFound as e:
-    #     raise FileNotFound(e)
-    except requests.exceptions.RequestException:
-        raise requests.exceptions.RequestException
+    except FileNotFound as e:
+        raise e
+    except requests.exceptions.RequestException as e:
+        raise e
 
     alldata = prepare_data(greylist, download, jenkinsfile)
     build_ironbank_yaml(alldata)
