@@ -12,6 +12,7 @@ import git
 logging.basicConfig(level=logging.WARNING, stream=sys.stdout)
 logger = logging.getLogger("ironbank_yaml.migration")
 
+
 def main():
     parser = argparse.ArgumentParser(description="TODO")
     parser.add_argument(
