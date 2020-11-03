@@ -68,17 +68,18 @@ def main():
         try:
             gl_project = gl.projects.get(project, lazy=True)
             branches = [b.name for b in gl_project.branches.list()]
-            if not args.start_branch in branches:
-                logger.error(f"{project} does not have {args.start_branch} branch")
-                continue
-            if args.branch in branches:
-                logger.info(
-                    f"{project} already has {args.branch} branch, skipping yaml generation"
-                )
-                continue
         except gitlab.exceptions.GitlabListError:
             # Old greylists like dsop/opensource/foo/1.2.3/foo-1.2.3.greylist will result in an error that can be ignored
-            logger.error(f"Failed to get branches for {project}")
+            logger.warning(f"Failed to get branches for {project}")
+            continue
+
+        if not args.start_branch in branches:
+            logger.error(f"{project} does not have {args.start_branch} branch")
+            continue
+        if args.branch in branches:
+            logger.info(
+                f"{project} already has {args.branch} branch, skipping yaml generation"
+            )
             continue
 
         # if gitlab project has ironbank.yaml:
