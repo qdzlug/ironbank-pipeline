@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import os
 import sys
 import tempfile
 from pathlib import Path
@@ -58,57 +57,57 @@ def main():
     gl = gitlab.Gitlab(args.repo1_url, private_token=args.repo1_token)
 
     for greylist in greylists:
-        # Path to the greylist in the repo
-        greylist_path = greylist.as_posix()
-        # Everything but the final *.greylist filename is the project name
-        project = "dsop/" + "/".join(greylist.parts[:-1])
-
-        logger.info(f"Processing {project}")
-
-        try:
-            gl_project = gl.projects.get(project, lazy=True)
-            branches = [b.name for b in gl_project.branches.list()]
-        except gitlab.exceptions.GitlabListError:
-            # Old greylists like dsop/opensource/foo/1.2.3/foo-1.2.3.greylist will result in an error that can be ignored
-            logger.warning(f"Failed to get branches for {project}")
-            continue
-
-        if not args.start_branch in branches:
-            logger.error(f"{project} does not have {args.start_branch} branch")
-            continue
-        if args.branch in branches:
-            logger.info(
-                f"{project} already has {args.branch} branch, skipping yaml generation"
-            )
-            continue
-
-        # if gitlab project has ironbank.yaml:
-        #   logger.info ironbank.yaml exists
-        #   continue
-
-        try:
-            yaml = generate.generate(
-                greylist_path=greylist_path, repo1_url=args.repo1_url
-            )
-        except Exception:
-            logger.exception("Failed to generate ironbank.yaml")
-            continue
-
-        # Stop processing at this point for a dry run
-        if args.dry_run:
-            continue
-
-        # try:
-        #   commit = create gitlab commit and branch
-        #   https://docs.gitlab.com/ee/api/commits.html#create-a-commit-with-multiple-files-and-actions
-        #     actions:
-        #        delete download.yaml download.json jenknsfile
-        #        create ironbank.yaml
-        #   mr = make gitlab mr
-        # except:
-        #   log error
+        _process_greylist(greylist, gl, **vars(args))
 
     return 0
+
+
+def _process_greylist(greylist, gl, dry_run, repo1_url, start_branch, branch, **kwargs):
+    # Path to the greylist in the repo
+    greylist_path = greylist.as_posix()
+    # Everything but the final *.greylist filename is the project name
+    project = "dsop/" + "/".join(greylist.parts[:-1])
+
+    logger.info(f"Processing {project}")
+
+    try:
+        gl_project = gl.projects.get(project, lazy=True)
+        branches = [b.name for b in gl_project.branches.list()]
+    except gitlab.exceptions.GitlabListError:
+        # Old greylists like dsop/opensource/foo/1.2.3/foo-1.2.3.greylist will result in an error that can be ignored
+        logger.warning(f"Failed to get branches for {project}")
+        return
+
+    if start_branch not in branches:
+        logger.error(f"{project} does not have {start_branch} branch")
+        return
+    if branch in branches:
+        logger.info(f"{project} already has {branch} branch, skipping yaml generation")
+        return
+
+    # if gitlab project has ironbank.yaml:
+    #   logger.info ironbank.yaml exists
+    #   return
+
+    try:
+        yaml = generate.generate(greylist_path=greylist_path, repo1_url=repo1_url)
+    except Exception:
+        logger.exception("Failed to generate ironbank.yaml")
+        return
+
+    # Stop processing at this point for a dry run
+    if dry_run:
+        return
+
+    # try:
+    #   commit = create gitlab commit and branch
+    #   https://docs.gitlab.com/ee/api/commits.html#create-a-commit-with-multiple-files-and-actions
+    #     actions:
+    #        delete download.yaml download.json jenknsfile
+    #        create ironbank.yaml
+    #   mr = make gitlab mr
+    # except:
+    #   log error
 
 
 def _list_greylists(repo1_url, path):
