@@ -10,14 +10,45 @@ import git
 import generate
 import gitlab
 
-MR_DESCRIPTION = """Migrate to ironbank.yaml
+MR_DESCRIPTION = """Please review the contents of the new `ironbank.yaml` file.
 
-Please review the contents of the new `ironbank.yaml` file.
+The `image_name`, `image_tag`, `image_parent_name`, `image_parent_tag`, and
+`container_owner` fields in the greylist will no longer be used. The greylist
+will be updated in a future MR.
 
-* [ ] Add any additional internal or external maintainers to the
-  `maintainers:` list.
-* [ ] Add any required build args to the `args:` list.
-* [ ] ...
+`image_name` and `image_tag` have been replaced with the new `name` and `tags`
+fields in `ironbank.yaml`. It is now possible for the pipeline to build
+different tags on each branch. This allows us to rebuild the `master` branch
+while you work on an update with a new tag in `development` and feature
+branches.
+
+`image_parent_name` and `image_parent_tag` have been replaced by
+`BASE_IMAGE_NAME` and `BASE_IMAGE_TAG` in the `args:` section of
+`ironbank.yaml`.
+
+The current `container_owner` has been migrated to the `maintainers:` section
+of `ironbank.yaml`. _Please_ add any additional external vendor contacts or
+CHT internal members to this list if they maintain this container.
+
+*   [ ] Add any additional internal or external maintainers to the
+    `maintainers:` list. At least one `cht_member` should be present and a
+    vendor contact if this is a non-opensource image.
+*   [ ] Add any required build args to the `args:` list. For example, you may
+    want to add a  custom `VERSION` build arg to simplify your `Dockerfile`.
+*   [ ] `org.opencontainers.image.title` ...
+*   [ ] `org.opencontainers.image.description` ...
+*   [ ] `org.opencontainers.image.licenses` Please ensure the license(s) are
+    correctly listed. If an open source license is used, please list the
+    [SPDX identifier](https://spdx.org/licenses). If this is a commercial image
+    you list "ACME Inc. proprietary license" or similar. If the same image
+    is available under multiple licenses, you may list "MIT,Apache-2.0" or
+    "AGPL-3.0,ACME Inc. proprietary license" as appropriate.
+*   [ ] `org.opencontainers.image.url` ...
+*   [ ] `org.opencontainers.image.vendor` ...
+*   [ ] `org.opencontainers.image.version` ...
+*   [ ] `io.dsop.ironbank.image.keywords` ...
+*   [ ] `io.dsop.ironbank.image.type` ...
+*   [ ] `io.dsop.ironbank.product.name` ...
 """
 
 logger = logging.getLogger("ironbank_yaml.migration")
