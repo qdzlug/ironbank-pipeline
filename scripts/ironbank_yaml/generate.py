@@ -89,7 +89,7 @@ def build_ironbank_yaml(alldata):
     pprint.pprint(alldata)
 
 
-def generate(greylist_path, repo1_url, group="dsop"):
+def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group="dsop"):
     project_path = "/".join(greylist_path.split("/")[:-1])
 
     project_url = f"{repo1_url}/{group}/{project_path}"
@@ -99,7 +99,7 @@ def generate(greylist_path, repo1_url, group="dsop"):
         greylist = fetch_file(
             url=greylist_url,
             file=f"{greylist_path}",
-            branch="master",
+            branch=dccscr_whitelists_branch,
         )
         if greylist is None:
             raise FileNotFound("Did not find greylist")
