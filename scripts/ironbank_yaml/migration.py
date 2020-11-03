@@ -8,8 +8,9 @@ from pathlib import Path
 import logging
 
 import git
+import generate
+import gitlab
 
-logging.basicConfig(level=logging.WARNING, stream=sys.stdout)
 logger = logging.getLogger("ironbank_yaml.migration")
 
 
@@ -49,26 +50,48 @@ def main():
     )
     args = parser.parse_args()
 
-    logger.setLevel(args.log_level)
+    logging.basicConfig(level=args.log_level, stream=sys.stdout)
 
     with tempfile.TemporaryDirectory(prefix="ironbank-yaml-migration-") as tempdir:
-        projects = _list_projects(args.repo1_url, tempdir)
+        greylists = _list_greylists(args.repo1_url, tempdir)
 
-    for project in projects:
+    gl = gitlab.Gitlab(args.repo1_url, private_token=args.repo1_token)
+
+    for greylist in greylists:
+        # Path to the greylist in the repo
+        greylist_path = greylist.as_posix()
+        # Everything but the final *.greylist filename is the project name
+        project = "dsop/" + "/".join(greylist.parts[:-1])
+
         logger.info(f"Processing {project}")
 
-        # if gitlab branch exists:
-        #   logger.info branch exists
-        #   continue
+        try:
+            gl_project = gl.projects.get(project, lazy=True)
+            branches = [b.name for b in gl_project.branches.list()]
+            if not args.start_branch in branches:
+                logger.error(f"{project} does not have {args.start_branch} branch")
+                continue
+            if args.branch in branches:
+                logger.info(
+                    f"{project} already has {args.branch} branch, skipping yaml generation"
+                )
+                continue
+        except gitlab.exceptions.GitlabListError:
+            # Old greylists like dsop/opensource/foo/1.2.3/foo-1.2.3.greylist will result in an error that can be ignored
+            logger.error(f"Failed to get branches for {project}")
+            continue
 
         # if gitlab project has ironbank.yaml:
         #   logger.info ironbank.yaml exists
         #   continue
 
-        # try:
-        #   yaml = generate.generate(repo1_url, project_name)
-        # except:
-        #   log error
+        try:
+            yaml = generate.generate(
+                greylist_path=greylist_path, repo1_url=args.repo1_url
+            )
+        except Exception:
+            logger.exception("Failed to generate ironbank.yaml")
+            continue
 
         # Stop processing at this point for a dry run
         if args.dry_run:
@@ -87,17 +110,16 @@ def main():
     return 0
 
 
-def _list_projects(repo1_url, path):
+def _list_greylists(repo1_url, path):
     """
-    Create the list of projects from greylist files
+    Create the list of grelists from dccscr-whitelists repo
     """
     whitelist_dir = "dccscr-whitelists"
     whitelist_repo_url = f"{repo1_url}/dsop/{whitelist_dir}.git"
     logger.info(f"Cloning {whitelist_repo_url}")
     git.Repo.clone_from(whitelist_repo_url, path)
     for greylist in Path(path).glob("**/*.greylist"):
-        # Everything but the *.greylist filename is the image name
-        yield "/".join(greylist.relative_to(path).parts[:-1])
+        yield greylist.relative_to(path)
 
 
 if __name__ == "__main__":
