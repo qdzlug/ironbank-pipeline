@@ -51,18 +51,22 @@ def main():
 
     logging.basicConfig(level=args.log_level, stream=sys.stdout)
 
-    with tempfile.TemporaryDirectory(prefix="ironbank-yaml-migration-") as tempdir:
-        greylists = _list_greylists(args.repo1_url, tempdir)
-
     gl = gitlab.Gitlab(args.repo1_url, private_token=args.repo1_token)
-
+    greylists = _list_greylists(args.repo1_url)
     for greylist in greylists:
         _process_greylist(greylist, gl, **vars(args))
 
-    return 0
 
-
-def _process_greylist(greylist, gl, dry_run, repo1_url, start_branch, branch, **kwargs):
+def _process_greylist(
+    greylist,
+    gl,
+    dry_run,
+    repo1_url,
+    start_branch,
+    branch,
+    dccscr_whitelists_branch="master",
+    **kwargs,
+):
     # Path to the greylist in the repo
     greylist_path = greylist.as_posix()
     # Everything but the final *.greylist filename is the project name
@@ -90,7 +94,11 @@ def _process_greylist(greylist, gl, dry_run, repo1_url, start_branch, branch, **
     #   return
 
     try:
-        yaml = generate.generate(greylist_path=greylist_path, repo1_url=repo1_url)
+        yaml = generate.generate(
+            greylist_path=greylist_path,
+            repo1_url=repo1_url,
+            dccscr_whitelists_branch=dccscr_whitelists_branch,
+        )
     except Exception:
         logger.exception("Failed to generate ironbank.yaml")
         return
@@ -110,17 +118,19 @@ def _process_greylist(greylist, gl, dry_run, repo1_url, start_branch, branch, **
     #   log error
 
 
-def _list_greylists(repo1_url, path):
+def _list_greylists(repo1_url):
     """
-    Create the list of grelists from dccscr-whitelists repo
+    Create the list of greylists from dccscr-whitelists repo
     """
     whitelist_dir = "dccscr-whitelists"
     whitelist_repo_url = f"{repo1_url}/dsop/{whitelist_dir}.git"
     logger.info(f"Cloning {whitelist_repo_url}")
-    git.Repo.clone_from(whitelist_repo_url, path)
-    for greylist in Path(path).glob("**/*.greylist"):
-        yield greylist.relative_to(path)
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        git.Repo.clone_from(whitelist_repo_url, tempdir)
+        for greylist in Path(tempdir).glob("**/*.greylist"):
+            yield greylist.relative_to(tempdir)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
