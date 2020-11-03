@@ -10,6 +10,16 @@ import git
 import generate
 import gitlab
 
+MR_DESCRIPTION = """Migrate to ironbank.yaml
+
+Please review the contents of the new `ironbank.yaml` file.
+
+* [ ] Add any additional internal or external maintainers to the
+  `maintainers:` list.
+* [ ] Add any required build args to the `args:` list.
+* [ ] ...
+"""
+
 logger = logging.getLogger("ironbank_yaml.migration")
 
 
@@ -85,13 +95,20 @@ def _process_greylist(
     if start_branch not in branches:
         logger.error(f"{project} does not have {start_branch} branch")
         return
+
     if branch in branches:
-        logger.info(f"{project} already has {branch} branch, skipping yaml generation")
+        logger.info(f"{project} already has {branch} branch, skipping")
         return
 
-    # if gitlab project has ironbank.yaml:
-    #   logger.info ironbank.yaml exists
-    #   return
+    try:
+        tree = [f["path"] for f in gl_project.repository_tree(ref=start_branch)]
+    except gitlab.exceptions.GitlabError:
+        logger.exception(f"Failed to list repository tree for {project}")
+        return
+
+    if "ironbank.yaml" in tree:
+        logger.info(f"{project} already has ironbank.yaml, skipping")
+        return
 
     try:
         yaml = generate.generate(
@@ -107,15 +124,53 @@ def _process_greylist(
     if dry_run:
         return
 
-    # try:
-    #   commit = create gitlab commit and branch
-    #   https://docs.gitlab.com/ee/api/commits.html#create-a-commit-with-multiple-files-and-actions
-    #     actions:
-    #        delete download.yaml download.json jenknsfile
-    #        create ironbank.yaml
-    #   mr = make gitlab mr
-    # except:
-    #   log error
+    actions = [
+        {
+            "action": "create",
+            "file_path": "ironbank.yaml",
+            "content": "TODO",
+        },
+    ]
+
+    for path in ("Jenkinsfile", "download.json", "download.yaml"):
+        if path in tree:
+            actions.append(
+                {
+                    "action": "delete",
+                    "file_path": path,
+                }
+            )
+
+    try:
+        # https://docs.gitlab.com/ee/api/commits.html#create-a-commit-with-multiple-files-and-actions
+        gl_project.commits.create(
+            {
+                "commit_message": "Migrate to ironbank.yaml",
+                "branch": branch,
+                "start_branch": start_branch,
+                "actions": actions,
+            }
+        )
+    except gitlab.exceptions.GitlabError:
+        logger.exception(f"Failed to create commit on {project}")
+        return
+
+    try:
+        # https://docs.gitlab.com/ee/api/merge_requests.html#create-mr
+        gl_project.mergerequests.create(
+            {
+                "source_branch": branch,
+                "target_branch": start_branch,
+                "title": "Migrate to ironbank.yaml",
+                "labels": ["ironbank.yaml migration"],
+                "description": MR_DESCRIPTION,
+            }
+        )
+    except gitlab.exceptions.GitlabError:
+        logger.exception(f"Failed to make MR on {project}")
+        return
+
+    logger.info(f"MR successfully created on {project}")
 
 
 def _list_greylists(repo1_url):
