@@ -8,6 +8,7 @@ import pathlib
 import logging
 import argparse
 import requests
+import jsonschema
 
 # TODO: Remove this
 import pprint
@@ -20,7 +21,7 @@ class FileNotFound(Exception):
     pass
 
 
-def fetch_file(url, file, branch):
+def _fetch_file(url, file, branch):
     url = f"{url}/-/raw/{branch}/{file}"
 
     logger.debug(url)
@@ -34,7 +35,7 @@ def fetch_file(url, file, branch):
         return r.text
 
 
-def parse_jenkins(jenkinsfile):
+def _parse_jenkins(jenkinsfile):
     version_regex = r"(?<=version:)[ \t]+((?<![\\])['\"])((?:.(?!(?<![\\])\1))*.?)"
 
     v = re.search(version_regex, jenkinsfile)
@@ -50,7 +51,7 @@ def parse_jenkins(jenkinsfile):
     return v
 
 
-def prepare_data(greylist, download, jenkinsfile=None):
+def _prepare_data(greylist, download, jenkinsfile=None):
     return_dict = dict()
 
     greylist_dict = None
@@ -78,15 +79,67 @@ def prepare_data(greylist, download, jenkinsfile=None):
 
     version = None
     if jenkinsfile is not None:
-        version = parse_jenkins(jenkinsfile)
+        version = _parse_jenkins(jenkinsfile)
         if version is not None:
             return_dict.update({"version": version})
 
     return return_dict
 
 
-def build_ironbank_yaml(alldata):
-    pprint.pprint(alldata)
+def _build_ironbank_yaml(alldata):
+    ironbank = dict()
+    ironbank_yaml = f"""
+apiVersion: v1
+name: {alldata["image_name"].split("/")[-1]}
+tags:
+- "latest"
+- "{alldata["version"]}"
+args:
+  BASE_IMAGE_NAME: "{alldata["image_parent_name"]}"
+  BASE_IMAGE_TAG: "{alldata["image_parent_tag"]}"
+labels:
+  org.opencontainers.image.title: "{alldata["image_name"].split("/")[-1]}"
+  org.opencontainers.image.description: "TODO"
+  org.opencontainers.image.licenses: "TODO"
+  org.opencontainers.image.url: "TODO"
+  org.opencontainers.image.vendor: "TODO"
+  org.opencontainers.image.version: "{alldata["version"]}"
+  io.dsop.ironbank.image.keywords: "TODO"
+  io.dsop.ironbank.image.type: "TODO"
+  io.dsop.ironbank.product.name: "TODO"
+  maintainer: "ironbank@dsop.io"
+resources:
+{yaml.dump(alldata["resources"])}
+# Fill in the following details for the current container owner
+maintainers:
+- name: "TODO"
+  username: "TODO"
+  email: "{alldata["container_owner"]}"
+#   cht_member: true
+# - name: "TODO"
+#   username: "TODO"
+#   email: "TODO"
+"""
+    logger.info("Validating schema")
+    try:
+        ib = yaml.safe_load(ironbank_yaml)
+    except yaml.YAMLError as e:
+        raise e
+
+    with open("../../schema/ironbank.schema.json", "r") as s:
+        schema_s = s.read()
+        try:
+            schema = json.loads(schema_s)
+        except json.JSONDecodeError as e:
+            raise e
+
+        try:
+            jsonschema.validate(ib, schema)
+        except jsonschema.exceptions.ValidationError as e:
+            raise e
+
+    logger.info("Passed schema validation")
+    return ironbank_yaml
 
 
 def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group="dsop"):
@@ -96,7 +149,7 @@ def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group=
     greylist_url = f"{repo1_url}/{group}/dccscr-whitelists"
 
     try:
-        greylist = fetch_file(
+        greylist = _fetch_file(
             url=greylist_url,
             file=f"{greylist_path}",
             branch=dccscr_whitelists_branch,
@@ -104,17 +157,20 @@ def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group=
         if greylist is None:
             raise FileNotFound("Did not find greylist")
 
-        download = fetch_file(
+        download = _fetch_file(
             url=project_url, file="download.json", branch="development"
         )
 
         if download is None:
-            download = fetch_file(
+            download = _fetch_file(
                 url=project_url, file="download.yaml", branch="development"
             )
 
+        if download is None:
+            raise FileNotFound("Did not find download.{yaml,json}")
+
         try:
-            jenkinsfile = fetch_file(
+            jenkinsfile = _fetch_file(
                 url=project_url, file="Jenkinsfile", branch="development"
             )
         except requests.exceptions.RequestException:
@@ -125,17 +181,32 @@ def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group=
     except requests.exceptions.RequestException as e:
         raise e
 
-    alldata = prepare_data(greylist, download, jenkinsfile)
-    build_ironbank_yaml(alldata)
-
-    return 0
+    alldata = _prepare_data(greylist, download, jenkinsfile)
+    return _build_ironbank_yaml(alldata)
 
 
 if __name__ == "__main__":
-    generate(
-        greylist_path="anchore/enterprise/enterprise/enterprise.greylist",
-        repo1_url="https://repo1.dsop.io",
+    print(
+        generate(
+            greylist_path="anchore/enterprise/enterprise/enterprise.greylist",
+            repo1_url="https://repo1.dsop.io",
+        )
     )
-    generate(
-        greylist_path="redhat/ubi/ubi8/ubi8.greylist", repo1_url="https://repo1.dsop.io"
+    print(
+        generate(
+            greylist_path="redhat/ubi/ubi8/ubi8.greylist",
+            repo1_url="https://repo1.dsop.io",
+        )
+    )
+    print(
+        generate(
+            greylist_path="opensource/mattermost/mattermost/mattermost.greylist",
+            repo1_url="https://repo1.dsop.io",
+        )
+    )
+    print(
+        generate(
+            greylist_path="atlassian/jira-data-center/jira-node/jira-node.greylist",
+            repo1_url="https://repo1.dsop.io",
+        )
     )
