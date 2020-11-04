@@ -57,7 +57,7 @@ logger = logging.getLogger("ironbank_yaml.migration")
 def main():
     parser = argparse.ArgumentParser(description="TODO")
     parser.add_argument(
-        "--dry-run",
+        "--force",
         default=False,
         type=bool,
         help="Testing flag to dry run the script",
@@ -92,6 +92,11 @@ def main():
 
     logging.basicConfig(level=args.log_level, stream=sys.stdout)
 
+    if not args.force:
+        logger.warning(
+            f"Running in dry run mode, pass --force to this script to create MRs"
+        )
+
     gl = gitlab.Gitlab(args.repo1_url, private_token=args.repo1_token)
     greylists = _list_greylists(args.repo1_url)
     for greylist in greylists:
@@ -101,7 +106,7 @@ def main():
 def _process_greylist(
     greylist,
     gl,
-    dry_run,
+    force,
     repo1_url,
     start_branch,
     branch,
@@ -152,14 +157,14 @@ def _process_greylist(
         return
 
     # Stop processing at this point for a dry run
-    if dry_run:
+    if not force:
         return
 
     actions = [
         {
             "action": "create",
             "file_path": "ironbank.yaml",
-            "content": "TODO",
+            "content": yaml,
         },
     ]
 

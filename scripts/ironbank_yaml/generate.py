@@ -6,6 +6,7 @@ import yaml
 import json
 import logging
 import requests
+import os
 import jsonschema
 
 
@@ -145,7 +146,10 @@ maintainers:
     except yaml.YAMLError as e:
         raise e
 
-    with open("../../schema/ironbank.schema.json", "r") as s:
+    schema_path = os.path.join(
+        os.path.dirname(__file__), "../../schema/ironbank.schema.json"
+    )
+    with open(schema_path, "r") as s:
         schema_s = s.read()
         try:
             schema = json.loads(schema_s)
