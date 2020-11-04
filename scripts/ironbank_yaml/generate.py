@@ -84,14 +84,23 @@ def _prepare_data(greylist, download, jenkinsfile=None):
 
 def _build_ironbank_yaml(data):
     ironbank_yaml = f"""
+# Schema version of ironbank.yaml
 apiVersion: v1
-name: {data["image_name"].split("/")[-1]}
+
+# Name matches the repository name in registry1
+name: "{data["image_name"]}"
+
+# List of tags to push for the repository in registry1
 tags:
 - "latest"
 - "{data["version"]}"
+
+# Arguments to inject to the build context
 args:
   BASE_IMAGE_NAME: "{data["image_parent_name"]}"
   BASE_IMAGE_TAG: "{data["image_parent_tag"]}"
+
+# Labels to apply to the image
 labels:
   org.opencontainers.image.title: "{data["image_name"].split("/")[-1]}"
   # TODO: Human-readable description of the software packaged in the image
@@ -109,11 +118,16 @@ labels:
   io.dsop.ironbank.image.type: ""
   io.dsop.ironbank.product.name: "{data["image_name"].split("/")[0]}"
   maintainer: "ironbank@dsop.io"
+
+# List of resources to make available to the offline build context
 resources:
 {yaml.dump(data["resources"]).strip()}
+
 # TODO: Fill in the following details for the current container owner in the whitelist
 # TODO: Include any other vendor information if applicable
 # NOTE: Uncomment or add `cht_member: true` if the maintainer is a member of CHT
+# List of project maintainers
+# New issues may automatically be assigned to project maintainers
 maintainers:
   # TODO: Include the name of the current container owner
 - name: ""
