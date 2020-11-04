@@ -4,14 +4,10 @@ import re
 import sys
 import yaml
 import json
-import pathlib
 import logging
-import argparse
 import requests
 import jsonschema
 
-# TODO: Remove this
-import pprint
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 logger = logging.getLogger("ironbank_yaml.generate")
@@ -66,7 +62,7 @@ def _prepare_data(greylist, download, jenkinsfile=None):
     download_dict = None
     try:
         download_dict = json.loads(download)
-    except json.JSONDecodeError as e:
+    except json.JSONDecodeError:
         pass
 
     if download_dict is None:
@@ -86,35 +82,44 @@ def _prepare_data(greylist, download, jenkinsfile=None):
     return return_dict
 
 
-def _build_ironbank_yaml(alldata):
-    ironbank = dict()
+def _build_ironbank_yaml(data):
     ironbank_yaml = f"""
 apiVersion: v1
-name: {alldata["image_name"].split("/")[-1]}
+name: {data["image_name"].split("/")[-1]}
 tags:
 - "latest"
-- "{alldata["version"]}"
+- "{data["version"]}"
 args:
-  BASE_IMAGE_NAME: "{alldata["image_parent_name"]}"
-  BASE_IMAGE_TAG: "{alldata["image_parent_tag"]}"
+  BASE_IMAGE_NAME: "{data["image_parent_name"]}"
+  BASE_IMAGE_TAG: "{data["image_parent_tag"]}"
 labels:
-  org.opencontainers.image.title: "{alldata["image_name"].split("/")[-1]}"
-  org.opencontainers.image.description: "TODO"
-  org.opencontainers.image.licenses: "TODO"
-  org.opencontainers.image.url: "TODO"
-  org.opencontainers.image.vendor: "TODO"
-  org.opencontainers.image.version: "{alldata["version"]}"
-  io.dsop.ironbank.image.keywords: "TODO"
-  io.dsop.ironbank.image.type: "TODO"
-  io.dsop.ironbank.product.name: "TODO"
+  org.opencontainers.image.title: "{data["image_name"].split("/")[-1]}"
+  # TODO: Human-readable description of the software packaged in the image
+  org.opencontainers.image.description: ""
+  # TODO: License(s) under which contained software is distributed
+  org.opencontainers.image.licenses: ""
+  # TODO: URL to find more information on the image
+  org.opencontainers.image.url: ""
+  # TODO: Name of the distributing entity, organization or individual
+  org.opencontainers.image.vendor: ""
+  org.opencontainers.image.version: "{data["version"]}"
+  # TODO: Keywords to help with search (ex. "cicd,gitops,golang")
+  io.dsop.ironbank.image.keywords: ""
+  # TODO: This value can be "opensource" or "commercial"
+  io.dsop.ironbank.image.type: ""
+  io.dsop.ironbank.product.name: "{data["image_name"].split("/")[0]}"
   maintainer: "ironbank@dsop.io"
 resources:
-{yaml.dump(alldata["resources"])}
-# Fill in the following details for the current container owner
+{yaml.dump(data["resources"]).strip()}
+# TODO: Fill in the following details for the current container owner in the whitelist
+# TODO: Include any other vendor information if applicable
+# NOTE: Uncomment or add `cht_member: true` if the maintainer is a member of CHT
 maintainers:
-- name: "TODO"
-  username: "TODO"
-  email: "{alldata["container_owner"]}"
+  # TODO: Include the name of the current container owner
+- name: ""
+  # TODO: Include the gitlab username of the current container owner
+  username: ""
+  email: "{data["container_owner"]}"
 #   cht_member: true
 # - name: "TODO"
 #   username: "TODO"
@@ -151,7 +156,7 @@ def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group=
     try:
         greylist = _fetch_file(
             url=greylist_url,
-            file=f"{greylist_path}",
+            file=greylist_path,
             branch=dccscr_whitelists_branch,
         )
         if greylist is None:
@@ -178,35 +183,44 @@ def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group=
 
     except FileNotFound as e:
         raise e
+
     except requests.exceptions.RequestException as e:
         raise e
 
-    alldata = _prepare_data(greylist, download, jenkinsfile)
-    return _build_ironbank_yaml(alldata)
+    data = _prepare_data(greylist, download, jenkinsfile)
+    return _build_ironbank_yaml(data)
 
 
 if __name__ == "__main__":
+    greylist_path = "anchore/enterprise/enterprise/enterprise.greylist"
+    logger.info(f"Processing {greylist_path}")
     print(
         generate(
-            greylist_path="anchore/enterprise/enterprise/enterprise.greylist",
+            greylist_path=greylist_path,
             repo1_url="https://repo1.dsop.io",
         )
     )
+    greylist_path = "redhat/ubi/ubi8/ubi8.greylist"
+    logger.info(f"Processing {greylist_path}")
     print(
         generate(
-            greylist_path="redhat/ubi/ubi8/ubi8.greylist",
+            greylist_path=greylist_path,
             repo1_url="https://repo1.dsop.io",
         )
     )
+    greylist_path = "opensource/mattermost/mattermost/mattermost.greylist"
+    logger.info(f"Processing {greylist_path}")
     print(
         generate(
-            greylist_path="opensource/mattermost/mattermost/mattermost.greylist",
+            greylist_path=greylist_path,
             repo1_url="https://repo1.dsop.io",
         )
     )
+    greylist_path = "atlassian/jira-data-center/jira-node/jira-node.greylist"
+    logger.info(f"Processing {greylist_path}")
     print(
         generate(
-            greylist_path="atlassian/jira-data-center/jira-node/jira-node.greylist",
+            greylist_path=greylist_path,
             repo1_url="https://repo1.dsop.io",
         )
     )
