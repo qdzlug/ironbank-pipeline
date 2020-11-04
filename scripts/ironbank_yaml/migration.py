@@ -94,7 +94,7 @@ def main():
 
     if not args.force:
         logger.warning(
-            f"Running in dry run mode, pass --force to this script to create MRs"
+            "Running in dry run mode, pass --force to this script to create MRs"
         )
 
     gl = gitlab.Gitlab(args.repo1_url, private_token=args.repo1_token)
@@ -152,6 +152,9 @@ def _process_greylist(
             repo1_url=repo1_url,
             dccscr_whitelists_branch=dccscr_whitelists_branch,
         )
+    except generate.FileNotFound as e:
+        logger.error(f"File not found in {project}: {e}")
+        return
     except Exception:
         logger.exception("Failed to generate ironbank.yaml")
         return
