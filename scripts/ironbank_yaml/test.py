@@ -11,7 +11,7 @@ gl = gitlab.Gitlab("https://repo1.dsop.io/", private_token=sys.argv[1])
 migration._process_greylist(
     greylist=Path("opensource/pipeline-test-project/kubectl/kubectl.greylist"),
     gl=gl,
-    dry_run=False,
+    force=True,
     repo1_url="https://repo1.dsop.io/",
     branch="ironbank-yaml-migration",
     start_branch="development",
