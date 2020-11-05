@@ -18,7 +18,11 @@ class FileNotFound(Exception):
     pass
 
 
-def _fetch_file(url, file, branch):
+def _fetch_file(url, file, branch="development"):
+    """
+    Grabs a raw file from gitlab.
+
+    """
     url = f"{url}/-/raw/{branch}/{file}"
 
     logger.debug(url)
@@ -32,7 +36,11 @@ def _fetch_file(url, file, branch):
         return r.text
 
 
-def _parse_jenkins(jenkinsfile):
+def _pluck_version(jenkinsfile):
+    """
+    Pluck out the version string from the Jenkinsfile using regex
+
+    """
     version_regex = r"(?<=version:)[ \t]+((?<![\\])['\"])((?:.(?!(?<![\\])\1))*.?)"
 
     v = re.search(version_regex, jenkinsfile)
@@ -42,14 +50,21 @@ def _parse_jenkins(jenkinsfile):
     # leading spaces will be captured. Also the beginning quote is used
     # as the back-reference group so it will be captured. Strip the
     # whitespace and remove the beginning quote.
-    v = v.group().strip()[1:]
+    if v is not None:
+        v = v.group().strip()[1:]
+        logger.debug(f"Discovered version: {v}")
 
-    logger.debug(f"Discovered version: {v}")
     return v
 
 
 def _prepare_data(greylist, download, jenkinsfile=None):
-    return_dict = dict()
+    """
+    Load all the files into Python dictionaries and then smash them all together
+    into a metadata dictionary. Perform some validation of the data that was
+    gathered and then return the metadata.
+
+    """
+    metadata = dict()
 
     greylist_dict = None
     try:
@@ -61,7 +76,7 @@ def _prepare_data(greylist, download, jenkinsfile=None):
     except json.JSONDecodeError as e:
         raise e
 
-    return_dict.update(greylist_dict)
+    metadata.update(greylist_dict)
 
     # Handle the case where download.{yaml,json} is missing
     if download is not None:
@@ -78,34 +93,40 @@ def _prepare_data(greylist, download, jenkinsfile=None):
                 pass
 
         if download_dict is not None and download_dict["resources"] is not None:
-            return_dict.update(download_dict)
+            metadata.update(download_dict)
 
     version = None
     if jenkinsfile is not None:
-        version = _parse_jenkins(jenkinsfile)
+        version = _pluck_version(jenkinsfile)
         if version is not None:
-            return_dict.update({"version": version})
+            metadata.update({"version": version})
 
     try:
-        return_dict["image_name"]
-        return_dict["image_parent_name"]
-        return_dict["image_parent_tag"]
-        return_dict["container_owner"]
+        metadata["image_name"]
+        metadata["image_parent_name"]
+        metadata["image_parent_tag"]
+        metadata["container_owner"]
     except KeyError as e:
         logger.exception("Malformed greylist file")
         raise e
 
-    return return_dict
+    return metadata
 
 
-def _build_ironbank_yaml(data):
+def _build_ironbank_yaml(metadata):
+    """
+    Construct the ironbank.yaml file using the metadata collected from the
+    greylist and download.yaml files. Build up a string that represents the
+    yaml file and then validate agains the ironbank yaml schema.
+
+    """
 
     ironbank_yaml = f"""---
 # Schema version of ironbank.yaml
 apiVersion: v1
 
 # Name matches the repository name in registry1
-name: "{data["image_name"]}"
+name: "{metadata["image_name"]}"
 
 # List of tags to push for the repository in registry1
 tags:
@@ -113,18 +134,18 @@ tags:
 """
 
     # Add the version to the tag list
-    if "version" in data and data["version"] != "latest":
-        ironbank_yaml += f'- "{data["version"]}"\n'
+    if "version" in metadata and metadata["version"] != "latest":
+        ironbank_yaml += f'- "{metadata["version"]}"\n'
 
     ironbank_yaml += f"""
 # Arguments to inject to the build context
 args:
-  BASE_IMAGE_NAME: "{data["image_parent_name"]}"
-  BASE_IMAGE_TAG: "{data["image_parent_tag"]}"
+  BASE_IMAGE_NAME: "{metadata["image_parent_name"]}"
+  BASE_IMAGE_TAG: "{metadata["image_parent_tag"]}"
 
 # Labels to apply to the image
 labels:
-  org.opencontainers.image.title: "{data["image_name"].split("/")[-1]}"
+  org.opencontainers.image.title: "{metadata["image_name"].split("/")[-1]}"
   # TODO: Human-readable description of the software packaged in the image
   org.opencontainers.image.description: ""
   # TODO: License(s) under which contained software is distributed
@@ -134,8 +155,8 @@ labels:
   # TODO: Name of the distributing entity, organization or individual
   org.opencontainers.image.vendor: ""
 """
-    if "version" in data:
-        ironbank_yaml += f'  org.opencontainers.image.version: "{data["version"]}"'
+    if "version" in metadata:
+        ironbank_yaml += f'  org.opencontainers.image.version: "{metadata["version"]}"'
     else:
         ironbank_yaml += "  # TODO: Version of the packaged software\n"
         ironbank_yaml += '  org.opencontainers.image.version: ""'
@@ -145,15 +166,15 @@ labels:
   io.dsop.ironbank.image.keywords: ""
   # TODO: This value can be "opensource" or "commercial"
   io.dsop.ironbank.image.type: ""
-  io.dsop.ironbank.product.name: "{data["image_name"].split("/")[0]}"
+  io.dsop.ironbank.product.name: "{metadata["image_name"].split("/")[0]}"
   maintainer: "ironbank@dsop.io"
 
 # List of resources to make available to the offline build context
 """
 
-    if "resources" in data:
+    if "resources" in metadata:
         ironbank_yaml += "resources:\n"
-        ironbank_yaml += yaml.dump(data["resources"]).strip()
+        ironbank_yaml += yaml.dump(metadata["resources"]).strip()
     else:
         ironbank_yaml += "resources: []"
 
@@ -169,7 +190,7 @@ maintainers:
 - name: ""
   # TODO: Include the gitlab username of the current container owner
   username: ""
-  email: "{data["container_owner"]}"
+  email: "{metadata["container_owner"]}"
 #   cht_member: true
 # - name: "TODO"
 #   username: "TODO"
@@ -177,11 +198,6 @@ maintainers:
 """
 
     logger.info("Validating schema")
-    try:
-        ib = yaml.safe_load(ironbank_yaml)
-    except yaml.YAMLError as e:
-        raise e
-
     schema_path = os.path.join(
         os.path.dirname(__file__), "../../schema/ironbank.schema.json"
     )
@@ -193,16 +209,31 @@ maintainers:
             raise e
 
         try:
+            ib = yaml.safe_load(ironbank_yaml)
+        except yaml.YAMLError as e:
+            raise e
+
+        try:
             jsonschema.validate(ib, schema)
         except jsonschema.exceptions.ValidationError as e:
             raise e
 
     logger.info("Passed schema validation")
-    # logger.info(ironbank_yaml)
     return ironbank_yaml
 
 
 def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group="dsop"):
+    """
+    Generate the ironbank.yaml file using information from:
+    - greylist
+    - download.{yaml,json}
+    - Jenkinsfile
+
+    The generated file is returned as a string. It will represent the contents
+    of the ironbank.yaml file and contain comments indicating where information
+    should be added or changed.
+
+    """
     project_path = "/".join(greylist_path.split("/")[:-1])
 
     project_url = f"{repo1_url}/{group}/{project_path}"
@@ -243,8 +274,8 @@ def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group=
     except requests.exceptions.RequestException as e:
         raise e
 
-    data = _prepare_data(greylist, download, jenkinsfile)
-    return _build_ironbank_yaml(data)
+    metadata = _prepare_data(greylist, download, jenkinsfile)
+    return _build_ironbank_yaml(metadata)
 
 
 #
@@ -252,15 +283,16 @@ def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group=
 #
 if __name__ == "__main__":
     test_set = [
-        "anchore/enterprise/enterprise/enterprise.greylist",
-        "redhat/ubi/ubi8/ubi8.greylist",
-        "opensource/mattermost/mattermost/mattermost.greylist",
-        "atlassian/jira-data-center/jira-node/jira-node.greylist",
-        "gitlab/gitlab/alpine-certificates/alpine-certificates.greylist",
-        "hashicorp/packer/packer/packer.greylist",
-        "google/distroless/cc/cc.greylist",
-        "oracle/oraclelinux/obi8/obi8.greylist",
-        "cloudfit/rabbitmq/rabbitmq/rabbitmq.greylist",
+        # "anchore/enterprise/enterprise/enterprise.greylist",
+        # "redhat/ubi/ubi8/ubi8.greylist",
+        # "opensource/mattermost/mattermost/mattermost.greylist",
+        # "atlassian/jira-data-center/jira-node/jira-node.greylist",
+        # "gitlab/gitlab/alpine-certificates/alpine-certificates.greylist",
+        # "hashicorp/packer/packer/packer.greylist",
+        # "google/distroless/cc/cc.greylist",
+        # "oracle/oraclelinux/obi8/obi8.greylist",
+        # "cloudfit/rabbitmq/rabbitmq/rabbitmq.greylist",
+        "redhat/scanning-reports/reportengine/reportengine.greylist",  # This one is weird, it has a greylist but doesn't look like an ib container
     ]
     for greylist_path in test_set:
         logger.info(f"Processing {greylist_path}")
