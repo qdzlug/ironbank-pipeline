@@ -4,39 +4,42 @@
     "title": "IronBank",
     "description": "Metadata surrounding an Iron Bank Container",
     "type": "object",
-    "$comment": "TODO: Figure out if there is a blacklist",
     "properties": {
         "apiVersion": {
             "description": "Version of Iron Bank metadata file",
             "type": "string"
         },
         "name": {
-            "$comment": "TODO: Should this be path?",
             "description": "Name of the Iron Bank container",
-            "type": "string"
+            "type": "string",
+            "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_.-]*/)*[a-zA-Z0-9][a-zA-Z0-9_.-]+$"
         },
         "tags": {
             "description": "Tags to tag an image with when pushed to registry1",
             "type": "array",
             "items": {
-                "type": "string"
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_.-]+$",
+                "maxLength": 128
             },
             "minItems": 1,
             "uniqueItems": true
         },
         "args": {
-            "$comment": "TODO: Do we want more args than this?",
             "description": "Arguments passed to image build",
             "type": "object",
             "properties": {
                 "BASE_IMAGE_NAME": {
-                    "$comment": "TODO: Handle empty strings in pipeline code for special cases [ubi/scratch]",
+                    "$comment": "May be an empty string if the Dockerfile does not use this variable",
                     "type": "string"
                 },
                 "BASE_IMAGE_TAG": {
-                    "$comment": "TODO: Handle empty strings in pipeline code for special cases [ubi/scratch]",
+                    "$comment": "May be an empty string if the Dockerfile does not use this variable",
                     "type": "string"
                 }
+            },
+            "propertyNames": {
+                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_.-]+$"
             },
             "required": [
                 "BASE_IMAGE_NAME",
@@ -54,7 +57,7 @@
                     "type": "string"
                 },
                 "org.opencontainers.image.licenses": {
-                    "$comment": "Made temporarily optional",
+                    "$comment": "MADE TEMPORARILY OPTIONAL",
                     "$comment": "See https://spdx.org/licenses/",
                     "type": "string"
                 },
@@ -69,22 +72,22 @@
                     "type": "string"
                 },
                 "io.dsop.ironbank.image.keywords": {
-                    "$comment": "Made temporarily optional",
-                    "$comment": "TODO: Make a decision on whether to lock this down to specific keywords [use an enum]",
+                    "$comment": "MADE TEMPORARILY OPTIONAL",
                     "type": "string"
                 },
                 "io.dsop.ironbank.image.type": {
-                    "$comment": "Made temporarily optional",
-                    "$comment": "TODO: lock this down to specific keywords",
                     "type": "string"
                 },
                 "io.dsop.ironbank.product.name": {
-                    "$comment": "Made temporarily optional",
+                    "$comment": "MADE TEMPORARILY OPTIONAL",
                     "type": "string"
                 },
                 "maintainer": {
                     "type": "string"
                 }
+            },
+            "propertyNames": {
+                "pattern": "^[a-z0-9]([.-]?[a-z0-9]+)*$"
             },
             "required": [
                 "org.opencontainers.image.title",
@@ -96,27 +99,34 @@
             ]
         },
         "resources": {
-            "$comment": "Is this strictly required?",
             "description": "Resources to download before building the image",
             "type": "array",
             "items": {
                 "type": "object",
                 "properties": {
                     "url": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^(s3|docker|https?)://.*$"
+                    },
+                    "filename": {
+                        "type": "string",
+                        "$comment": "Match against all printable ASCII characters except for /",
+                        "pattern": "^[A-Za-z0-9][\\x20-\\x2E\\x30-\\x7E]*$"
                     },
                     "tag": {
-                        "$comment": "Used for docker resources",
+                        "$comment": "Used only for docker:// resources",
                         "type": "string"
                     },
                     "validation": {
                         "type": "object",
                         "properties": {
                             "type": {
-                                "type": "string"
+                                "type": "string",
+                                "pattern": "^(sha256|sha512)$"
                             },
                             "value": {
-                                "type": "string"
+                                "type": "string",
+                                "pattern": "^[a-f0-9]+$"
                             }
                         },
                         "required": [
@@ -132,11 +142,14 @@
                             },
                             "region": {
                                 "type": "string"
+                            },
+                            "type": {
+                                "type": "string",
+                                "pattern": "^(basic)$"
                             }
                         },
                         "required": [
-                            "id",
-                            "region"
+                            "id"
                         ]
                     }
                 },
@@ -159,7 +172,8 @@
                         "type": "string"
                     },
                     "email": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "email"
                     },
                     "cht_member": {
                         "type": "boolean"

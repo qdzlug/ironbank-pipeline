@@ -284,16 +284,27 @@ def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group=
 #
 if __name__ == "__main__":
     test_set = [
-        "anchore/enterprise/enterprise/enterprise.greylist",
-        "redhat/ubi/ubi8/ubi8.greylist",
-        "opensource/mattermost/mattermost/mattermost.greylist",
-        "atlassian/jira-data-center/jira-node/jira-node.greylist",
-        "gitlab/gitlab/alpine-certificates/alpine-certificates.greylist",
-        "hashicorp/packer/packer/packer.greylist",
-        "google/distroless/cc/cc.greylist",
-        "oracle/oraclelinux/obi8/obi8.greylist",
-        "cloudfit/rabbitmq/rabbitmq/rabbitmq.greylist",
-        "redhat/scanning-reports/reportengine/reportengine.greylist",  # This one is weird, it has a greylist but doesn't look like an ib container
+        # "anchore/enterprise/enterprise/enterprise.greylist",
+        # "redhat/ubi/ubi8/ubi8.greylist",
+        # "opensource/mattermost/mattermost/mattermost.greylist",
+        # "atlassian/jira-data-center/jira-node/jira-node.greylist",
+        # "gitlab/gitlab/alpine-certificates/alpine-certificates.greylist",
+        # "hashicorp/packer/packer/packer.greylist",
+        # "google/distroless/cc/cc.greylist",
+        # "oracle/oraclelinux/obi8/obi8.greylist",
+
+        # Begin schema violations
+        # Old schema - validation is an array not object
+        # "cloudfit/rabbitmq/rabbitmq/rabbitmq.greylist",
+        "kong/kong/kongee/kongee.greylist",
+        # This one is weird, it has a greylist but doesn't look like an ib container
+        "redhat/scanning-reports/reportengine/reportengine.greylist",
+        # # These have duplicate items in download.yaml
+        # "kubeflow/kfserving-0.2.2/xgbserver-0.2.2/xgbserver-0.2.2.greylist",
+        # "kubeflow/katib/suggestion-nasrl-57c6abf76193/suggestion-nasrl-57c6abf76193.greylist",
+        "security-compass/jitt/nginx/nginx.greylist",
+        "security-compass/sd-elements/memcached/memcached.greylist",
+        "security-compass/sd-elements/mod_wsgi/mod_wsgi.greylist",
     ]
     for greylist_path in test_set:
         logger.info(f"Processing {greylist_path}")
