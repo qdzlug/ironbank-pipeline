@@ -20,10 +20,10 @@ folder structure:
         echo "LICENSE not found"
       fi
 
-build variables:
-  extends: folder structure
-  script:
-    - '"${PIPELINE_REPO_DIR}/stages/preflight/check_base_vars.sh"'
+# build variables:
+#   extends: folder structure
+#   script:
+#     - '"${PIPELINE_REPO_DIR}/stages/preflight/check_base_vars.sh"'
 
 source variables:
   extends: build variables
