@@ -55,24 +55,30 @@ def _prepare_data(greylist, download, jenkinsfile=None):
     try:
         greylist_dict = json.loads(greylist)
         greylist_dict.pop("whitelisted_vulnerabilities")
+    except KeyError:
+        # Pass if no whitelisted_vulnerabilities found
+        pass
     except json.JSONDecodeError as e:
         raise e
 
     return_dict.update(greylist_dict)
 
-    download_dict = None
-    try:
-        download_dict = json.loads(download)
-    except json.JSONDecodeError:
-        pass
-
-    if download_dict is None:
+    # Handle the case where download.{yaml,json} is missing
+    if download is not None:
+        download_dict = None
         try:
-            download_dict = yaml.safe_load(download)
-        except yaml.YAMLError as e:
-            raise e
+            download_dict = json.loads(download)
+        except json.JSONDecodeError:
+            pass
 
-    return_dict.update(download_dict)
+        if download_dict is None:
+            try:
+                download_dict = yaml.safe_load(download)
+            except yaml.YAMLError:
+                pass
+
+        if download_dict is not None and download_dict["resources"] is not None:
+            return_dict.update(download_dict)
 
     version = None
     if jenkinsfile is not None:
@@ -80,11 +86,21 @@ def _prepare_data(greylist, download, jenkinsfile=None):
         if version is not None:
             return_dict.update({"version": version})
 
+    try:
+        return_dict["image_name"]
+        return_dict["image_parent_name"]
+        return_dict["image_parent_tag"]
+        return_dict["container_owner"]
+    except KeyError as e:
+        logger.exception("Malformed greylist file")
+        raise e
+
     return return_dict
 
 
 def _build_ironbank_yaml(data):
-    ironbank_yaml = f"""
+
+    ironbank_yaml = f"""---
 # Schema version of ironbank.yaml
 apiVersion: v1
 
@@ -94,8 +110,13 @@ name: "{data["image_name"]}"
 # List of tags to push for the repository in registry1
 tags:
 - "latest"
-- "{data["version"]}"
+"""
 
+    # Add the version to the tag list
+    if "version" in data and data["version"] != "latest":
+        ironbank_yaml += f'- "{data["version"]}"\n'
+
+    ironbank_yaml += f"""
 # Arguments to inject to the build context
 args:
   BASE_IMAGE_NAME: "{data["image_parent_name"]}"
@@ -112,7 +133,14 @@ labels:
   org.opencontainers.image.url: ""
   # TODO: Name of the distributing entity, organization or individual
   org.opencontainers.image.vendor: ""
-  org.opencontainers.image.version: "{data["version"]}"
+"""
+    if "version" in data:
+        ironbank_yaml += f'  org.opencontainers.image.version: "{data["version"]}"'
+    else:
+        ironbank_yaml += "  # TODO: Version of the packaged software\n"
+        ironbank_yaml += '  org.opencontainers.image.version: ""'
+
+    ironbank_yaml += f"""
   # TODO: Keywords to help with search (ex. "cicd,gitops,golang")
   io.dsop.ironbank.image.keywords: ""
   # TODO: This value can be "opensource" or "commercial"
@@ -121,8 +149,15 @@ labels:
   maintainer: "ironbank@dsop.io"
 
 # List of resources to make available to the offline build context
-resources:
-{yaml.dump(data["resources"]).strip()}
+"""
+
+    if "resources" in data:
+        ironbank_yaml += "resources:\n"
+        ironbank_yaml += yaml.dump(data["resources"]).strip()
+    else:
+        ironbank_yaml += "resources: []"
+
+    ironbank_yaml += f"""
 
 # TODO: Fill in the following details for the current container owner in the whitelist
 # TODO: Include any other vendor information if applicable
@@ -140,6 +175,7 @@ maintainers:
 #   username: "TODO"
 #   email: "TODO"
 """
+
     logger.info("Validating schema")
     try:
         ib = yaml.safe_load(ironbank_yaml)
@@ -162,6 +198,7 @@ maintainers:
             raise e
 
     logger.info("Passed schema validation")
+    # logger.info(ironbank_yaml)
     return ironbank_yaml
 
 
@@ -172,6 +209,10 @@ def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group=
     greylist_url = f"{repo1_url}/{group}/dccscr-whitelists"
 
     try:
+        greylist = None
+        download = None
+        jenkinsfile = None
+
         greylist = _fetch_file(
             url=greylist_url,
             file=greylist_path,
@@ -188,9 +229,6 @@ def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group=
             download = _fetch_file(
                 url=project_url, file="download.yaml", branch="development"
             )
-
-        if download is None:
-            raise FileNotFound("Did not find download.{yaml,json}")
 
         try:
             jenkinsfile = _fetch_file(
@@ -209,36 +247,26 @@ def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group=
     return _build_ironbank_yaml(data)
 
 
+#
+#   Main function used for testing
+#
 if __name__ == "__main__":
-    greylist_path = "anchore/enterprise/enterprise/enterprise.greylist"
-    logger.info(f"Processing {greylist_path}")
-    print(
-        generate(
-            greylist_path=greylist_path,
-            repo1_url="https://repo1.dsop.io",
+    test_set = [
+        "anchore/enterprise/enterprise/enterprise.greylist",
+        "redhat/ubi/ubi8/ubi8.greylist",
+        "opensource/mattermost/mattermost/mattermost.greylist",
+        "atlassian/jira-data-center/jira-node/jira-node.greylist",
+        "gitlab/gitlab/alpine-certificates/alpine-certificates.greylist",
+        "hashicorp/packer/packer/packer.greylist",
+        "google/distroless/cc/cc.greylist",
+        "oracle/oraclelinux/obi8/obi8.greylist",
+        "cloudfit/rabbitmq/rabbitmq/rabbitmq.greylist",
+    ]
+    for greylist_path in test_set:
+        logger.info(f"Processing {greylist_path}")
+        print(
+            generate(
+                greylist_path=greylist_path,
+                repo1_url="https://repo1.dsop.io",
+            )
         )
-    )
-    greylist_path = "redhat/ubi/ubi8/ubi8.greylist"
-    logger.info(f"Processing {greylist_path}")
-    print(
-        generate(
-            greylist_path=greylist_path,
-            repo1_url="https://repo1.dsop.io",
-        )
-    )
-    greylist_path = "opensource/mattermost/mattermost/mattermost.greylist"
-    logger.info(f"Processing {greylist_path}")
-    print(
-        generate(
-            greylist_path=greylist_path,
-            repo1_url="https://repo1.dsop.io",
-        )
-    )
-    greylist_path = "atlassian/jira-data-center/jira-node/jira-node.greylist"
-    logger.info(f"Processing {greylist_path}")
-    print(
-        generate(
-            greylist_path=greylist_path,
-            repo1_url="https://repo1.dsop.io",
-        )
-    )
