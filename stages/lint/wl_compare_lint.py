@@ -31,57 +31,25 @@ def main():
     args = parser.parse_args()
 
     im_name = args.image
-    im_tag = args.tag
+    # TEST REMOVE im_tag = args.tag
     wl_branch = args.wlbranch
 
     im_name = "/".join(im_name.split("/")[1::])
 
-    # Make sure image name follows convention of depth of three directories e.g. 'redhat/ubi/ubi8'
-    # If not, throw error
-    # check_image_name_length(im_name)
     # get dccscr project object from GitLab
     proj = init(dccscr_project_id)
-    # check if image name/tag match whitelist values
-    does_image_exist(proj, im_name, im_tag, wl_branch)
+    
     # Check that image name/tag match provided project values, and all parent images
-    get_complete_whitelist_for_image(proj, im_name, im_tag, wl_branch)
-
-
-# def check_image_name_length(image_name):
-#   if not len(image_name.split('/')) == 3:
-#     print("Repo name error. Project should be nested three directories deep. e.g. 'redhat/ubi/ubi8'\nCurrent repo name: " + image_name, file=sys.stderr)
-#     sys.exit(1)
-#   return
-
-
-def does_image_exist(proj, im_name, im_tag, wl_branch):
-    filename = get_whitelist_filename(im_name, im_tag)
-    wl = get_whitelist_file_contents(proj, filename, wl_branch)
-    if wl["image_name"] != im_name or wl["image_tag"] != im_tag:
-        print(
-            "Whitelist retrieval error. Check that the project's GitLab reponame matches the whitelist's image name and that the version in the Jenkinsfile matches the whitelist's image tag.\nRepo name and Jenkinsfile version: "
-            + im_name
-            + ":"
-            + im_tag
-            + "\nWhitelist image_name and image_tag: "
-            + wl["image_name"]
-            + ":"
-            + wl["image_tag"],
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    return
-
+    get_complete_whitelist_for_image(proj, im_name, wl_branch)
 
 def get_complete_whitelist_for_image(
-    proj, im_name, im_tag, wl_branch, child_image_depth=0
+    proj, im_name, wl_branch, child_image_depth=0
 ):
-    filename = get_whitelist_filename(im_name, im_tag)
+    filename = get_whitelist_filename(im_name)
     contents = get_whitelist_file_contents(proj, filename, wl_branch)
 
     par_image = contents["image_parent_name"]
-    par_tag = contents["image_parent_tag"]
-
+    print(os.environ.get(f"{CI_COMMIT_BRANCH}"))
     if (
         contents["approval_status"] != "approved"
         and os.environ.get("CI_COMMIT_BRANCH").lower() == "master"
@@ -89,16 +57,11 @@ def get_complete_whitelist_for_image(
         print(f"Error: unapproved image running on master branch", file=sys.stderr)
         sys.exit(1)
 
-    if contents["image_name"] == im_name and contents["image_tag"] == im_tag:
-        if len(par_image) > 0 and len(par_tag) > 0:
-            print(
-                "Fetching Whitelisted CVEs from parent: " + par_image + ":" + par_tag,
-                file=sys.stderr,
-            )
+    if contents["image_name"] == im_name:
+        if len(par_image) > 0:
             get_complete_whitelist_for_image(
                 proj,
                 par_image,
-                par_tag,
                 wl_branch,
                 child_image_depth=child_image_depth + 1,
             )
@@ -108,13 +71,13 @@ def get_complete_whitelist_for_image(
                 print(
                     f"BASE_IMAGE={contents['image_parent_name']}"
                 )  # empty string for base image
-                print(
-                    f"BASE_TAG={contents['image_parent_tag']}"
-                )  # empty string for base image
+                # print(
+                #     f"BASE_TAG={contents['image_parent_tag']}"
+                # )  # empty string for base image
             else:
                 if contents["approval_status"] != "approved":
                     print(
-                        f"WARNING: unapproved parent image: {contents['image_name']}:{contents['image_tag']}",
+                        f"WARNING: unapproved parent image: {contents['image_name']}",
                         file=sys.stderr,
                     )
         # Output IMAGE_APPROVAL_STATUS for base images like UBI
@@ -129,16 +92,13 @@ def get_complete_whitelist_for_image(
             + ":"
             + contents["image_tag"]
             + "\nSupplied Image Name: "
-            + im_name
-            + ":"
-            + im_tag
-            + "\nCheck parent image tag in your whitelist file.",
+            + im_name,
             file=sys.stderr,
         )
         sys.exit(1)
 
 
-def get_whitelist_filename(im_name, im_tag):
+def get_whitelist_filename(im_name):
     dccscr_project = im_name.split("/")
     greylist_name = dccscr_project[-1] + ".greylist"
     dccscr_project.append(greylist_name)
