@@ -37,7 +37,7 @@ def main():
         print("No input file specified.")
         sys.exit(1)
 
-    print("Input file:", inputFile, file=sys.stderr)
+    # print("Input file:", inputFile, file=sys.stderr)
 
     ##### Read ironbank.yaml file
     with open(inputFile, "r") as file:
