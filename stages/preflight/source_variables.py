@@ -75,17 +75,17 @@ def main():
           except:
             print("There was an issue sourcing the args from ironbank.yaml", file=sys.stderr)
 
-        if type == "labels":
-          try:
-            labels_list = content["labels"]
-            labels_content = yaml.dump(labels_list)
-            labels = labels_content.split("\n")
-            for item in labels:
-              if len(item) > 0:
-                label_output = retrieve_content(item)
-                print(f"{label_output}")
-          except:
-            print("There was an issue sourcing the labels from ironbank.yaml", file=sys.stderr)
+        # if type == "labels":
+        #   try:
+        #     labels_list = content["labels"]
+        #     labels_content = yaml.dump(labels_list)
+        #     labels = labels_content.split("\n")
+        #     for item in labels:
+        #       if len(item) > 0:
+        #         label_output = retrieve_content(item)
+        #         print(f"{label_output}")
+        #   except:
+        #     print("There was an issue sourcing the labels from ironbank.yaml", file=sys.stderr)
 
         # "resources" intentionally left out
         # "resources" are covered in the downloader.py script in import artifacts
