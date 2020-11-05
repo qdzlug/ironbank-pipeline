@@ -23,7 +23,7 @@ def main():
 
     ##### Parse commandline arguments
     # Use the project ironbank.yaml file path if one exists
-    # Use the temp ironbank.yaml file path if not
+    # Use the generated ironbank.yaml file path if not
     inputFile = ""
     try:
       opts, args = getopt.getopt(sys.argv[1:], "hi:", ["ifile="])
@@ -42,47 +42,64 @@ def main():
     ##### Read ironbank.yaml file
     with open(inputFile, "r") as file:
         content = yaml.safe_load(file)
-      
-    # for type in content:
-    #   if type == "name":
-    #     for item in content.items():
-    #       test = item["name"]
-    #       print(test)
-          # name_content = item["name"]
-          # subprocess.call(["echo", name_content])
-          # print(item, ":")
     
+    destination_file_path = ">>source.env"
     for type in content:
-        if type == "name":
-          name_path = content["name"]
-          # subprocess.call(["echo", name_path])
-          print(name_path)
+        if type == "path":
+          try:
+            path_str = content["path"]
+            subprocess.call(["echo", path_str, destination_file_path])
+          except:
+            print("There was an issue with retrieving the image path in ironbank.yaml")
+
         if type == "tags":
-          tag_list = content["tags"]
-          x = 0
-          for index in tag_list:
-            tag = content["tags"][x]
-            # subprocess.call(["echo", tag])
-            print(tag)
-            x = x + 1
+          try:
+            tag_list = content["tags"]
+            x = 0
+            for item in tag_list:
+              tag = content["tags"][x]
+              subprocess.call(["echo", tag, destination_file_path])
+              x = x + 1
+          except:
+            print("There was an issue sourcing the tags from ironbank.yaml")
+
         if type == "args":
-          args_list = content["args"]
-          base_args = yaml.dump(args_list)
-          # subprocess.call(["echo", base_args])
-          print(base_args)
+          try:
+            args_list = content["args"]
+            base_args = yaml.dump(args_list)
+            base_args_content = base_args.split("\n")
+            for item in base_args_content:
+              if len(item) > 0:
+                arg_output = retrieve_content(item)
+                subprocess.call(["echo", arg_output, destination_file_path])
+          except:
+            print("There was an issue sourcing the args from ironbank.yaml")
+
         if type == "labels":
-          labels_list = content["labels"]
-          container_labels = yaml.dump(labels_list)
-          # subprocess.call(["echo", container_labels])
-          print(container_labels)
-        # I have left out "resources"
+          try:
+            labels_list = content["labels"]
+            labels_content = yaml.dump(labels_list)
+            labels = labels_content.split("\n")
+            for item in labels:
+              if len(item) > 0:
+                label_output = retrieve_content(item)
+                subprocess.call(["echo", label_output, destination_file_path])
+          except:
+            print("There was an issue sourcing the labels from ironbank.yaml")
+
+        # "resources" intentionally left out
         # "resources" are covered in the downloader.py script in import artifacts
-        if type == "maintainers":
-          maintainers_list = content["maintainers"]
-          maintainers_section = yaml.dump(maintainers_list)
-          # subprocess.call(["echo", maintainers_section])
-          print(maintainers_section)
-  
+        
+        # Maintainers field is used for POC information and won't be parsed
+
+def retrieve_content(yaml_content):
+  build_string = ""
+
+  build_string += yaml_content
+
+  output_string = build_string.replace(": ", "=")
+
+  return output_string
 
 if __name__ == "__main__":
     main()

@@ -29,3 +29,10 @@ source variables:
   extends: build variables
   script:
     - '"${PIPELINE_REPO_DIR}/stages/preflight/source_variables.sh"'
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_DIR}/"
+    expire_in: 1 week
+    reports:
+      dotenv: source.env
