@@ -43,14 +43,14 @@ def main():
     with open(inputFile, "r") as file:
         content = yaml.safe_load(file)
     
-    destination_file_path = ">>source.env"
+    
     for type in content:
         if type == "path":
           try:
             path_str = content["path"]
-            subprocess.call(["echo", path_str, destination_file_path])
+            print(f"IMAGE_PATH={path_str}", file=sys.stderr)
           except:
-            print("There was an issue with retrieving the image path in ironbank.yaml")
+            print("There was an issue with retrieving the image path in ironbank.yaml", file=sys.stderr)
 
         if type == "tags":
           try:
@@ -58,11 +58,11 @@ def main():
             x = 0
             for item in tag_list:
               tag = content["tags"][x]
-              subprocess.call(["echo", tag, destination_file_path])
+              print(f"IMG_VERSION_{x}={tag}")
               x = x + 1
           except:
-            print("There was an issue sourcing the tags from ironbank.yaml")
-
+            print("There was an issue sourcing the tag/image version from ironbank.yaml", file=sys.stderr)
+        
         if type == "args":
           try:
             args_list = content["args"]
@@ -71,9 +71,9 @@ def main():
             for item in base_args_content:
               if len(item) > 0:
                 arg_output = retrieve_content(item)
-                subprocess.call(["echo", arg_output, destination_file_path])
+                print(f"{arg_output}")
           except:
-            print("There was an issue sourcing the args from ironbank.yaml")
+            print("There was an issue sourcing the args from ironbank.yaml", file=sys.stderr)
 
         if type == "labels":
           try:
@@ -83,9 +83,9 @@ def main():
             for item in labels:
               if len(item) > 0:
                 label_output = retrieve_content(item)
-                subprocess.call(["echo", label_output, destination_file_path])
+                print(f"{label_output}")
           except:
-            print("There was an issue sourcing the labels from ironbank.yaml")
+            print("There was an issue sourcing the labels from ironbank.yaml", file=sys.stderr)
 
         # "resources" intentionally left out
         # "resources" are covered in the downloader.py script in import artifacts
