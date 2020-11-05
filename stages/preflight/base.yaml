@@ -26,7 +26,7 @@ folder structure:
 #     - '"${PIPELINE_REPO_DIR}/stages/preflight/check_base_vars.sh"'
 
 source variables:
-  extends: .folder structure
+  extends: folder structure
   script:
     - '"${PIPELINE_REPO_DIR}/stages/preflight/source_variables.sh"'
   artifacts:
