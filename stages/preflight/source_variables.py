@@ -37,7 +37,7 @@ def main():
         print("No input file specified.")
         sys.exit(1)
 
-    print("Input file:", inputFile)
+    print("Input file:", inputFile, file=sys.stderr)
 
     ##### Read ironbank.yaml file
     with open(inputFile, "r") as file:
@@ -48,7 +48,7 @@ def main():
         if type == "path":
           try:
             path_str = content["path"]
-            print(f"IMAGE_PATH={path_str}", file=sys.stderr)
+            print(f"IMAGE_PATH={path_str}")
           except:
             print("There was an issue with retrieving the image path in ironbank.yaml", file=sys.stderr)
 
