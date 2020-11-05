@@ -49,7 +49,7 @@ def get_complete_whitelist_for_image(
     contents = get_whitelist_file_contents(proj, filename, wl_branch)
 
     par_image = contents["image_parent_name"]
-    print(os.environ.get(f"{CI_COMMIT_BRANCH}"))
+    
     if (
         contents["approval_status"] != "approved"
         and os.environ.get("CI_COMMIT_BRANCH").lower() == "master"
