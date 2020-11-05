@@ -146,27 +146,28 @@ args:
 # Labels to apply to the image
 labels:
   org.opencontainers.image.title: "{metadata["image_name"].split("/")[-1]}"
-  # TODO: Human-readable description of the software packaged in the image
+  # FIXME: Human-readable description of the software packaged in the image
   org.opencontainers.image.description: ""
-  # TODO: License(s) under which contained software is distributed
+  # FIXME: License(s) under which contained software is distributed
   org.opencontainers.image.licenses: ""
-  # TODO: URL to find more information on the image
+  # FIXME: URL to find more information on the image
   org.opencontainers.image.url: ""
-  # TODO: Name of the distributing entity, organization or individual
+  # FIXME: Name of the distributing entity, organization or individual
   org.opencontainers.image.vendor: ""
 """
     if "version" in metadata:
         ironbank_yaml += f'  org.opencontainers.image.version: "{metadata["version"]}"'
     else:
-        ironbank_yaml += "  # TODO: Version of the packaged software\n"
+        ironbank_yaml += "  # FIXME: Version of the packaged software\n"
         ironbank_yaml += '  org.opencontainers.image.version: ""'
 
     ironbank_yaml += f"""
-  # TODO: Keywords to help with search (ex. "cicd,gitops,golang")
+  # FIXME: Keywords to help with search (ex. "cicd,gitops,golang")
   io.dsop.ironbank.image.keywords: ""
-  # TODO: This value can be "opensource" or "commercial"
+  # FIXME: This value can be "opensource" or "commercial"
   io.dsop.ironbank.image.type: ""
-  io.dsop.ironbank.product.name: "{metadata["image_name"].split("/")[0]}"
+  # FIXME: Product the image belongs to for grouping multiple images
+  io.dsop.ironbank.product.name: ""
   maintainer: "ironbank@dsop.io"
 
 # List of resources to make available to the offline build context
@@ -180,21 +181,21 @@ labels:
 
     ironbank_yaml += f"""
 
-# TODO: Fill in the following details for the current container owner in the whitelist
-# TODO: Include any other vendor information if applicable
+# FIXME: Fill in the following details for the current container owner in the whitelist
+# FIXME: Include any other vendor information if applicable
 # NOTE: Uncomment or add `cht_member: true` if the maintainer is a member of CHT
 # List of project maintainers
 # New issues may automatically be assigned to project maintainers
 maintainers:
-  # TODO: Include the name of the current container owner
+  # FIXME: Include the name of the current container owner
 - name: ""
-  # TODO: Include the gitlab username of the current container owner
+  # FIXME: Include the gitlab username of the current container owner
   username: ""
   email: "{metadata["container_owner"]}"
 #   cht_member: true
-# - name: "TODO"
-#   username: "TODO"
-#   email: "TODO"
+# - name: "FIXME"
+#   username: "FIXME"
+#   email: "FIXME"
 """
 
     logger.info("Validating schema")
@@ -283,15 +284,15 @@ def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group=
 #
 if __name__ == "__main__":
     test_set = [
-        # "anchore/enterprise/enterprise/enterprise.greylist",
-        # "redhat/ubi/ubi8/ubi8.greylist",
-        # "opensource/mattermost/mattermost/mattermost.greylist",
-        # "atlassian/jira-data-center/jira-node/jira-node.greylist",
-        # "gitlab/gitlab/alpine-certificates/alpine-certificates.greylist",
-        # "hashicorp/packer/packer/packer.greylist",
-        # "google/distroless/cc/cc.greylist",
-        # "oracle/oraclelinux/obi8/obi8.greylist",
-        # "cloudfit/rabbitmq/rabbitmq/rabbitmq.greylist",
+        "anchore/enterprise/enterprise/enterprise.greylist",
+        "redhat/ubi/ubi8/ubi8.greylist",
+        "opensource/mattermost/mattermost/mattermost.greylist",
+        "atlassian/jira-data-center/jira-node/jira-node.greylist",
+        "gitlab/gitlab/alpine-certificates/alpine-certificates.greylist",
+        "hashicorp/packer/packer/packer.greylist",
+        "google/distroless/cc/cc.greylist",
+        "oracle/oraclelinux/obi8/obi8.greylist",
+        "cloudfit/rabbitmq/rabbitmq/rabbitmq.greylist",
         "redhat/scanning-reports/reportengine/reportengine.greylist",  # This one is weird, it has a greylist but doesn't look like an ib container
     ]
     for greylist_path in test_set:
