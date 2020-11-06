@@ -28,7 +28,7 @@ def main():
     try:
       opts, args = getopt.getopt(sys.argv[1:], "hi:", ["ifile="])
     except getopt.GetoptError:
-      print("source_variables.py -i <inputfile>")
+      print("parse_labels.py -i <inputfile>")
       sys.exit(2)
     for opt, arg in opts:
       if opt in ("-i", "--ifile"):
@@ -37,43 +37,23 @@ def main():
         print("No input file specified.")
         sys.exit(1)
 
-    # print("Input file:", inputFile, file=sys.stderr)
+    print("Input file:", inputFile, file=sys.stderr)
 
     ##### Read ironbank.yaml file
     with open(inputFile, "r") as file:
         content = yaml.safe_load(file)
     
-    
-    for type in content:
-        if type == "path":
+        if type == "labels":
           try:
-            path_str = content["path"]
-            print(f"IMAGE_PATH={path_str}")
-          except:
-            print("There was an issue with retrieving the image path in ironbank.yaml", file=sys.stderr)
-
-        if type == "tags":
-          try:
-            tag_list = content["tags"]
-            x = 0
-            for item in tag_list:
-              tag = content["tags"][x]
-              print(f"IMG_VERSION_{x}={tag}")
-              x = x + 1
-          except:
-            print("There was an issue sourcing the tag/image version from ironbank.yaml", file=sys.stderr)
-        
-        if type == "args":
-          try:
-            args_list = content["args"]
-            base_args = yaml.dump(args_list)
-            base_args_content = base_args.split("\n")
-            for item in base_args_content:
+            labels_list = content["labels"]
+            labels_content = yaml.dump(labels_list)
+            labels = labels_content.split("\n")
+            for item in labels:
               if len(item) > 0:
-                arg_output = retrieve_content(item)
-                print(f"{arg_output}")
+                label_output = retrieve_content(item)
+                print(f"{label_output}")
           except:
-            print("There was an issue sourcing the args from ironbank.yaml", file=sys.stderr)
+            print("There was an issue sourcing the labels from ironbank.yaml", file=sys.stderr)
 
         # "resources" intentionally left out
         # "resources" are covered in the downloader.py script in import artifacts

@@ -5,6 +5,20 @@ shopt -s nullglob # Allow images/* and external-resources/* to match nothing
 IM_NAME=$(echo "${CI_PROJECT_PATH}" | sed -e 's/.*dsop\/\(.*\)/\1/')
 export IM_NAME
 
+# Retrieve labels from ironbank.yaml
+# Parse the file for the labels if ironbank.yaml exists in project repo
+# Use the generated ironbank.yaml file if it does not
+if [ -f "${CI_PROJECT_DIR}"/ironbank.yaml ]; then
+  python3 "${PIPELINE_REPO_DIR}/stages/build/source_labels.py" -i "${CI_PROJECT_DIR}/ironbank.yaml" >>labels.txt
+else
+  echo "No ironbank.yaml file found. Creating one..."
+fi
+
+# Set the labels from ironbank.yaml as environment variables
+while read line; do
+  echo "line"
+done < labels.txt
+
 mkdir -p "${ARTIFACT_DIR}"
 
 # Determine source registry based on branch
