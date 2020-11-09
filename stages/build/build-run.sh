@@ -2,24 +2,8 @@
 set -Eeuo pipefail
 shopt -s nullglob # Allow images/* and external-resources/* to match nothing
 
-IM_NAME=$(echo "${CI_PROJECT_PATH}" | sed -e 's/.*dsop\/\(.*\)/\1/')
-export IM_NAME
-
-# Retrieve labels from description.yaml
-# Parse the file for the labels if description.yaml exists in project repo
-# Use the generated description.yaml file if it does not
-if [ -f "${CI_PROJECT_DIR}"/description.yaml ]; then
-  echo "Placeholder text"
-else
-  echo "No description.yaml file found. Creating one..."
-fi
-
-# Set the labels from description.yaml as environment variables
-# LABEL_COUNT=0
-# while read -r line; do
-#   LABEL_COUNT=`expr $LABEL_COUNTER + 1`
-#   echo "$LABEL_COUNT $line"
-# done < labels.txt
+# TODO: remove IM_NAME eventually
+export IM_NAME="$IMAGE_NAME"
 
 mkdir -p "${ARTIFACT_DIR}"
 
@@ -44,8 +28,6 @@ echo "${SATELLITE_URL} satellite" >>/etc/hosts
 echo "${DOCKER_AUTH_CONFIG_PULL}" | base64 -d >>/tmp/prod_auth.json
 echo "IM_NAME=${IM_NAME}" >>build.env
 echo "/tmp/prod_auth.json" >>.dockerignore
-# Set the tag to eliminate /build/dsop and matching existing project hierarchy format
-HARBOR_IMAGE_PATH="${STAGING_REGISTRY_URL}/$IM_NAME:$IMG_VERSION"
 
 # Convert env files to command line arguments
 # values are already escaped with shlex
@@ -64,7 +46,6 @@ buildah bud \
   --label dccscr.git.commit.url="${CI_PROJECT_URL}/tree/${CI_COMMIT_SHA}" \
   --label dccscr.git.url="${CI_PROJECT_URL}.git" \
   --label dccscr.git.branch="${CI_COMMIT_BRANCH}" \
-  --label dccscr.image.version="${IMG_VERSION}" \
   --label dccscr.image.build.date="$(date --utc)" \
   --label dccscr.image.build.id="${CI_PIPELINE_ID}" \
   --label dccscr.image.name="${CI_PROJECT_NAME}" \
@@ -76,12 +57,17 @@ buildah bud \
   --format=docker \
   --loglevel=3 \
   --storage-driver=vfs \
-  -t "${HARBOR_IMAGE_PATH}" \
+  -t "${STAGING_REGISTRY_URL}/$IM_NAME" \
   .
-buildah tag --storage-driver=vfs "${HARBOR_IMAGE_PATH}" "${HARBOR_IMAGE_PATH}-${CI_PIPELINE_ID}"
+
+buildah tag --storage-driver=vfs "${STAGING_REGISTRY_URL}/$IM_NAME" "${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID}"
 echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
-buildah push --storage-driver=vfs --authfile staging_auth.json "${HARBOR_IMAGE_PATH}-${CI_PIPELINE_ID}"
-buildah push --storage-driver=vfs --authfile staging_auth.json "${HARBOR_IMAGE_PATH}"
+buildah push --storage-driver=vfs --authfile staging_auth.json "${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID}"
+
+while IFS= read -r tag; do
+    buildah push --storage-driver=vfs --authfile staging_auth.json "${STAGING_REGISTRY_URL}/$IM_NAME:${tag}"
+done < "${ARTIFACT_DIR}/preflight/tags.txt"
+
 # Provide tar for use in later stages, matching existing tar naming convention
-skopeo copy --src-authfile staging_auth.json "docker://${HARBOR_IMAGE_PATH}-${CI_PIPELINE_ID}" "docker-archive:${ARTIFACT_DIR}/${IMAGE_FILE}.tar"
-echo "IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${HARBOR_IMAGE_PATH}" --format '{{.Id}}')" >>build.env
+skopeo copy --src-authfile staging_auth.json "docker://${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID}" "docker-archive:${ARTIFACT_DIR}/${IMAGE_FILE}.tar"
+echo "IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${STAGING_REGISTRY_URL}/$IM_NAME" --format '{{.Id}}')" >>build.env
