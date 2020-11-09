@@ -35,7 +35,6 @@ def test_parse_oscap_security():
 
     csv_dir = Path("./stages/vat/test/test_data")
     ov_path = csv_dir.joinpath("oval.csv")
-    ov_new_path = csv_dir.joinpath("oval_trues.csv")
     test_args, notKnownArgs = parser.parse_known_args()
     if notKnownArgs:
         print(notKnownArgs)
