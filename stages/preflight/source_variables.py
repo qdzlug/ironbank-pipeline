@@ -22,8 +22,8 @@ def main():
         logging.info("Log level set to info")
 
     ##### Parse commandline arguments
-    # Use the project ironbank.yaml file path if one exists
-    # Use the generated ironbank.yaml file path if not
+    # Use the project description.yaml file path if one exists
+    # Use the generated description.yaml file path if not
     inputFile = ""
     try:
       opts, args = getopt.getopt(sys.argv[1:], "hi:", ["ifile="])
@@ -39,7 +39,7 @@ def main():
 
     # print("Input file:", inputFile, file=sys.stderr)
 
-    ##### Read ironbank.yaml file
+    ##### Read description.yaml file
     with open(inputFile, "r") as file:
         content = yaml.safe_load(file)
     
@@ -50,7 +50,7 @@ def main():
             path_str = content["path"]
             print(f"IMAGE_PATH={path_str}")
           except:
-            print("There was an issue with retrieving the image path in ironbank.yaml", file=sys.stderr)
+            print("There was an issue with retrieving the image path in description.yaml", file=sys.stderr)
 
         if type == "tags":
           try:
@@ -61,7 +61,7 @@ def main():
               print(f"IMG_VERSION_{x}={tag}")
               x = x + 1
           except:
-            print("There was an issue sourcing the tag/image version from ironbank.yaml", file=sys.stderr)
+            print("There was an issue sourcing the tag/image version from description.yaml", file=sys.stderr)
         
         if type == "args":
           try:
@@ -73,7 +73,7 @@ def main():
                 arg_output = retrieve_content(item)
                 print(f"{arg_output}")
           except:
-            print("There was an issue sourcing the args from ironbank.yaml", file=sys.stderr)
+            print("There was an issue sourcing the args from description.yaml", file=sys.stderr)
 
         # "resources" intentionally left out
         # "resources" are covered in the downloader.py script in import artifacts

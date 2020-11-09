@@ -22,8 +22,8 @@ def main():
         logging.info("Log level set to info")
 
     ##### Parse commandline arguments
-    # Use the project ironbank.yaml file path if one exists
-    # Use the generated ironbank.yaml file path if not
+    # Use the project description.yaml file path if one exists
+    # Use the generated description.yaml file path if not
     inputFile = ""
     try:
       opts, args = getopt.getopt(sys.argv[1:], "hi:", ["ifile="])
@@ -39,7 +39,7 @@ def main():
 
     print("Input file:", inputFile, file=sys.stderr)
 
-    ##### Read ironbank.yaml file
+    ##### Read description.yaml file
     with open(inputFile, "r") as file:
         content = yaml.safe_load(file)
     
@@ -53,7 +53,7 @@ def main():
                 label_output = retrieve_content(item)
                 print(f"{label_output}")
           except:
-            print("There was an issue sourcing the labels from ironbank.yaml", file=sys.stderr)
+            print("There was an issue sourcing the labels from description.yaml", file=sys.stderr)
 
         # "resources" intentionally left out
         # "resources" are covered in the downloader.py script in import artifacts
