@@ -37,18 +37,17 @@ def main():
 
     # get dccscr project object from GitLab
     proj = init(dccscr_project_id)
-    
+
     # Check that image name/tag match provided project values, and all parent images
     get_complete_whitelist_for_image(proj, im_name, wl_branch)
 
-def get_complete_whitelist_for_image(
-    proj, im_name, wl_branch, child_image_depth=0
-):
+
+def get_complete_whitelist_for_image(proj, im_name, wl_branch, child_image_depth=0):
     filename = get_whitelist_filename(im_name)
     contents = get_whitelist_file_contents(proj, filename, wl_branch)
 
     par_image = contents["image_parent_name"]
-    
+
     if (
         contents["approval_status"] != "approved"
         and os.environ.get("CI_COMMIT_BRANCH").lower() == "master"
