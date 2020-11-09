@@ -1,7 +1,6 @@
 .preflight:
   stage: preflight
 
-  # Load in the IMG_VERSION variable from the load scripts env
   dependencies:
     - load scripts
 
@@ -31,9 +30,11 @@ source variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/preflight"
   script:
     - mkdir -p "${ARTIFACT_STORAGE}/preflight"
-    - '"${PIPELINE_REPO_DIR}/stages/preflight/source_variables.sh"'
+    - python3 "${PIPELINE_REPO_DIR}/stages/preflight/source_variables.py"
   artifacts:
     when: always
     paths:
       - "${ARTIFACT_DIR}/"
     expire_in: 1 week
+    reports:
+      dotenv: "${ARTIFACT_DIR}/path.env"
