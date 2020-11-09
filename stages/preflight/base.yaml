@@ -30,6 +30,7 @@ source variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/preflight"
   script:
     - mkdir -p "${ARTIFACT_STORAGE}/preflight"
+    - pip3 install jsonschema
     - python3 "${PIPELINE_REPO_DIR}/stages/preflight/source_variables.py"
   artifacts:
     when: always
