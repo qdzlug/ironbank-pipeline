@@ -31,7 +31,6 @@ def main():
     args = parser.parse_args()
 
     im_name = args.image
-    # TEST REMOVE im_tag = args.tag
     wl_branch = args.wlbranch
 
     im_name = "/".join(im_name.split("/")[1::])
@@ -71,9 +70,6 @@ def get_complete_whitelist_for_image(
                 print(
                     f"BASE_IMAGE={contents['image_parent_name']}"
                 )  # empty string for base image
-                # print(
-                #     f"BASE_TAG={contents['image_parent_tag']}"
-                # )  # empty string for base image
             else:
                 if contents["approval_status"] != "approved":
                     print(
