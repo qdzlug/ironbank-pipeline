@@ -1,13 +1,12 @@
-import pytest
 import os
 import sys
 import argparse
 from pathlib import Path
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import logging
 import logging.handlers
 import vat_import
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 vat_import.logs = logging.getLogger("Tests")
 formatter = logging.Formatter("%(levelname)-8s %(message)s")
@@ -36,7 +35,6 @@ def test_parse_oscap_compliance():
 
     csv_dir = Path("./stages/vat/test/test_data")
     os_path = csv_dir.joinpath("oscap.csv")
-    os_new_path = csv_dir.joinpath("oscap_fails.csv")
 
     test_args, notKnownArgs = parser.parse_known_args()
     vat_import.args = test_args

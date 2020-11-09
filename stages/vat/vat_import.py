@@ -13,7 +13,6 @@ import re
 import ast
 
 import pandas
-import numpy
 
 import mysql.connector
 from mysql.connector import Error

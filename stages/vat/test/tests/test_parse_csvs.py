@@ -1,14 +1,9 @@
 import pytest
-import os
 import argparse
 import logging
 import logging.handlers
 
-# import resources.io.dsop.vat_import
-# import 'resources/io/dsop/vat_import'
 import vat_import
-
-import pandas as pd
 import unittest
 
 vat_import.logs = logging.getLogger("Tests")

@@ -3,12 +3,14 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import logging
 import logging.handlers
 
-# from my import remove_lame_header_row, parse_anchore_security
 import vat_import
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
 
 vat_import.logs = logging.getLogger("Tests")
 formatter = logging.Formatter("%(levelname)-8s %(message)s")

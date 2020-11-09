@@ -1,11 +1,8 @@
-import pytest
-import os
 import argparse
 import logging
 import logging.handlers
 
 import vat_import
-import pandas
 
 vat_import.logs = logging.getLogger("Tests")
 formatter = logging.Formatter("%(levelname)-8s %(message)s")
@@ -25,18 +22,23 @@ class TestParse:
     def test_parse_csvs_except(self, monkeypatch):
         def mock_parse_twistlock_security(tl_path):
             bad = open("no_such_file.txt", "r")
+            bad.read()
 
         def mock_parse_anchore_security(as_path):
             bad = open("no_such_file.txt", "r")
+            bad.read()
 
         def mock_parse_anchore_compliance(ac_path):
             bad = open("no_such_file.txt", "r")
+            bad.read()
 
         def mock_parse_oscap_security(ov_path):
             bad = open("no_such_file.txt", "r")
+            bad.read()
 
         def mock_parse_oscap_compliance(os_path):
             bad = open("no_such_file.txt", "r")
+            bad.read()
 
         parser = argparse.ArgumentParser(description="SQL Agent")
         parser = argparse.ArgumentParser()
