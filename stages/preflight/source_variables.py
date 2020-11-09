@@ -39,7 +39,9 @@ def main():
         assert len(project_path) > 2 and project_path[0] == "dsop"
         greylist_path = "/".join((*project_path[1:], f"{project_path[-1]}.greylist"))
         ironbank_yaml_string = ironbank_yaml.generate.generate(
-            greylist_path=greylist_path, repo1_url="https://repo1.dsop.io/"
+            greylist_path=greylist_path,
+            repo1_url="https://repo1.dsop.io/",
+            dccscr_whitelists_branch=os.environ["WL_TARGET_BRANCH"]
         )
         content = yaml.safe_load(ironbank_yaml_string)
         # Generated ironbank.yaml is already validated
