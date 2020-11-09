@@ -5,6 +5,22 @@ shopt -s nullglob # Allow images/* and external-resources/* to match nothing
 IM_NAME=$(echo "${CI_PROJECT_PATH}" | sed -e 's/.*dsop\/\(.*\)/\1/')
 export IM_NAME
 
+# Retrieve labels from description.yaml
+# Parse the file for the labels if description.yaml exists in project repo
+# Use the generated description.yaml file if it does not
+if [ -f "${CI_PROJECT_DIR}"/description.yaml ]; then
+  echo "Placeholder text"
+else
+  echo "No description.yaml file found. Creating one..."
+fi
+
+# Set the labels from description.yaml as environment variables
+# LABEL_COUNT=0
+# while read -r line; do
+#   LABEL_COUNT=`expr $LABEL_COUNTER + 1`
+#   echo "$LABEL_COUNT $line"
+# done < labels.txt
+
 mkdir -p "${ARTIFACT_DIR}"
 
 # Determine source registry based on branch

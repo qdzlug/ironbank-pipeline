@@ -6,6 +6,7 @@ build:
     - import artifacts
     - load scripts
     - wl compare lint
+    - source variables
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
     IMAGE_FILE: "${CI_PROJECT_NAME}-${IMG_VERSION}"

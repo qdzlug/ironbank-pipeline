@@ -14,22 +14,26 @@ folder structure:
         echo "README.md not found"
       fi
       if ! [[ -f Dockerfile ]]; then
-        echo "Docker file not found"
+        echo "Dockerfile not found"
       fi
       if ! [[ -f "LICENSE" || -f "LICENSE.md" || -f "LICENSE.txt" || -f "LICENSE.adoc" ]]; then
         echo "LICENSE not found"
       fi
 
-    # - ls -l download.yaml || echo "No download.yaml found"
-    # - ls -l scripts || echo "No download.yaml found"
-    # - ls -l signatures || echo "No download.yaml found"
-    # - ls -l config || echo "No download.yaml found"
-    # - ls -l accreditation || echo "No download.yaml found"
+# build variables:
+#   extends: folder structure
+#   script:
+#     - '"${PIPELINE_REPO_DIR}/stages/preflight/check_base_vars.sh"'
 
-# TODO: Check the following (among others):
-# base image vars??
-# OPTIONAL FOR BETA PIPELINE
-build variables:
-  extends: folder structure
+source variables:
+  extends: .preflight
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/preflight"
   script:
-    - '"${PIPELINE_REPO_DIR}/stages/preflight/check_base_vars.sh"'
+    - mkdir -p "${ARTIFACT_STORAGE}/preflight"
+    - '"${PIPELINE_REPO_DIR}/stages/preflight/source_variables.sh"'
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_DIR}/"
+    expire_in: 1 week
