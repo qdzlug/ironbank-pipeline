@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import re
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -30,7 +31,8 @@ def main():
     ironbank_yaml_path = Path("ironbank.yaml")
     if ironbank_yaml_path.exists():
         # Use the project description.yaml file path if one exists
-        content = yaml.safe_load(ironbank_yaml_path)
+        with ironbank_yaml_path.open("r") as f:
+            content = yaml.safe_load(f)
         validate_yaml(content)
     else:
         # Use the generated description.yaml file path if not
@@ -41,7 +43,7 @@ def main():
         ironbank_yaml_string = ironbank_yaml.generate.generate(
             greylist_path=greylist_path,
             repo1_url="https://repo1.dsop.io/",
-            dccscr_whitelists_branch=os.environ["WL_TARGET_BRANCH"]
+            dccscr_whitelists_branch=os.environ["WL_TARGET_BRANCH"],
         )
         content = yaml.safe_load(ironbank_yaml_string)
         # Generated ironbank.yaml is already validated
@@ -69,13 +71,13 @@ def process_yaml(content):
             f.write(tag)
             f.write("\n")
 
-    with (artifact_dir / "args.txt").open("w") as f:
+    with (artifact_dir / "args.env").open("w") as f:
         for key, value in content["args"].items():
-            f.write(f"{key}={value}\n")
+            f.write(f"{key}={shlex.quote(value)}\n")
 
-    with (artifact_dir / "labels.txt").open("w") as f:
+    with (artifact_dir / "labels.env").open("w") as f:
         for key, value in content["labels"].items():
-            f.write(f"{key}={value}\n")
+            f.write(f"{key}={shlex.quote(value)}\n")
 
     # "resources" intentionally left out
 

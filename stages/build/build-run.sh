@@ -46,10 +46,20 @@ echo "IM_NAME=${IM_NAME}" >>build.env
 echo "/tmp/prod_auth.json" >>.dockerignore
 # Set the tag to eliminate /build/dsop and matching existing project hierarchy format
 HARBOR_IMAGE_PATH="${STAGING_REGISTRY_URL}/$IM_NAME:$IMG_VERSION"
+
+# Convert env files to command line arguments
+# values are already escaped with shlex
+label_parameters=$(while IFS= read -r line; do
+    echo "--label $line"
+done < "${ARTIFACT_DIR}/preflight/labels.env")
+args_parameters=$(while IFS= read -r line; do
+    echo "--build-arg $line"
+done < "${ARTIFACT_DIR}/preflight/args.env")
+
 buildah bud \
   --build-arg "BASE_REGISTRY=${BASE_REGISTRY}" \
-  --build-arg "BASE_IMAGE=${BASE_IMAGE:-}" \
-  --build-arg "BASE_TAG=${BASE_TAG:-}" \
+  $args_parameters \
+  $label_parameters \
   --label dccscr.git.commit.id="${CI_COMMIT_SHA}" \
   --label dccscr.git.commit.url="${CI_PROJECT_URL}/tree/${CI_COMMIT_SHA}" \
   --label dccscr.git.url="${CI_PROJECT_URL}.git" \
