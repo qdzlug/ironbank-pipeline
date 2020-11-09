@@ -38,4 +38,4 @@ source variables:
       - "${ARTIFACT_DIR}/"
     expire_in: 1 week
     reports:
-      dotenv: "${ARTIFACT_DIR}/path.env"
+      dotenv: "${ARTIFACT_DIR}/name.env"
