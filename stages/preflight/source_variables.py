@@ -43,40 +43,55 @@ def main():
     with open(inputFile, "r") as file:
         content = yaml.safe_load(file)
     
-    
     for type in content:
         if type == "path":
           try:
+            f = open("path.txt", "w+")
             path_str = content["path"]
-            print(f"IMAGE_PATH={path_str}")
+            f.write("IMAGE_PATH=" + path_str)
           except:
             print("There was an issue with retrieving the image path in description.yaml", file=sys.stderr)
 
         if type == "tags":
           try:
+            f = open("tags.txt", "w+")
             tag_list = content["tags"]
             x = 0
             for item in tag_list:
               tag = content["tags"][x]
-              print(f"IMG_VERSION_{x}={tag}")
+              f.write(tag + "\n")
               x = x + 1
           except:
             print("There was an issue sourcing the tag/image version from description.yaml", file=sys.stderr)
         
         if type == "args":
           try:
+            f = open("args.txt", "w+")
             args_list = content["args"]
             base_args = yaml.dump(args_list)
             base_args_content = base_args.split("\n")
             for item in base_args_content:
               if len(item) > 0:
                 arg_output = retrieve_content(item)
-                print(f"{arg_output}")
+                f.write(arg_output + "\n")
           except:
             print("There was an issue sourcing the args from description.yaml", file=sys.stderr)
 
+        if type == "labels":
+          try:
+            f = open("labels.txt", "w+")
+            labels_list = content["labels"]
+            labels_content = yaml.dump(labels_list)
+            labels = labels_content.split("\n")
+            for item in labels:
+              if len(item) > 0:
+                label_output = retrieve_content(item)
+                print(f"{label_output}")
+                f.write(label_output + "\n")
+          except:
+            print("There was an issue sourcing the labels from description.yaml", file=sys.stderr)
+        
         # "resources" intentionally left out
-        # "resources" are covered in the downloader.py script in import artifacts
         
         # Maintainers field is used for POC information and won't be parsed
 

@@ -9,17 +9,17 @@ export IM_NAME
 # Parse the file for the labels if description.yaml exists in project repo
 # Use the generated description.yaml file if it does not
 if [ -f "${CI_PROJECT_DIR}"/description.yaml ]; then
-  python3 "${PIPELINE_REPO_DIR}/stages/build/source_labels.py" -i "${CI_PROJECT_DIR}/description.yaml" >>labels.txt
+  echo "Placeholder text"
 else
   echo "No description.yaml file found. Creating one..."
 fi
 
 # Set the labels from description.yaml as environment variables
-LABEL_COUNT=0
-while read -r line; do
-  LABEL_COUNT=`expr $LABEL_COUNTER + 1`
-  echo "$LABEL_COUNT $line"
-done < labels.txt
+# LABEL_COUNT=0
+# while read -r line; do
+#   LABEL_COUNT=`expr $LABEL_COUNTER + 1`
+#   echo "$LABEL_COUNT $line"
+# done < labels.txt
 
 mkdir -p "${ARTIFACT_DIR}"
 
