@@ -32,12 +32,13 @@ echo "/tmp/prod_auth.json" >>.dockerignore
 # Convert env files to command line arguments
 # values are already escaped with shlex
 label_parameters=$(while IFS= read -r line; do
-    echo "--label $line"
+    echo "--label=$line"
 done < "${ARTIFACT_STORAGE}/preflight/labels.env")
 args_parameters=$(while IFS= read -r line; do
-    echo "--build-arg $line"
+    echo "--build-arg=$line"
 done < "${ARTIFACT_STORAGE}/preflight/args.env")
 
+set -x
 buildah bud \
   --build-arg "BASE_REGISTRY=${BASE_REGISTRY}" \
   $label_parameters \
@@ -58,8 +59,8 @@ buildah bud \
   --loglevel=3 \
   --storage-driver=vfs \
   -t "${STAGING_REGISTRY_URL}/$IM_NAME" \
-  . 
-  
+  .
+set +x
 
 buildah tag --storage-driver=vfs "${STAGING_REGISTRY_URL}/$IM_NAME" "${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID}"
 echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
