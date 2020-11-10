@@ -30,7 +30,7 @@ echo "IM_NAME=${IM_NAME}" >>build.env
 echo "/tmp/prod_auth.json" >>.dockerignore
 
 # Convert env files to command line arguments
-# values are already escaped with shlex
+# Newlines are not allowed in the key or value
 label_parameters=$(while IFS= read -r line; do
     echo "--label=$line"
 done < "${ARTIFACT_STORAGE}/preflight/labels.env")
@@ -39,6 +39,8 @@ args_parameters=$(while IFS= read -r line; do
 done < "${ARTIFACT_STORAGE}/preflight/args.env")
 
 set -x
+old_ifs=$IFS
+IFS=$'\n'
 buildah bud \
   --build-arg "BASE_REGISTRY=${BASE_REGISTRY}" \
   $label_parameters \
@@ -60,6 +62,7 @@ buildah bud \
   --storage-driver=vfs \
   -t "${STAGING_REGISTRY_URL}/$IM_NAME" \
   .
+IFS=$old_ifs
 set +x
 
 buildah tag --storage-driver=vfs "${STAGING_REGISTRY_URL}/$IM_NAME" "${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID}"

@@ -3,7 +3,6 @@ import json
 import logging
 import os
 import re
-import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -73,11 +72,11 @@ def process_yaml(content):
 
     with (artifact_dir / "args.env").open("w") as f:
         for key, value in content["args"].items():
-            f.write(f"{key}={shlex.quote(value)}\n")
+            f.write(f"{key}={value}\n")
 
     with (artifact_dir / "labels.env").open("w") as f:
         for key, value in content["labels"].items():
-            f.write(f"{key}={shlex.quote(value)}\n")
+            f.write(f"{key}={value}\n")
 
     # "resources" intentionally left out
 
