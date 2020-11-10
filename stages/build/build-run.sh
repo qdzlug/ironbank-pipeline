@@ -37,7 +37,7 @@ done < "${ARTIFACT_STORAGE}/preflight/labels.env")
 args_parameters=$(while IFS= read -r line; do
     echo "--build-arg $line"
 done < "${ARTIFACT_STORAGE}/preflight/args.env")
-
+# $label_parameters \
 buildah bud \
   --build-arg "BASE_REGISTRY=${BASE_REGISTRY}" \
   --label dccscr.git.commit.id="${CI_COMMIT_SHA}" \
@@ -55,7 +55,6 @@ buildah bud \
   --format=docker \
   --loglevel=3 \
   --storage-driver=vfs \
-  $label_parameters \
   $args_parameters \
   -t "${STAGING_REGISTRY_URL}/$IM_NAME" \
   .
