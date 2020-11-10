@@ -7,19 +7,20 @@
     "properties": {
         "apiVersion": {
             "description": "Version of Iron Bank metadata file",
-            "type": "string"
+            "type": "string",
+            "const": "v1"
         },
         "name": {
             "description": "Name of the Iron Bank container",
             "type": "string",
-            "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_.-]*/)*[a-zA-Z0-9][a-zA-Z0-9_.-]+$"
+            "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_.-]*/)*[a-zA-Z0-9][a-zA-Z0-9_.-]*$"
         },
         "tags": {
             "description": "Tags to tag an image with when pushed to registry1",
             "type": "array",
             "items": {
                 "type": "string",
-                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_.-]+$",
+                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_.-]*$",
                 "maxLength": 128
             },
             "minItems": 1,
@@ -31,15 +32,21 @@
             "properties": {
                 "BASE_IMAGE_NAME": {
                     "$comment": "May be an empty string if the Dockerfile does not use this variable",
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^[ -~]*$"
                 },
                 "BASE_IMAGE_TAG": {
                     "$comment": "May be an empty string if the Dockerfile does not use this variable",
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^[ -~]*$"
                 }
             },
+            "additionalProperties": {
+                "type": "string",
+                "pattern": "^[ -~]*$"
+            },
             "propertyNames": {
-                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_.-]+$"
+                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_.-]*$"
             },
             "required": [
                 "BASE_IMAGE_NAME",
@@ -51,44 +58,55 @@
             "type": "object",
             "properties": {
                 "org.opencontainers.image.title": {
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^[ -~]*$"
                 },
                 "org.opencontainers.image.description": {
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^[ -~]*$"
                 },
                 "org.opencontainers.image.licenses": {
                     "$comment": "MADE TEMPORARILY OPTIONAL",
                     "$comment": "See https://spdx.org/licenses/",
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^[ -~]*$"
                 },
                 "org.opencontainers.image.url": {
                     "type": "string",
-                    "format": "uri"
+                    "format": "uri",
+                    "pattern": "^[ -~]*$"
                 },
                 "org.opencontainers.image.vendor": {
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^[ -~]*$"
                 },
                 "org.opencontainers.image.version": {
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^[ -~]*$"
                 },
                 "io.dsop.ironbank.image.keywords": {
                     "$comment": "MADE TEMPORARILY OPTIONAL",
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^[ -~]*$"
                 },
                 "io.dsop.ironbank.image.type": {
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^[ -~]*$"
                 },
                 "io.dsop.ironbank.product.name": {
                     "$comment": "MADE TEMPORARILY OPTIONAL",
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^[ -~]*$"
                 },
                 "maintainer": {
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^[ -~]*$"
                 }
             },
             "propertyNames": {
                 "pattern": "^[a-z0-9]([.-]?[a-z0-9]+)*$"
             },
+            "additionalProperties": false,
             "required": [
                 "org.opencontainers.image.title",
                 "org.opencontainers.image.description",
@@ -106,15 +124,16 @@
                 "properties": {
                     "url": {
                         "type": "string",
-                        "pattern": "^(s3|docker|https?)://.*$"
+                        "pattern": "^(s3|docker|https?)://.+$"
                     },
                     "filename": {
                         "type": "string",
-                        "$comment": "Match against all printable ASCII characters except for /",
-                        "pattern": "^[A-Za-z0-9][\\x20-\\x2E\\x30-\\x7E]*$"
+                        "$comment": "TODO: improve: Match against all printable ASCII characters except for / and whitespace like newlines",
+                        "pattern": "^[A-Za-z0-9][ -.0-~]*$"
                     },
                     "tag": {
                         "$comment": "Used only for docker:// resources",
+                        "$comment": "TODO: enforce with oneOf",
                         "type": "string"
                     },
                     "validation": {
@@ -179,6 +198,7 @@
                         "type": "boolean"
                     }
                 },
+                "additionalProperties": false,
                 "required": [
                     "name",
                     "username",
@@ -196,5 +216,6 @@
         "args",
         "labels",
         "maintainers"
-    ]
+    ],
+    "additionalProperties": false
 }
