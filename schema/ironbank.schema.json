@@ -13,12 +13,17 @@
         "docker-NameRegexp": {
             "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
             "type": "string",
-            "pattern": "^[a-z0-9]+((?:[._]|__|[-]*)[a-z0-9]+)*(/[a-z0-9]+((?:[._]|__|[-]*)[a-z0-9]+)*)*$"
+            "pattern": "(?:(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])(?:(?:\\.(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]))+)?(?::[0-9]+)?/)?[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?"
         },
         "docker-TagRegexp": {
             "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
             "type": "string",
             "pattern": "^[\\w][\\w.-]{0,127}$"
+        },
+        "docker-ReferenceRegexp-url": {
+            "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
+            "type": "string",
+            "pattern": "^docker://((?:(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])(?:(?:\\.(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]))+)?(?::[0-9]+)?/)?[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?)(?::([\\w][\\w.-]{0,127}))?(?:@([A-Za-z][A-Za-z0-9]*(?:[-_+.][A-Za-z][A-Za-z0-9]*)*[:][0-9A-Fa-f]{32,}))?$"
         },
         "docker-name-and-tag": {
             "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
@@ -168,7 +173,10 @@
                                 "properties": {
                                     "type": {
                                         "type": "string",
-                                        "pattern": "^(sha256|sha512)$"
+                                        "enum": [
+                                            "sha256",
+                                            "sha512"
+                                        ]
                                     },
                                     "value": {
                                         "type": "string",
@@ -222,7 +230,10 @@
                                 "properties": {
                                     "type": {
                                         "type": "string",
-                                        "pattern": "^(sha256|sha512)$"
+                                        "enum": [
+                                            "sha256",
+                                            "sha512"
+                                        ]
                                     },
                                     "value": {
                                         "type": "string",
@@ -265,8 +276,7 @@
                         "type": "object",
                         "properties": {
                             "url": {
-                                "type": "string",
-                                "pattern": "^docker://.+$"
+                                "$ref": "#/definitions/docker-ReferenceRegexp-url"
                             },
                             "tag": {
                                 "$ref": "#/definitions/docker-name-and-tag"
