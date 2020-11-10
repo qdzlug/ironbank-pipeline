@@ -37,7 +37,7 @@ done < "${ARTIFACT_STORAGE}/preflight/labels.env")
 args_parameters=$(while IFS= read -r line; do
     echo "--build-arg $line"
 done < "${ARTIFACT_STORAGE}/preflight/args.env")
-# $label_parameters \
+
 buildah bud \
   --build-arg "BASE_REGISTRY=${BASE_REGISTRY}" \
   --label dccscr.git.commit.id="${CI_COMMIT_SHA}" \
@@ -57,7 +57,8 @@ buildah bud \
   --storage-driver=vfs \
   $args_parameters \
   -t "${STAGING_REGISTRY_URL}/$IM_NAME" \
-  .
+  . \
+  $label_parameters 
 
 buildah tag --storage-driver=vfs "${STAGING_REGISTRY_URL}/$IM_NAME" "${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID}"
 echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
