@@ -15,8 +15,27 @@ export IM_NAME
 # source environment.sh
 # cat environment.sh
 
+#Get IMG_VERSION from tags
+TAG_FILE="${ARTIFACT_DIR}/preflight/tags.txt"
+if [[ $(wc -l < ${TAG_FILE}) -eq 1 ]]; then
+  echo "only one tag"
+  IMG_VERSION=$(head -n 1 ${TAG_FILE})
+else
+  while IFS= read -r tag; do
+    if [[ ${tag} =~ [0-9]+[,\._-][0-9]+[,\._-][0-9]+ ]]; then
+      echo "matched first"
+      IMG_VERSION="${tag}"
+      break
+    elif [[ ${tag} =~ [0-9]+[,\._-][0-9]+ ]]; then
+      echo "matched second"
+      IMG_VERSION="${tag}"
+    fi
+  done < "${TAG_FILE}"
+fi
+
 pip3 install --upgrade pip setuptools wheel minepy python-gitlab
 pip3 install -r "${PIPELINE_REPO_DIR}/stages/vat/requirements.txt"
+
 
 python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
   --db "${vat_db_database_name}" \
