@@ -148,6 +148,7 @@
                                 "pattern": "^[a-f0-9]+$"
                             }
                         },
+                        "additionalProperties": false,
                         "required": [
                             "type",
                             "value"
@@ -167,11 +168,13 @@
                                 "pattern": "^(basic)$"
                             }
                         },
+                        "additionalProperties": false,
                         "required": [
                             "id"
                         ]
                     }
                 },
+                "additionalProperties": false,
                 "required": [
                     "url"
                 ]
