@@ -46,6 +46,7 @@ buildah bud \
   --label dccscr.git.branch="${CI_COMMIT_BRANCH}" \
   --label dccscr.image.build.date="$(date --utc)" \
   --label dccscr.image.build.id="${CI_PIPELINE_ID}" \
+  $label_parameters \
   --label dccscr.image.name="${CI_PROJECT_NAME}" \
   --label dccscr.ironbank.approval.status="${IMAGE_APPROVAL_STATUS}" \
   --label dccscr.ironbank.approval.url="TBD" \
@@ -57,8 +58,8 @@ buildah bud \
   --storage-driver=vfs \
   $args_parameters \
   -t "${STAGING_REGISTRY_URL}/$IM_NAME" \
-  . \
-  $label_parameters 
+  . 
+  
 
 buildah tag --storage-driver=vfs "${STAGING_REGISTRY_URL}/$IM_NAME" "${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID}"
 echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
