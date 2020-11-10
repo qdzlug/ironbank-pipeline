@@ -1,6 +1,40 @@
 {
     "$schema": "https://json-schema.org/draft/2019-09/schema",
     "$id": "https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/schema/ironbank.schema.json",
+    "definitions": {
+        "printable-characters-without-newlines": {
+            "type": "string",
+            "pattern": "^[ -~]*$"
+        },
+        "printable-characters-without-newlines-or-slashes": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][ -.0-~]*$"
+        },
+        "docker-NameRegexp": {
+            "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
+            "type": "string",
+            "pattern": "^[a-z0-9]+((?:[._]|__|[-]*)[a-z0-9]+)*(/[a-z0-9]+((?:[._]|__|[-]*)[a-z0-9]+)*)*$"
+        },
+        "docker-TagRegexp": {
+            "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
+            "type": "string",
+            "pattern": "^[\\w][\\w.-]{0,127}$"
+        },
+        "docker-name-and-tag": {
+            "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
+            "type": "string",
+            "pattern": "^[a-z0-9]+((?:[._]|__|[-]*)[a-z0-9]+)*(/[a-z0-9]+((?:[._]|__|[-]*)[a-z0-9]+)*)*:[\\w][\\w.-]{0,127}$"
+        },
+        "docker-label-name": {
+            "$comment": "https://docs.docker.com/config/labels-custom-metadata/",
+            "type": "string",
+            "pattern": "^[a-z0-9]([.-]?[a-z0-9]+)*$"
+        },
+        "environment-variable-name": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_.-]*$"
+        }
+    },
     "title": "IronBank",
     "description": "Metadata surrounding an Iron Bank Container",
     "type": "object",
@@ -12,16 +46,13 @@
         },
         "name": {
             "description": "Name of the Iron Bank container",
-            "type": "string",
-            "pattern": "^([a-zA-Z0-9][a-zA-Z0-9_.-]*/)*[a-zA-Z0-9][a-zA-Z0-9_.-]*$"
+            "$ref": "#/definitions/docker-NameRegexp"
         },
         "tags": {
             "description": "Tags to tag an image with when pushed to registry1",
             "type": "array",
             "items": {
-                "type": "string",
-                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_.-]*$",
-                "maxLength": 128
+                "$ref": "#/definitions/docker-TagRegexp"
             },
             "minItems": 1,
             "uniqueItems": true
@@ -32,21 +63,32 @@
             "properties": {
                 "BASE_IMAGE_NAME": {
                     "$comment": "May be an empty string if the Dockerfile does not use this variable",
-                    "type": "string",
-                    "pattern": "^[ -~]*$"
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/docker-NameRegexp"
+                        },
+                        {
+                            "const": ""
+                        }
+                    ]
                 },
                 "BASE_IMAGE_TAG": {
                     "$comment": "May be an empty string if the Dockerfile does not use this variable",
-                    "type": "string",
-                    "pattern": "^[ -~]*$"
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/docker-TagRegexp"
+                        },
+                        {
+                            "const": ""
+                        }
+                    ]
                 }
             },
             "additionalProperties": {
-                "type": "string",
-                "pattern": "^[ -~]*$"
+                "$ref": "#/definitions/printable-characters-without-newlines"
             },
             "propertyNames": {
-                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_.-]*$"
+                "$ref": "#/definitions/environment-variable-name"
             },
             "required": [
                 "BASE_IMAGE_NAME",
@@ -58,53 +100,43 @@
             "type": "object",
             "properties": {
                 "org.opencontainers.image.title": {
-                    "type": "string",
-                    "pattern": "^[ -~]*$"
+                    "$ref": "#/definitions/printable-characters-without-newlines"
                 },
                 "org.opencontainers.image.description": {
-                    "type": "string",
-                    "pattern": "^[ -~]*$"
+                    "$ref": "#/definitions/printable-characters-without-newlines"
                 },
                 "org.opencontainers.image.licenses": {
                     "$comment": "MADE TEMPORARILY OPTIONAL",
                     "$comment": "See https://spdx.org/licenses/",
-                    "type": "string",
-                    "pattern": "^[ -~]*$"
+                    "$ref": "#/definitions/printable-characters-without-newlines"
                 },
                 "org.opencontainers.image.url": {
-                    "type": "string",
                     "format": "uri",
-                    "pattern": "^[ -~]*$"
+                    "$ref": "#/definitions/printable-characters-without-newlines"
                 },
                 "org.opencontainers.image.vendor": {
-                    "type": "string",
-                    "pattern": "^[ -~]*$"
+                    "$ref": "#/definitions/printable-characters-without-newlines"
                 },
                 "org.opencontainers.image.version": {
-                    "type": "string",
-                    "pattern": "^[ -~]*$"
+                    "$ref": "#/definitions/printable-characters-without-newlines"
                 },
                 "io.dsop.ironbank.image.keywords": {
                     "$comment": "MADE TEMPORARILY OPTIONAL",
-                    "type": "string",
-                    "pattern": "^[ -~]*$"
+                    "$ref": "#/definitions/printable-characters-without-newlines"
                 },
                 "io.dsop.ironbank.image.type": {
-                    "type": "string",
-                    "pattern": "^[ -~]*$"
+                    "$ref": "#/definitions/printable-characters-without-newlines"
                 },
                 "io.dsop.ironbank.product.name": {
                     "$comment": "MADE TEMPORARILY OPTIONAL",
-                    "type": "string",
-                    "pattern": "^[ -~]*$"
+                    "$ref": "#/definitions/printable-characters-without-newlines"
                 },
                 "maintainer": {
-                    "type": "string",
-                    "pattern": "^[ -~]*$"
+                    "$ref": "#/definitions/printable-characters-without-newlines"
                 }
             },
             "propertyNames": {
-                "pattern": "^[a-z0-9]([.-]?[a-z0-9]+)*$"
+                "$ref": "#/definitions/docker-label-name"
             },
             "additionalProperties": false,
             "required": [
@@ -120,63 +152,147 @@
             "description": "Resources to download before building the image",
             "type": "array",
             "items": {
-                "type": "object",
-                "properties": {
-                    "url": {
-                        "type": "string",
-                        "pattern": "^(s3|docker|https?)://.+$"
-                    },
-                    "filename": {
-                        "type": "string",
-                        "$comment": "TODO: improve: Match against all printable ASCII characters except for / and whitespace like newlines",
-                        "pattern": "^[A-Za-z0-9][ -.0-~]*$"
-                    },
-                    "tag": {
-                        "$comment": "Used only for docker:// resources",
-                        "$comment": "TODO: enforce with oneOf",
-                        "type": "string"
-                    },
-                    "validation": {
+                "oneOf": [
+                    {
                         "type": "object",
                         "properties": {
-                            "type": {
+                            "url": {
                                 "type": "string",
-                                "pattern": "^(sha256|sha512)$"
+                                "pattern": "^s3://.+$"
                             },
-                            "value": {
-                                "type": "string",
-                                "pattern": "^[a-f0-9]+$"
+                            "filename": {
+                                "$ref": "#/definitions/printable-characters-without-newlines-or-slashes"
+                            },
+                            "validation": {
+                                "type": "object",
+                                "properties": {
+                                    "type": {
+                                        "type": "string",
+                                        "pattern": "^(sha256|sha512)$"
+                                    },
+                                    "value": {
+                                        "type": "string",
+                                        "pattern": "^[a-f0-9]+$"
+                                    }
+                                },
+                                "additionalProperties": false,
+                                "required": [
+                                    "type",
+                                    "value"
+                                ]
+                            },
+                            "auth": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "$ref": "#/definitions/environment-variable-name"
+                                    },
+                                    "region": {
+                                        "type": "string"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "const": "aws"
+                                    }
+                                },
+                                "additionalProperties": false,
+                                "required": [
+                                    "id"
+                                ]
                             }
                         },
                         "additionalProperties": false,
                         "required": [
-                            "type",
-                            "value"
+                            "url",
+                            "filename"
                         ]
                     },
-                    "auth": {
+                    {
                         "type": "object",
                         "properties": {
-                            "id": {
-                                "type": "string"
-                            },
-                            "region": {
-                                "type": "string"
-                            },
-                            "type": {
+                            "url": {
                                 "type": "string",
-                                "pattern": "^(basic)$"
+                                "pattern": "^https?://.+$"
+                            },
+                            "filename": {
+                                "$ref": "#/definitions/printable-characters-without-newlines-or-slashes"
+                            },
+                            "validation": {
+                                "type": "object",
+                                "properties": {
+                                    "type": {
+                                        "type": "string",
+                                        "pattern": "^(sha256|sha512)$"
+                                    },
+                                    "value": {
+                                        "type": "string",
+                                        "pattern": "^[a-f0-9]+$"
+                                    }
+                                },
+                                "additionalProperties": false,
+                                "required": [
+                                    "type",
+                                    "value"
+                                ]
+                            },
+                            "auth": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "$ref": "#/definitions/environment-variable-name"
+                                    },
+                                    "region": {
+                                        "$ref": "#/definitions/printable-characters-without-newlines"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "const": "basic"
+                                    }
+                                },
+                                "additionalProperties": false,
+                                "required": [
+                                    "id"
+                                ]
                             }
                         },
                         "additionalProperties": false,
                         "required": [
-                            "id"
+                            "url",
+                            "filename"
+                        ]
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "url": {
+                                "type": "string",
+                                "pattern": "^docker://.+$"
+                            },
+                            "tag": {
+                                "$ref": "#/definitions/docker-name-and-tag"
+                            },
+                            "auth": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "$ref": "#/definitions/environment-variable-name"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "const": "basic"
+                                    }
+                                },
+                                "additionalProperties": false,
+                                "required": [
+                                    "id"
+                                ]
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "url"
                         ]
                     }
-                },
-                "additionalProperties": false,
-                "required": [
-                    "url"
                 ]
             },
             "uniqueItems": true
@@ -188,13 +304,13 @@
                 "type": "object",
                 "properties": {
                     "name": {
-                        "type": "string"
+                        "$ref": "#/definitions/printable-characters-without-newlines"
                     },
                     "username": {
-                        "type": "string"
+                        "$ref": "#/definitions/printable-characters-without-newlines"
                     },
                     "email": {
-                        "type": "string",
+                        "$ref": "#/definitions/printable-characters-without-newlines",
                         "format": "email"
                     },
                     "cht_member": {
