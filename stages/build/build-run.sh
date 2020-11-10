@@ -55,8 +55,8 @@ buildah bud \
   --format=docker \
   --loglevel=3 \
   --storage-driver=vfs \
-  $args_parameters \
   $label_parameters \
+  $args_parameters \
   -t "${STAGING_REGISTRY_URL}/$IM_NAME" \
   .
 
