@@ -33,10 +33,10 @@ echo "/tmp/prod_auth.json" >>.dockerignore
 # values are already escaped with shlex
 label_parameters=$(while IFS= read -r line; do
     echo "--label $line"
-done < "${ARTIFACT_DIR}/preflight/labels.env")
+done < "${ARTIFACT_STORAGE}/preflight/labels.env")
 args_parameters=$(while IFS= read -r line; do
     echo "--build-arg $line"
-done < "${ARTIFACT_DIR}/preflight/args.env")
+done < "${ARTIFACT_STORAGE}/preflight/args.env")
 
 buildah bud \
   --build-arg "BASE_REGISTRY=${BASE_REGISTRY}" \
