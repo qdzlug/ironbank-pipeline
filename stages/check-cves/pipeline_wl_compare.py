@@ -30,7 +30,6 @@ def main():
         description="DCCSCR processing of CVE reports from various sources"
     )
     parser.add_argument("--image", help="")
-    parser.add_argument("--tag", help="")
     parser.add_argument("--oscap", help="")
     parser.add_argument("--oval", help="")
     parser.add_argument("--twistlock", help="")
@@ -41,7 +40,6 @@ def main():
     args = parser.parse_args()
     x = pipeline_whitelist_compare(
         args.image,
-        args.tag,
         args.oscap,
         args.oval,
         args.twistlock,
@@ -50,13 +48,12 @@ def main():
         args.proj_branch,
         args.wl_branch,
     )
-    # print(x)
+    
     sys.exit(x)
 
 
 def pipeline_whitelist_compare(
     image_name,
-    image_version,
     oscap,
     oval,
     twist,
@@ -67,7 +64,7 @@ def pipeline_whitelist_compare(
 ):
     proj = init(dccscr_project_id)
     image_whitelist = get_complete_whitelist_for_image(
-        proj, image_name, image_version, wl_branch
+        proj, image_name, wl_branch
     )
 
     wl_set = set()
@@ -87,22 +84,18 @@ def pipeline_whitelist_compare(
         for oscap in oscap_notchecked:
             oscap_cves.append(oscap)
 
-        # print("Oscap Set Length: ", len(oscap_cves))
         for oscap in oscap_cves:
             vuln_set.add(oscap["identifiers"])
 
         oval_cves = get_oval(oval)
-        # print("Oval Set Length: ", len(oval_cves))
         for oval in oval_cves:
             vuln_set.add(oval)
 
     tl_cves = get_twistlock_full(twist)
-    # print("Twistlock Set Length: ", len(tl_cves))
     for tl in tl_cves:
         vuln_set.add(tl["id"])
 
     anchore_cves = get_anchore_full(anc_sec)
-    # print("Anchore Sec Set Length: ", len(anchore_cves))
     for anc in anchore_cves:
         vuln_set.add(anc["cve"])
 
@@ -206,18 +199,13 @@ def get_oval(oval_file):
     oscap = open(oval_file, "r", encoding="utf-8")
     soup = BeautifulSoup(oscap, "html.parser")
     results_bad = soup.find_all("tr", class_=["resultbadA", "resultbadB"])
-    # results_good = soup.find_all("tr", class_=["resultgoodA", "resultgoodB"])
 
     cves = []
-    for x in results_bad:  # + results_good:
-        # id = x.find("td")
-        # result = id.find_next_sibling("td")
-        # cls = result.find_next_sibling("td")
+    for x in results_bad:  
         y = x.find_all(target="_blank")
         references = set()
         for t in y:
             references.add(t.text)
-        # title = cls.find_next_sibling("td").find_next_sibling("td")
 
         for ref in references:
             cves.append(ref)
@@ -231,11 +219,10 @@ def get_oscap_fails(oscap_file):
 
         scan_date = soup.find("th", text="Finished at")
         finished_at = scan_date.find_next_sibling("td").text
-        # print(finished_at.text)
+
         regex = re.compile(".*rule-detail-fail.*")
-        # id_regex = re.compile('.*rule-detail-.*')
+
         fails = divs.find_all("div", {"class": regex})
-        # all = divs.find_all("div", {"class": id_regex})
 
         cces = []
         for x in fails:
@@ -261,7 +248,6 @@ def get_oscap_fails(oscap_file):
 
             ret = {
                 "title": title,
-                # 'table': table,
                 "ruleid": ruleid,
                 "result": result,
                 "severity": severity,
@@ -282,11 +268,10 @@ def get_oscap_notchecked(oscap_file):
 
         scan_date = soup.find("th", text="Finished at")
         finished_at = scan_date.find_next_sibling("td").text
-        # print(finished_at.text)
+
         regex = re.compile(".*rule-detail-notchecked.*")
-        # id_regex = re.compile('.*rule-detail-.*')
+
         notchecked = divs.find_all("div", {"class": regex})
-        # all = divs.find_all("div", {"class": id_regex})
 
         cces_notchecked = []
         for x in notchecked:
@@ -312,7 +297,6 @@ def get_oscap_notchecked(oscap_file):
 
             ret = {
                 "title": title,
-                # 'table': table,
                 "ruleid": ruleid,
                 "result": result,
                 "severity": severity,
@@ -349,8 +333,8 @@ def get_whitelist_file_contents(proj, item_path, item_ref):
     return contents
 
 
-def get_complete_whitelist_for_image(proj, im_name, im_tag, wl_branch, total_wl=[]):
-    filename = get_whitelist_filename(im_name, im_tag)
+def get_complete_whitelist_for_image(proj, im_name, wl_branch, total_wl=[]):
+    filename = get_whitelist_filename(im_name)
     contents = get_whitelist_file_contents(proj, filename, wl_branch)
 
     par_image = contents["image_parent_name"]
@@ -362,9 +346,6 @@ def get_complete_whitelist_for_image(proj, im_name, im_tag, wl_branch, total_wl=
     if len(par_image) > 0 and len(par_tag) > 0:
         print("Fetching Whitelisted CVEs from parent: " + par_image + ":" + par_tag)
         get_complete_whitelist_for_image(proj, par_image, par_tag, wl_branch)
-    # else:
-    #     print("Mismatched image name/tag in " + filename + "\nRetrieved Image Name: " + contents['image_name'] + ":" + contents['image_tag'] + "\nSupplied Image Name: " + im_name + ":" + im_tag + "\nCheck parent image tag in your whitelist file.", file=sys.stderr)
-    #     sys.exit(1)
 
     return total_wl
 
