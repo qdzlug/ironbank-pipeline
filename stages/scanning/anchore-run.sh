@@ -9,7 +9,7 @@ export ANCHORE_CLI_USER="${anchore_username}"
 export ANCHORE_CLI_PASS="${anchore_password}"
 export ANCHORE_DEBUG="${anchore_debug}"
 export ANCHORE_SCAN_DIRECTORY="${ANCHORE_SCANS}"
-export IMAGE_NAME="${REGISTRY1_URL}/ironbank-staging/${IM_NAME}:${IMG_VERSION}-${CI_PIPELINE_ID}"
+export IMAGE_NAME="${REGISTRY1_URL}/ironbank-staging/${IM_NAME}:${CI_PIPELINE_ID}"
 export IMAGE_ID="${IMAGE_ID}"
 
 # Add the image to Anchore along with it's Dockerfile. Use the `--force` flag to force

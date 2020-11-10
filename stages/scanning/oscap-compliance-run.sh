@@ -1,7 +1,7 @@
 #!/bin/bash
 set -Eeuo pipefail
 mkdir -p "${OSCAP_SCANS}"
-DOCKER_IMAGE_PATH=$(podman load -i "${ARTIFACT_STORAGE}"/build/"${CI_PROJECT_NAME}"-"${IMG_VERSION}".tar | awk '{print $3}')
+DOCKER_IMAGE_PATH=$(podman load -i "${ARTIFACT_STORAGE}"/build/"${CI_PROJECT_NAME}"-"${CI_PIPELINE_ID}".tar | awk '{print $3}')
 echo "${DOCKER_IMAGE_PATH}"
 OSCAP_VERSION=$(curl -fsSLI -o /dev/null -w "%{url_effective}" https://github.com/ComplianceAsCode/content/releases/latest | grep -Eo "[0-9\\.]+$" | awk '{$1=$1};1')
 base_image_type=$(podman inspect -f '{{index .Labels "com.redhat.component"}}' "${DOCKER_IMAGE_PATH}")
