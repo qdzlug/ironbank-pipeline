@@ -499,34 +499,61 @@ def insert_scan(data, iid, scan_source):
             """
             Irma's Notes for db migration updates:
 
+
+            Get the system_user_id from the users table where the
+                username = 'VAT_Bot'.
+
+
             Move the select id from `finding_approvals` to the beginning
                 The new table is called `findings`
             to get the id from findings
             Steps:
             1. Search `findings` to see if the finding already exists
-            2. If it does, retrieve id.
-            If it doesn't insert finding with `container_id`, `finding`, `package`, `package_path` & `scan_source` and retrieve id
+            2. If it does exist,
+                  retrieve id.
+               else
+                   insert finding with `container_id`, `finding`, `package`,
+                                       `package_path` & `record_timestamp`
+                   retrieve id
+
 
             Change this table to `finding_scan_results`
-            Select by active = 1 (This may be True instead of 1, check with schema) and finding_id = finding from `findings` table.
-            If found, set active = 0 (This may be False instead of 0, check with schema)
-            Insert `finding_id` (which matches that retrieved from `findings`), `scan_date`, `job_id`, `severity`, `link`, `score`, `description`, `active`
+            Select by active = 1
+                      and finding_id = finding from `findings` table.
+            If found, set active = 0
+            Insert `finding_id` (which matches that retrieved from `findings`),
+                   `record_timestamp`, `job_id`, `severity`, `link`, `score`,
+                   `description`, `active`
 
-            Select * from finding_logs where finding_id = this finding where last_type = 1 (or true). (this may retrieve more than one row)
+            Select * from finding_logs where finding_id = this finding
+                     where record_type_active = 1.
+                     (this may retrieve more than one row)
+
             If found and in_current_scan = 1(or True), no updates needed.
 
             If found and in_current_scan = 0(or False) and active = 1(or True),
                 Set that row to active = 0(or False)
-                If record_type = state_change only insert one row
-                    Insert a row into finding_logs with Userid = System user, in_current_scan = 1(or True), record_type = state_change and active = 1, record_timestamp
-                If record_type = justification:
-                    Get the row from the initial select that retrieved the active roles that has record_type = state_change:
-                    Update that row as last_type = 0 or (False)
-                    Insert a row with the same data as this row with Userid = System user, in_current_scan = 1(or True), record_type = state_change and active = 1, record_timestamp
+                If record_type = 'state_change' only insert one row
+                    Insert a row into finding_logs with:
+                        user_id = system_user_id, in_current_scan = 1(or True),
+                        record_type = 'state_change',  active = 1, record_timestamp
 
-            If nothing is found from the Select insert new row with:
-            Userid = System user, in_current_scan = 1(or True), record_type = state_change and active = 1(or True), last_type = 1(True), finding_id = current finding in findings table, 
-            state = Needs Justification, inheritable, inherited_id, record_timestamp
+                If record_type = justification:
+                    Get the row from the initial select that retrieved the
+                        active roles that has record_type = state_change:
+                    Update that row as record_type_active = 0 or (False)
+                    Insert a row with the same data as this row with:
+                        user_id = system_user_id, in_current_scan = 1(or True),
+                        record_type = 'state_change',  active = 1, record_timestamp
+
+            If nothing is found from the Select
+                insert new row with:
+                    user_id = System user, in_current_scan = 1(or True),
+                    record_type = 'state_change' and active = 1(or True),
+                    record_type_active = 1(True),
+                    finding_id = current finding in findings table, 
+                    state = 'needs_justification', inheritable, inherited_id,
+                    record_timestamp
 
 
             In progress, writing up steps to update findings not in current scan --- in other function.
