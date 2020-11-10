@@ -40,13 +40,14 @@ done < "${ARTIFACT_STORAGE}/preflight/args.env")
 
 buildah bud \
   --build-arg "BASE_REGISTRY=${BASE_REGISTRY}" \
+  $label_parameters \
+  $args_parameters \
   --label dccscr.git.commit.id="${CI_COMMIT_SHA}" \
   --label dccscr.git.commit.url="${CI_PROJECT_URL}/tree/${CI_COMMIT_SHA}" \
   --label dccscr.git.url="${CI_PROJECT_URL}.git" \
   --label dccscr.git.branch="${CI_COMMIT_BRANCH}" \
   --label dccscr.image.build.date="$(date --utc)" \
   --label dccscr.image.build.id="${CI_PIPELINE_ID}" \
-  $label_parameters \
   --label dccscr.image.name="${CI_PROJECT_NAME}" \
   --label dccscr.ironbank.approval.status="${IMAGE_APPROVAL_STATUS}" \
   --label dccscr.ironbank.approval.url="TBD" \
@@ -56,7 +57,6 @@ buildah bud \
   --format=docker \
   --loglevel=3 \
   --storage-driver=vfs \
-  $args_parameters \
   -t "${STAGING_REGISTRY_URL}/$IM_NAME" \
   . 
   
