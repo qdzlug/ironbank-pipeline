@@ -24,29 +24,27 @@ mkdir reports
 
 cp -r "${DOCUMENTATION_DIRECTORY}"/reports/* reports/
 cp -r "${SCAN_DIRECTORY}"/* reports/
-while IFS= read -r tag; do
-  cp "${BUILD_DIRECTORY}"/"${CI_PROJECT_NAME}"-"${CI_PIPELINE_ID}".tar reports/"${CI_PROJECT_NAME}"-"${tag}".tar
-  cp "${PROJECT_LICENSE}" "${PROJECT_README}" reports/
 
-  # Debug
-  ls reports
+cp "${BUILD_DIRECTORY}"/"${CI_PROJECT_NAME}"-"${IMAGE_VERSION}".tar reports/"${CI_PROJECT_NAME}"-"${IMAGE_VERSION}".tar
+cp "${PROJECT_LICENSE}" "${PROJECT_README}" reports/
 
-  tar -zcvf "${REPORT_TAR_NAME}-${tag}-reports-signature.tar.gz" reports
+# Debug
+ls reports
 
-  python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file repo_map.json --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IM_NAME}/repo_map.json"
-  for file in $(find "${DOCUMENTATION_DIRECTORY}" -name "*" -type f); do
-    object_path="${file#"$ARTIFACT_STORAGE/documentation/"}"
-    python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "$file" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${tag}/${REMOTE_DOCUMENTATION_DIRECTORY}/$object_path"
-  done
+tar -zcvf "${REPORT_TAR_NAME}-${IMAGE_VERSION}-reports-signature.tar.gz" reports
 
-  for file in $(find "${SCAN_DIRECTORY}" -name "*" -type f); do
-    report_name=$(echo "$file" | rev | cut -d/ -f1-2 | rev)
-    echo "$file"
-    python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "$file" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${tag}/${REMOTE_REPORT_DIRECTORY}/$report_name"
-  done
+python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file repo_map.json --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IM_NAME}/repo_map.json"
+for file in $(find "${DOCUMENTATION_DIRECTORY}" -name "*" -type f); do
+  object_path="${file#"$ARTIFACT_STORAGE/documentation/"}"
+  python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "$file" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_DOCUMENTATION_DIRECTORY}/$object_path"
+done
 
-  python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "${PROJECT_README}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${tag}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_README}"
-  python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "${PROJECT_LICENSE}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${tag}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_LICENSE}"
-  python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "${REPORT_TAR_NAME}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${tag}/${REMOTE_REPORT_DIRECTORY}/${REPORT_TAR_NAME}-${tag}-reports-signature.tar.gz"
-  rm reports/"${CI_PROJECT_NAME}"-"${tag}".tar/
-done <"${ARTIFACT_DIR}/preflight/tags.txt"
+for file in $(find "${SCAN_DIRECTORY}" -name "*" -type f); do
+  report_name=$(echo "$file" | rev | cut -d/ -f1-2 | rev)
+  echo "$file"
+  python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "$file" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/$report_name"
+done
+
+python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "${PROJECT_README}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_README}"
+python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "${PROJECT_LICENSE}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_LICENSE}"
+python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "${REPORT_TAR_NAME}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/${REPORT_TAR_NAME}-${IMAGE_VERSION}-reports-signature.tar.gz"
