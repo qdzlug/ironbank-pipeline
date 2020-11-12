@@ -10,10 +10,10 @@
             "type": "string",
             "pattern": "^[A-Za-z0-9][ -.0-~]*$"
         },
-        "docker-NameRegexp": {
+        "docker-NameRegexp-without-domain": {
             "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
             "type": "string",
-            "pattern": "(?:(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])(?:(?:\\.(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]))+)?(?::[0-9]+)?/)?[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?"
+            "pattern": "^[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?$"
         },
         "docker-TagRegexp": {
             "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
@@ -28,7 +28,7 @@
         "docker-name-and-tag": {
             "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
             "type": "string",
-            "pattern": "^[a-z0-9]+((?:[._]|__|[-]*)[a-z0-9]+)*(/[a-z0-9]+((?:[._]|__|[-]*)[a-z0-9]+)*)*:[\\w][\\w.-]{0,127}$"
+            "pattern": "^[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?:[\\w][\\w.-]{0,127}$"
         },
         "docker-label-name": {
             "$comment": "https://docs.docker.com/config/labels-custom-metadata/",
@@ -51,7 +51,7 @@
         },
         "name": {
             "description": "Name of the Iron Bank container",
-            "$ref": "#/definitions/docker-NameRegexp"
+            "$ref": "#/definitions/docker-NameRegexp-without-domain"
         },
         "tags": {
             "description": "Tags to tag an image with when pushed to registry1",
@@ -70,7 +70,7 @@
                     "$comment": "May be an empty string if the Dockerfile does not use this variable",
                     "oneOf": [
                         {
-                            "$ref": "#/definitions/docker-NameRegexp"
+                            "$ref": "#/definitions/docker-NameRegexp-without-domain"
                         },
                         {
                             "const": ""
