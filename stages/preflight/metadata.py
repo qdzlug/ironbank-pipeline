@@ -2,8 +2,6 @@
 import json
 import logging
 import os
-import re
-import subprocess
 import sys
 from pathlib import Path
 
@@ -11,7 +9,7 @@ import jsonschema
 import yaml
 
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), "../../scripts/"))
-import ironbank_yaml.generate
+import ironbank_yaml.generate  # noqa: E402
 
 
 def main():
