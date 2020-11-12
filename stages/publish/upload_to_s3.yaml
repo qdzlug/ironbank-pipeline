@@ -14,7 +14,7 @@ upload to s3:
     BASE_BUCKET_DIRECTORY: testing/container-scan-reports
     DOCUMENTATION_FILENAME: documentation
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
-    REPORT_TAR_NAME: ${CI_PROJECT_NAME}
+    REPORT_TAR_NAME: ${CI_PROJECT_NAME}-${IMAGE_VERSION}-reports-signature.tar.gz
   dependencies:
     - build
     - sign image

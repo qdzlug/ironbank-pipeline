@@ -31,7 +31,7 @@ cp "${PROJECT_LICENSE}" "${PROJECT_README}" reports/
 # Debug
 ls reports
 
-tar -zcvf "${REPORT_TAR_NAME}-${IMAGE_VERSION}-reports-signature.tar.gz" reports
+tar -zcvf "${REPORT_TAR_NAME}" reports
 
 python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file repo_map.json --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IM_NAME}/repo_map.json"
 for file in $(find "${DOCUMENTATION_DIRECTORY}" -name "*" -type f); do
