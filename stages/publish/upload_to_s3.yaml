@@ -25,7 +25,7 @@ upload to s3:
     - openscap cve
     - openscap compliance
     - csv output
-    - load scripts
+    - hardening_manifest
     - wl compare lint
   script:
     - '"${PIPELINE_REPO_DIR}/stages/publish/upload-to-s3-run.sh"'
