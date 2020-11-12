@@ -499,7 +499,7 @@ def insert_scan(data, iid, scan_source):
             """
             Irma's Notes for db migration updates:
 
-
+            ---- TO DO Fred
             Get the system_user_id from the users table where the
                 username = 'VAT_Bot'.
 
@@ -515,8 +515,9 @@ def insert_scan(data, iid, scan_source):
                    insert finding with `container_id`, `finding`, `package`,
                                        `package_path` & `record_timestamp`
                    retrieve id
+            -----
 
-
+            ----- TO DO Irma
             Change this table to `finding_scan_results`
             Select by active = 1
                       and finding_id = finding from `findings` table.
@@ -524,7 +525,9 @@ def insert_scan(data, iid, scan_source):
             Insert `finding_id` (which matches that retrieved from `findings`),
                    `record_timestamp`, `job_id`, `severity`, `link`, `score`,
                    `description`, `active`
+            ------
 
+            ------ TO DO Breakup on Friday 11/13
             Select * from finding_logs where finding_id = this finding
                      where record_type_active = 1.
                      (this may retrieve more than one row)
@@ -547,6 +550,7 @@ def insert_scan(data, iid, scan_source):
                         record_type = 'state_change',  active = 1, record_timestamp
 
             If nothing is found from the Select
+                If not inherited:
                 insert new row with:
                     user_id = System user, in_current_scan = 1(or True),
                     record_type = 'state_change' and active = 1(or True),
@@ -554,9 +558,14 @@ def insert_scan(data, iid, scan_source):
                     finding_id = current finding in findings table, 
                     state = 'needs_justification', inheritable, inherited_id,
                     record_timestamp
-
-
-            In progress, writing up steps to update findings not in current scan --- in other function.
+                If inherited:
+                    In finding_logs: copy over all the logs from the parent and update the id to this finding as well as the inherited_id to it's parent
+                    If in_current = 1
+                        Pass
+                    If in_current = 0
+                        Create new log entry with in in_current_scan = 1 and all the rest of the data from the previous active record.
+                        Set previous active record to 0
+            -----
 
             """
             cursor.execute(
