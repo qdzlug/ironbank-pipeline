@@ -1,7 +1,7 @@
 #!/bin/bash
 set -Eeo pipefail
 dnf install jq -y
-podman load -i "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}"
+podman load -i "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMAGE_VERSION}"
 echo "${IB_CONTAINER_GPG_KEY}" | base64 -d >key
 mkdir -p tmp_gpg "${ARTIFACT_DIR}/reports"
 # Gather info for scan-metadata.json
@@ -18,11 +18,11 @@ else
 fi
 #- OPENSCAP_VERSION=$(cat ${OPENSCAP_VERSION})
 IMAGE_TAR_SHA=$(sha256sum "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" | grep -E '^[a-zA-Z0-9]+' -o)
-IMAGE_PODMAN_SHA=$(podman inspect --format '{{.Digest}}' "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}")
+IMAGE_PODMAN_SHA=$(podman inspect --format '{{.Digest}}' "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMAGE_VERSION}")
 GPG_PUB_KEY=$(awk '{printf "%s\\n", $0}' "${IB_CONTAINER_GPG_PUBKEY}")
 # Create manifest.json
 
-export IMG_VERSION
+export IMAGE_VERSION
 export CI_COMMIT_SHA
 export IMAGE_APPROVAL_STATUS
 export IMAGE_TAR_SHA
@@ -38,7 +38,7 @@ TIMESTAMP="$(date --utc '+%FT%T.%3NZ')"
 export TIMESTAMP
 jq -n '
 {
-  "buildTag": env.IMG_VERSION,
+  "buildTag": env.IMAGE_VERSION,
   "buildNumber": env.CI_PIPELINE_ID,
   "approval": env.IMAGE_APPROVAL_STATUS,
   "image": {

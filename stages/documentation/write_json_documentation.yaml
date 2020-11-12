@@ -2,7 +2,7 @@ write json documentation:
   extends: .documentation
   variables:
     #TODO: Put these in globals
-    IMAGE_FILE: "${CI_PROJECT_NAME}-${IMG_VERSION}"
+    IMAGE_FILE: "${CI_PROJECT_NAME}-${IMAGE_VERSION}"
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/documentation"
     # TODO put back in for full run
     OPENSCAP_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/openscap/oscap-version.txt"
