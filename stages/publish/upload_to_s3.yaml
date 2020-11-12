@@ -6,7 +6,7 @@ upload to s3:
     - development
   variables:
     #TODO: Put these in globals
-    IMAGE_FILE: "${CI_PROJECT_NAME}-${IMG_VERSION}"
+    IMAGE_FILE: "${CI_PROJECT_NAME}-${IMAGE_VERSION}"
     SCAN_DIRECTORY: "${ARTIFACT_STORAGE}/scan-results"
     DOCUMENTATION_DIRECTORY: "${ARTIFACT_STORAGE}/documentation"
     BUILD_DIRECTORY: "${ARTIFACT_STORAGE}/build"
