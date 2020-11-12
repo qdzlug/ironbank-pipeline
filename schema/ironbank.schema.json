@@ -20,6 +20,11 @@
       "type": "string",
       "pattern": "^[\\w][\\w.-]{0,127}$"
     },
+    "docker-TagRegexp-non-latest": {
+      "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
+      "type": "string",
+      "pattern": "^(?!latest$)[\\w][\\w.-]{0,127}$"
+    },
     "docker-ReferenceRegexp-url": {
       "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
       "type": "string",
@@ -56,7 +61,12 @@
     "tags": {
       "description": "Tags to tag an image with when pushed to registry1",
       "type": "array",
-      "items": {
+      "items": [
+        {
+          "$ref": "#/definitions/docker-TagRegexp-non-latest"
+        }
+      ],
+      "additionalItems": {
         "$ref": "#/definitions/docker-TagRegexp"
       },
       "minItems": 1,

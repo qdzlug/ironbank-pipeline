@@ -60,8 +60,9 @@ def validate_yaml(content):
 def process_yaml(content):
     artifact_dir = Path(os.environ["ARTIFACT_DIR"])
 
-    with (artifact_dir / "name.env").open("w") as f:
-        f.write(f"IMAGE_NAME={content['name']}")
+    with (artifact_dir / "variables.env").open("w") as f:
+        f.write(f"IMAGE_NAME={content['name']}\n")
+        f.write(f"IMAGE_VERSION={content['tags'][0]}\n")
 
     with (artifact_dir / "tags.txt").open("w") as f:
         for tag in content["tags"]:

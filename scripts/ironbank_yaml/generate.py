@@ -130,14 +130,15 @@ name: "{metadata["image_name"]}"
 
 # List of tags to push for the repository in registry1
 tags:
-- "latest"
 """
 
     # Add the version to the tag list
     if "version" in metadata and metadata["version"] != "latest":
-        ironbank_yaml += f'- "{metadata["version"]}"\n'
+        ironbank_yaml += f'- "{metadata["version"]}"'
 
     ironbank_yaml += f"""
+- "latest"
+
 # Arguments to inject to the build context
 args:
   BASE_IMAGE_NAME: "{metadata["image_parent_name"]}"
