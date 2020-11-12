@@ -38,9 +38,10 @@ args_parameters=$(while IFS= read -r line; do
   echo "--build-arg=$line"
 done <"${ARTIFACT_STORAGE}/preflight/args.env")
 
-set -x
 old_ifs=$IFS
 IFS=$'\n'
+# Intentional wordsplitting:
+# shellcheck disable=SC2086
 buildah bud \
   --build-arg "BASE_REGISTRY=${BASE_REGISTRY}" \
   $label_parameters \
@@ -63,7 +64,6 @@ buildah bud \
   -t "${STAGING_REGISTRY_URL}/$IM_NAME" \
   .
 IFS=$old_ifs
-set +x
 
 buildah tag --storage-driver=vfs "${STAGING_REGISTRY_URL}/$IM_NAME" "${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID}"
 echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json

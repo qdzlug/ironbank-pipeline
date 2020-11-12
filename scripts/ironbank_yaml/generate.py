@@ -161,7 +161,7 @@ labels:
         ironbank_yaml += "  # FIXME: Version of the packaged software\n"
         ironbank_yaml += '  org.opencontainers.image.version: ""'
 
-    ironbank_yaml += f"""
+    ironbank_yaml += """
   # FIXME: Keywords to help with search (ex. "cicd,gitops,golang")
   io.dsop.ironbank.image.keywords: ""
   # FIXME: This value can be "opensource" or "commercial"

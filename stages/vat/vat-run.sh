@@ -1,6 +1,6 @@
 #!/bin/bash
 set -Eeuo pipefail
-if [[ $(echo "${CI_PROJECT_DIR}" | grep -e 'pipeline-test-project') ]]; then
+if [[ $(echo "${CI_PROJECT_DIR}" | grep -q -F 'pipeline-test-project') ]]; then
   echo "Skipping vat. Cannot push to VAT when working with pipeline test projects..."
   exit 0
 fi
@@ -18,9 +18,9 @@ export IM_NAME
 #Get IMG_VERSION from tags
 TAG_FILE="${ARTIFACT_DIR}/preflight/tags.txt"
 #check if file only has one tag
-if [[ $(wc -l <${TAG_FILE}) -eq 1 ]]; then
+if [[ $(wc -l "${TAG_FILE}") -eq 1 ]]; then
   echo "only one tag"
-  IMG_VERSION=$(head -n 1 ${TAG_FILE})
+  IMG_VERSION=$(head -n 1 "${TAG_FILE}")
 #check if tag is major.minor.patch or major.minor
 else
   while IFS= read -r tag; do
