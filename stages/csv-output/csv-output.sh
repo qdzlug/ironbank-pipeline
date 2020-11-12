@@ -20,4 +20,4 @@ else
     --anchore-gates "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json" \
     --output-dir "${CSV_REPORT}"/
 fi
-python3 "${PIPELINE_REPO_DIR}"/stages/csv-output/justifier.py -i "${CSV_REPORT}"/all_scans.xlsx -o "${CSV_REPORT}"/"${CI_PROJECT_NAME}":"${IMG_VERSION}"-"${CI_PIPELINE_ID}"-justifications.xlsx -s "${IM_NAME}"
+python3 "${PIPELINE_REPO_DIR}"/stages/csv-output/justifier.py -i "${CSV_REPORT}"/all_scans.xlsx -o "${CSV_REPORT}"/"${CI_PROJECT_NAME}":"${IMAGE_VERSION}"-"${CI_PIPELINE_ID}"-justifications.xlsx -s "${IM_NAME}"
