@@ -33,7 +33,6 @@ while IFS= read -r tag; do
 
   tar -zcvf "${REPORT_TAR_NAME}-${tag}-reports-signature.tar.gz" reports
 
-
   python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file repo_map.json --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IM_NAME}/repo_map.json"
   for file in $(find "${DOCUMENTATION_DIRECTORY}" -name "*" -type f); do
     object_path="${file#"$ARTIFACT_STORAGE/documentation/"}"
@@ -50,4 +49,4 @@ while IFS= read -r tag; do
   python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "${PROJECT_LICENSE}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${tag}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_LICENSE}"
   python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "${REPORT_TAR_NAME}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${tag}/${REMOTE_REPORT_DIRECTORY}/${REPORT_TAR_NAME}-${tag}-reports-signature.tar.gz"
   rm reports/"${CI_PROJECT_NAME}"-"${tag}".tar/
-done < "${ARTIFACT_DIR}/preflight/tags.txt"
+done <"${ARTIFACT_DIR}/preflight/tags.txt"

@@ -18,7 +18,7 @@ export IM_NAME
 #Get IMG_VERSION from tags
 TAG_FILE="${ARTIFACT_DIR}/preflight/tags.txt"
 #check if file only has one tag
-if [[ $(wc -l < ${TAG_FILE}) -eq 1 ]]; then
+if [[ $(wc -l <${TAG_FILE}) -eq 1 ]]; then
   echo "only one tag"
   IMG_VERSION=$(head -n 1 ${TAG_FILE})
 #check if tag is major.minor.patch or major.minor
@@ -32,12 +32,11 @@ else
       echo "matched second"
       IMG_VERSION="${tag}"
     fi
-  done < "${TAG_FILE}"
+  done <"${TAG_FILE}"
 fi
 
 pip3 install --upgrade pip setuptools wheel minepy python-gitlab
 pip3 install -r "${PIPELINE_REPO_DIR}/stages/vat/requirements.txt"
-
 
 python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
   --db "${vat_db_database_name}" \

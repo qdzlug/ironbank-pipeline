@@ -48,7 +48,7 @@ def main():
         args.proj_branch,
         args.wl_branch,
     )
-    
+
     sys.exit(x)
 
 
@@ -63,9 +63,7 @@ def pipeline_whitelist_compare(
     wl_branch,
 ):
     proj = init(dccscr_project_id)
-    image_whitelist = get_complete_whitelist_for_image(
-        proj, image_name, wl_branch
-    )
+    image_whitelist = get_complete_whitelist_for_image(proj, image_name, wl_branch)
 
     wl_set = set()
     for image in image_whitelist:
@@ -201,7 +199,7 @@ def get_oval(oval_file):
     results_bad = soup.find_all("tr", class_=["resultbadA", "resultbadB"])
 
     cves = []
-    for x in results_bad:  
+    for x in results_bad:
         y = x.find_all(target="_blank")
         references = set()
         for t in y:

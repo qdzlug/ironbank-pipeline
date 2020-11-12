@@ -292,7 +292,6 @@ if __name__ == "__main__":
         # "hashicorp/packer/packer/packer.greylist",
         # "google/distroless/cc/cc.greylist",
         # "oracle/oraclelinux/obi8/obi8.greylist",
-
         # Begin schema violations
         # Old schema - validation is an array not object
         # "cloudfit/rabbitmq/rabbitmq/rabbitmq.greylist",

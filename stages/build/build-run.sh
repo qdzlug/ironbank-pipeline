@@ -32,11 +32,11 @@ echo "/tmp/prod_auth.json" >>.dockerignore
 # Convert env files to command line arguments
 # Newlines are not allowed in the key or value
 label_parameters=$(while IFS= read -r line; do
-    echo "--label=$line"
-done < "${ARTIFACT_STORAGE}/preflight/labels.env")
+  echo "--label=$line"
+done <"${ARTIFACT_STORAGE}/preflight/labels.env")
 args_parameters=$(while IFS= read -r line; do
-    echo "--build-arg=$line"
-done < "${ARTIFACT_STORAGE}/preflight/args.env")
+  echo "--build-arg=$line"
+done <"${ARTIFACT_STORAGE}/preflight/args.env")
 
 set -x
 old_ifs=$IFS
@@ -70,8 +70,8 @@ echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
 buildah push --storage-driver=vfs --authfile staging_auth.json "${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID}"
 
 while IFS= read -r tag; do
-    buildah push --storage-driver=vfs --authfile staging_auth.json "${STAGING_REGISTRY_URL}/$IM_NAME:${tag}"
-done < "${ARTIFACT_DIR}/preflight/tags.txt"
+  buildah push --storage-driver=vfs --authfile staging_auth.json "${STAGING_REGISTRY_URL}/$IM_NAME:${tag}"
+done <"${ARTIFACT_DIR}/preflight/tags.txt"
 
 # Provide tar for use in later stages, matching existing tar naming convention
 skopeo copy --src-authfile staging_auth.json "docker://${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID}" "docker-archive:${ARTIFACT_DIR}/${IMAGE_FILE}.tar"
