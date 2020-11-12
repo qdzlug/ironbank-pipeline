@@ -10,24 +10,24 @@ import git
 import generate
 import gitlab
 
-MR_DESCRIPTION = """Please review the contents of the new `ironbank.yaml` file.
+MR_DESCRIPTION = """Please review the contents of the new `hardening_manifest.yaml` file.
 
 The `image_name`, `image_tag`, `image_parent_name`, `image_parent_tag`, and
 `container_owner` fields in the greylist will no longer be used. The greylist
 will be updated in a future MR.
 
 `image_name` and `image_tag` have been replaced with the new `name` and `tags`
-fields in `ironbank.yaml`. It is now possible for the pipeline to build
+fields in `hardening_manifest.yaml`. It is now possible for the pipeline to build
 different tags on each branch. This allows us to rebuild the `master` branch
 while you work on an update with a new tag in `development` and feature
 branches.
 
 `image_parent_name` and `image_parent_tag` have been replaced by
 `BASE_IMAGE_NAME` and `BASE_IMAGE_TAG` in the `args:` section of
-`ironbank.yaml`.
+`hardening_manifest.yaml`.
 
 The current `container_owner` has been migrated to the `maintainers:` section
-of `ironbank.yaml`. _Please_ add any additional external vendor contacts or
+of `hardening_manifest.yaml`. _Please_ add any additional external vendor contacts or
 CHT internal members to this list if they maintain this container.
 
 *   [ ] Add any additional internal or external maintainers to the
@@ -51,7 +51,7 @@ CHT internal members to this list if they maintain this container.
 *   [ ] `io.dsop.ironbank.product.name` ...
 """
 
-logger = logging.getLogger("ironbank_yaml.migration")
+logger = logging.getLogger("hardening_manifest_yaml.migration")
 
 
 def main():
@@ -79,7 +79,7 @@ def main():
     )
     parser.add_argument(
         "--branch",
-        default="ironbank-yaml-migration",
+        default="hardening_manifest",
         help="New branch name for MR",
     )
     parser.add_argument(
@@ -142,8 +142,8 @@ def _process_greylist(
         logger.exception(f"Failed to list repository tree for {project}")
         return
 
-    if "ironbank.yaml" in tree:
-        logger.info(f"{project} already has ironbank.yaml, skipping")
+    if "hardening_manifest.yaml" in tree:
+        logger.info(f"{project} already has hardening_manifest.yaml, skipping")
         return
 
     try:
@@ -156,7 +156,7 @@ def _process_greylist(
         logger.error(f"File not found in {project}: {e}")
         return
     except Exception:
-        logger.exception("Failed to generate ironbank.yaml")
+        logger.exception("Failed to generate hardening_manifest.yaml")
         return
 
     # Stop processing at this point for a dry run
@@ -166,7 +166,7 @@ def _process_greylist(
     actions = [
         {
             "action": "create",
-            "file_path": "ironbank.yaml",
+            "file_path": "hardening_manifest.yaml",
             "content": yaml,
         },
     ]
@@ -184,7 +184,7 @@ def _process_greylist(
         # https://docs.gitlab.com/ee/api/commits.html#create-a-commit-with-multiple-files-and-actions
         gl_project.commits.create(
             {
-                "commit_message": "Migrate to ironbank.yaml",
+                "commit_message": "Migrate to hardening_manifest.yaml",
                 "branch": branch,
                 "start_branch": start_branch,
                 "actions": actions,
@@ -200,8 +200,8 @@ def _process_greylist(
             {
                 "source_branch": branch,
                 "target_branch": start_branch,
-                "title": "Migrate to ironbank.yaml",
-                "labels": ["ironbank.yaml migration"],
+                "title": "Migrate to hardening_manifest.yaml",
+                "labels": ["hardening_manifest.yaml migration"],
                 "description": MR_DESCRIPTION,
             }
         )

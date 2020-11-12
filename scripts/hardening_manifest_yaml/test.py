@@ -13,7 +13,7 @@ migration._process_greylist(
     gl=gl,
     force=True,
     repo1_url="https://repo1.dsop.io/",
-    branch="ironbank-yaml-migration",
+    branch="hardening_manifest",
     start_branch="development",
     dccscr_whitelists_branch="pipeline-test-project",
 )

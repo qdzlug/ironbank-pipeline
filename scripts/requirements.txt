@@ -6,7 +6,7 @@ python-gitlab==2.5.0
 requests==2.24.0
 urllib3==1.25.10
 
-### ironbank-yaml-migration
+### hardening_manifest_yaml
 # python-gitlab
 GitPython
 jsonschema
