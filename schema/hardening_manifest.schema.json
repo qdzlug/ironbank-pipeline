@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2019-09/schema",
-  "$id": "https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/schema/ironbank.schema.json",
+  "$id": "https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/schema/hardening_manifest.schema.json",
   "definitions": {
     "printable-characters-without-newlines": {
       "type": "string",

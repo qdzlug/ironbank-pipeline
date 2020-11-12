@@ -11,7 +11,7 @@ import jsonschema
 
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
-logger = logging.getLogger("ironbank_yaml.generate")
+logger = logging.getLogger("hardening_manifest_yaml.generate")
 
 
 class FileNotFound(Exception):
@@ -113,16 +113,16 @@ def _prepare_data(greylist, download, jenkinsfile=None):
     return metadata
 
 
-def _build_ironbank_yaml(metadata):
+def _build_hardening_manifest_yaml(metadata):
     """
-    Construct the ironbank.yaml file using the metadata collected from the
+    Construct the hardening_manifest.yaml file using the metadata collected from the
     greylist and download.yaml files. Build up a string that represents the
-    yaml file and then validate agains the ironbank yaml schema.
+    yaml file and then validate agains the hardening_manifest.yaml schema.
 
     """
 
-    ironbank_yaml = f"""---
-# Schema version of ironbank.yaml
+    hardening_manifest_yaml = f"""---
+# Schema version of hardening_manifest.yaml
 apiVersion: v1
 
 # Name matches the repository name in registry1
@@ -134,9 +134,9 @@ tags:
 
     # Add the version to the tag list
     if "version" in metadata and metadata["version"] != "latest":
-        ironbank_yaml += f'- "{metadata["version"]}"'
+        hardening_manifest_yaml += f'- "{metadata["version"]}"'
 
-    ironbank_yaml += f"""
+    hardening_manifest_yaml += f"""
 - "latest"
 
 # Arguments to inject to the build context
@@ -157,12 +157,14 @@ labels:
   org.opencontainers.image.vendor: ""
 """
     if "version" in metadata:
-        ironbank_yaml += f'  org.opencontainers.image.version: "{metadata["version"]}"'
+        hardening_manifest_yaml += (
+            f'  org.opencontainers.image.version: "{metadata["version"]}"'
+        )
     else:
-        ironbank_yaml += "  # FIXME: Version of the packaged software\n"
-        ironbank_yaml += '  org.opencontainers.image.version: ""'
+        hardening_manifest_yaml += "  # FIXME: Version of the packaged software\n"
+        hardening_manifest_yaml += '  org.opencontainers.image.version: ""'
 
-    ironbank_yaml += """
+    hardening_manifest_yaml += """
   # FIXME: Keywords to help with search (ex. "cicd,gitops,golang")
   io.dsop.ironbank.image.keywords: ""
   # FIXME: This value can be "opensource" or "commercial"
@@ -175,12 +177,12 @@ labels:
 """
 
     if "resources" in metadata:
-        ironbank_yaml += "resources:\n"
-        ironbank_yaml += yaml.dump(metadata["resources"]).strip()
+        hardening_manifest_yaml += "resources:\n"
+        hardening_manifest_yaml += yaml.dump(metadata["resources"]).strip()
     else:
-        ironbank_yaml += "resources: []"
+        hardening_manifest_yaml += "resources: []"
 
-    ironbank_yaml += f"""
+    hardening_manifest_yaml += f"""
 
 # FIXME: Fill in the following details for the current container owner in the whitelist
 # FIXME: Include any other vendor information if applicable
@@ -201,7 +203,7 @@ maintainers:
 
     logger.info("Validating schema")
     schema_path = os.path.join(
-        os.path.dirname(__file__), "../../schema/ironbank.schema.json"
+        os.path.dirname(__file__), "../../schema/hardening_manifest.schema.json"
     )
     with open(schema_path, "r") as s:
         schema_s = s.read()
@@ -211,7 +213,7 @@ maintainers:
             raise e
 
         try:
-            ib = yaml.safe_load(ironbank_yaml)
+            ib = yaml.safe_load(hardening_manifest_yaml)
         except yaml.YAMLError as e:
             raise e
 
@@ -221,18 +223,18 @@ maintainers:
             raise e
 
     logger.info("Passed schema validation")
-    return ironbank_yaml
+    return hardening_manifest_yaml
 
 
 def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group="dsop"):
     """
-    Generate the ironbank.yaml file using information from:
+    Generate the hardening_manifest.yaml file using information from:
     - greylist
     - download.{yaml,json}
     - Jenkinsfile
 
     The generated file is returned as a string. It will represent the contents
-    of the ironbank.yaml file and contain comments indicating where information
+    of the hardening_manifest.yaml file and contain comments indicating where information
     should be added or changed.
 
     """
@@ -277,7 +279,7 @@ def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group=
         raise e
 
     metadata = _prepare_data(greylist, download, jenkinsfile)
-    return _build_ironbank_yaml(metadata)
+    return _build_hardening_manifest_yaml(metadata)
 
 
 #

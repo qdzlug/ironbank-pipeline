@@ -59,7 +59,7 @@ def main():
     print("Input file:", inputFile)
     print("Output directory:", outputDir)
 
-    ##### Read download.yaml file
+    ##### Read hardening_manifest.yaml file
     with open(inputFile, "r") as file:
         downloads = yaml.safe_load(file)
 
@@ -348,7 +348,7 @@ def docker_download(download_item, tag_value, tar_name, username=None, password=
         except subprocess.CalledProcessError as e:
             if retry_count == 2:
                 print(
-                    "Docker resource failed to pull, please check download.yaml configuration"
+                    "Docker resource failed to pull, please check hardening_manifest.yaml configuration"
                 )
                 sys.exit(1)
             else:

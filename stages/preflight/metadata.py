@@ -25,7 +25,7 @@ def main():
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
 
-    ironbank_yaml_path = Path("ironbank.yaml")
+    ironbank_yaml_path = Path("hardening_manifest.yaml")
     if ironbank_yaml_path.exists():
         # Use the project description.yaml file path if one exists
         with ironbank_yaml_path.open("r") as f:
@@ -33,7 +33,7 @@ def main():
         validate_yaml(content)
     else:
         # Use the generated description.yaml file path if not
-        logging.warning("ironbank.yaml does not exist, autogenerating")
+        logging.warning("hardening_manifest.yaml does not exist, autogenerating")
         project_path = os.environ["CI_PROJECT_PATH"].split("/")
         assert len(project_path) > 2 and project_path[0] == "dsop"
         greylist_path = "/".join((*project_path[1:], f"{project_path[-1]}.greylist"))
@@ -43,14 +43,14 @@ def main():
             dccscr_whitelists_branch=os.environ["WL_TARGET_BRANCH"],
         )
         content = yaml.safe_load(ironbank_yaml_string)
-        # Generated ironbank.yaml is already validated
+        # Generated hardening_manifest.yaml is already validated
 
     process_yaml(content)
 
 
 def validate_yaml(content):
     logging.info("Validating schema")
-    schema_path = Path(__file__).parent / "../../schema/ironbank.schema.json"
+    schema_path = Path(__file__).parent / "../../schema/hardening_manifest.schema.json"
     with schema_path.open("r") as s:
         schema_s = s.read()
     schema = json.loads(schema_s)
