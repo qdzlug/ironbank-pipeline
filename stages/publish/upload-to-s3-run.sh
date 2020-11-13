@@ -18,7 +18,7 @@ PROJECT_LICENSE=$(find . -name "LICENSE*" -type f -maxdepth 1 | rev | cut -d/ -f
 
 source "${PIPELINE_REPO_DIR}"/stages/publish/repo_map_vars.sh
 
-if [ ${DISTROLESS} == "true" ]; then 
+if [ ${DISTROLESS} == "true" ]; then
   python3 "${PIPELINE_REPO_DIR}"/stages/publish/create_repo_map_other.py --target ${BASE_BUCKET_DIRECTORY}/"${IMAGE_PATH}"/repo_map.json
 else
   python3 "${PIPELINE_REPO_DIR}"/stages/publish/create_repo_map_default.py --target ${BASE_BUCKET_DIRECTORY}/"${IMAGE_PATH}"/repo_map.json
