@@ -23,5 +23,7 @@ include:
 
   - local: stages/vat/base.yaml
 
+  - local: stages/publish/base.yaml
+
 variables:
   DISTROLESS: "true"
