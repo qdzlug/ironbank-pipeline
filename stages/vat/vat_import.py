@@ -421,13 +421,11 @@ def set_system_user_id():
         conn = connect_to_db()
         cursor = conn.cursor()
         logs.debug("SELECT id FROM users WHERE username='%s'", 'VAT_Bot')
-        cursor.execute(
-            "SELECT `id` FROM `users` WHERE `username`='%s'", ('VAT_Bot'),
-        )
+        cursor.execute("SELECT id FROM users WHERE username='VAT_Bot'")
         row = cursor.fetchone()
         if row:
-            system_user_id = row['id']
-            logs.debug("\nFound VAT_Bot in users with id: %s", str(system_user_id))
+            system_user_id = row[0]
+            logs.debug("Found VAT_Bot in users with id: %s", str(system_user_id))
         else:
             logs.warning("No VAT_Bot in users table.")
 
