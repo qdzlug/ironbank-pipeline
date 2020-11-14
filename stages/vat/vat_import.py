@@ -18,6 +18,7 @@ import numpy
 import mysql.connector
 from mysql.connector import Error
 
+
 parser = argparse.ArgumentParser(description="SQL Agent")
 parser.add_argument("-n", "--host", help="Connection Info: Host", required=True)
 parser.add_argument(
@@ -406,6 +407,45 @@ def get_oscap_comp_finding(references):
     return finding
 
 
+def set_system_user_id():
+    """
+    Get the system_user_id from the users table where the username = 'VAT_Bot'.
+    Sets into global variable system_user_id
+    """
+
+    logs.debug("In set_system_user_id")
+    global system_user_id
+
+    system_user_id = -1
+    try:
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        logs.debug("SELECT id FROM users WHERE username='%s'", 'VAT_Bot')
+        cursor.execute(
+            "SELECT `id` FROM `users` WHERE `username`='%s'", ('VAT_Bot'),
+        )
+        row = cursor.fetchone()
+        if row:
+            system_user_id = row['id']
+            logs.debug("\nFound VAT_Bot in users with id: %s", str(system_user_id))
+        else:
+            logs.warning("No VAT_Bot in users table.")
+
+    except Error as error:
+        logs.info(error)
+    finally:
+        if conn is not None and conn.is_connected():
+            conn.close()
+
+
+def get_system_user_id():
+    """
+    This function returns the global system_user_id
+    """
+
+    return system_user_id
+
+
 def check_container():
     """
     check if a container exists and if it does not create it. Update reference to parentid as well
@@ -419,22 +459,22 @@ def check_container():
     if parent_id is None:
         query = (
             " INSERT INTO `containers` "
-            + "(`id`, `name`, `version`, `parent_id`,`locked_by_user`) VALUES ( NULL,  '"
+            + "(`id`, `name`, `version`, `parent_id`) VALUES ( NULL,  '"
             + args.container
             + "',  '"
             + args.version
-            + "',  NULL, NULL) ON DUPLICATE KEY UPDATE parent_id=NULL"
+            + "',  NULL) ON DUPLICATE KEY UPDATE parent_id=NULL"
         )
     else:
         query = (
             " INSERT INTO `containers` "
-            + "(`id`, `name`, `version`, `parent_id`, `locked_by_user`) VALUES ( NULL,  '"
+            + "(`id`, `name`, `version`, `parent_id`) VALUES ( NULL,  '"
             + args.container
             + "',  '"
             + args.version
             + "',  '"
             + str(parent_id)
-            + "', NULL) ON DUPLICATE KEY UPDATE parent_id='"
+            + "') ON DUPLICATE KEY UPDATE parent_id='"
             + str(parent_id)
             + "'"
         )
@@ -472,6 +512,63 @@ def check_container():
     return container_id
 
 
+def insert_finding(conn, iid, scan_source, index, row):
+    """
+    sql to update the finding table from a dataframe row.
+    """
+
+    logs.debug("Enter insert_finding")
+
+    try:
+
+        cursor = conn.cursor(buffered=True)
+        # search for an image id and finding in findings approvals table
+        # if nothing is returned then insert it
+        cursor.execute(
+            "SELECT id FROM `findings` WHERE "
+            + "container_id=%s and finding=%s and scan_source=%s and "
+            + "package=%s and package_path=%s",
+            (
+                iid,
+                row["finding"],
+                scan_source,
+                row["package"],
+                row["package_path"],
+            ),
+        )
+        results = cursor.fetchone()
+        if results is None:
+
+            logs.debug(
+                "inserting new findings values row=%d container_id=%s and "
+                + "finding=%s and scan_source=%s and package=%s and package_path=%s",
+                index,
+                iid,
+                row["finding"],
+                scan_source,
+                row["package"],
+                row["package_path"],
+            )
+
+            # it doesn't exist so insert it
+            cursor.execute(
+                "INSERT INTO `findings` "
+                + "(`container_id`, `finding`, `scan_source`, "
+                + "`package`, `package_path`)"
+                + "VALUES (%s, %s, %s, %s, %s)",
+                (
+                    iid,
+                    row["finding"],
+                    scan_source,
+                    row["package"],
+                    row["package_path"],
+                ),
+            )
+
+    except Error as error:
+        logs.error(error)
+
+
 def insert_scan(data, iid, scan_source):
     """
     sql to iterate through a parsed csv file and update appropriately.
@@ -500,9 +597,6 @@ def insert_scan(data, iid, scan_source):
             Irma's Notes for db migration updates:
 
             ---- TO DO Fred
-            Get the system_user_id from the users table where the
-                username = 'VAT_Bot'.
-
 
             Move the select id from `finding_approvals` to the beginning
                 The new table is called `findings`
@@ -513,7 +607,7 @@ def insert_scan(data, iid, scan_source):
                   retrieve id.
                else
                    insert finding with `container_id`, `finding`, `package`,
-                                       `package_path` & `record_timestamp`
+                                       `package_path` & `scan_source`
                    retrieve id
             -----
 
@@ -593,43 +687,8 @@ def insert_scan(data, iid, scan_source):
                 ),
             )
 
-            # search for an image id and finding in findings approvals table
-            # if nothing is returned then insert it
-            """
-            This section should be first!
-            """
-            cursor.execute(
-                "SELECT id FROM `findings_approvals` WHERE "
-                + "imageid=%s and finding=%s and scan_source=%s and "
-                + "package=%s and package_path=%s",
-                (iid, row["finding"], scan_source, row["package"], row["package_path"]),
-            )
-            logs.debug(
-                "inserting new findings values row=%d imageid=%s and finding=%s and scan_source=%s and package=%s and package_path=%s",
-                index,
-                iid,
-                row["finding"],
-                scan_source,
-                row["package"],
-                row["package_path"],
-            )
-            results = cursor.fetchone()
-            if results is None:
+            insert_finding(conn, iid, scan_source, index, row)
 
-                # it doesn't exist so insert it
-                cursor.execute(
-                    "INSERT INTO `findings_approvals` "
-                    + "(`imageid`, `finding`, `is_inheritable`, `scan_source`, "
-                    + "`package`, `package_path`)"
-                    + "VALUES (%s, %s, '1', %s, %s, %s)",
-                    (
-                        iid,
-                        row["finding"],
-                        scan_source,
-                        row["package"],
-                        row["package_path"],
-                    ),
-                )
     except Error as error:
         logs.error(error)
     finally:
@@ -962,6 +1021,7 @@ def main():
     iid = check_container()
     # false if no imageid found
     if iid and is_new_scan(iid):
+        set_system_user_id()
         push_all_csv_data(data, iid)
         d_f = get_all_inheritable_findings(iid)
         update_inheritance_id(d_f)
