@@ -118,7 +118,6 @@
           "$ref": "#/definitions/printable-characters-without-newlines"
         },
         "org.opencontainers.image.licenses": {
-          "$comment": "MADE TEMPORARILY OPTIONAL",
           "$comment": "See https://spdx.org/licenses/",
           "$ref": "#/definitions/printable-characters-without-newlines"
         },
@@ -133,14 +132,12 @@
           "$ref": "#/definitions/printable-characters-without-newlines"
         },
         "io.dsop.ironbank.image.keywords": {
-          "$comment": "MADE TEMPORARILY OPTIONAL",
           "$ref": "#/definitions/printable-characters-without-newlines"
         },
         "io.dsop.ironbank.image.type": {
           "$ref": "#/definitions/printable-characters-without-newlines"
         },
         "io.dsop.ironbank.product.name": {
-          "$comment": "MADE TEMPORARILY OPTIONAL",
           "$ref": "#/definitions/printable-characters-without-newlines"
         },
         "maintainer": {
@@ -152,12 +149,15 @@
       },
       "additionalProperties": false,
       "required": [
-        "org.opencontainers.image.title",
+        "io.dsop.ironbank.image.keywords",
+        "io.dsop.ironbank.product.name"
+        "maintainer",
         "org.opencontainers.image.description",
+        "org.opencontainers.image.licenses",
+        "org.opencontainers.image.title",
         "org.opencontainers.image.url",
         "org.opencontainers.image.vendor",
-        "org.opencontainers.image.version",
-        "maintainer"
+        "org.opencontainers.image.version"
       ]
     },
     "resources": {
