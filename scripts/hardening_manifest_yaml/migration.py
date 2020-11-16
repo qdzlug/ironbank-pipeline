@@ -5,10 +5,12 @@ import sys
 import tempfile
 from pathlib import Path
 import logging
+import io
 
 import git
 import generate
 import gitlab
+from dockerfile_parse import DockerfileParser
 
 MR_DESCRIPTION = """Please review the contents of the new `hardening_manifest.yaml` file.
 
@@ -159,10 +161,6 @@ def _process_greylist(
         logger.exception("Failed to generate hardening_manifest.yaml")
         return
 
-    # Stop processing at this point for a dry run
-    if not force:
-        return
-
     actions = [
         {
             "action": "create",
@@ -179,6 +177,25 @@ def _process_greylist(
                     "file_path": path,
                 }
             )
+
+    if "Dockerfile" in tree:
+        try:
+            new_dockerfile = _strip_dockerfile_labels(gl_project, start_branch)
+        except Exception:
+            logger.exception(f"Failed to process Dockerfile in {project}")
+            return
+
+        actions.append(
+            {
+                "action": "update",
+                "file_path": "Dockerfile",
+                "content": new_dockerfile,
+            }
+        )
+
+    # Stop processing at this point for a dry run
+    if not force:
+        return
 
     try:
         # https://docs.gitlab.com/ee/api/commits.html#create-a-commit-with-multiple-files-and-actions
@@ -210,6 +227,13 @@ def _process_greylist(
         return
 
     logger.info(f"MR successfully created on {project}")
+
+
+def _strip_dockerfile_labels(gl_project, ref):
+    dockerfile = io.BytesIO(gl_project.files.get("Dockerfile", ref).decode())
+    dfp = DockerfileParser(fileobj=dockerfile)
+    dfp.labels = {}
+    return dfp.content
 
 
 def _list_greylists(repo1_url):

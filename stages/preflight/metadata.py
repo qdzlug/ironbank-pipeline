@@ -9,7 +9,7 @@ import jsonschema
 import yaml
 
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), "../../scripts/"))
-import ironbank_yaml.generate  # noqa: E402
+import hardening_manifest_yaml.generate  # noqa: E402
 
 
 def main():
