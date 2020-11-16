@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 
 import argparse
+import io
+import json
+import logging
 import sys
 import tempfile
 from pathlib import Path
-import logging
-import io
 
 import git
-import generate
 import gitlab
 from dockerfile_parse import DockerfileParser
+
+import generate
 
 MR_DESCRIPTION = """Please review the contents of the new `hardening_manifest.yaml` file.
 
@@ -180,7 +182,7 @@ def _process_greylist(
 
     if "Dockerfile" in tree:
         try:
-            new_dockerfile = _strip_dockerfile_labels(gl_project, start_branch)
+            dockerfile = _process_dockerfile(gl_project, start_branch)
         except Exception:
             logger.exception(f"Failed to process Dockerfile in {project}")
             return
@@ -189,9 +191,25 @@ def _process_greylist(
             {
                 "action": "update",
                 "file_path": "Dockerfile",
-                "content": new_dockerfile,
+                "content": dockerfile,
             }
         )
+
+    if "renovate.json" in tree:
+        try:
+            renovate = _process_renovate(gl_project, start_branch)
+        except Exception:
+            logger.exception(f"Failed to process renovate.json in {project}")
+            return
+
+        if renovate:
+            actions.append(
+                {
+                    "action": "update",
+                    "file_path": "renovate.json",
+                    "content": renovate,
+                }
+            )
 
     # Stop processing at this point for a dry run
     if not force:
@@ -229,11 +247,21 @@ def _process_greylist(
     logger.info(f"MR successfully created on {project}")
 
 
-def _strip_dockerfile_labels(gl_project, ref):
+def _process_dockerfile(gl_project, ref):
     dockerfile = io.BytesIO(gl_project.files.get("Dockerfile", ref).decode())
     dfp = DockerfileParser(fileobj=dockerfile)
     dfp.labels = {}
     return dfp.content
+
+
+def _process_renovate(gl_project, ref):
+    renovate = json.loads(gl_project.files.get("renovate.json", ref).decode())
+    if "regexManagers" not in renovate:
+        return None
+    renovate["regexManagers"] = [
+        rm for rm in renovate["regexManagers"] if rm["fileMatch"] != [r"^Jenkinsfile$"]
+    ]
+    return json.dumps(renovate, indent=2)
 
 
 def _list_greylists(repo1_url):
