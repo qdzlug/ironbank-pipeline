@@ -4,11 +4,13 @@
   "definitions": {
     "printable-characters-without-newlines": {
       "type": "string",
-      "pattern": "^[ -~]*$"
+      "pattern": "^[ -~]*$",
+      "minLength": 1
     },
     "printable-characters-without-newlines-or-slashes": {
       "type": "string",
-      "pattern": "^[A-Za-z0-9][ -.0-~]*$"
+      "pattern": "^[A-Za-z0-9][ -.0-~]*$",
+      "minLength": 1
     },
     "docker-NameRegexp-without-domain": {
       "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
@@ -150,7 +152,7 @@
       "additionalProperties": false,
       "required": [
         "io.dsop.ironbank.image.keywords",
-        "io.dsop.ironbank.product.name"
+        "io.dsop.ironbank.product.name",
         "maintainer",
         "org.opencontainers.image.description",
         "org.opencontainers.image.licenses",
@@ -197,7 +199,7 @@
                     "$ref": "#/definitions/environment-variable-name"
                   },
                   "region": {
-                    "type": "string"
+                    "$ref": "#/definitions/printable-characters-without-newlines"
                   },
                   "type": {
                     "type": "string",
@@ -241,9 +243,6 @@
                 "properties": {
                   "id": {
                     "$ref": "#/definitions/environment-variable-name"
-                  },
-                  "region": {
-                    "$ref": "#/definitions/printable-characters-without-newlines"
                   },
                   "type": {
                     "type": "string",
