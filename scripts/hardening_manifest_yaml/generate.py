@@ -122,13 +122,14 @@ def _build_hardening_manifest_yaml(metadata):
     """
 
     hardening_manifest_yaml = f"""---
-# Schema version of hardening_manifest.yaml
 apiVersion: v1
 
-# Name matches the repository name in registry1
+# The repository name in registry1, excluding /ironbank/
 name: "{metadata["image_name"]}"
 
 # List of tags to push for the repository in registry1
+# The most specific version should be the first tag and will be shown
+# on ironbank.dsop.io
 tags:
 """
 
@@ -139,38 +140,38 @@ tags:
     hardening_manifest_yaml += f"""
 - "latest"
 
-# Arguments to inject to the build context
+# Build args passed to Dockerfile ARGs
 args:
   BASE_IMAGE_NAME: "{metadata["image_parent_name"]}"
   BASE_IMAGE_TAG: "{metadata["image_parent_tag"]}"
 
-# Labels to apply to the image
+# Docker image labels
 labels:
   org.opencontainers.image.title: "{metadata["image_name"].split("/")[-1]}"
-  # FIXME: Human-readable description of the software packaged in the image
-  org.opencontainers.image.description: ""
-  # FIXME: License(s) under which contained software is distributed
-  org.opencontainers.image.licenses: ""
-  # FIXME: URL to find more information on the image
-  org.opencontainers.image.url: ""
-  # FIXME: Name of the distributing entity, organization or individual
-  org.opencontainers.image.vendor: ""
+  ## Human-readable description of the software packaged in the image
+  # org.opencontainers.image.description: "FIXME"
+  ## License(s) under which contained software is distributed
+  # org.opencontainers.image.licenses: "FIXME"
+  ## URL to find more information on the image
+  # org.opencontainers.image.url: "FIXME"
+  ## Name of the distributing entity, organization or individual
+  # org.opencontainers.image.vendor: "FIXME"
 """
     if "version" in metadata:
         hardening_manifest_yaml += (
             f'  org.opencontainers.image.version: "{metadata["version"]}"'
         )
     else:
-        hardening_manifest_yaml += "  # FIXME: Version of the packaged software\n"
-        hardening_manifest_yaml += '  org.opencontainers.image.version: ""'
+        hardening_manifest_yaml += "  ## Version of the packaged software\n"
+        hardening_manifest_yaml += '  # org.opencontainers.image.version: "FIXME"'
 
     hardening_manifest_yaml += """
-  # FIXME: Keywords to help with search (ex. "cicd,gitops,golang")
-  io.dsop.ironbank.image.keywords: ""
-  # FIXME: This value can be "opensource" or "commercial"
-  io.dsop.ironbank.image.type: ""
-  # FIXME: Product the image belongs to for grouping multiple images
-  io.dsop.ironbank.product.name: ""
+  ## Keywords to help with search (ex. "cicd,gitops,golang")
+  # io.dsop.ironbank.image.keywords: "FIXME"
+  ## This value can be "opensource" or "commercial"
+  # io.dsop.ironbank.image.type: "FIXME"
+  ## Product the image belongs to for grouping multiple images
+  # io.dsop.ironbank.product.name: "FIXME"
   maintainer: "ironbank@dsop.io"
 
 # List of resources to make available to the offline build context
@@ -184,18 +185,16 @@ labels:
 
     hardening_manifest_yaml += f"""
 
+# List of project maintainers
 # FIXME: Fill in the following details for the current container owner in the whitelist
 # FIXME: Include any other vendor information if applicable
-# NOTE: Uncomment or add `cht_member: true` if the maintainer is a member of CHT
-# List of project maintainers
-# New issues may automatically be assigned to project maintainers
 maintainers:
-  # FIXME: Include the name of the current container owner
-- name: ""
-  # FIXME: Include the gitlab username of the current container owner
-  username: ""
-  email: "{metadata["container_owner"]}"
-#   cht_member: true
+-  email: "{metadata["container_owner"]}"
+#   # The name of the current container owner
+#   name: "FIXME"
+#   # The gitlab username of the current container owner
+#   username: "FIXME"
+#   cht_member: true # FIXME: Uncomment if the maintainer is a member of CHT
 # - name: "FIXME"
 #   username: "FIXME"
 #   email: "FIXME"
@@ -203,7 +202,7 @@ maintainers:
 
     logger.info("Validating schema")
     schema_path = os.path.join(
-        os.path.dirname(__file__), "../../schema/hardening_manifest.schema.json"
+        os.path.dirname(__file__), "../../schema/hardening_manifest.schema-relaxed.json"
     )
     with open(schema_path, "r") as s:
         schema_s = s.read()
