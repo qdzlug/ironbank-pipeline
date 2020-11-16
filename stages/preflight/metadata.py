@@ -25,10 +25,10 @@ def main():
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
 
-    ironbank_yaml_path = Path("hardening_manifest.yaml")
-    if ironbank_yaml_path.exists():
+    hardening_manifest_yaml_path = Path("hardening_manifest.yaml")
+    if hardening_manifest_yaml_path.exists():
         # Use the project description.yaml file path if one exists
-        with ironbank_yaml_path.open("r") as f:
+        with hardening_manifest_yaml_path.open("r") as f:
             content = yaml.safe_load(f)
         validate_yaml(content)
     else:
@@ -37,12 +37,12 @@ def main():
         project_path = os.environ["CI_PROJECT_PATH"].split("/")
         assert len(project_path) > 2 and project_path[0] == "dsop"
         greylist_path = "/".join((*project_path[1:], f"{project_path[-1]}.greylist"))
-        ironbank_yaml_string = ironbank_yaml.generate.generate(
+        hardening_manifest_yaml_string = hardening_manifest_yaml.generate.generate(
             greylist_path=greylist_path,
             repo1_url="https://repo1.dsop.io/",
             dccscr_whitelists_branch=os.environ["WL_TARGET_BRANCH"],
         )
-        content = yaml.safe_load(ironbank_yaml_string)
+        content = yaml.safe_load(hardening_manifest_yaml_string)
         # Generated hardening_manifest.yaml is already validated
 
     process_yaml(content)
