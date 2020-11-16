@@ -17,4 +17,7 @@ openscap compliance:
     when: always
     paths:
       - "${OSCAP_SCANS}"
+    reports:
+      dotenv: oscap-compliance.env
+
     expire_in: 1 week
