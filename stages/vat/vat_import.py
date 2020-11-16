@@ -13,7 +13,6 @@ import re
 import ast
 
 import pandas
-import numpy
 
 import mysql.connector
 from mysql.connector import Error
@@ -273,7 +272,7 @@ def get_packages(package_string):
     # Capture the package
     # Remove any security, enhancement, bug fix or any combination of those.
     # Match and throw away anything after this up to the severity ().
-    initial_re = ".*: (?:Updated )?(.*?)(?:security|enhancement|bug fix).*\("
+    initial_re = ".*: (?:Updated )?(.*?)(?:security|enhancement|bug fix).*\\("
     logs.debug("packages - perform pattern match %s", initial_re)
     match = re.match(initial_re, package_string)
 
