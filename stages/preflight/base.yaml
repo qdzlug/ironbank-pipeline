@@ -32,7 +32,7 @@ hardening_manifest migration:
         exit 1
       fi
 
-      grep -q Dockerfile '\w*LABEL'
+      grep -i -q '\s*LABEL' Dockerfile
 
 # build variables:
 #   extends: folder structure
