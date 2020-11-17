@@ -513,6 +513,7 @@ def check_container():
 def insert_finding(conn, iid, scan_source, index, row):
     """
     sql to update the finding table from a dataframe row.
+    return: id of finding
     """
 
     logs.debug("Enter insert_finding")
@@ -562,10 +563,52 @@ def insert_finding(conn, iid, scan_source, index, row):
                     row["package_path"],
                 ),
             )
+            return cursor.lastrowid
+        else:
+            return results[0]
 
     except Error as error:
         logs.error(error)
 
+def insert_finding_scan(conn, row, finding_id):
+    """
+    insert a row into the finding_scan_results table
+    set that row to active and deactivate last active row
+    :params conn mysql connection
+    :params row dict of values to insert
+    :params finding_id int value of corresponding finding in the findings table
+    """
+    logs.debug("Starting insert_finding_scan")
+    try:
+        get_id_query = "SELECT id from `finding_scan_results` WHERE finding_id = %s and active = 1"
+        get_id_tuple = (finding_id,)
+        cursor.execute(get_id_query, get_id_params)
+        active_record = cursor.fetchone()
+
+        if active_record:
+            update_sql_query = "UPDATE `finding_scan_results` SET active = 0 WHERE id = %s"
+            cursor.execute(update_sql_query, active_record)
+
+        insert_finding_query = """INSERT INTO `finding_scan_results`
+            (`finding_id`, `job_id`, `record_timestamp`, `severity`,
+            `link`, `score`, `description`, `active`)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
+        insert_values = (
+            finding_id,
+            args.jenkins
+            args.scan_date,
+            row["severity"],
+            row["link"],
+            row["score"],
+            row["description"],
+            1
+        )
+        cursor.execute(insert_finding_query, insert_values)
+    except Error as error:
+        logs.error(error)
+
+def update_findings_log():
+    pass
 
 def insert_scan(data, iid, scan_source):
     """
@@ -609,16 +652,6 @@ def insert_scan(data, iid, scan_source):
                    retrieve id
             -----
 
-            ----- TO DO Irma
-            Change this table to `finding_scan_results`
-            Select by active = 1
-                      and finding_id = finding from `findings` table.
-            If found, set active = 0
-            Insert `finding_id` (which matches that retrieved from `findings`),
-                   `record_timestamp`, `job_id`, `severity`, `link`, `score`,
-                   `description`, `active`
-            ------
-
             ------ TO DO Breakup on Friday 11/13
             Select * from finding_logs where finding_id = this finding
                      where record_type_active = 1.
@@ -660,32 +693,10 @@ def insert_scan(data, iid, scan_source):
             -----
 
             """
-            cursor.execute(
-                "INSERT INTO `scan_results`"
-                + "(`id`, `imageid`, `finding`, `jenkins_run`, `scan_date`, "
-                + "`scan_source`, `severity`, `link`, `score`, `description`, "
-                + "`package`, `package_path`)"
-                + " VALUES (NULL,'"
-                + str(iid)
-                + "', '"
-                + row["finding"]
-                + "', '"
-                + str(args.jenkins)
-                + "', '"
-                + args.scan_date
-                + "', %s, %s, %s, %s, %s, %s, %s)",
-                (
-                    scan_source,
-                    row["severity"],
-                    row["link"],
-                    row["score"],
-                    row["description"],
-                    row["package"],
-                    row["package_path"],
-                ),
-            )
 
-            insert_finding(conn, iid, scan_source, index, row)
+            finding_id = insert_finding(conn, iid, scan_source, index, row)
+            insert_finding_scan(conn, iid, scan_source, index, row, finding_id)
+            # update_findings_log(conn, iid, finding_id)
 
     except Error as error:
         logs.error(error)
