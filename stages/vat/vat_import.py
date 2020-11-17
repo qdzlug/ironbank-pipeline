@@ -510,7 +510,7 @@ def check_container():
     return container_id
 
 
-def insert_finding(conn, iid, scan_source, index, row):
+def insert_finding(cursor, iid, scan_source, index, row):
     """
     sql to update the finding table from a dataframe row.
     return: id of finding
@@ -520,7 +520,6 @@ def insert_finding(conn, iid, scan_source, index, row):
 
     try:
 
-        cursor = conn.cursor(buffered=True)
         # search for an image id and finding in findings approvals table
         # if nothing is returned then insert it
         cursor.execute(
@@ -571,7 +570,7 @@ def insert_finding(conn, iid, scan_source, index, row):
         logs.error(error)
 
 
-def insert_finding_scan(row, finding_id):
+def insert_finding_scan(cursor, row, finding_id):
     """
     insert a row into the finding_scan_results table
     set that row to active and deactivate last active row
@@ -586,11 +585,10 @@ def insert_finding_scan(row, finding_id):
         )
         get_id_tuple = (finding_id,)
         cursor.execute(get_id_query, get_id_tuple)
-        active_record = cursor.fetchone()
-        row = cursor.fetchone()
-        active_record = row[0]
+        result = cursor.fetchone()
 
-        if active_record:
+        if result:
+            active_record = row[0]
             update_sql_query = (
                 "UPDATE `finding_scan_results` SET active = 0 WHERE id = %s"
             )
@@ -726,7 +724,7 @@ def insert_scan(data, iid, scan_source):
             """
 
             finding_id = insert_finding(conn, iid, scan_source, index, row)
-            insert_finding_scan(row, finding_id)
+            insert_finding_scan(cursor, row, finding_id)
             # update_findings_log(conn, iid, finding_id)
 
     except Error as error:
