@@ -1,6 +1,7 @@
 csv output:
   stage: csv output
-
+  tags:
+    - ironbank
   dependencies:
     - twistlock scan
     - openscap cve

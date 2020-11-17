@@ -43,6 +43,8 @@ wl compare lint:
   extends: .lint
   dependencies:
     - load scripts
+  tags:
+    - ironbank
   script:
     # The following step assumes contributor projects have an environment variable set for the image version
     # in the gitlab-ci.yml file.
