@@ -595,7 +595,7 @@ def insert_finding_scan(conn, row, finding_id):
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
         insert_values = (
             finding_id,
-            args.jenkins
+            args.jenkins,
             args.scan_date,
             row["severity"],
             row["link"],
