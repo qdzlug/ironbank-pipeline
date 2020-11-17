@@ -420,7 +420,7 @@ def set_system_user_id():
     try:
         conn = connect_to_db()
         cursor = conn.cursor()
-        logs.debug("SELECT id FROM users WHERE username='%s'", 'VAT_Bot')
+        logs.debug("SELECT id FROM users WHERE username='%s'", "VAT_Bot")
         cursor.execute("SELECT id FROM users WHERE username='VAT_Bot'")
         row = cursor.fetchone()
         if row:
@@ -570,6 +570,7 @@ def insert_finding(conn, iid, scan_source, index, row):
     except Error as error:
         logs.error(error)
 
+
 def insert_finding_scan(conn, row, finding_id):
     """
     insert a row into the finding_scan_results table
@@ -580,13 +581,17 @@ def insert_finding_scan(conn, row, finding_id):
     """
     logs.debug("Starting insert_finding_scan")
     try:
-        get_id_query = "SELECT id from `finding_scan_results` WHERE finding_id = %s and active = 1"
+        get_id_query = (
+            "SELECT id from `finding_scan_results` WHERE finding_id = %s and active = 1"
+        )
         get_id_tuple = (finding_id,)
         cursor.execute(get_id_query, get_id_params)
         active_record = cursor.fetchone()
 
         if active_record:
-            update_sql_query = "UPDATE `finding_scan_results` SET active = 0 WHERE id = %s"
+            update_sql_query = (
+                "UPDATE `finding_scan_results` SET active = 0 WHERE id = %s"
+            )
             cursor.execute(update_sql_query, active_record)
 
         insert_finding_query = """INSERT INTO `finding_scan_results`
@@ -601,14 +606,38 @@ def insert_finding_scan(conn, row, finding_id):
             row["link"],
             row["score"],
             row["description"],
-            1
+            1,
         )
         cursor.execute(insert_finding_query, insert_values)
     except Error as error:
         logs.error(error)
 
+
 def update_findings_log():
     pass
+
+
+def find_lineage(container_id):
+    """
+    Retrieves lineage of a child
+    :params container_id int
+    :return list of parents, grandparents, etc in order
+    """
+    recursive_parent_query = """
+        WITH RECURSIVE container_tree as (
+        select id, parent_id from containers where id = %s
+        union all
+        select c.id, c.parent_id
+        from containers c
+            join container_tree as p on p.parent_id = c.id
+        )
+        select id from container_tree where id <> %s
+        """
+    container_id_tuple = (container_id, container_id)
+    cursor.execute(recursive_parent_query, container_id_tuple)
+    lineage = cursor.fetchall()
+    return [t[0] for t in lineage]
+
 
 def insert_scan(data, iid, scan_source):
     """
