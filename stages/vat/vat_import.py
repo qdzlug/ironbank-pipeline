@@ -587,6 +587,8 @@ def insert_finding_scan(row, finding_id):
         get_id_tuple = (finding_id,)
         cursor.execute(get_id_query, get_id_tuple)
         active_record = cursor.fetchone()
+        row = cursor.fetchone()
+        active_record = row[0]
 
         if active_record:
             update_sql_query = (
