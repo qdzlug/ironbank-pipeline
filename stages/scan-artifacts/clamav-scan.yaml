@@ -1,5 +1,7 @@
 clamav scan:
   stage: scan artifacts
+  tags:
+    - ironbank
   image: "${REGISTRY_URL}/opensource/clamav/clamav:0.103.0"
   dependencies:
     - import artifacts

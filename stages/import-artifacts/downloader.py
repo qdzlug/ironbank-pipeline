@@ -318,8 +318,9 @@ def docker_download(download_item, tag_value, tar_name, username=None, password=
         pull_cmd += ["--creds", f"{username}:{password}"]
     pull_cmd += ["--", image]
 
+    retry = True
     retry_count = 0
-    while True:
+    while retry:
         try:
             subprocess.run(pull_cmd, check=True)
             print("Tagging image as " + tag_value)
@@ -343,16 +344,16 @@ def docker_download(download_item, tag_value, tar_name, username=None, password=
                 tar_name + ".tar",
                 os.getenv("ARTIFACT_STORAGE") + "/import-artifacts/images/",
             )
+            retry = False
         except subprocess.CalledProcessError as e:
-            if retry_count > 1:
+            if retry_count == 2:
                 print(
                     "Docker resource failed to pull, please check download.yaml configuration"
                 )
                 sys.exit(1)
             else:
-                print(f"Docker resource failed to pull, retrying: {retry_count} /3")
                 retry_count += 1
-        break
+                print(f"Docker resource failed to pull, retrying: {retry_count}/2")
 
 
 if __name__ == "__main__":

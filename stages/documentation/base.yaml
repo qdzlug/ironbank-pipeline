@@ -1,5 +1,7 @@
 .documentation:
   stage: documentation
+  tags:
+    - ironbank
   only:
     - development
     - master

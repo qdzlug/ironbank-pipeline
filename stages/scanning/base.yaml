@@ -1,7 +1,8 @@
 #scanning:
 .scanning:
   stage: scanning
-
+  tags:
+    - ironbank
   #  dependencies:
   #    - post-build
 include:

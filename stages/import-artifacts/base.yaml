@@ -1,5 +1,7 @@
 import artifacts:
   stage: import artifacts
+  tags:
+    - ironbank
   dependencies:
     - load scripts
   variables:
