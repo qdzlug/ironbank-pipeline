@@ -3,7 +3,7 @@ include:
 
   # - local: stages/preflight/base.yaml
 
-  # - local: stages/lint/base.yaml
+  - local: stages/lint/base.yaml
 
   - local: stages/import-artifacts/base.yaml
 
