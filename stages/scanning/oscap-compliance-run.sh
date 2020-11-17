@@ -29,6 +29,6 @@ rm -rf "scap-security-guide.zip scap-security-guide-${OSCAP_VERSION}"
 echo "${OSCAP_VERSION}" >>"${OSCAP_SCANS}/oscap-version.txt"
 cp report.html "${OSCAP_SCANS}/report.html"
 
-echo "OSCAP_COMPLIANCE_URL=${CI_JOB_URL}" > oscap-compliance.env
+echo "OSCAP_COMPLIANCE_URL=${CI_JOB_URL}" >oscap-compliance.env
 
 cat oscap-compliance.env
