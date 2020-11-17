@@ -4,7 +4,8 @@ set -Eeuo pipefail
 mkdir -p "${CSV_REPORT}"
 # pip3 install --upgrade pip
 # pip3 install bs4 pandas argparse openpyxl gitpython
-
+echo "OSCAP CVE URL: ${OSCAP_CVE_URL}"
+echo "OSCAP COMPLIANCE URL: ${OSCAP_COMPLIANCE_URL}"
 if [[ "${DISTROLESS:-}" ]]; then
   python3 "${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py" \
     --twistlock "${ARTIFACT_STORAGE}/scan-results/twistlock/${IMG_VERSION}.json" \
