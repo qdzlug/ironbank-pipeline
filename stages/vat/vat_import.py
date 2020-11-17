@@ -571,7 +571,7 @@ def insert_finding(conn, iid, scan_source, index, row):
         logs.error(error)
 
 
-def insert_finding_scan(conn, row, finding_id):
+def insert_finding_scan(row, finding_id):
     """
     insert a row into the finding_scan_results table
     set that row to active and deactivate last active row
@@ -585,7 +585,7 @@ def insert_finding_scan(conn, row, finding_id):
             "SELECT id from `finding_scan_results` WHERE finding_id = %s and active = 1"
         )
         get_id_tuple = (finding_id,)
-        cursor.execute(get_id_query, get_id_params)
+        cursor.execute(get_id_query, get_id_tuple)
         active_record = cursor.fetchone()
 
         if active_record:
@@ -724,7 +724,7 @@ def insert_scan(data, iid, scan_source):
             """
 
             finding_id = insert_finding(conn, iid, scan_source, index, row)
-            insert_finding_scan(conn, iid, scan_source, index, row, finding_id)
+            insert_finding_scan(row, finding_id)
             # update_findings_log(conn, iid, finding_id)
 
     except Error as error:
