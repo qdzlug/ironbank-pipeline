@@ -129,7 +129,7 @@ def _process_greylist(
         branches = [b.name for b in gl_project.branches.list()]
     except gitlab.exceptions.GitlabListError:
         # Old greylists like dsop/opensource/foo/1.2.3/foo-1.2.3.greylist will result in an error that can be ignored
-        logger.warning(f"Failed to get branches for {project}")
+        logger.info(f"Failed to get branches for {project}")
         return
 
     if start_branch not in branches:
@@ -256,11 +256,41 @@ def _process_dockerfile(gl_project, ref):
 
 def _process_renovate(gl_project, ref):
     renovate = json.loads(gl_project.files.get("renovate.json", ref).decode())
+
     if "regexManagers" not in renovate:
         return None
-    renovate["regexManagers"] = [
-        rm for rm in renovate["regexManagers"] if rm["fileMatch"] != [r"^Jenkinsfile$"]
-    ]
+
+    jenkinsManagers = []
+    for m in renovate["regexManagers"]:
+        if m["fileMatch"] == [r"^Jenkinsfile$"]:
+            renovate["regexManagers"].remove(m)
+            jenkinsManagers.append(m)
+
+    if not jenkinsManagers:
+        return None
+
+    if len(jenkinsManagers) > 1:
+        logger.warning("Multiple regexManagers found in renovate.json for Jenkinsfile")
+
+    # Hopefully there aren't multiple regexManagers applied to Jenkinsfiles
+    assert jenkinsManagers[0]["matchStrings"] == [r'version:\s+"(?<currentValue>.*?)"']
+
+    renovate["regexManagers"].append(
+        {
+            **jenkinsManagers[0],
+            "fileMatch": [r"^hardening_manifest.yaml$"],
+            "matchStrings": [
+                r'org\.opencontainers\.image\.version:\s*"(?<currentValue>.+?)"'
+            ],
+        }
+    )
+    renovate["regexManagers"].append(
+        {
+            **jenkinsManagers[0],
+            "fileMatch": [r"^hardening_manifest.yaml$"],
+            "matchStrings": [r'tags:\n-\s*"(?<currentValue>.+?)"'],
+        }
+    )
     return json.dumps(renovate, indent=2)
 
 
