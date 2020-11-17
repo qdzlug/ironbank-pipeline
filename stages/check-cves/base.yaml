@@ -1,6 +1,7 @@
 check cves:
   stage: check cves
-
+  tags:
+    - ironbank
   dependencies:
     - load scripts
     - twistlock scan
