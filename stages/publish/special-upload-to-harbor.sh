@@ -1,6 +1,6 @@
 #!/bin/bash
 set -Eeuo pipefail
-if [[ $(echo "${CI_PROJECT_DIR}" | grep -e 'pipeline-test-project') ]]; then
+if echo "${CI_PROJECT_DIR}" | grep -q -F 'pipeline-test-project'; then
   echo "Skipping Harbor Upload. Cannot push to Harbor when working with pipeline test projects..."
   exit 0
 fi

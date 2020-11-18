@@ -1,6 +1,6 @@
 #!/bin/bash
 set -Eeuo pipefail
-if [[ $(echo "${CI_PROJECT_DIR}" | grep -q -F 'pipeline-test-project') ]] && [ "${CI_COMMIT_BRANCH}" == "master" ]; then
+if echo "${CI_PROJECT_DIR}" | grep -q -F 'pipeline-test-project' && [ "${CI_COMMIT_BRANCH}" == "master" ]; then
   echo "Skipping publish. Cannot publish when working with pipeline test projects master branch..."
   exit 0
 fi
