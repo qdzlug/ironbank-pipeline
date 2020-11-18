@@ -19,4 +19,6 @@ csv output:
     when: always
     paths:
       - "${CSV_REPORT}"
+    reports:
+      dotenv: csv_output.env
     expire_in: 1 week
