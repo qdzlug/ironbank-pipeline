@@ -16,3 +16,5 @@ openscap cve:
     when: always
     paths:
       - "${ARTIFACT_DIR}"
+    reports:
+      dotenv: oscap-cve.env
