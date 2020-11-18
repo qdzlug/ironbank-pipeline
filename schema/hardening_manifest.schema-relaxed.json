@@ -144,9 +144,6 @@
         "io.dsop.ironbank.product.name": {
           "$comment": "MADE TEMPORARILY OPTIONAL",
           "$ref": "#/definitions/printable-characters-without-newlines"
-        },
-        "maintainer": {
-          "$ref": "#/definitions/printable-characters-without-newlines"
         }
       },
       "propertyNames": {
@@ -155,8 +152,7 @@
       "additionalProperties": false,
       "required": [
         "org.opencontainers.image.title",
-        "org.opencontainers.image.version",
-        "maintainer"
+        "org.opencontainers.image.version"
       ]
     },
     "resources": {

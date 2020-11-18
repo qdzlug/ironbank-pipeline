@@ -141,9 +141,6 @@
         },
         "io.dsop.ironbank.product.name": {
           "$ref": "#/definitions/printable-characters-without-newlines"
-        },
-        "maintainer": {
-          "$ref": "#/definitions/printable-characters-without-newlines"
         }
       },
       "propertyNames": {
@@ -151,13 +148,9 @@
       },
       "additionalProperties": false,
       "required": [
-        "io.dsop.ironbank.image.keywords",
-        "io.dsop.ironbank.product.name",
-        "maintainer",
         "org.opencontainers.image.description",
         "org.opencontainers.image.licenses",
         "org.opencontainers.image.title",
-        "org.opencontainers.image.url",
         "org.opencontainers.image.vendor",
         "org.opencontainers.image.version"
       ]

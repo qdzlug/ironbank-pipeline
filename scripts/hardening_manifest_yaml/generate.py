@@ -172,7 +172,6 @@ labels:
   # io.dsop.ironbank.image.type: "FIXME"
   ## Product the image belongs to for grouping multiple images
   # io.dsop.ironbank.product.name: "FIXME"
-  maintainer: "ironbank@dsop.io"
 
 # List of resources to make available to the offline build context
 """
