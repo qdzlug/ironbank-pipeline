@@ -280,7 +280,7 @@ def _process_renovate(gl_project, ref):
             **jenkinsManagers[0],
             "fileMatch": [r"^hardening_manifest.yaml$"],
             "matchStrings": [
-                r'org\.opencontainers\.image\.version:\s*"(?<currentValue>.+?)"'
+                r'org\.opencontainers\.image\.version:\s+"(?<currentValue>.+?)"'
             ],
         }
     )
@@ -288,7 +288,7 @@ def _process_renovate(gl_project, ref):
         {
             **jenkinsManagers[0],
             "fileMatch": [r"^hardening_manifest.yaml$"],
-            "matchStrings": [r'tags:\n-\s*"(?<currentValue>.+?)"'],
+            "matchStrings": [r'tags:\s+-\s+"(?<currentValue>.+?)"'],
         }
     )
     return json.dumps(renovate, indent=2)
