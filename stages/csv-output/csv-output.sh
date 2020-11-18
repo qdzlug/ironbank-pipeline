@@ -6,9 +6,11 @@ mkdir -p "${CSV_REPORT}"
 # pip3 install bs4 pandas argparse openpyxl gitpython
 # output OSCAP link variables for the VAT stage to use
 report_artifact_path='/artifacts/browse/ci-artifacts/scan-results/openscap/'
-echo "OSCAP_CVE_URL=${OSCAP_CVE_URL}${report_artifact_path}" >>csv_output.env
-echo "OSCAP_COMPLIANCE_URL=${OSCAP_COMPLIANCE_URL}${report_artifact_path}" >>csv_output.env
-cat csv_output.env
+if [[ "${OSCAP_CVE_URL:-}" ]]; then
+  echo "OSCAP_CVE_URL=${OSCAP_CVE_URL}${report_artifact_path}" >>csv_output.env
+  echo "OSCAP_COMPLIANCE_URL=${OSCAP_COMPLIANCE_URL}${report_artifact_path}" >>csv_output.env
+  cat csv_output.env
+fi
 if [[ "${DISTROLESS:-}" ]]; then
   python3 "${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py" \
     --twistlock "${ARTIFACT_STORAGE}/scan-results/twistlock/${IMG_VERSION}.json" \
