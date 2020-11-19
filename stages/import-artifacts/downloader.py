@@ -63,94 +63,92 @@ def main():
     with open(inputFile, "r") as file:
         downloads = yaml.safe_load(file)
 
-    for type in downloads:
-        if type == "resources":
-            for item in downloads[type]:
-                download_type = resource_type(item["url"])
-                if download_type == "http":
-                    if "auth" in item:
-                        if item["auth"]["type"] == "basic":
-                            credential_id = item["auth"]["id"].replace("-", "_")
-                            password = b64decode(
-                                os.getenv("CREDENTIAL_PASSWORD_" + credential_id)
-                            )
-                            username = b64decode(
-                                os.getenv("CREDENTIAL_USERNAME_" + credential_id)
-                            )
-                            http_download(
-                                item["url"],
-                                item["filename"],
-                                item["validation"]["type"],
-                                item["validation"]["value"],
-                                outputDir,
-                                username,
-                                password,
-                            )
-                        else:
-                            print(
-                                "Non Basic auth type provided for HTTP resource, failing"
-                            )
-                            sys.exit(1)
-                    else:
-                        http_download(
-                            item["url"],
-                            item["filename"],
-                            item["validation"]["type"],
-                            item["validation"]["value"],
-                            outputDir,
-                        )
-                if download_type == "docker":
-                    if "auth" in item:
-                        if item["auth"]["type"] == "basic":
-                            credential_id = item["auth"]["id"].replace("-", "_")
-                            password = b64decode(
-                                os.getenv("CREDENTIAL_PASSWORD_" + credential_id)
-                            ).decode("utf-8")
-                            username = b64decode(
-                                os.getenv("CREDENTIAL_USERNAME_" + credential_id)
-                            ).decode("utf-8")
-                            docker_download(
-                                item["url"],
-                                item["tag"],
-                                item["tag"],
-                                username,
-                                password,
-                            )
-                        else:
-                            print(
-                                "Non Basic auth type provided for Docker resource, failing"
-                            )
-                            sys.exit(1)
-                    else:
-                        docker_download(item["url"], item["tag"], item["tag"])
-                if download_type == "s3":
-                    if "auth" in item:
-                        credential_id = item["auth"]["id"].replace("-", "_")
-                        username = b64decode(
-                            os.getenv("S3_ACCESS_KEY_" + credential_id)
-                        ).decode("utf-8")
-                        password = b64decode(
-                            os.getenv("S3_SECRET_KEY_" + credential_id)
-                        ).decode("utf-8")
-                        region = item["auth"]["region"]
-                        s3_download(
-                            item["url"],
-                            item["filename"],
-                            item["validation"]["type"],
-                            item["validation"]["value"],
-                            outputDir,
-                            username,
-                            password,
-                            region,
-                        )
-                    else:
-                        s3_download(
-                            item["url"],
-                            item["filename"],
-                            item["validation"]["type"],
-                            item["validation"]["value"],
-                            outputDir,
-                        )
+    if "resources" not in downloads or not downloads["resources"]:
+        print(f"No resources in {inputFile}")
+        return
+
+    for item in downloads["resources"]:
+        download_type = resource_type(item["url"])
+        if download_type == "http":
+            if "auth" in item:
+                if item["auth"]["type"] == "basic":
+                    credential_id = item["auth"]["id"].replace("-", "_")
+                    password = b64decode(
+                        os.getenv("CREDENTIAL_PASSWORD_" + credential_id)
+                    )
+                    username = b64decode(
+                        os.getenv("CREDENTIAL_USERNAME_" + credential_id)
+                    )
+                    http_download(
+                        item["url"],
+                        item["filename"],
+                        item["validation"]["type"],
+                        item["validation"]["value"],
+                        outputDir,
+                        username,
+                        password,
+                    )
+                else:
+                    print("Non Basic auth type provided for HTTP resource, failing")
+                    sys.exit(1)
+            else:
+                http_download(
+                    item["url"],
+                    item["filename"],
+                    item["validation"]["type"],
+                    item["validation"]["value"],
+                    outputDir,
+                )
+        if download_type == "docker":
+            if "auth" in item:
+                if item["auth"]["type"] == "basic":
+                    credential_id = item["auth"]["id"].replace("-", "_")
+                    password = b64decode(
+                        os.getenv("CREDENTIAL_PASSWORD_" + credential_id)
+                    ).decode("utf-8")
+                    username = b64decode(
+                        os.getenv("CREDENTIAL_USERNAME_" + credential_id)
+                    ).decode("utf-8")
+                    docker_download(
+                        item["url"],
+                        item["tag"],
+                        item["tag"],
+                        username,
+                        password,
+                    )
+                else:
+                    print("Non Basic auth type provided for Docker resource, failing")
+                    sys.exit(1)
+            else:
+                docker_download(item["url"], item["tag"], item["tag"])
+        if download_type == "s3":
+            if "auth" in item:
+                credential_id = item["auth"]["id"].replace("-", "_")
+                username = b64decode(
+                    os.getenv("S3_ACCESS_KEY_" + credential_id)
+                ).decode("utf-8")
+                password = b64decode(
+                    os.getenv("S3_SECRET_KEY_" + credential_id)
+                ).decode("utf-8")
+                region = item["auth"]["region"]
+                s3_download(
+                    item["url"],
+                    item["filename"],
+                    item["validation"]["type"],
+                    item["validation"]["value"],
+                    outputDir,
+                    username,
+                    password,
+                    region,
+                )
+            else:
+                s3_download(
+                    item["url"],
+                    item["filename"],
+                    item["validation"]["type"],
+                    item["validation"]["value"],
+                    outputDir,
+                )
 
 
 def resource_type(url):

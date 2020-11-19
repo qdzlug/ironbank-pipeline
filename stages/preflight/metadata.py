@@ -42,6 +42,8 @@ def main():
             repo1_url="https://repo1.dsop.io/",
             dccscr_whitelists_branch=os.environ["WL_TARGET_BRANCH"],
         )
+        generated_file = Path(os.environ["ARTIFACT_DIR"], "hardening_manifest.yaml")
+        generated_file.write_text(hardening_manifest_yaml_string)
         content = yaml.safe_load(hardening_manifest_yaml_string)
         # Generated hardening_manifest.yaml is already validated
 
