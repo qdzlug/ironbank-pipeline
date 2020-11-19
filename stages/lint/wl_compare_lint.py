@@ -8,7 +8,7 @@ import logging
 
 
 gitlab_url = "https://repo1.dsop.io"
-dccscr_project_id = 143
+dccscr_project_id = "dsop/dccscr-whitelists"
 
 
 def main():
@@ -24,27 +24,26 @@ def main():
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
 
-    parser = argparse.ArgumentParser(description="Lint Whitelist")
-    parser.add_argument("--image", help="")
-    parser.add_argument("--tag", help="")
-    parser.add_argument("--wlbranch", help="")
-    args = parser.parse_args()
 
-    im_name = args.image
-    wl_branch = args.wlbranch
+    image_name = os.getenv("CI_PROJECT_PATH", default="")
+    wl_branch = os.getenv("WL_TARGET_BRANCH", default="master")
+    artifacts_path = os.getenv("ARTIFACTS_STORAGE", default="")
 
-    im_name = "/".join(im_name.split("/")[1::])
+    image_name = "/".join(image_name.split("/")[1::])
 
     # get dccscr project object from GitLab
     proj = init(dccscr_project_id)
 
     # Check that image name/tag match provided project values, and all parent images
-    get_complete_whitelist_for_image(proj, im_name, wl_branch)
+    get_complete_whitelist_for_image(proj, image_name, wl_branch)
 
 
 # TODO: Grabbing these fields from the greylist will be deprecated. Use hardening_manifest.yaml
-def get_complete_whitelist_for_image(proj, im_name, wl_branch, child_image_depth=0):
-    filename = get_whitelist_filename(im_name)
+def get_complete_whitelist_for_image(proj, image_name, wl_branch, child_image_depth=0):
+
+    # Fetch the hardening_manifest.yaml
+
+    filename = get_whitelist_filename(image_name)
     contents = get_whitelist_file_contents(proj, filename, wl_branch)
 
     par_image = contents["image_parent_name"]
@@ -56,7 +55,7 @@ def get_complete_whitelist_for_image(proj, im_name, wl_branch, child_image_depth
         print(f"Error: unapproved image running on master branch", file=sys.stderr)
         sys.exit(1)
 
-    if contents["image_name"] == im_name:
+    if contents["image_name"] == image_name:
         if len(par_image) > 0:
             get_complete_whitelist_for_image(
                 proj,
@@ -88,14 +87,14 @@ def get_complete_whitelist_for_image(proj, im_name, wl_branch, child_image_depth
             + ":"
             + contents["image_tag"]
             + "\nSupplied Image Name: "
-            + im_name,
+            + image_name,
             file=sys.stderr,
         )
         sys.exit(1)
 
 
-def get_whitelist_filename(im_name):
-    dccscr_project = im_name.split("/")
+def get_whitelist_filename(image_name):
+    dccscr_project = image_name.split("/")
     greylist_name = dccscr_project[-1] + ".greylist"
     dccscr_project.append(greylist_name)
     filename = "/".join(dccscr_project)

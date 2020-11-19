@@ -43,6 +43,7 @@ wl compare lint:
   extends: .lint
   dependencies:
     - load scripts
+    - hardening_manifest
   tags:
     - ironbank
   script:

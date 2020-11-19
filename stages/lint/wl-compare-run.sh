@@ -1,6 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 set -Eeuo pipefail
-python3 "${PIPELINE_REPO_DIR}/stages/lint/wl_compare_lint.py" \
-  --image "${CI_PROJECT_PATH}" \
-  --wlbranch "${WL_TARGET_BRANCH}" >lint.env
+
+python3 "${PIPELINE_REPO_DIR}/stages/lint/wl_compare_lint.py" > lint.env
+
 cat lint.env
