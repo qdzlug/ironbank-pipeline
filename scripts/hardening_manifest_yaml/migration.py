@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
 
+""""
+Submit an MR to all dsop repositories to migrate them to hardening_manifest.yaml
+
+Usage:
+    Testing:
+        python .\scripts\hardening_manifest_yaml\migration.py --repo1-token="your-personal-access-token" --dccscr-whitelists-branch=pipeline-test-project --dccscr-whitelists-path=opensource/pipeline-test-project
+    Run the full migration:
+        python .\scripts\hardening_manifest_yaml\migration.py --repo1-token="ironbank-bot-personal-access-token" --force
+"""
+
 import argparse
 import io
 import json
@@ -67,6 +77,16 @@ def main():
         help="Testing flag to dry run the script",
     )
     parser.add_argument(
+        "--dccscr-whitelists-branch",
+        default="master",
+        help="Testing flag to use a different branch of dccscr-whitelists",
+    )
+    parser.add_argument(
+        "--dccscr-whitelists-path",
+        default="",
+        help="Testing flag to use a subdirectory of dccscr-whitelists",
+    )
+    parser.add_argument(
         "--repo1-token",
         required=True,
         help="Personal access token for accessing gitlab",
@@ -102,7 +122,9 @@ def main():
         )
 
     gl = gitlab.Gitlab(args.repo1_url, private_token=args.repo1_token)
-    greylists = _list_greylists(args.repo1_url)
+    greylists = _list_greylists(
+        args.repo1_url, args.dccscr_whitelists_branch, args.dccscr_whitelists_path
+    )
     for greylist in greylists:
         _process_greylist(greylist, gl, **vars(args))
 
@@ -114,7 +136,7 @@ def _process_greylist(
     repo1_url,
     start_branch,
     branch,
-    dccscr_whitelists_branch="master",
+    dccscr_whitelists_branch,
     **kwargs,
 ):
     # Path to the greylist in the repo
@@ -294,17 +316,19 @@ def _process_renovate(gl_project, ref):
     return json.dumps(renovate, indent=2)
 
 
-def _list_greylists(repo1_url):
+def _list_greylists(repo1_url, dccscr_whitelists_branch, dccscr_whitelists_path):
     """
     Create the list of greylists from dccscr-whitelists repo
     """
     whitelist_dir = "dccscr-whitelists"
     whitelist_repo_url = f"{repo1_url}/dsop/{whitelist_dir}.git"
-    logger.info(f"Cloning {whitelist_repo_url}")
+    logger.info(f"Cloning {dccscr_whitelists_branch} branch of {whitelist_repo_url}")
 
     with tempfile.TemporaryDirectory() as tempdir:
-        git.Repo.clone_from(whitelist_repo_url, tempdir)
-        for greylist in Path(tempdir).glob("**/*.greylist"):
+        git.Repo.clone_from(
+            whitelist_repo_url, tempdir, branch=dccscr_whitelists_branch
+        )
+        for greylist in Path(tempdir, dccscr_whitelists_path).glob("**/*.greylist"):
             yield greylist.relative_to(tempdir)
 
 
