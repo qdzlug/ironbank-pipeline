@@ -24,45 +24,49 @@ from dockerfile_parse import DockerfileParser
 
 import generate
 
-MR_DESCRIPTION = """Please review the contents of the new `hardening_manifest.yaml` file.
+MR_DESCRIPTION = """
+Please review the contents of the new `hardening_manifest.yaml` file.
 
 The `image_name`, `image_tag`, `image_parent_name`, `image_parent_tag`, and
 `container_owner` fields in the greylist will no longer be used. The greylist
 will be updated in a future MR.
 
 `image_name` and `image_tag` have been replaced with the new `name` and `tags`
-fields in `hardening_manifest.yaml`. It is now possible for the pipeline to build
-different tags on each branch. This allows us to rebuild the `master` branch
-while you work on an update with a new tag in `development` and feature
-branches.
+fields in `hardening_manifest.yaml`.
+
+:tada: It is now possible for the pipeline to build different tags on each branch.
+This allows us to rebuild the `master` branch while you work on an update with a
+new tag in `development` or feature branches.
 
 `image_parent_name` and `image_parent_tag` have been replaced by
 `BASE_IMAGE_NAME` and `BASE_IMAGE_TAG` in the `args:` section of
-`hardening_manifest.yaml`.
+`hardening_manifest.yaml`. You can also add custom args like `MY_VERSION`
+that referenced as `ARG MY_VERSION` in your `Dockerfile`.
 
-The current `container_owner` has been migrated to the `maintainers:` section
-of `hardening_manifest.yaml`. _Please_ add any additional external vendor contacts or
-CHT internal members to this list if they maintain this container.
+Please review the following:
 
-*   [ ] Add any additional internal or external maintainers to the
-    `maintainers:` list. At least one `cht_member` should be present and a
-    vendor contact if this is a non-opensource image.
-*   [ ] Add any required build args to the `args:` list. For example, you may
-    want to add a  custom `VERSION` build arg to simplify your `Dockerfile`.
-*   [ ] `org.opencontainers.image.title` ...
-*   [ ] `org.opencontainers.image.description` ...
-*   [ ] `org.opencontainers.image.licenses` Please ensure the license(s) are
-    correctly listed. If an open source license is used, please list the
-    [SPDX identifier](https://spdx.org/licenses). If this is a commercial image
-    you list "ACME Inc. proprietary license" or similar. If the same image
-    is available under multiple licenses, you may list "MIT,Apache-2.0" or
-    "AGPL-3.0,ACME Inc. proprietary license" as appropriate.
-*   [ ] `org.opencontainers.image.url` ...
-*   [ ] `org.opencontainers.image.vendor` ...
-*   [ ] `org.opencontainers.image.version` ...
-*   [ ] `io.dsop.ironbank.image.keywords` ...
-*   [ ] `io.dsop.ironbank.image.type` ...
-*   [ ] `io.dsop.ironbank.product.name` ...
+* Tags
+   * The most specific tag should be first, that is list `v1.2.3` as the first tag, not `v1.2`
+   * The first tag will be shown on https://ironbank.dsop.io
+   * Additional tags may be added if desired and will be published to https://registry1.dsop.io
+* Labels
+   * [ ] `org.opencontainers.image.title`: **Required.** Human-readable title of the image
+   * [ ] `org.opencontainers.image.description`: **Required.** Human-readable description of the software packaged in the image
+   * [ ] `org.opencontainers.image.licenses`: **Required.** License(s) under which contained software is distributed. Please use the [SPDX identfier](https://spdx.org/licenses/) if using a standard open source license.
+   * [ ] `org.opencontainers.image.url`: URL to find more information on the image
+   * [ ] `org.opencontainers.image.vendor`: **Required.** Name of the distributing entity, organization or individual
+   * [ ] `org.opencontainers.image.version`: **Required.** Human readable version of the image. This is typically identical to the first tag.
+   * [ ] `io.dsop.ironbank.image.keywords`: Keywords to help with search (ex. "cicd,gitops,golang")
+   * [ ] `io.dsop.ironbank.image.type`: This value can be "opensource" or "commercial"
+   * [ ] `io.dsop.ironbank.product.name`: Product the image belongs to for grouping multiple images. If you have multiple images that you would like grouped together on https://ironbank.dsop.io, use the same product name on them all.
+* Maintainers
+  * [ ] _Please_ add any additional external vendor contacts or CHT internal members to this list if they maintain this container.
+  * Add any Iron Bank team members who maintain this container with `cht_member: true` set
+  * The current `container_owner` has already been added to the `maintainers:` section
+of `hardening_manifest.yaml`.
+  * Can include POCs in technical and/or support roles. For containers which require licenses or subscriptions, it is encouraged to include a point of contact who can provide assistance in this regard, in addition to a technical POC.
+
+The pipeline will not run successfully for this MR until all of the required fields are added.
 """
 
 logger = logging.getLogger("hardening_manifest_yaml.migration")
