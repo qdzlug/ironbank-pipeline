@@ -135,35 +135,41 @@ def getJustifications(whitelistDir, allFiles, sourceImageGreylistFile):
 
             # Loop through the findings and create the corresponding dict object based on the vuln_source
             for finding in findings:
-                if "vulnerability" in finding.keys():
-                    openscapID = finding["vulnerability"]
-                    cveID = finding["vulnerability"] + "-" + finding["vuln_description"]
-                    trigger_id_inherited = finding["vulnerability"]
-                    trigger_id = finding["vulnerability"]
+                if finding["status"] == "approved":
 
-                    # Twistlock finding
-                    if finding["vuln_source"] == "Twistlock":
-                        if file == sourceImageGreylistFile:
-                            cveTwistlock[cveID] = finding["justification"]
-                        else:
-                            cveTwistlock[cveID] = "Inherited from base image."
+                    if "vulnerability" in finding.keys():
+                        openscapID = finding["vulnerability"]
+                        cveID = (
+                            finding["vulnerability"] + "-" + finding["vuln_description"]
+                        )
+                        trigger_id_inherited = finding["vulnerability"]
+                        trigger_id = finding["vulnerability"]
 
-                    # Anchore finding
-                    elif finding["vuln_source"] == "Anchore":
-                        if file == sourceImageGreylistFile:
-                            cveAnchore[cveID] = finding["justification"]
-                            cveAnchore[trigger_id] = finding["justification"]
-                        else:
-                            cveAnchore[cveID] = "Inherited from base image."
-                            if trigger_id in inheritableTriggerIds:
-                                cveAnchore[trigger_id] = "Inherited from base image."
+                        # Twistlock finding
+                        if finding["vuln_source"] == "Twistlock":
+                            if file == sourceImageGreylistFile:
+                                cveTwistlock[cveID] = finding["justification"]
+                            else:
+                                cveTwistlock[cveID] = "Inherited from base image."
 
-                    # OpenSCAP finding
-                    elif finding["vuln_source"] == "OpenSCAP":
-                        if file == sourceImageGreylistFile:
-                            cveOpenscap[openscapID] = finding["justification"]
-                        else:
-                            cveOpenscap[openscapID] = "Inherited from base image."
+                        # Anchore finding
+                        elif finding["vuln_source"] == "Anchore":
+                            if file == sourceImageGreylistFile:
+                                cveAnchore[cveID] = finding["justification"]
+                                cveAnchore[trigger_id] = finding["justification"]
+                            else:
+                                cveAnchore[cveID] = "Inherited from base image."
+                                if trigger_id in inheritableTriggerIds:
+                                    cveAnchore[
+                                        trigger_id
+                                    ] = "Inherited from base image."
+
+                        # OpenSCAP finding
+                        elif finding["vuln_source"] == "OpenSCAP":
+                            if file == sourceImageGreylistFile:
+                                cveOpenscap[openscapID] = finding["justification"]
+                            else:
+                                cveOpenscap[openscapID] = "Inherited from base image."
             # print(cveAnchore)
     return cveOpenscap, cveTwistlock, cveAnchore
 

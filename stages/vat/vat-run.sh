@@ -15,6 +15,9 @@ export IM_NAME
 # source environment.sh
 # cat environment.sh
 
+# OpenSCAP report links are available from the CSV Output job. Once VAT team updates vat_import.py
+# script to use these values we can begin passing updated arguments
+
 pip3 install --upgrade pip setuptools wheel minepy python-gitlab
 pip3 install -r "${PIPELINE_REPO_DIR}/stages/vat/requirements.txt"
 
