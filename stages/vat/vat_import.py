@@ -426,8 +426,7 @@ def get_system_user_id(static_user_id=[None]):
             row = cursor.fetchone()
             if row:
                 static_user_id[0] = row[0]
-                logs.debug("Found VAT_Bot in users with id: %s",
-                           str(static_user_id[0]))
+                logs.debug("Found VAT_Bot in users with id: %s", str(static_user_id[0]))
             else:
                 logs.warning("No VAT_Bot in users table.")
 
@@ -488,11 +487,13 @@ def check_container():
             # container id of course their might have been error but lets see if
             # we can get that id
             logs.info("last insert id not found could not find container")
-            query = (
-                "SELECT * FROM `containers` WHERE name=%s and version=%s"
-            )
+            query = "SELECT * FROM `containers` WHERE name=%s and version=%s"
             cursor.execute(
-                query, (args.container,args.version,)
+                query,
+                (
+                    args.container,
+                    args.version,
+                ),
             )
             results = cursor.fetchall()
             for row in results:
@@ -953,7 +954,8 @@ def get_parent_id(static_parent_id=[None]):
                 query = "SELECT * FROM `containers` WHERE name=%s and version=%s"
                 logs.debug(query, args.parent, args.parent_version)
                 cursor.execute(
-                    query, (args.parent, args.parent_version),
+                    query,
+                    (args.parent, args.parent_version),
                 )
                 results = cursor.fetchall()
                 for row in results:
