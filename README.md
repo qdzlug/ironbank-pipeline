@@ -80,7 +80,7 @@ Job artifacts:
 
 TODO: A future version of the pipeline will also perform the following lints:
 
-The `yaml lint` will lint the format yaml files for proper formatting in the project.  `hardening_manifest.yaml` and any other yaml files will be linted.
+The `yaml lint` will lint the format yaml files for proper formatting in the project. `hardening_manifest.yaml` and any other yaml files will be linted.
 
 `dockerfile lint` will run hadolint (or another linting tool) to lint the `Dockerfile`.
 
