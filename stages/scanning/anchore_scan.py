@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
+
 import re
-import requests
-import json
 import os
 import sys
+import time
+import json
 import logging
+import pathlib
+import requests
+import subprocess
 
 
 class Anchore:
@@ -13,16 +17,11 @@ class Anchore:
 
     """
 
-    def __init__(self, url, username, password, verify, image, output, imageid):
+    def __init__(self, url, username, password, verify):
         self.url = url
         self.username = username
         self.password = password
         self.verify = verify
-        self.image = image
-        self.output = output
-        if "sha256:" in imageid:
-            imageid = imageid.split(":")[1]
-        self.imageid = imageid
 
     def __get_anchore_api_json(self, url, payload=""):
         """
@@ -73,7 +72,7 @@ class Anchore:
         with open(filename, "w") as f:
             json.dump(version_json["service"]["version"], f)
 
-    def get_vulns(self):
+    def get_vulns(self, digest):
         """
         Fetch the vulnerability data for the scanned image. Will parse the
         vulnerability response and look for VulnDB records. When a VulnDB record
@@ -84,7 +83,7 @@ class Anchore:
         logging.info("Getting vulnerability results")
         try:
             vuln_dict = self.__get_anchore_api_json(
-                f"{self.url}/images/by_id/{self.imageid}/vuln/all"
+                f"{self.url}/enterprise/images/by_id/{self.imageid}/vuln/all"
             )
 
             for vulnerability in vuln_dict["vulnerabilities"]:
@@ -114,7 +113,7 @@ class Anchore:
             # if any report fails, raise the error and failstop program
             raise err
 
-    def get_compliance(self):
+    def get_compliance(self, digest):
         """
         Fetch the compliance results for the Anchore policy bundle. Will write
         out the actual API response that contains the results, along with the
@@ -123,9 +122,7 @@ class Anchore:
 
         """
         logging.info("Getting compliance results")
-        request_url = (
-            f"{self.url}/images/by_id/{self.imageid}/check?tag={self.image}&detail=true"
-        )
+        request_url = f"{self.url}/enterprise/images/by_id/{self.imageid}/check?tag={self.image}&detail=true"
         body_json = self.__get_anchore_api_json(request_url)
 
         # Save the API response
@@ -159,6 +156,83 @@ def main():
     else:
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
+
+    image = os.getenv("IMAGE_NAME", default="fail")
+
+    # Add the image to Anchore along with it's Dockerfile. Use the `--force` flag to force
+    # a reanalysis of the image on pipeline reruns where the digest has not changed.
+    if pathlib.Path("./Dockerfile").is_file():
+        add_cmd = [
+            "anchore-cli",
+            "--json",
+            "image",
+            "add",
+            "--noautosubscribe",
+            "--dockerfile",
+            "./Dockerfile",
+            "--force",
+            image,
+        ]
+    else:
+        add_cmd = [
+            "anchore-cli",
+            "--json",
+            "image",
+            "add",
+            "--noautosubscribe",
+            "--force",
+            image,
+        ]
+
+    try:
+        logging.info(" ".join(add_cmd))
+        image_add = subprocess.run(
+            add_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+            encoding="utf-8",
+        )
+    except subprocess.SubprocessError as e:
+        logging.exception("Could not add image to Anchore")
+        return 1
+
+    logging.info(f"{image} added to Anchore")
+    logging.info(image_add.stdout)
+    digest = json.loads(image_add.stdout)[0]["imageDigest"]
+
+    # TODO: Pass in timeout
+    logging.info(f"Waiting for Anchore to scan {image}")
+
+    try:
+        os.environ["PYTHONUNBUFFERED"] = "1"
+        wait_cmd = ["anchore-cli", "image", "wait", "--timeout", "60", digest]
+        logging.info(" ".join(wait_cmd))
+        image_wait = subprocess.Popen(
+            wait_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            encoding="utf-8",
+        )
+
+        while image_wait.poll() is None:
+            line = image_wait.stdout.readline().strip()
+            if line:
+                logging.info(line)
+        os.environ["PYTHONUNBUFFERED"] = "0"
+
+        # Check return code
+        if image_wait.returncode != 0:
+            raise subprocess.SubprocessError(
+                f"returned non-zero exit status {image_wait.returncode}"
+            )
+
+    except subprocess.SubprocessError as e:
+        logging.exception("Failed while waiting for Anchore to scan image")
+        return 1
+
+    logging.info(image_wait.stdout)
+
     endpoint_url = re.sub(
         "/+$", "", os.getenv("ANCHORE_CLI_URL", default="http://localhost:8228/v1/")
     )
@@ -168,14 +242,13 @@ def main():
         username=os.getenv("ANCHORE_CLI_USER", default="admin"),
         password=os.getenv("ANCHORE_CLI_PASS", default="foobar"),
         verify=os.getenv("ANCHORE_VERIFY", default=True),
-        image=os.getenv("IMAGE_NAME", default="none"),
-        output=os.getenv("ANCHORE_SCAN_DIRECTORY", default="."),
-        imageid=os.getenv("IMAGE_ID", default="none"),
     )
 
-    anchore.get_vulns()
-    anchore.get_compliance()
-    anchore.get_version()
+    anchore.get_vulns(digest)
+    anchore.get_compliance(digest)
+    anchore.get_version(digest)
+
+    return 0
 
 
 if __name__ == "__main__":
