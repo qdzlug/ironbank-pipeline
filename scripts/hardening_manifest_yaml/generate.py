@@ -188,7 +188,7 @@ labels:
 # FIXME: Fill in the following details for the current container owner in the whitelist
 # FIXME: Include any other vendor information if applicable
 maintainers:
--  email: "{metadata["container_owner"]}"
+- email: "{metadata["container_owner"]}"
 #   # The name of the current container owner
 #   name: "FIXME"
 #   # The gitlab username of the current container owner

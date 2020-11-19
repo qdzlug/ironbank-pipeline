@@ -4,6 +4,7 @@ import artifacts:
     - ironbank
   dependencies:
     - load scripts
+    - hardening_manifest
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/import-artifacts"
   script:
