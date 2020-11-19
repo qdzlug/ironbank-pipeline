@@ -78,7 +78,7 @@
       "description": "Arguments passed to image build",
       "type": "object",
       "properties": {
-        "BASE_IMAGE_NAME": {
+        "BASE_IMAGE": {
           "$comment": "May be an empty string if the Dockerfile does not use this variable",
           "oneOf": [
             {
@@ -89,7 +89,7 @@
             }
           ]
         },
-        "BASE_IMAGE_TAG": {
+        "BASE_TAG": {
           "$comment": "May be an empty string if the Dockerfile does not use this variable",
           "oneOf": [
             {
@@ -107,7 +107,7 @@
       "propertyNames": {
         "$ref": "#/definitions/environment-variable-name"
       },
-      "required": ["BASE_IMAGE_NAME", "BASE_IMAGE_TAG"]
+      "required": ["BASE_IMAGE", "BASE_TAG"]
     },
     "labels": {
       "description": "Labels added to Iron Bank containers",

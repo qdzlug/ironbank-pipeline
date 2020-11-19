@@ -142,8 +142,8 @@ tags:
 
 # Build args passed to Dockerfile ARGs
 args:
-  BASE_IMAGE_NAME: "{metadata["image_parent_name"]}"
-  BASE_IMAGE_TAG: "{metadata["image_parent_tag"]}"
+  BASE_IMAGE: "{metadata["image_parent_name"]}"
+  BASE_TAG: "{metadata["image_parent_tag"]}"
 
 # Docker image labels
 labels:

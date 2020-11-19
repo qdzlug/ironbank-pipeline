@@ -38,19 +38,6 @@ args_parameters=$(while IFS= read -r line; do
   echo "--build-arg=$line"
 done <"${ARTIFACT_STORAGE}/preflight/args.env")
 
-echo "Base Registry"
-echo "-----"
-echo "${BASE_REGISTRY}"
-echo
-echo "Args Parameters"
-echo "-----"
-echo $args_parameters
-echo
-echo "Label Parameters"
-echo "-----"
-echo $label_parameters
-
-
 old_ifs=$IFS
 IFS=$'\n'
 # Intentional wordsplitting:

@@ -39,7 +39,7 @@ This allows us to rebuild the `master` branch while you work on an update with a
 new tag in `development` or feature branches.
 
 `image_parent_name` and `image_parent_tag` have been replaced by
-`BASE_IMAGE_NAME` and `BASE_IMAGE_TAG` in the `args:` section of
+`BASE_IMAGE` and `BASE_TAG` in the `args:` section of
 `hardening_manifest.yaml`. You can also add custom args like `MY_VERSION`
 that referenced as `ARG MY_VERSION` in your `Dockerfile`.
 
