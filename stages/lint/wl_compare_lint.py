@@ -42,6 +42,7 @@ def main():
     get_complete_whitelist_for_image(proj, im_name, wl_branch)
 
 
+# TODO: Grabbing these fields from the greylist will be deprecated. Use hardening_manifest.yaml
 def get_complete_whitelist_for_image(proj, im_name, wl_branch, child_image_depth=0):
     filename = get_whitelist_filename(im_name)
     contents = get_whitelist_file_contents(proj, filename, wl_branch)
