@@ -407,79 +407,79 @@ def get_oscap_comp_finding(references):
     return finding
 
 
-def set_system_user_id():
+def get_system_user_id(static_user_id=[None]):
     """
     Get the system_user_id from the users table where the username = 'VAT_Bot'.
-    Sets into global variable system_user_id
+    Uses the static_user_id variable for the system user ID.
+    Is a default parameter that is initially set to None.
+    Returns the system_user_id
     """
 
-    logs.debug("In set_system_user_id")
-    global system_user_id
+    logs.debug("In get_system_user_id")
 
-    system_user_id = -1
-    try:
-        conn = connect_to_db()
-        cursor = conn.cursor()
-        logs.debug("SELECT id FROM users WHERE username='%s'", "VAT_Bot")
-        cursor.execute("SELECT id FROM users WHERE username='VAT_Bot'")
-        row = cursor.fetchone()
-        if row:
-            system_user_id = row[0]
-            logs.debug("Found VAT_Bot in users with id: %s", str(system_user_id))
-        else:
-            logs.warning("No VAT_Bot in users table.")
+    if not static_user_id[0]:
+        try:
+            conn = connect_to_db()
+            cursor = conn.cursor()
+            logs.debug("SELECT id FROM users WHERE username='%s'", "VAT_Bot")
+            cursor.execute("SELECT id FROM users WHERE username='VAT_Bot'")
+            row = cursor.fetchone()
+            if row:
+                static_user_id[0] = row[0]
+                logs.debug("Found VAT_Bot in users with id: %s",
+                           str(static_user_id[0]))
+            else:
+                logs.warning("No VAT_Bot in users table.")
 
-    except Error as error:
-        logs.info(error)
-    finally:
-        if conn is not None and conn.is_connected():
-            conn.close()
+        except Error as error:
+            logs.info(error)
+        finally:
+            if conn is not None and conn.is_connected():
+                conn.close()
 
-
-def get_system_user_id():
-    """
-    This function returns the global system_user_id
-    """
-
-    return system_user_id
+    return static_user_id[0]
 
 
 def check_container():
     """
-    check if a container exists and if it does not create it. Update reference to parentid as well
-    @return the contianer.id from the db
+    check if a container exists and if it does not create it.
+    Update reference to parent_id as well
+    @return the container.id from the db
     """
+
     conn = connect_to_db()
     cursor = conn.cursor()
+
     # find parent container and get its id
     parent_id = get_parent_id()
     container_id = None
+    query = (
+        "INSERT INTO `containers` "
+        + "(`id`, `name`, `version`, `parent_id`) "
+        + "VALUES (%s, %s, %s, %s) "
+        + "ON DUPLICATE KEY UPDATE parent_id=%s"
+    )
     if parent_id is None:
-        query = (
-            " INSERT INTO `containers` "
-            + "(`id`, `name`, `version`, `parent_id`) VALUES ( NULL,  '"
-            + args.container
-            + "',  '"
-            + args.version
-            + "',  NULL) ON DUPLICATE KEY UPDATE parent_id=NULL"
+        container_id_tuple = (
+            None,
+            args.container,
+            args.version,
+            None,
+            None,
         )
     else:
-        query = (
-            " INSERT INTO `containers` "
-            + "(`id`, `name`, `version`, `parent_id`) VALUES ( NULL,  '"
-            + args.container
-            + "',  '"
-            + args.version
-            + "',  '"
-            + str(parent_id)
-            + "') ON DUPLICATE KEY UPDATE parent_id='"
-            + str(parent_id)
-            + "'"
+        container_id_tuple = (
+            None,
+            args.container,
+            args.version,
+            str(parent_id),
+            str(parent_id),
         )
+
     try:
         logs.debug("Find Container or Add it query:%s\n", query)
 
-        cursor.execute(query)
+        cursor.execute(query, container_id_tuple)
         if cursor.lastrowid:
             logs.debug("Container id from last insert id %s", cursor.lastrowid)
             container_id = cursor.lastrowid
@@ -489,13 +489,11 @@ def check_container():
             # we can get that id
             logs.info("last insert id not found could not find container")
             query = (
-                "SELECT * FROM `containers` WHERE name='"
-                + args.container
-                + "' and version='"
-                + args.version
-                + "'"
+                "SELECT * FROM `containers` WHERE name=%s and version=%s"
             )
-            cursor.execute(query)
+            cursor.execute(
+                query, (args.container,args.version,)
+            )
             results = cursor.fetchall()
             for row in results:
                 container_id = row[0]
@@ -723,7 +721,7 @@ def insert_scan(data, iid, scan_source):
 
             """
 
-            finding_id = insert_finding(conn, iid, scan_source, index, row)
+            finding_id = insert_finding(cursor, iid, scan_source, index, row)
             insert_finding_scan(cursor, row, finding_id)
             # update_findings_log(conn, iid, finding_id)
 
@@ -740,7 +738,7 @@ def update_inheritance_id(findings):
     @params int image id
     @params dataframe with all the findings that are inheritable and the id they are associated with
     """
-    logs.debug("insert_scan")
+    logs.debug("update_inheritance_id")
     parent_id = get_parent_id()
     # this would have been checked when generating the findings but just in case check again
     if parent_id is None:
@@ -937,40 +935,40 @@ def is_new_scan(iid):
     return new_scan
 
 
-def get_parent_id():
+def get_parent_id(static_parent_id=[None]):
     """
     @params image id
-    @return parent id or none if not found
+    @return parent id or None if not found
     get parents id with required program parameters
     """
-    try:
-        conn = connect_to_db()
-        cursor = conn.cursor()
-        # find parent container and get its id
-        parent_id = None
-        if args.parent is not None and args.parent_version is not None:
-            query = (
-                "SELECT * FROM `containers` WHERE name='"
-                + args.parent
-                + "' and version='"
-                + args.parent_version
-                + "'"
-            )
-            cursor.execute(query)
-            results = cursor.fetchall()
-            for row in results:
-                parent_id = row[0]
-                logs.debug("\nFound parent with id: %s", str(parent_id))
-                # during a test it was determined that row does not get
-                # populated unless there is a result
-        else:
-            logs.debug("no parent")
-    except Error as error:
-        logs.info(error)
-    finally:
-        if conn is not None and conn.is_connected():
-            conn.close()
-    return parent_id
+
+    if not static_parent_id[0]:
+        try:
+            conn = connect_to_db()
+            cursor = conn.cursor()
+            # find parent container and get its id
+            static_parent_id[0] = None
+            if args.parent is not None and args.parent_version is not None:
+
+                query = "SELECT * FROM `containers` WHERE name=%s and version=%s"
+                logs.debug(query, args.parent, args.parent_version)
+                cursor.execute(
+                    query, (args.parent, args.parent_version),
+                )
+                results = cursor.fetchall()
+                for row in results:
+                    static_parent_id[0] = row[0]
+                    logs.debug("\nFound parent with id: %s", str(static_parent_id[0]))
+                    # during a test it was determined that row does not get
+                    # populated unless there is a result
+            else:
+                logs.debug("no parent")
+        except Error as error:
+            logs.info(error)
+        finally:
+            if conn is not None and conn.is_connected():
+                conn.close()
+    return static_parent_id[0]
 
 
 def get_all_inheritable_findings(iid):
@@ -1059,7 +1057,6 @@ def main():
     iid = check_container()
     # false if no imageid found
     if iid and is_new_scan(iid):
-        set_system_user_id()
         push_all_csv_data(data, iid)
         d_f = get_all_inheritable_findings(iid)
         update_inheritance_id(d_f)
