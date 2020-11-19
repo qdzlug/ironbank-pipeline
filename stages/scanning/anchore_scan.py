@@ -13,7 +13,7 @@ class Anchore:
 
     """
 
-    def __init__(self, url, username, password, verify, image, output, imageid, debug):
+    def __init__(self, url, username, password, verify, image, output, imageid):
         self.url = url
         self.username = username
         self.password = password
@@ -23,15 +23,6 @@ class Anchore:
         if "sha256:" in imageid:
             imageid = imageid.split(":")[1]
         self.imageid = imageid
-        self.debug = debug
-
-    def __debug(self, msg):
-        """
-        Internal debug printer
-
-        """
-        if self.debug:
-            print(f"DEBUG:  {msg}")
 
     def __get_anchore_api_json(self, url, payload=""):
         """
@@ -42,7 +33,7 @@ class Anchore:
          payload - request payload for anchore api
 
         """
-        self.__debug(f"Fetching {url}")
+        logging.debug(f"Fetching {url}")
         try:
             r = requests.get(
                 url,
@@ -54,7 +45,7 @@ class Anchore:
 
             if r.status_code == 200:
                 # test that the response is valid JSON
-                self.__debug("Got response from Anchore. Testing if valid json")
+                logging.debug("Got response from Anchore. Testing if valid json")
                 try:
                     json.loads(body)
                 except json.JSONDecodeError:
@@ -66,7 +57,7 @@ class Anchore:
         except Exception as err:
             raise err
 
-        self.__debug("Json is valid")
+        logging.debug("Json is valid")
         return json.loads(body)
 
     def get_version(self):
@@ -74,11 +65,11 @@ class Anchore:
         Fetch the Anchore version and write it to an artifact.
 
         """
-        print("Getting Anchore version")
+        logging.info("Getting Anchore version")
         url = f"{self.url}/version"
         version_json = self.__get_anchore_api_json(url)
         filename = os.path.join(self.output, "anchore-version.txt")
-        self.__debug(f"Writing to {filename}")
+        logging.debug(f"Writing to {filename}")
         with open(filename, "w") as f:
             json.dump(version_json["service"]["version"], f)
 
@@ -90,7 +81,7 @@ class Anchore:
         so it will reach back out to Anchore to gather the correct vulnerability data.
 
         """
-        print("Getting vulnerability results")
+        logging.info("Getting vulnerability results")
         try:
             vuln_dict = self.__get_anchore_api_json(
                 f"{self.url}/images/by_id/{self.imageid}/vuln/all"
@@ -112,7 +103,7 @@ class Anchore:
             # Create json report called anchore_security.json
             try:
                 filename = os.path.join(self.output, "anchore_security.json")
-                self.__debug(f"Writing to {filename}")
+                logging.debug(f"Writing to {filename}")
                 with open(filename, "w") as fp:
                     json.dump(vuln_dict, fp)
 
@@ -131,7 +122,7 @@ class Anchore:
         spreadsheet.
 
         """
-        print("Getting compliance results")
+        logging.info("Getting compliance results")
         request_url = (
             f"{self.url}/images/by_id/{self.imageid}/check?tag={self.image}&detail=true"
         )
@@ -139,7 +130,7 @@ class Anchore:
 
         # Save the API response
         filename = os.path.join(self.output, "anchore_api_gates_full.json")
-        self.__debug(f"Writing to {filename}")
+        logging.debug(f"Writing to {filename}")
         with open(filename, "w") as f:
             json.dump(body_json, f)
 
@@ -151,7 +142,7 @@ class Anchore:
         results_dict[self.imageid] = results[self.imageid]
 
         filename = os.path.join(self.output, "anchore_gates.json")
-        self.__debug(f"Writing to {filename}")
+        logging.debug(f"Writing to {filename}")
         with open(filename, "w") as f:
             json.dump(results_dict, f)
 
@@ -180,7 +171,6 @@ def main():
         image=os.getenv("IMAGE_NAME", default="none"),
         output=os.getenv("ANCHORE_SCAN_DIRECTORY", default="."),
         imageid=os.getenv("IMAGE_ID", default="none"),
-        debug=os.getenv("ANCHORE_DEBUG", default=False),
     )
 
     anchore.get_vulns()
