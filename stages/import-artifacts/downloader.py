@@ -313,7 +313,12 @@ def docker_download(download_item, tag_value, tar_name, username=None, password=
     tar_name = tar_name.replace(":", "-")
     print("Pulling " + image)
 
-    pull_cmd = ["podman", "pull", "--storage-driver=vfs", "--authfile /tmp/prod_auth.json"]
+    pull_cmd = [
+        "podman",
+        "pull",
+        "--storage-driver=vfs",
+        "--authfile /tmp/prod_auth.json",
+    ]
     if username and password:
         pull_cmd += ["--creds", f"{username}:{password}"]
     pull_cmd += ["--", image]
