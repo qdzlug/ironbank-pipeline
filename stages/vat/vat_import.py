@@ -721,8 +721,12 @@ def insert_scan(data, iid, scan_source):
 
             """
 
-            finding_id = insert_finding(cursor, iid, scan_source, index, row) # Insert into findings table
-            insert_finding_scan(cursor, row, finding_id) # Insert into finding_scan_results table
+            finding_id = insert_finding(
+                cursor, iid, scan_source, index, row
+            )  # Insert into findings table
+            insert_finding_scan(
+                cursor, row, finding_id
+            )  # Insert into finding_scan_results table
             # update_findings_log(conn, iid, finding_id) # Insert into finding_logs (irma)
 
     except Error as error:
