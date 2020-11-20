@@ -4,7 +4,7 @@ mkdir -p "${ARTIFACT_DIR}/external-resources/" "${ARTIFACT_DIR}/images/"
 touch artifact.env
 
 # pip3 install --user requests boto3
-
+echo "${DOCKER_AUTH_CONFIG_PULL}" | base64 -d >>/tmp/prod_auth.json
 if [ -f "${CI_PROJECT_DIR}"/download.json ]; then
   echo "download.json file found. Converting json to yaml."
   mkdir -p "${ARTIFACT_DIR}"/converted-file/
