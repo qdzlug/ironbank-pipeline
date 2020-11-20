@@ -31,20 +31,18 @@ def main():
 
     image_name = "/".join(image_name.split("/")[1::])
 
-    # get dccscr project object from GitLab
-    proj = init(DCCSCR_WHITELIST_PROJECT)
 
     # Check that image name/tag match provided project values, and all parent images
-    get_complete_whitelist_for_image(proj, image_name, wl_branch)
+    get_complete_whitelist_for_image(image_name, wl_branch)
 
 
 # TODO: Grabbing these fields from the greylist will be deprecated. Use hardening_manifest.yaml
-def get_complete_whitelist_for_image(proj, image_name, wl_branch, child_image_depth=0):
+def get_complete_whitelist_for_image(image_name, wl_branch, child_image_depth=0):
 
     # Fetch the hardening_manifest.yaml
 
     filename = get_whitelist_filename(image_name)
-    contents = get_whitelist_file_contents(proj, filename, wl_branch)
+    contents = get_whitelist_file_contents(filename, wl_branch)
 
     par_image = contents["image_parent_name"]
 
@@ -58,17 +56,17 @@ def get_complete_whitelist_for_image(proj, image_name, wl_branch, child_image_de
     if contents["image_name"] == image_name:
         if len(par_image) > 0:
             get_complete_whitelist_for_image(
-                proj,
                 par_image,
                 wl_branch,
                 child_image_depth=child_image_depth + 1,
             )
+
+            # TODO: Write artifacts to lint.env
             # Only output IMAGE_APPROVAL_STATUS on the child image (not for parent images)
             if child_image_depth == 0:
-                logging.info(f"IMAGE_APPROVAL_STATUS={contents['approval_status']}")
-                logging.info(
-                    f"BASE_IMAGE={contents['image_parent_name']}"
-                )  # empty string for base image
+                with open("lint.env", "w") as f:
+                    f.write(f"IMAGE_APPROVAL_STATUS={contents['approval_status']}\n")
+                    f.write(f"BASE_IMAGE={contents['image_parent_name']}")  # empty string for base image
             else:
                 if contents["approval_status"] != "approved":
                     logging.warning(
@@ -95,7 +93,9 @@ def get_whitelist_filename(image_name):
     return filename
 
 
-def get_whitelist_file_contents(proj, item_path, item_ref):
+def get_whitelist_file_contents(item_path, item_ref):
+    # get dccscr project object from GitLab
+    proj = init(DCCSCR_WHITELIST_PROJECT)
     try:
         wl_file = proj.files.get(file_path=item_path, ref=item_ref)
     except:
@@ -110,9 +110,9 @@ def get_whitelist_file_contents(proj, item_path, item_ref):
     return contents
 
 
-def init(pid):
+def init(project_name):
     gl = gitlab.Gitlab(REPO1_URL)
-    return gl.projects.get(pid)
+    return gl.projects.get(project_name)
 
 
 if __name__ == "__main__":
