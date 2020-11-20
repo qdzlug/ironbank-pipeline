@@ -584,10 +584,9 @@ def insert_finding_scan(cursor, row, finding_id):
         )
         get_id_tuple = (finding_id,)
         cursor.execute(get_id_query, get_id_tuple)
-        result = cursor.fetchone()
+        active_record = cursor.fetchone()
 
-        if result:
-            active_record = row[0]
+        if active_record:
             update_sql_query = (
                 "UPDATE `finding_scan_results` SET active = 0 WHERE id = %s"
             )
@@ -722,9 +721,9 @@ def insert_scan(data, iid, scan_source):
 
             """
 
-            finding_id = insert_finding(cursor, iid, scan_source, index, row)
-            insert_finding_scan(cursor, row, finding_id)
-            # update_findings_log(conn, iid, finding_id)
+            finding_id = insert_finding(cursor, iid, scan_source, index, row) # Insert into findings table
+            insert_finding_scan(cursor, row, finding_id) # Insert into finding_scan_results table
+            # update_findings_log(conn, iid, finding_id) # Insert into finding_logs (irma)
 
     except Error as error:
         logs.error(error)
