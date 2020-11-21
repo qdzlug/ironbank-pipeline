@@ -34,7 +34,7 @@ parser.add_argument(
 parser.add_argument(
     "-f", "--csv_dir", help="Path to Directory to all CSV files to parse", required=True
 )
-parser.add_argument("-j", "--jenkins", help="Jenkins run number", required=True)
+parser.add_argument("-j", "--job_id", help="Pipeline job ID", required=True)
 parser.add_argument(
     "-sd", "--scan_date", help="scan_date for Jenkins run", required=True
 )
@@ -53,8 +53,8 @@ parser.add_argument(
 parser.add_argument(
     "-l", "--link", help="S3 Link to openscap reports directory", required=True
 )
-parser.add_argument("--debug", help="debug true changes log level", action="store_true")
 
+# This shuts off pandas informational messages for row manipulation
 pandas.options.mode.chained_assignment = None
 
 
@@ -598,7 +598,7 @@ def insert_finding_scan(cursor, row, finding_id):
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
         insert_values = (
             finding_id,
-            args.jenkins,
+            args.job_id,
             args.scan_date,
             row["severity"],
             row["link"],
@@ -664,21 +664,6 @@ def insert_scan(data, iid, scan_source):
             """
             Irma's Notes for db migration updates:
 
-            ---- TO DO Fred
-
-            Move the select id from `finding_approvals` to the beginning
-                The new table is called `findings`
-            to get the id from findings
-            Steps:
-            1. Search `findings` to see if the finding already exists
-            2. If it does exist,
-                  retrieve id.
-               else
-                   insert finding with `container_id`, `finding`, `package`,
-                                       `package_path` & `scan_source`
-                   retrieve id
-            -----
-
             ------ TO DO Breakup on Friday 11/13
             Select * from finding_logs where finding_id = this finding
                      where record_type_active = 1.
@@ -721,13 +706,14 @@ def insert_scan(data, iid, scan_source):
 
             """
 
-            finding_id = insert_finding(
-                cursor, iid, scan_source, index, row
-            )  # Insert into findings table
-            insert_finding_scan(
-                cursor, row, finding_id
-            )  # Insert into finding_scan_results table
-            # update_findings_log(conn, iid, finding_id) # Insert into finding_logs (irma)
+            # Insert into findings table
+            finding_id = insert_finding(cursor, iid, scan_source, index, row)
+
+            # Insert into finding_scan_results table
+            insert_finding_scan(cursor, row, finding_id)
+
+            # Insert into finding_logs (irma)
+            # update_findings_log(conn, iid, finding_id)
 
     except Error as error:
         logs.error(error)
@@ -906,24 +892,24 @@ def update_in_current_scan(iid, findings, scan_source):
 def is_new_scan(iid):
     """
     @params integer image id
-    @return bool true if it is a new scan than exists in db false otherwise
+    @return bool true if it is a new scan than exists in DB false otherwise
     check if the scan report we have is new than the current one.
     """
     try:
         conn = connect_to_db()
         cursor = conn.cursor(buffered=True)
         new_scan = False
-        if args.jenkins is not None and args.scan_date is not None:
+        if args.job_id is not None and args.scan_date is not None:
             query = (
-                "SELECT * FROM `scan_results` WHERE imageid='"
-                + str(iid)
-                + "' and  (jenkins_run >= '"
-                + args.jenkins
-                + "' or scan_date > '"
-                + args.scan_date
-                + "')"
+                "SELECT * FROM `finding_scan_results` WHERE id = %s and"
+                + " (job_id >= %s or record_timestamp > %s)"
             )
-            cursor.execute(query)
+            parms = (
+                str(iid),
+                args.job_id,
+                args.scan_date,
+            )
+            cursor.execute(query, parms)
             result = cursor.fetchone()
             if result is None:
                 new_scan = True
