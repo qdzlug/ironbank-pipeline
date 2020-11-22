@@ -37,11 +37,6 @@ def main():
     parser.add_argument("--anchore-sec", help="")
     parser.add_argument("--anchore-gates", help="")
     parser.add_argument("--proj_branch", help="")
-    # parser.add_argument(
-    #     "--lint",
-    #     default=False,
-    #     help="Lint flag which will fetch all whitelisted CVEs to ensure proper structure",
-    # )
     args = parser.parse_args()
 
     # TODO: refactor this to use hardening_manifest.yaml
@@ -84,8 +79,8 @@ def pipeline_whitelist_compare(
         if image.status == "approved":
             wl_set.add(image.vulnerability)
 
-    print("Whitelist Set: ", wl_set)
-    print("Whitelist Set Length: ", len(wl_set))
+    logging.info(f"Whitelist Set:{wl_set}")
+    logging.info(f"Whitelist Set Length: {len(wl_set)}")
 
     if lint:
         return 0
@@ -120,27 +115,26 @@ def pipeline_whitelist_compare(
     #     print(anc.__dict__)
     #     # vuln_set.add(anc['aofasf'])
 
-    print("Vuln Set: ", vuln_set)
-    print("Vuln Set Length: ", len(vuln_set))
+    logging.info(f"Vuln Set: {vuln_set}")
+    logging.info(f"Vuln Set Length: {len(vuln_set)}")
     try:
         delta = vuln_set.difference(wl_set)
-    except:
-        print(
-            "There was an error making the vulnerability delta request", file=sys.stderr
+    except Exception as e:
+        logging.exception(
+            f"There was an error making the vulnerability delta request {e}"
         )
         return 1
 
     if len(delta) == 0:
-        print("ALL VULNERABILITIES WHITELISTED")
-        print("Scans are passing 100%")
+        logging.info("ALL VULNERABILITIES WHITELISTED")
+        logging.info("Scans are passing 100%")
         return 0
     else:
-        print("NON-WHITELISTED VULNERABILITIES FOUND")
-        print("Vuln Set Delta: ", delta)
-        print("Vuln Set Delta Length: ", len(delta))
-        print(
-            "Scans are not passing 100%. Vuln Set Delta Length: " + str(len(delta)),
-            file=sys.stderr,
+        logging.warning("NON-WHITELISTED VULNERABILITIES FOUND")
+        logging.warning(f"Vuln Set Delta: {delta}")
+        logging.warning(f"Vuln Set Delta Length: {len(delta)}")
+        logging.error(
+            f"Scans are not passing 100%. Vuln Set Delta Length: {len(delta)}"
         )
 
         if proj_branch == "master":
@@ -155,7 +149,7 @@ def get_twistlock_full(twistlock_file):
         json_data = json.load(twistlock_json_file)[0]
         twistlock_data = json_data["vulnerabilities"]
         cves = []
-        if twistlock_data != None:
+        if twistlock_data is not None:
             for x in twistlock_data:
                 cvss = x.get("cvss", "")
                 desc = x.get("description", "")
@@ -343,8 +337,8 @@ def get_whitelist_file_contents(proj, item_path, item_ref):
 
     try:
         contents = json.loads(f.decode())
-    except ValueError as error:
-        logging.exception("JSON object issue: {error}")
+    except ValueError as e:
+        logging.error("JSON object issue: {e}")
         sys.exit(1)
 
     return contents
@@ -385,12 +379,6 @@ def init(pid):
     return gl.projects.get(pid)
 
 
-def set_default(obj):
-    if isinstance(obj, set):
-        return list(obj)
-    raise TypeError
-
-
 class Vuln:
     vuln_id = ""
     vuln_desc = ""
@@ -402,32 +390,10 @@ class Vuln:
     justification = ""
 
     def __repr__(self):
-        return (
-            "Vuln: "
-            + self.vulnerability
-            + " - "
-            + self.vuln_source
-            + " - "
-            + self.whitelist_source
-            + " - "
-            + self.status
-            + " - "
-            + self.approved_by
-        )
+        return f"Vuln: {self.vulnerability} - {self.vuln_source} - {self.whitelist_source} - {self.status} - {self.approved_by}"
 
     def __str__(self):
-        return (
-            "Vuln: "
-            + self.vulnerability
-            + " - "
-            + self.vuln_source
-            + " - "
-            + self.whitelist_source
-            + " - "
-            + self.status
-            + " - "
-            + self.approved_by
-        )
+        return f"Vuln: {self.vulnerability} - {self.vuln_source} - {self.whitelist_source} - {self.status} - {self.approved_by}"
 
     def __init__(self, v, im_name):
         self.vulnerability = v["vulnerability"]
