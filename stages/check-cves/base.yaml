@@ -16,7 +16,7 @@ check cves:
     - python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py"
 
   stage: check cves
-  allow_failures: true
+  allow_failure: true
   except:
     - master
   tags:
