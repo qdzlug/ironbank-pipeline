@@ -30,7 +30,12 @@ def main():
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
 
-    hardening_manifest = load_hardening_manifest()
+    #
+    # Hardening manifest is expected for all of the current repos that are being processed.
+    # At the very lease the hardening_manifest.yaml should be generated if it has not been
+    # merged in yet. Fetching the parent greylists must be backwards compatible.
+    #
+    hardening_manifest = load_local_hardening_manifest()
     if hardening_manifest is None:
         logging.error("Your project must contain a hardening_manifest.yaml")
         sys.exit(1)
@@ -42,8 +47,15 @@ def main():
     sys.exit(x)
 
 
-def load_hardening_manifest():
-    artifacts_path = os.environ["ARTIFACTS_STORAGE"]
+def load_local_hardening_manifest():
+    """
+    Load up the hardening_manifest.yaml file as a dictionary. Search for the file in
+    the immediate repo first, if that is not found then search for the generated file.
+
+    If neither are found then return None and let the calling function handle the error.
+
+    """
+    artifacts_path = os.environ["ARTIFACT_STORAGE"]
     paths = [
         "hardening_manifest.yaml",
         os.path.join(artifacts_path, "preflight", "hardening_manifest.yaml"),
@@ -85,7 +97,7 @@ def pipeline_whitelist_compare(image_name):
     # and should be factored in
     #
     if os.environ.get("DISTROLESS") is None:
-        artifacts_path = os.environ["ARTIFACTS_STORAGE"]
+        artifacts_path = os.environ["ARTIFACT_STORAGE"]
         oscap = f"{artifacts_path}/scan-results/openscap/report.html"
         oval = f"{artifacts_path}/scan-results/openscap/report-cve.html"
 
@@ -141,7 +153,7 @@ def pipeline_whitelist_compare(image_name):
 
 def get_twistlock_full():
     twistlock_file = (
-        f"{os.environ['ARTIFACTS_STORAGE']}/scan-results/twistlock/twistlock_cve.json"
+        f"{os.environ['ARTIFACT_STORAGE']}/scan-results/twistlock/twistlock_cve.json"
     )
     with open(twistlock_file, mode="r", encoding="utf-8") as twistlock_json_file:
         json_data = json.load(twistlock_json_file)[0]
@@ -175,7 +187,7 @@ def get_twistlock_full():
 
 def get_anchore_full():
     anchore_file = (
-        f"{os.environ['ARTIFACTS_STORAGE']}/scan-results/anchore/anchore_security.json"
+        f"{os.environ['ARTIFACT_STORAGE']}/scan-results/anchore/anchore_security.json"
     )
     with open(anchore_file, "r", encoding="utf-8") as af:
         json_data = json.load(af)
@@ -352,8 +364,14 @@ def get_complete_whitelist_for_image(proj, im_name, wl_branch, total_wl=[]):
         proj=proj, item_path=filename, item_ref=wl_branch
     )
 
-    par_image = contents["image_parent_name"]
-    par_tag = contents["image_parent_tag"]
+    hardening_manifest = None
+    if hardening_maifest is not None:
+        logging.info("Using hardening_manifest")
+        par_image = hardening_manifest["args"]["BASE_IMAGE"]
+        par_tag = hardening_manifest["args"]["BASE_TAG"]
+    else:
+        par_image = contents["image_parent_name"]
+        par_tag = contents["image_parent_tag"]
 
     # if contents['image_name'] == im_name and contents['image_tag'] == im_tag:
     for x in get_whitelist_for_image(im_name, contents):
