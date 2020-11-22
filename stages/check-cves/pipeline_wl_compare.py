@@ -1,12 +1,14 @@
-#!/usr/bin/python3
-import gitlab
-import sys
-import json
-from bs4 import BeautifulSoup
+#!/usr/bin/env python3
+
 import re
 import os
-import argparse
+import sys
+import json
+import gitlab
 import logging
+import argparse
+
+from bs4 import BeautifulSoup
 
 
 gitlab_url = "https://repo1.dsop.io"
@@ -29,24 +31,35 @@ def main():
     parser = argparse.ArgumentParser(
         description="DCCSCR processing of CVE reports from various sources"
     )
-    parser.add_argument("--image", help="")
     parser.add_argument("--oscap", help="")
     parser.add_argument("--oval", help="")
     parser.add_argument("--twistlock", help="")
     parser.add_argument("--anchore-sec", help="")
     parser.add_argument("--anchore-gates", help="")
     parser.add_argument("--proj_branch", help="")
-    parser.add_argument("--wl_branch", help="")
+    parser.add_argument(
+        "--lint",
+        default=False,
+        help="Lint flag which will fetch all whitelisted CVEs to ensure proper structure",
+    )
     args = parser.parse_args()
+
+    # TODO: refactor this to use hardening_manifest.yaml
+    image = os.environ["CI_PROJECT_PATH"]
+    image = "/".join(image.split("/")[1:])
+
+    wl_branch = os.getenv("WL_TARGET_BRANCH", default="master")
+
     x = pipeline_whitelist_compare(
-        args.image,
-        args.oscap,
-        args.oval,
-        args.twistlock,
-        args.anchore_sec,
-        args.anchore_gates,
-        args.proj_branch,
-        args.wl_branch,
+        image_name=image,
+        oscap=args.oscap,
+        oval=args.oval,
+        twist=args.twistlock,
+        anc_sec=args.anchore_sec,
+        anc_gates=args.anchore_gates,
+        proj_branch=args.proj_branch,
+        wl_branch=wl_branch,
+        lint=args.lint,
     )
 
     sys.exit(x)
@@ -61,6 +74,7 @@ def pipeline_whitelist_compare(
     anc_gates,
     proj_branch,
     wl_branch,
+    lint,
 ):
     proj = init(dccscr_project_id)
     image_whitelist = get_complete_whitelist_for_image(proj, image_name, wl_branch)
@@ -72,6 +86,9 @@ def pipeline_whitelist_compare(
 
     print("Whitelist Set: ", wl_set)
     print("Whitelist Set Length: ", len(wl_set))
+
+    if lint:
+        return 0
 
     vuln_set = set()
 
@@ -308,7 +325,7 @@ def get_oscap_notchecked(oscap_file):
         return cces_notchecked
 
 
-def get_whitelist_filename(im_name, im_tag):
+def get_whitelist_filename(im_name):
     dccscr_project = im_name.split("/")
     greylist_name = dccscr_project[-1] + ".greylist"
     dccscr_project.append(greylist_name)
@@ -319,21 +336,26 @@ def get_whitelist_filename(im_name, im_tag):
 def get_whitelist_file_contents(proj, item_path, item_ref):
     try:
         f = proj.files.get(file_path=item_path, ref=item_ref)
-    except:
-        print("Error retrieving whitelist file:", sys.exc_info()[1], file=sys.stderr)
-        print("Whitelist retrieval attempted: " + item_path, file=sys.stderr)
+    except gitlab.exceptions.GitlabError:
+        logging.error(f"Whitelist retrieval attempted: {item_path}")
+        logging.error(f"Error retrieving whitelist file: {sys.exc_info()[1]}")
         sys.exit(1)
+
     try:
         contents = json.loads(f.decode())
     except ValueError as error:
-        print("JSON object issue: %s", file=sys.stderr) % error
+        logging.exception("JSON object issue: {error}")
         sys.exit(1)
+
     return contents
 
 
+# TODO: Need to update this to use hardening_manifest.yaml
 def get_complete_whitelist_for_image(proj, im_name, wl_branch, total_wl=[]):
-    filename = get_whitelist_filename(im_name)
-    contents = get_whitelist_file_contents(proj, filename, wl_branch)
+    filename = get_whitelist_filename(im_name=im_name)
+    contents = get_whitelist_file_contents(
+        proj=proj, item_path=filename, item_ref=wl_branch
+    )
 
     par_image = contents["image_parent_name"]
     par_tag = contents["image_parent_tag"]
@@ -342,8 +364,10 @@ def get_complete_whitelist_for_image(proj, im_name, wl_branch, total_wl=[]):
     for x in get_whitelist_for_image(im_name, contents):
         total_wl.append(x)
     if len(par_image) > 0 and len(par_tag) > 0:
-        print("Fetching Whitelisted CVEs from parent: " + par_image + ":" + par_tag)
-        get_complete_whitelist_for_image(proj, par_image, par_tag, wl_branch)
+        logging.info(f"Fetching Whitelisted CVEs from parent: {par_image}:{par_tag}")
+        get_complete_whitelist_for_image(
+            proj=proj, im_name=par_image, wl_branch=wl_branch
+        )
 
     return total_wl
 
