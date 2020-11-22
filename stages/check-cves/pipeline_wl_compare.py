@@ -142,24 +142,18 @@ def pipeline_whitelist_compare(image_name):
         )
         return 1
 
-    if len(delta) == 0:
-        logging.info("ALL VULNERABILITIES WHITELISTED")
-        logging.info("Scans are passing 100%")
-        return 0
-    else:
+    if len(delta) != 0:
         logging.warning("NON-WHITELISTED VULNERABILITIES FOUND")
         logging.warning(f"Vuln Set Delta: {delta}")
         logging.warning(f"Vuln Set Delta Length: {len(delta)}")
         logging.error(
             f"Scans are not passing 100%. Vuln Set Delta Length: {len(delta)}"
         )
+        return 1
 
-        # TODO: This should fail and then use gitlab ci with `allow_failures` for non-master branches
-        if os.envion["CI_COMMIT_BRANCH"] == "master":
-            return 1
-        else:
-            # Return 0 exit code even though non-whitelisted vulns found as branch is not master
-            return 0
+    logging.info("ALL VULNERABILITIES WHITELISTED")
+    logging.info("Scans are passing 100%")
+    return 0
 
 
 def get_twistlock_full():
