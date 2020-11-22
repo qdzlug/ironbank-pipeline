@@ -6,7 +6,7 @@ mkdir -p "${CSV_REPORT}"
 # pip3 install bs4 pandas argparse openpyxl gitpython
 if [[ "${DISTROLESS:-}" ]]; then
   python3 "${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py" \
-    --twistlock "${ARTIFACT_STORAGE}/scan-results/twistlock/${CI_PIPELINE_ID}.json" \
+    --twistlock "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json" \
     --anchore-sec "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json" \
     --anchore-gates "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json" \
     --output-dir "${CSV_REPORT}"/
@@ -19,7 +19,7 @@ else
   python3 "${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py" \
     --oscap "${ARTIFACT_STORAGE}/scan-results/openscap/report.html" \
     --oval "${ARTIFACT_STORAGE}/scan-results/openscap/report-cve.html" \
-    --twistlock "${ARTIFACT_STORAGE}/scan-results/twistlock/${CI_PIPELINE_ID}.json" \
+    --twistlock "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json" \
     --anchore-sec "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json" \
     --anchore-gates "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json" \
     --output-dir "${CSV_REPORT}"/

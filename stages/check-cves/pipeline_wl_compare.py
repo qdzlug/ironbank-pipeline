@@ -109,12 +109,6 @@ def pipeline_whitelist_compare(
     for anc in anchore_cves:
         vuln_set.add(anc["cve"])
 
-    # anchore_gates = report_helpers.get_anchore_gates_full(anc_gates)
-    # print("Anchore Gates Set Length: ", len(anchore_cves))
-    # for anc in anchore_gates:
-    #     print(anc.__dict__)
-    #     # vuln_set.add(anc['aofasf'])
-
     logging.info(f"Vuln Set: {vuln_set}")
     logging.info(f"Vuln Set Length: {len(vuln_set)}")
     try:
