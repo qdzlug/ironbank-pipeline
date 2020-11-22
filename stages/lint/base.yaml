@@ -50,11 +50,7 @@ wl compare lint:
     # The following step assumes contributor projects have an environment variable set for the image version
     # in the gitlab-ci.yml file.
     # TODO: output the error for unsuccessful runs
-    - pwd
-    - ls -R "${PIPELINE_REPO_DIR}"
-    - export LINT=True
-    - ls "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py"
-    - python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py"
+    - LINT=True python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py"
   artifacts:
     paths: []
     reports:
