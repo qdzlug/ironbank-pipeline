@@ -65,10 +65,20 @@ def load_local_hardening_manifest():
     for path in paths:
         logging.info(f"Looking for {path}")
         if pathlib.Path(path).is_file():
+            logging.info(f"Using {path}")
             with open(path, "r") as f:
                 return yaml.safe_load(f)
         else:
             logging.info(f"Couldn't find {path}")
+    return None
+
+
+def load_remote_hardening_manifest(project):
+    if project == "":
+        return None
+    logging.info(f"Attempting to load hardening_manifest from {project}")
+    logging.info("Could not load hardening_manifest. Defaulting backwards compatibility.")
+    logging.warning(f"This method will be deprecated soon, please switch {project} to hardening_manifest.yaml")
     return None
 
 
@@ -365,7 +375,7 @@ def get_complete_whitelist_for_image(proj, im_name, wl_branch, total_wl=[]):
         proj=proj, item_path=filename, item_ref=wl_branch
     )
 
-    hardening_manifest = None
+    hardening_manifest = load_remote_hardening_manifest(contents["image_parent_name"])
     if hardening_manifest is not None:
         logging.info("Using hardening_manifest")
         par_image = hardening_manifest["args"]["BASE_IMAGE"]
