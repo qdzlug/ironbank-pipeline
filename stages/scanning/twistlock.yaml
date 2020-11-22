@@ -21,7 +21,7 @@ twistlock scan:
         --username="${twistlock_user}" \
         --password="${twistlock_password}" \
         --version_file="${TWISTLOCK_SCANS}/twistlock-version.txt" \
-        --filename="${TWISTLOCK_SCANS}/${IMG_VERSION}.json" \
+        --filename="${TWISTLOCK_SCANS}/twistlock_cve.json" \
         --imageid="${IMAGE_ID}" \
         --timeout "${twistlock_timeout}"
   artifacts:
