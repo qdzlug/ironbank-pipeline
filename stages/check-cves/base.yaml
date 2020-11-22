@@ -15,6 +15,8 @@ check cves:
   script:
     - python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py"
 
+
+check cves:
   stage: check cves
   allow_failure: true
   except:
