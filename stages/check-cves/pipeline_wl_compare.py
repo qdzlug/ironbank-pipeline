@@ -37,11 +37,11 @@ def main():
     parser.add_argument("--anchore-sec", help="")
     parser.add_argument("--anchore-gates", help="")
     parser.add_argument("--proj_branch", help="")
-    parser.add_argument(
-        "--lint",
-        default=False,
-        help="Lint flag which will fetch all whitelisted CVEs to ensure proper structure",
-    )
+    # parser.add_argument(
+    #     "--lint",
+    #     default=False,
+    #     help="Lint flag which will fetch all whitelisted CVEs to ensure proper structure",
+    # )
     args = parser.parse_args()
 
     # TODO: refactor this to use hardening_manifest.yaml
@@ -59,7 +59,7 @@ def main():
         anc_gates=args.anchore_gates,
         proj_branch=args.proj_branch,
         wl_branch=wl_branch,
-        lint=args.lint,
+        lint=bool(os.getenv("LINT", default=False)),
     )
 
     sys.exit(x)

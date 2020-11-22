@@ -52,7 +52,9 @@ wl compare lint:
     # TODO: output the error for unsuccessful runs
     - pwd
     - ls -R "${PIPELINE_REPO_DIR}"
-    - python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py --lint=true"
+    - export LINT=True
+    - ls "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py"
+    - python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py"
   artifacts:
     paths: []
     reports:
