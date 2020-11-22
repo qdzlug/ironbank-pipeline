@@ -58,6 +58,7 @@ def load_local_hardening_manifest():
     artifacts_path = os.environ["ARTIFACT_STORAGE"]
     paths = [
         "hardening_manifest.yaml",
+        # Check for the generated hardening manifest. This method will be deprecated.
         os.path.join(artifacts_path, "preflight", "hardening_manifest.yaml"),
     ]
 
@@ -365,7 +366,7 @@ def get_complete_whitelist_for_image(proj, im_name, wl_branch, total_wl=[]):
     )
 
     hardening_manifest = None
-    if hardening_maifest is not None:
+    if hardening_manifest is not None:
         logging.info("Using hardening_manifest")
         par_image = hardening_manifest["args"]["BASE_IMAGE"]
         par_tag = hardening_manifest["args"]["BASE_TAG"]
