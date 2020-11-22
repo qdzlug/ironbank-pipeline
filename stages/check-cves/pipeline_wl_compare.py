@@ -4,7 +4,9 @@ import re
 import os
 import sys
 import json
+import yaml
 import gitlab
+import pathlib
 import logging
 import argparse
 
@@ -28,49 +30,39 @@ def main():
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
 
-    parser = argparse.ArgumentParser(
-        description="DCCSCR processing of CVE reports from various sources"
-    )
-    parser.add_argument("--oscap", help="")
-    parser.add_argument("--oval", help="")
-    parser.add_argument("--twistlock", help="")
-    parser.add_argument("--anchore-sec", help="")
-    parser.add_argument("--anchore-gates", help="")
-    parser.add_argument("--proj_branch", help="")
-    args = parser.parse_args()
+    hardening_manifest = load_hardening_manifest()
+    if hardening_manifest is None:
+        logging.error("Your project must contain a hardening_manifest.yaml")
+        sys.exit(1)
 
-    # TODO: refactor this to use hardening_manifest.yaml
-    image = os.environ["CI_PROJECT_PATH"]
-    image = "/".join(image.split("/")[1:])
+    image = hardening_manifest["name"]
 
-    wl_branch = os.getenv("WL_TARGET_BRANCH", default="master")
-
-    x = pipeline_whitelist_compare(
-        image_name=image,
-        oscap=args.oscap,
-        oval=args.oval,
-        twist=args.twistlock,
-        anc_sec=args.anchore_sec,
-        anc_gates=args.anchore_gates,
-        proj_branch=args.proj_branch,
-        wl_branch=wl_branch,
-        lint=bool(os.getenv("LINT", default=False)),
-    )
+    x = pipeline_whitelist_compare(image_name=image)
 
     sys.exit(x)
 
 
-def pipeline_whitelist_compare(
-    image_name,
-    oscap,
-    oval,
-    twist,
-    anc_sec,
-    anc_gates,
-    proj_branch,
-    wl_branch,
-    lint,
-):
+def load_hardening_manifest():
+    artifacts_path = os.environ["ARTIFACTS_STORAGE"]
+    paths = [
+        "hardening_manifest.yaml",
+        os.path.join(artifacts_path, "preflight", "hardening_manifest.yaml"),
+    ]
+
+    for path in paths:
+        logging.info(f"Looking for {path}")
+        if pathlib.Path(path).is_file():
+            with open(path, "r") as f:
+                return yaml.safe_load(f)
+        else:
+            logging.info(f"Couldn't find {path}")
+    return None
+
+
+def pipeline_whitelist_compare(image_name):
+
+    wl_branch = os.getenv("WL_TARGET_BRANCH", default="master")
+
     proj = init(dccscr_project_id)
     image_whitelist = get_complete_whitelist_for_image(proj, image_name, wl_branch)
 
@@ -82,13 +74,21 @@ def pipeline_whitelist_compare(
     logging.info(f"Whitelist Set:{wl_set}")
     logging.info(f"Whitelist Set Length: {len(wl_set)}")
 
-    if lint:
+    # Don't go any further if just linting
+    if bool(os.getenv("LINT", default=False)):
         return 0
 
     vuln_set = set()
 
-    #   If oscap is equal to None then OpenSCAP was skipped in pipeline and the comparison will also be skipped
-    if oscap is not None:
+    #
+    # If this is NOT a DISTROLESS scan then OpenSCAP findings will be present
+    # and should be factored in
+    #
+    if os.environ.get("DISTROLESS") is None:
+        artifacts_path = os.environ["ARTIFACTS_STORAGE"]
+        oscap = f"{artifacts_path}/scan-results/openscap/report.html"
+        oval = f"{artifacts_path}/scan-results/openscap/report-cve.html"
+
         oscap_cves = get_oscap_fails(oscap)
         oscap_notchecked = get_oscap_notchecked(oscap)
         for oscap in oscap_notchecked:
@@ -101,11 +101,11 @@ def pipeline_whitelist_compare(
         for oval in oval_cves:
             vuln_set.add(oval)
 
-    tl_cves = get_twistlock_full(twist)
+    tl_cves = get_twistlock_full()
     for tl in tl_cves:
         vuln_set.add(tl["id"])
 
-    anchore_cves = get_anchore_full(anc_sec)
+    anchore_cves = get_anchore_full()
     for anc in anchore_cves:
         vuln_set.add(anc["cve"])
 
@@ -131,14 +131,18 @@ def pipeline_whitelist_compare(
             f"Scans are not passing 100%. Vuln Set Delta Length: {len(delta)}"
         )
 
-        if proj_branch == "master":
+        # TODO: This should fail and then use gitlab ci with `allow_failures` for non-master branches
+        if os.envion["CI_COMMIT_BRANCH"] == "master":
             return 1
         else:
             # Return 0 exit code even though non-whitelisted vulns found as branch is not master
             return 0
 
 
-def get_twistlock_full(twistlock_file):
+def get_twistlock_full():
+    twistlock_file = (
+        f"{os.environ['ARTIFACTS_STORAGE']}/scan-results/twistlock/twistlock_cve.json"
+    )
     with open(twistlock_file, mode="r", encoding="utf-8") as twistlock_json_file:
         json_data = json.load(twistlock_json_file)[0]
         twistlock_data = json_data["vulnerabilities"]
@@ -169,7 +173,10 @@ def get_twistlock_full(twistlock_file):
     return cves
 
 
-def get_anchore_full(anchore_file):
+def get_anchore_full():
+    anchore_file = (
+        f"{os.environ['ARTIFACTS_STORAGE']}/scan-results/anchore/anchore_security.json"
+    )
     with open(anchore_file, "r", encoding="utf-8") as af:
         json_data = json.load(af)
         image_tag = json_data["imageFullTag"]
