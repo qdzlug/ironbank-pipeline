@@ -54,4 +54,4 @@ wl compare lint:
   artifacts:
     paths: []
     reports:
-      dotenv: lint.env
+      dotenv: variables.env

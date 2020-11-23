@@ -243,7 +243,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     for vuln in greylist["whitelisted_vulnerabilities"]:
         total_whitelist.append(Vuln(vuln, image_name))
 
-    with open("lint.env", "w") as f:
+    with open("variables.env", "w") as f:
         f.write(f"IMAGE_APPROVAL_STATUS={greylist['approval_status']}\n")
         f.write(f"BASE_IMAGE={hardening_manifest['args']['BASE_IMAGE']}\n")
         f.write(f"BASE_TAG={hardening_manifest['args']['BASE_TAG']}")
