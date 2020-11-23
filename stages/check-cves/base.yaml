@@ -1,26 +1,8 @@
 check cves:
-  stage: check cves master
-  only:
-    - master
-  tags:
-    - ironbank
-  dependencies:
-    - hardening_manifest
-    - load scripts
-    - twistlock scan
-    - openscap cve
-    - openscap compliance
-    - anchore scan
-
-  script:
-    - python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py"
-
-
-check cves:
   stage: check cves
-  allow_failure: true
-  except:
-    - master
+  rules:
+    - if: '$CI_COMMIT_BRANCH != "master"'
+      allow_failure: true
   tags:
     - ironbank
   dependencies:
