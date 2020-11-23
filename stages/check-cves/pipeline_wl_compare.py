@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
 
+##
+#
+#   Utilizes the following environment variable
+#   - LOGLEVEL
+#   - ARTIFACT_STORAGE
+#   - WL_TARGET_BRANCH
+#   - DISTROLESS
+#
+##
+
 import re
 import os
 import sys
@@ -73,12 +83,26 @@ def load_local_hardening_manifest():
     return None
 
 
-def load_remote_hardening_manifest(project):
+def load_remote_hardening_manifest(project, wl_branch="master"):
     if project == "":
         return None
+
     logging.info(f"Attempting to load hardening_manifest from {project}")
-    logging.info("Could not load hardening_manifest. Defaulting backwards compatibility.")
-    logging.warning(f"This method will be deprecated soon, please switch {project} to hardening_manifest.yaml")
+
+    gl = gitlab.Gitlab(gitlab_url)
+    proj = gl.projects.get(f"dsop/{project}")
+    logging.info(f"Connecting to dsop/{project}")
+
+    try:
+        hardening_manifest = proj.files.get(file_path="hardening_manifest.yaml", ref=wl_branch)
+        return hardening_manifest
+    except gitlab.exceptions.GitlabError:
+        logging.info(
+            "Could not load hardening_manifest. Defaulting backwards compatibility."
+        )
+        logging.warning(
+            f"This method will be deprecated soon, please switch {project} to hardening_manifest.yaml"
+        )
     return None
 
 
@@ -86,20 +110,19 @@ def pipeline_whitelist_compare(image_name):
 
     wl_branch = os.getenv("WL_TARGET_BRANCH", default="master")
 
-    proj = init(dccscr_project_id)
-    image_whitelist = get_complete_whitelist_for_image(proj, image_name, wl_branch)
+    image_whitelist = get_complete_whitelist_for_image(image_name, wl_branch)
 
     wl_set = set()
     for image in image_whitelist:
         if image.status == "approved":
             wl_set.add(image.vulnerability)
 
-    logging.info(f"Whitelist Set:{wl_set}")
-    logging.info(f"Whitelist Set Length: {len(wl_set)}")
-
     # Don't go any further if just linting
     if bool(os.getenv("LINT", default=False)):
         return 0
+
+    logging.info(f"Whitelist Set:{wl_set}")
+    logging.info(f"Whitelist Set Length: {len(wl_set)}")
 
     vuln_set = set()
 
@@ -337,19 +360,13 @@ def get_oscap_notchecked(oscap_file):
         return cces_notchecked
 
 
-def get_whitelist_filename(im_name):
-    dccscr_project = im_name.split("/")
-    greylist_name = dccscr_project[-1] + ".greylist"
-    dccscr_project.append(greylist_name)
-    filename = "/".join(dccscr_project)
-    return filename
-
-
-def get_whitelist_file_contents(proj, item_path, item_ref):
+def get_greylist_file_contents(image_path, branch):
+    greylist_file_path = f"{image_path}/{image_path.split('/')[-1]}.greylist"
     try:
-        f = proj.files.get(file_path=item_path, ref=item_ref)
+        gl = init(dccscr_project_id)
+        f = gl.files.get(file_path=greylist_file_path, ref=branch)
     except gitlab.exceptions.GitlabError:
-        logging.error(f"Whitelist retrieval attempted: {item_path}")
+        logging.error(f"Whitelist retrieval attempted: {greylist_file_path}")
         logging.error(f"Error retrieving whitelist file: {sys.exc_info()[1]}")
         sys.exit(1)
 
@@ -363,34 +380,30 @@ def get_whitelist_file_contents(proj, item_path, item_ref):
 
 
 # TODO: Need to update this to use hardening_manifest.yaml
-def get_complete_whitelist_for_image(proj, im_name, wl_branch, total_wl=[]):
-    filename = get_whitelist_filename(im_name=im_name)
-    contents = get_whitelist_file_contents(
-        proj=proj, item_path=filename, item_ref=wl_branch
-    )
+def get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_manifest=None, total_whitelist=list()):
+    greylist = get_greylist_file_contents(image_path=image_name, branch=whitelist_branch)
+    logging.info(f"Grabbing CVEs for: {image_name}")
 
-    hardening_manifest = load_remote_hardening_manifest(contents["image_parent_name"])
-    if hardening_manifest is not None:
-        logging.info("Using hardening_manifest")
-        par_image = hardening_manifest["args"]["BASE_IMAGE"]
-        par_tag = hardening_manifest["args"]["BASE_TAG"]
-    else:
-        par_image = contents["image_parent_name"]
-        par_tag = contents["image_parent_tag"]
+    for vuln in whitelisted_vulns(im_name=image_name, contents=greylist):
+        total_whitelist.append(vuln)
 
-    # if contents['image_name'] == im_name and contents['image_tag'] == im_tag:
-    for x in get_whitelist_for_image(im_name, contents):
-        total_wl.append(x)
-    if len(par_image) > 0 and len(par_tag) > 0:
-        logging.info(f"Fetching Whitelisted CVEs from parent: {par_image}:{par_tag}")
-        get_complete_whitelist_for_image(
-            proj=proj, im_name=par_image, wl_branch=wl_branch
-        )
+    while True:
+        parent_image = greylist["image_parent_name"]
+        if parent_image == "":
+            break
 
-    return total_wl
+        logging.info(f"Grabbing CVEs for: {parent_image}")
+        greylist = get_greylist_file_contents(image_path=parent_image, branch=whitelist_branch)
+
+        for vuln in whitelisted_vulns(im_name=parent_image, contents=greylist):
+            total_whitelist.append(vuln)
+
+    logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
+
+    return total_whitelist
 
 
-def get_whitelist_for_image(im_name, contents):
+def whitelisted_vulns(im_name, contents):
     wl = []
     for v in contents["whitelisted_vulnerabilities"]:
         tar = Vuln(v, im_name)
