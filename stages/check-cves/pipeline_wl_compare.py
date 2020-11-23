@@ -23,10 +23,6 @@ import argparse
 from bs4 import BeautifulSoup
 
 
-gitlab_url = "https://repo1.dsop.io"
-dccscr_project_id = 143
-
-
 def main():
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
@@ -67,35 +63,42 @@ def load_local_hardening_manifest():
     """
     artifacts_path = os.environ["ARTIFACT_STORAGE"]
     paths = [
-        "hardening_manifest.yaml",
+        pathlib.Path("hardening_manifest.yaml"),
         # Check for the generated hardening manifest. This method will be deprecated.
-        os.path.join(artifacts_path, "preflight", "hardening_manifest.yaml"),
+        pathlib.Path(artifacts_path, "preflight", "hardening_manifest.yaml"),
     ]
 
     for path in paths:
         logging.info(f"Looking for {path}")
-        if pathlib.Path(path).is_file():
+        if path.is_file():
             logging.info(f"Using {path}")
-            with open(path, "r") as f:
+            with path.open("r") as f:
                 return yaml.safe_load(f)
         else:
             logging.info(f"Couldn't find {path}")
     return None
 
 
-def load_remote_hardening_manifest(project, wl_branch="master"):
+def load_remote_hardening_manifest(project, branch="master"):
+    """
+    Load up a hardening_manifest.yaml from a remote repository.
+
+    If the manifest file is not found then None is returned. A warning will print
+    to console to communicate which repository does not have a hardening manifest.
+
+    """
     if project == "":
         return None
 
     logging.info(f"Attempting to load hardening_manifest from {project}")
 
-    gl = gitlab.Gitlab(gitlab_url)
-    proj = gl.projects.get(f"dsop/{project}")
-    logging.info(f"Connecting to dsop/{project}")
-
     try:
+        gl = gitlab.Gitlab(os.environ["REPO1_URL"])
+        proj = gl.projects.get(f"dsop/{project}", lazy=True)
+        logging.info(f"Connecting to dsop/{project}")
+
         hardening_manifest = proj.files.get(
-            file_path="hardening_manifest.yaml", ref=wl_branch
+            file_path="hardening_manifest.yaml", ref=branch
         )
         return hardening_manifest
     except gitlab.exceptions.GitlabError:
@@ -120,6 +123,7 @@ def pipeline_whitelist_compare(image_name):
             wl_set.add(image.vulnerability)
 
     # Don't go any further if just linting
+    # TODO: Make this an arg
     if bool(os.getenv("LINT", default=False)):
         return 0
 
@@ -132,7 +136,7 @@ def pipeline_whitelist_compare(image_name):
     # If this is NOT a DISTROLESS scan then OpenSCAP findings will be present
     # and should be factored in
     #
-    if os.environ.get("DISTROLESS") is None:
+    if not bool(os.environ.get("DISTROLESS")):
         artifacts_path = os.environ["ARTIFACT_STORAGE"]
         oscap = f"{artifacts_path}/scan-results/openscap/report.html"
         oval = f"{artifacts_path}/scan-results/openscap/report-cve.html"
@@ -182,9 +186,11 @@ def pipeline_whitelist_compare(image_name):
 
 
 def get_twistlock_full():
+    # TODO: Use pathlib
     twistlock_file = (
         f"{os.environ['ARTIFACT_STORAGE']}/scan-results/twistlock/twistlock_cve.json"
     )
+    # TODO: Use pathlib.open()
     with open(twistlock_file, mode="r", encoding="utf-8") as twistlock_json_file:
         json_data = json.load(twistlock_json_file)[0]
         twistlock_data = json_data["vulnerabilities"]
@@ -216,6 +222,7 @@ def get_twistlock_full():
 
 
 def get_anchore_full():
+    # TODO: Use pathlib
     anchore_file = (
         f"{os.environ['ARTIFACT_STORAGE']}/scan-results/anchore/anchore_security.json"
     )
@@ -363,10 +370,16 @@ def get_oscap_notchecked(oscap_file):
 
 
 def get_greylist_file_contents(image_path, branch):
+    """
+    Grab the contents of a greylist file. Takes in the path to the image and
+    determines the appropriate greylist.
+
+    """
     greylist_file_path = f"{image_path}/{image_path.split('/')[-1]}.greylist"
     try:
-        gl = init(dccscr_project_id)
-        f = gl.files.get(file_path=greylist_file_path, ref=branch)
+        gl = gitlab.Gitlab(os.environ["REPO1_URL"])
+        proj =  gl.projects.get("dsop/dccscr-whitelists", lazy=True)
+        f = proj.files.get(file_path=greylist_file_path, ref=branch)
     except gitlab.exceptions.GitlabError:
         logging.error(f"Whitelist retrieval attempted: {greylist_file_path}")
         logging.error(f"Error retrieving whitelist file: {sys.exc_info()[1]}")
@@ -382,18 +395,38 @@ def get_greylist_file_contents(image_path, branch):
 
 
 def next_ancestor(image_path, hardening_manifest=None, greylist=None):
+    """
+    Grabs the parent image path from the current context. Will initially attempt to load
+    a new hardening manifest and then pull the parent image from there. Otherwise it will
+    default to the old method of using the greylist.
+
+    If neither the hardening_manifest.yaml or the greylist field can be found then there
+    is a weird mismatch during migration that needs further inspection.
+
+    """
     # Try to get the parent image out of the hardening_manifest
     hm = load_remote_hardening_manifest(project=image_path)
     if hm is not None:
         return hm["args"]["BASE_IMAGE"]
 
-    return greylist["image_parent_name"]
+    try:
+        return greylist["image_parent_name"]
+    except KeyError as e:
+        logging.error("Looks like a hardening_manifest.yaml cannot be found")
+        logging.error("Looks like the greylist has been hpdated to remove fields that should be present in hardening_manifest.yaml")
+        logging.error(e)
+        sys.exit(1)
 
 
-# TODO: Need to update this to use hardening_manifest.yaml
+
 def get_complete_whitelist_for_image(
     image_name, whitelist_branch, hardening_manifest=None, total_whitelist=list()
 ):
+    """
+    Pull all whitelisted CVEs for an image. Walk through the ancestry of a given
+    image and grab all of vulnerabilities in the greylist associated with w layer.
+
+    """
     greylist = get_greylist_file_contents(
         image_path=image_name, branch=whitelist_branch
     )
@@ -403,13 +436,13 @@ def get_complete_whitelist_for_image(
         total_whitelist.append(vuln)
 
     parent_image = image_name
-    while parent_image != "":
+    while parent_image:
         parent_image = next_ancestor(
             image_path=parent_image,
             hardening_manifest=hardening_manifest,
             greylist=greylist,
         )
-        if parent_image == "":
+        if not parent_image:
             break
 
         logging.info(f"Grabbing CVEs for: {parent_image}")
@@ -426,16 +459,16 @@ def get_complete_whitelist_for_image(
 
 
 def whitelisted_vulns(im_name, contents):
+    """
+    Convert the list of whitelisted vulnerabilities into the internal `Vuln` class
+    and return a list of the converted Vulns.
+
+    """
     wl = []
     for v in contents["whitelisted_vulnerabilities"]:
         tar = Vuln(v, im_name)
         wl.append(tar)
     return wl
-
-
-def init(pid):
-    gl = gitlab.Gitlab(gitlab_url)
-    return gl.projects.get(pid)
 
 
 class Vuln:
