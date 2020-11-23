@@ -36,6 +36,16 @@ def main():
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
 
+    # Arguments
+    parser = argparse.ArgumentParser(description="Run pipelines arguments")
+    parser.add_argument(
+        "--lint",
+        action="store_true",
+        help="Lint flag to run the setup but not the business logic",
+    )
+    args = parser.parse_args()
+    # End arguments
+
     #
     # Hardening manifest is expected for all of the current repos that are being processed.
     # At the very least the hardening_manifest.yaml should be generated if it has not been
@@ -48,9 +58,7 @@ def main():
 
     image = hardening_manifest["name"]
 
-    x = pipeline_whitelist_compare(image_name=image)
-
-    sys.exit(x)
+    pipeline_whitelist_compare(image_name=image, lint=args.lint)
 
 
 def load_local_hardening_manifest():
@@ -111,7 +119,7 @@ def load_remote_hardening_manifest(project, branch="master"):
     return None
 
 
-def pipeline_whitelist_compare(image_name):
+def pipeline_whitelist_compare(image_name, lint=False):
 
     wl_branch = os.getenv("WL_TARGET_BRANCH", default="master")
 
@@ -123,9 +131,8 @@ def pipeline_whitelist_compare(image_name):
             wl_set.add(image.vulnerability)
 
     # Don't go any further if just linting
-    # TODO: Make this an arg
-    if bool(os.getenv("LINT", default=False)):
-        return 0
+    if lint:
+        sys.exit(0)
 
     logging.info(f"Whitelist Set:{wl_set}")
     logging.info(f"Whitelist Set Length: {len(wl_set)}")
@@ -138,8 +145,10 @@ def pipeline_whitelist_compare(image_name):
     #
     if not bool(os.environ.get("DISTROLESS")):
         artifacts_path = os.environ["ARTIFACT_STORAGE"]
-        oscap = f"{artifacts_path}/scan-results/openscap/report.html"
-        oval = f"{artifacts_path}/scan-results/openscap/report-cve.html"
+        oscap = pathlib.Path(artifacts_path, "scan-results", "openscap", "report.html")
+        oval = pathlib.Path(
+            artifacts_path, "scan-results", "openscap", "report-cve.html"
+        )
 
         oscap_cves = get_oscap_fails(oscap)
         oscap_notchecked = get_oscap_notchecked(oscap)
@@ -169,7 +178,7 @@ def pipeline_whitelist_compare(image_name):
         logging.exception(
             f"There was an error making the vulnerability delta request {e}"
         )
-        return 1
+        sys.exit(1)
 
     if len(delta) != 0:
         logging.warning("NON-WHITELISTED VULNERABILITIES FOUND")
@@ -178,21 +187,22 @@ def pipeline_whitelist_compare(image_name):
         logging.error(
             f"Scans are not passing 100%. Vuln Set Delta Length: {len(delta)}"
         )
-        return 1
+        sys.exit(1)
 
     logging.info("ALL VULNERABILITIES WHITELISTED")
     logging.info("Scans are passing 100%")
-    return 0
+    sys.exit(0)
 
 
 def get_twistlock_full():
-    # TODO: Use pathlib
-    twistlock_file = (
-        f"{os.environ['ARTIFACT_STORAGE']}/scan-results/twistlock/twistlock_cve.json"
+    twistlock_file = pathlib.Path(
+        os.environ["ARTIFACT_STORAGE"],
+        "scan-results",
+        "twistlock",
+        "twistlock_cve.json",
     )
-    # TODO: Use pathlib.open()
-    with open(twistlock_file, mode="r", encoding="utf-8") as twistlock_json_file:
-        json_data = json.load(twistlock_json_file)[0]
+    with twistlock_file.open(mode="r", encoding="utf-8") as tf:
+        json_data = json.load(tf)[0]
         twistlock_data = json_data["vulnerabilities"]
         cves = []
         if twistlock_data is not None:
@@ -222,11 +232,13 @@ def get_twistlock_full():
 
 
 def get_anchore_full():
-    # TODO: Use pathlib
-    anchore_file = (
-        f"{os.environ['ARTIFACT_STORAGE']}/scan-results/anchore/anchore_security.json"
+    anchore_file = pathlib.Path(
+        os.environ["ARTIFACT_STORAGE"],
+        "scan-results",
+        "anchore",
+        "anchore_security.json",
     )
-    with open(anchore_file, "r", encoding="utf-8") as af:
+    with anchore_file.open("r", encoding="utf-8") as af:
         json_data = json.load(af)
         image_tag = json_data["imageFullTag"]
         anchore_data = json_data["vulnerabilities"]
@@ -255,24 +267,24 @@ def get_anchore_full():
 
 
 def get_oval(oval_file):
-    oscap = open(oval_file, "r", encoding="utf-8")
-    soup = BeautifulSoup(oscap, "html.parser")
-    results_bad = soup.find_all("tr", class_=["resultbadA", "resultbadB"])
+    cves = list()
+    with oval_file.open(mode="r", encoding="utf-8") as of:
+        soup = BeautifulSoup(of, "html.parser")
+        results_bad = soup.find_all("tr", class_=["resultbadA", "resultbadB"])
 
-    cves = []
-    for x in results_bad:
-        y = x.find_all(target="_blank")
-        references = set()
-        for t in y:
-            references.add(t.text)
+        for x in results_bad:
+            y = x.find_all(target="_blank")
+            references = set()
+            for t in y:
+                references.add(t.text)
 
-        for ref in references:
-            cves.append(ref)
+            for ref in references:
+                cves.append(ref)
     return cves
 
 
 def get_oscap_fails(oscap_file):
-    with open(oscap_file, "r", encoding="utf-8") as of:
+    with oscap_file.open("r", encoding="utf-8") as of:
         soup = BeautifulSoup(of, "html.parser")
         divs = soup.find("div", id="result-details")
 
@@ -321,7 +333,7 @@ def get_oscap_fails(oscap_file):
 
 
 def get_oscap_notchecked(oscap_file):
-    with open(oscap_file, "r", encoding="utf-8") as of:
+    with oscap_file.open("r", encoding="utf-8") as of:
         soup = BeautifulSoup(of, "html.parser")
         divs = soup.find("div", id="result-details")
 
@@ -378,7 +390,7 @@ def get_greylist_file_contents(image_path, branch):
     greylist_file_path = f"{image_path}/{image_path.split('/')[-1]}.greylist"
     try:
         gl = gitlab.Gitlab(os.environ["REPO1_URL"])
-        proj =  gl.projects.get("dsop/dccscr-whitelists", lazy=True)
+        proj = gl.projects.get("dsop/dccscr-whitelists", lazy=True)
         f = proj.files.get(file_path=greylist_file_path, ref=branch)
     except gitlab.exceptions.GitlabError:
         logging.error(f"Whitelist retrieval attempted: {greylist_file_path}")
@@ -388,13 +400,14 @@ def get_greylist_file_contents(image_path, branch):
     try:
         contents = json.loads(f.decode())
     except ValueError as e:
-        logging.error("JSON object issue: {e}")
+        logging.error("Could not load greylist as json")
+        logging.error(e)
         sys.exit(1)
 
     return contents
 
 
-def next_ancestor(image_path, hardening_manifest=None, greylist=None):
+def next_ancestor(image_path, greylist=None):
     """
     Grabs the parent image path from the current context. Will initially attempt to load
     a new hardening manifest and then pull the parent image from there. Otherwise it will
@@ -413,10 +426,11 @@ def next_ancestor(image_path, hardening_manifest=None, greylist=None):
         return greylist["image_parent_name"]
     except KeyError as e:
         logging.error("Looks like a hardening_manifest.yaml cannot be found")
-        logging.error("Looks like the greylist has been hpdated to remove fields that should be present in hardening_manifest.yaml")
+        logging.error(
+            "Looks like the greylist has been updated to remove fields that should be present in hardening_manifest.yaml"
+        )
         logging.error(e)
         sys.exit(1)
-
 
 
 def get_complete_whitelist_for_image(
@@ -432,14 +446,13 @@ def get_complete_whitelist_for_image(
     )
     logging.info(f"Grabbing CVEs for: {image_name}")
 
-    for vuln in whitelisted_vulns(im_name=image_name, contents=greylist):
-        total_whitelist.append(vuln)
+    for vuln in greylist["whitelisted_vulnerabilities"]:
+        total_whitelist.append(Vuln(vuln, image_name))
 
     parent_image = image_name
     while parent_image:
         parent_image = next_ancestor(
             image_path=parent_image,
-            hardening_manifest=hardening_manifest,
             greylist=greylist,
         )
         if not parent_image:
@@ -450,25 +463,11 @@ def get_complete_whitelist_for_image(
             image_path=parent_image, branch=whitelist_branch
         )
 
-        for vuln in whitelisted_vulns(im_name=parent_image, contents=greylist):
-            total_whitelist.append(vuln)
+        for vuln in greylist["whitelisted_vulnerabilities"]:
+            total_whitelist.append(Vuln(vuln, image_name))
 
     logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
-
     return total_whitelist
-
-
-def whitelisted_vulns(im_name, contents):
-    """
-    Convert the list of whitelisted vulnerabilities into the internal `Vuln` class
-    and return a list of the converted Vulns.
-
-    """
-    wl = []
-    for v in contents["whitelisted_vulnerabilities"]:
-        tar = Vuln(v, im_name)
-        wl.append(tar)
-    return wl
 
 
 class Vuln:
