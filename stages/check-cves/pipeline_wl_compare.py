@@ -10,7 +10,6 @@
 #
 ##
 
-import re
 import os
 import sys
 import json
@@ -20,48 +19,12 @@ import pathlib
 import logging
 import argparse
 
-from bs4 import BeautifulSoup
+from scanners import oscap
+from scanners import anchore
+from scanners import twistlock
 
 
-def main():
-    # Get logging level, set manually when running pipeline
-    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
-    if loglevel == "DEBUG":
-        logging.basicConfig(
-            level=loglevel,
-            format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
-        )
-        logging.debug("Log level set to debug")
-    else:
-        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
-        logging.info("Log level set to info")
-
-    # Arguments
-    parser = argparse.ArgumentParser(description="Run pipelines arguments")
-    parser.add_argument(
-        "--lint",
-        action="store_true",
-        help="Lint flag to run the setup but not the business logic",
-    )
-    args = parser.parse_args()
-    # End arguments
-
-    #
-    # Hardening manifest is expected for all of the current repos that are being processed.
-    # At the very least the hardening_manifest.yaml should be generated if it has not been
-    # merged in yet. Fetching the parent greylists must be backwards compatible.
-    #
-    hardening_manifest = load_local_hardening_manifest()
-    if hardening_manifest is None:
-        logging.error("Your project must contain a hardening_manifest.yaml")
-        sys.exit(1)
-
-    image = hardening_manifest["name"]
-
-    pipeline_whitelist_compare(image_name=image, lint=args.lint)
-
-
-def load_local_hardening_manifest():
+def _load_local_hardening_manifest():
     """
     Load up the hardening_manifest.yaml file as a dictionary. Search for the file in
     the immediate repo first, if that is not found then search for the generated file.
@@ -77,17 +40,17 @@ def load_local_hardening_manifest():
     ]
 
     for path in paths:
-        logging.info(f"Looking for {path}")
+        logging.debug(f"Looking for {path}")
         if path.is_file():
-            logging.info(f"Using {path}")
+            logging.debug(f"Using {path}")
             with path.open("r") as f:
                 return yaml.safe_load(f)
         else:
-            logging.info(f"Couldn't find {path}")
+            logging.debug(f"Couldn't find {path}")
     return None
 
 
-def load_remote_hardening_manifest(project, branch="master"):
+def _load_remote_hardening_manifest(project, branch="master"):
     """
     Load up a hardening_manifest.yaml from a remote repository.
 
@@ -98,12 +61,12 @@ def load_remote_hardening_manifest(project, branch="master"):
     if project == "":
         return None
 
-    logging.info(f"Attempting to load hardening_manifest from {project}")
+    logging.debug(f"Attempting to load hardening_manifest from {project}")
 
     try:
         gl = gitlab.Gitlab(os.environ["REPO1_URL"])
         proj = gl.projects.get(f"dsop/{project}", lazy=True)
-        logging.info(f"Connecting to dsop/{project}")
+        logging.debug(f"Connecting to dsop/{project}")
 
         hardening_manifest = proj.files.get(
             file_path="hardening_manifest.yaml", ref=branch
@@ -119,11 +82,15 @@ def load_remote_hardening_manifest(project, branch="master"):
     return None
 
 
-def pipeline_whitelist_compare(image_name, lint=False):
+def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
 
     wl_branch = os.getenv("WL_TARGET_BRANCH", default="master")
 
-    image_whitelist = get_complete_whitelist_for_image(image_name, wl_branch)
+    image_whitelist = _get_complete_whitelist_for_image(
+        image_name=image_name,
+        whitelist_branch=wl_branch,
+        hardening_manifest=hardening_manifest,
+    )
 
     wl_set = set()
     for image in image_whitelist:
@@ -141,32 +108,34 @@ def pipeline_whitelist_compare(image_name, lint=False):
 
     #
     # If this is NOT a DISTROLESS scan then OpenSCAP findings will be present
-    # and should be factored in
+    # and should be factored in.
     #
     if not bool(os.environ.get("DISTROLESS")):
         artifacts_path = os.environ["ARTIFACT_STORAGE"]
-        oscap = pathlib.Path(artifacts_path, "scan-results", "openscap", "report.html")
-        oval = pathlib.Path(
+        oscap_file = pathlib.Path(
+            artifacts_path, "scan-results", "openscap", "report.html"
+        )
+        oval_file = pathlib.Path(
             artifacts_path, "scan-results", "openscap", "report-cve.html"
         )
 
-        oscap_cves = get_oscap_fails(oscap)
-        oscap_notchecked = get_oscap_notchecked(oscap)
-        for oscap in oscap_notchecked:
-            oscap_cves.append(oscap)
+        oscap_cves = oscap.get_fails(oscap_file)
+        oscap_notchecked = oscap.get_notchecked(oscap_file)
+        for o in oscap_notchecked:
+            oscap_cves.append(o)
 
-        for oscap in oscap_cves:
-            vuln_set.add(oscap["identifiers"])
+        for o in oscap_cves:
+            vuln_set.add(o["identifiers"])
 
-        oval_cves = get_oval(oval)
+        oval_cves = oscap.get_oval(oval_file)
         for oval in oval_cves:
             vuln_set.add(oval)
 
-    tl_cves = get_twistlock_full()
-    for tl in tl_cves:
+    twistlock_cves = twistlock.get_full()
+    for tl in twistlock_cves:
         vuln_set.add(tl["id"])
 
-    anchore_cves = get_anchore_full()
+    anchore_cves = anchore.get_full()
     for anc in anchore_cves:
         vuln_set.add(anc["cve"])
 
@@ -194,194 +163,7 @@ def pipeline_whitelist_compare(image_name, lint=False):
     sys.exit(0)
 
 
-def get_twistlock_full():
-    twistlock_file = pathlib.Path(
-        os.environ["ARTIFACT_STORAGE"],
-        "scan-results",
-        "twistlock",
-        "twistlock_cve.json",
-    )
-    with twistlock_file.open(mode="r", encoding="utf-8") as tf:
-        json_data = json.load(tf)[0]
-        twistlock_data = json_data["vulnerabilities"]
-        cves = []
-        if twistlock_data is not None:
-            for x in twistlock_data:
-                cvss = x.get("cvss", "")
-                desc = x.get("description", "")
-                id = x.get("cve", "")
-                link = x.get("link", "")
-                packageName = x.get("packageName", "")
-                packageVersion = x.get("packageVersion", "")
-                severity = x.get("severity", "")
-                status = x.get("status", "")
-                vecStr = x.get("vecStr", "")
-                ret = {
-                    "id": id,
-                    "cvss": cvss,
-                    "desc": desc,
-                    "link": link,
-                    "packageName": packageName,
-                    "packageVersion": packageVersion,
-                    "severity": severity,
-                    "status": status,
-                    "vecStr": vecStr,
-                }
-                cves.append(ret)
-    return cves
-
-
-def get_anchore_full():
-    anchore_file = pathlib.Path(
-        os.environ["ARTIFACT_STORAGE"],
-        "scan-results",
-        "anchore",
-        "anchore_security.json",
-    )
-    with anchore_file.open("r", encoding="utf-8") as af:
-        json_data = json.load(af)
-        image_tag = json_data["imageFullTag"]
-        anchore_data = json_data["vulnerabilities"]
-        cves = []
-        for x in anchore_data:
-            tag = image_tag
-            cve = x["vuln"]
-            severity = x["severity"]
-            package = x["package"]
-            package_path = x["package_path"]
-            fix = x["fix"]
-            url = x["url"]
-
-            ret = {
-                "tag": tag,
-                "cve": cve,
-                "severity": severity,
-                "package": package,
-                "package_path": package_path,
-                "fix": fix,
-                "url": url,
-            }
-
-            cves.append(ret)
-        return cves
-
-
-def get_oval(oval_file):
-    cves = list()
-    with oval_file.open(mode="r", encoding="utf-8") as of:
-        soup = BeautifulSoup(of, "html.parser")
-        results_bad = soup.find_all("tr", class_=["resultbadA", "resultbadB"])
-
-        for x in results_bad:
-            y = x.find_all(target="_blank")
-            references = set()
-            for t in y:
-                references.add(t.text)
-
-            for ref in references:
-                cves.append(ref)
-    return cves
-
-
-def get_oscap_fails(oscap_file):
-    with oscap_file.open("r", encoding="utf-8") as of:
-        soup = BeautifulSoup(of, "html.parser")
-        divs = soup.find("div", id="result-details")
-
-        scan_date = soup.find("th", text="Finished at")
-        finished_at = scan_date.find_next_sibling("td").text
-
-        regex = re.compile(".*rule-detail-fail.*")
-
-        fails = divs.find_all("div", {"class": regex})
-
-        cces = []
-        for x in fails:
-            title = x.find("h3", {"class": "panel-title"}).text
-            table = x.find("table", {"class": "table table-striped table-bordered"})
-
-            ruleid = table.find("td", text="Rule ID").find_next_sibling("td").text
-            result = table.find("td", text="Result").find_next_sibling("td").text
-            severity = table.find("td", text="Severity").find_next_sibling("td").text
-            ident = table.find(
-                "td", text="Identifiers and References"
-            ).find_next_sibling("td")
-            if ident.find("abbr"):
-                identifiers = ident.find("abbr").text
-
-            references = ident.find_all("a", href=True)
-            refs = []
-            for j in references:
-                refs.append(j.text)
-
-            desc = table.find("td", text="Description").find_next_sibling("td").text
-            rationale = table.find("td", text="Rationale").find_next_sibling("td").text
-
-            ret = {
-                "title": title,
-                "ruleid": ruleid,
-                "result": result,
-                "severity": severity,
-                "identifiers": identifiers,
-                "refs": refs,
-                "desc": desc,
-                "rationale": rationale,
-                "scanned_date": finished_at,
-            }
-            cces.append(ret)
-        return cces
-
-
-def get_oscap_notchecked(oscap_file):
-    with oscap_file.open("r", encoding="utf-8") as of:
-        soup = BeautifulSoup(of, "html.parser")
-        divs = soup.find("div", id="result-details")
-
-        scan_date = soup.find("th", text="Finished at")
-        finished_at = scan_date.find_next_sibling("td").text
-
-        regex = re.compile(".*rule-detail-notchecked.*")
-
-        notchecked = divs.find_all("div", {"class": regex})
-
-        cces_notchecked = []
-        for x in notchecked:
-            title = x.find("h3", {"class": "panel-title"}).text
-            table = x.find("table", {"class": "table table-striped table-bordered"})
-
-            ruleid = table.find("td", text="Rule ID").find_next_sibling("td").text
-            result = table.find("td", text="Result").find_next_sibling("td").text
-            severity = table.find("td", text="Severity").find_next_sibling("td").text
-            ident = table.find(
-                "td", text="Identifiers and References"
-            ).find_next_sibling("td")
-            if ident.find("abbr"):
-                identifiers = ident.find("abbr").text
-
-            references = ident.find_all("a", href=True)
-            refs = []
-            for j in references:
-                refs.append(j.text)
-
-            desc = table.find("td", text="Description").find_next_sibling("td").text
-            rationale = table.find("td", text="Rationale").find_next_sibling("td").text
-
-            ret = {
-                "title": title,
-                "ruleid": ruleid,
-                "result": result,
-                "severity": severity,
-                "identifiers": identifiers,
-                "refs": refs,
-                "desc": desc,
-                "rationale": rationale,
-                "scanned_date": finished_at,
-            }
-            cces_notchecked.append(ret)
-        return cces_notchecked
-
-
-def get_greylist_file_contents(image_path, branch):
+def _get_greylist_file_contents(image_path, branch):
     """
     Grab the contents of a greylist file. Takes in the path to the image and
     determines the appropriate greylist.
@@ -392,8 +174,11 @@ def get_greylist_file_contents(image_path, branch):
         gl = gitlab.Gitlab(os.environ["REPO1_URL"])
         proj = gl.projects.get("dsop/dccscr-whitelists", lazy=True)
         f = proj.files.get(file_path=greylist_file_path, ref=branch)
+
     except gitlab.exceptions.GitlabError:
-        logging.error(f"Whitelist retrieval attempted: {greylist_file_path}")
+        logging.error(
+            f"Whitelist retrieval attempted: {greylist_file_path} on {branch}"
+        )
         logging.error(f"Error retrieving whitelist file: {sys.exc_info()[1]}")
         sys.exit(1)
 
@@ -404,10 +189,14 @@ def get_greylist_file_contents(image_path, branch):
         logging.error(e)
         sys.exit(1)
 
+    if (contents["approval_status"] != "approved" and os.environ.get("CI_COMMIT_BRANCH").lower() == "master"):
+        logging.error(f"Unapproved image running on master branch")
+        sys.exit(1)
+
     return contents
 
 
-def next_ancestor(image_path, greylist=None):
+def _next_ancestor(image_path, greylist, hardening_manifest=None):
     """
     Grabs the parent image path from the current context. Will initially attempt to load
     a new hardening manifest and then pull the parent image from there. Otherwise it will
@@ -417,8 +206,13 @@ def next_ancestor(image_path, greylist=None):
     is a weird mismatch during migration that needs further inspection.
 
     """
-    # Try to get the parent image out of the hardening_manifest
-    hm = load_remote_hardening_manifest(project=image_path)
+
+    # Try to get the parent image out of the local hardening_manifest.
+    if hardening_manifest:
+        return hardening_manifest["args"]["BASE_IMAGE"]
+
+    # Try to load the hardening manifest from a remote repo.
+    hm = _load_remote_hardening_manifest(project=image_path)
     if hm is not None:
         return hm["args"]["BASE_IMAGE"]
 
@@ -433,15 +227,15 @@ def next_ancestor(image_path, greylist=None):
         sys.exit(1)
 
 
-def get_complete_whitelist_for_image(
-    image_name, whitelist_branch, hardening_manifest=None, total_whitelist=list()
-):
+def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_manifest):
     """
     Pull all whitelisted CVEs for an image. Walk through the ancestry of a given
     image and grab all of vulnerabilities in the greylist associated with w layer.
 
     """
-    greylist = get_greylist_file_contents(
+    total_whitelist = list()
+
+    greylist = _get_greylist_file_contents(
         image_path=image_name, branch=whitelist_branch
     )
     logging.info(f"Grabbing CVEs for: {image_name}")
@@ -449,22 +243,31 @@ def get_complete_whitelist_for_image(
     for vuln in greylist["whitelisted_vulnerabilities"]:
         total_whitelist.append(Vuln(vuln, image_name))
 
-    parent_image = image_name
-    while parent_image:
-        parent_image = next_ancestor(
-            image_path=parent_image,
-            greylist=greylist,
-        )
-        if not parent_image:
-            break
+    with open("lint.env", "w") as f:
+        f.write(f"IMAGE_APPROVAL_STATUS={greylist['approval_status']}\n")
+        f.write(f"BASE_IMAGE={hardening_manifest['args']['BASE_IMAGE']}\n")
+        f.write(f"BASE_TAG={hardening_manifest['args']['BASE_TAG']}")
 
+    #
+    # Use the local hardening manifest to get the first parent. From here *only* the
+    # the master branch should be used for the ancestry.
+    #
+    parent_image = _next_ancestor(
+        image_path=image_name, greylist=greylist, hardening_manifest=hardening_manifest
+    )
+    while parent_image:
         logging.info(f"Grabbing CVEs for: {parent_image}")
-        greylist = get_greylist_file_contents(
+        greylist = _get_greylist_file_contents(
             image_path=parent_image, branch=whitelist_branch
         )
 
         for vuln in greylist["whitelisted_vulnerabilities"]:
             total_whitelist.append(Vuln(vuln, image_name))
+
+        parent_image = _next_ancestor(
+            image_path=parent_image,
+            greylist=greylist,
+        )
 
     logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
     return total_whitelist
@@ -497,5 +300,45 @@ class Vuln:
         self.whitelist_source = im_name
 
 
+def main():
+    # Get logging level, set manually when running pipeline
+    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
+    if loglevel == "DEBUG":
+        logging.basicConfig(
+            level=loglevel,
+            format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
+        )
+        logging.debug("Log level set to debug")
+    else:
+        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
+        logging.info("Log level set to info")
+
+    # Arguments
+    parser = argparse.ArgumentParser(description="Run pipelines arguments")
+    parser.add_argument(
+        "--lint",
+        action="store_true",
+        help="Lint flag to run the setup but not the business logic",
+    )
+    args = parser.parse_args()
+    # End arguments
+
+    #
+    # Hardening manifest is expected for all of the current repos that are being processed.
+    # At the very least the hardening_manifest.yaml should be generated if it has not been
+    # merged in yet. Fetching the parent greylists must be backwards compatible.
+    #
+    hardening_manifest = _load_local_hardening_manifest()
+    if hardening_manifest is None:
+        logging.error("Your project must contain a hardening_manifest.yaml")
+        sys.exit(1)
+
+    image = hardening_manifest["name"]
+
+    _pipeline_whitelist_compare(
+        image_name=image, hardening_manifest=hardening_manifest, lint=args.lint
+    )
+
+
 if __name__ == "__main__":
-    main()  # with if
+    main()

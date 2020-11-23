@@ -21,6 +21,9 @@ export IM_NAME
 pip3 install --upgrade pip setuptools wheel minepy python-gitlab
 pip3 install -r "${PIPELINE_REPO_DIR}/stages/vat/requirements.txt"
 
+#
+# TODO: BASE_IMAGE and BASE_TAG should be pulled out of the `hardening_manifest.yaml`
+#
 python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
   --db "${vat_db_database_name}" \
   --user "${vat_db_connection_user}" \
