@@ -42,7 +42,7 @@ def main():
 
     #
     # Hardening manifest is expected for all of the current repos that are being processed.
-    # At the very lease the hardening_manifest.yaml should be generated if it has not been
+    # At the very least the hardening_manifest.yaml should be generated if it has not been
     # merged in yet. Fetching the parent greylists must be backwards compatible.
     #
     hardening_manifest = load_local_hardening_manifest()
@@ -94,7 +94,9 @@ def load_remote_hardening_manifest(project, wl_branch="master"):
     logging.info(f"Connecting to dsop/{project}")
 
     try:
-        hardening_manifest = proj.files.get(file_path="hardening_manifest.yaml", ref=wl_branch)
+        hardening_manifest = proj.files.get(
+            file_path="hardening_manifest.yaml", ref=wl_branch
+        )
         return hardening_manifest
     except gitlab.exceptions.GitlabError:
         logging.info(
@@ -379,21 +381,41 @@ def get_greylist_file_contents(image_path, branch):
     return contents
 
 
+def next_ancestor(image_path, hardening_manifest=None, greylist=None):
+    # Try to get the parent image out of the hardening_manifest
+    hm = load_remote_hardening_manifest(project=image_path)
+    if hm is not None:
+        return hm["args"]["BASE_IMAGE"]
+
+    return greylist["image_parent_name"]
+
+
 # TODO: Need to update this to use hardening_manifest.yaml
-def get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_manifest=None, total_whitelist=list()):
-    greylist = get_greylist_file_contents(image_path=image_name, branch=whitelist_branch)
+def get_complete_whitelist_for_image(
+    image_name, whitelist_branch, hardening_manifest=None, total_whitelist=list()
+):
+    greylist = get_greylist_file_contents(
+        image_path=image_name, branch=whitelist_branch
+    )
     logging.info(f"Grabbing CVEs for: {image_name}")
 
     for vuln in whitelisted_vulns(im_name=image_name, contents=greylist):
         total_whitelist.append(vuln)
 
-    while True:
-        parent_image = greylist["image_parent_name"]
+    parent_image = image_name
+    while parent_image != "":
+        parent_image = next_ancestor(
+            image_path=parent_image,
+            hardening_manifest=hardening_manifest,
+            greylist=greylist,
+        )
         if parent_image == "":
             break
 
         logging.info(f"Grabbing CVEs for: {parent_image}")
-        greylist = get_greylist_file_contents(image_path=parent_image, branch=whitelist_branch)
+        greylist = get_greylist_file_contents(
+            image_path=parent_image, branch=whitelist_branch
+        )
 
         for vuln in whitelisted_vulns(im_name=parent_image, contents=greylist):
             total_whitelist.append(vuln)
