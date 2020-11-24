@@ -71,7 +71,8 @@ def _load_remote_hardening_manifest(project, branch="master"):
         hardening_manifest = proj.files.get(
             file_path="hardening_manifest.yaml", ref=branch
         )
-        return hardening_manifest
+        return yaml.safe_load(hardening_manifest.decode())
+
     except gitlab.exceptions.GitlabError:
         logging.info(
             "Could not load hardening_manifest. Defaulting backwards compatibility."
@@ -79,6 +80,12 @@ def _load_remote_hardening_manifest(project, branch="master"):
         logging.warning(
             f"This method will be deprecated soon, please switch {project} to hardening_manifest.yaml"
         )
+
+    except yaml.YAMLError as e:
+        logging.error("Could not load the hardening_manifest.yaml")
+        logging.error(e)
+        sys.exit(1)
+
     return None
 
 
