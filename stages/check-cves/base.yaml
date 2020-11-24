@@ -3,6 +3,8 @@ check cves:
   rules:
     - if: '$CI_COMMIT_BRANCH != "master"'
       allow_failure: true
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      allow_failure: false
   tags:
     - ironbank
   dependencies:
