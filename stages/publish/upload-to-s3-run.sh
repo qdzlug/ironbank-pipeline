@@ -13,12 +13,17 @@ fi
 
 IMAGE_PATH=$(echo "${CI_PROJECT_PATH}" | sed -e 's/.*dsop\/\(.*\)/\1/')
 
-PROJECT_README=$(find . -name "README*" -type f -maxdepth 1 | rev | cut -d/ -f1 | rev)
-PROJECT_LICENSE=$(find . -name "LICENSE*" -type f -maxdepth 1 | rev | cut -d/ -f1 | rev)
+# Files are guaranteed to exist by the preflight checks
+PROJECT_README="README.md"
+PROJECT_LICENSE="LICENSE"
 
 source "${PIPELINE_REPO_DIR}"/stages/publish/repo_map_vars.sh
 
-python3 "${PIPELINE_REPO_DIR}"/stages/publish/create_repo_map.py --target ${BASE_BUCKET_DIRECTORY}/"${IMAGE_PATH}"/repo_map.json
+if [[ "${DISTROLESS:-}" ]]; then
+  python3 "${PIPELINE_REPO_DIR}"/stages/publish/create_repo_map_other.py --target ${BASE_BUCKET_DIRECTORY}/"${IMAGE_PATH}"/repo_map.json
+else
+  python3 "${PIPELINE_REPO_DIR}"/stages/publish/create_repo_map_default.py --target ${BASE_BUCKET_DIRECTORY}/"${IMAGE_PATH}"/repo_map.json
+fi
 
 mkdir reports
 

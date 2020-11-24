@@ -1,0 +1,29 @@
+upload to s3:
+  extends: .publish
+  resource_group: s3_phase
+  only:
+    - master
+    - development
+  variables:
+    #TODO: Put these in globals
+    IMAGE_FILE: "${CI_PROJECT_NAME}-${IMG_VERSION}"
+    SCAN_DIRECTORY: "${ARTIFACT_STORAGE}/scan-results"
+    DOCUMENTATION_DIRECTORY: "${ARTIFACT_STORAGE}/documentation"
+    BUILD_DIRECTORY: "${ARTIFACT_STORAGE}/build"
+    SIG_FILE: signature
+    BASE_BUCKET_DIRECTORY: testing/container-scan-reports
+    DOCUMENTATION_FILENAME: documentation
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
+    REPORT_TAR_NAME: ${CI_PROJECT_NAME}-${IMG_VERSION}-reports-signature.tar.gz
+  dependencies:
+    - build
+    - sign image
+    - sign manifest
+    - write json documentation
+    - anchore scan
+    - twistlock scan
+    - csv output
+    - load scripts
+    - wl compare lint
+  script:
+    - '"${PIPELINE_REPO_DIR}/stages/publish/upload-to-s3-run.sh"'

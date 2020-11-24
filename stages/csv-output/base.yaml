@@ -1,6 +1,7 @@
 csv output:
   stage: csv output
-
+  tags:
+    - ironbank
   dependencies:
     - twistlock scan
     - openscap cve
@@ -18,4 +19,6 @@ csv output:
     when: always
     paths:
       - "${CSV_REPORT}"
+    reports:
+      dotenv: csv_output.env
     expire_in: 1 week
