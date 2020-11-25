@@ -261,7 +261,7 @@ def s3_download(
         )
     except ClientError as e:
         logging.error(e)
-        return False
+        sys.exit(1)
 
     # Calculate SHA256 checksum of downloaded file
     print("Checking file verification type")
