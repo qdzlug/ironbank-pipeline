@@ -1,22 +1,22 @@
 #
 # Anchore Scanning stage
 #
-# This stage currently installs anchore-cli and then sets up the environment
-# to access the Anchore instance. The anchore_scan.py script makes use of the
-# environment variables as well to configure access.
+# The anchore_scan.py script makes use of the environment variables already
+# present in the pipeline.
 #
-# NOTE: The anchore_debug and anchore_timeout variables are set as environment
-#       variables in the gitlab dsop group. This allows them to be modified
+# NOTE: The ANCHORE_TIMEOUT variable is set as an environment
+#       variable in the gitlab dsop group. This allows it to be modified
 #       without needing to submit code changes.
 #
 # Test command:
-#   ANCHORE_CLI_PASS=<pass> \
-#   ANCHORE_CLI_URL=https://anchore-api.admin.dsop.io \
-#   ANCHORE_CLI_USER=<user> \
-#   ANCHORE_SCAN_DIRECTORY=<outdir> \
-#   ANCHORE_DEBUG=True \
-#   IMAGE_NAME=registry1.dsop.io/ironbank-staging/opensource/pipeline-test-project/kubectl:v1.18.8 \
-#   IMAGE_ID=<id> python3 anchore_scan.py
+#   ANCHORE_PASSWORD=<pass>\
+#   ANCHORE_SERVER_ADDRESS=https://anchore-api.admin.dsop.io \
+#   ANCHORE_USERNAME=<user> \
+#   IM_NAME=redhat/ubi/ubi8 \
+#   IMG_VERSION=8.3 \
+#   CI_PIPELINE_ID=87168 \
+#   ANCHORE_SCANS=/tmp/anchore/ \
+#   python3 anchore_scan.py
 #
 
 anchore scan:
@@ -31,7 +31,7 @@ anchore scan:
     # put all scan outputs in the scan-results folder
     ANCHORE_SCANS: "${ARTIFACT_STORAGE}/scan-results/anchore"
   script:
-    - '"${PIPELINE_REPO_DIR}/stages/scanning/anchore-run.sh"'
+    - python3 "${PIPELINE_REPO_DIR}/stages/scanning/anchore_scan.py"
   artifacts:
     when: always
     paths:
