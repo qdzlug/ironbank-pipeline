@@ -161,28 +161,24 @@ class Anchore:
         a reanalysis of the image on pipeline reruns where the digest has not changed.
 
         """
+        add_cmd = [
+            "anchore-cli",
+            "--json",
+            "--u",
+            self.username,
+            "--p",
+            self.password,
+            "--url",
+            self.url,
+            "image",
+            "add",
+            "--noautosubscribe",
+        ]
+
         if pathlib.Path("./Dockerfile").is_file():
-            add_cmd = [
-                "anchore-cli",
-                "--json",
-                "image",
-                "add",
-                "--noautosubscribe",
-                "--dockerfile",
-                "./Dockerfile",
-                "--force",
-                image,
-            ]
-        else:
-            add_cmd = [
-                "anchore-cli",
-                "--json",
-                "image",
-                "add",
-                "--noautosubscribe",
-                "--force",
-                image,
-            ]
+            add_cmd += ["--dockerfile", "./Dockerfile"]
+
+        add_cmd += ["--force", image]
 
         try:
             logging.info(" ".join(add_cmd))
@@ -208,10 +204,22 @@ class Anchore:
 
     def image_wait(self, digest):
         logging.info(f"Waiting for Anchore to scan {digest}")
-        timeout = os.getenv("ANCHORE_TIMEOUT", default="2400")
+        wait_cmd = [
+            "anchore-cli",
+            "--u",
+            self.username,
+            "--p",
+            self.password,
+            "--url",
+            self.url,
+            "image",
+            "wait",
+            "--timeout",
+            os.getenv("ANCHORE_TIMEOUT", default="2400"),
+            digest,
+        ]
         try:
             os.environ["PYTHONUNBUFFERED"] = "1"
-            wait_cmd = ["anchore-cli", "image", "wait", "--timeout", timeout, digest]
             logging.info(" ".join(wait_cmd))
             image_wait = subprocess.Popen(
                 wait_cmd,

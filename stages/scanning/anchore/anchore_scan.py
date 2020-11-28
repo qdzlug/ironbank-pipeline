@@ -33,16 +33,14 @@ def main():
     # Create the directory if it does not exist
     pathlib.Path(artifacts_path).mkdir(parents=True, exist_ok=True)
 
-    try:
-        image = f"{os.environ['REGISTRY1_URL']}/ironbank-staging/{os.environ['IM_NAME']}:{os.environ['IMG_VERSION']}-{os.environ['CI_PIPELINE_ID']}"
-    except KeyError:
-        logging.exception("Could not build up full image tag")
-        sys.exit(1)
+    image = os.environ["IMAGE_FULLTAG"]
 
     digest = anchore_scan.image_add(image)
     anchore_scan.image_wait(digest=digest)
     anchore_scan.get_vulns(digest=digest, image=image, artifacts_path=artifacts_path)
-    anchore_scan.get_compliance(digest=digest, image=image, artifacts_path=artifacts_path)
+    anchore_scan.get_compliance(
+        digest=digest, image=image, artifacts_path=artifacts_path
+    )
     anchore_scan.get_version(artifacts_path=artifacts_path)
 
 
