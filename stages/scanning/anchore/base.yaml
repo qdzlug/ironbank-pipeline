@@ -31,7 +31,7 @@ anchore scan:
     # put all scan outputs in the scan-results folder
     ANCHORE_SCANS: "${ARTIFACT_STORAGE}/scan-results/anchore"
   script:
-    - python3 "${PIPELINE_REPO_DIR}/stages/scanning/anchore_scan.py"
+    - python3 "${PIPELINE_REPO_DIR}/stages/scanning/anchore/anchore_scan.py"
   artifacts:
     when: always
     paths:
