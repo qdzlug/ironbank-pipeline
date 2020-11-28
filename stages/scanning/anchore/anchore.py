@@ -190,13 +190,16 @@ class Anchore:
                 add_cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                check=True,
                 encoding="utf-8",
             )
         except subprocess.SubprocessError as e:
-            logging.error(e)
             logging.exception("Could not add image to Anchore")
             sys.exit(1)
+
+        if image_add.returncode != 0:
+            logging.error(image_add.stdout)
+            logging.error(image_add.stderr)
+            sys.exit(image_add.returncode)
 
         logging.info(f"{image} added to Anchore")
         logging.info(image_add.stdout)
@@ -223,15 +226,13 @@ class Anchore:
                     logging.info(line)
             os.environ["PYTHONUNBUFFERED"] = "0"
 
-            # Check return code
-            if image_wait.returncode != 0:
-                raise subprocess.SubprocessError(
-                    f"returned non-zero exit status {image_wait.returncode}"
-                )
-
         except subprocess.SubprocessError as e:
             logging.error(e)
             logging.exception("Failed while waiting for Anchore to scan image")
             sys.exit(1)
 
-        logging.info(image_wait.stdout)
+        # Check return code
+        if image_wait.returncode != 0:
+            logging.error(image_wait.stdout)
+            logging.error(image_wait.stderr)
+            sys.exit(image_wait.returncode)
