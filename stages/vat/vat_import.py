@@ -624,65 +624,76 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
     logs.debug("Starting Update to Findings Log")
     try:
         system_user_id = get_system_user_id()
-        find_log_query = (
-            """SELECT id, record_type , in_current_scan, active, record_text from `finding_logs` WHERE
+        find_log_query = """SELECT id, record_type , in_current_scan, active, record_text from `finding_logs` WHERE
             finding_id = %s and record_type_active = 1 ORDER BY active desc"""
-        )
-        insert_row_query = (
-                "INSERT INTO `finding_logs` VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-        )
+        insert_row_query = "INSERT INTO `finding_logs` VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
         find_log_tuple = (finding_id,)
         cursor.execute(find_log_query, find_log_tuple)
         active_records = cursor.fetchall()
         in_current_scan = active_records[0][2]
 
         if active_records and in_current_scan:
-            return True # If found and in_current_scan = 1, no updates needed.
+            return True  # If found and in_current_scan = 1, no updates needed.
         elif active_records and not in_current_scan:
             # If now in current_scan add it back into the logs deactivate the old logs and add the new ones
             deactivate_all_rows = [deactivate_log_row(r[0]) for r in active_records]
             j_record = [x for x in active_records if x[1] == "justification"]
             sc_record = [x for x in active_records if x[1] == "state_change"]
-            new_entry_selection = (
-                """
+            new_entry_selection = """
                 SELECT NULL, finding_id, record_type, state, %s, 1, expiration_date, inheritable, inherited_id,
                 inherited, false_positive, %s, %s, %s, 1 from `finding_logs` WHERE id = %s
                 """
-            )
             if j_record:
                 update_text = j_record[0][4]
                 is_active_record = 0
                 record_id = j_record[0][0]
-                tuple_values = (update_text, system_user_id, args.scan_date, is_active_record, record_id)
-                new_j_record_id = add_active_log_row(new_entry_selection, tuple_values, insert_row_query)
+                tuple_values = (
+                    update_text,
+                    system_user_id,
+                    args.scan_date,
+                    is_active_record,
+                    record_id,
+                )
+                new_j_record_id = add_active_log_row(
+                    new_entry_selection, tuple_values, insert_row_query
+                )
 
             if sc_record:
                 update_text = "Finding reinstated from current scan"
                 is_active_record = 1
                 record_id = sc_record[0][0]
-                tuple_values = (update_text, system_user_id, args.scan_date, is_active_record, record_id)
-                new_sc_record_id = add_active_log_row(new_entry_selection, tuple_values, insert_row_query)
+                tuple_values = (
+                    update_text,
+                    system_user_id,
+                    args.scan_date,
+                    is_active_record,
+                    record_id,
+                )
+                new_sc_record_id = add_active_log_row(
+                    new_entry_selection, tuple_values, insert_row_query
+                )
             return True
 
         if lineage:
             inherited = 0
             inherited_id = None
-            find_parent_finding_query = (
-                """SELECT id, container_id from findings where finding = %s and scan_source = %s and package = %s and
+            find_parent_finding_query = """SELECT id, container_id from findings where finding = %s and scan_source = %s and package = %s and
                 package_path = %s and container_id in (%s)
                 """
-            )
             unique_values = (
                 row["finding"],
                 scan_source,
                 row["package"],
                 row["package_path"],
-                lineage
+                lineage,
             )
-            cursor.execute(find_parent_finding_query, unique_values) # This doesn't work yet, need to flatten lineage in a proper way
+            cursor.execute(
+                find_parent_finding_query, unique_values
+            )  # This doesn't work yet, need to flatten lineage in a proper way
             parents = cursor.fetchall()
             if parents:
-                inherited_id = parents[-1][0] # Need to fix this to be more explicit. Re-evaluate getting parent
+                # Need to fix this to be more explicit. Re-evaluate getting parent
+                inherited_id = parents[-1][0]
                 inherited = 1
             # To Do: Get all parent logs select * from `finding_logs` where finding_id = inherited_id
             # Fetch them and then cycle through them inserting each one with everything but finding_id, inherited_id and inherited
@@ -720,13 +731,14 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
                 system_user_id,
                 args.scan_date,
                 1,
-                1
+                1,
             )
             cursor.execute(insert_row_query, new_values)
         return True
         conn.commit()
     except Error as error:
         logs.error(error)
+
 
 def add_active_log_row(get_value_query, values_tuple, insert_query):
     """
@@ -741,6 +753,7 @@ def add_active_log_row(get_value_query, values_tuple, insert_query):
     cursor.execute(insert_query, update_values)
     return cursor.lastrowid
 
+
 def deactivate_log_row(log_id, deactivate_active=True, deactivate_record_type=True):
     """
     Removes active flag from row defaults to deactivating both active flags
@@ -754,6 +767,7 @@ def deactivate_log_row(log_id, deactivate_active=True, deactivate_record_type=Tr
         "UPDATE `finding_logs` SET active = %s, record_type_active = %s WHERE id = %s"
     )
     cursor.execute(update_query, (active_row, active_record_type, log_id))
+
 
 def find_lineage(container_id):
     """
