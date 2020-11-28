@@ -611,9 +611,149 @@ def insert_finding_scan(cursor, row, finding_id):
         logs.error(error)
 
 
-def update_findings_log():
-    pass
+def update_finding_logs(cursor, container_id, row, finding_id, scan_source, lineage):
+    """
+    insert a row into the finding_logs table if new or inheritability changes
+    if row is inserted,
+    set that row to active and deactivate last active row
+    :params cursor mysql cursor
+    :params container_id int value of corresponding container
+    :params row dict of values to insert
+    :params finding_id int value of corresponding finding in the findings table
+    """
+    logs.debug("Starting Update to Findings Log")
+    try:
+        system_user_id = get_system_user_id()
+        find_log_query = (
+            """SELECT id, record_type , in_current_scan, active, record_text from `finding_logs` WHERE
+            finding_id = %s and record_type_active = 1 ORDER BY active desc"""
+        )
+        insert_row_query = (
+                "INSERT INTO `finding_logs` VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        )
+        find_log_tuple = (finding_id,)
+        cursor.execute(find_log_query, find_log_tuple)
+        active_records = cursor.fetchall()
+        in_current_scan = active_records[0][2]
 
+        if active_records and in_current_scan:
+            return True # If found and in_current_scan = 1, no updates needed.
+        elif active_records and not in_current_scan:
+            # If now in current_scan add it back into the logs deactivate the old logs and add the new ones
+            deactivate_all_rows = [deactivate_log_row(r[0]) for r in active_records]
+            j_record = [x for x in active_records if x[1] == "justification"]
+            sc_record = [x for x in active_records if x[1] == "state_change"]
+            new_entry_selection = (
+                """
+                SELECT NULL, finding_id, record_type, state, %s, 1, expiration_date, inheritable, inherited_id,
+                inherited, false_positive, %s, %s, %s, 1 from `finding_logs` WHERE id = %s
+                """
+            )
+            if j_record:
+                update_text = j_record[0][4]
+                is_active_record = 0
+                record_id = j_record[0][0]
+                tuple_values = (update_text, system_user_id, args.scan_date, is_active_record, record_id)
+                new_j_record_id = add_active_log_row(new_entry_selection, tuple_values, insert_row_query)
+
+            if sc_record:
+                update_text = "Finding reinstated from current scan"
+                is_active_record = 1
+                record_id = sc_record[0][0]
+                tuple_values = (update_text, system_user_id, args.scan_date, is_active_record, record_id)
+                new_sc_record_id = add_active_log_row(new_entry_selection, tuple_values, insert_row_query)
+            return True
+
+        if lineage:
+            inherited = 0
+            inherited_id = None
+            find_parent_finding_query = (
+                """SELECT id, container_id from findings where finding = %s and scan_source = %s and package = %s and
+                package_path = %s and container_id in (%s)
+                """
+            )
+            unique_values = (
+                row["finding"],
+                scan_source,
+                row["package"],
+                row["package_path"],
+                lineage
+            )
+            cursor.execute(find_parent_finding_query, unique_values) # This doesn't work yet, need to flatten lineage in a proper way
+            parents = cursor.fetchall()
+            if parents:
+                inherited_id = parents[-1][0] # Need to fix this to be more explicit. Re-evaluate getting parent
+                inherited = 1
+            # To Do: Get all parent logs select * from `finding_logs` where finding_id = inherited_id
+            # Fetch them and then cycle through them inserting each one with everything but finding_id, inherited_id and inherited
+            # new_values = (
+            #     None,
+            #     finding_id,
+            #     "state_change",
+            #     "needs_justification",
+            #     "New Finding",
+            #     1,
+            #     None,
+            #     1,
+            #     inherited_id,
+            #     inherited,
+            #     None,
+            #     system_user_id,
+            #     args.scan_date,
+            #     1,
+            #     1
+            # )
+            # cursor.execute(insert_row_query, new_values)
+        else:
+            new_values = (
+                None,
+                finding_id,
+                "state_change",
+                "needs_justification",
+                "New Finding",
+                1,
+                None,
+                1,
+                None,
+                0,
+                None,
+                system_user_id,
+                args.scan_date,
+                1,
+                1
+            )
+            cursor.execute(insert_row_query, new_values)
+        return True
+        conn.commit()
+    except Error as error:
+        logs.error(error)
+
+def add_active_log_row(get_value_query, values_tuple, insert_query):
+    """
+    Gets values from a row in the table and then uses those values to insert a new row
+    :params get_value_query str
+    :params values_tuple tuple
+    :params insert_query str
+    :returns bool True on success
+    """
+    cursor.execute(get_value_query, values_tuple)
+    update_values = cursor.fetchone()
+    cursor.execute(insert_query, update_values)
+    return cursor.lastrowid
+
+def deactivate_log_row(log_id, deactivate_active=True, deactivate_record_type=True):
+    """
+    Removes active flag from row defaults to deactivating both active flags
+    :params id int
+    :returns bool True on success
+    """
+    active_record_type = 0 if deactivate_record_type else 1
+    active_row = 0 if deactivate_active else 1
+
+    update_query = (
+        "UPDATE `finding_logs` SET active = %s, record_type_active = %s WHERE id = %s"
+    )
+    cursor.execute(update_query, (active_row, active_record_type, log_id))
 
 def find_lineage(container_id):
     """
@@ -658,9 +798,9 @@ def insert_scan(data, iid, scan_source):
         return
     conn = connect_to_db()
     try:
+        lineage = find_lineage(iid)
         for index, row in data.iterrows():
             cursor = conn.cursor(buffered=True)
-
             """
             Irma's Notes for db migration updates:
 
@@ -669,16 +809,16 @@ def insert_scan(data, iid, scan_source):
                      where record_type_active = 1.
                      (this may retrieve more than one row)
 
-            If found and in_current_scan = 1(or True), no updates needed.
+            If found and in_current_scan = 1(or True), no updates needed. - DONE
 
-            If found and in_current_scan = 0(or False) and active = 1(or True),
+            If found and in_current_scan = 0(or False) and active = 1(or True), - Done
                 Set that row to active = 0(or False)
                 If record_type = 'state_change' only insert one row
                     Insert a row into finding_logs with:
                         user_id = system_user_id, in_current_scan = 1(or True),
                         record_type = 'state_change',  active = 1, record_timestamp
 
-                If record_type = justification:
+                If record_type = justification: - DONE
                     Get the row from the initial select that retrieved the
                         active roles that has record_type = state_change:
                     Update that row as record_type_active = 0 or (False)
@@ -713,7 +853,7 @@ def insert_scan(data, iid, scan_source):
             insert_finding_scan(cursor, row, finding_id)
 
             # Insert into finding_logs (irma)
-            # update_findings_log(conn, iid, finding_id)
+            update_finding_logs(cursor, iid, row, finding_id, scan_source, lineage)
 
     except Error as error:
         logs.error(error)
@@ -1049,8 +1189,8 @@ def main():
     # false if no imageid found
     if iid and is_new_scan(iid):
         push_all_csv_data(data, iid)
-        d_f = get_all_inheritable_findings(iid)
-        update_inheritance_id(d_f)
+        # d_f = get_all_inheritable_findings(iid) IK: I think we can get rid of these two
+        # update_inheritance_id(d_f)
     else:
         logs.warning("newer scan exists not inserting scan report")
 
