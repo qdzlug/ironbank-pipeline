@@ -400,7 +400,7 @@ def generate_anchore_sec_report(anchore_sec):
     count = 0
     # print a blank header to set column width
     csv_writer.writerow(
-        ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
+        ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
     )
     for line in anchore_cves:
         if count == 0:
@@ -418,14 +418,18 @@ def get_anchore_full(anchore_file):
         image_tag = json_data["imageFullTag"]
         anchore_data = json_data["vulnerabilities"]
         cves = []
-        for x in anchore_data:
+        for data in anchore_data:
             tag = image_tag
-            cve = x["vuln"]
-            severity = x["severity"]
-            package = x["package"]
-            package_path = x["package_path"]
-            fix = x["fix"]
-            url = x["url"]
+            cve = data["vuln"]
+            severity = data["severity"]
+            package = data["package"]
+            package_path = data["package_path"]
+            fix = data["fix"]
+            url = data["url"]
+            if "inherited_from_base" in data:
+                inherited = data["inherited_from_base"]
+            else:
+                inherited = "nodata"
 
             ret = {
                 "tag": tag,
@@ -435,6 +439,7 @@ def get_anchore_full(anchore_file):
                 "package_path": package_path,
                 "fix": fix,
                 "url": url,
+                "inherited": inherited,
             }
 
             cves.append(ret)
