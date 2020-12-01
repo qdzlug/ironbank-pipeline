@@ -251,11 +251,11 @@ def justificationsAnchore(wb, justifications):
     for r in range(1, sheet.max_row + 1):
         cell = sheet.cell(row=r, column=2)
         if cell.value == "cve":
-            cell = sheet.cell(row=r, column=8)
+            cell = sheet.cell(row=r, column=9)
             cell.value = "Justification"
         else:
             cell2 = sheet.cell(row=r, column=4)
-            cell_justification = sheet.cell(row=r, column=8)
+            cell_justification = sheet.cell(row=r, column=9)
             id = cell.value + "-" + cell2.value
 
             if id in justifications.keys():
@@ -337,7 +337,7 @@ def setAllColumnWidths(wb):
     anchore_cve = wb["Anchore CVE Results"]
     setColumnWidth(anchore_cve, column=2, width=25, wrap=False)  # CVE
     setColumnWidth(anchore_cve, column=7, width=60)  # url
-    setColumnWidth(anchore_cve, column=8, width=100)  # justification
+    setColumnWidth(anchore_cve, column=9, width=100)  # justification
 
     anchore_compliance = wb["Anchore Compliance Results"]
     setColumnWidth(

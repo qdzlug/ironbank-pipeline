@@ -429,7 +429,7 @@ def get_anchore_full(anchore_file):
             if "inherited_from_base" in data:
                 inherited = data["inherited_from_base"]
             else:
-                inherited = "nodata"
+                inherited = "no_data"
 
             ret = {
                 "tag": tag,
