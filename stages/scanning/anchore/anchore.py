@@ -60,6 +60,22 @@ class Anchore:
         except JSONDecodeError:
             raise Exception("Got 200 response but is not valid JSON")
 
+    def __get_parent_sha(self, digest):
+        # Fetch the ancestry and look for the immediate parent digest
+        ancestry = self.__get_anchore_api_json(
+            f"{self.url}/enterprise/images/{digest}/ancestors"
+        )
+
+        if ancestry:
+            #
+            # Ancestry is sorted by the number of shared layers, so the immediate parent will
+            # be the last image in the list.
+            #
+            return ancestry[-1]["imageDigest"]
+
+        return None
+
+
     def get_version(self, artifacts_path):
         """
         Fetch the Anchore version and write it to an artifact.
@@ -86,18 +102,11 @@ class Anchore:
         """
         logging.info("Getting vulnerability results")
 
-        # Fetch the ancestry and look for the immediate parent digest
-        ancestry = self.__get_anchore_api_json(
-            f"{self.url}/enterprise/images/{digest}/ancestors"
-        )
+        # Fetch the immediate parent digest if available
+        parent_digest = self.__get_parent_sha(digest)
 
-        if ancestry:
-            #
-            # Ancestry is sorted by the number of shared layers, so the immediate parent will
-            # be the last image in the list.
-            #
-            base_digest = ancestry[-1]["imageDigest"]
-            url = f"{self.url}/enterprise/images/{digest}/vuln/all?base_digest={base_digest}"
+        if parent_digest:
+            url = f"{self.url}/enterprise/images/{digest}/vuln/all?base_digest={parent_digest}"
         else:
             url = f"{self.url}/enterprise/images/{digest}/vuln/all"
 
@@ -132,10 +141,19 @@ class Anchore:
 
         """
         logging.info("Getting compliance results")
-        request_url = (
-            f"{self.url}/enterprise/images/{digest}/check?tag={image}&detail=true"
-        )
-        body_json = self.__get_anchore_api_json(request_url)
+
+        #
+        # Fetch the immediate parent digest if available
+        # TODO: Uncomment this when ready to pull inheritance for policy checks.
+        # parent_digest = self.__get_parent_sha(digest)
+        #
+        # if parent_digest:
+        #     url = f"{self.url}/enterprise/images/{digest}/check?tag={image}&detail=true&base_digest={parent_digest}"
+        # else:
+        #     url = f"{self.url}/enterprise/images/{digest}/check?tag={image}&detail=true"
+        url = f"{self.url}/enterprise/images/{digest}/check?tag={image}&detail=true"
+
+        body_json = self.__get_anchore_api_json(url)
 
         # Save the API response
         filename = pathlib.Path(artifacts_path, "anchore_api_gates_full.json")
