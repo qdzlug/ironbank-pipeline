@@ -76,6 +76,8 @@ def getAllGreylistFiles(whitelistDir, sourceImage, sourceImageGreylistFile):
             data = json.load(f)
         except ValueError as e:
             print("Error processing file: " + sourceImageGreylistFile, file=sys.stderr)
+            sys.exit(1)
+
     # Check for empty .greylist file
     if os.stat(sourceImageGreylistFile).st_size == 0:
         print("Source image greylist file is empty")
