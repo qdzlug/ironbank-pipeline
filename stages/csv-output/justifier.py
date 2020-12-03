@@ -169,7 +169,7 @@ def getAllGreylistFiles(
     # Add source image greylist file to allFiles
     allFiles.append(sourceImageGreylistFile)
 
-    # Get the image_parent_name from the source image greylist file
+    # Load the greylist file to pass to _next_ancestor
     with open(sourceImageGreylistFile) as f:
         try:
             data = json.load(f)
@@ -180,11 +180,12 @@ def getAllGreylistFiles(
     # Check for empty .greylist file
     if os.stat(sourceImageGreylistFile).st_size == 0:
         print("Source image greylist file is empty")
+
     # Get first parent image from hardening_manifest
     else:
         baseImage = _next_ancestor(
             image_path=sourceImage,
-            greylist=sourceImageGreylistFile,
+            greylist=data,
             hardening_manifest=hardening_manifest,
         )
         if len(baseImage) == 0:
@@ -201,17 +202,18 @@ def getAllGreylistFiles(
                 baseImageGreylistFile = whitelistDir + "/" + baseImage + "/" + file
                 print(baseImageGreylistFile)
                 allFiles.append(baseImageGreylistFile)
-                # #with open(baseImageGreylistFile) as f:
-                #     try:
-                #         data = json.load(f)
-                #     except ValueError as e:
-                #         print("Error processing file: " + file, file=sys.stderr)
+                with open(baseImageGreylistFile) as f:
+                    try:
+                        data = json.load(f)
+                    except ValueError as e:
+                        print("Error processing file: " + file, file=sys.stderr)
                 if os.stat(baseImageGreylistFile).st_size == 0:
                     print("Source image greylist file is empty")
+                    baseImage = ""
                 # return base image, checking hardening manifest first, then greylist. If no BASE_IMAGE, exit
                 else:
                     baseImage = _next_ancestor(
-                        image_path=baseImage, greylist=sourceImageGreylistFile
+                        image_path=baseImage, greylist=data
                     )
                     logging.debug(baseImage)
 
