@@ -212,9 +212,7 @@ def getAllGreylistFiles(
                     baseImage = ""
                 # return base image, checking hardening manifest first, then greylist. If no BASE_IMAGE, exit
                 else:
-                    baseImage = _next_ancestor(
-                        image_path=baseImage, greylist=data
-                    )
+                    baseImage = _next_ancestor(image_path=baseImage, greylist=data)
                     logging.debug(baseImage)
 
     return allFiles
