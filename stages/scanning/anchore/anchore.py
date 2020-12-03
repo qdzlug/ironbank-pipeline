@@ -145,13 +145,13 @@ class Anchore:
         #
         # Fetch the immediate parent digest if available
         # TODO: Uncomment this when ready to pull inheritance for policy checks.
-        # parent_digest = self.__get_parent_sha(digest)
-        #
-        # if parent_digest:
-        #     url = f"{self.url}/enterprise/images/{digest}/check?tag={image}&detail=true&base_digest={parent_digest}"
-        # else:
-        #     url = f"{self.url}/enterprise/images/{digest}/check?tag={image}&detail=true"
-        url = f"{self.url}/enterprise/images/{digest}/check?tag={image}&detail=true"
+        parent_digest = self.__get_parent_sha(digest)
+
+        if parent_digest:
+            url = f"{self.url}/enterprise/images/{digest}/check?tag={image}&detail=true&base_digest={parent_digest}"
+        else:
+            url = f"{self.url}/enterprise/images/{digest}/check?tag={image}&detail=true"
+        # url = f"{self.url}/enterprise/images/{digest}/check?tag={image}&detail=true"
 
         body_json = self.__get_anchore_api_json(url)
 

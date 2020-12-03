@@ -7,6 +7,7 @@ import json
 import os
 import pandas
 import argparse
+import pathlib
 import logging
 
 
@@ -394,56 +395,27 @@ def get_twistlock_full(twistlock_file):
 
 # ANCHORE SECURITY CSV
 def generate_anchore_sec_report(anchore_sec):
-    anchore_cves = get_anchore_full(anchore_sec)
-    anchore_data = open(csv_dir + "anchore_security.csv", "w", encoding="utf-8")
-    csv_writer = csv.writer(anchore_data)
-    count = 0
-    # print a blank header to set column width
-    csv_writer.writerow(
-        ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
-    )
-    for line in anchore_cves:
-        if count == 0:
-            header = line.keys()
-            csv_writer.writerow(header)
-            count += 1
-        csv_writer.writerow(line.values())
-    anchore_data.close()
-    return len(anchore_cves)
+    with open(anchore_sec, mode="r", encoding="utf-8") as f:
+        json_data = json.load(f)
+        cves = [ {
+            "tag":          json_data["imageFullTag"],
+            "cve":          d["vuln"],
+            "severity":     d["severity"],
+            "package":      d["package"],
+            "package_path": d["package_path"],
+            "fix":          d["fix"],
+            "url":          d["url"],
+            "inherited":    d.get("inherited_from_base") or "no_data",
+        } for d in json_data["vulnerabilities"] ]
 
+    anchore_data = pathlib.Path(csv_dir, "anchore_security.csv")
 
-def get_anchore_full(anchore_file):
-    with open(anchore_file, mode="r", encoding="utf-8") as af:
-        json_data = json.load(af)
-        image_tag = json_data["imageFullTag"]
-        anchore_data = json_data["vulnerabilities"]
-        cves = []
-        for data in anchore_data:
-            tag = image_tag
-            cve = data["vuln"]
-            severity = data["severity"]
-            package = data["package"]
-            package_path = data["package_path"]
-            fix = data["fix"]
-            url = data["url"]
-            if "inherited_from_base" in data:
-                inherited = data["inherited_from_base"]
-            else:
-                inherited = "no_data"
-
-            ret = {
-                "tag": tag,
-                "cve": cve,
-                "severity": severity,
-                "package": package,
-                "package_path": package_path,
-                "fix": fix,
-                "url": url,
-                "inherited": inherited,
-            }
-
-            cves.append(ret)
-        return cves
+    fields = list(cves[0].keys())
+    with anchore_data.open(mode="w", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(cves)
+    return len(cves)
 
 
 # ANCHORE GATES CSV
@@ -456,7 +428,7 @@ def generate_anchore_gates_report(anchore_gates):
     image_id = "unable_to_determine"
     # print a blank header to set column width
     csv_writer.writerow(
-        ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
+        ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
     )
     for line in anchore_g:
         if count == 0:
@@ -501,6 +473,8 @@ class AnchoreGate:
     whitelist_id = ""
     whitelist_name = ""
 
+    inherited = ""
+
     def __init__(self, g):
         self.image_id = g[0]
         self.repo_tag = g[1]
@@ -511,6 +485,7 @@ class AnchoreGate:
         self.gate_action = g[6]
         # self.whitelisted = g[7]
         self.policy_id = g[8]
+        self.inherited = g[9]
 
         if g[7]:
             self.matched_rule_id = g[7]["matched_rule_id"]
