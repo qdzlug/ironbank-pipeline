@@ -32,6 +32,70 @@ inheritableTriggerIds = [
 ]
 
 
+def _load_local_hardening_manifest():
+    """
+    Load up the hardening_manifest.yaml file as a dictionary. Search for the file in
+    the immediate repo first, if that is not found then search for the generated file.
+
+    If neither are found then return None and let the calling function handle the error.
+
+    """
+    artifacts_path = os.environ["ARTIFACT_STORAGE"]
+    paths = [
+        pathlib.Path("hardening_manifest.yaml"),
+        # Check for the generated hardening manifest. This method will be deprecated.
+        pathlib.Path(artifacts_path, "preflight", "hardening_manifest.yaml"),
+    ]
+
+    for path in paths:
+        logging.debug(f"Looking for {path}")
+        if path.is_file():
+            logging.debug(f"Using {path}")
+            with path.open("r") as f:
+                return yaml.safe_load(f)
+        else:
+            logging.debug(f"Couldn't find {path}")
+    return None
+
+
+def _load_remote_hardening_manifest(project, branch="master"):
+    """
+    Load up a hardening_manifest.yaml from a remote repository.
+
+    If the manifest file is not found then None is returned. A warning will print
+    to console to communicate which repository does not have a hardening manifest.
+
+    """
+    if project == "":
+        return None
+
+    logging.debug(f"Attempting to load hardening_manifest from {project}")
+
+    try:
+        gl = gitlab.Gitlab(os.environ["REPO1_URL"])
+        proj = gl.projects.get(f"dsop/{project}", lazy=True)
+        logging.debug(f"Connecting to dsop/{project}")
+
+        hardening_manifest = proj.files.get(
+            file_path="hardening_manifest.yaml", ref=branch
+        )
+        return yaml.safe_load(hardening_manifest.decode())
+
+    except gitlab.exceptions.GitlabError:
+        logging.info(
+            "Could not load hardening_manifest. Defaulting backwards compatibility."
+        )
+        logging.warning(
+            f"This method will be deprecated soon, please switch {project} to hardening_manifest.yaml"
+        )
+
+    except yaml.YAMLError as e:
+        logging.error("Could not load the hardening_manifest.yaml")
+        logging.error(e)
+        sys.exit(1)
+
+    return None
+
 ##### Clone the dccscr-whitelist repository
 def cloneWhitelist(whitelistDir, whitelistRepo):
     # Delete the dccscr-whitelist folder (if it exists)
