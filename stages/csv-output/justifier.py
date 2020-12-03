@@ -96,6 +96,36 @@ def _load_remote_hardening_manifest(project, branch="master"):
 
     return None
 
+def _next_ancestor(image_path, greylist, hardening_manifest=None):
+    """
+    Grabs the parent image path from the current context. Will initially attempt to load
+    a new hardening manifest and then pull the parent image from there. Otherwise it will
+    default to the old method of using the greylist.
+
+    If neither the hardening_manifest.yaml or the greylist field can be found then there
+    is a weird mismatch during migration that needs further inspection.
+
+    """
+
+    # Try to get the parent image out of the local hardening_manifest.
+    if hardening_manifest:
+        return hardening_manifest["args"]["BASE_IMAGE"]
+
+    # Try to load the hardening manifest from a remote repo.
+    hm = _load_remote_hardening_manifest(project=image_path)
+    if hm is not None:
+        return hm["args"]["BASE_IMAGE"]
+
+    try:
+        return greylist["image_parent_name"]
+    except KeyError as e:
+        logging.error("Looks like a hardening_manifest.yaml cannot be found")
+        logging.error(
+            "Looks like the greylist has been updated to remove fields that should be present in hardening_manifest.yaml"
+        )
+        logging.error(e)
+        sys.exit(1)
+
 ##### Clone the dccscr-whitelist repository
 def cloneWhitelist(whitelistDir, whitelistRepo):
     # Delete the dccscr-whitelist folder (if it exists)
