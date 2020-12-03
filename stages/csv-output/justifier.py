@@ -160,7 +160,7 @@ def getSourceImageGreylistFile(whitelistDir, sourceImage):
 
 
 ##### Get the greylist file for all the base images
-def getAllGreylistFiles(whitelistDir, sourceImage, sourceImageGreylistFile):
+def getAllGreylistFiles(whitelistDir, sourceImage, sourceImageGreylistFile, hardening_manifest):
     # extract base_image from sourceImage .greylist file
     baseImage = ""
 
@@ -175,39 +175,44 @@ def getAllGreylistFiles(whitelistDir, sourceImage, sourceImageGreylistFile):
             print("Error processing file: " + sourceImageGreylistFile, file=sys.stderr)
             sys.exit(1)
 
+
     # Check for empty .greylist file
     if os.stat(sourceImageGreylistFile).st_size == 0:
         print("Source image greylist file is empty")
-    # Check for empty image_parent_name in .greylist file
-    elif len(data["image_parent_name"]) == 0:
-        print("No parent image")
+    # Get first parent image from hardening_manifest
     else:
-        baseImage = data["image_parent_name"]
+        baseImage = _next_ancestor(
+            image_path=sourceImage, greylist=sourceImageGreylistFile, hardening_manifest=hardening_manifest
+        )
+        if len(baseImage) == 0:
+            print("No parent image")
+
 
     print("The following base image greylist files have been identified...")
 
     # Add all parent image greylists to allFiles
-    while True:
+    # Break loop when it finds the last parent image
+    while len(baseImage) != 0:
         files = os.listdir(whitelistDir + "/" + baseImage)
         for file in files:
             if fnmatch.fnmatch(file, "*.greylist"):
                 baseImageGreylistFile = whitelistDir + "/" + baseImage + "/" + file
                 print(baseImageGreylistFile)
                 allFiles.append(baseImageGreylistFile)
-                with open(baseImageGreylistFile) as f:
-                    try:
-                        data = json.load(f)
-                    except ValueError as e:
-                        print("Error processing file: " + file, file=sys.stderr)
+                # #with open(baseImageGreylistFile) as f:
+                #     try:
+                #         data = json.load(f)
+                #     except ValueError as e:
+                #         print("Error processing file: " + file, file=sys.stderr)
                 if os.stat(baseImageGreylistFile).st_size == 0:
                     print("Source image greylist file is empty")
-                elif len(data["image_parent_name"]) == 0:
-                    print("No more parent images.")
+                #return base image, checking hardening manifest first, then greylist. If no BASE_IMAGE, exit
                 else:
-                    baseImage = data["image_parent_name"]
-        # Break loop when it finds the last parent image
-        if len(data["image_parent_name"]) == 0:
-            break
+                    baseImage = _next_ancestor(
+                        image_path=baseImage, greylist=sourceImageGreylistFile
+                    )
+                    logging.debug(baseImage)
+
     return allFiles
 
 
@@ -505,12 +510,19 @@ def main(argv, inheritableTriggerIds):
     sourceImageGreylistFile = getSourceImageGreylistFile(whitelistDir, sourceImage)
     print("done.")
 
+
+    hardening_manifest = _load_local_hardening_manifest()
+    if hardening_manifest is None:
+        logging.error("Please update your project to contain a hardening_manifest.yaml")
+
+
     print(
         "Getting greylist files for all parent images of " + sourceImage + "\n",
         end="",
         flush=True,
     )
-    allFiles = getAllGreylistFiles(whitelistDir, sourceImage, sourceImageGreylistFile)
+    #may need logic for hardening_manifest not being recovered if hardening_manifest == none etc.
+    allFiles = getAllGreylistFiles(whitelistDir, sourceImage, sourceImageGreylistFile, hardening_manifest)
     print("done.")
 
     # Get all justifications
