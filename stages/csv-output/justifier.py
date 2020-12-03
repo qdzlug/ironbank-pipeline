@@ -160,7 +160,9 @@ def getSourceImageGreylistFile(whitelistDir, sourceImage):
 
 
 ##### Get the greylist file for all the base images
-def getAllGreylistFiles(whitelistDir, sourceImage, sourceImageGreylistFile, hardening_manifest):
+def getAllGreylistFiles(
+    whitelistDir, sourceImage, sourceImageGreylistFile, hardening_manifest
+):
     # extract base_image from sourceImage .greylist file
     baseImage = ""
 
@@ -175,18 +177,18 @@ def getAllGreylistFiles(whitelistDir, sourceImage, sourceImageGreylistFile, hard
             print("Error processing file: " + sourceImageGreylistFile, file=sys.stderr)
             sys.exit(1)
 
-
     # Check for empty .greylist file
     if os.stat(sourceImageGreylistFile).st_size == 0:
         print("Source image greylist file is empty")
     # Get first parent image from hardening_manifest
     else:
         baseImage = _next_ancestor(
-            image_path=sourceImage, greylist=sourceImageGreylistFile, hardening_manifest=hardening_manifest
+            image_path=sourceImage,
+            greylist=sourceImageGreylistFile,
+            hardening_manifest=hardening_manifest,
         )
         if len(baseImage) == 0:
             print("No parent image")
-
 
     print("The following base image greylist files have been identified...")
 
@@ -206,7 +208,7 @@ def getAllGreylistFiles(whitelistDir, sourceImage, sourceImageGreylistFile, hard
                 #         print("Error processing file: " + file, file=sys.stderr)
                 if os.stat(baseImageGreylistFile).st_size == 0:
                     print("Source image greylist file is empty")
-                #return base image, checking hardening manifest first, then greylist. If no BASE_IMAGE, exit
+                # return base image, checking hardening manifest first, then greylist. If no BASE_IMAGE, exit
                 else:
                     baseImage = _next_ancestor(
                         image_path=baseImage, greylist=sourceImageGreylistFile
@@ -510,19 +512,19 @@ def main(argv, inheritableTriggerIds):
     sourceImageGreylistFile = getSourceImageGreylistFile(whitelistDir, sourceImage)
     print("done.")
 
-
     hardening_manifest = _load_local_hardening_manifest()
     if hardening_manifest is None:
         logging.error("Please update your project to contain a hardening_manifest.yaml")
-
 
     print(
         "Getting greylist files for all parent images of " + sourceImage + "\n",
         end="",
         flush=True,
     )
-    #may need logic for hardening_manifest not being recovered if hardening_manifest == none etc.
-    allFiles = getAllGreylistFiles(whitelistDir, sourceImage, sourceImageGreylistFile, hardening_manifest)
+    # may need logic for hardening_manifest not being recovered if hardening_manifest == none etc.
+    allFiles = getAllGreylistFiles(
+        whitelistDir, sourceImage, sourceImageGreylistFile, hardening_manifest
+    )
     print("done.")
 
     # Get all justifications
