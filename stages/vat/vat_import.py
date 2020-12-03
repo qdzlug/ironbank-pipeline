@@ -590,6 +590,8 @@ def insert_finding_scan(cursor, row, finding_id):
             update_sql_query = (
                 "UPDATE `finding_scan_results` SET active = 0 WHERE id = %s"
             )
+
+            logs.debug(update_sql_query, active_record[0])
             cursor.execute(update_sql_query, active_record)
 
         insert_finding_query = """INSERT INTO `finding_scan_results`
@@ -606,6 +608,18 @@ def insert_finding_scan(cursor, row, finding_id):
             row["description"],
             1,
         )
+        logs.debug(
+            insert_finding_query,
+            finding_id,
+            args.job_id,
+            args.scan_date,
+            row["severity"],
+            row["link"],
+            row["score"],
+            row["description"],
+            "1"
+        )
+
         cursor.execute(insert_finding_query, insert_values)
     except Error as error:
         logs.error(error)
@@ -627,14 +641,16 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
         find_log_query = """SELECT id, record_type , in_current_scan, active, record_text from `finding_logs` WHERE
             finding_id = %s and record_type_active = 1 ORDER BY active desc"""
         insert_row_query = "INSERT INTO `finding_logs` VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+
         find_log_tuple = (finding_id,)
+        logs.debug(find_log_query, finding_id)
         cursor.execute(find_log_query, find_log_tuple)
         active_records = cursor.fetchall()
-        in_current_scan = active_records[0][2]
 
-        if active_records and in_current_scan:
+        # in_current_scan is active_records[0][2]
+        if active_records and active_records[0][2]:
             return True  # If found and in_current_scan = 1, no updates needed.
-        elif active_records and not in_current_scan:
+        elif active_records and not active_records[0][2]:
             # If now in current_scan add it back into the logs deactivate the old logs and add the new ones
             deactivate_all_rows = [deactivate_log_row(r[0]) for r in active_records]
             j_record = [x for x in active_records if x[1] == "justification"]
@@ -647,6 +663,8 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
                 update_text = j_record[0][4]
                 is_active_record = 0
                 record_id = j_record[0][0]
+                logs.debug("Update j_record id: %s", record_id)
+
                 tuple_values = (
                     update_text,
                     system_user_id,
@@ -662,6 +680,7 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
                 update_text = "Finding reinstated from current scan"
                 is_active_record = 1
                 record_id = sc_record[0][0]
+                logs.debug("Update sc_record id: %s", record_id)
                 tuple_values = (
                     update_text,
                     system_user_id,
@@ -675,6 +694,9 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
             return True
 
         if lineage:
+            logs.debug("update_finding_logs trace lineage")
+            logs.debug("lineage: %s", lineage) # temp
+            
             inherited = 0
             inherited_id = None
             find_parent_finding_query = """SELECT id, container_id from findings where finding = %s and scan_source = %s and package = %s and
@@ -685,7 +707,16 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
                 scan_source,
                 row["package"],
                 row["package_path"],
-                lineage,
+                lineage[0],
+            )
+
+            logs.debug(
+                find_parent_finding_query,
+                row["finding"],
+                scan_source,
+                row["package"],
+                row["package_path"],
+                lineage[0],
             )
             cursor.execute(
                 find_parent_finding_query, unique_values
@@ -733,9 +764,12 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
                 1,
                 1,
             )
+
+            logs.debug(insert_row_query, new_values)
             cursor.execute(insert_row_query, new_values)
+
         return True
-        conn.commit()
+        # conn.commit()
     except Error as error:
         logs.error(error)
 
@@ -748,8 +782,13 @@ def add_active_log_row(get_value_query, values_tuple, insert_query):
     :params insert_query str
     :returns bool True on success
     """
+    logs.debug("add_active_log_row")
+
+    logs.debug(get_value_query, values_tuple)
     cursor.execute(get_value_query, values_tuple)
     update_values = cursor.fetchone()
+
+    logs.debug(insert_query)
     cursor.execute(insert_query, update_values)
     return cursor.lastrowid
 
@@ -766,6 +805,8 @@ def deactivate_log_row(log_id, deactivate_active=True, deactivate_record_type=Tr
     update_query = (
         "UPDATE `finding_logs` SET active = %s, record_type_active = %s WHERE id = %s"
     )
+
+    logs.debug(update_query, active_row, active_record_type, log_id)
     cursor.execute(update_query, (active_row, active_record_type, log_id))
 
 
@@ -775,6 +816,12 @@ def find_lineage(container_id):
     :params container_id int
     :return list of parents, grandparents, etc in order
     """
+
+    logs.debug("find_lineage")
+
+    conn = connect_to_db()
+    cursor = conn.cursor()
+
     recursive_parent_query = """
         WITH RECURSIVE container_tree as (
         select id, parent_id from containers where id = %s
@@ -813,6 +860,9 @@ def insert_scan(data, iid, scan_source):
     conn = connect_to_db()
     try:
         lineage = find_lineage(iid)
+        logs.debug("show lineage:") # temporary
+        logs.debug(lineage)
+
         for index, row in data.iterrows():
             cursor = conn.cursor(buffered=True)
             """
@@ -1217,6 +1267,7 @@ if __name__ == "__main__":
     if loglevel == "DEBUG":
         logging.basicConfig(
             level=loglevel,
+            filename="vat_import_logging.out",
             format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
         )
         logging.debug("Log level set to debug")
