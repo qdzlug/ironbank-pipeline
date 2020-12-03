@@ -96,6 +96,7 @@ def _load_remote_hardening_manifest(project, branch="master"):
 
     return None
 
+
 def _next_ancestor(image_path, greylist, hardening_manifest=None):
     """
     Grabs the parent image path from the current context. Will initially attempt to load
@@ -115,6 +116,7 @@ def _next_ancestor(image_path, greylist, hardening_manifest=None):
     hm = _load_remote_hardening_manifest(project=image_path)
     if hm is not None:
         return hm["args"]["BASE_IMAGE"]
+        logging.debug(hm["args"]["BASE_IMAGE"])
 
     try:
         return greylist["image_parent_name"]
@@ -125,6 +127,7 @@ def _next_ancestor(image_path, greylist, hardening_manifest=None):
         )
         logging.error(e)
         sys.exit(1)
+
 
 ##### Clone the dccscr-whitelist repository
 def cloneWhitelist(whitelistDir, whitelistRepo):
