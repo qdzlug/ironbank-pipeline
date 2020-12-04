@@ -1,6 +1,6 @@
 #!/bin/bash
 set -Eeuo pipefail
-podman load -i "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMAGE_VERSION}"
+# podman load -i "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMAGE_VERSION}"
 echo "${IB_CONTAINER_GPG_KEY}" | base64 -d >key
 mkdir -p "${ARTIFACT_DIR}"
 gpg --import --batch --passphrase "${IB_CONTAINER_SIG_KEY_PASSPHRASE}" key

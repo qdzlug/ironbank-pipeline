@@ -1,15 +1,15 @@
 #!/bin/bash
 set -Eeuo pipefail
 dnf install jq -y
-podman load -i "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMAGE_VERSION}"
+# podman load -i "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMAGE_VERSION}"
 echo "${IB_CONTAINER_GPG_KEY}" | base64 -d >key
 mkdir -p "${ARTIFACT_DIR}"
 GPG_VERSION=$(gpg --version | grep '(?<=gpg .GnuPG.)([^0-9]+)([0-9]+[.][0-9]+[.][0-9]+)' -oP | sed -E 's/ //g')
-IMAGE_TAR_SHA=$(sha256sum "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" | grep -E '^[a-zA-Z0-9]+' -o)
-IMAGE_PODMAN_SHA=$(podman inspect --format '{{.Digest}}' "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMAGE_VERSION}")
+# IMAGE_TAR_SHA=$(sha256sum "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" | grep -E '^[a-zA-Z0-9]+' -o)
+# IMAGE_PODMAN_SHA=$(podman inspect --format '{{.Digest}}' "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMAGE_VERSION}")
 # Create manifest.json
-export IMAGE_PODMAN_SHA
-export IMAGE_TAR_SHA
+# export IMAGE_PODMAN_SHA
+# export IMAGE_TAR_SHA
 export PODMAN_REFERENCE="${STAGING_REGISTRY_URL}/${IM_NAME}:${IMAGE_VERSION}"
 export GPG_VERSION
 jq -n '
