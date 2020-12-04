@@ -617,7 +617,7 @@ def insert_finding_scan(cursor, row, finding_id):
             row["link"],
             row["score"],
             row["description"],
-            "1"
+            "1",
         )
 
         cursor.execute(insert_finding_query, insert_values)
@@ -695,8 +695,8 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
 
         if lineage:
             logs.debug("update_finding_logs trace lineage")
-            logs.debug("lineage: %s", lineage) # temp
-            
+            logs.debug("lineage: %s", lineage)  # temp
+
             inherited = 0
             inherited_id = None
             find_parent_finding_query = """SELECT id, container_id from findings where finding = %s and scan_source = %s and package = %s and
@@ -860,7 +860,7 @@ def insert_scan(data, iid, scan_source):
     conn = connect_to_db()
     try:
         lineage = find_lineage(iid)
-        logs.debug("show lineage:") # temporary
+        logs.debug("show lineage:")  # temporary
         logs.debug(lineage)
 
         for index, row in data.iterrows():
