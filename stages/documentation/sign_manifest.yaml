@@ -3,7 +3,6 @@ sign manifest:
   variables:
     #TODO: Put these in globals
     SIG_FILE: signature
-    # IMAGE_FILE: "${CI_PROJECT_NAME}-${IMAGE_VERSION}"
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/documentation/reports"
   dependencies:
     - build
