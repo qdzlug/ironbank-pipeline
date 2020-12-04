@@ -282,11 +282,11 @@ def justificationsAnchoreComp(wb, justifications, inheritableTriggerIds):
     for r in range(1, sheet.max_row + 1):
         cell = sheet.cell(row=r, column=3)
         if cell.value == "trigger_id":
-            cell = sheet.cell(row=r, column=12)
+            cell = sheet.cell(row=r, column=13)
             cell.value = "Justification"
         else:
             cell2 = sheet.cell(row=r, column=5)
-            cell_justification = sheet.cell(row=r, column=12)
+            cell_justification = sheet.cell(row=r, column=13)
             if cell2.value == "package":
                 cell_justification.value = "See Anchore CVE Results sheet"
 
@@ -341,10 +341,10 @@ def setAllColumnWidths(wb):
 
     anchore_compliance = wb["Anchore Compliance Results"]
     setColumnWidth(
-        anchore_compliance, column=11, width=30, wrap=False
+        anchore_compliance, column=12, width=30, wrap=False
     )  # whitelist_name
     setColumnWidth(
-        anchore_compliance, column=12, width=100, wrap=False
+        anchore_compliance, column=13, width=100, wrap=False
     )  # justification
     setColumnWidth(anchore_compliance, column=6, width=75)  # check_output
 

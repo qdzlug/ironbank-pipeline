@@ -75,7 +75,6 @@ class Anchore:
 
         return None
 
-
     def get_version(self, artifacts_path):
         """
         Fetch the Anchore version and write it to an artifact.
