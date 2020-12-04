@@ -465,6 +465,8 @@ def generate_anchore_gates_report(anchore_gates_json):
 
         try:
             gate["inherited"] = ad[9]
+            if gate["gate"] == "dockerfile":
+                gate["inherited"] = False
         except IndexError:
             gate["inherited"] = "no_data"
 
