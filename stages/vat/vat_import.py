@@ -521,10 +521,16 @@ def insert_finding(cursor, iid, scan_source, index, row):
 
         # search for an image id and finding in findings approvals table
         # if nothing is returned then insert it
-        cursor.execute(
+        sql = (
             "SELECT id FROM `findings` WHERE "
             + "container_id=%s and finding=%s and scan_source=%s and "
-            + "package=%s and package_path=%s",
+            + "package=%s and package_path=%s"
+        )
+        logs.debug(
+            sql, iid, row["finding"], scan_source, row["package"], row["package_path"]
+        )
+        cursor.execute(
+            sql,
             (
                 iid,
                 row["finding"],
@@ -561,8 +567,10 @@ def insert_finding(cursor, iid, scan_source, index, row):
                     row["package_path"],
                 ),
             )
+            logs.debug("insert_finding - inserting finding_id: %s", cursor.lastrowid)
             return cursor.lastrowid
         else:
+            logs.debug("insert_finding - existing finding_id: %s", results[0])
             return results[0]
 
     except Error as error:
@@ -583,6 +591,7 @@ def insert_finding_scan(cursor, row, finding_id):
             "SELECT id from `finding_scan_results` WHERE finding_id = %s and active = 1"
         )
         get_id_tuple = (finding_id,)
+        logs.debug(get_id_query, get_id_tuple[0])
         cursor.execute(get_id_query, get_id_tuple)
         active_record = cursor.fetchone()
 
@@ -638,7 +647,7 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
     logs.debug("Starting Update to Findings Log")
     try:
         system_user_id = get_system_user_id()
-        find_log_query = """SELECT id, record_type , in_current_scan, active, record_text from `finding_logs` WHERE
+        find_log_query = """SELECT id, record_type, in_current_scan, active, record_text from `finding_logs` WHERE
             finding_id = %s and record_type_active = 1 ORDER BY active desc"""
         insert_row_query = "INSERT INTO `finding_logs` VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 
