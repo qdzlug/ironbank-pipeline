@@ -29,24 +29,19 @@ def main():
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
 
-    inputFile = _load_hardening_manifest()
+    artifacts_path = os.getenv("ARTIFACT_DIR", ".")
+    logging.info(f"Output directory: {artifacts_path}")
 
-    if not inputFile:
+    # Read hardening_manifest.yaml file
+    downloads = _load_hardening_manifest()
+
+    if not downloads:
         logging.error("INTERNAL ERROR: No hardening_mainfest.yaml file found")
         sys.exit(1)
 
-    outputDir = os.getenv("ARTIFACT_DIR", ".")
-
-    logging.info("Input file:", inputFile)
-    logging.info("Output directory:", outputDir)
-
-    ##### Read hardening_manifest.yaml file
-    with open(inputFile, "r") as file:
-        downloads = yaml.safe_load(file)
-
     if "resources" not in downloads or not downloads["resources"]:
-        logging.info(f"No resources in {inputFile}")
-        return
+        logging.info(f"No resources in {downloads}")
+        sys.exit(0)
 
     for item in downloads["resources"]:
         download_type = resource_type(item["url"])
@@ -65,7 +60,7 @@ def main():
                         item["filename"],
                         item["validation"]["type"],
                         item["validation"]["value"],
-                        outputDir,
+                        artifacts_path,
                         username,
                         password,
                     )
@@ -78,7 +73,7 @@ def main():
                     item["filename"],
                     item["validation"]["type"],
                     item["validation"]["value"],
-                    outputDir,
+                    artifacts_path,
                 )
         if download_type == "docker":
             if "auth" in item:
@@ -117,7 +112,7 @@ def main():
                     item["filename"],
                     item["validation"]["type"],
                     item["validation"]["value"],
-                    outputDir,
+                    artifacts_path,
                     username,
                     password,
                     region,
@@ -128,7 +123,7 @@ def main():
                     item["filename"],
                     item["validation"]["type"],
                     item["validation"]["value"],
-                    outputDir,
+                    artifacts_path,
                 )
 
 def _load_hardening_manifest():
@@ -183,7 +178,7 @@ def http_download(
     resource_name,
     validation_type,
     checksum_value,
-    outputDir,
+    artifacts_path,
     username=None,
     password=None,
 ):
@@ -204,7 +199,7 @@ def http_download(
     with requests.get(download_item, allow_redirects=True, stream=True, auth=auth) as r:
         r.raw.decode_content = True
         r.raise_for_status()
-        with open(outputDir + "/external-resources/" + resource_name, "wb") as f:
+        with open(artifacts_path + "/external-resources/" + resource_name, "wb") as f:
             shutil.copyfileobj(r.raw, f, length=16 * 1024 * 1024)
 
     # Calculate SHA256 checksum of downloaded file
@@ -216,7 +211,7 @@ def http_download(
 
     logging.info("Generating checksum")
     checksum_value_from_calc = generate_checksum(
-        validation_type, checksum_value, outputDir, resource_name
+        validation_type, checksum_value, artifacts_path, resource_name
     )
 
     # Compare checksums
@@ -225,7 +220,7 @@ def http_download(
         logging.info("Checksum verified")
         logging.info(f"File saved as '{resource_name}'")
     else:
-        os.remove(outputDir + "/external-resources/" + resource_name)
+        os.remove(artifacts_path + "/external-resources/" + resource_name)
         logging.error("Checksum failed")
         logging.error("File deleted")
         sys.exit(1)
@@ -236,7 +231,7 @@ def s3_download(
     resource_name,
     validation_type,
     checksum_value,
-    outputDir,
+    artifacts_path,
     username=None,
     password=None,
     region=None,
@@ -262,7 +257,7 @@ def s3_download(
 
     try:
         s3_client.download_file(
-            bucket, object_name, outputDir + "/external-resources/" + resource_name
+            bucket, object_name, artifacts_path + "/external-resources/" + resource_name
         )
     except ClientError as e:
         logging.error(e)
@@ -276,7 +271,7 @@ def s3_download(
 
     logging.info("Generating checksum")
     checksum_value_from_calc = generate_checksum(
-        validation_type, checksum_value, outputDir, resource_name
+        validation_type, checksum_value, artifacts_path, resource_name
     )
 
     # Compare checksums
@@ -285,22 +280,22 @@ def s3_download(
         logging.info("Checksum verified")
         logging.info("File saved as '%s'" % resource_name)
     else:
-        os.remove(outputDir + "/external-resources/" + resource_name)
+        os.remove(artifacts_path + "/external-resources/" + resource_name)
         logging.error("Checksum failed")
         logging.error("File deleted")
         sys.exit(1)
 
 
-def generate_checksum(validation_type, checksum_value, outputDir, resource_name):
+def generate_checksum(validation_type, checksum_value, artifacts_path, resource_name):
     if validation_type == "sha256":
         sha256_hash = hashlib.sha256()
-        with open(outputDir + "/external-resources/" + resource_name, "rb") as f:
+        with open(artifacts_path + "/external-resources/" + resource_name, "rb") as f:
             for byte_block in iter(lambda: f.read(4096), b""):
                 sha256_hash.update(byte_block)
             return sha256_hash
     elif validation_type == "sha512":
         sha512_hash = hashlib.sha512()
-        with open(outputDir + "/external-resources/" + resource_name, "rb") as f:
+        with open(artifacts_path + "/external-resources/" + resource_name, "rb") as f:
             for byte_block in iter(lambda: f.read(4096), b""):
                 sha512_hash.update(byte_block)
             return sha512_hash
