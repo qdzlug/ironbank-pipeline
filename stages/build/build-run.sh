@@ -7,18 +7,21 @@ export IM_NAME="$IMAGE_NAME"
 
 mkdir -p "${ARTIFACT_DIR}"
 
+echo "Determine source registry based on branch"
 # Determine source registry based on branch
 if [ -n "${STAGING_BASE_IMAGE}" ]; then
   BASE_REGISTRY="${BASE_REGISTRY}-staging"
   DOCKER_AUTH_CONFIG_PULL="${DOCKER_AUTH_CONFIG_STAGING}"
 fi
 
+echo "Load any images used in Dockerfile build"
 # Load any images used in Dockerfile build
 for file in "${ARTIFACT_STORAGE}"/import-artifacts/images/*; do
   echo "loading image $file"
   podman load -i "$file" --storage-driver=vfs
 done
 
+echo "Load HTTP and S3 external resources"
 # Load HTTP and S3 external resources
 for file in "${ARTIFACT_STORAGE}"/import-artifacts/external-resources/*; do
   cp -v "$file" .
@@ -33,9 +36,12 @@ echo "/tmp/prod_auth.json" >>.dockerignore
 
 # Convert env files to command line arguments
 # Newlines are not allowed in the key or value
+echo "Converting labels from hardening manifest into command line args"
 label_parameters=$(while IFS= read -r line; do
   echo "--label=$line"
 done <"${ARTIFACT_STORAGE}/preflight/labels.env")
+
+echo "Converting build args from hardening manifest into command line args"
 args_parameters=$(while IFS= read -r line; do
   echo "--build-arg=$line"
 done <"${ARTIFACT_STORAGE}/preflight/args.env")
@@ -44,6 +50,7 @@ old_ifs=$IFS
 IFS=$'\n'
 # Intentional wordsplitting:
 # shellcheck disable=SC2086
+echo "Do the buildah bud command"
 buildah bud \
   $args_parameters \
   --build-arg=BASE_REGISTRY="${BASE_REGISTRY}" \
@@ -60,18 +67,34 @@ buildah bud \
   .
 IFS=$old_ifs
 
+echo "buildah tag --storage-driver=vfs ${STAGING_REGISTRY_URL}/$IM_NAME ${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID}"
 buildah tag --storage-driver=vfs "${STAGING_REGISTRY_URL}/$IM_NAME" "${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID}"
+
 echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
+
+echo "buildah push --storage-driver=vfs --authfile staging_auth.json ${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID}"
 buildah push --storage-driver=vfs --authfile staging_auth.json "${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID}"
 
+echo "Read the tags"
 while IFS= read -r tag; do
+  echo "buildah push --storage-driver=vfs --authfile staging_auth.json ${STAGING_REGISTRY_URL}/$IM_NAME:${tag}"
   buildah push --storage-driver=vfs --authfile staging_auth.json "${STAGING_REGISTRY_URL}/$IM_NAME:${tag}"
 done <"${ARTIFACT_DIR}/preflight/tags.txt"
+# This is the solution
+# done <"${ARTIFACT_STORAGE}/preflight/tags.txt"
 
 # Provide tar for use in later stages, matching existing tar naming convention
+echo "skopeo copy --src-authfile staging_auth.json docker://${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID} docker-archive:${ARTIFACT_DIR}/${IMAGE_FILE}.tar"
 skopeo copy --src-authfile staging_auth.json "docker://${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID}" "docker-archive:${ARTIFACT_DIR}/${IMAGE_FILE}.tar"
+
+echo "IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${STAGING_REGISTRY_URL}/$IM_NAME" --format '{{.Id}}')"
 echo "IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${STAGING_REGISTRY_URL}/$IM_NAME" --format '{{.Id}}')" >>build.env
+
+echo "IMAGE_TAR_SHA=$(sha256sum "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" | grep -E '^[a-zA-Z0-9]+' -o)"
 echo "IMAGE_TAR_SHA=$(sha256sum "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" | grep -E '^[a-zA-Z0-9]+' -o)" >>build.env
+
+echo "IMAGE_PODMAN_SHA=$(podman inspect --format '{{.Digest}}' "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMAGE_VERSION}")"
 echo "IMAGE_PODMAN_SHA=$(podman inspect --format '{{.Digest}}' "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMAGE_VERSION}")" >>build.env
+
 echo "IMAGE_FILE=${IMAGE_FILE}" >>build.env
 
