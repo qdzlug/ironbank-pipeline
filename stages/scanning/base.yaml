@@ -9,4 +9,4 @@ include:
   - local: stages/scanning/openscap-compliance.yaml
   - local: stages/scanning/openscap-cve.yaml
   - local: stages/scanning/twistlock.yaml
-  - local: stages/scanning/anchore.yaml
+  - local: stages/scanning/anchore/base.yaml
