@@ -120,6 +120,7 @@ def _next_ancestor(image_path, greylist, hardening_manifest=None):
 
     try:
         return greylist["image_parent_name"]
+        logging.debug("using greylist for image parent name")
     except KeyError as e:
         logging.error("Looks like a hardening_manifest.yaml cannot be found")
         logging.error(
