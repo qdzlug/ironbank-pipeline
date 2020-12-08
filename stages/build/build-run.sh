@@ -101,15 +101,17 @@ IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${STAGING_REGISTRY_URL}/$
 echo "IMAGE_ID=${IMAGE_ID}" >>build.env
 
 echo "IMAGE_TAR_SHA=$(sha256sum "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" | grep -E '^[a-zA-Z0-9]+' -o)"
-echo "after echo $?"
 IMAGE_TAR_SHA=$(sha256sum "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" | grep -E '^[a-zA-Z0-9]+' -o)
-echo "should have failed $?"
 echo "IMAGE_TAR_SHA=${IMAGE_TAR_SHA}" >>build.env
-echo "after echo $?"
 
 echo "IMAGE_PODMAN_SHA=$(podman inspect --format '{{.Digest}}' "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMAGE_VERSION}")"
+echo "after echo $?"
 IMAGE_PODMAN_SHA=$(podman inspect --format '{{.Digest}}' "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMAGE_VERSION}")
+echo "should have failed $?"
 echo "IMAGE_PODMAN_SHA=${IMAGE_PODMAN_SHA}" >>build.env
+echo "after echo $?"
 
+echo "IMAGE_FILE=${IMAGE_FILE}"
 echo "IMAGE_FILE=${IMAGE_FILE}" >>build.env
 
+echo "Script finished with last command as $?"
