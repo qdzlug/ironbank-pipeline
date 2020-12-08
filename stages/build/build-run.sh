@@ -3,8 +3,9 @@
 set -Eeuo pipefail
 shopt -s nullglob # Allow images/* and external-resources/* to match nothing
 
-# TODO: remove IM_NAME eventually
-export IM_NAME="$IMAGE_NAME"
+# Set up the image reference variables
+export IMAGE_REGISTRY_REPO="${STAGING_REGISTRY_URL}/${IMAGE_NAME}"
+export IMAGE_FULLTAG="${IMAGE_REGISTRY_REPO}:${CI_PIPELINE_ID}"
 
 mkdir -p "${ARTIFACT_DIR}"
 
@@ -32,7 +33,6 @@ shopt -u nullglob # Disallow images/* and external-resources/* to match nothing
 
 echo "${SATELLITE_URL} satellite" >>/etc/hosts
 echo "${DOCKER_AUTH_CONFIG_PULL}" | base64 -d >>/tmp/prod_auth.json
-echo "IM_NAME=${IM_NAME}" >>build.env
 echo "/tmp/prod_auth.json" >>.dockerignore
 
 # Convert env files to command line arguments
@@ -64,17 +64,17 @@ buildah bud \
   --format=docker \
   --loglevel=3 \
   --storage-driver=vfs \
-  -t "${STAGING_REGISTRY_URL}/$IM_NAME" \
+  -t "${IMAGE_REGISTRY_REPO}" \
   .
 IFS=$old_ifs
 
-echo "buildah tag --storage-driver=vfs ${STAGING_REGISTRY_URL}/$IM_NAME ${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID}"
-buildah tag --storage-driver=vfs "${STAGING_REGISTRY_URL}/$IM_NAME" "${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID}"
+echo "buildah tag --storage-driver=vfs ${IMAGE_REGISTRY_REPO} ${IMAGE_FULLTAG}"
+buildah tag --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" "${IMAGE_FULLTAG}"
 
 echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
 
-echo "buildah push --storage-driver=vfs --authfile staging_auth.json ${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID}"
-buildah push --storage-driver=vfs --authfile staging_auth.json "${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID}"
+echo "buildah push --storage-driver=vfs --authfile staging_auth.json ${IMAGE_FULLTAG}"
+buildah push --storage-driver=vfs --authfile staging_auth.json "${IMAGE_FULLTAG}"
 
 echo "Read the tags"
 
@@ -83,28 +83,31 @@ tags_file="${ARTIFACT_STORAGE}/preflight/tags.txt"
 ls $tags_file
 
 while IFS= read -r tag; do
-  echo "buildah push --storage-driver=vfs --authfile staging_auth.json ${STAGING_REGISTRY_URL}/$IM_NAME:${tag}"
-  buildah push --storage-driver=vfs --authfile staging_auth.json "${STAGING_REGISTRY_URL}/$IM_NAME:${tag}"
+  echo "buildah push --storage-driver=vfs --authfile staging_auth.json ${IMAGE_REGISTRY_REPO}:${tag}"
+  buildah push --storage-driver=vfs --authfile staging_auth.json "${IMAGE_REGISTRY_REPO}:${tag}"
 done <$tags_file
 
 # Provide tar for use in later stages, matching existing tar naming convention
-echo "skopeo copy --src-authfile staging_auth.json docker://${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID} docker-archive:${ARTIFACT_DIR}/${IMAGE_FILE}.tar"
-skopeo copy --src-authfile staging_auth.json "docker://${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID}" "docker-archive:${ARTIFACT_DIR}/${IMAGE_FILE}.tar"
+echo "skopeo copy --src-authfile staging_auth.json docker://${IMAGE_FULLTAG} docker-archive:${ARTIFACT_DIR}/${IMAGE_FILE}.tar"
+skopeo copy --src-authfile staging_auth.json "docker://${IMAGE_FULLTAG}" "docker-archive:${ARTIFACT_DIR}/${IMAGE_FILE}.tar"
 
-echo "IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${STAGING_REGISTRY_URL}/$IM_NAME" --format '{{.Id}}')"
-IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${STAGING_REGISTRY_URL}/$IM_NAME" --format '{{.Id}}')
+echo "IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" --format '{{.Id}}')"
+IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" --format '{{.Id}}')
 echo "IMAGE_ID=${IMAGE_ID}" >>build.env
 
 echo "IMAGE_TAR_SHA=$(sha256sum "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" | grep -E '^[a-zA-Z0-9]+' -o)"
 IMAGE_TAR_SHA=$(sha256sum "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" | grep -E '^[a-zA-Z0-9]+' -o)
 echo "IMAGE_TAR_SHA=${IMAGE_TAR_SHA}" >>build.env
 
-echo "IMAGE_PODMAN_SHA=$(podman inspect --format '{{.Digest}}' "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMAGE_VERSION}")"
-echo "after echo $?"
-IMAGE_PODMAN_SHA=$(podman inspect --format '{{.Digest}}' "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMAGE_VERSION}")
-echo "should have failed $?"
+echo "IMAGE_PODMAN_SHA=$(podman inspect --format '{{.Digest}}' "${IMAGE_FULLTAG}")"
+IMAGE_PODMAN_SHA=$(podman inspect --format '{{.Digest}}' "${IMAGE_FULLTAG}")
 echo "IMAGE_PODMAN_SHA=${IMAGE_PODMAN_SHA}" >>build.env
-echo "after echo $?"
 
 echo "IMAGE_FILE=${IMAGE_FILE}"
 echo "IMAGE_FILE=${IMAGE_FILE}" >>build.env
+
+echo "IMAGE_FULLTAG=${IMAGE_FULLTAG}"
+echo "IMAGE_FULLTAG=${IMAGE_FULLTAG}" >>build.env
+
+echo "IM_NAME=${IMAGE_NAME}"
+echo "IM_NAME=${IM_NAME}" >>build.env
