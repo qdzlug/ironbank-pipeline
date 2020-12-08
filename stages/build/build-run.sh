@@ -1,6 +1,11 @@
 #!/bin/bash
+
+echo "1: $SHELLOPTS"
+echo "1: $BASHOPTS"
 set -Eeuo pipefail
 shopt -s nullglob # Allow images/* and external-resources/* to match nothing
+echo "2: $SHELLOPTS"
+echo "2: $BASHOPTS"
 
 # TODO: remove IM_NAME eventually
 export IM_NAME="$IMAGE_NAME"
@@ -28,6 +33,9 @@ for file in "${ARTIFACT_STORAGE}"/import-artifacts/external-resources/*; do
 done
 
 shopt -u nullglob # Disallow images/* and external-resources/* to match nothing
+echo "3: $SHELLOPTS"
+echo "3: $BASHOPTS"
+
 
 echo "${SATELLITE_URL} satellite" >>/etc/hosts
 echo "${DOCKER_AUTH_CONFIG_PULL}" | base64 -d >>/tmp/prod_auth.json
