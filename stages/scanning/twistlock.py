@@ -60,6 +60,10 @@ class Twist:
             },
             auth=HTTPBasicAuth(self.username, self.password),
         )
+        logging.info(r)
+        logging.info(f"Registry {self.registry}")
+        logging.info(f"repo     {image}")
+        logging.info(f"tag      {tag}")
 
         if r.status_code != 200:
             raise InvalidTwistlockQuery("bad post")
@@ -175,6 +179,8 @@ if __name__ == "__main__":
         "--timeout", help="Twistlock scan timeout in seconds", type=int, default=2400
     )
     args = parser.parse_args()
+
+    logging.info(args)
 
     twistlock_scan(
         registry=args.registry,
