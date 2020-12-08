@@ -1,11 +1,7 @@
 #!/bin/bash
 
-echo "1: $SHELLOPTS"
-echo "1: $BASHOPTS"
 set -Eeuo pipefail
 shopt -s nullglob # Allow images/* and external-resources/* to match nothing
-echo "2: $SHELLOPTS"
-echo "2: $BASHOPTS"
 
 # TODO: remove IM_NAME eventually
 export IM_NAME="$IMAGE_NAME"
@@ -33,9 +29,6 @@ for file in "${ARTIFACT_STORAGE}"/import-artifacts/external-resources/*; do
 done
 
 shopt -u nullglob # Disallow images/* and external-resources/* to match nothing
-echo "3: $SHELLOPTS"
-echo "3: $BASHOPTS"
-
 
 echo "${SATELLITE_URL} satellite" >>/etc/hosts
 echo "${DOCKER_AUTH_CONFIG_PULL}" | base64 -d >>/tmp/prod_auth.json
@@ -84,13 +77,16 @@ echo "buildah push --storage-driver=vfs --authfile staging_auth.json ${STAGING_R
 buildah push --storage-driver=vfs --authfile staging_auth.json "${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID}"
 
 echo "Read the tags"
+
+# This is the solution
+# tags_file="${ARTIFACT_STORAGE}/preflight/tags.txt"
+tags_file="${ARTIFACT_DIR}/preflight/tags.txt"
+ls $tags_file
+
 while IFS= read -r tag; do
   echo "buildah push --storage-driver=vfs --authfile staging_auth.json ${STAGING_REGISTRY_URL}/$IM_NAME:${tag}"
   buildah push --storage-driver=vfs --authfile staging_auth.json "${STAGING_REGISTRY_URL}/$IM_NAME:${tag}"
-done <"${ARTIFACT_DIR}/preflight/tags.txt"
-echo $?
-# This is the solution
-# done <"${ARTIFACT_STORAGE}/preflight/tags.txt"
+done <$tags_file
 
 # Provide tar for use in later stages, matching existing tar naming convention
 echo "skopeo copy --src-authfile staging_auth.json docker://${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID} docker-archive:${ARTIFACT_DIR}/${IMAGE_FILE}.tar"
@@ -113,5 +109,3 @@ echo "after echo $?"
 
 echo "IMAGE_FILE=${IMAGE_FILE}"
 echo "IMAGE_FILE=${IMAGE_FILE}" >>build.env
-
-echo "Script finished with last command as $?"
