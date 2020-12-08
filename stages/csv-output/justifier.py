@@ -3,6 +3,8 @@ import openpyxl
 from openpyxl.styles import Alignment, PatternFill
 from openpyxl.utils import get_column_letter
 
+import yaml
+import gitlab
 import pathlib
 import git
 import os
