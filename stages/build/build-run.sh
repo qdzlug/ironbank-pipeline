@@ -79,9 +79,7 @@ echo "Read the tags"
 while IFS= read -r tag; do
   echo "buildah push --storage-driver=vfs --authfile staging_auth.json ${STAGING_REGISTRY_URL}/$IM_NAME:${tag}"
   buildah push --storage-driver=vfs --authfile staging_auth.json "${STAGING_REGISTRY_URL}/$IM_NAME:${tag}"
-done <"${ARTIFACT_DIR}/preflight/tags.txt"
-# This is the solution
-# done <"${ARTIFACT_STORAGE}/preflight/tags.txt"
+done <"${ARTIFACT_STORAGE}/preflight/tags.txt"
 
 # Provide tar for use in later stages, matching existing tar naming convention
 echo "skopeo copy --src-authfile staging_auth.json docker://${STAGING_REGISTRY_URL}/$IM_NAME:${CI_PIPELINE_ID} docker-archive:${ARTIFACT_DIR}/${IMAGE_FILE}.tar"
