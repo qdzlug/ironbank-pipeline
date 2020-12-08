@@ -80,6 +80,7 @@ while IFS= read -r tag; do
   echo "buildah push --storage-driver=vfs --authfile staging_auth.json ${STAGING_REGISTRY_URL}/$IM_NAME:${tag}"
   buildah push --storage-driver=vfs --authfile staging_auth.json "${STAGING_REGISTRY_URL}/$IM_NAME:${tag}"
 done <"${ARTIFACT_DIR}/preflight/tags.txt"
+echo $?
 # This is the solution
 # done <"${ARTIFACT_STORAGE}/preflight/tags.txt"
 
@@ -92,8 +93,11 @@ IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${STAGING_REGISTRY_URL}/$
 echo "IMAGE_ID=${IMAGE_TAR_SHA}" >>build.env
 
 echo "IMAGE_TAR_SHA=$(sha256sum "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" | grep -E '^[a-zA-Z0-9]+' -o)"
+echo "after echo $?"
 IMAGE_TAR_SHA=$(sha256sum "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" | grep -E '^[a-zA-Z0-9]+' -o)
+echo "should have failed $?"
 echo "IMAGE_TAR_SHA=${IMAGE_TAR_SHA}" >>build.env
+echo "after echo $?"
 
 echo "IMAGE_PODMAN_SHA=$(podman inspect --format '{{.Digest}}' "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMAGE_VERSION}")"
 IMAGE_PODMAN_SHA=$(podman inspect --format '{{.Digest}}' "${STAGING_REGISTRY_URL}/${IM_NAME}:${IMAGE_VERSION}")
