@@ -110,4 +110,4 @@ echo "IMAGE_FULLTAG=${IMAGE_FULLTAG}"
 echo "IMAGE_FULLTAG=${IMAGE_FULLTAG}" >>build.env
 
 echo "IM_NAME=${IMAGE_NAME}"
-echo "IM_NAME=${IM_NAME}" >>build.env
+echo "IM_NAME=${IMAGE_NAME}" >>build.env
