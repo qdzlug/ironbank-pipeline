@@ -65,7 +65,9 @@ def main():
                         password,
                     )
                 else:
-                    logging.error("Non Basic auth type provided for HTTP resource, failing")
+                    logging.error(
+                        "Non Basic auth type provided for HTTP resource, failing"
+                    )
                     sys.exit(1)
             else:
                 http_download(
@@ -93,7 +95,9 @@ def main():
                         password,
                     )
                 else:
-                    logging.error("Non Basic auth type provided for Docker resource, failing")
+                    logging.error(
+                        "Non Basic auth type provided for Docker resource, failing"
+                    )
                     sys.exit(1)
             else:
                 docker_download(item["url"], item["tag"], item["tag"])
@@ -126,6 +130,7 @@ def main():
                     artifacts_path,
                 )
 
+
 def _load_hardening_manifest():
     """
     Load up the hardening_manifest.yaml file as a dictionary. Search for the file in
@@ -154,8 +159,6 @@ def _load_hardening_manifest():
         else:
             logging.debug(f"Couldn't find {path}")
     return None
-
-
 
 
 def resource_type(url):
@@ -215,7 +218,9 @@ def http_download(
     )
 
     # Compare checksums
-    logging.info(f"comparing checksum values: {str(checksum_value_from_calc.hexdigest())} vs {str(checksum_value)}")
+    logging.info(
+        f"comparing checksum values: {str(checksum_value_from_calc.hexdigest())} vs {str(checksum_value)}"
+    )
     if checksum_value_from_calc.hexdigest() == checksum_value:
         logging.info("Checksum verified")
         logging.info(f"File saved as '{resource_name}'")
@@ -275,7 +280,9 @@ def s3_download(
     )
 
     # Compare checksums
-    logging.info(f"comparing checksum values: {str(checksum_value_from_calc.hexdigest())} vs {str(checksum_value)}")
+    logging.info(
+        f"comparing checksum values: {str(checksum_value_from_calc.hexdigest())} vs {str(checksum_value)}"
+    )
     if checksum_value_from_calc.hexdigest() == checksum_value:
         logging.info("Checksum verified")
         logging.info("File saved as '%s'" % resource_name)
@@ -353,7 +360,9 @@ def docker_download(download_item, tag_value, tar_name, username=None, password=
                 sys.exit(1)
             else:
                 retry_count += 1
-                logging.warning(f"Docker resource failed to pull, retrying: {retry_count}/2")
+                logging.warning(
+                    f"Docker resource failed to pull, retrying: {retry_count}/2"
+                )
 
 
 if __name__ == "__main__":

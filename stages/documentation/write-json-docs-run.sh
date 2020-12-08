@@ -90,4 +90,3 @@ jq -n '
 }' >documentation.json
 cat documentation.json
 mv documentation.json "${ARTIFACT_DIR}/reports"
-
