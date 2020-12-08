@@ -90,7 +90,7 @@ skopeo copy --src-authfile staging_auth.json "docker://${STAGING_REGISTRY_URL}/$
 
 echo "IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${STAGING_REGISTRY_URL}/$IM_NAME" --format '{{.Id}}')"
 IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${STAGING_REGISTRY_URL}/$IM_NAME" --format '{{.Id}}')
-echo "IMAGE_ID=${IMAGE_TAR_SHA}" >>build.env
+echo "IMAGE_ID=${IMAGE_ID}" >>build.env
 
 echo "IMAGE_TAR_SHA=$(sha256sum "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" | grep -E '^[a-zA-Z0-9]+' -o)"
 echo "after echo $?"
