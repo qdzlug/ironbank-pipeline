@@ -118,12 +118,12 @@ def _next_ancestor(image_path, greylist, hardening_manifest=None):
     # Try to load the hardening manifest from a remote repo.
     hm = _load_remote_hardening_manifest(project=image_path)
     if hm is not None:
-        return hm["args"]["BASE_IMAGE"]
         logging.debug(hm["args"]["BASE_IMAGE"])
+        return hm["args"]["BASE_IMAGE"]
 
     try:
-        return greylist["image_parent_name"]
         logging.debug("using greylist for image parent name")
+        return greylist["image_parent_name"]
     except KeyError as e:
         logging.error("Looks like a hardening_manifest.yaml cannot be found")
         logging.error(
