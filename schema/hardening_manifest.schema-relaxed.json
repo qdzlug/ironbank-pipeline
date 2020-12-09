@@ -134,14 +134,14 @@
         "org.opencontainers.image.version": {
           "$ref": "#/definitions/printable-characters-without-newlines"
         },
-        "io.dsop.ironbank.image.keywords": {
+        "mil.dso.ironbank.image.keywords": {
           "$comment": "MADE TEMPORARILY OPTIONAL",
           "$ref": "#/definitions/printable-characters-without-newlines"
         },
-        "io.dsop.ironbank.image.type": {
+        "mil.dso.ironbank.image.type": {
           "$ref": "#/definitions/printable-characters-without-newlines"
         },
-        "io.dsop.ironbank.product.name": {
+        "mil.dso.ironbank.product.name": {
           "$comment": "MADE TEMPORARILY OPTIONAL",
           "$ref": "#/definitions/printable-characters-without-newlines"
         }

@@ -167,11 +167,11 @@ labels:
 
     hardening_manifest_yaml += """
   ## Keywords to help with search (ex. "cicd,gitops,golang")
-  # io.dsop.ironbank.image.keywords: "FIXME"
+  # mil.dso.ironbank.image.keywords: "FIXME"
   ## This value can be "opensource" or "commercial"
-  # io.dsop.ironbank.image.type: "FIXME"
+  # mil.dso.ironbank.image.type: "FIXME"
   ## Product the image belongs to for grouping multiple images
-  # io.dsop.ironbank.product.name: "FIXME"
+  # mil.dso.ironbank.product.name: "FIXME"
 
 # List of resources to make available to the offline build context
 """

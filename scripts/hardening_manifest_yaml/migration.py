@@ -56,9 +56,9 @@ Please review the following:
    * [ ] `org.opencontainers.image.url`: URL to find more information on the image
    * [ ] `org.opencontainers.image.vendor`: **Required.** Name of the distributing entity, organization or individual
    * [ ] `org.opencontainers.image.version`: **Required.** Human readable version of the image. This is typically identical to the first tag.
-   * [ ] `io.dsop.ironbank.image.keywords`: Keywords to help with search (ex. "cicd,gitops,golang")
-   * [ ] `io.dsop.ironbank.image.type`: This value can be "opensource" or "commercial"
-   * [ ] `io.dsop.ironbank.product.name`: Product the image belongs to for grouping multiple images. If you have multiple images that you would like grouped together on https://ironbank.dsop.io, use the same product name on them all.
+   * [ ] `mil.dso.ironbank.image.keywords`: Keywords to help with search (ex. "cicd,gitops,golang")
+   * [ ] `mil.dso.ironbank.image.type`: This value can be "opensource" or "commercial"
+   * [ ] `mil.dso.ironbank.product.name`: Product the image belongs to for grouping multiple images. If you have multiple images that you would like grouped together on https://ironbank.dsop.io, use the same product name on them all.
 * Maintainers
   * [ ] _Please_ add any additional external vendor contacts or CHT internal members to this list if they maintain this container.
   * Add any Iron Bank team members who maintain this container with `cht_member: true` set
