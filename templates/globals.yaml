@@ -13,7 +13,7 @@ stages:
   - preflight
 
   ### lint stage
-  # yaml lint (ci file, download.yaml), dockerfile lint, wl compare lint
+  # yaml lint (ci file, hardening_manifest.yaml), dockerfile lint, wl compare lint
   # Requirements:
   # - executor image with Python 3.x installed
   - lint
@@ -70,8 +70,8 @@ variables:
   ARTIFACT_STORAGE: "ci-artifacts"
   PIPELINE_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank_pipeline"
   GIT_SSL_NO_VERIFY: "1"
-  TARGET_BRANCH: master
-  WL_TARGET_BRANCH: master
+  # TARGET_BRANCH: master
+  # WL_TARGET_BRANCH: master
 
   # Controls if ironbank-staging is the source registry for base images
   STAGING_BASE_IMAGE: ""

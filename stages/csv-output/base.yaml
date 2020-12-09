@@ -8,6 +8,7 @@ csv output:
     - openscap compliance
     - anchore scan
     - load scripts
+    - hardening_manifest
     - wl compare lint
     - build
   variables:
