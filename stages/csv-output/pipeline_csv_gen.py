@@ -113,24 +113,24 @@ def convert_to_excel():
     read_security = pandas.read_csv(csv_dir + "anchore_security.csv")
     read_gates = pandas.read_csv(csv_dir + "anchore_gates.csv")
     with pandas.ExcelWriter(csv_dir + "all_scans.xlsx") as writer:
-        read_sum.to_excel(writer, sheet_name="Summary", header=False, index=False)
+        read_sum.to_excel(writer, sheet_name="Summary", header=True, index=False)
         read_oscap.to_excel(
-            writer, sheet_name="OpenSCAP - DISA Compliance", header=False, index=False
+            writer, sheet_name="OpenSCAP - DISA Compliance", header=True, index=False
         )
         read_oval.to_excel(
-            writer, sheet_name="OpenSCAP - OVAL Results", header=False, index=False
+            writer, sheet_name="OpenSCAP - OVAL Results", header=True, index=False
         )
         read_tl.to_excel(
             writer,
             sheet_name="Twistlock Vulnerability Results",
-            header=False,
+            header=True,
             index=False,
         )
         read_security.to_excel(
-            writer, sheet_name="Anchore CVE Results", header=False, index=False
+            writer, sheet_name="Anchore CVE Results", header=True, index=False
         )
         read_gates.to_excel(
-            writer, sheet_name="Anchore Compliance Results", header=False, index=False
+            writer, sheet_name="Anchore Compliance Results", header=True, index=False
         )
     writer.save()
 
@@ -139,7 +139,6 @@ def convert_to_excel():
 def generate_blank_oscap_report():
     oscap_report = open(csv_dir + "oscap.csv", "w", encoding="utf-8")
     csv_writer = csv.writer(oscap_report)
-    csv_writer.writerow(["", "", "", "", "", "", "", "", ""])
     csv_writer.writerow(
         ["OpenSCAP Scan Skipped Due to Base Image Used", "", "", "", "", "", "", "", ""]
     )
@@ -150,7 +149,6 @@ def generate_blank_oscap_report():
 def generate_blank_oval_report():
     oval_report = open(csv_dir + "oval.csv", "w", encoding="utf-8")
     csv_writer = csv.writer(oval_report)
-    csv_writer.writerow(["", "", "", "", ""])
     csv_writer.writerow(
         ["OpenSCAP Scan Skipped Due to Base Image Used", "", "", "", ""]
     )
@@ -174,7 +172,6 @@ def generate_summary_report(osc, ovf, tlf, asf, agf):
     ancc = ["Anchore Compliance Results", int(agf[0] or 0), 0, int(agf[0] or 0)]
     twl = ["Twistlock Vulnerability Results", int(tlf or 0), 0, int(tlf or 0)]
 
-    csv_writer.writerow(["", "", "", ""])
     csv_writer.writerow(header)
     csv_writer.writerow(osl)
     csv_writer.writerow(ovf)
@@ -213,10 +210,6 @@ def generate_oscap_report(oscap):
     fail_count = 0
     nc_count = 0
     scanned = ""
-    # print a blank header to set column width
-    csv_writer.writerow(
-        ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
-    )
     for line in oscap_cves:
         if count == 0:
             header = line.keys()
@@ -297,10 +290,6 @@ def generate_oval_report(oval):
     csv_writer = csv.writer(oval_data)
     count = 0
     fail_count = 0
-    # print a blank header to set column width
-    csv_writer.writerow(
-        ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
-    )
     for line in oval_cves:
         if count == 0:
             header = line.keys()
@@ -348,10 +337,6 @@ def generate_twistlock_report(twistlock):
     tl_data = open(csv_dir + "tl.csv", "w", encoding="utf-8")
     csv_writer = csv.writer(tl_data)
     count = 0
-    # print a blank header to set column width
-    csv_writer.writerow(
-        ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
-    )
     for line in tl_cves:
         if count == 0:
             header = line.keys()
@@ -393,7 +378,7 @@ def get_twistlock_full(twistlock_file):
     return cves
 
 
-def _write_csv_from_dict_list(dict_list, filename):
+def _write_csv_from_dict_list(dict_list, fieldnames, filename):
     """
     Create csv file based off prepared data. The data must be provided as a list
     of dictionaries and the rest will be taken care of.
@@ -401,12 +386,11 @@ def _write_csv_from_dict_list(dict_list, filename):
     """
     filepath = pathlib.Path(csv_dir, filename)
 
-    fields = list(dict_list[0].keys())
     with filepath.open(mode="w", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fields)
-        writer.writeheader()  # Need an extra header for excel
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
-        writer.writerows(dict_list)
+        if dict_list:
+            writer.writerows(dict_list)
 
 
 # ANCHORE SECURITY CSV
@@ -427,7 +411,20 @@ def generate_anchore_sec_report(anchore_security_json):
             for d in json_data["vulnerabilities"]
         ]
 
-    _write_csv_from_dict_list(dict_list=cves, filename="anchore_security.csv")
+    fieldnames = [
+        "tag",
+        "cve",
+        "severity",
+        "package",
+        "package_path",
+        "fix",
+        "url",
+        "inherited",
+    ]
+
+    _write_csv_from_dict_list(
+        dict_list=cves, fieldnames=fieldnames, filename="anchore_security.csv"
+    )
 
     return len(cves)
 
@@ -477,7 +474,24 @@ def generate_anchore_gates_report(anchore_gates_json):
 
         image_id = gate["image_id"]
 
-    _write_csv_from_dict_list(dict_list=gates, filename="anchore_gates.csv")
+    fieldnames = [
+        "image_id",
+        "repo_tag",
+        "trigger_id",
+        "gate",
+        "trigger",
+        "check_output",
+        "gate_action",
+        "policy_id",
+        "matched_rule_id",
+        "whitelist_id",
+        "whitelist_name",
+        "inherited",
+    ]
+
+    _write_csv_from_dict_list(
+        dict_list=gates, fieldnames=fieldnames, filename="anchore_gates.csv"
+    )
     return stop_count, image_id
 
 
