@@ -17,11 +17,11 @@ twistlock scan:
         --registry="${REGISTRY1_URL}" \
         --api_url="${twistlock_server_address}/api/v1" \
         --name="ironbank-staging/${IM_NAME}" \
-        --tag="${IMG_VERSION}-${CI_PIPELINE_ID}" \
+        --tag="${CI_PIPELINE_ID}" \
         --username="${twistlock_user}" \
         --password="${twistlock_password}" \
         --version_file="${TWISTLOCK_SCANS}/twistlock-version.txt" \
-        --filename="${TWISTLOCK_SCANS}/${IMG_VERSION}.json" \
+        --filename="${TWISTLOCK_SCANS}/twistlock_cve.json" \
         --imageid="${IMAGE_ID}" \
         --timeout "${twistlock_timeout}"
   artifacts:

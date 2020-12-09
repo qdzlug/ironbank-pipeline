@@ -12,7 +12,7 @@ stages:
   - preflight
 
   ### lint stage
-  # yaml lint (ci file, download.yaml), dockerfile lint, wl compare lint
+  # yaml lint (ci file, hardening_manifest.yaml), dockerfile lint, wl compare lint
   # Requirements:
   # - executor image with Python 3.x installed
   - lint

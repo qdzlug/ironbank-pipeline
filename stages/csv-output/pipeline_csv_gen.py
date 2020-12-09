@@ -1,6 +1,5 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 import csv
-import sys
 from bs4 import BeautifulSoup
 import re
 import json
@@ -195,13 +194,6 @@ def generate_summary_report(osc, ovf, tlf, asf, agf):
     sum_data.close()
 
 
-def utf8(obj):
-    try:
-        return obj.encode("urf8")
-    except:
-        return list([s.encode("utf8") for s in obj])
-
-
 def generate_oscap_report(oscap):
     oscap_cves = get_oscap_full(oscap)
     oscap_data = open(csv_dir + "oscap.csv", "w", encoding="utf-8")
@@ -236,10 +228,7 @@ def get_oscap_full(oscap_file):
 
         scan_date = soup.find("th", text="Finished at")
         finished_at = scan_date.find_next_sibling("td").text
-        # print(finished_at.text)
-        regex = re.compile(".*rule-detail-fail.*")
         id_regex = re.compile(".*rule-detail-.*")
-        fails = divs.find_all("div", {"class": regex})
         all = divs.find_all("div", {"class": id_regex})
 
         cces = []
@@ -352,7 +341,7 @@ def get_twistlock_full(twistlock_file):
         json_data = json.load(twistlock_json_file)[0]
         twistlock_data = json_data["vulnerabilities"]
         cves = []
-        if twistlock_data != None:
+        if twistlock_data is not None:
             for x in twistlock_data:
                 cvss = x.get("cvss", "")
                 desc = x.get("description", "")

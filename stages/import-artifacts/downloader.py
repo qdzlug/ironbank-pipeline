@@ -1,19 +1,19 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
+
 import re
 import os
-import subprocess
-import logging
 import sys
 import yaml
-import getopt
+import boto3
+import shutil
+import logging
+import pathlib
 import hashlib
 import requests
-import boto3
-from botocore.exceptions import ClientError
-from requests.auth import HTTPBasicAuth
-import shutil
+import subprocess
 from base64 import b64decode
-import logging
+from requests.auth import HTTPBasicAuth
+from botocore.exceptions import ClientError
 
 
 def main():
@@ -29,128 +29,136 @@ def main():
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
 
-    ##### Parse commandline arguments
-    inputFile = ""
-    outputDir = ""
-    docker_resource = None
-    http_resource = None
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "hi:d:", ["ifile=", "odir="])
-    except getopt.GetoptError:
-        print("downloader.py -i <inputfile> -d <outputdir>")
-        sys.exit(2)
-    for opt, arg in opts:
-        if opt == "-h":
-            print("downloader.py -i <inputfile> -d <outputdir>")
-            sys.exit()
-        elif opt in ("-i", "--ifile"):
-            inputFile = arg
-        elif opt in ("-d", "--odir"):
-            outputDir = arg
+    artifacts_path = os.getenv("ARTIFACT_DIR", ".")
+    logging.info(f"Output directory: {artifacts_path}")
 
-    if inputFile == "":
-        print("No input file specified.")
+    # Read hardening_manifest.yaml file
+    downloads = _load_hardening_manifest()
+
+    if not downloads:
+        logging.error("INTERNAL ERROR: No hardening_mainfest.yaml file found")
         sys.exit(1)
 
-    if outputDir == "":
-        print("No output directory specified. Defaulting to current directory.")
-        outputDir = "."
+    if "resources" not in downloads or not downloads["resources"]:
+        logging.info(f"No resources in {downloads}")
+        sys.exit(0)
 
-    print("Input file:", inputFile)
-    print("Output directory:", outputDir)
+    for item in downloads["resources"]:
+        download_type = resource_type(item["url"])
+        if download_type == "http":
+            if "auth" in item:
+                if item["auth"]["type"] == "basic":
+                    credential_id = item["auth"]["id"].replace("-", "_")
+                    password = b64decode(
+                        os.getenv("CREDENTIAL_PASSWORD_" + credential_id)
+                    )
+                    username = b64decode(
+                        os.getenv("CREDENTIAL_USERNAME_" + credential_id)
+                    )
+                    http_download(
+                        item["url"],
+                        item["filename"],
+                        item["validation"]["type"],
+                        item["validation"]["value"],
+                        artifacts_path,
+                        username,
+                        password,
+                    )
+                else:
+                    logging.error(
+                        "Non Basic auth type provided for HTTP resource, failing"
+                    )
+                    sys.exit(1)
+            else:
+                http_download(
+                    item["url"],
+                    item["filename"],
+                    item["validation"]["type"],
+                    item["validation"]["value"],
+                    artifacts_path,
+                )
+        if download_type == "docker":
+            if "auth" in item:
+                if item["auth"]["type"] == "basic":
+                    credential_id = item["auth"]["id"].replace("-", "_")
+                    password = b64decode(
+                        os.getenv("CREDENTIAL_PASSWORD_" + credential_id)
+                    ).decode("utf-8")
+                    username = b64decode(
+                        os.getenv("CREDENTIAL_USERNAME_" + credential_id)
+                    ).decode("utf-8")
+                    docker_download(
+                        item["url"],
+                        item["tag"],
+                        item["tag"],
+                        username,
+                        password,
+                    )
+                else:
+                    logging.error(
+                        "Non Basic auth type provided for Docker resource, failing"
+                    )
+                    sys.exit(1)
+            else:
+                docker_download(item["url"], item["tag"], item["tag"])
+        if download_type == "s3":
+            if "auth" in item:
+                credential_id = item["auth"]["id"].replace("-", "_")
+                username = b64decode(
+                    os.getenv("S3_ACCESS_KEY_" + credential_id)
+                ).decode("utf-8")
+                password = b64decode(
+                    os.getenv("S3_SECRET_KEY_" + credential_id)
+                ).decode("utf-8")
+                region = item["auth"]["region"]
+                s3_download(
+                    item["url"],
+                    item["filename"],
+                    item["validation"]["type"],
+                    item["validation"]["value"],
+                    artifacts_path,
+                    username,
+                    password,
+                    region,
+                )
+            else:
+                s3_download(
+                    item["url"],
+                    item["filename"],
+                    item["validation"]["type"],
+                    item["validation"]["value"],
+                    artifacts_path,
+                )
 
-    ##### Read download.yaml file
-    with open(inputFile, "r") as file:
-        downloads = yaml.safe_load(file)
 
-    for type in downloads:
-        if type == "resources":
-            for item in downloads[type]:
-                download_type = resource_type(item["url"])
-                if download_type == "http":
-                    if "auth" in item:
-                        if item["auth"]["type"] == "basic":
-                            credential_id = item["auth"]["id"].replace("-", "_")
-                            password = b64decode(
-                                os.getenv("CREDENTIAL_PASSWORD_" + credential_id)
-                            )
-                            username = b64decode(
-                                os.getenv("CREDENTIAL_USERNAME_" + credential_id)
-                            )
-                            http_download(
-                                item["url"],
-                                item["filename"],
-                                item["validation"]["type"],
-                                item["validation"]["value"],
-                                outputDir,
-                                username,
-                                password,
-                            )
-                        else:
-                            print(
-                                "Non Basic auth type provided for HTTP resource, failing"
-                            )
-                            sys.exit(1)
-                    else:
-                        http_download(
-                            item["url"],
-                            item["filename"],
-                            item["validation"]["type"],
-                            item["validation"]["value"],
-                            outputDir,
-                        )
-                if download_type == "docker":
-                    if "auth" in item:
-                        if item["auth"]["type"] == "basic":
-                            credential_id = item["auth"]["id"].replace("-", "_")
-                            password = b64decode(
-                                os.getenv("CREDENTIAL_PASSWORD_" + credential_id)
-                            ).decode("utf-8")
-                            username = b64decode(
-                                os.getenv("CREDENTIAL_USERNAME_" + credential_id)
-                            ).decode("utf-8")
-                            docker_download(
-                                item["url"],
-                                item["tag"],
-                                item["tag"],
-                                username,
-                                password,
-                            )
-                        else:
-                            print(
-                                "Non Basic auth type provided for Docker resource, failing"
-                            )
-                            sys.exit(1)
-                    else:
-                        docker_download(item["url"], item["tag"], item["tag"])
-                if download_type == "s3":
-                    if "auth" in item:
-                        credential_id = item["auth"]["id"].replace("-", "_")
-                        username = b64decode(
-                            os.getenv("S3_ACCESS_KEY_" + credential_id)
-                        ).decode("utf-8")
-                        password = b64decode(
-                            os.getenv("S3_SECRET_KEY_" + credential_id)
-                        ).decode("utf-8")
-                        region = item["auth"]["region"]
-                        s3_download(
-                            item["url"],
-                            item["filename"],
-                            item["validation"]["type"],
-                            item["validation"]["value"],
-                            outputDir,
-                            username,
-                            password,
-                            region,
-                        )
-                    else:
-                        s3_download(
-                            item["url"],
-                            item["filename"],
-                            item["validation"]["type"],
-                            item["validation"]["value"],
-                            outputDir,
-                        )
+def _load_hardening_manifest():
+    """
+    Load up the hardening_manifest.yaml file as a dictionary. Search for the file in
+    the immediate repo first, if that is not found then search for the generated file.
+
+    If neither are found then return None and let the calling function handle the error.
+
+    """
+    artifacts_path = os.environ["ARTIFACT_STORAGE"]
+    paths = [
+        pathlib.Path("hardening_manifest.yaml"),
+        # Check for the generated hardening manifest. This method will be deprecated.
+        pathlib.Path(artifacts_path, "preflight", "hardening_manifest.yaml"),
+    ]
+
+    for path in paths:
+        logging.debug(f"Looking for {path}")
+        if path.is_file():
+            logging.debug(f"Using {path}")
+
+            if "preflight" in str(path):
+                logging.info("Using autogenerated hardening_manifest.yaml")
+
+            with path.open("r") as f:
+                return yaml.safe_load(f)
+        else:
+            logging.debug(f"Couldn't find {path}")
+    return None
 
 
 def resource_type(url):
@@ -173,15 +181,15 @@ def http_download(
     resource_name,
     validation_type,
     checksum_value,
-    outputDir,
+    artifacts_path,
     username=None,
     password=None,
 ):
-    print("===== ARTIFACT: %s" % download_item)
+    logging.info(f"===== ARTIFACT: {download_item}")
     # Validate filename doesn't do anything nefarious
     match = re.search(r"^[A-Za-z0-9][^/\x00]*", resource_name)
     if match is None:
-        print(
+        logging.error(
             "Filename is has invalid characters. Filename must start with a letter or a number. Aborting."
         )
         sys.exit(1)
@@ -190,39 +198,36 @@ def http_download(
     if username and password:
         auth = HTTPBasicAuth(username, password)
 
-    print("Downloading from %s" % download_item)
+    logging.info(f"Downloading from {download_item}")
     with requests.get(download_item, allow_redirects=True, stream=True, auth=auth) as r:
         r.raw.decode_content = True
         r.raise_for_status()
-        with open(outputDir + "/external-resources/" + resource_name, "wb") as f:
+        with open(artifacts_path + "/external-resources/" + resource_name, "wb") as f:
             shutil.copyfileobj(r.raw, f, length=16 * 1024 * 1024)
 
     # Calculate SHA256 checksum of downloaded file
-    print("Checking file verification type")
+    logging.info("Checking file verification type")
 
     if validation_type != "sha256" and validation_type != "sha512":
-        print("file verification type not supported: '%s'" % validation_type)
+        logging.error(f"file verification type not supported: '{validation_type}'")
         sys.exit(1)
 
-    print("Generating checksum")
+    logging.info("Generating checksum")
     checksum_value_from_calc = generate_checksum(
-        validation_type, checksum_value, outputDir, resource_name
+        validation_type, checksum_value, artifacts_path, resource_name
     )
 
     # Compare checksums
-    print(
-        "comparing checksum values: "
-        + str(checksum_value_from_calc.hexdigest())
-        + " vs "
-        + str(checksum_value)
+    logging.info(
+        f"comparing checksum values: {str(checksum_value_from_calc.hexdigest())} vs {str(checksum_value)}"
     )
     if checksum_value_from_calc.hexdigest() == checksum_value:
-        print("Checksum verified")
-        print("File saved as '%s'" % resource_name)
+        logging.info("Checksum verified")
+        logging.info(f"File saved as '{resource_name}'")
     else:
-        os.remove(outputDir + "/external-resources/" + resource_name)
-        print("Checksum failed")
-        print("File deleted")
+        os.remove(artifacts_path + "/external-resources/" + resource_name)
+        logging.error("Checksum failed")
+        logging.error("File deleted")
         sys.exit(1)
 
 
@@ -231,19 +236,19 @@ def s3_download(
     resource_name,
     validation_type,
     checksum_value,
-    outputDir,
+    artifacts_path,
     username=None,
     password=None,
     region=None,
 ):
-    print("===== ARTIFACT: %s" % download_item)
+    logging.info(f"===== ARTIFACT: {download_item}")
 
     bucket = download_item.split("s3://")[1].split("/")[0]
     object_name = download_item[len("s3://" + bucket + "/") :]
     # Validate filename doesn't do anything nefarious
     match = re.search(r"^[A-Za-z0-9][^/\x00]*", resource_name)
     if match is None:
-        print(
+        logging.error(
             "Filename is has invalid characters. Filename must start with a letter or a number. Aborting."
         )
         sys.exit(1)
@@ -256,62 +261,59 @@ def s3_download(
     )
 
     try:
-        response = s3_client.download_file(
-            bucket, object_name, outputDir + "/external-resources/" + resource_name
+        s3_client.download_file(
+            bucket, object_name, artifacts_path + "/external-resources/" + resource_name
         )
     except ClientError as e:
         logging.error(e)
         sys.exit(1)
 
     # Calculate SHA256 checksum of downloaded file
-    print("Checking file verification type")
+    logging.info("Checking file verification type")
     if validation_type != "sha256" and validation_type != "sha512":
-        print("file verification type not supported: '%s'" % validation_type)
+        logging.error(f"file verification type not supported: '{validation_type}'")
         sys.exit(1)
 
-    print("Generating checksum")
+    logging.info("Generating checksum")
     checksum_value_from_calc = generate_checksum(
-        validation_type, checksum_value, outputDir, resource_name
+        validation_type, checksum_value, artifacts_path, resource_name
     )
 
     # Compare checksums
-    print(
-        "comparing checksum values: "
-        + str(checksum_value_from_calc.hexdigest())
-        + " vs "
-        + str(checksum_value)
+    logging.info(
+        f"comparing checksum values: {str(checksum_value_from_calc.hexdigest())} vs {str(checksum_value)}"
     )
     if checksum_value_from_calc.hexdigest() == checksum_value:
-        print("Checksum verified")
-        print("File saved as '%s'" % resource_name)
+        logging.info("Checksum verified")
+        logging.info("File saved as '%s'" % resource_name)
     else:
-        os.remove(outputDir + "/external-resources/" + resource_name)
-        print("Checksum failed")
-        print("File deleted")
+        os.remove(artifacts_path + "/external-resources/" + resource_name)
+        logging.error("Checksum failed")
+        logging.error("File deleted")
         sys.exit(1)
 
 
-def generate_checksum(validation_type, checksum_value, outputDir, resource_name):
+def generate_checksum(validation_type, checksum_value, artifacts_path, resource_name):
     if validation_type == "sha256":
         sha256_hash = hashlib.sha256()
-        with open(outputDir + "/external-resources/" + resource_name, "rb") as f:
+        with open(artifacts_path + "/external-resources/" + resource_name, "rb") as f:
             for byte_block in iter(lambda: f.read(4096), b""):
                 sha256_hash.update(byte_block)
             return sha256_hash
     elif validation_type == "sha512":
         sha512_hash = hashlib.sha512()
-        with open(outputDir + "/external-resources/" + resource_name, "rb") as f:
+        with open(artifacts_path + "/external-resources/" + resource_name, "rb") as f:
             for byte_block in iter(lambda: f.read(4096), b""):
                 sha512_hash.update(byte_block)
             return sha512_hash
 
 
 def docker_download(download_item, tag_value, tar_name, username=None, password=None):
-    print("===== ARTIFACT: %s" % download_item)
+    logging.info(f"===== ARTIFACT: {download_item}")
     image = download_item.split("//")[1]
     tar_name = tar_name.replace("/", "-")
     tar_name = tar_name.replace(":", "-")
-    print("Pulling " + image)
+    logging.info(f"Pulling {image}")
 
     pull_cmd = [
         "podman",
@@ -328,11 +330,11 @@ def docker_download(download_item, tag_value, tar_name, username=None, password=
     while retry:
         try:
             subprocess.run(pull_cmd, check=True)
-            print("Tagging image as " + tag_value)
+            logging.info(f"Tagging image as {tag_value}")
             subprocess.run(
                 ["podman", "tag", image, tag_value, "--storage-driver=vfs"], check=True
             )
-            print("Saving " + tag_value + " as tar file")
+            logging.info(f"Saving {tag_value} as tar file")
             subprocess.run(
                 [
                     "podman",
@@ -344,21 +346,23 @@ def docker_download(download_item, tag_value, tar_name, username=None, password=
                 ],
                 check=True,
             )
-            print("Moving tar file into stage artifacts")
+            logging.info("Moving tar file into stage artifacts")
             shutil.copy(
                 tar_name + ".tar",
                 os.getenv("ARTIFACT_STORAGE") + "/import-artifacts/images/",
             )
             retry = False
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
             if retry_count == 2:
-                print(
-                    "Docker resource failed to pull, please check download.yaml configuration"
+                logging.exception(
+                    "Docker resource failed to pull, please check hardening_manifest.yaml configuration"
                 )
                 sys.exit(1)
             else:
                 retry_count += 1
-                print(f"Docker resource failed to pull, retrying: {retry_count}/2")
+                logging.warning(
+                    f"Docker resource failed to pull, retrying: {retry_count}/2"
+                )
 
 
 if __name__ == "__main__":

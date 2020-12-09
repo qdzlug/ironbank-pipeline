@@ -3,11 +3,11 @@ sign manifest:
   variables:
     #TODO: Put these in globals
     SIG_FILE: signature
-    IMAGE_FILE: "${CI_PROJECT_NAME}-${IMG_VERSION}"
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/documentation/reports"
   dependencies:
     - build
     - load scripts
+    - hardening_manifest
   script:
     # Gather info for manifest.json
     - '"${PIPELINE_REPO_DIR}/stages/documentation/sign-manifest-run.sh"'

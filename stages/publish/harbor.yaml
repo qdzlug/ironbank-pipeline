@@ -5,6 +5,7 @@ harbor:
   dependencies:
     - build
     - load scripts
+    - hardening_manifest
   script:
     - |
       if [[ "${SPECIAL_IMAGE_PATH}" ]]; then
