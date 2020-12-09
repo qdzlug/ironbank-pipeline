@@ -3,9 +3,6 @@ import openpyxl
 from openpyxl.styles import Alignment, PatternFill
 from openpyxl.utils import get_column_letter
 
-import yaml
-import gitlab
-import pathlib
 import git
 import os
 import shutil
@@ -33,104 +30,6 @@ inheritableTriggerIds = [
     "34de21e516c0ca50a96e5386f163f8bf",
     "c4ad80832b361f81df2a31e5b6b09864",
 ]
-
-
-def _load_local_hardening_manifest():
-    """
-    Load up the hardening_manifest.yaml file as a dictionary. Search for the file in
-    the immediate repo first, if that is not found then search for the generated file.
-
-    If neither are found then return None and let the calling function handle the error.
-
-    """
-    artifacts_path = os.environ["ARTIFACT_STORAGE"]
-    paths = [
-        pathlib.Path("hardening_manifest.yaml"),
-        # Check for the generated hardening manifest. This method will be deprecated.
-        pathlib.Path(artifacts_path, "preflight", "hardening_manifest.yaml"),
-    ]
-
-    for path in paths:
-        logging.debug(f"Looking for {path}")
-        if path.is_file():
-            logging.debug(f"Using {path}")
-            with path.open("r") as f:
-                return yaml.safe_load(f)
-        else:
-            logging.debug(f"Couldn't find {path}")
-    return None
-
-
-def _load_remote_hardening_manifest(project, branch="master"):
-    """
-    Load up a hardening_manifest.yaml from a remote repository.
-
-    If the manifest file is not found then None is returned. A warning will print
-    to console to communicate which repository does not have a hardening manifest.
-
-    """
-    if project == "":
-        return None
-
-    logging.debug(f"Attempting to load hardening_manifest from {project}")
-
-    try:
-        gl = gitlab.Gitlab(os.environ["REPO1_URL"])
-        proj = gl.projects.get(f"dsop/{project}", lazy=True)
-        logging.debug(f"Connecting to dsop/{project}")
-
-        hardening_manifest = proj.files.get(
-            file_path="hardening_manifest.yaml", ref=branch
-        )
-        return yaml.safe_load(hardening_manifest.decode())
-
-    except gitlab.exceptions.GitlabError:
-        logging.info(
-            "Could not load hardening_manifest. Defaulting backwards compatibility."
-        )
-        logging.warning(
-            f"This method will be deprecated soon, please switch {project} to hardening_manifest.yaml"
-        )
-
-    except yaml.YAMLError as e:
-        logging.error("Could not load the hardening_manifest.yaml")
-        logging.error(e)
-        sys.exit(1)
-
-    return None
-
-
-def _next_ancestor(image_path, greylist, hardening_manifest=None):
-    """
-    Grabs the parent image path from the current context. Will initially attempt to load
-    a new hardening manifest and then pull the parent image from there. Otherwise it will
-    default to the old method of using the greylist.
-
-    If neither the hardening_manifest.yaml or the greylist field can be found then there
-    is a weird mismatch during migration that needs further inspection.
-
-    """
-
-    # Try to get the parent image out of the local hardening_manifest.
-    if hardening_manifest:
-        return hardening_manifest["args"]["BASE_IMAGE"]
-
-    # Try to load the hardening manifest from a remote repo.
-    hm = _load_remote_hardening_manifest(project=image_path)
-    if hm is not None:
-        logging.debug(hm["args"]["BASE_IMAGE"])
-        return hm["args"]["BASE_IMAGE"]
-
-    try:
-        logging.debug("using greylist for image parent name")
-        return greylist["image_parent_name"]
-    except KeyError as e:
-        logging.error("Looks like a hardening_manifest.yaml cannot be found")
-        logging.error(
-            "Looks like the greylist has been updated to remove fields that should be present in hardening_manifest.yaml"
-        )
-        logging.error(e)
-        sys.exit(1)
 
 
 ##### Clone the dccscr-whitelist repository
@@ -164,16 +63,14 @@ def getSourceImageGreylistFile(whitelistDir, sourceImage):
 
 
 ##### Get the greylist file for all the base images
-def getAllGreylistFiles(
-    whitelistDir, sourceImage, sourceImageGreylistFile, hardening_manifest
-):
+def getAllGreylistFiles(whitelistDir, sourceImage, sourceImageGreylistFile):
     # extract base_image from sourceImage .greylist file
     baseImage = ""
 
     # Add source image greylist file to allFiles
     allFiles.append(sourceImageGreylistFile)
 
-    # Load the greylist file to pass to _next_ancestor
+    # Get the image_parent_name from the source image greylist file
     with open(sourceImageGreylistFile) as f:
         try:
             data = json.load(f)
@@ -184,22 +81,16 @@ def getAllGreylistFiles(
     # Check for empty .greylist file
     if os.stat(sourceImageGreylistFile).st_size == 0:
         print("Source image greylist file is empty")
-
-    # Get first parent image from hardening_manifest
+    # Check for empty image_parent_name in .greylist file
+    elif len(data["image_parent_name"]) == 0:
+        print("No parent image")
     else:
-        baseImage = _next_ancestor(
-            image_path=sourceImage,
-            greylist=data,
-            hardening_manifest=hardening_manifest,
-        )
-        if len(baseImage) == 0:
-            print("No parent image")
+        baseImage = data["image_parent_name"]
 
     print("The following base image greylist files have been identified...")
 
     # Add all parent image greylists to allFiles
-    # Break loop when it finds the last parent image
-    while len(baseImage) != 0:
+    while True:
         files = os.listdir(whitelistDir + "/" + baseImage)
         for file in files:
             if fnmatch.fnmatch(file, "*.greylist"):
@@ -213,12 +104,13 @@ def getAllGreylistFiles(
                         print("Error processing file: " + file, file=sys.stderr)
                 if os.stat(baseImageGreylistFile).st_size == 0:
                     print("Source image greylist file is empty")
-                    baseImage = ""
-                # return base image, checking hardening manifest first, then greylist. If no BASE_IMAGE, exit
+                elif len(data["image_parent_name"]) == 0:
+                    print("No more parent images.")
                 else:
-                    baseImage = _next_ancestor(image_path=baseImage, greylist=data)
-                    logging.debug(baseImage)
-
+                    baseImage = data["image_parent_name"]
+        # Break loop when it finds the last parent image
+        if len(data["image_parent_name"]) == 0:
+            break
     return allFiles
 
 
@@ -516,19 +408,12 @@ def main(argv, inheritableTriggerIds):
     sourceImageGreylistFile = getSourceImageGreylistFile(whitelistDir, sourceImage)
     print("done.")
 
-    hardening_manifest = _load_local_hardening_manifest()
-    if hardening_manifest is None:
-        logging.error("Please update your project to contain a hardening_manifest.yaml")
-
     print(
         "Getting greylist files for all parent images of " + sourceImage + "\n",
         end="",
         flush=True,
     )
-    # may need logic for hardening_manifest not being recovered if hardening_manifest == none etc.
-    allFiles = getAllGreylistFiles(
-        whitelistDir, sourceImage, sourceImageGreylistFile, hardening_manifest
-    )
+    allFiles = getAllGreylistFiles(whitelistDir, sourceImage, sourceImageGreylistFile)
     print("done.")
 
     # Get all justifications
