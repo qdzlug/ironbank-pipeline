@@ -84,7 +84,7 @@ buildah push --storage-driver=vfs --authfile staging_auth.json "${IMAGE_FULLTAG}
 
 echo "Read the tags"
 tags_file="${ARTIFACT_STORAGE}/preflight/tags.txt"
-ls $tags_file
+test -f "$tags_file"
 
 while IFS= read -r tag; do
     echo "buildah tag --storage-driver=vfs ${IMAGE_REGISTRY_REPO} ${IMAGE_REGISTRY_REPO}:${tag}"
