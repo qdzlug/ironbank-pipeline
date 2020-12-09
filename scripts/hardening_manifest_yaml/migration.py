@@ -5,9 +5,9 @@ Submit an MR to all dsop repositories to migrate them to hardening_manifest.yaml
 
 Usage:
     Testing:
-        python .\scripts\hardening_manifest_yaml\migration.py --repo1-token="your-personal-access-token" --dccscr-whitelists-branch=pipeline-test-project --dccscr-whitelists-path=opensource/pipeline-test-project
+        python ./scripts/hardening_manifest_yaml/migration.py --repo1-token="your-personal-access-token" --dccscr-whitelists-branch=pipeline-test-project --dccscr-whitelists-path=opensource/pipeline-test-project
     Run the full migration:
-        python .\scripts\hardening_manifest_yaml\migration.py --repo1-token="ironbank-bot-personal-access-token" --force
+        python ./scripts/hardening_manifest_yaml/migration.py --repo1-token="ironbank-bot-personal-access-token" --force
 """
 
 import argparse

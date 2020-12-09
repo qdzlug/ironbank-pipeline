@@ -200,7 +200,7 @@ def _get_greylist_file_contents(image_path, branch):
         contents["approval_status"] != "approved"
         and os.environ.get("CI_COMMIT_BRANCH").lower() == "master"
     ):
-        logging.error(f"Unapproved image running on master branch")
+        logging.error("Unapproved image running on master branch")
         sys.exit(1)
 
     return contents
