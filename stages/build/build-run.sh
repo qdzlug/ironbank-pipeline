@@ -1,13 +1,19 @@
-#!/bin/bash
+#!/bin/env bash
 
 set -Eeuo pipefail
-shopt -s nullglob # Allow images/* and external-resources/* to match nothing
+
+#
+# ARTIFACT_DIR     = the directory for artifacts in this current stage
+# ARTIFACT_STORAGE - the base artifact directory used to access artifacts from other stages
+#
 
 # Set up the image reference variables
 export IMAGE_REGISTRY_REPO="${STAGING_REGISTRY_URL}/${IMAGE_NAME}"
 export IMAGE_FULLTAG="${IMAGE_REGISTRY_REPO}:${CI_PIPELINE_ID}"
 
 mkdir -p "${ARTIFACT_DIR}"
+
+shopt -s nullglob # Allow images/* and external-resources/* to match nothing
 
 echo "Determine source registry based on branch"
 # Determine source registry based on branch
@@ -51,7 +57,7 @@ old_ifs=$IFS
 IFS=$'\n'
 # Intentional wordsplitting:
 # shellcheck disable=SC2086
-echo "Do the buildah bud command"
+echo "Build the image"
 buildah bud \
   $args_parameters \
   --build-arg=BASE_REGISTRY="${BASE_REGISTRY}" \
