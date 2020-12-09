@@ -46,7 +46,7 @@ that referenced as `ARG MY_VERSION` in your `Dockerfile`.
 Please review the following:
 
 * Tags
-   * The most specific tag should be first, that is list `v1.2.3` as the first tag, not `v1.2`
+   * The most specific tag should be at the top of the `tags` list.  For example, `v1.2.3` comes before `v1.2`.
    * The first tag will be shown on https://ironbank.dsop.io
    * Additional tags may be added if desired and will be published to https://registry1.dsop.io
 * Labels
