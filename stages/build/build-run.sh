@@ -91,7 +91,7 @@ while IFS= read -r tag; do
   buildah tag --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" "${IMAGE_REGISTRY_REPO}:${tag}"
   echo "buildah push --storage-driver=vfs --authfile staging_auth.json ${IMAGE_REGISTRY_REPO}:${tag}"
   buildah push --storage-driver=vfs --authfile staging_auth.json "${IMAGE_REGISTRY_REPO}:${tag}"
-done <$tags_file
+done <"$tags_file"
 
 # Provide tar for use in later stages, matching existing tar naming convention
 echo "skopeo copy --src-authfile staging_auth.json docker://${IMAGE_FULLTAG} docker-archive:${ARTIFACT_DIR}/${IMAGE_FILE}.tar"
