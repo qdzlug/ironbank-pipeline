@@ -139,7 +139,6 @@ def convert_to_excel():
 def generate_blank_oscap_report():
     oscap_report = open(csv_dir + "oscap.csv", "w", encoding="utf-8")
     csv_writer = csv.writer(oscap_report)
-    # csv_writer.writerow(["", "", "", "", "", "", "", "", ""])
     csv_writer.writerow(
         ["OpenSCAP Scan Skipped Due to Base Image Used", "", "", "", "", "", "", "", ""]
     )
@@ -150,7 +149,6 @@ def generate_blank_oscap_report():
 def generate_blank_oval_report():
     oval_report = open(csv_dir + "oval.csv", "w", encoding="utf-8")
     csv_writer = csv.writer(oval_report)
-    # csv_writer.writerow(["", "", "", "", ""])
     csv_writer.writerow(
         ["OpenSCAP Scan Skipped Due to Base Image Used", "", "", "", ""]
     )
@@ -174,7 +172,6 @@ def generate_summary_report(osc, ovf, tlf, asf, agf):
     ancc = ["Anchore Compliance Results", int(agf[0] or 0), 0, int(agf[0] or 0)]
     twl = ["Twistlock Vulnerability Results", int(tlf or 0), 0, int(tlf or 0)]
 
-    # csv_writer.writerow(["", "", "", ""])
     csv_writer.writerow(header)
     csv_writer.writerow(osl)
     csv_writer.writerow(ovf)
@@ -213,10 +210,6 @@ def generate_oscap_report(oscap):
     fail_count = 0
     nc_count = 0
     scanned = ""
-    # print a blank header to set column width
-    # csv_writer.writerow(
-    #     ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
-    # )
     for line in oscap_cves:
         if count == 0:
             header = line.keys()
@@ -297,10 +290,6 @@ def generate_oval_report(oval):
     csv_writer = csv.writer(oval_data)
     count = 0
     fail_count = 0
-    # print a blank header to set column width
-    # csv_writer.writerow(
-    #     ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
-    # )
     for line in oval_cves:
         if count == 0:
             header = line.keys()
@@ -348,10 +337,6 @@ def generate_twistlock_report(twistlock):
     tl_data = open(csv_dir + "tl.csv", "w", encoding="utf-8")
     csv_writer = csv.writer(tl_data)
     count = 0
-    # print a blank header to set column width
-    # csv_writer.writerow(
-    #     ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
-    # )
     for line in tl_cves:
         if count == 0:
             header = line.keys()
@@ -403,7 +388,6 @@ def _write_csv_from_dict_list(dict_list, fieldnames, filename):
 
     with filepath.open(mode="w", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
-        # writer.writeheader()  # Need an extra header for excel
         writer.writeheader()
         if dict_list:
             writer.writerows(dict_list)
