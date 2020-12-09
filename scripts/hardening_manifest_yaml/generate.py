@@ -102,10 +102,10 @@ def _prepare_data(greylist, download, jenkinsfile=None):
             metadata.update({"version": version})
 
     try:
-        metadata["image_name"]
-        metadata["image_parent_name"]
-        metadata["image_parent_tag"]
-        metadata["container_owner"]
+        assert "image_name" in metadata
+        assert "image_parent_name" in metadata
+        assert "image_parent_tag" in metadata
+        assert "container_owner" in metadata
     except KeyError as e:
         logger.exception("Malformed greylist file")
         raise e
