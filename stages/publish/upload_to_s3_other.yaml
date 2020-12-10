@@ -25,5 +25,6 @@ upload to s3:
     - csv output
     - load scripts
     - wl compare lint
+    - hardening_manifest
   script:
     - '"${PIPELINE_REPO_DIR}/stages/publish/upload-to-s3-run.sh"'
