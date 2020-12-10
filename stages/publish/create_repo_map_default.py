@@ -32,40 +32,19 @@ def get_repomap(object_name, bucket="ironbank-pipeline-artifacts"):
         return False
     return True
 
-def source_keywords(keywords_file):
-    num_keywords = 0
-    with open(keywords_file) as f:
-        for num_keywords, l in enumerate(f):
-            pass
-    num_keywords += 1
-    print("Number of keywords detected: ", num_keywords)
-
-    keywords_keys, keywords_list = [], []
-    x = 0
-    while x < num_keywords:
-        keywords_keys.append("keyword")
-        x += 1
-
-    with open(keywords_file, mode="r", encoding="utf-8") as kf:
-        for line in kf:
-            keyword_entry = line.strip()
-            keywords_list.append(keyword_entry)
-
-    return keywords_list
-
-def source_tags(tags_file):
-    num_tags = 0
-    tags_keys, tags_list = [], []
-    with open(tags_file, mode="r", encoding="utf-8") as tf:
-        num_tags = len(f.readlines())
-        print("Number of tags detected: ", num_tags)
-        for line in tf:
-            tag_entry = line.strip()
-            tag_list.append(tag_entry)
-        for x in range(num_keywords):
-            keywords_keys.append("keyword")
-            x += 1
-    return tags_list
+def source_values(source_file, key):
+    num_vals = 0
+    val_list = []
+    with open(source_file, mode="r", encoding="utf-8") as sf:
+        for line in sf:
+            val_entry = line.strip()
+            val_list.append(val_entry)
+            num_vals += 1
+    if key == "Keywords":
+        print("Number of keywords detected: ", num_vals)
+    elif key == "Tags":
+        print("Number of tags detected: ", num_vals)
+    return val_list
 
 def main():
     # Get logging level, set manually when running pipeline
@@ -88,8 +67,8 @@ def main():
 
     existing_repomap = get_repomap(object_name)
     artifact_storage = os.environ.get("ARTIFACT_STORAGE")
-    keyword_list = source_keywords(f"{artifact_storage}/preflight/keywords.txt")
-    tag_list = source_tags(f"{artifact_storage}/preflight/tags.txt")
+    keyword_list = source_values(f"{artifact_storage}/preflight/keywords.txt", "Keywords")
+    tag_list = source_values(f"{artifact_storage}/preflight/tags.txt", "Tags")
 
     new_data = {
         os.environ.get("build_number"): {
