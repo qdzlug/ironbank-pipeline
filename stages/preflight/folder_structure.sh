@@ -14,4 +14,3 @@ if ! [[ -f "LICENSE" ]]; then
   echo "LICENSE not found"
   exit 1
 fi
-echo "is this updating?"
