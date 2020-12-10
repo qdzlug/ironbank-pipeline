@@ -15,6 +15,9 @@ import hardening_manifest_yaml.generate  # noqa: E402
 def main():
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
+    logging.info(loglevel)
+    logging.info("test")
+    print(loglevel)
     if loglevel == "DEBUG":
         logging.basicConfig(
             level=loglevel,
