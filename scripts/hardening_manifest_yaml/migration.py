@@ -181,6 +181,7 @@ def _process_greylist(
             greylist_path=greylist_path,
             repo1_url=repo1_url,
             dccscr_whitelists_branch=dccscr_whitelists_branch,
+            branch=start_branch
         )
     except generate.FileNotFound as e:
         logger.error(f"File not found in {project}: {e}")
