@@ -53,6 +53,8 @@ def main():
     object_name = args.target
 
     existing_repomap = get_repomap(object_name)
+    artifact_storage = os.environ.get("ARTIFACT_STORAGE")
+    output_list = source_keywords(f"{artifact_storage}/preflight/keywords.txt")
 
     new_data = {
         os.environ.get("build_number"): {
@@ -79,6 +81,7 @@ def main():
             "Tar_Location": os.environ.get("tar_location"),
             "Full_Report": os.environ.get("full_report"),
             "Repo_Name": os.environ.get("repo_name"),
+            "Keywords": output_list,
         }
     }
 
