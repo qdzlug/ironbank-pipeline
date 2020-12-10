@@ -1055,19 +1055,30 @@ def update_in_current_scan(iid, findings, scan_source):
                 + "SET fl.in_current_scan=0 WHERE f.container_id =%s and scan_source=%s"
             )
             logs.debug(update_not_in_current_scan, str(iid), scan_source)
-            cursor.execute(update_not_in_current_scan, (str(iid), scan_source,))
+            cursor.execute(
+                update_not_in_current_scan,
+                (
+                    str(iid),
+                    scan_source,
+                ),
+            )
             conn.commit()
             return
 
-
         # Set all the findings to 1 for the image ID and the scan source
-#       cursor = conn.cursor()
+        #       cursor = conn.cursor()
         update_to_in_current_scan = (
             "UPDATE finding_logs fl INNER JOIN findings f ON fl.finding_id = f.id "
             + "SET fl.in_current_scan=1 WHERE f.container_id =%s and scan_source=%s"
         )
         logs.debug(update_to_in_current_scan, str(iid), scan_source)
-        cursor.execute(update_to_in_current_scan, (str(iid), scan_source,))
+        cursor.execute(
+            update_to_in_current_scan,
+            (
+                str(iid),
+                scan_source,
+            ),
+        )
 
         # Query for all the findings for the image ID and the scan source
         select_all_image_scan_source = (
@@ -1076,7 +1087,13 @@ def update_in_current_scan(iid, findings, scan_source):
             + "WHERE f.container_id = %s and f.scan_source = %s"
         )
         logs.debug(select_all_image_scan_source, str(iid), scan_source)
-        cursor.execute(select_all_image_scan_source, (str(iid), scan_source,))
+        cursor.execute(
+            select_all_image_scan_source,
+            (
+                str(iid),
+                scan_source,
+            ),
+        )
 
         # Load the query into a dataframe
         d_f = pandas.DataFrame(cursor.fetchall())
@@ -1151,7 +1168,7 @@ def update_in_current_scan(iid, findings, scan_source):
                             system_user_id,
                             args.scan_date,
                             is_active_record,
-                            record_id, 0
+                            record_id,
                         )
                         new_sc_record_id = add_active_log_row(
                             cursor, new_entry_selection, tuple_values
