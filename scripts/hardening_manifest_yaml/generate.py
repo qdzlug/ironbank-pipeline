@@ -227,7 +227,13 @@ maintainers:
     return hardening_manifest_yaml
 
 
-def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group="dsop", log_to_console=False):
+def generate(
+    greylist_path,
+    repo1_url,
+    dccscr_whitelists_branch="master",
+    group="dsop",
+    log_to_console=False,
+):
     """
     Generate the hardening_manifest.yaml file using information from:
     - greylist
