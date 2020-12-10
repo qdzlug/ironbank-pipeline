@@ -10,7 +10,6 @@ import os
 import jsonschema
 
 
-# logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 logger = logging.getLogger("hardening_manifest_yaml.generate")
 
 
