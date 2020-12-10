@@ -212,6 +212,7 @@ def parse_anchore_compliance(ac_path):
         "matched_rule_id",
         "whitelist_id",
         "whitelist_name",
+        "inherited",
     ]
     d_f = pandas.read_csv(ac_path, names=columns)
     # Drop bad header row
