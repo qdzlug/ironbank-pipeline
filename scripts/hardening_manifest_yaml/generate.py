@@ -113,7 +113,7 @@ def _prepare_data(greylist, download, jenkinsfile=None):
     return metadata
 
 
-def _build_hardening_manifest_yaml(metadata):
+def _build_hardening_manifest_yaml(metadata, log_to_console=False):
     """
     Construct the hardening_manifest.yaml file using the metadata collected from the
     greylist and download.yaml files. Build up a string that represents the
@@ -199,6 +199,9 @@ maintainers:
 #   email: "FIXME"
 """
 
+    if log_to_console:
+        logger.info(f"Generated hardening manifest:\n{hardening_manifest_yaml}")
+
     logger.info("Validating schema")
     schema_path = os.path.join(
         os.path.dirname(__file__), "../../schema/hardening_manifest.schema-relaxed.json"
@@ -224,7 +227,7 @@ maintainers:
     return hardening_manifest_yaml
 
 
-def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group="dsop"):
+def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group="dsop", log_to_console=False):
     """
     Generate the hardening_manifest.yaml file using information from:
     - greylist
@@ -277,7 +280,7 @@ def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group=
         raise e
 
     metadata = _prepare_data(greylist, download, jenkinsfile)
-    return _build_hardening_manifest_yaml(metadata)
+    return _build_hardening_manifest_yaml(metadata, log_to_console=log_to_console)
 
 
 #
