@@ -8,6 +8,7 @@ vat:
     - load scripts
     - csv output
     - wl compare lint
+    - hardening_manifest
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/csvs/"
     OPENSCAP: "${ARTIFACT_STORAGE}/scan-results/openscap"
