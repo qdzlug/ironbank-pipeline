@@ -233,7 +233,7 @@ def generate(
     dccscr_whitelists_branch="master",
     group="dsop",
     log_to_console=False,
-    branch="development"
+    branch="development",
 ):
     """
     Generate the hardening_manifest.yaml file using information from:
@@ -264,14 +264,10 @@ def generate(
         if greylist is None:
             raise FileNotFound("Did not find greylist")
         logging.debug("CI_COMMIT_BRANCH")
-        download = _fetch_file(
-            url=project_url, file="download.json", branch=branch
-        )
+        download = _fetch_file(url=project_url, file="download.json", branch=branch)
 
         if download is None:
-            download = _fetch_file(
-                url=project_url, file="download.yaml", branch=branch
-            )
+            download = _fetch_file(url=project_url, file="download.yaml", branch=branch)
 
         try:
             jenkinsfile = _fetch_file(
