@@ -264,17 +264,17 @@ def generate(
             raise FileNotFound("Did not find greylist")
 
         download = _fetch_file(
-            url=project_url, file="download.json", branch="development"
+            url=project_url, file="download.json", branch=os.environ.get("CI_COMMIT_BRANCH")
         )
 
         if download is None:
             download = _fetch_file(
-                url=project_url, file="download.yaml", branch="development"
+                url=project_url, file="download.yaml", os.environ.get("CI_COMMIT_BRANCH")
             )
 
         try:
             jenkinsfile = _fetch_file(
-                url=project_url, file="Jenkinsfile", branch="development"
+                url=project_url, file="Jenkinsfile", os.environ.get("CI_COMMIT_BRANCH")
             )
         except requests.exceptions.RequestException:
             pass
