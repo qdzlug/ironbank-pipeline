@@ -32,6 +32,7 @@ def get_repomap(object_name, bucket="ironbank-pipeline-artifacts"):
         return False
     return True
 
+
 def source_values(source_file, key):
     num_vals = 0
     val_list = []
@@ -45,6 +46,7 @@ def source_values(source_file, key):
     elif key == "Tags":
         print("Number of tags detected: ", num_vals)
     return val_list
+
 
 def main():
     # Get logging level, set manually when running pipeline
@@ -67,9 +69,10 @@ def main():
 
     existing_repomap = get_repomap(object_name)
     artifact_storage = os.environ.get("ARTIFACT_STORAGE")
-    keyword_list = source_values(f"{artifact_storage}/preflight/keywords.txt", "Keywords")
+    keyword_list = source_values(
+        f"{artifact_storage}/preflight/keywords.txt", "Keywords"
+    )
     tag_list = source_values(f"{artifact_storage}/preflight/tags.txt", "Tags")
-
 
     new_data = {
         os.environ.get("build_number"): {
@@ -97,7 +100,7 @@ def main():
             "Full_Report": os.environ.get("full_report"),
             "Repo_Name": os.environ.get("repo_name"),
             "Keywords": keyword_list,
-            "Tags" : tag_list,
+            "Tags": tag_list,
         }
     }
 
