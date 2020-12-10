@@ -10,7 +10,6 @@ import os
 import jsonschema
 
 
-logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 logger = logging.getLogger("hardening_manifest_yaml.generate")
 
 
@@ -26,7 +25,6 @@ def _fetch_file(url, file, branch="development"):
     url = f"{url}/-/raw/{branch}/{file}"
 
     logger.debug(url)
-
     try:
         r = requests.get(url=url)
     except requests.exceptions.RequestException as e:
@@ -113,7 +111,7 @@ def _prepare_data(greylist, download, jenkinsfile=None):
     return metadata
 
 
-def _build_hardening_manifest_yaml(metadata):
+def _build_hardening_manifest_yaml(metadata, log_to_console=False):
     """
     Construct the hardening_manifest.yaml file using the metadata collected from the
     greylist and download.yaml files. Build up a string that represents the
@@ -199,6 +197,9 @@ maintainers:
 #   email: "FIXME"
 """
 
+    if log_to_console:
+        logger.info(f"Generated hardening manifest:\n{hardening_manifest_yaml}")
+
     logger.info("Validating schema")
     schema_path = os.path.join(
         os.path.dirname(__file__), "../../schema/hardening_manifest.schema-relaxed.json"
@@ -224,7 +225,14 @@ maintainers:
     return hardening_manifest_yaml
 
 
-def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group="dsop"):
+def generate(
+    greylist_path,
+    repo1_url,
+    dccscr_whitelists_branch="master",
+    group="dsop",
+    log_to_console=False,
+    branch="development",
+):
     """
     Generate the hardening_manifest.yaml file using information from:
     - greylist
@@ -253,19 +261,14 @@ def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group=
         )
         if greylist is None:
             raise FileNotFound("Did not find greylist")
-
-        download = _fetch_file(
-            url=project_url, file="download.json", branch="development"
-        )
+        download = _fetch_file(url=project_url, file="download.json", branch=branch)
 
         if download is None:
-            download = _fetch_file(
-                url=project_url, file="download.yaml", branch="development"
-            )
+            download = _fetch_file(url=project_url, file="download.yaml", branch=branch)
 
         try:
             jenkinsfile = _fetch_file(
-                url=project_url, file="Jenkinsfile", branch="development"
+                url=project_url, file="Jenkinsfile", branch=branch
             )
         except requests.exceptions.RequestException:
             pass
@@ -277,7 +280,7 @@ def generate(greylist_path, repo1_url, dccscr_whitelists_branch="master", group=
         raise e
 
     metadata = _prepare_data(greylist, download, jenkinsfile)
-    return _build_hardening_manifest_yaml(metadata)
+    return _build_hardening_manifest_yaml(metadata, log_to_console=log_to_console)
 
 
 #

@@ -41,6 +41,8 @@ def main():
             greylist_path=greylist_path,
             repo1_url="https://repo1.dsop.io/",
             dccscr_whitelists_branch=os.environ["WL_TARGET_BRANCH"],
+            log_to_console=True,
+            branch=os.environ["CI_COMMIT_BRANCH"],
         )
         generated_file = Path(os.environ["ARTIFACT_DIR"], "hardening_manifest.yaml")
         generated_file.write_text(hardening_manifest_yaml_string)
