@@ -26,7 +26,7 @@ def _fetch_file(url, file, branch="development"):
     url = f"{url}/-/raw/{branch}/{file}"
 
     logger.debug(url)
-
+    logging.debug(branch)
     try:
         r = requests.get(url=url)
     except requests.exceptions.RequestException as e:
@@ -262,7 +262,7 @@ def generate(
         )
         if greylist is None:
             raise FileNotFound("Did not find greylist")
-
+        logging.debug("CI_COMMIT_BRANCH")
         download = _fetch_file(
             url=project_url, file="download.json", branch=os.environ.get("CI_COMMIT_BRANCH")
         )
