@@ -53,6 +53,20 @@ def source_keywords(keywords_file):
 
     return keywords_list
 
+def source_tags(tags_file):
+    num_tags = 0
+    tags_keys, tags_list = [], []
+    with open(tags_file, mode="r", encoding="utf-8") as tf:
+        num_tags = len(f.readlines())
+        print("Number of tags detected: ", num_tags)
+        for line in tf:
+            tag_entry = line.strip()
+            tag_list.append(tag_entry)
+        for x in range(num_keywords):
+            keywords_keys.append("keyword")
+            x += 1
+    return tags_list
+
 def main():
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
@@ -75,6 +89,8 @@ def main():
     existing_repomap = get_repomap(object_name)
     artifact_storage = os.environ.get("ARTIFACT_STORAGE")
     keyword_list = source_keywords(f"{artifact_storage}/preflight/keywords.txt")
+    tag_list = source_tags(f"{artifact_storage}/preflight/tags.txt")
+
 
     new_data = {
         os.environ.get("build_number"): {
@@ -102,6 +118,7 @@ def main():
             "Full_Report": os.environ.get("full_report"),
             "Repo_Name": os.environ.get("repo_name"),
             "Keywords": keyword_list,
+            "Tags" : tag_list,
         }
     }
 
