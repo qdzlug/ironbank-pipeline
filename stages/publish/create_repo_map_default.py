@@ -32,6 +32,26 @@ def get_repomap(object_name, bucket="ironbank-pipeline-artifacts"):
         return False
     return True
 
+def source_keywords(keywords_file):
+    num_keywords = 0
+    with open(keywords_file) as f:
+        for num_keywords, l in enumerate(f):
+            pass
+    num_keywords += 1
+    print("Number of keywords detected: ", num_keywords)
+
+    keywords_keys, keywords_list = [], []
+    x = 0
+    while x < num_keywords:
+        keywords_keys.append("keyword")
+        x += 1
+
+    with open(keywords_file, mode="r", encoding="utf-8") as kf:
+        for line in kf:
+            keyword_entry = line.strip()
+            keywords_list.append(keyword_entry)
+
+    return keywords_list
 
 def main():
     # Get logging level, set manually when running pipeline
@@ -54,7 +74,7 @@ def main():
 
     existing_repomap = get_repomap(object_name)
     artifact_storage = os.environ.get("ARTIFACT_STORAGE")
-    output_list = source_keywords(f"{artifact_storage}/preflight/keywords.txt")
+    keyword_list = source_keywords(f"{artifact_storage}/preflight/keywords.txt")
 
     new_data = {
         os.environ.get("build_number"): {
@@ -87,7 +107,7 @@ def main():
             "Tar_Location": os.environ.get("tar_location"),
             "Full_Report": os.environ.get("full_report"),
             "Repo_Name": os.environ.get("repo_name"),
-            "Keywords": output_list,
+            "Keywords": keyword_list,
         }
     }
 
