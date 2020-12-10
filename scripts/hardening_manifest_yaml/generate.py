@@ -10,7 +10,6 @@ import os
 import jsonschema
 
 
-logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 logger = logging.getLogger("hardening_manifest_yaml.generate")
 
 
@@ -26,7 +25,6 @@ def _fetch_file(url, file, branch="development"):
     url = f"{url}/-/raw/{branch}/{file}"
 
     logger.debug(url)
-
     try:
         r = requests.get(url=url)
     except requests.exceptions.RequestException as e:
@@ -233,6 +231,7 @@ def generate(
     dccscr_whitelists_branch="master",
     group="dsop",
     log_to_console=False,
+    branch="development",
 ):
     """
     Generate the hardening_manifest.yaml file using information from:
@@ -262,19 +261,14 @@ def generate(
         )
         if greylist is None:
             raise FileNotFound("Did not find greylist")
-
-        download = _fetch_file(
-            url=project_url, file="download.json", branch="development"
-        )
+        download = _fetch_file(url=project_url, file="download.json", branch=branch)
 
         if download is None:
-            download = _fetch_file(
-                url=project_url, file="download.yaml", branch="development"
-            )
+            download = _fetch_file(url=project_url, file="download.yaml", branch=branch)
 
         try:
             jenkinsfile = _fetch_file(
-                url=project_url, file="Jenkinsfile", branch="development"
+                url=project_url, file="Jenkinsfile", branch=branch
             )
         except requests.exceptions.RequestException:
             pass
