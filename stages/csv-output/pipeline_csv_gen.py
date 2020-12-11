@@ -332,7 +332,20 @@ def generate_twistlock_report(twistlock):
             csv_writer.writerow(header)
             count += 1
         csv_writer.writerow(line.values())
-    tl_data.close()
+    if len(tl_cves) < 1:
+        blank_headers = [
+            "id",
+            "cvss",
+            "desc",
+            "link",
+            "packageName",
+            "packageVersion",
+            "severity",
+            "status",
+            "vecStr",
+        ]
+        csv_writer.writerow(blank_headers)
+        tl_data.close()
     return len(tl_cves)
 
 
