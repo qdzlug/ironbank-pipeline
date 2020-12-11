@@ -81,10 +81,14 @@ def process_yaml(content):
         for key, value in content["labels"].items():
             f.write(f"{key}={value}\n")
 
-    with (artifact_dir / "keywords.txt").open("w") as f:
-        for keyword in content["keywords"]:
-            f.write(keyword)
-            f.write("\n")
+    #optional field,if keywords key in yaml, create file. source_values() in create_repo_map checks if file exists, if not pass empty list
+    if "keywords" in content:
+        with (artifact_dir / "keywords.txt").open("w") as f:
+            for keyword in content["keywords"]:
+                f.write(keyword)
+                f.write("\n")
+    else:
+        debug.info("Keywords field does not exist in hardening_manifest.yaml")
 
     # "resources" intentionally left out
 
