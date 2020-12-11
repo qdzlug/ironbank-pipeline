@@ -80,6 +80,7 @@ def process_yaml(content):
     with (artifact_dir / "labels.env").open("w") as f:
         for key, value in content["labels"].items():
             f.write(f"{key}={value}\n")
+
     with (artifact_dir / "keywords.txt").open("w") as f:
         for keyword in content["keywords"]:
             f.write(keyword)
