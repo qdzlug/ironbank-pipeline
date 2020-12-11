@@ -81,10 +81,13 @@ def process_yaml(content):
         for key, value in content["labels"].items():
             f.write(f"{key}={value}\n")
 
-    #optional field,if keywords key in yaml, create file. source_values() in create_repo_map checks if file exists, if not pass empty list
+    # optional field,if keywords key in yaml, create file. source_values() in create_repo_map checks if file exists, if not pass empty list
     if "mil.dso.ironbank.image.keywords" in content["labels"]:
         with (artifact_dir / "keywords.txt").open("w") as f:
-            labels = [k.strip() for k in content["labels"]["mil.dso.ironbank.image.keywords"].split(",")]
+            labels = [
+                k.strip()
+                for k in content["labels"]["mil.dso.ironbank.image.keywords"].split(",")
+            ]
             for label in labels:
                 f.write(label)
                 f.write("\n")
