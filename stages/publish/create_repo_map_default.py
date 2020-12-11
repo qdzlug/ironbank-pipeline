@@ -48,7 +48,7 @@ def source_values(source_file, key):
         elif key == "Tags":
             print("Number of tags detected: ", num_vals)
     else:
-        debug.info(source_file + " does not exist")
+        logging.info(source_file + " does not exist")
     return val_list
 
 
