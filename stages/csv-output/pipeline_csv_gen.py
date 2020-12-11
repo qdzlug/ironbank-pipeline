@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import re
 import json
 import os
-import pandas
+import pandas as pd
 import argparse
 import pathlib
 import logging
@@ -105,13 +105,15 @@ def generate_all_reports(oscap, oval, twistlock, anchore_sec, anchore_gates):
 
 # convert to Excel file
 def convert_to_excel():
-    read_sum = pandas.read_csv(csv_dir + "summary.csv")
-    read_oscap = pandas.read_csv(csv_dir + "oscap.csv")
-    read_oval = pandas.read_csv(csv_dir + "oval.csv")
-    read_tl = pandas.read_csv(csv_dir + "tl.csv")
-    read_security = pandas.read_csv(csv_dir + "anchore_security.csv")
-    read_gates = pandas.read_csv(csv_dir + "anchore_gates.csv")
-    with pandas.ExcelWriter(csv_dir + "all_scans.xlsx") as writer:
+    read_sum = pd.read_csv(csv_dir + "summary.csv")
+    read_oscap = pd.read_csv(csv_dir + "oscap.csv")
+    read_oval = pd.read_csv(csv_dir + "oval.csv")
+    read_tl = pd.read_csv(csv_dir + "tl.csv")
+    read_security = pd.read_csv(csv_dir + "anchore_security.csv")
+    read_gates = pd.read_csv(csv_dir + "anchore_gates.csv")
+    with pd.ExcelWriter(
+        csv_dir + "all_scans.xlsx"
+    ) as writer:  # pylint: disable=abstract-class-instantiated
         read_sum.to_excel(writer, sheet_name="Summary", header=True, index=False)
         read_oscap.to_excel(
             writer, sheet_name="OpenSCAP - DISA Compliance", header=True, index=False
@@ -320,51 +322,38 @@ def get_oval_full(oval_file):
     return cves
 
 
-# TWISTLOCK CSV
-def generate_twistlock_report(twistlock):
-    tl_cves = get_twistlock_full(twistlock)
-    tl_data = open(csv_dir + "tl.csv", "w", encoding="utf-8")
-    csv_writer = csv.writer(tl_data)
-    count = 0
-    for line in tl_cves:
-        if count == 0:
-            header = line.keys()
-            csv_writer.writerow(header)
-            count += 1
-        csv_writer.writerow(line.values())
-    tl_data.close()
-    return len(tl_cves)
+def generate_twistlock_report(twistlock_cve_json):
+    with open(twistlock_cve_json, mode="r", encoding="utf-8") as f:
+        json_data = json.load(f)
+        cves = [
+            {
+                "id": d["id"],
+                "cvss": d["cvss"],
+                "desc": d["description"],
+                "link": d["link"],
+                "packageName": d["packageName,"],
+                "packageVersion": d["packageVersion"],
+                "severity": d["severity"],
+                "status": d["status"],
+                "vecStr": d["vecStr"],
+            }
+            for d in json_data[0]["vulnerabilities"]
+        ]
+    fieldnames = [
+        "id",
+        "cvss",
+        "desc",
+        "link",
+        "packageName",
+        "packageVersion",
+        "severity",
+        "status",
+        "vecStr",
+    ]
 
+    _write_csv_from_dict_list(dict_list=cves, fieldnames=fieldnames, filename="tl.csv")
 
-def get_twistlock_full(twistlock_file):
-    with open(twistlock_file, mode="r", encoding="utf-8") as twistlock_json_file:
-        json_data = json.load(twistlock_json_file)[0]
-        twistlock_data = json_data["vulnerabilities"]
-        cves = []
-        if twistlock_data is not None:
-            for x in twistlock_data:
-                cvss = x.get("cvss", "")
-                desc = x.get("description", "")
-                id = x.get("cve", "")
-                link = x.get("link", "")
-                packageName = x.get("packageName", "")
-                packageVersion = x.get("packageVersion", "")
-                severity = x.get("severity", "")
-                status = x.get("status", "")
-                vecStr = x.get("vecStr", "")
-                ret = {
-                    "id": id,
-                    "cvss": cvss,
-                    "desc": desc,
-                    "link": link,
-                    "packageName": packageName,
-                    "packageVersion": packageVersion,
-                    "severity": severity,
-                    "status": status,
-                    "vecStr": vecStr,
-                }
-                cves.append(ret)
-    return cves
+    return len(cves)
 
 
 def _write_csv_from_dict_list(dict_list, fieldnames, filename):
