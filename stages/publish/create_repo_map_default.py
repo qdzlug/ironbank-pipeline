@@ -110,7 +110,7 @@ def main():
             "Full_Report": os.environ.get("full_report"),
             "Repo_Name": os.environ.get("repo_name"),
             "Keywords": keyword_list,
-            "Tags": tags_list,
+            "Tags": tag_list,
         }
     }
 
