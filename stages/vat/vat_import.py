@@ -218,6 +218,7 @@ def parse_anchore_compliance(ac_path):
         "matched_rule_id",
         "whitelist_id",
         "whitelist_name",
+        "inherited",
     ]
     d_f = pandas.read_csv(ac_path, names=columns)
     # Drop bad header row
@@ -832,6 +833,9 @@ def deactivate_log_row(cursor, log_id, deactivate=True, deactivate_record_type=T
     :params id int
     :returns bool True on success
     """
+
+    logs.debug("In deactivate_log_row")
+
     active_record_type = 0 if deactivate_record_type else 1
     active_row = 0 if deactivate else 1
 
@@ -926,7 +930,7 @@ def insert_scan(data, iid, scan_source):
     cursor = conn.cursor(buffered=True)
     try:
         lineage = find_lineage(cursor, iid)
-        logs.debug(f"show lineage: {lineage}")  # temp
+        logs.debug(f"show lineage: {lineage}")
 
         for index, row in data.iterrows():
             finding_id = insert_finding(cursor, iid, scan_source, index, row)
@@ -1041,6 +1045,7 @@ def update_in_current_scan(iid, findings, scan_source):
     cursor = conn.cursor()
 
     system_user_id = get_system_user_id()
+    logs.debug("update_in_current_scan - system_user_id: %s", str(system_user_id))
 
     try:
         if findings.empty:
@@ -1066,7 +1071,6 @@ def update_in_current_scan(iid, findings, scan_source):
             return
 
         # Set all the findings to 1 for the image ID and the scan source
-        #       cursor = conn.cursor()
         update_to_in_current_scan = (
             "UPDATE finding_logs fl INNER JOIN findings f ON fl.finding_id = f.id "
             + "SET fl.in_current_scan=1 WHERE f.container_id =%s and scan_source=%s"
@@ -1126,6 +1130,7 @@ def update_in_current_scan(iid, findings, scan_source):
                 # Need to deactivate all the rows for all findings in finding_logs
                 # Do this for the active records smd where in_current_scan is false
                 # in_current_scan is active_records[0][2]
+                logs.debug("active_record[0]: %s", active_records[0])
                 if active_records and not active_records[0][2]:
                     # If now in current_scan add it back into the logs
                     # deactivate the old logs and add the new ones
@@ -1145,7 +1150,7 @@ def update_in_current_scan(iid, findings, scan_source):
                         update_text = j_record[0][4]
                         is_active_record = 0
                         record_id = j_record[0][0]
-                        logs.debug("Update j_record id: %s", record_id)
+                        logs.debug("Add j_record id: %s", record_id)
 
                         tuple_values = (
                             update_text,
@@ -1162,7 +1167,7 @@ def update_in_current_scan(iid, findings, scan_source):
                         update_text = "Finding reinstated from current scan"
                         is_active_record = 1
                         record_id = sc_record[0][0]
-                        logs.debug("Update sc_record id: %s", record_id)
+                        logs.debug("Add sc_record id: %s", record_id)
                         tuple_values = (
                             update_text,
                             system_user_id,
