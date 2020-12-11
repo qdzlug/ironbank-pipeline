@@ -325,20 +325,23 @@ def get_oval_full(oval_file):
 def generate_twistlock_report(twistlock_cve_json):
     with open(twistlock_cve_json, mode="r", encoding="utf-8") as f:
         json_data = json.load(f)
-        cves = [
-            {
-                "id": d["id"],
-                "cvss": d["cvss"],
-                "desc": d["description"],
-                "link": d["link"],
-                "packageName": d["packageName,"],
-                "packageVersion": d["packageVersion"],
-                "severity": d["severity"],
-                "status": d["status"],
-                "vecStr": d["vecStr"],
-            }
-            for d in json_data[0]["vulnerabilities"]
-        ]
+        if json_data[0]["vulnerabilities"] is None:
+            cves = []
+        else:
+            cves = [
+                {
+                    "id": d["id"],
+                    "cvss": d["cvss"],
+                    "desc": d["description"],
+                    "link": d["link"],
+                    "packageName": d["packageName,"],
+                    "packageVersion": d["packageVersion"],
+                    "severity": d["severity"],
+                    "status": d["status"],
+                    "vecStr": d["vecStr"],
+                }
+                for d in json_data[0]["vulnerabilities"]
+            ]
     fieldnames = [
         "id",
         "cvss",
