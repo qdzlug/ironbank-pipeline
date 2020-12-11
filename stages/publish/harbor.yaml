@@ -6,8 +6,6 @@ harbor:
     - build
     - load scripts
     - hardening_manifest
-  variables:
-    ARTIFACT_DIR: "${ARTIFACT_STORAGE}"
   script:
     - |
       if [[ "${SPECIAL_IMAGE_PATH}" ]]; then
