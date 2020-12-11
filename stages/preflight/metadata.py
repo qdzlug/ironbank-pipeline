@@ -88,7 +88,7 @@ def process_yaml(content):
                 f.write(keyword)
                 f.write("\n")
     else:
-        debug.info("Keywords field does not exist in hardening_manifest.yaml")
+        logging.info("Keywords field does not exist in hardening_manifest.yaml")
 
     # "resources" intentionally left out
 
