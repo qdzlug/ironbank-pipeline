@@ -1075,7 +1075,7 @@ def update_in_current_scan(iid, findings, scan_source):
         select_all_image_scan_source = (
             "SELECT f.id, finding, package, package_path FROM findings f "
             + "INNER JOIN finding_logs fl ON f.id = fl.finding_id "
-            + "WHERE f.container_id = %s and f.scan_source = %s and active = 1`
+            + "WHERE f.container_id = %s and f.scan_source = %s and active = 1"
         )
         logs.debug(select_all_image_scan_source, str(iid), scan_source)
         cursor.execute(
