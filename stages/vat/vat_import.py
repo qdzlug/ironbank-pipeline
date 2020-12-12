@@ -802,6 +802,8 @@ def insert_finding_log(cursor, values):
     Insert a new finding_log into finding_logs
     :params values tuple of insert values
     """
+
+    logs.debug("In insert_finding_log")
     insert_query = """INSERT INTO `finding_logs` (
         id, finding_id, record_type, state, record_text, in_current_scan, expiration_date,
         inheritable, inherited_id, inherited, false_positive, user_id, record_timestamp, active, record_type_active
@@ -819,7 +821,8 @@ def add_active_log_row(cursor, get_value_query, values_tuple):
     """
     logs.debug("add_active_log_row")
 
-    logs.debug(get_value_query, values_tuple)
+    logs.debug(get_value_query)
+    logs.debug(values_tuple)
     cursor.execute(get_value_query, values_tuple)
     update_values = cursor.fetchone()
 
@@ -1036,9 +1039,6 @@ def update_in_current_scan(iid, findings, scan_source):
     @param scan_source current scan type
     """
 
-    # TO DO NEED TO UPDATE THIS FUNCTION
-    # Most of this logic is at the beginning of update_finding_logs() function
-
     logs.debug("In update_in_current_scan")
 
     conn = connect_to_db()
@@ -1057,7 +1057,8 @@ def update_in_current_scan(iid, findings, scan_source):
             # for existing findings from previous runs.
             update_not_in_current_scan = (
                 "UPDATE finding_logs fl INNER JOIN findings f ON fl.finding_id = f.id "
-                + "SET fl.in_current_scan=0 WHERE f.container_id =%s and scan_source=%s"
+                + "SET fl.in_current_scan=0 WHERE f.container_id =%s and "
+                + "scan_source=%s and record_type_active = 1"
             )
             logs.debug(update_not_in_current_scan, str(iid), scan_source)
             cursor.execute(
@@ -1070,25 +1071,11 @@ def update_in_current_scan(iid, findings, scan_source):
             conn.commit()
             return
 
-        # Set all the findings to 1 for the image ID and the scan source
-        update_to_in_current_scan = (
-            "UPDATE finding_logs fl INNER JOIN findings f ON fl.finding_id = f.id "
-            + "SET fl.in_current_scan=1 WHERE f.container_id =%s and scan_source=%s"
-        )
-        logs.debug(update_to_in_current_scan, str(iid), scan_source)
-        cursor.execute(
-            update_to_in_current_scan,
-            (
-                str(iid),
-                scan_source,
-            ),
-        )
-
         # Query for all the findings for the image ID and the scan source
         select_all_image_scan_source = (
             "SELECT f.id, finding, package, package_path FROM findings f "
             + "INNER JOIN finding_logs fl ON f.id = fl.finding_id "
-            + "WHERE f.container_id = %s and f.scan_source = %s"
+            + "WHERE f.container_id = %s and f.scan_source = %s and active = 1`
         )
         logs.debug(select_all_image_scan_source, str(iid), scan_source)
         cursor.execute(
@@ -1121,7 +1108,7 @@ def update_in_current_scan(iid, findings, scan_source):
 
                 find_log_query = """SELECT id, record_type, in_current_scan, 
                     active, record_text from `finding_logs` WHERE
-                    finding_id = %s and record_type_active = 1 ORDER BY active desc"""
+                    finding_id = %s and record_type_active = 1 ORDER BY active DESC"""
                 find_log_tuple = (str(row["id"]),)
                 logs.debug(find_log_query, (str(row["id"])))
                 cursor.execute(find_log_query, find_log_tuple)
@@ -1143,8 +1130,9 @@ def update_in_current_scan(iid, findings, scan_source):
                     j_record = [x for x in active_records if x[1] == "justification"]
                     sc_record = [x for x in active_records if x[1] == "state_change"]
                     new_entry_selection = """
-                        SELECT NULL, finding_id, record_type, state, %s, 0, expiration_date, inheritable, inherited_id,
-                        inherited, false_positive, %s, %s, %s, 1 from `finding_logs` WHERE id = %s
+                        SELECT NULL, finding_id, record_type, state, %s, 0,
+                        expiration_date, inheritable, inherited_id, inherited,
+                        false_positive, %s, %s, %s, 1 from `finding_logs` WHERE id = %s
                         """
                     if j_record:
                         update_text = j_record[0][4]
