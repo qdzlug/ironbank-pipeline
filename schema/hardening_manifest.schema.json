@@ -195,9 +195,8 @@
                     "$ref": "#/definitions/printable-characters-without-newlines"
                   },
                   "type": {
-                    "$comment": "aws is left for backwards compatibility. Please use s3 moving forward",
                     "type": "string",
-                    "enum": ["aws", "s3"]
+                    "const": "aws"
                   }
                 },
                 "additionalProperties": false,
