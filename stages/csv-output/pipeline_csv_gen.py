@@ -330,7 +330,7 @@ def generate_twistlock_report(twistlock_cve_json):
         else:
             cves = [
                 {
-                    "id": d["id"],
+                    "id": d["cve"],
                     "cvss": d["cvss"],
                     "desc": d["description"],
                     "link": d["link"],
