@@ -5,7 +5,7 @@ mkdir -p "${CSV_REPORT}"
 
 env_filename="csv_output.env"
 
-touch env_filename
+touch csv_output.env
 # pip3 install --upgrade pip
 # pip3 install bs4 pandas argparse openpyxl gitpython
 if [[ "${DISTROLESS:-}" ]]; then
