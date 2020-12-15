@@ -336,7 +336,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             logging.debug("result not none")
             for row in result:
                 i += 1
-                logging.debug("row" + i)
+                logging.debug("row" + str(i))
                 logging.debug(row)
 
     except Error as error:
