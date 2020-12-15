@@ -251,13 +251,14 @@ def _get_greylist_file_contents(image_path, branch):
 
     return contents
 
+
 def vat_vuln_query(im_name, im_version):
     conn = None
     result = None
     try:
         conn = connect_to_db()
         cursor = conn.cursor(buffered=True)
-        #TODO: add new scan logic
+        # TODO: add new scan logic
         query = (
             "SELECT c.name as container \
             , c.version \
@@ -281,7 +282,7 @@ def vat_vuln_query(im_name, im_version):
             + "' and c.version = '"
             + im_version
             + "';"
-            #+ "// AND f.in_current_scan = 1"
+            # + "// AND f.in_current_scan = 1"
         )
         cursor.execute(query)
         result = cursor.fetchall()
@@ -291,6 +292,8 @@ def vat_vuln_query(im_name, im_version):
         if conn is not None and conn.is_connected():
             conn.close()
     return result
+
+
 def get_vulns_from_query(row):
     vuln_dict = {}
     vuln_dict["whitelist_source"] = row[0]
@@ -299,6 +302,7 @@ def get_vulns_from_query(row):
     vuln_dict["status"] = row[6]
     logging.debug(vuln_dict)
     return vuln_dict
+
 
 def _next_ancestor(image_path, greylist, hardening_manifest=None):
     """
@@ -340,7 +344,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     total_whitelist = list()
 
     greylist = _get_greylist_file_contents(
-         image_path=image_name, branch=whitelist_branch
+        image_path=image_name, branch=whitelist_branch
     )
     # logging.info(f"Grabbing CVEs for: {image_name}")
     result = vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
@@ -350,15 +354,15 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         logging.debug("result none")
     else:
         new_scan = False
-        #i = 0
-        #('ironbank-pipelines/pipeline-runner', '0.1', 'Pending', 'CVE-2020-14040', 'anchore_cve', 1, 'Pending')
-        #logging.debug("result not none")
+        # i = 0
+        # ('ironbank-pipelines/pipeline-runner', '0.1', 'Pending', 'CVE-2020-14040', 'anchore_cve', 1, 'Pending')
+        # logging.debug("result not none")
         for row in result:
             vuln_dict = get_vulns_from_query(row)
             total_whitelist.append(Vuln(vuln_dict, image_name))
         logging.debug(total_whitelist)
     # need to swap this for vat query
-    #for vuln in greylist["whitelisted_vulnerabilities"]:
+    # for vuln in greylist["whitelisted_vulnerabilities"]:
     #   total_whitelist.append(Vuln(vuln, image_name))
 
     # need to swap this for hardening_manifest.yaml
@@ -383,7 +387,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             image_path=parent_image, branch=whitelist_branch
         )
 
-        #swap this for vat query
+        # swap this for vat query
         for vuln in greylist["whitelisted_vulnerabilities"]:
             total_whitelist.append(Vuln(vuln, image_name))
 
@@ -396,17 +400,17 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     return total_whitelist
 
 
-#need feedback on adjusting vuln
+# need feedback on adjusting vuln
 class Vuln:
-    vuln_id = "" #e.g. CVE-2020-14040
-    #vuln_desc = "" #missing from vat
-    vuln_source = "" #Anchore (vat returns anchore_cve)
-    whitelist_source = "" #IM_NAME
-    status = "" #Pending, Approved
-    #approved_date = "" #missing from vat
-    #approved_by = "" #missing from vat
-    #justification = "" #not returned by query
-    #('ironbank-pipelines/pipeline-runner', '0.1', 'Pending', 'CVE-2020-14040', 'anchore_cve', 1, 'Pending')
+    vuln_id = ""  # e.g. CVE-2020-14040
+    # vuln_desc = "" #missing from vat
+    vuln_source = ""  # Anchore (vat returns anchore_cve)
+    whitelist_source = ""  # IM_NAME
+    status = ""  # Pending, Approved
+    # approved_date = "" #missing from vat
+    # approved_by = "" #missing from vat
+    # justification = "" #not returned by query
+    # ('ironbank-pipelines/pipeline-runner', '0.1', 'Pending', 'CVE-2020-14040', 'anchore_cve', 1, 'Pending')
     def __repr__(self):
         return f"Vuln: {self.vulnerability} - {self.vuln_source} - {self.whitelist_source} - {self.status}"
 
@@ -415,12 +419,12 @@ class Vuln:
 
     def __init__(self, v, im_name):
         self.vulnerability = v["vulnerability"]
-        #self.vuln_description = v["vuln_description"]
+        # self.vuln_description = v["vuln_description"]
         self.vuln_source = v["vuln_source"]
         self.status = v["status"]
-        #self.approved_date = v["approved_date"]
-        #self.approved_by = v["approved_by"]
-        #self.justification = v["justification"]
+        # self.approved_date = v["approved_date"]
+        # self.approved_by = v["approved_by"]
+        # self.justification = v["justification"]
         self.whitelist_source = im_name
 
 
