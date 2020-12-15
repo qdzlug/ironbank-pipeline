@@ -251,6 +251,46 @@ def _get_greylist_file_contents(image_path, branch):
 
     return contents
 
+def vat_get_vulns():
+    conn = None
+    result = None
+    try:
+        conn = connect_to_db()
+        cursor = conn.cursor(buffered=True)
+        #TODO: add new scan logic
+        query = (
+            "SELECT c.name as container \
+            , c.version \
+            , CASE WHEN cl.type is NULL THEN 'Pending' ELSE cl.type END as container_approval_status \
+            , f.finding \
+            , f.scan_source \
+            , f.in_current_scan \
+            , CASE WHEN fl.type is NULL THEN 'Pending' ELSE fl.type END as finding_status \
+            FROM findings_approvals f \
+            INNER JOIN containers c on f.imageid = c.id \
+            LEFT JOIN ( SELECT findings_log.* ,row_number() \
+            over (partition by approval_id order by date_time DESC, id DESC) as seq_num \
+            FROM findings_log ) fl \
+            ON f.id = fl.approval_id AND fl.seq_num = 1 \
+            LEFT JOIN ( SELECT container_log.* ,row_number() \
+            over (partition by imageid order by date_time DESC, id DESC) as seq_num \
+            FROM container_log ) cl \
+            ON c.id = cl.imageid AND cl.seq_num = 1 \
+            WHERE f.inherited_id is NULL AND c.name = '"
+            + os.environ["IMAGE_NAME"]
+            + "' and c.version = '"
+            + os.environ["IMAGE_VERSION"]
+            + "';"
+            #+ "// AND f.in_current_scan = 1"
+        )
+        cursor.execute(query)
+        result = cursor.fetchall()
+    except Error as error:
+        logging.info(error)
+    finally:
+        if conn is not None and conn.is_connected():
+            conn.close()
+    return result
 
 def _next_ancestor(image_path, greylist, hardening_manifest=None):
     """
@@ -295,63 +335,30 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     #     image_path=image_name, branch=whitelist_branch
     # )
     # logging.info(f"Grabbing CVEs for: {image_name}")
-    conn = None
-    try:
-        conn = connect_to_db()
-        cursor = conn.cursor(buffered=True)
-        new_scan = False
-        query = (
-            "SELECT c.name as container \
-            , c.version \
-            , CASE WHEN cl.type is NULL THEN 'Pending' ELSE cl.type END as container_approval_status \
-            , f.finding \
-            , f.scan_source \
-            , f.in_current_scan \
-            , CASE WHEN fl.type is NULL THEN 'Pending' ELSE fl.type END as finding_status \
-            FROM findings_approvals f \
-            INNER JOIN containers c on f.imageid = c.id \
-            LEFT JOIN ( SELECT findings_log.* ,row_number() \
-            over (partition by approval_id order by date_time DESC, id DESC) as seq_num \
-            FROM findings_log ) fl \
-            ON f.id = fl.approval_id AND fl.seq_num = 1 \
-            LEFT JOIN ( SELECT container_log.* ,row_number() \
-            over (partition by imageid order by date_time DESC, id DESC) as seq_num \
-            FROM container_log ) cl \
-            ON c.id = cl.imageid AND cl.seq_num = 1 \
-            WHERE f.inherited_id is NULL AND c.name = '"
-            + os.environ["IMAGE_NAME"]
-            + "' and c.version = '"
-            + os.environ["IMAGE_VERSION"]
-            + "';"
-            #+ "// AND f.in_current_scan = 1"
-        )
-        cursor.execute(query)
-        result = cursor.fetchall()
-        if result is None:
-            new_scan = True
-            logging.debug("result none")
-        else:
-            i = 0
-            #('ironbank-pipelines/pipeline-runner', '0.1', 'Pending', 'CVE-2020-14040', 'anchore_cve', 1, 'Pending')
-            logging.debug("result not none")
-            for row in result:
-                vuln_dict = {}
-                vuln_dict["whitelist_source"] = row[0]
-                vuln_dict["vulnerability"] = row[3]
-                vuln_dict["vuln_source"] = row[4]
-                vuln_dict["status"] = row[6]
+    result = vat_get_vulns()
 
-    except Error as error:
-        logging.info(error)
-    finally:
-        if conn is not None and conn.is_connected():
-            conn.close()
+    if result is None:
+        new_scan = True
+        logging.debug("result none")
+    else:
+        new_scan = False
+        i = 0
+        #('ironbank-pipelines/pipeline-runner', '0.1', 'Pending', 'CVE-2020-14040', 'anchore_cve', 1, 'Pending')
+        logging.debug("result not none")
+        for row in result:
+            vuln_dict = {}
+            vuln_dict["whitelist_source"] = row[0]
+            vuln_dict["vulnerability"] = row[3]
+            vuln_dict["vuln_source"] = row[4]
+            vuln_dict["status"] = row[6]
+            total_whitelist.append(Vuln(vuln_dict, image_name))
 
     # need to swap this for vat query
     #for vuln in greylist["whitelisted_vulnerabilities"]:
     #   total_whitelist.append(Vuln(vuln, image_name))
 
-    # need to swap this for vat query
+    # need to swap this for hardening_manifest.yaml
+    # need backwards compat (maybe)
     """
     with open("variables.env", "w") as f:
         f.write(f"IMAGE_APPROVAL_STATUS={greylist['approval_status']}\n")
@@ -384,8 +391,9 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
     return total_whitelist
 
+
 #need feedback on adjusting vuln
-class Vuln_VAT:
+class Vuln:
     vuln_id = "" #e.g. CVE-2020-14040
     #vuln_desc = "" #missing from vat
     vuln_source = "" #Anchore (vat returns anchore_cve)
