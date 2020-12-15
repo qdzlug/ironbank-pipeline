@@ -334,7 +334,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             for row in result:
                 print(row)
     except Error as error:
-        logs.info(error)
+        logging.info(error)
     finally:
         if conn is not None and conn.is_connected():
             conn.close()
