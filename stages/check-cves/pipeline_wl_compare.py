@@ -18,11 +18,33 @@ import gitlab
 import pathlib
 import logging
 import argparse
+import mysql.connector
 
 from scanners import oscap
 from scanners import anchore
 from scanners import twistlock
 
+
+def connect_to_db():
+    """
+    @return mariadb connection
+    """
+    conn = None
+    try:
+        conn = mysql.connector.connect(
+            host=args.host, database=args.db, user=args.user, passwd=args.password
+        )
+        if conn.is_connected():
+            # there are many connections to db so this should be uncommented
+            # for troubleshooting
+            logs.debug("Connected to the host %s with user %s", args.host, args.user)
+
+    except Error as err:
+        logs.error(err)
+        if conn is not None and conn.is_connected():
+            conn.close()
+
+    return conn
 
 def _load_local_hardening_manifest():
     """
