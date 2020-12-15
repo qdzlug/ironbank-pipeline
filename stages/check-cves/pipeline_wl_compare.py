@@ -164,7 +164,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     # and should be factored in.
     #
     if not bool(os.environ.get("DISTROLESS")):
-        artifacts_path = os.environ["ARTIFACT_STORAGE"]
+        artifacts_path = os.environ["TEST_ARTIFACT_STORAGE"]
         oscap_file = pathlib.Path(
             artifacts_path, "scan-results", "openscap", "report.html"
         )
