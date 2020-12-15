@@ -15,8 +15,8 @@ check cves:
     # - openscap compliance
     # - anchore scan
   #remove before merge
-  variables:
-    ARTIFACT_STORAGE: "${PIPELINE_REPO_DIR}/stages/check-cves/ci-artifacts"
+  #variables:
+  #  ARTIFACT_STORAGE: "${PIPELINE_REPO_DIR}/stages/check-cves/ci-artifacts"
   script:
     - |
       python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py" \
