@@ -25,6 +25,28 @@ from scanners import anchore
 from scanners import twistlock
 
 
+# Arguments
+parser = argparse.ArgumentParser(description="Run pipelines arguments")
+parser.add_argument(
+    "--lint",
+    action="store_true",
+    help="Lint flag to run the setup but not the business logic",
+)
+#host=args.host, database=args.db, user=args.user, passwd=args.password
+parser.add_argument("-n", "--host", help="Connection Info: Host", required=True)
+parser.add_argument(
+    "-d", "--db", help="Connection Info: Database to connect to", required=True
+)
+parser.add_argument("-u", "--user", help="Connection Info: User", required=True)
+parser.add_argument(
+    "-p",
+    "--password",
+    default="",
+    help="Connection Info: Password, Do not include argument if empty",
+)
+args = parser.parse_args()
+
+
 def connect_to_db():
     """
     @return mariadb connection
@@ -267,14 +289,58 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     """
     total_whitelist = list()
 
-    greylist = _get_greylist_file_contents(
-        image_path=image_name, branch=whitelist_branch
-    )
-    logging.info(f"Grabbing CVEs for: {image_name}")
+    # greylist = _get_greylist_file_contents(
+    #     image_path=image_name, branch=whitelist_branch
+    # )
+    # logging.info(f"Grabbing CVEs for: {image_name}")
+    try:
+        conn = connect_to_db()
+        cursor = conn.cursor(buffered=True)
+        new_scan = False
+        if args.jenkins is not None and args.scan_date is not None:
+            query = (
+                "SELECT c.name as container \
+                , c.version \
+                , CASE WHEN cl.type is NULL THEN "Pending" ELSE cl.type END as container_approval_status \
+                , f.finding \
+                , f.scan_source \
+                , f.in_current_scan \
+                , CASE WHEN fl.type is NULL THEN "Pending" ELSE fl.type END as finding_status \
+                FROM findings_approvals f \
+                INNER JOIN containers c on f.imageid = c.id \
+                LEFT JOIN ( SELECT findings_log.* ,row_number() \
+                over (partition by approval_id order by date_time DESC, id DESC) as seq_num \
+                FROM findings_log ) fl \
+                ON f.id = fl.approval_id AND fl.seq_num = 1 \
+                LEFT JOIN ( SELECT container_log.* ,row_number() \
+                over (partition by imageid order by date_time DESC, id DESC) as seq_num \
+                FROM container_log ) cl \
+                ON c.id = cl.imageid AND cl.seq_num = 1 \
+                WHERE f.inherited_id is NULL AND c.name ="
+                + os.environ["IMAGE_NAME"]
+                + "and c.version ="
+                + os.environ["IMAGE_VERSION"] + ";"
+                + "// AND f.in_current_scan = 1"
+                "
+            )
+            cursor.execute(query)
+            result = cursor.fetchall()
+            if result is None:
+                new_scan = True
+            else:
+                for row in result:
+                    print(row)
+    except Error as error:
+        logs.info(error)
+    finally:
+        if conn is not None and conn.is_connected():
+            conn.close()
 
+    #need to swap this for vat query
     for vuln in greylist["whitelisted_vulnerabilities"]:
         total_whitelist.append(Vuln(vuln, image_name))
 
+    #need to swap this for vat query
     with open("variables.env", "w") as f:
         f.write(f"IMAGE_APPROVAL_STATUS={greylist['approval_status']}\n")
         f.write(f"BASE_IMAGE={hardening_manifest['args']['BASE_IMAGE']}\n")
@@ -287,6 +353,8 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     parent_image = _next_ancestor(
         image_path=image_name, greylist=greylist, hardening_manifest=hardening_manifest
     )
+
+    #need to swap this to use vat
     while parent_image:
         logging.info(f"Grabbing CVEs for: {parent_image}")
         greylist = _get_greylist_file_contents(
@@ -345,14 +413,7 @@ def main():
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
 
-    # Arguments
-    parser = argparse.ArgumentParser(description="Run pipelines arguments")
-    parser.add_argument(
-        "--lint",
-        action="store_true",
-        help="Lint flag to run the setup but not the business logic",
-    )
-    args = parser.parse_args()
+
     # End arguments
 
     #
@@ -360,6 +421,7 @@ def main():
     # At the very least the hardening_manifest.yaml should be generated if it has not been
     # merged in yet. Fetching the parent greylists must be backwards compatible.
     #
+
     hardening_manifest = _load_local_hardening_manifest()
     if hardening_manifest is None:
         logging.error("Your project must contain a hardening_manifest.yaml")
@@ -368,7 +430,7 @@ def main():
     image = hardening_manifest["name"]
 
     _pipeline_whitelist_compare(
-        image_name=image, hardening_manifest=hardening_manifest, lint=args.lint
+        image_name=image, hardening_manifest=hardening_manifest, lint=args.lint,
     )
 
 
