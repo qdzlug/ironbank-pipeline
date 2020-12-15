@@ -19,6 +19,7 @@ import pathlib
 import logging
 import argparse
 import mysql.connector
+from mysql.connector import Error
 
 from scanners import oscap
 from scanners import anchore
@@ -53,6 +54,7 @@ def connect_to_db():
     """
     conn = None
     try:
+        logging.debug(args.db)
         conn = mysql.connector.connect(
             host=args.host, database=args.db, user=args.user, passwd=args.password
         )
