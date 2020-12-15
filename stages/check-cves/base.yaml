@@ -10,10 +10,10 @@ check cves:
   dependencies:
     - hardening_manifest
     - load scripts
-    - twistlock scan
-    - openscap cve
-    - openscap compliance
-    - anchore scan
+    # - twistlock scan
+    # - openscap cve
+    # - openscap compliance
+    # - anchore scan
 
   script:
     - |
