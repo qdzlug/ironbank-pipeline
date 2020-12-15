@@ -60,10 +60,10 @@ def connect_to_db():
         if conn.is_connected():
             # there are many connections to db so this should be uncommented
             # for troubleshooting
-            logs.debug("Connected to the host %s with user %s", args.host, args.user)
+            logging.debug("Connected to the host %s with user %s", args.host, args.user)
 
     except Error as err:
-        logs.error(err)
+        logging.error(err)
         if conn is not None and conn.is_connected():
             conn.close()
 
