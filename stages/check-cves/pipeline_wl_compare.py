@@ -331,8 +331,12 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         if result is None:
             new_scan = True
         else:
+            i = 0
             for row in result:
-                print(row)
+                i += 1
+                logging.debug("row" + i)
+                logging.debug(row)
+
     except Error as error:
         logging.info(error)
     finally:
@@ -344,11 +348,12 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     #   total_whitelist.append(Vuln(vuln, image_name))
 
     # need to swap this for vat query
+    """
     with open("variables.env", "w") as f:
         f.write(f"IMAGE_APPROVAL_STATUS={greylist['approval_status']}\n")
         f.write(f"BASE_IMAGE={hardening_manifest['args']['BASE_IMAGE']}\n")
         f.write(f"BASE_TAG={hardening_manifest['args']['BASE_TAG']}")
-
+    """
     #
     # Use the local hardening manifest to get the first parent. From here *only* the
     # the master branch should be used for the ancestry.
