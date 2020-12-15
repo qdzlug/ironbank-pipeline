@@ -54,7 +54,6 @@ def connect_to_db():
     """
     conn = None
     try:
-        logging.debug(args.db)
         conn = mysql.connector.connect(
             host=args.host, database=args.db, user=args.user, passwd=args.password
         )
@@ -296,6 +295,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     #     image_path=image_name, branch=whitelist_branch
     # )
     # logging.info(f"Grabbing CVEs for: {image_name}")
+    conn = None
     try:
         conn = connect_to_db()
         cursor = conn.cursor(buffered=True)
