@@ -321,7 +321,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             ON c.id = cl.imageid AND cl.seq_num = 1 \
             WHERE f.inherited_id is NULL AND c.name = "
             + os.environ["IMAGE_NAME"]
-            + "and c.version = "
+            + " and c.version = "
             + os.environ["IMAGE_VERSION"]
             + ";"
             #+ "// AND f.in_current_scan = 1"
@@ -340,8 +340,8 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             conn.close()
 
     # need to swap this for vat query
-    for vuln in greylist["whitelisted_vulnerabilities"]:
-        total_whitelist.append(Vuln(vuln, image_name))
+    #for vuln in greylist["whitelisted_vulnerabilities"]:
+    #   total_whitelist.append(Vuln(vuln, image_name))
 
     # need to swap this for vat query
     with open("variables.env", "w") as f:
