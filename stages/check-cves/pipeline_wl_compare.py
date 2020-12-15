@@ -343,30 +343,27 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     """
     total_whitelist = list()
 
+    # TODO: remove after 30 day hardening_manifest merge cutoff
     greylist = _get_greylist_file_contents(
         image_path=image_name, branch=whitelist_branch
     )
     # logging.info(f"Grabbing CVEs for: {image_name}")
     result = vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
 
+    # TODO: Implement new scan logic post feedback
     if result is None:
         new_scan = True
         logging.debug("result none")
     else:
         new_scan = False
-        # i = 0
-        # ('ironbank-pipelines/pipeline-runner', '0.1', 'Pending', 'CVE-2020-14040', 'anchore_cve', 1, 'Pending')
-        # logging.debug("result not none")
         for row in result:
             vuln_dict = get_vulns_from_query(row)
             total_whitelist.append(Vuln(vuln_dict, image_name))
         logging.debug(total_whitelist)
-    # need to swap this for vat query
-    # for vuln in greylist["whitelisted_vulnerabilities"]:
-    #   total_whitelist.append(Vuln(vuln, image_name))
 
     # need to swap this for hardening_manifest.yaml
-    # need backwards compat (maybe), but remove after the 30 day limit
+    # need backwards compat (maybe)
+    # TODO: remove after the hardening_manifest 30 day merge cutoff
     with open("variables.env", "w") as f:
         f.write(f"IMAGE_APPROVAL_STATUS={greylist['approval_status']}\n")
         f.write(f"BASE_IMAGE={hardening_manifest['args']['BASE_IMAGE']}\n")
@@ -383,19 +380,25 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     # need to swap this to use vat
     while parent_image:
         logging.info(f"Grabbing CVEs for: {parent_image}")
+
+        # TODO: remove this after 30 day hardening_manifest merge cutoff
         greylist = _get_greylist_file_contents(
             image_path=parent_image, branch=whitelist_branch
         )
 
-        # swap this for vat query
-        for vuln in greylist["whitelisted_vulnerabilities"]:
-            total_whitelist.append(Vuln(vuln, image_name))
+        # TODO: swap this for hardening manifest after 30 day merge cutoff
+        result = vat_vuln_query(greylist["image_name"], greylist["image_tag"])
+
+        for row in result:
+            vuln_dict = get_vulns_from_query(row)
+            total_whitelist.append(Vuln(vuln_dict, image_name))
+
 
         parent_image = _next_ancestor(
             image_path=parent_image,
             greylist=greylist,
         )
-
+    logging.debug(total_whitelist)
     logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
     return total_whitelist
 
