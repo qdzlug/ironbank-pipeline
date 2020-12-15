@@ -32,7 +32,7 @@ parser.add_argument(
     action="store_true",
     help="Lint flag to run the setup but not the business logic",
 )
-#host=args.host, database=args.db, user=args.user, passwd=args.password
+# host=args.host, database=args.db, user=args.user, passwd=args.password
 parser.add_argument("-n", "--host", help="Connection Info: Host", required=True)
 parser.add_argument(
     "-d", "--db", help="Connection Info: Database to connect to", required=True
@@ -67,6 +67,7 @@ def connect_to_db():
             conn.close()
 
     return conn
+
 
 def _load_local_hardening_manifest():
     """
@@ -301,11 +302,11 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             query = (
                 "SELECT c.name as container \
                 , c.version \
-                , CASE WHEN cl.type is NULL THEN "Pending" ELSE cl.type END as container_approval_status \
+                , CASE WHEN cl.type is NULL THEN 'Pending' ELSE cl.type END as container_approval_status \
                 , f.finding \
                 , f.scan_source \
                 , f.in_current_scan \
-                , CASE WHEN fl.type is NULL THEN "Pending" ELSE fl.type END as finding_status \
+                , CASE WHEN fl.type is NULL THEN 'Pending' ELSE fl.type END as finding_status \
                 FROM findings_approvals f \
                 INNER JOIN containers c on f.imageid = c.id \
                 LEFT JOIN ( SELECT findings_log.* ,row_number() \
@@ -319,9 +320,9 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
                 WHERE f.inherited_id is NULL AND c.name ="
                 + os.environ["IMAGE_NAME"]
                 + "and c.version ="
-                + os.environ["IMAGE_VERSION"] + ";"
+                + os.environ["IMAGE_VERSION"]
+                + ";"
                 + "// AND f.in_current_scan = 1"
-                "
             )
             cursor.execute(query)
             result = cursor.fetchall()
@@ -336,11 +337,11 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         if conn is not None and conn.is_connected():
             conn.close()
 
-    #need to swap this for vat query
+    # need to swap this for vat query
     for vuln in greylist["whitelisted_vulnerabilities"]:
         total_whitelist.append(Vuln(vuln, image_name))
 
-    #need to swap this for vat query
+    # need to swap this for vat query
     with open("variables.env", "w") as f:
         f.write(f"IMAGE_APPROVAL_STATUS={greylist['approval_status']}\n")
         f.write(f"BASE_IMAGE={hardening_manifest['args']['BASE_IMAGE']}\n")
@@ -354,7 +355,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         image_path=image_name, greylist=greylist, hardening_manifest=hardening_manifest
     )
 
-    #need to swap this to use vat
+    # need to swap this to use vat
     while parent_image:
         logging.info(f"Grabbing CVEs for: {parent_image}")
         greylist = _get_greylist_file_contents(
@@ -413,7 +414,6 @@ def main():
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
 
-
     # End arguments
 
     #
@@ -430,7 +430,9 @@ def main():
     image = hardening_manifest["name"]
 
     _pipeline_whitelist_compare(
-        image_name=image, hardening_manifest=hardening_manifest, lint=args.lint,
+        image_name=image,
+        hardening_manifest=hardening_manifest,
+        lint=args.lint,
     )
 
 
