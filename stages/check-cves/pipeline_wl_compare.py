@@ -266,18 +266,19 @@ def vat_vuln_query(im_name, im_version):
             , f.finding \
             , f.scan_source \
             , f.in_current_scan \
-            , CASE WHEN fl.type is NULL THEN 'Pending' ELSE fl.type END as finding_status \
+            , CASE fl.type \
+            WHEN fl.type is NULL THEN 'Pending' \
+            WHEN fl.date_time > cl.date_time and fl.type = 'Approve' THEN 'Reviewed' \
+            WHEN cl.date_time is NULL and fl.type = 'Approve' THEN 'Reviewed' \
+            ELSE fl.type END as finding_status \
             FROM findings_approvals f \
             INNER JOIN containers c on f.imageid = c.id \
-            LEFT JOIN ( SELECT findings_log.* ,row_number() \
-            over (partition by approval_id order by date_time DESC, id DESC) as seq_num \
-            FROM findings_log ) fl \
-            ON f.id = fl.approval_id AND fl.seq_num = 1 \
-            LEFT JOIN ( SELECT container_log.* ,row_number() \
-            over (partition by imageid order by date_time DESC, id DESC) as seq_num \
-            FROM container_log ) cl \
-            ON c.id = cl.imageid AND cl.seq_num = 1 \
-            WHERE f.inherited_id is NULL AND c.name = '"
+            LEFT JOIN findings_log fl on f.id = fl.approval_id \
+            AND fl.id in (SELECT max(id) from findings_log group by approval_id) \
+            LEFT JOIN container_log cl on c.id = cl.imageid \
+            AND cl.id in (SELECT max(id) from container_log) \
+            WHERE f.inherited_id is NULL \
+            AND c.name = '"
             + im_name
             + "' and c.version = '"
             + im_version
