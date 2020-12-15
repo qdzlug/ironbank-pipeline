@@ -3,24 +3,24 @@ include:
 
   - local: stages/preflight/base.yaml
 
-  - local: stages/lint/base.yaml
+  # - local: stages/lint/base.yaml
 
-  - local: stages/import-artifacts/base.yaml
+  # - local: stages/import-artifacts/base.yaml
 
-  - local: stages/scan-artifacts/clamav-scan.yaml
+  # - local: stages/scan-artifacts/clamav-scan.yaml
 
-  - local: stages/build/base.yaml
+  # - local: stages/build/base.yaml
   # # # Removing post-build stage, not needed for beta
   # # # - local: stages/post-build/base.yaml
 
-  - local: stages/scanning/base.yaml
+  # - local: stages/scanning/base.yaml
 
-  - local: stages/csv-output/base.yaml
+  # - local: stages/csv-output/base.yaml
 
   - local: stages/check-cves/base.yaml
 
-  - local: stages/documentation/base.yaml
+  # - local: stages/documentation/base.yaml
 
-  - local: stages/vat/base.yaml
+  # - local: stages/vat/base.yaml
 
-  - local: stages/publish/base.yaml
+  # - local: stages/publish/base.yaml
