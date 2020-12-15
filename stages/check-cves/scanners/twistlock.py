@@ -5,7 +5,7 @@ import pathlib
 
 def get_full():
     twistlock_file = pathlib.Path(
-        os.environ["TEST_ARTIFACT_STORAGE"],
+        os.environ["AS_TEST"],
         "scan-results",
         "twistlock",
         "twistlock_cve.json",

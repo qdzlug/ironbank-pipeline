@@ -82,7 +82,7 @@ def _load_local_hardening_manifest():
     paths = [
         pathlib.Path("hardening_manifest.yaml"),
         # Check for the generated hardening manifest. This method will be deprecated.
-        pathlib.Path(artifacts_path, "preflight", "hardening_manifest.yaml"),
+        pathlib.Path(os.environ["ARTIFACT_STORAGE"], "preflight", "hardening_manifest.yaml"),
     ]
 
     for path in paths:
@@ -164,7 +164,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     # and should be factored in.
     #
     if not bool(os.environ.get("DISTROLESS")):
-        artifacts_path = os.environ["TEST_ARTIFACT_STORAGE"]
+        artifacts_path = os.environ["AS_TEST"]
         oscap_file = pathlib.Path(
             artifacts_path, "scan-results", "openscap", "report.html"
         )

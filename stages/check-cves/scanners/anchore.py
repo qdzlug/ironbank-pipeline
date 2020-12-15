@@ -5,7 +5,7 @@ import pathlib
 
 def get_full():
     anchore_file = pathlib.Path(
-        os.environ["TEST_ARTIFACT_STORAGE"],
+        os.environ["AS_TEST"],
         "scan-results",
         "anchore",
         "anchore_security.json",
