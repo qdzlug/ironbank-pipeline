@@ -319,11 +319,11 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             over (partition by imageid order by date_time DESC, id DESC) as seq_num \
             FROM container_log ) cl \
             ON c.id = cl.imageid AND cl.seq_num = 1 \
-            WHERE f.inherited_id is NULL AND c.name = "
+            WHERE f.inherited_id is NULL AND c.name = '"
             + os.environ["IMAGE_NAME"]
-            + " and c.version = "
+            + "' and c.version = '"
             + os.environ["IMAGE_VERSION"]
-            + ";"
+            + "';"
             #+ "// AND f.in_current_scan = 1"
         )
         cursor.execute(query)
