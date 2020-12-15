@@ -300,39 +300,39 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         conn = connect_to_db()
         cursor = conn.cursor(buffered=True)
         new_scan = False
-        if args.jenkins is not None and args.scan_date is not None:
-            query = (
-                "SELECT c.name as container \
-                , c.version \
-                , CASE WHEN cl.type is NULL THEN 'Pending' ELSE cl.type END as container_approval_status \
-                , f.finding \
-                , f.scan_source \
-                , f.in_current_scan \
-                , CASE WHEN fl.type is NULL THEN 'Pending' ELSE fl.type END as finding_status \
-                FROM findings_approvals f \
-                INNER JOIN containers c on f.imageid = c.id \
-                LEFT JOIN ( SELECT findings_log.* ,row_number() \
-                over (partition by approval_id order by date_time DESC, id DESC) as seq_num \
-                FROM findings_log ) fl \
-                ON f.id = fl.approval_id AND fl.seq_num = 1 \
-                LEFT JOIN ( SELECT container_log.* ,row_number() \
-                over (partition by imageid order by date_time DESC, id DESC) as seq_num \
-                FROM container_log ) cl \
-                ON c.id = cl.imageid AND cl.seq_num = 1 \
-                WHERE f.inherited_id is NULL AND c.name ="
-                + os.environ["IMAGE_NAME"]
-                + "and c.version ="
-                + os.environ["IMAGE_VERSION"]
-                + ";"
-                + "// AND f.in_current_scan = 1"
-            )
-            cursor.execute(query)
-            result = cursor.fetchall()
-            if result is None:
-                new_scan = True
-            else:
-                for row in result:
-                    print(row)
+
+        query = (
+            "SELECT c.name as container \
+            , c.version \
+            , CASE WHEN cl.type is NULL THEN 'Pending' ELSE cl.type END as container_approval_status \
+            , f.finding \
+            , f.scan_source \
+            , f.in_current_scan \
+            , CASE WHEN fl.type is NULL THEN 'Pending' ELSE fl.type END as finding_status \
+            FROM findings_approvals f \
+            INNER JOIN containers c on f.imageid = c.id \
+            LEFT JOIN ( SELECT findings_log.* ,row_number() \
+            over (partition by approval_id order by date_time DESC, id DESC) as seq_num \
+            FROM findings_log ) fl \
+            ON f.id = fl.approval_id AND fl.seq_num = 1 \
+            LEFT JOIN ( SELECT container_log.* ,row_number() \
+            over (partition by imageid order by date_time DESC, id DESC) as seq_num \
+            FROM container_log ) cl \
+            ON c.id = cl.imageid AND cl.seq_num = 1 \
+            WHERE f.inherited_id is NULL AND c.name ="
+            + os.environ["IMAGE_NAME"]
+            + "and c.version ="
+            + os.environ["IMAGE_VERSION"]
+            + ";"
+            + "// AND f.in_current_scan = 1"
+        )
+        cursor.execute(query)
+        result = cursor.fetchall()
+        if result is None:
+            new_scan = True
+        else:
+            for row in result:
+                print(row)
     except Error as error:
         logs.info(error)
     finally:
