@@ -251,7 +251,7 @@ def _get_greylist_file_contents(image_path, branch):
 
     return contents
 
-def vat_get_vulns():
+def vat_vuln_query(im_name, im_version):
     conn = None
     result = None
     try:
@@ -277,9 +277,9 @@ def vat_get_vulns():
             FROM container_log ) cl \
             ON c.id = cl.imageid AND cl.seq_num = 1 \
             WHERE f.inherited_id is NULL AND c.name = '"
-            + os.environ["IMAGE_NAME"]
+            + im_name
             + "' and c.version = '"
-            + os.environ["IMAGE_VERSION"]
+            + im_version
             + "';"
             #+ "// AND f.in_current_scan = 1"
         )
@@ -291,6 +291,14 @@ def vat_get_vulns():
         if conn is not None and conn.is_connected():
             conn.close()
     return result
+def get_vulns_from_query(row):
+    vuln_dict = {}
+    vuln_dict["whitelist_source"] = row[0]
+    vuln_dict["vulnerability"] = row[3]
+    vuln_dict["vuln_source"] = row[4]
+    vuln_dict["status"] = row[6]
+    logging.debug(vuln_dict)
+    return vuln_dict
 
 def _next_ancestor(image_path, greylist, hardening_manifest=None):
     """
@@ -335,37 +343,31 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
          image_path=image_name, branch=whitelist_branch
     )
     # logging.info(f"Grabbing CVEs for: {image_name}")
-    result = vat_get_vulns()
+    result = vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
 
     if result is None:
         new_scan = True
         logging.debug("result none")
     else:
         new_scan = False
-        i = 0
+        #i = 0
         #('ironbank-pipelines/pipeline-runner', '0.1', 'Pending', 'CVE-2020-14040', 'anchore_cve', 1, 'Pending')
-        logging.debug("result not none")
+        #logging.debug("result not none")
         for row in result:
-            vuln_dict = {}
-            vuln_dict["whitelist_source"] = row[0]
-            vuln_dict["vulnerability"] = row[3]
-            vuln_dict["vuln_source"] = row[4]
-            vuln_dict["status"] = row[6]
+            vuln_dict = get_vulns_from_query(row)
             total_whitelist.append(Vuln(vuln_dict, image_name))
-            logging.debug(vuln_dict)
-
+        logging.debug(total_whitelist)
     # need to swap this for vat query
     #for vuln in greylist["whitelisted_vulnerabilities"]:
     #   total_whitelist.append(Vuln(vuln, image_name))
 
     # need to swap this for hardening_manifest.yaml
-    # need backwards compat (maybe)
-    """
+    # need backwards compat (maybe), but remove after the 30 day limit
     with open("variables.env", "w") as f:
         f.write(f"IMAGE_APPROVAL_STATUS={greylist['approval_status']}\n")
         f.write(f"BASE_IMAGE={hardening_manifest['args']['BASE_IMAGE']}\n")
         f.write(f"BASE_TAG={hardening_manifest['args']['BASE_TAG']}")
-    """
+
     #
     # Use the local hardening manifest to get the first parent. From here *only* the
     # the master branch should be used for the ancestry.
@@ -381,6 +383,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             image_path=parent_image, branch=whitelist_branch
         )
 
+        #swap this for vat query
         for vuln in greylist["whitelisted_vulnerabilities"]:
             total_whitelist.append(Vuln(vuln, image_name))
 
