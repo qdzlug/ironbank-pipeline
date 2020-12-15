@@ -324,7 +324,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             + "and c.version = "
             + os.environ["IMAGE_VERSION"]
             + ";"
-            + "// AND f.in_current_scan = 1"
+            #+ "// AND f.in_current_scan = 1"
         )
         cursor.execute(query)
         result = cursor.fetchall()
