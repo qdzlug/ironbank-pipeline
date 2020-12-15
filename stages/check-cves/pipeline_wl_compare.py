@@ -352,6 +352,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             vuln_dict["vuln_source"] = row[4]
             vuln_dict["status"] = row[6]
             total_whitelist.append(Vuln(vuln_dict, image_name))
+            logging.debug(vuln_dict)
 
     # need to swap this for vat query
     #for vuln in greylist["whitelisted_vulnerabilities"]:
