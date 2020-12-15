@@ -18,7 +18,6 @@ check cves:
   #variables:
   #  ARTIFACT_STORAGE: "${PIPELINE_REPO_DIR}/stages/check-cves/ci-artifacts"
   script:
-    - export TEST_ARTIFACT_STORAGE="${PIPELINE_REPO_DIR}/stages/check-cves/ci-artifacts"
     - |
       python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py" \
         --db "${vat_db_database_name}" \
