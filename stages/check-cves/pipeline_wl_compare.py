@@ -411,6 +411,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     logging.debug(total_whitelist)
     logging.debug("greylist comp")
     logging.debug(greylist_comp)
+    logging.debug(len(greylist_comp))
     logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
     return total_whitelist
 
