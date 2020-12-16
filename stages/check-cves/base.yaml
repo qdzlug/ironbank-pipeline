@@ -17,3 +17,8 @@ check cves:
 
   script:
     - python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py"
+
+check_cves_failure_notification:
+  when: on_failure
+  script: 
+    - curl -i -X POST -H 'Content-Type: application/json' -d '{"text": "Hello, this is some text\nThis is more text. :tada:"}' "${CHECK_CVES_FAILURE_WEBHOOK}"
