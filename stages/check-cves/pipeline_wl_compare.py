@@ -408,16 +408,10 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
 # need feedback on adjusting vuln
 class Vuln:
-    # leaving these extra fields commented out since some will likely be needed in the near future
     vuln_id = ""  # e.g. CVE-2020-14040
-    # vuln_desc = "" #missing from vat
-    vuln_source = ""  # Anchore (vat returns anchore_cve)
+    vuln_source = ""  # e.g. Anchore (vat returns anchore_cve)
     whitelist_source = ""  # IM_NAME
-    status = ""  # Pending, Approved
-    # approved_date = "" #missing from vat
-    # approved_by = "" #missing from vat
-    # justification = "" #not returned by query
-    # ('ironbank-pipelines/pipeline-runner', '0.1', 'Pending', 'CVE-2020-14040', 'anchore_cve', 1, 'Pending')
+    status = ""  # e.g. Pending, Approved
     def __repr__(self):
         return f"Vuln: {self.vulnerability} - {self.vuln_source} - {self.whitelist_source} - {self.status}"
 
@@ -425,14 +419,9 @@ class Vuln:
         return f"Vuln: {self.vulnerability} - {self.vuln_source} - {self.whitelist_source} - {self.status}"
 
     def __init__(self, v, im_name):
-        # leaving these extra fields commented out since some will likely be needed in the near future
         self.vulnerability = v["vulnerability"]
-        # self.vuln_description = v["vuln_description"]
         self.vuln_source = v["vuln_source"]
         self.status = v["status"]
-        # self.approved_date = v["approved_date"]
-        # self.approved_by = v["approved_by"]
-        # self.justification = v["justification"]
         self.whitelist_source = im_name
 
 
