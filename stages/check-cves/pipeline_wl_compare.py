@@ -316,14 +316,14 @@ def _next_ancestor(image_path, greylist, hardening_manifest=None):
 
     """
 
-    # # Try to get the parent image out of the local hardening_manifest.
-    # if hardening_manifest:
-    #    return hardening_manifest["args"]["BASE_IMAGE"]
+    # Try to get the parent image out of the local hardening_manifest.
+    if hardening_manifest:
+       return hardening_manifest["args"]["BASE_IMAGE"]
 
-    # # Try to load the hardening manifest from a remote repo.
-    # hm = _load_remote_hardening_manifest(project=image_path)
-    # if hm is not None:
-    #    return hm["args"]["BASE_IMAGE"]
+    # Try to load the hardening manifest from a remote repo.
+    hm = _load_remote_hardening_manifest(project=image_path)
+    if hm is not None:
+       return hm["args"]["BASE_IMAGE"]
 
     try:
         return greylist["image_parent_name"]
