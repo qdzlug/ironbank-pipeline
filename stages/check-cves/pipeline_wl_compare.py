@@ -349,10 +349,10 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         image_path=image_name, branch=whitelist_branch
     )
     logging.info(f"Grabbing CVEs for: {image_name}")
-    #get cves from vat
+    # get cves from vat
     result = vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
 
-    #get parse CVEs from VAT query
+    # parse CVEs from VAT query
     if result is None:
         logging.debug("No results from vat")
     else:
@@ -408,7 +408,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
 # need feedback on adjusting vuln
 class Vuln:
-     # leaving these extra fields commented out since some will likely be needed in the near future
+    # leaving these extra fields commented out since some will likely be needed in the near future
     vuln_id = ""  # e.g. CVE-2020-14040
     # vuln_desc = "" #missing from vat
     vuln_source = ""  # Anchore (vat returns anchore_cve)
