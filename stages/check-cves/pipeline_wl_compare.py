@@ -349,7 +349,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         image_path=image_name, branch=whitelist_branch
     )
     # logging.info(f"Grabbing CVEs for: {image_name}")
-    result = vat_vuln_query("redhat/python/python36", "3.6")
+    result = vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
     greylist_comp = set()
     # TODO: Implement new scan logic post feedback
     if result is None:
@@ -362,6 +362,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             total_whitelist.append(Vuln(vuln_dict, image_name))
 
     logging.debug("Length of total whitelist for source image" + str(len(total_whitelist)))
+
     for vuln in greylist["whitelisted_vulnerabilities"]:
         if vuln["status"] == "approved":
             greylist_comp.add(Vuln(vuln, image_name))
@@ -478,7 +479,7 @@ def main():
     image = hardening_manifest["name"]
 
     _pipeline_whitelist_compare(
-        image_name="redhat/python/python36",
+        image_name=image,
         hardening_manifest=hardening_manifest,
         lint=args.lint,
     )
