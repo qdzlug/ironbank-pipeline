@@ -353,13 +353,14 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     greylist_comp = set()
     # TODO: Implement new scan logic post feedback
     if result is None:
-        new_scan = True
+        new_scan = True #probably won't need new scan since it will pass on dev when first importing cves into vat
         logging.debug("result none")
     else:
         new_scan = False
         for row in result:
             vuln_dict = get_vulns_from_query(row)
             total_whitelist.append(Vuln(vuln_dict, image_name))
+            logging.debug(vuln_dict["vulnerability"])
 
     logging.debug("Length of total whitelist for source image: " + str(len(total_whitelist)))
 
