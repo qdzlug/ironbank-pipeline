@@ -361,6 +361,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             vuln_dict = get_vulns_from_query(row)
             total_whitelist.append(Vuln(vuln_dict, image_name))
 
+    logging.debug("Length of total whitelist for source image" + str(len(total_whitelist)))
     for vuln in greylist["whitelisted_vulnerabilities"]:
         if vuln["status"] == "approved":
             greylist_comp.add(Vuln(vuln, image_name))
@@ -384,6 +385,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
     # need to swap this to use vat
     while parent_image:
+        i = 0
         logging.info(f"Grabbing CVEs for: {parent_image}")
         # TODO: remove this after 30 day hardening_manifest merge cutoff
         greylist = _get_greylist_file_contents(
@@ -402,6 +404,9 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         for row in result:
             vuln_dict = get_vulns_from_query(row)
             total_whitelist.append(Vuln(vuln_dict, image_name))
+            i += 1
+
+        logging.debug("CVEs added from parent image" + str(i))
 
 
         parent_image = _next_ancestor(
