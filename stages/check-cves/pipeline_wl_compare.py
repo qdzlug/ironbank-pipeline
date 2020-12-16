@@ -26,16 +26,6 @@ from scanners import anchore
 from scanners import twistlock
 
 
-# Arguments
-parser = argparse.ArgumentParser(description="Run pipelines arguments")
-parser.add_argument(
-    "--lint",
-    action="store_true",
-    help="Lint flag to run the setup but not the business logic",
-)
-args = parser.parse_args()
-
-
 def _connect_to_db():
     """
     @return mariadb connection
@@ -432,6 +422,14 @@ def main():
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
 
+    # Arguments
+    parser = argparse.ArgumentParser(description="Run pipelines arguments")
+    parser.add_argument(
+        "--lint",
+        action="store_true",
+        help="Lint flag to run the setup but not the business logic",
+    )
+    args = parser.parse_args()
     # End arguments
 
     #
