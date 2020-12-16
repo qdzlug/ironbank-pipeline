@@ -146,9 +146,9 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     )
 
     wl_set = set()
+    #approval status is checked when getting total_whitelist
     for image in image_whitelist:
-        if image.status == "Approve":
-            wl_set.add(image.vulnerability)
+        wl_set.add(image.vulnerability)
 
     # Don't go any further if just linting
     if lint:
