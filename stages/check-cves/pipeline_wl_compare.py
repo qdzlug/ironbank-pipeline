@@ -359,7 +359,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         new_scan = False
         for row in result:
             vuln_dict = get_vulns_from_query(row)
-            if vuln_dict["status"] == "Approve"
+            if vuln_dict["status"] == "Approve":
                 total_whitelist.append(Vuln(vuln_dict, image_name))
                 logging.debug(vuln_dict["vulnerability"])
 
