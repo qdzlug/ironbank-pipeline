@@ -350,7 +350,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     )
     # logging.info(f"Grabbing CVEs for: {image_name}")
     result = vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
-
+    greylist_comp = []
     # TODO: Implement new scan logic post feedback
     if result is None:
         new_scan = True
@@ -361,6 +361,10 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             vuln_dict = get_vulns_from_query(row)
             total_whitelist.append(Vuln(vuln_dict, image_name))
         logging.debug(total_whitelist)
+
+    for vuln in greylist["whitelisted_vulnerabilities"]:
+        if vuln["status"] == "approved":
+            greylist_comp.append(Vuln(vuln, image_name))
 
     # need to swap this for hardening_manifest.yaml
     # need backwards compat (maybe)
@@ -390,6 +394,11 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         # TODO: swap this for hardening manifest after 30 day merge cutoff
         result = vat_vuln_query(greylist["image_name"], greylist["image_tag"])
 
+        for vuln in greylist["whitelisted_vulnerabilities"]:
+            if vuln["status"] == "approved":
+                greylist_comp.append(Vuln(vuln, image_name))
+
+
         for row in result:
             vuln_dict = get_vulns_from_query(row)
             total_whitelist.append(Vuln(vuln_dict, image_name))
@@ -400,6 +409,8 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             greylist=greylist,
         )
     logging.debug(total_whitelist)
+    logging.debug("greylist comp")
+    logging.debug(greylist_comp)
     logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
     return total_whitelist
 
