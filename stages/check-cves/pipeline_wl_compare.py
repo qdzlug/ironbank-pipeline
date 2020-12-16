@@ -140,7 +140,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     wl_branch = os.getenv("WL_TARGET_BRANCH", default="master")
 
     image_whitelist = _get_complete_whitelist_for_image(
-        image_name=image_name,
+        image_name="redhat/ubi/ubi8",
         whitelist_branch=wl_branch,
         hardening_manifest=hardening_manifest,
     )
@@ -349,7 +349,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         image_path=image_name, branch=whitelist_branch
     )
     # logging.info(f"Grabbing CVEs for: {image_name}")
-    result = vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
+    result = vat_vuln_query("redhat/ubi/ubi8", "8.3")
     greylist_comp = []
     # TODO: Implement new scan logic post feedback
     if result is None:
