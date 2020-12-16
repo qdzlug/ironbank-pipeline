@@ -349,7 +349,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         image_path=image_name, branch=whitelist_branch
     )
     # logging.info(f"Grabbing CVEs for: {image_name}")
-    result = vat_vuln_query("redhat/python/python36", "3.6")
+    result = vat_vuln_query("redhat/ubi/ubi8", "8.3")
 
 
     if result is None:
@@ -469,7 +469,7 @@ def main():
     image = hardening_manifest["name"]
 
     _pipeline_whitelist_compare(
-        image_name="redhat/python/python36",
+        image_name="redhat/ubi/ubi8",
         hardening_manifest=hardening_manifest,
         lint=args.lint,
     )
