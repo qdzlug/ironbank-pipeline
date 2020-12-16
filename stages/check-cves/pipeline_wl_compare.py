@@ -43,22 +43,23 @@ def _connect_to_db():
     conn = None
     try:
         conn = mysql.connector.connect(
-            host=os.environ["vat_db_host"],
-            database=os.environ["vat_db_database_name"],
-            user=os.environ["vat_db_connection_user"],
-            passwd=os.environ["vat_db_connection_pass"],
+            host=args.host, database=args.db, user=args.user, passwd=args.password
         )
         if conn.is_connected():
             # there are many connections to db so this should be uncommented
             # for troubleshooting
             logging.debug("Connected to the host %s with user %s", args.host, args.user)
-
+        else:
+            logging.critical("Failed to connect to DB")
+            sys.exit(1)
     except Error as err:
-        logging.error(err)
+        logging.critical(err)
         if conn is not None and conn.is_connected():
             conn.close()
+        sys.exit(1)
 
     return conn
+
 
 
 def _load_local_hardening_manifest():
@@ -251,32 +252,30 @@ def _vat_vuln_query(im_name, im_version):
         cursor = conn.cursor(buffered=True)
         # TODO: add new scan logic
         query = (
-            "SELECT c.name as container \
-            , c.version \
-            , CASE WHEN cl.type is NULL THEN 'Pending' ELSE cl.type END as container_approval_status \
-            , f.finding \
-            , f.scan_source \
-            , f.in_current_scan \
-            , CASE fl.type \
-            WHEN fl.type is NULL THEN 'Pending' \
-            WHEN fl.date_time > cl.date_time and fl.type = 'Approve' THEN 'Reviewed' \
-            WHEN cl.date_time is NULL and fl.type = 'Approve' THEN 'Reviewed' \
-            ELSE fl.type END as finding_status \
-            FROM findings_approvals f \
-            INNER JOIN containers c on f.imageid = c.id \
-            LEFT JOIN findings_log fl on f.id = fl.approval_id \
-            AND fl.id in (SELECT max(id) from findings_log group by approval_id) \
-            LEFT JOIN container_log cl on c.id = cl.imageid \
-            AND cl.id in (SELECT max(id) from container_log GROUP BY imageid)  \
-            WHERE f.inherited_id is NULL \
-            AND c.name = '"
-            + im_name
-            + "' and c.version = '"
-            + im_version
-            + "' AND f.in_current_scan = 1;"
-            # + "// AND f.in_current_scan = 1"
+            """SELECT c.name as container
+            , c.version
+            , CASE WHEN cl.type is NULL THEN 'Pending' ELSE cl.type END as container_approval_status
+            , f.finding
+            , f.scan_source
+            , f.in_current_scan
+            , CASE fl.type
+            WHEN fl.type is NULL THEN 'Pending'
+            WHEN fl.date_time > cl.date_time and fl.type = 'Approve' THEN 'Reviewed'
+            WHEN cl.date_time is NULL and fl.type = 'Approve' THEN 'Reviewed'
+            ELSE fl.type END as finding_status
+            FROM findings_approvals f
+            INNER JOIN containers c on f.imageid = c.id
+            LEFT JOIN findings_log fl on f.id = fl.approval_id
+            AND fl.id in (SELECT max(id) from findings_log group by approval_id)
+            LEFT JOIN container_log cl on c.id = cl.imageid
+            AND cl.id in (SELECT max(id) from container_log GROUP BY imageid)
+            WHERE f.inherited_id is NULL
+            AND c.name=%s
+            AND c.version=%s
+            AND f.in_current_scan = 1;"""
+
         )
-        cursor.execute(query)
+        cursor.execute(query, (im_name, im_version))
         result = cursor.fetchall()
     except Error as error:
         logging.info(error)
