@@ -146,7 +146,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     )
 
     wl_set = set()
-    #approval status is checked when getting total_whitelist
+    #approval status is checked when retrieving image_whitelist
     for image in image_whitelist:
         wl_set.add(image.vulnerability)
 
@@ -350,8 +350,8 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     )
     # logging.info(f"Grabbing CVEs for: {image_name}")
     result = vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
-    greylist_comp = set()
-    # TODO: Implement new scan logic post feedback
+
+
     if result is None:
         new_scan = True #probably won't need new scan since it will pass on dev when first importing cves into vat
         logging.debug("result none")
@@ -364,10 +364,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
                 logging.debug(vuln_dict["vulnerability"])
 
     logging.debug("Length of total whitelist for source image: " + str(len(total_whitelist)))
-
-    for vuln in greylist["whitelisted_vulnerabilities"]:
-        if vuln["status"] == "approved":
-            greylist_comp.add(Vuln(vuln, image_name))
 
 
     # need to swap this for hardening_manifest.yaml
@@ -398,12 +394,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         # TODO: swap this for hardening manifest after 30 day merge cutoff
         result = vat_vuln_query(greylist["image_name"], greylist["image_tag"])
 
-        for vuln in greylist["whitelisted_vulnerabilities"]:
-            if vuln["status"] == "approved":
-                greylist_comp.add(Vuln(vuln, image_name))
-
-
-
         for row in result:
             vuln_dict = get_vulns_from_query(row)
             if vuln_dict["status"] == "Approve":
@@ -417,11 +407,8 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             image_path=parent_image,
             greylist=greylist,
         )
-    #logging.debug(total_whitelist)
+
     logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
-    #greylist_comp = set(greylist_comp)
-    #logging.debug(greylist_comp)
-    logging.debug("Total approved greylist cves:" + str(len(greylist_comp)))
     return total_whitelist
 
 
