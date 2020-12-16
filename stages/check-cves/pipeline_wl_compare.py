@@ -282,7 +282,7 @@ def vat_vuln_query(im_name, im_version):
             + im_name
             + "' and c.version = '"
             + im_version
-            + "';"
+            + "' AND f.in_current_scan = 1;"
             # + "// AND f.in_current_scan = 1"
         )
         cursor.execute(query)
