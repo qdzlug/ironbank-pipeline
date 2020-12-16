@@ -350,7 +350,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     )
     # logging.info(f"Grabbing CVEs for: {image_name}")
     result = vat_vuln_query("redhat/ubi/ubi8", "8.3")
-    greylist_comp = []
+    greylist_comp = set()
     # TODO: Implement new scan logic post feedback
     if result is None:
         new_scan = True
@@ -364,7 +364,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
     for vuln in greylist["whitelisted_vulnerabilities"]:
         if vuln["status"] == "approved":
-            greylist_comp.append(Vuln(vuln, image_name))
+            greylist_comp.add(Vuln(vuln, image_name))
 
     # need to swap this for hardening_manifest.yaml
     # need backwards compat (maybe)
@@ -373,7 +373,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         f.write(f"IMAGE_APPROVAL_STATUS={greylist['approval_status']}\n")
         f.write(f"BASE_IMAGE={hardening_manifest['args']['BASE_IMAGE']}\n")
         f.write(f"BASE_TAG={hardening_manifest['args']['BASE_TAG']}")
-
+    i = 1
     #
     # Use the local hardening manifest to get the first parent. From here *only* the
     # the master branch should be used for the ancestry.
@@ -381,11 +381,12 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     parent_image = _next_ancestor(
         image_path=image_name, greylist=greylist, hardening_manifest=hardening_manifest
     )
-
+    logging.debug(i)
     # need to swap this to use vat
     while parent_image:
         logging.info(f"Grabbing CVEs for: {parent_image}")
-
+        i+=1
+        logging.debug(i)
         # TODO: remove this after 30 day hardening_manifest merge cutoff
         greylist = _get_greylist_file_contents(
             image_path=parent_image, branch=whitelist_branch
@@ -396,7 +397,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
         for vuln in greylist["whitelisted_vulnerabilities"]:
             if vuln["status"] == "approved":
-                greylist_comp.append(Vuln(vuln, image_name))
+                greylist_comp.add(Vuln(vuln, image_name))
 
 
         for row in result:
@@ -408,11 +409,10 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             image_path=parent_image,
             greylist=greylist,
         )
-    logging.debug(total_whitelist)
+    #logging.debug(total_whitelist)
     logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
-    greylist_comp = set(greylist_comp)
-    logging.debug("Total Approved query cves")
-    logging.debug(greylist_comp)
+    #greylist_comp = set(greylist_comp)
+    #logging.debug(greylist_comp)
     logging.debug("Total approved greylist cves:" + str(len(greylist_comp)))
     return total_whitelist
 
