@@ -43,7 +43,11 @@ def _connect_to_db():
     conn = None
     try:
         conn = mysql.connector.connect(
-            host=args.host, database=args.db, user=args.user, passwd=args.password
+            host=os.environ["vat_db_host"],
+            database=os.environ["vat_db_database_name"],
+            user=os.environ["vat_db_connection_user"],
+            passwd=os.environ["vat_db_connection_pass"],
+
         )
         if conn.is_connected():
             # there are many connections to db so this should be uncommented
