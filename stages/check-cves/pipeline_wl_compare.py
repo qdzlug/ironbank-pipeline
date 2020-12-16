@@ -410,6 +410,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         )
     logging.debug(total_whitelist)
     logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
+    greylist_comp = set(greylist_comp)
     logging.debug("Total Approved query cves")
     logging.debug(greylist_comp)
     logging.debug("Total approved greylist cves:" + str(len(greylist_comp)))
