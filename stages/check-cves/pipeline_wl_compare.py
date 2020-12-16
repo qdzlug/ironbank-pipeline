@@ -349,7 +349,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         image_path=image_name, branch=whitelist_branch
     )
     # logging.info(f"Grabbing CVEs for: {image_name}")
-    result = vat_vuln_query("redhat/ubi/ubi8", "8.3")
+    result = vat_vuln_query("redhat/ubi/ubi8", "8.2")
     greylist_comp = set()
     # TODO: Implement new scan logic post feedback
     if result is None:
