@@ -373,7 +373,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         f.write(f"IMAGE_APPROVAL_STATUS={greylist['approval_status']}\n")
         f.write(f"BASE_IMAGE={hardening_manifest['args']['BASE_IMAGE']}\n")
         f.write(f"BASE_TAG={hardening_manifest['args']['BASE_TAG']}")
-    i = 1
     #
     # Use the local hardening manifest to get the first parent. From here *only* the
     # the master branch should be used for the ancestry.
@@ -384,7 +383,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
     # need to swap this to use vat
     while parent_image:
-        i = 0
         logging.info(f"Grabbing CVEs for: {parent_image}")
         # TODO: remove this after 30 day hardening_manifest merge cutoff
         greylist = _get_greylist_file_contents(
@@ -398,9 +396,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             vuln_dict = get_vulns_from_query(row)
             if vuln_dict["status"] == "Approve":
                 total_whitelist.append(Vuln(vuln_dict, image_name))
-                i += 1
-
-        logging.debug("CVEs added from parent image: " + str(i))
 
         parent_image = _next_ancestor(
             image_path=parent_image,
