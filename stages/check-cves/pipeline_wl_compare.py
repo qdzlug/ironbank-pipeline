@@ -276,7 +276,7 @@ def vat_vuln_query(im_name, im_version):
             LEFT JOIN findings_log fl on f.id = fl.approval_id \
             AND fl.id in (SELECT max(id) from findings_log group by approval_id) \
             LEFT JOIN container_log cl on c.id = cl.imageid \
-            AND cl.id in (SELECT max(id) from container_log) \
+            AND cl.id in (SELECT max(id) from container_log GROUP BY imageid)  \
             WHERE f.inherited_id is NULL \
             AND c.name = '"
             + im_name
@@ -395,9 +395,9 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         # TODO: swap this for hardening manifest after 30 day merge cutoff
         result = vat_vuln_query(greylist["image_name"], greylist["image_tag"])
 
-        for vuln in greylist["whitelisted_vulnerabilities"]:
-            if vuln["status"] == "approved":
-                greylist_comp.add(Vuln(vuln, image_name))
+        #for vuln in greylist["whitelisted_vulnerabilities"]:
+        #    if vuln["status"] == "approved":
+        #        greylist_comp.add(Vuln(vuln, image_name))
 
 
         for row in result:
