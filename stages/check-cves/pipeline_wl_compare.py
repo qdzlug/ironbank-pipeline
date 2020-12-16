@@ -48,7 +48,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 
-def connect_to_db():
+def _connect_to_db():
     """
     @return mariadb connection
     """
@@ -256,7 +256,7 @@ def _vat_vuln_query(im_name, im_version):
     conn = None
     result = None
     try:
-        conn = connect_to_db()
+        conn = _connect_to_db()
         cursor = conn.cursor(buffered=True)
         # TODO: add new scan logic
         query = (
