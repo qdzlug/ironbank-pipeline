@@ -252,7 +252,7 @@ def _get_greylist_file_contents(image_path, branch):
     return contents
 
 
-def vat_vuln_query(im_name, im_version):
+def _vat_vuln_query(im_name, im_version):
     conn = None
     result = None
     try:
@@ -295,7 +295,7 @@ def vat_vuln_query(im_name, im_version):
     return result
 
 
-def get_vulns_from_query(row):
+def _get_vulns_from_query(row):
     vuln_dict = {}
     vuln_dict["whitelist_source"] = row[0]
     vuln_dict["vulnerability"] = row[3]
@@ -350,14 +350,14 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     )
     logging.info(f"Grabbing CVEs for: {image_name}")
     # get cves from vat
-    result = vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
+    result = _vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
 
     # parse CVEs from VAT query
     if result is None:
         logging.debug("No results from vat")
     else:
         for row in result:
-            vuln_dict = get_vulns_from_query(row)
+            vuln_dict = _get_vulns_from_query(row)
             if vuln_dict["status"] == "Approve":
                 total_whitelist.append(Vuln(vuln_dict, image_name))
                 logging.debug(vuln_dict["vulnerability"])
@@ -390,10 +390,10 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         )
 
         # TODO: swap this for hardening manifest after 30 day merge cutoff
-        result = vat_vuln_query(greylist["image_name"], greylist["image_tag"])
+        result = _vat_vuln_query(greylist["image_name"], greylist["image_tag"])
 
         for row in result:
-            vuln_dict = get_vulns_from_query(row)
+            vuln_dict = _get_vulns_from_query(row)
             if vuln_dict["status"] == "Approve":
                 total_whitelist.append(Vuln(vuln_dict, image_name))
 
