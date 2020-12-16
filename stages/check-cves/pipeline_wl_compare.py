@@ -361,7 +361,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             vuln_dict = get_vulns_from_query(row)
             total_whitelist.append(Vuln(vuln_dict, image_name))
 
-    logging.debug("Length of total whitelist for source image" + str(len(total_whitelist)))
+    logging.debug("Length of total whitelist for source image: " + str(len(total_whitelist)))
 
     for vuln in greylist["whitelisted_vulnerabilities"]:
         if vuln["status"] == "approved":
@@ -407,7 +407,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             total_whitelist.append(Vuln(vuln_dict, image_name))
             i += 1
 
-        logging.debug("CVEs added from parent image" + str(i))
+        logging.debug("CVEs added from parent image: " + str(i))
 
 
         parent_image = _next_ancestor(
