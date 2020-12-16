@@ -148,6 +148,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     wl_set = set()
     for image in image_whitelist:
         if image.status == "Approve":
+            logging.debug(image.status)
             wl_set.add(image.vulnerability)
         else:
             logging.debug(image.status)
