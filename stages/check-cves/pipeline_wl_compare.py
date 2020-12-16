@@ -368,6 +368,8 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     for vuln in greylist["whitelisted_vulnerabilities"]:
         if vuln["status"] == "approved":
             greylist_comp.add(Vuln(vuln, image_name))
+        else:
+            logging.debug(vuln["status"])
 
     # need to swap this for hardening_manifest.yaml
     # need backwards compat (maybe)
@@ -401,6 +403,8 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         for vuln in greylist["whitelisted_vulnerabilities"]:
             if vuln["status"] == "approved":
                 greylist_comp.add(Vuln(vuln, image_name))
+            else:
+                logging.debug(vuln["status"])
 
 
         for row in result:
