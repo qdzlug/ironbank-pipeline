@@ -52,7 +52,7 @@ def _connect_to_db():
         if conn.is_connected():
             # there are many connections to db so this should be uncommented
             # for troubleshooting
-            logging.debug("Connected to the host %s with user %s", args.host, args.user)
+            logging.debug("Connected to the host %s with user %s", os.environ["vat_db_host"], os.environ["vat_db_connection_user"])
         else:
             logging.critical("Failed to connect to DB")
             sys.exit(1)
