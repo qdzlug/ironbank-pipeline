@@ -33,18 +33,6 @@ parser.add_argument(
     action="store_true",
     help="Lint flag to run the setup but not the business logic",
 )
-# host=args.host, database=args.db, user=args.user, passwd=args.password
-parser.add_argument("-n", "--host", help="Connection Info: Host", required=True)
-parser.add_argument(
-    "-d", "--db", help="Connection Info: Database to connect to", required=True
-)
-parser.add_argument("-u", "--user", help="Connection Info: User", required=True)
-parser.add_argument(
-    "-p",
-    "--password",
-    default="",
-    help="Connection Info: Password, Do not include argument if empty",
-)
 args = parser.parse_args()
 
 
@@ -55,7 +43,10 @@ def _connect_to_db():
     conn = None
     try:
         conn = mysql.connector.connect(
-            host=args.host, database=args.db, user=args.user, passwd=args.password
+            host=os.environ["vat_db_host"],
+            database=os.environ["vat_db_database_name"],
+            user=os.environ["vat_db_connection_user"],
+            passwd=os.environ["vat_db_connection_pass"],
         )
         if conn.is_connected():
             # there are many connections to db so this should be uncommented
@@ -412,6 +403,7 @@ class Vuln:
     vuln_source = ""  # e.g. Anchore (vat returns anchore_cve)
     whitelist_source = ""  # IM_NAME
     status = ""  # e.g. Pending, Approved
+
     def __repr__(self):
         return f"Vuln: {self.vulnerability} - {self.vuln_source} - {self.whitelist_source} - {self.status}"
 
