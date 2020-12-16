@@ -47,12 +47,15 @@ def _connect_to_db():
             database=os.environ["vat_db_database_name"],
             user=os.environ["vat_db_connection_user"],
             passwd=os.environ["vat_db_connection_pass"],
-
         )
         if conn.is_connected():
             # there are many connections to db so this should be uncommented
             # for troubleshooting
-            logging.debug("Connected to the host %s with user %s", os.environ["vat_db_host"], os.environ["vat_db_connection_user"])
+            logging.debug(
+                "Connected to the host %s with user %s",
+                os.environ["vat_db_host"],
+                os.environ["vat_db_connection_user"],
+            )
         else:
             logging.critical("Failed to connect to DB")
             sys.exit(1)
@@ -63,7 +66,6 @@ def _connect_to_db():
         sys.exit(1)
 
     return conn
-
 
 
 def _load_local_hardening_manifest():
@@ -255,8 +257,7 @@ def _vat_vuln_query(im_name, im_version):
         conn = _connect_to_db()
         cursor = conn.cursor(buffered=True)
         # TODO: add new scan logic
-        query = (
-            """SELECT c.name as container
+        query = """SELECT c.name as container
             , c.version
             , CASE WHEN cl.type is NULL THEN 'Pending' ELSE cl.type END as container_approval_status
             , f.finding
@@ -277,8 +278,6 @@ def _vat_vuln_query(im_name, im_version):
             AND c.name=%s
             AND c.version=%s
             AND f.in_current_scan = 1;"""
-
-        )
         cursor.execute(query, (im_name, im_version))
         result = cursor.fetchall()
     except Error as error:
