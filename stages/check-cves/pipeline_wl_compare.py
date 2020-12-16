@@ -348,14 +348,14 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     greylist = _get_greylist_file_contents(
         image_path=image_name, branch=whitelist_branch
     )
-    # logging.info(f"Grabbing CVEs for: {image_name}")
+    logging.info(f"Grabbing CVEs for: {image_name}")
+    #get cves from vat
     result = vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
 
+    #get parse CVEs from VAT query
     if result is None:
-        new_scan = True  # probably won't need new scan since it will pass on dev when first importing cves into vat
-        logging.debug("result none")
+        logging.debug("No results from vat")
     else:
-        new_scan = False
         for row in result:
             vuln_dict = get_vulns_from_query(row)
             if vuln_dict["status"] == "Approve":
@@ -381,7 +381,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         image_path=image_name, greylist=greylist, hardening_manifest=hardening_manifest
     )
 
-    # need to swap this to use vat
+    # get parent cves from VAT
     while parent_image:
         logging.info(f"Grabbing CVEs for: {parent_image}")
         # TODO: remove this after 30 day hardening_manifest merge cutoff
@@ -408,6 +408,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
 # need feedback on adjusting vuln
 class Vuln:
+     # leaving these extra fields commented out since some will likely be needed in the near future
     vuln_id = ""  # e.g. CVE-2020-14040
     # vuln_desc = "" #missing from vat
     vuln_source = ""  # Anchore (vat returns anchore_cve)
@@ -424,6 +425,7 @@ class Vuln:
         return f"Vuln: {self.vulnerability} - {self.vuln_source} - {self.whitelist_source} - {self.status}"
 
     def __init__(self, v, im_name):
+        # leaving these extra fields commented out since some will likely be needed in the near future
         self.vulnerability = v["vulnerability"]
         # self.vuln_description = v["vuln_description"]
         self.vuln_source = v["vuln_source"]
