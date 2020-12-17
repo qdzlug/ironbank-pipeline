@@ -351,9 +351,14 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
     # need to swap this for hardening_manifest.yaml
     # need backwards compat (maybe)
-    # TODO: remove after the hardening_manifest 30 day merge cutoff
+    check_container_approval = result[0]
+    logging.debug(check_container_approval)
     with open("variables.env", "w") as f:
-        f.write(f"IMAGE_APPROVAL_STATUS={greylist['approval_status']}\n")
+        #all cves for container have container approval at ind 2
+        if "approve" in check_container_approval[2].lower():
+            f.write(f"IMAGE_APPROVAL_STATUS='approved'\n")
+        else:
+            f.write(f"IMAGE_APPROVAL_STATUS='notapproved'\n")
         f.write(f"BASE_IMAGE={hardening_manifest['args']['BASE_IMAGE']}\n")
         f.write(f"BASE_TAG={hardening_manifest['args']['BASE_TAG']}")
     #
