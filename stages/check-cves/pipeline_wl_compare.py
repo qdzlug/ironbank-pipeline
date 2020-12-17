@@ -336,21 +336,26 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     result = _vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
     logging.debug(result)
     # parse CVEs from VAT query
+    # empty list is returned if no entry or no cves. NoneType only returned if error.
     if result is None:
-        logging.debug("No results from vat")
+        logging.error("No results from vat. Fatal error.")
+        sys.exit(1)
     else:
         for row in result:
             vuln_dict = _get_vulns_from_query(row)
-            if "approve" in vuln_dict["status"].lower():
-                total_whitelist.append(Vuln(vuln_dict, image_name))
-                logging.debug(vuln_dict["vulnerability"])
+            if vuln_dict["status"] is not None:
+                if "approve" in vuln_dict["status"].lower():
+                    total_whitelist.append(Vuln(vuln_dict, image_name))
+                    logging.debug(vuln_dict)
+            else:
+                logging.debug("There is no approval status present in result.")
 
     logging.debug(
         "Length of total whitelist for source image: " + str(len(total_whitelist))
     )
 
     # get container approval from first row in result, if record in vat, get from record, else set NotFoundInVat
-    if len(result) >= 1:
+    if len(result) >= 1 and result[0][2] is not None:
         check_container_approval = result[0]
     else:
         check_container_approval = (
