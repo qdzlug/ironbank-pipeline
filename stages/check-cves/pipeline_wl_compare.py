@@ -348,7 +348,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
                     logging.debug(vuln_dict["vulnerability"])
             else:
                 logging.debug("There is no approval status present in result.")
-    
+
     logging.debug(
         "Length of total whitelist for source image: " + str(len(total_whitelist))
     )
