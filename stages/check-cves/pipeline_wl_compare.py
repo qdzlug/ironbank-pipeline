@@ -334,7 +334,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     logging.info(f"Grabbing CVEs for: {image_name}")
     # get cves from vat
     result = _vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
-
+    logging.debug(result)
     # parse CVEs from VAT query
     if result is None:
         logging.debug("No results from vat")
