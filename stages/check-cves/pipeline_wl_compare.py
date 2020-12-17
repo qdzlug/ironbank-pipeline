@@ -343,9 +343,9 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     else:
         for row in result:
             vuln_dict = _get_vulns_from_query(row)
-            if vuln_dict["status"]:
-                if vuln_dict["status"].lower() == "approve":
-                    total_whitelist.append(Vuln(vuln_dict, image_name))
+            if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
+                total_whitelist.append(Vuln(vuln_dict, image_name))
+                logging.debug(vuln_dict)
                     logging.debug(vuln_dict)
             else:
                 logging.debug("There is no approval status present in result.")
