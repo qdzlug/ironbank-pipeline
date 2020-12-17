@@ -18,10 +18,44 @@ import gitlab
 import pathlib
 import logging
 import argparse
+import mysql.connector
+from mysql.connector import Error
 
 from scanners import oscap
 from scanners import anchore
 from scanners import twistlock
+
+
+def _connect_to_db():
+    """
+    @return mariadb connection
+    """
+    conn = None
+    try:
+        conn = mysql.connector.connect(
+            host=os.environ["vat_db_host"],
+            database=os.environ["vat_db_database_name"],
+            user=os.environ["vat_db_connection_user"],
+            passwd=os.environ["vat_db_connection_pass"],
+        )
+        if conn.is_connected():
+            # there are many connections to db so this should be uncommented
+            # for troubleshooting
+            logging.debug(
+                "Connected to the host %s with user %s",
+                os.environ["vat_db_host"],
+                os.environ["vat_db_connection_user"],
+            )
+        else:
+            logging.critical("Failed to connect to DB")
+            sys.exit(1)
+    except Error as err:
+        logging.critical(err)
+        if conn is not None and conn.is_connected():
+            conn.close()
+        sys.exit(1)
+
+    return conn
 
 
 def _load_local_hardening_manifest():
@@ -100,9 +134,9 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     )
 
     wl_set = set()
+    # approval status is checked when retrieving image_whitelist
     for image in image_whitelist:
-        if image.status == "approved":
-            wl_set.add(image.vulnerability)
+        wl_set.add(image.vulnerability)
 
     # Don't go any further if just linting
     if lint:
@@ -206,6 +240,54 @@ def _get_greylist_file_contents(image_path, branch):
     return contents
 
 
+def _vat_vuln_query(im_name, im_version):
+    conn = None
+    result = None
+    try:
+        conn = _connect_to_db()
+        cursor = conn.cursor(buffered=True)
+        # TODO: add new scan logic
+        query = """SELECT c.name as container
+            , c.version
+            , CASE WHEN cl.type is NULL THEN 'Pending' ELSE cl.type END as container_approval_status
+            , f.finding
+            , f.scan_source
+            , f.in_current_scan
+            , CASE fl.type
+            WHEN fl.type is NULL THEN 'Pending'
+            WHEN fl.date_time > cl.date_time and fl.type = 'Approve' THEN 'Reviewed'
+            WHEN cl.date_time is NULL and fl.type = 'Approve' THEN 'Reviewed'
+            ELSE fl.type END as finding_status
+            FROM findings_approvals f
+            INNER JOIN containers c on f.imageid = c.id
+            LEFT JOIN findings_log fl on f.id = fl.approval_id
+            AND fl.id in (SELECT max(id) from findings_log group by approval_id)
+            LEFT JOIN container_log cl on c.id = cl.imageid
+            AND cl.id in (SELECT max(id) from container_log GROUP BY imageid)
+            WHERE f.inherited_id is NULL
+            AND c.name=%s
+            AND c.version=%s
+            AND f.in_current_scan = 1;"""
+        cursor.execute(query, (im_name, im_version))
+        result = cursor.fetchall()
+    except Error as error:
+        logging.info(error)
+    finally:
+        if conn is not None and conn.is_connected():
+            conn.close()
+    return result
+
+
+def _get_vulns_from_query(row):
+    vuln_dict = {}
+    vuln_dict["whitelist_source"] = row[0]
+    vuln_dict["vulnerability"] = row[3]
+    vuln_dict["vuln_source"] = row[4]
+    vuln_dict["status"] = row[6]
+    # logging.debug(vuln_dict)
+    return vuln_dict
+
+
 def _next_ancestor(image_path, greylist, hardening_manifest=None):
     """
     Grabs the parent image path from the current context. Will initially attempt to load
@@ -245,19 +327,46 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     """
     total_whitelist = list()
 
+    # TODO: remove after 30 day hardening_manifest merge cutoff
     greylist = _get_greylist_file_contents(
         image_path=image_name, branch=whitelist_branch
     )
     logging.info(f"Grabbing CVEs for: {image_name}")
+    # get cves from vat
+    result = _vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
+    logging.debug(result)
+    # parse CVEs from VAT query
+    if result is None:
+        logging.debug("No results from vat")
+    else:
+        for row in result:
+            vuln_dict = _get_vulns_from_query(row)
+            if "approve" in vuln_dict["status"].lower():
+                total_whitelist.append(Vuln(vuln_dict, image_name))
+                logging.debug(vuln_dict["vulnerability"])
 
-    for vuln in greylist["whitelisted_vulnerabilities"]:
-        total_whitelist.append(Vuln(vuln, image_name))
+    logging.debug(
+        "Length of total whitelist for source image: " + str(len(total_whitelist))
+    )
 
+    # get container approval from first row in result, if record in vat, get from record, else set NotFoundInVat
+    if len(result) >= 1:
+        check_container_approval = result[0]
+    else:
+        check_container_approval = (
+            os.environ["IMAGE_NAME"],
+            os.environ["IMAGE_VERSION"],
+            "NotFoundInVat",
+        )
+    logging.debug(check_container_approval)
     with open("variables.env", "w") as f:
-        f.write(f"IMAGE_APPROVAL_STATUS={greylist['approval_status']}\n")
+        # all cves for container have container approval at ind 2
+        if check_container_approval[2].lower() == "approve":
+            f.write(f"IMAGE_APPROVAL_STATUS='approved'\n")
+        else:
+            f.write(f"IMAGE_APPROVAL_STATUS='notapproved'\n")
         f.write(f"BASE_IMAGE={hardening_manifest['args']['BASE_IMAGE']}\n")
         f.write(f"BASE_TAG={hardening_manifest['args']['BASE_TAG']}")
-
     #
     # Use the local hardening manifest to get the first parent. From here *only* the
     # the master branch should be used for the ancestry.
@@ -265,14 +374,22 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     parent_image = _next_ancestor(
         image_path=image_name, greylist=greylist, hardening_manifest=hardening_manifest
     )
+
+    # get parent cves from VAT
     while parent_image:
         logging.info(f"Grabbing CVEs for: {parent_image}")
+        # TODO: remove this after 30 day hardening_manifest merge cutoff
         greylist = _get_greylist_file_contents(
             image_path=parent_image, branch=whitelist_branch
         )
 
-        for vuln in greylist["whitelisted_vulnerabilities"]:
-            total_whitelist.append(Vuln(vuln, image_name))
+        # TODO: swap this for hardening manifest after 30 day merge cutoff
+        result = _vat_vuln_query(greylist["image_name"], greylist["image_tag"])
+
+        for row in result:
+            vuln_dict = _get_vulns_from_query(row)
+            if "approve" in vuln_dict["status"].lower():
+                total_whitelist.append(Vuln(vuln_dict, image_name))
 
         parent_image = _next_ancestor(
             image_path=parent_image,
@@ -283,30 +400,23 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     return total_whitelist
 
 
+# need feedback on adjusting vuln
 class Vuln:
-    vuln_id = ""
-    vuln_desc = ""
-    vuln_source = ""
-    whitelist_source = ""
-    status = ""
-    approved_date = ""
-    approved_by = ""
-    justification = ""
+    vuln_id = ""  # e.g. CVE-2020-14040
+    vuln_source = ""  # e.g. Anchore (vat returns anchore_cve)
+    whitelist_source = ""  # IM_NAME
+    status = ""  # e.g. Pending, Approved
 
     def __repr__(self):
-        return f"Vuln: {self.vulnerability} - {self.vuln_source} - {self.whitelist_source} - {self.status} - {self.approved_by}"
+        return f"Vuln: {self.vulnerability} - {self.vuln_source} - {self.whitelist_source} - {self.status}"
 
     def __str__(self):
-        return f"Vuln: {self.vulnerability} - {self.vuln_source} - {self.whitelist_source} - {self.status} - {self.approved_by}"
+        return f"Vuln: {self.vulnerability} - {self.vuln_source} - {self.whitelist_source} - {self.status}"
 
     def __init__(self, v, im_name):
         self.vulnerability = v["vulnerability"]
-        self.vuln_description = v["vuln_description"]
         self.vuln_source = v["vuln_source"]
         self.status = v["status"]
-        self.approved_date = v["approved_date"]
-        self.approved_by = v["approved_by"]
-        self.justification = v["justification"]
         self.whitelist_source = im_name
 
 
@@ -338,6 +448,7 @@ def main():
     # At the very least the hardening_manifest.yaml should be generated if it has not been
     # merged in yet. Fetching the parent greylists must be backwards compatible.
     #
+
     hardening_manifest = _load_local_hardening_manifest()
     if hardening_manifest is None:
         logging.error("Your project must contain a hardening_manifest.yaml")
@@ -346,7 +457,9 @@ def main():
     image = hardening_manifest["name"]
 
     _pipeline_whitelist_compare(
-        image_name=image, hardening_manifest=hardening_manifest, lint=args.lint
+        image_name=image,
+        hardening_manifest=hardening_manifest,
+        lint=args.lint,
     )
 
 
