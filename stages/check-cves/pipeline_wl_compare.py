@@ -354,7 +354,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     )
 
     # get container approval from first row in result, if record in vat, get from record, else set NotFoundInVat
-    if len(result) >= 1:
+    if len(result) >= 1 and result[0][2] is not None:
         check_container_approval = result[0]
     else:
         check_container_approval = (
