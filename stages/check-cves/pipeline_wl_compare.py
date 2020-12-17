@@ -349,9 +349,11 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         "Length of total whitelist for source image: " + str(len(total_whitelist))
     )
 
-    # need to swap this for hardening_manifest.yaml
-    # need backwards compat (maybe)
-    check_container_approval = result[0]
+    # get container approval from first row in result, if record in vat, get from record, else set NotFoundInVat
+    if len(result) >= 1:
+        check_container_approval = result[0]
+    else:
+        check_container_approval = (os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"], "NotFoundInVat")
     logging.debug(check_container_approval)
     with open("variables.env", "w") as f:
         #all cves for container have container approval at ind 2
