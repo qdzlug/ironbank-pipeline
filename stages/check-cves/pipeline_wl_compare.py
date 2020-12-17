@@ -341,10 +341,13 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     else:
         for row in result:
             vuln_dict = _get_vulns_from_query(row)
-            if "approve" in vuln_dict["status"].lower():
-                total_whitelist.append(Vuln(vuln_dict, image_name))
-                logging.debug(vuln_dict["vulnerability"])
-
+            if vuln_dict["status"] is not None:
+                if "approve" in vuln_dict["status"].lower():
+                    total_whitelist.append(Vuln(vuln_dict, image_name))
+                    logging.debug(vuln_dict["vulnerability"])
+            else:
+                logging.debug("There is no approval status present.")
+    
     logging.debug(
         "Length of total whitelist for source image: " + str(len(total_whitelist))
     )
