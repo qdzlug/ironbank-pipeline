@@ -14,6 +14,5 @@ check cves:
     - openscap cve
     - openscap compliance
     - anchore scan
-
   script:
     - python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py"
