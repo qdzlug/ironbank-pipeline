@@ -353,10 +353,14 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     if len(result) >= 1:
         check_container_approval = result[0]
     else:
-        check_container_approval = (os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"], "NotFoundInVat")
+        check_container_approval = (
+            os.environ["IMAGE_NAME"],
+            os.environ["IMAGE_VERSION"],
+            "NotFoundInVat",
+        )
     logging.debug(check_container_approval)
     with open("variables.env", "w") as f:
-        #all cves for container have container approval at ind 2
+        # all cves for container have container approval at ind 2
         if check_container_approval[2].lower() == "approve":
             f.write(f"IMAGE_APPROVAL_STATUS='approved'\n")
         else:
