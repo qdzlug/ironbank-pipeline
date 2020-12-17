@@ -336,6 +336,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     result = _vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
     logging.debug(result)
     # parse CVEs from VAT query
+    # empty list is returned if no entry or no cves. NoneType only returned if error.
     if result is None:
         logging.error("No results from vat. Fatal error.")
         sys.exit(1)
