@@ -393,9 +393,8 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
         for row in result:
             vuln_dict = _get_vulns_from_query(row)
-            if vuln_dict["status"]:
-                if vuln_dict["status"].lower() == "approve":
-                    total_whitelist.append(Vuln(vuln_dict, image_name))
+            if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
+                total_whitelist.append(Vuln(vuln_dict, image_name))
 
         parent_image = _next_ancestor(
             image_path=parent_image,
