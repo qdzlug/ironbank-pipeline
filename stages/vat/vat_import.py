@@ -788,7 +788,7 @@ def insert_new_log(cursor, finding_id, system_user_id):
         1,
         None,
         0,
-        None,
+        False,
         system_user_id,
         args.scan_date,
         1,
@@ -1201,7 +1201,7 @@ def is_new_scan(iid):
             cursor.execute(query, parms)
             result = cursor.fetchone()
             logs.debug(result)
-            scan_date_datetime = datetime.strptime(args.scan_date, "%Y-%m-%d %H:%M:%S")
+            scan_date_datetime = datetime.strptime(args.scan_date, "%Y-%m-%dT%H:%M:%S")
             if result is None:
                 new_scan = True
             elif result[0] < int(args.job_id) or result[1] < scan_date_datetime:
