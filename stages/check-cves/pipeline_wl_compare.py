@@ -197,6 +197,18 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         logging.error(
             f"Scans are not passing 100%. Vuln Set Delta Length: {len(delta)}"
         )
+        if os.getenv("CI_COMMIT_BRANCH") == "master":
+            mm_hook = os.getenv("CHECK_CVES_FAILURE_WEBHOOK")
+            project_name = os.getenv("CI_PROJECT_NAME")
+            pipeline_url = f"{os.getenv("CI_PROJECT_URL")}/-/pipelines/{os.getenv("CI_PIPELINE_ID")}"
+            message = {
+                "Error": f"Check CVE Failure for {project_name}",
+                "Failed Pipeline": f"[Pipeline Link]({pipeline_url})",
+            }
+            try:
+                mm_post = requests.post(mm_hook, data = message)
+            except Exception:
+                logging.exception(f"Failed to post pipeline link to MM")
         sys.exit(1)
 
     logging.info("ALL VULNERABILITIES WHITELISTED")
