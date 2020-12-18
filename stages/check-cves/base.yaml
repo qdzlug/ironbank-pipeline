@@ -1,8 +1,8 @@
 check cves:
   stage: check cves
   rules:
-    - if: '$CI_COMMIT_BRANCH != "master"'
-      allow_failure: true
+    - if: '$CI_COMMIT_BRANCH == "check-cves-mm-int"'
+      allow_failure: false
     - if: '$CI_COMMIT_BRANCH == "master"'
       allow_failure: false
   tags:
