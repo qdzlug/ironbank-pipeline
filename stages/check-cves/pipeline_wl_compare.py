@@ -204,10 +204,6 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
             pipeline_url = f"{os.getenv('CI_PROJECT_URL')}/-/pipelines/{os.getenv('CI_PIPELINE_ID')}"
             message = '{"text": f"Check CVE Failure for {project_name}\n Failed Pipeline": f"[Pipeline Link]({pipeline_url})"}'
             subprocess.run(["curl", "-i", "-X", "POST", "-H", "'Content-Type: application/json'", "-d", '{"text": "FAILURE"}', mm_hook])
-            # try:
-            #     mm_post = requests.post(mm_hook, data = message)
-            # except Exception:
-            #     logging.exception(f"Failed to post pipeline link to MM")
         sys.exit(1)
 
     logging.info("ALL VULNERABILITIES WHITELISTED")
