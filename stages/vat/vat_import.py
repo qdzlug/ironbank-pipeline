@@ -782,7 +782,7 @@ def insert_new_log(cursor, finding_id, system_user_id):
         finding_id,
         "state_change",
         "needs_justification",
-        "New Finding",
+        "",
         1,
         None,
         1,
