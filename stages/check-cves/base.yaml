@@ -17,7 +17,8 @@ check cves:
   script:
     - python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py"
 
-check_cves_failure_notification:
+check cves failure notification:
+  stage: check cves
   when: on_failure
   script: 
     - '"${PIPELINE_REPO_DIR}/stages/check-cves/mattermost-failure-webhook.sh"'
