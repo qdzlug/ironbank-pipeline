@@ -20,4 +20,4 @@ check cves:
 check_cves_failure_notification:
   when: on_failure
   script: 
-    - curl -i -X POST -H 'Content-Type: application/json' -d '{"text": "FAILURE"}' "${CHECK_CVES_FAILURE_WEBHOOK}"
+    - '"${PIPELINE_REPO_DIR}/stages/check-cves/mattermost-failure-webhook.sh"'
