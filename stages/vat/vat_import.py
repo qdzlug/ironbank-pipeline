@@ -49,10 +49,16 @@ parser.add_argument(
     help="Parent Version from VENDOR/PRODUCT/CONTAINER/VERSION format",
 )
 parser.add_argument(
-    "-sl", "--sec_link", help="Link to openscap security reports directory", required=True
+    "-sl",
+    "--sec_link",
+    help="Link to openscap security reports directory",
+    required=True,
 )
 parser.add_argument(
-    "-cl", "--comp_link", help="Link to openscap compliance reports directory", required=True
+    "-cl",
+    "--comp_link",
+    help="Link to openscap compliance reports directory",
+    required=True,
 )
 
 
@@ -218,6 +224,7 @@ def parse_anchore_compliance(ac_path):
         "inherited",
     ]
     d_f = pandas.read_csv(ac_path, names=columns)
+
     # Drop bad header row
     d_f = d_f.drop(d_f.index[0])
 
