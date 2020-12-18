@@ -200,7 +200,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         if os.getenv("CI_COMMIT_BRANCH") == "check-cves-mm-int":
             mm_hook = os.getenv("CHECK_CVES_FAILURE_WEBHOOK")
             project_name = os.getenv("CI_PROJECT_NAME")
-            pipeline_url = f"{os.getenv("CI_PROJECT_URL")}/-/pipelines/{os.getenv("CI_PIPELINE_ID")}"
+            pipeline_url = f"{os.getenv('CI_PROJECT_URL')}/-/pipelines/{os.getenv('CI_PIPELINE_ID')}"
             message = {
                 "Error": f"Check CVE Failure for {project_name}",
                 "Failed Pipeline": f"[Pipeline Link]({pipeline_url})",
