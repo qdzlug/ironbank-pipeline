@@ -197,7 +197,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         logging.error(
             f"Scans are not passing 100%. Vuln Set Delta Length: {len(delta)}"
         )
-        if os.getenv("CI_COMMIT_BRANCH") == "check-cves-mm-int":
+        if os.getenv("CI_COMMIT_BRANCH") == "mm-integration-test":
             mm_hook = os.getenv("CHECK_CVES_FAILURE_WEBHOOK")
             project_name = os.getenv("CI_PROJECT_NAME")
             pipeline_url = f"{os.getenv('CI_PROJECT_URL')}/-/pipelines/{os.getenv('CI_PIPELINE_ID')}"
