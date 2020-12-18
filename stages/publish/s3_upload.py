@@ -47,6 +47,7 @@ def upload_file(file_name, bucket, object_name=None):
             "ContentEncoding": encoding,
         }
 
+    logging.debug(f"extra_args for {file_name}: {extra_args}")
     # If S3 object_name was not specified, use file_name
     if object_name is None:
         object_name = file_name
