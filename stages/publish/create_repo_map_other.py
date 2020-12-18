@@ -26,6 +26,7 @@ def get_repomap(object_name, bucket="ironbank-pipeline-artifacts"):
     print(object_name)
     try:
         response = s3_client.download_file(bucket, object_name, "repo_map.json")
+        logging.debug(f"S3 download response: {response}")
     except ClientError as e:
         logging.error(e)
         print("Existing repo_map.json not found, creating new repo_map.json")
