@@ -5,6 +5,7 @@ import argparse
 import datetime
 from botocore.exceptions import ClientError
 import logging
+import mimetypes
 
 
 def upload_file(file_name, bucket, object_name=None):
@@ -19,8 +20,32 @@ def upload_file(file_name, bucket, object_name=None):
     access_key = os.environ["S3_ACCESS_KEY"]
     secret_key = os.environ["S3_SECRET_KEY"]
 
+    filetype = mimetypes.guess_type(file_name)
+
+    if not filetype[0]:
+        # If mimetype is NoneType use default value
+        mimetype = "application/octet-stream"
+    elif filetype[1] == "gzip":
+        # mimetypes returns 'application/x-tar'
+        #   but for S3 to properly serve gzip we need to set to the following
+        mimetype = "application/x-compressed-tar"
+    else:
+        mimetype = filetype[0]
+
     # TODO: Add signature
-    extra_args = {"ContentType": "application/octet-stream", "ACL": "private"}
+    # If there is not an encoding-type value we don't add it to the extra args
+    if not filetype[1]:
+        extra_args = {
+            "ContentType": mimetype,
+            "ACL": "private",
+        }
+    else:
+        encoding = filetype[1]
+        extra_args = {
+            "ContentType": mimetype,
+            "ACL": "private",
+            "ContentEncoding": encoding,
+        }
 
     # If S3 object_name was not specified, use file_name
     if object_name is None:
@@ -35,6 +60,7 @@ def upload_file(file_name, bucket, object_name=None):
     )
     try:
         response = s3_client.upload_file(file_name, bucket, object_name, extra_args)
+        logging.debug(f"S3 upload response: {response}")
     except ClientError as e:
         logging.error(e)
         return False
