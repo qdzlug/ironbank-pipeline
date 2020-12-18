@@ -19,6 +19,7 @@ import pathlib
 import logging
 import argparse
 import mysql.connector
+import subprocess
 from mysql.connector import Error
 
 from scanners import oscap
@@ -201,14 +202,12 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
             mm_hook = os.getenv("CHECK_CVES_FAILURE_WEBHOOK")
             project_name = os.getenv("CI_PROJECT_NAME")
             pipeline_url = f"{os.getenv('CI_PROJECT_URL')}/-/pipelines/{os.getenv('CI_PIPELINE_ID')}"
-            message = {
-                "Error": f"Check CVE Failure for {project_name}",
-                "Failed Pipeline": f"[Pipeline Link]({pipeline_url})",
-            }
-            try:
-                mm_post = requests.post(mm_hook, data = message)
-            except Exception:
-                logging.exception(f"Failed to post pipeline link to MM")
+            message = '{"text": f"Check CVE Failure for {project_name}\n Failed Pipeline": f"[Pipeline Link]({pipeline_url})"}'
+            subprocess.run(["curl", "-i", "-X", "POST", "-H", "'Content-Type: application/json'", "-d", message, mm_hook])
+            # try:
+            #     mm_post = requests.post(mm_hook, data = message)
+            # except Exception:
+            #     logging.exception(f"Failed to post pipeline link to MM")
         sys.exit(1)
 
     logging.info("ALL VULNERABILITIES WHITELISTED")
