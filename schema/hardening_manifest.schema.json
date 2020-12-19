@@ -302,7 +302,7 @@
           }
         },
         "additionalProperties": false,
-        "required": ["name", "username", "email"]
+        "required": ["name", "username"]
       },
       "minItems": 1,
       "uniqueItems": true
