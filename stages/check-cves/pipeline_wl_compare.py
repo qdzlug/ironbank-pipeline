@@ -372,7 +372,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             f.write(f"IMAGE_APPROVAL_STATUS=notapproved\n")
             logging.debug(f"IMAGE_APPROVAL_STATUS=notapproved")
             pipeline_branch = os.getenv("CI_COMMIT_BRANCH")
-            if wl_branch == "master":
+            if pipeline_branch == "master":
                 logging.error("This is an unapproved image. Failing stage.")
                 sys.exit(1)
         f.write(f"BASE_IMAGE={hardening_manifest['args']['BASE_IMAGE']}\n")
