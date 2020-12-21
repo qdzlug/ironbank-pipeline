@@ -3,7 +3,7 @@ set -Eeuo pipefail
 shopt -s nullglob # Allow import-artifacts/*/* to match nothing
 
 if [[ "${CLAMAV_WHITELIST:-}" ]]; then
-  mv "${PIPELINE_REPO_DIR}/stages/scan-artifacts/clamav-whitelist.ign2" /usr/local/share/clamav/clamav_whitelist.ign2
+  cp "${PIPELINE_REPO_DIR}/stages/scan-artifacts/clamav-whitelist" /usr/local/share/clamav/clamav_whitelist.ign2
 fi
 
 freshclam --config-file /clamav/conf/freshclam.conf
