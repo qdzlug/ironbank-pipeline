@@ -230,6 +230,7 @@ def getJustifications(whitelistDir, allFiles, sourceImageGreylistFile):
     cveAnchore = {}
 
     # Loop through all the greylist files
+    # Getting results from VAT, just loop all findings, check if finding is related to base_images or source image
     for file in allFiles:
         # Load file into JSON object, print an error if the file doesn't load
         with open(file) as f:
@@ -526,6 +527,7 @@ def main(argv, inheritableTriggerIds):
         flush=True,
     )
     # may need logic for hardening_manifest not being recovered if hardening_manifest == none etc.
+    # Query vat for all whitelisted vulnerabilities
     allFiles = getAllGreylistFiles(
         whitelistDir, sourceImage, sourceImageGreylistFile, hardening_manifest
     )
