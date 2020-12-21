@@ -352,7 +352,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     logging.debug(
         "Length of total whitelist for source image: " + str(len(total_whitelist))
     )
-    logging.debug(result[0])
+
     # get container approval from first row in result, if record in vat, get from record, else set NotFoundInVat
     if result and result[0][2]:
         check_container_approval = result[0]
@@ -400,7 +400,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
         # TODO: swap this for hardening manifest after 30 day merge cutoff
         result = _vat_vuln_query(greylist["image_name"], greylist["image_tag"])
-
+        logging.debug(result[0])
         for row in result:
             vuln_dict = _get_vulns_from_query(row)
             if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
