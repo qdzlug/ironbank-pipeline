@@ -199,11 +199,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
             f"Scans are not passing 100%. Vuln Set Delta Length: {len(delta)}"
         )
         if os.getenv("CI_COMMIT_BRANCH") == "mm-integration-test":
-            mm_hook = os.getenv("CHECK_CVES_FAILURE_WEBHOOK")
-            project_name = os.getenv("CI_PROJECT_NAME")
-            pipeline_url = f"{os.getenv('CI_PROJECT_URL')}/-/pipelines/{os.getenv('CI_PIPELINE_ID')}"
-            message = '{"text": f"Check CVE Failure for {project_name}\n Failed Pipeline": f"[Pipeline Link]({pipeline_url})"}'
-            subprocess.run(["curl", "-i", "-X", "POST", "-H", "'Content-Type: application/json'", "-d", '{"text": "FAILURE"}', mm_hook])
+            subprocess.run(["./mattermost-failure-webhook.sh"])
         sys.exit(1)
 
     logging.info("ALL VULNERABILITIES WHITELISTED")
