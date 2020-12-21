@@ -373,11 +373,22 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     with open("variables.env", "w") as f:
         # all cves for container have container approval at ind 2
         if check_container_approval[2].lower() == "approve":
-            f.write(f"IMAGE_APPROVAL_STATUS='approved'\n")
+            f.write(f"IMAGE_APPROVAL_STATUS=approved\n")
+            logging.debug(f"IMAGE_APPROVAL_STATUS=approved")
         else:
-            f.write(f"IMAGE_APPROVAL_STATUS='notapproved'\n")
+            f.write(f"IMAGE_APPROVAL_STATUS=notapproved\n")
+            logging.debug(f"IMAGE_APPROVAL_STATUS=notapproved")
+            pipeline_branch = os.getenv("CI_COMMIT_BRANCH")
+            if pipeline_branch == "master":
+                logging.error(
+                    "This is container is listed as unapproved in the VAT. Unapproved images cannot run on master branch. Failing stage."
+                )
+                sys.exit(1)
         f.write(f"BASE_IMAGE={hardening_manifest['args']['BASE_IMAGE']}\n")
         f.write(f"BASE_TAG={hardening_manifest['args']['BASE_TAG']}")
+        logging.debug(
+            f"BASE_IMAGE={hardening_manifest['args']['BASE_IMAGE']}\nBASE_TAG={hardening_manifest['args']['BASE_TAG']}"
+        )
     #
     # Use the local hardening manifest to get the first parent. From here *only* the
     # the master branch should be used for the ancestry.
