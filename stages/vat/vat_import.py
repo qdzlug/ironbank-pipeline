@@ -49,9 +49,18 @@ parser.add_argument(
     help="Parent Version from VENDOR/PRODUCT/CONTAINER/VERSION format",
 )
 parser.add_argument(
-    "-l", "--link", help="S3 Link to openscap reports directory", required=True
+    "-sl",
+    "--sec_link",
+    help="Link to openscap security reports directory",
+    required=True,
 )
-parser.add_argument("--debug", help="debug true changes log level", action="store_true")
+parser.add_argument(
+    "-cl",
+    "--comp_link",
+    help="Link to openscap compliance reports directory",
+    required=True,
+)
+
 
 pandas.options.mode.chained_assignment = None
 
@@ -215,6 +224,7 @@ def parse_anchore_compliance(ac_path):
         "inherited",
     ]
     d_f = pandas.read_csv(ac_path, names=columns)
+
     # Drop bad header row
     d_f = d_f.drop(d_f.index[0])
 
@@ -298,7 +308,7 @@ def parse_oscap_security(ov_path):
     @return dataframe with standarized columns for OSCAP security scan
     """
 
-    report_link = os.path.join(args.link, "report-cve.html")
+    report_link = os.path.join(args.sec_link, "report-cve.html")
     severity_dict = {
         "Critical": "critical",
         "Important": "high",
@@ -354,7 +364,8 @@ def parse_oscap_compliance(os_path):
     """
     @return dataframe with standarized columns for OSCAP compliance scan
     """
-    report_link = os.path.join(args.link, "report.html")
+
+    report_link = os.path.join(args.comp_link, "report.html")
     d_f = pandas.read_csv(os_path)
 
     # This keeps the rows where the result is fail or notchecked or error
