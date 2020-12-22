@@ -387,6 +387,7 @@ def getJustifications(total_whitelist, sourceImageName):
                     cveTwistlock[cveID] = finding["justification"]
                 else:
                     cveTwistlock[cveID] = "Inherited from base image."
+                    logging.debug("Twistlock inherited cve")
 
             # Anchore finding
             elif finding["vuln_source"] == "anchore_cve":
@@ -397,6 +398,7 @@ def getJustifications(total_whitelist, sourceImageName):
                     cveAnchore[cveID] = "Inherited from base image."
                     if trigger_id in inheritableTriggerIds:
                         cveAnchore[trigger_id] = "Inherited from base image."
+                        logging.debug("Anchore inherited cve")
 
             # OpenSCAP finding
             elif finding["vuln_source"] == "oscap_comp":
@@ -404,6 +406,7 @@ def getJustifications(total_whitelist, sourceImageName):
                     cveOpenscap[openscapID] = finding["justification"]
                 else:
                     cveOpenscap[openscapID] = "Inherited from base image."
+                    logging.debug("Oscap inherited cve")
         # print(cveAnchore)
     return cveOpenscap, cveTwistlock, cveAnchore
 
@@ -491,7 +494,7 @@ def justificationsAnchore(wb, justifications):
             cell2 = sheet.cell(row=r, column=4)
             cell_justification = sheet.cell(row=r, column=9)
             id = cell.value + "-" + cell2.value
-
+            logging.debug(id)
             if id in justifications.keys():
                 cell_justification.value = justifications[id]
 
@@ -667,9 +670,8 @@ def main(argv, inheritableTriggerIds):
 
     # Get all justifications
     print("Gathering list of all justifications... ", end="", flush=True)
-    logging.debug(os.environ["IMAGE_NAME"])
     jOpenscap, jTwistlock, jAnchore = getJustifications(
-        total_whitelist, os.environ["IMAGE_NAME"]
+        total_whitelist, sourceImage
     )
     print("done.")
 
