@@ -52,8 +52,18 @@ parser.add_argument(
     help="Parent Version from VENDOR/PRODUCT/CONTAINER/VERSION format",
 )
 parser.add_argument(
-    "-l", "--link", help="S3 Link to openscap reports directory", required=True
+    "-sl",
+    "--sec_link",
+    help="Link to openscap security reports directory",
+    required=True,
 )
+parser.add_argument(
+    "-cl",
+    "--comp_link",
+    help="Link to openscap compliance reports directory",
+    required=True,
+)
+
 
 # This shuts off pandas informational messages for row manipulation
 pandas.options.mode.chained_assignment = None
@@ -289,7 +299,7 @@ def parse_oscap_security(ov_path):
     @return dataframe with standarized columns for OSCAP security scan
     """
 
-    report_link = os.path.join(args.link, "report-cve.html")
+    report_link = os.path.join(args.sec_link, "report-cve.html")
     severity_dict = {
         "Critical": "critical",
         "Important": "high",
@@ -345,7 +355,7 @@ def parse_oscap_compliance(os_path):
     """
     @return dataframe with standarized columns for OSCAP compliance scan
     """
-    report_link = os.path.join(args.link, "report.html")
+    report_link = os.path.join(args.comp_link, "report.html")
     d_f = pandas.read_csv(os_path)
 
     # This keeps the rows where the result is fail or notchecked or error
