@@ -309,18 +309,19 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     result = _vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
     # parse CVEs from VAT query
     # empty list is returned if no entry or no cves. NoneType only returned if error.
-    logging.info(result[0])
+    #logging.info(result[0])
     if result is None:
         logging.error("No results from vat. Fatal error.")
         sys.exit(1)
     else:
         for row in result:
+            logging.debug(row)
             vuln_dict = _get_vulns_from_query(row)
             if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
                 total_whitelist.append(Vuln(vuln_dict, image_name))
                 logging.debug(vuln_dict)
             else:
-                logging.debug("There is no approval status present in result.")
+                logging.debug("There is no approval status present in result or cve not approved")
 
     logging.debug(
         "Length of total whitelist for source image: " + str(len(total_whitelist))
@@ -347,6 +348,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         logging.debug(result[0])
         # logging.debug(result[0])
         for row in result:
+            logging.debug(row)
             vuln_dict = _get_vulns_from_query(row)
             if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
                 total_whitelist.append(vuln_dict)
@@ -429,56 +431,43 @@ def getJustifications(total_whitelist, sourceImageName):
 
     # Loop through all the greylist files
     # Getting results from VAT, just loop all findings, check if finding is related to base_images or source image
-    for file in allFiles:
-        # Load file into JSON object, print an error if the file doesn't load
-        with open(file) as f:
-            try:
-                data = json.load(f)
-            except ValueError as e:
-                print("Error processing file: " + file, file=sys.stderr)
+    # Loop through the findings and create the corresponding dict object based on the vuln_source
+    for finding in total_whitelist:
+        if finding["status"] == "approve":
 
-        # Check to see if the application is in approved status
-        if "approval_status" in data.keys() and data["approval_status"] == "approved":
-            # Get a list of all the whitelisted findings
-            findings = data["whitelisted_vulnerabilities"]
+            if "vulnerability" in finding.keys():
+                openscapID = finding["vulnerability"]
+                cveID = (
+                    finding["vulnerability"] + "-" + finding["vuln_description"]
+                )
+                trigger_id_inherited = finding["vulnerability"]
+                trigger_id = finding["vulnerability"]
 
-            # Loop through the findings and create the corresponding dict object based on the vuln_source
-            for finding in findings:
-                if finding["status"] == "approved":
+                # Twistlock finding
+                if finding["vuln_source"] == "twistlock_cve":
+                    if file == sourceImageGreylistFile:
+                        cveTwistlock[cveID] = finding["justification"]
+                    else:
+                        cveTwistlock[cveID] = "Inherited from base image."
 
-                    if "vulnerability" in finding.keys():
-                        openscapID = finding["vulnerability"]
-                        cveID = (
-                            finding["vulnerability"] + "-" + finding["vuln_description"]
-                        )
-                        trigger_id_inherited = finding["vulnerability"]
-                        trigger_id = finding["vulnerability"]
+                # Anchore finding
+                elif finding["vuln_source"] == "anchore_cve":
+                    if file == sourceImageGreylistFile:
+                        cveAnchore[cveID] = finding["justification"]
+                        cveAnchore[trigger_id] = finding["justification"]
+                    else:
+                        cveAnchore[cveID] = "Inherited from base image."
+                        if trigger_id in inheritableTriggerIds:
+                            cveAnchore[
+                                trigger_id
+                            ] = "Inherited from base image."
 
-                        # Twistlock finding
-                        if finding["vuln_source"] == "Twistlock":
-                            if file == sourceImageGreylistFile:
-                                cveTwistlock[cveID] = finding["justification"]
-                            else:
-                                cveTwistlock[cveID] = "Inherited from base image."
-
-                        # Anchore finding
-                        elif finding["vuln_source"] == "Anchore":
-                            if file == sourceImageGreylistFile:
-                                cveAnchore[cveID] = finding["justification"]
-                                cveAnchore[trigger_id] = finding["justification"]
-                            else:
-                                cveAnchore[cveID] = "Inherited from base image."
-                                if trigger_id in inheritableTriggerIds:
-                                    cveAnchore[
-                                        trigger_id
-                                    ] = "Inherited from base image."
-
-                        # OpenSCAP finding
-                        elif finding["vuln_source"] == "OpenSCAP":
-                            if file == sourceImageGreylistFile:
-                                cveOpenscap[openscapID] = finding["justification"]
-                            else:
-                                cveOpenscap[openscapID] = "Inherited from base image."
+                # OpenSCAP finding
+                elif finding["vuln_source"] == "OpenSCAP":
+                    if file == sourceImageGreylistFile:
+                        cveOpenscap[openscapID] = finding["justification"]
+                    else:
+                        cveOpenscap[openscapID] = "Inherited from base image."
             # print(cveAnchore)
     return cveOpenscap, cveTwistlock, cveAnchore
 
