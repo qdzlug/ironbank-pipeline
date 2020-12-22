@@ -25,10 +25,10 @@ python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
   --csv_dir "${ARTIFACT_DIR}" \
   --jenkins "${CI_PIPELINE_ID}" \
   --container "${IM_NAME}" \
-  --version "${IMG_VERSION}" \
+  --version "${IMAGE_VERSION}" \
   --parent "${BASE_IMAGE:-}" \
   --password "${vat_db_connection_pass}" \
   --parent_version "${BASE_TAG:-}" \
   --scan_date "$(date +%FT%T)" \
-  --link "${OPENSCAP}/" \
-  --debug
+  --sec_link "${OSCAP_CVE_URL}/" \
+  --comp_link "${OSCAP_COMPLIANCE_URL}/"
