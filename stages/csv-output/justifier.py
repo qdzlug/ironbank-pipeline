@@ -382,7 +382,7 @@ def getJustifications(total_whitelist, sourceImageName):
             )
             trigger_id_inherited = finding["vulnerability"]
             trigger_id = finding["vulnerability"]
-            logging.debug("cveID")
+            logging.debug(cveID)
             # Twistlock finding
             if finding["vuln_source"] == "twistlock_cve":
                 if finding["whitelist_source"] == sourceImageName:
