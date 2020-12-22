@@ -287,7 +287,10 @@ def _get_vulns_from_query(row):
     vuln_dict["vuln_source"] = row[4]
     vuln_dict["status"] = row[6]
     vuln_dict["justification"] = row[8]
-    vuln_dict["vuln_description"] = row[9]
+    if row[4] and row[4] == "anchore_cve":
+        vuln_dict["vuln_description"] = row[9].split("\n")[0]
+    else:
+        vuln_dict["vuln_description"] = row[9]
     # logging.debug(vuln_dict)
     return vuln_dict
 
