@@ -198,6 +198,7 @@ def _get_greylist_file_contents(image_path, branch):
 
     return contents
 
+
 def _connect_to_db():
     """
     @return mariadb connection
@@ -228,6 +229,7 @@ def _connect_to_db():
         sys.exit(1)
 
     return conn
+
 
 def _vat_vuln_query(im_name, im_version):
     conn = None
@@ -303,7 +305,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     logging.info(f"Grabbing CVEs for: {image_name}")
     # get cves from vat
     result = _vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
-    logging.debug(result[0])
     # parse CVEs from VAT query
     # empty list is returned if no entry or no cves. NoneType only returned if error.
     logging.info(result[0])
@@ -695,9 +696,9 @@ def main(argv, inheritableTriggerIds):
     print("Output file is " + outputFile)
     print("Source image is " + sourceImage)
 
-    #sourceImageGreylistFile = ""
-    #global allFiles
-    #allFiles = []
+    # sourceImageGreylistFile = ""
+    # global allFiles
+    # allFiles = []
 
     # TODO: Remove these commented out lines
     # Whitelist directory
@@ -726,7 +727,9 @@ def main(argv, inheritableTriggerIds):
     image_name = hardening_manifest["name"]
     wl_branch = os.getenv("WL_TARGET_BRANCH", default="master")
 
-    total_whitelist = _get_complete_whitelist_for_image(image_name, wl_branch, hardening_manifest)
+    total_whitelist = _get_complete_whitelist_for_image(
+        image_name, wl_branch, hardening_manifest
+    )
 
     # may need logic for hardening_manifest not being recovered if hardening_manifest == none etc.
     # Query vat for all whitelisted vulnerabilities
