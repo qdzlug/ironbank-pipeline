@@ -318,7 +318,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         sys.exit(1)
     else:
         for row in result:
-            logging.debug(row)
+            #logging.debug(row)
             vuln_dict = _get_vulns_from_query(row)
             if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
                 total_whitelist.append(Vuln(vuln_dict, image_name))
@@ -348,10 +348,9 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
         # TODO: swap this for hardening manifest after 30 day merge cutoff
         result = _vat_vuln_query(greylist["image_name"], greylist["image_tag"])
-        logging.debug(result[0])
-        # logging.debug(result[0])
+        #logging.debug(result[0])
         for row in result:
-            logging.debug(row)
+            #logging.debug(row)
             vuln_dict = _get_vulns_from_query(row)
             if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
                 total_whitelist.append(vuln_dict)
@@ -383,7 +382,7 @@ def getJustifications(total_whitelist, sourceImageName):
             )
             trigger_id_inherited = finding["vulnerability"]
             trigger_id = finding["vulnerability"]
-
+            logging.debug("cveID")
             # Twistlock finding
             if finding["vuln_source"] == "twistlock_cve":
                 if finding["whitelist_source"] == sourceImageName:
@@ -398,10 +397,10 @@ def getJustifications(total_whitelist, sourceImageName):
                     cveAnchore[cveID] = finding["justification"]
                     cveAnchore[trigger_id] = finding["justification"]
                 else:
+                    logging.debug("Anchore inherited cve")
                     cveAnchore[cveID] = "Inherited from base image."
                     if trigger_id in inheritableTriggerIds:
                         cveAnchore[trigger_id] = "Inherited from base image."
-                        logging.debug("Anchore inherited cve")
 
             # OpenSCAP finding
             elif finding["vuln_source"] == "oscap_comp":
@@ -459,7 +458,7 @@ def justificationsTwistlock(wb, justifications):
                 id = cell.value
             else:
                 id = cell.value + "-" + cell2.value
-
+            logging.debug(id)
             if id in justifications.keys():
                 cell_justification.value = justifications[id]
 
@@ -497,7 +496,7 @@ def justificationsAnchore(wb, justifications):
             cell2 = sheet.cell(row=r, column=4)
             cell_justification = sheet.cell(row=r, column=9)
             id = cell.value + "-" + cell2.value
-            logging.debug(id)
+
             if id in justifications.keys():
                 cell_justification.value = justifications[id]
 
