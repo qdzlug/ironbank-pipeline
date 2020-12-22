@@ -163,7 +163,126 @@ def getSourceImageGreylistFile(whitelistDir, sourceImage):
     return sourceImageGreylistFile
 
 
+def _vat_vuln_query(im_name, im_version):
+    conn = None
+    result = None
+    try:
+        conn = _connect_to_db()
+        cursor = conn.cursor(buffered=True)
+        # TODO: add new scan logic
+        query = """SELECT c.name as container
+            , c.version
+            , CASE WHEN cl.type is NULL THEN 'Pending' ELSE cl.type END as container_approval_status
+            , f.finding
+            , f.scan_source
+            , f.in_current_scan
+            , CASE fl.type
+            WHEN fl.type is NULL THEN 'Pending'
+            WHEN fl.date_time > cl.date_time and fl.type = 'Approve' THEN 'Reviewed'
+            WHEN cl.date_time is NULL and fl.type = 'Approve' THEN 'Reviewed'
+            ELSE fl.type END as finding_status
+            FROM findings_approvals f
+            INNER JOIN containers c on f.imageid = c.id
+            LEFT JOIN findings_log fl on f.id = fl.approval_id
+            AND fl.id in (SELECT max(id) from findings_log group by approval_id)
+            LEFT JOIN container_log cl on c.id = cl.imageid
+            AND cl.id in (SELECT max(id) from container_log GROUP BY imageid)
+            WHERE f.inherited_id is NULL
+            AND c.name=%s
+            AND c.version=%s
+            AND f.in_current_scan = 1;"""
+        cursor.execute(query, (im_name, im_version))
+        result = cursor.fetchall()
+    except Error as error:
+        logging.info(error)
+    finally:
+        if conn is not None and conn.is_connected():
+            conn.close()
+    return result
+
+
+def _get_vulns_from_query(row):
+    vuln_dict = {}
+    vuln_dict["whitelist_source"] = row[0]
+    vuln_dict["version"] = row[1]
+    vuln_dict["vulnerability"] = row[3]
+    vuln_dict["vuln_source"] = row[4]
+    vuln_dict["status"] = row[6]
+    # vuln_dict["vuln_description"] =
+    # vuln_dict["justification"] =
+    # logging.debug(vuln_dict)
+    return vuln_dict
+
+
+def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_manifest):
+    """
+    Pull all whitelisted CVEs for an image. Walk through the ancestry of a given
+    image and grab all of vulnerabilities in the greylist associated with w layer.
+
+    """
+    total_whitelist = list()
+
+    # TODO: remove after 30 day hardening_manifest merge cutoff
+    greylist = _get_greylist_file_contents(
+        image_path=image_name, branch=whitelist_branch
+    )
+    logging.info(f"Grabbing CVEs for: {image_name}")
+    # get cves from vat
+    result = _vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
+    logging.debug(result)
+    # parse CVEs from VAT query
+    # empty list is returned if no entry or no cves. NoneType only returned if error.
+    if result is None:
+        logging.error("No results from vat. Fatal error.")
+        sys.exit(1)
+    else:
+        for row in result:
+            vuln_dict = _get_vulns_from_query(row)
+            if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
+                total_whitelist.append(Vuln(vuln_dict, image_name))
+                logging.debug(vuln_dict)
+            else:
+                logging.debug("There is no approval status present in result.")
+
+    logging.debug(
+        "Length of total whitelist for source image: " + str(len(total_whitelist))
+    )
+
+    #
+    # Use the local hardening manifest to get the first parent. From here *only* the
+    # the master branch should be used for the ancestry.
+    #
+    parent_image = _next_ancestor(
+        image_path=image_name, greylist=greylist, hardening_manifest=hardening_manifest
+    )
+
+    # get parent cves from VAT
+    while parent_image:
+        logging.info(f"Grabbing CVEs for: {parent_image}")
+        # TODO: remove this after 30 day hardening_manifest merge cutoff
+        greylist = _get_greylist_file_contents(
+            image_path=parent_image, branch=whitelist_branch
+        )
+
+        # TODO: swap this for hardening manifest after 30 day merge cutoff
+        result = _vat_vuln_query(greylist["image_name"], greylist["image_tag"])
+        # logging.debug(result[0])
+        for row in result:
+            vuln_dict = _get_vulns_from_query(row)
+            if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
+                total_whitelist.append(vuln_dict)
+
+        parent_image = _next_ancestor(
+            image_path=parent_image,
+            greylist=greylist,
+        )
+
+    logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
+    return total_whitelist
+
+
 ##### Get the greylist file for all the base images
+## TODO: Remove this
 def getAllGreylistFiles(
     whitelistDir, sourceImage, sourceImageGreylistFile, hardening_manifest
 ):
