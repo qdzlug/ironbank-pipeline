@@ -162,6 +162,36 @@ def getSourceImageGreylistFile(whitelistDir, sourceImage):
             print(sourceImageGreylistFile)
     return sourceImageGreylistFile
 
+def _connect_to_db():
+    """
+    @return mariadb connection
+    """
+    conn = None
+    try:
+        conn = mysql.connector.connect(
+            host=os.environ["vat_db_host"],
+            database=os.environ["vat_db_database_name"],
+            user=os.environ["vat_db_connection_user"],
+            passwd=os.environ["vat_db_connection_pass"],
+        )
+        if conn.is_connected():
+            # there are many connections to db so this should be uncommented
+            # for troubleshooting
+            logging.debug(
+                "Connected to the host %s with user %s",
+                os.environ["vat_db_host"],
+                os.environ["vat_db_connection_user"],
+            )
+        else:
+            logging.critical("Failed to connect to DB")
+            sys.exit(1)
+    except Error as err:
+        logging.critical(err)
+        if conn is not None and conn.is_connected():
+            conn.close()
+        sys.exit(1)
+
+    return conn
 
 def _vat_vuln_query(im_name, im_version):
     conn = None
@@ -274,6 +304,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
         # TODO: swap this for hardening manifest after 30 day merge cutoff
         result = _vat_vuln_query(greylist["image_name"], greylist["image_tag"])
+        logging.debug(result[0])
         # logging.debug(result[0])
         for row in result:
             vuln_dict = _get_vulns_from_query(row)
