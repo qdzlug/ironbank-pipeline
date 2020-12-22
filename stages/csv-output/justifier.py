@@ -152,15 +152,51 @@ def cloneWhitelist(whitelistDir, whitelistRepo):
     )
 
 
-##### Get the greylist for the source image
-def getSourceImageGreylistFile(whitelistDir, sourceImage):
-    sourceImageGreylistFile = ""
-    files = os.listdir(whitelistDir + "/" + sourceImage)
-    for file in files:
-        if fnmatch.fnmatch(file, "*.greylist"):
-            sourceImageGreylistFile = whitelistDir + "/" + sourceImage + "/" + file
-            print(sourceImageGreylistFile)
-    return sourceImageGreylistFile
+# ##### Get the greylist for the source image
+# def getSourceImageGreylistFile(whitelistDir, sourceImage):
+#     sourceImageGreylistFile = ""
+#     files = os.listdir(whitelistDir + "/" + sourceImage)
+#     for file in files:
+#         if fnmatch.fnmatch(file, "*.greylist"):
+#             sourceImageGreylistFile = whitelistDir + "/" + sourceImage + "/" + file
+#             print(sourceImageGreylistFile)
+#     return sourceImageGreylistFile
+
+
+def _get_greylist_file_contents(image_path, branch):
+    """
+    Grab the contents of a greylist file. Takes in the path to the image and
+    determines the appropriate greylist.
+
+    """
+    greylist_file_path = f"{image_path}/{image_path.split('/')[-1]}.greylist"
+    try:
+        gl = gitlab.Gitlab(os.environ["REPO1_URL"])
+        proj = gl.projects.get("dsop/dccscr-whitelists", lazy=True)
+        f = proj.files.get(file_path=greylist_file_path, ref=branch)
+
+    except gitlab.exceptions.GitlabError:
+        logging.error(
+            f"Whitelist retrieval attempted: {greylist_file_path} on {branch}"
+        )
+        logging.error(f"Error retrieving whitelist file: {sys.exc_info()[1]}")
+        sys.exit(1)
+
+    try:
+        contents = json.loads(f.decode())
+    except ValueError as e:
+        logging.error("Could not load greylist as json")
+        logging.error(e)
+        sys.exit(1)
+
+    if (
+        contents["approval_status"] != "approved"
+        and os.environ.get("CI_COMMIT_BRANCH").lower() == "master"
+    ):
+        logging.error("Unapproved image running on master branch")
+        sys.exit(1)
+
+    return contents
 
 def _connect_to_db():
     """
@@ -267,9 +303,10 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     logging.info(f"Grabbing CVEs for: {image_name}")
     # get cves from vat
     result = _vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
-    logging.debug(result)
+    logging.debug(result[0])
     # parse CVEs from VAT query
     # empty list is returned if no entry or no cves. NoneType only returned if error.
+    logging.info(result[0])
     if result is None:
         logging.error("No results from vat. Fatal error.")
         sys.exit(1)
@@ -320,68 +357,68 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     return total_whitelist
 
 
-##### Get the greylist file for all the base images
-## TODO: Remove this
-def getAllGreylistFiles(
-    whitelistDir, sourceImage, sourceImageGreylistFile, hardening_manifest
-):
-    # extract base_image from sourceImage .greylist file
-    baseImage = ""
+# ##### Get the greylist file for all the base images
+# ## TODO: Remove this
+# def getAllGreylistFiles(
+#     whitelistDir, sourceImage, sourceImageGreylistFile, hardening_manifest
+# ):
+#     # extract base_image from sourceImage .greylist file
+#     baseImage = ""
 
-    # Add source image greylist file to allFiles
-    allFiles.append(sourceImageGreylistFile)
+#     # Add source image greylist file to allFiles
+#     allFiles.append(sourceImageGreylistFile)
 
-    # Load the greylist file to pass to _next_ancestor
-    with open(sourceImageGreylistFile) as f:
-        try:
-            data = json.load(f)
-        except ValueError as e:
-            print("Error processing file: " + sourceImageGreylistFile, file=sys.stderr)
-            sys.exit(1)
+#     # Load the greylist file to pass to _next_ancestor
+#     with open(sourceImageGreylistFile) as f:
+#         try:
+#             data = json.load(f)
+#         except ValueError as e:
+#             print("Error processing file: " + sourceImageGreylistFile, file=sys.stderr)
+#             sys.exit(1)
 
-    # Check for empty .greylist file
-    if os.stat(sourceImageGreylistFile).st_size == 0:
-        print("Source image greylist file is empty")
+#     # Check for empty .greylist file
+#     if os.stat(sourceImageGreylistFile).st_size == 0:
+#         print("Source image greylist file is empty")
 
-    # Get first parent image from hardening_manifest
-    else:
-        baseImage = _next_ancestor(
-            image_path=sourceImage,
-            greylist=data,
-            hardening_manifest=hardening_manifest,
-        )
-        if len(baseImage) == 0:
-            print("No parent image")
+#     # Get first parent image from hardening_manifest
+#     else:
+#         baseImage = _next_ancestor(
+#             image_path=sourceImage,
+#             greylist=data,
+#             hardening_manifest=hardening_manifest,
+#         )
+#         if len(baseImage) == 0:
+#             print("No parent image")
 
-    print("The following base image greylist files have been identified...")
+#     print("The following base image greylist files have been identified...")
 
-    # Add all parent image greylists to allFiles
-    # Break loop when it finds the last parent image
-    while len(baseImage) != 0:
-        files = os.listdir(whitelistDir + "/" + baseImage)
-        for file in files:
-            if fnmatch.fnmatch(file, "*.greylist"):
-                baseImageGreylistFile = whitelistDir + "/" + baseImage + "/" + file
-                print(baseImageGreylistFile)
-                allFiles.append(baseImageGreylistFile)
-                with open(baseImageGreylistFile) as f:
-                    try:
-                        data = json.load(f)
-                    except ValueError as e:
-                        print("Error processing file: " + file, file=sys.stderr)
-                if os.stat(baseImageGreylistFile).st_size == 0:
-                    print("Source image greylist file is empty")
-                    baseImage = ""
-                # return base image, checking hardening manifest first, then greylist. If no BASE_IMAGE, exit
-                else:
-                    baseImage = _next_ancestor(image_path=baseImage, greylist=data)
-                    logging.debug(baseImage)
+#     # Add all parent image greylists to allFiles
+#     # Break loop when it finds the last parent image
+#     while len(baseImage) != 0:
+#         files = os.listdir(whitelistDir + "/" + baseImage)
+#         for file in files:
+#             if fnmatch.fnmatch(file, "*.greylist"):
+#                 baseImageGreylistFile = whitelistDir + "/" + baseImage + "/" + file
+#                 print(baseImageGreylistFile)
+#                 allFiles.append(baseImageGreylistFile)
+#                 with open(baseImageGreylistFile) as f:
+#                     try:
+#                         data = json.load(f)
+#                     except ValueError as e:
+#                         print("Error processing file: " + file, file=sys.stderr)
+#                 if os.stat(baseImageGreylistFile).st_size == 0:
+#                     print("Source image greylist file is empty")
+#                     baseImage = ""
+#                 # return base image, checking hardening manifest first, then greylist. If no BASE_IMAGE, exit
+#                 else:
+#                     baseImage = _next_ancestor(image_path=baseImage, greylist=data)
+#                     logging.debug(baseImage)
 
-    return allFiles
+#     return allFiles
 
 
 ##### Read all greylist files and process into dictionary object
-def getJustifications(whitelistDir, allFiles, sourceImageGreylistFile):
+def getJustifications(total_whitelist, sourceImageName):
 
     cveOpenscap = {}
     cveTwistlock = {}
@@ -658,43 +695,50 @@ def main(argv, inheritableTriggerIds):
     print("Output file is " + outputFile)
     print("Source image is " + sourceImage)
 
-    sourceImageGreylistFile = ""
-    global allFiles
-    allFiles = []
+    #sourceImageGreylistFile = ""
+    #global allFiles
+    #allFiles = []
 
+    # TODO: Remove these commented out lines
     # Whitelist directory
-    global whitelistDir
-    whitelistDir = "dccscr-whitelists"
+    # global whitelistDir
+    # whitelistDir = "dccscr-whitelists"
 
-    # Clone the whitelist repository
-    print("Cloning the dccscr-whitelists repository... ", end="", flush=True)
-    cloneWhitelist(whitelistDir, "https://repo1.dsop.io/dsop/dccscr-whitelists.git")
-    print("done.")
+    # # Clone the whitelist repository
+    # print("Cloning the dccscr-whitelists repository... ", end="", flush=True)
+    # cloneWhitelist(whitelistDir, "https://repo1.dsop.io/dsop/dccscr-whitelists.git")
+    # print("done.")
 
-    print("Getting source image greylist... ", end="", flush=True)
-    sourceImageGreylistFile = getSourceImageGreylistFile(whitelistDir, sourceImage)
-    print("done.")
+    # print("Getting source image greylist... ", end="", flush=True)
+    # sourceImageGreylistFile = getSourceImageGreylistFile(whitelistDir, sourceImage)
+    # print("done.")
 
     hardening_manifest = _load_local_hardening_manifest()
     if hardening_manifest is None:
         logging.error("Please update your project to contain a hardening_manifest.yaml")
 
+    # TODO: Change this message
     print(
         "Getting greylist files for all parent images of " + sourceImage + "\n",
         end="",
         flush=True,
     )
+    image_name = hardening_manifest["name"]
+    wl_branch = os.getenv("WL_TARGET_BRANCH", default="master")
+
+    total_whitelist = _get_complete_whitelist_for_image(image_name, wl_branch, hardening_manifest)
+
     # may need logic for hardening_manifest not being recovered if hardening_manifest == none etc.
     # Query vat for all whitelisted vulnerabilities
-    allFiles = getAllGreylistFiles(
-        whitelistDir, sourceImage, sourceImageGreylistFile, hardening_manifest
-    )
+    # allFiles = getAllGreylistFiles(
+    #     whitelistDir, sourceImage, sourceImageGreylistFile, hardening_manifest
+    # )
     print("done.")
 
     # Get all justifications
     print("Gathering list of all justifications... ", end="", flush=True)
     jOpenscap, jTwistlock, jAnchore = getJustifications(
-        whitelistDir, allFiles, sourceImageGreylistFile
+        total_whitelist, os.environ["IMAGE_NAME"]
     )
     print("done.")
 
