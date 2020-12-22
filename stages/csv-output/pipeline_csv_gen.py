@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
-import csv
-from bs4 import BeautifulSoup
-import re
-import json
+
 import os
-import pandas as pd
-import argparse
+import re
+import csv
+import json
 import pathlib
 import logging
+import argparse
+import pandas as pd
+from bs4 import BeautifulSoup
 
 
 def main():
-    global csv_dir
-
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
     if loglevel == "DEBUG":
@@ -46,65 +45,50 @@ def main():
     )
     args = parser.parse_args()
 
-    csv_dir = args.output_dir
-    if not os.path.exists(csv_dir):
-        os.mkdir(csv_dir)
+    pathlib.Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 
     oscap_fail_count = 0
     oval_fail_count = 0
     twist_fail_count = 0
     anc_sec_count = 0
     anc_gate_count = 0
+
     if args.oscap:
-        oscap_fail_count = generate_oscap_report(args.oscap)
+        oscap_fail_count = generate_oscap_report(
+            csv_dir=args.output_dir, oscap=args.oscap
+        )
     else:
-        generate_blank_oscap_report()
+        generate_blank_oscap_report(csv_dir=args.output_dir)
     if args.oval:
-        oval_fail_count = generate_oval_report(args.oval)
+        oval_fail_count = generate_oval_report(csv_dir=args.output_dir, oval=args.oval)
     else:
-        generate_blank_oval_report()
+        generate_blank_oval_report(csv_dir=args.output_dir)
     if args.twistlock:
-        twist_fail_count = generate_twistlock_report(args.twistlock)
+        twist_fail_count = generate_twistlock_report(
+            csv_dir=args.output_dir, twistlock_cve_json=args.twistlock
+        )
     if args.anchore_sec:
-        anc_sec_count = generate_anchore_sec_report(args.anchore_sec)
+        anc_sec_count = generate_anchore_sec_report(
+            csv_dir=args.output_dir, anchore_security_json=args.anchore_sec
+        )
     if args.anchore_gates:
-        anc_gate_count = generate_anchore_gates_report(args.anchore_gates)
+        anc_gate_count = generate_anchore_gates_report(
+            csv_dir=args.output_dir, anchore_gates_json=args.anchore_gates
+        )
 
     generate_summary_report(
-        oscap_fail_count,
-        oval_fail_count,
-        twist_fail_count,
-        anc_sec_count,
-        anc_gate_count,
+        csv_dir=args.output_dir,
+        osc=oscap_fail_count,
+        ovf=oval_fail_count,
+        tlf=twist_fail_count,
+        asf=anc_sec_count,
+        agf=anc_gate_count,
     )
-    convert_to_excel()
-    # csv_dir = sys.argv[6]
-    # if not os.path.exists(csv_dir):
-    #     os.mkdir(csv_dir)
-    # generate_all_reports(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
-
-
-# GENERATES ALL OF THE REPORTS FOR ALL OF THE THINGS INCLUDING A SUMMARY INTO /tmp/csvs/
-def generate_all_reports(oscap, oval, twistlock, anchore_sec, anchore_gates):
-    oscap_fail_count = generate_oscap_report(oscap)
-    oval_fail_count = generate_oval_report(oval)
-    twist_fail_count = generate_twistlock_report(twistlock)
-    anc_sec_count = generate_anchore_sec_report(anchore_sec)
-    anc_gate_count = generate_anchore_gates_report(anchore_gates)
-
-    generate_summary_report(
-        oscap_fail_count,
-        oval_fail_count,
-        twist_fail_count,
-        anc_sec_count,
-        anc_gate_count,
-    )
-
-    convert_to_excel()
+    convert_to_excel(csv_dir=args.output_dir)
 
 
 # convert to Excel file
-def convert_to_excel():
+def convert_to_excel(csv_dir):
     read_sum = pd.read_csv(csv_dir + "summary.csv")
     read_oscap = pd.read_csv(csv_dir + "oscap.csv")
     read_oval = pd.read_csv(csv_dir + "oval.csv")
@@ -137,7 +121,7 @@ def convert_to_excel():
 
 
 # Blank OSCAP Report
-def generate_blank_oscap_report():
+def generate_blank_oscap_report(csv_dir):
     oscap_report = open(csv_dir + "oscap.csv", "w", encoding="utf-8")
     csv_writer = csv.writer(oscap_report)
     csv_writer.writerow(
@@ -147,7 +131,7 @@ def generate_blank_oscap_report():
 
 
 # Blank oval Report
-def generate_blank_oval_report():
+def generate_blank_oval_report(csv_dir):
     oval_report = open(csv_dir + "oval.csv", "w", encoding="utf-8")
     csv_writer = csv.writer(oval_report)
     csv_writer.writerow(
@@ -157,7 +141,7 @@ def generate_blank_oval_report():
 
 
 # SUMMARY REPORT
-def generate_summary_report(osc, ovf, tlf, asf, agf):
+def generate_summary_report(csv_dir, osc, ovf, tlf, asf, agf):
     sum_data = open(csv_dir + "summary.csv", "w", encoding="utf-8")
     csv_writer = csv.writer(sum_data)
 
@@ -196,7 +180,7 @@ def generate_summary_report(osc, ovf, tlf, asf, agf):
     sum_data.close()
 
 
-def generate_oscap_report(oscap):
+def generate_oscap_report(csv_dir, oscap):
     oscap_cves = get_oscap_full(oscap)
     oscap_data = open(csv_dir + "oscap.csv", "w", encoding="utf-8")
     csv_writer = csv.writer(oscap_data)
@@ -275,7 +259,7 @@ def get_oscap_full(oscap_file):
 
 
 # OVAL CSV
-def generate_oval_report(oval):
+def generate_oval_report(csv_dir, oval):
     oval_cves = get_oval_full(oval)
     oval_data = open(csv_dir + "oval.csv", "w", encoding="utf-8")
     csv_writer = csv.writer(oval_data)
@@ -322,7 +306,7 @@ def get_oval_full(oval_file):
     return cves
 
 
-def generate_twistlock_report(twistlock_cve_json):
+def generate_twistlock_report(csv_dir, twistlock_cve_json):
     with open(twistlock_cve_json, mode="r", encoding="utf-8") as f:
         json_data = json.load(f)
         if json_data[0]["vulnerabilities"] is None:
@@ -354,12 +338,14 @@ def generate_twistlock_report(twistlock_cve_json):
         "vecStr",
     ]
 
-    _write_csv_from_dict_list(dict_list=cves, fieldnames=fieldnames, filename="tl.csv")
+    _write_csv_from_dict_list(
+        csv_dir=csv_dir, dict_list=cves, fieldnames=fieldnames, filename="tl.csv"
+    )
 
     return len(cves)
 
 
-def _write_csv_from_dict_list(dict_list, fieldnames, filename):
+def _write_csv_from_dict_list(csv_dir, dict_list, fieldnames, filename):
     """
     Create csv file based off prepared data. The data must be provided as a list
     of dictionaries and the rest will be taken care of.
@@ -375,7 +361,7 @@ def _write_csv_from_dict_list(dict_list, fieldnames, filename):
 
 
 # ANCHORE SECURITY CSV
-def generate_anchore_sec_report(anchore_security_json):
+def generate_anchore_sec_report(csv_dir, anchore_security_json):
     with open(anchore_security_json, mode="r", encoding="utf-8") as f:
         json_data = json.load(f)
         cves = [
@@ -404,14 +390,17 @@ def generate_anchore_sec_report(anchore_security_json):
     ]
 
     _write_csv_from_dict_list(
-        dict_list=cves, fieldnames=fieldnames, filename="anchore_security.csv"
+        csv_dir=csv_dir,
+        dict_list=cves,
+        fieldnames=fieldnames,
+        filename="anchore_security.csv",
     )
 
     return len(cves)
 
 
 # ANCHORE GATES CSV
-def generate_anchore_gates_report(anchore_gates_json):
+def generate_anchore_gates_report(csv_dir, anchore_gates_json):
     with open(anchore_gates_json, encoding="utf-8") as f:
         json_data = json.load(f)
         sha = list(json_data.keys())[0]
@@ -471,7 +460,10 @@ def generate_anchore_gates_report(anchore_gates_json):
     ]
 
     _write_csv_from_dict_list(
-        dict_list=gates, fieldnames=fieldnames, filename="anchore_gates.csv"
+        csv_dir=csv_dir,
+        dict_list=gates,
+        fieldnames=fieldnames,
+        filename="anchore_gates.csv",
     )
     return stop_count, image_id
 
