@@ -286,8 +286,8 @@ def _get_vulns_from_query(row):
     vuln_dict["vulnerability"] = row[3]
     vuln_dict["vuln_source"] = row[4]
     vuln_dict["status"] = row[6]
-    # vuln_dict["vuln_description"] =
-    # vuln_dict["justification"] =
+    vuln_dict["justification"] = row[8]
+    vuln_dict["vuln_description"] = row[9]
     # logging.debug(vuln_dict)
     return vuln_dict
 
@@ -362,66 +362,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     return total_whitelist
 
 
-# ##### Get the greylist file for all the base images
-# ## TODO: Remove this
-# def getAllGreylistFiles(
-#     whitelistDir, sourceImage, sourceImageGreylistFile, hardening_manifest
-# ):
-#     # extract base_image from sourceImage .greylist file
-#     baseImage = ""
-
-#     # Add source image greylist file to allFiles
-#     allFiles.append(sourceImageGreylistFile)
-
-#     # Load the greylist file to pass to _next_ancestor
-#     with open(sourceImageGreylistFile) as f:
-#         try:
-#             data = json.load(f)
-#         except ValueError as e:
-#             print("Error processing file: " + sourceImageGreylistFile, file=sys.stderr)
-#             sys.exit(1)
-
-#     # Check for empty .greylist file
-#     if os.stat(sourceImageGreylistFile).st_size == 0:
-#         print("Source image greylist file is empty")
-
-#     # Get first parent image from hardening_manifest
-#     else:
-#         baseImage = _next_ancestor(
-#             image_path=sourceImage,
-#             greylist=data,
-#             hardening_manifest=hardening_manifest,
-#         )
-#         if len(baseImage) == 0:
-#             print("No parent image")
-
-#     print("The following base image greylist files have been identified...")
-
-#     # Add all parent image greylists to allFiles
-#     # Break loop when it finds the last parent image
-#     while len(baseImage) != 0:
-#         files = os.listdir(whitelistDir + "/" + baseImage)
-#         for file in files:
-#             if fnmatch.fnmatch(file, "*.greylist"):
-#                 baseImageGreylistFile = whitelistDir + "/" + baseImage + "/" + file
-#                 print(baseImageGreylistFile)
-#                 allFiles.append(baseImageGreylistFile)
-#                 with open(baseImageGreylistFile) as f:
-#                     try:
-#                         data = json.load(f)
-#                     except ValueError as e:
-#                         print("Error processing file: " + file, file=sys.stderr)
-#                 if os.stat(baseImageGreylistFile).st_size == 0:
-#                     print("Source image greylist file is empty")
-#                     baseImage = ""
-#                 # return base image, checking hardening manifest first, then greylist. If no BASE_IMAGE, exit
-#                 else:
-#                     baseImage = _next_ancestor(image_path=baseImage, greylist=data)
-#                     logging.debug(baseImage)
-
-#     return allFiles
-
-
 ##### Read all greylist files and process into dictionary object
 def getJustifications(total_whitelist, sourceImageName):
 
@@ -433,42 +373,38 @@ def getJustifications(total_whitelist, sourceImageName):
     # Getting results from VAT, just loop all findings, check if finding is related to base_images or source image
     # Loop through the findings and create the corresponding dict object based on the vuln_source
     for finding in total_whitelist:
-        if finding["status"] == "approve":
+        if "vulnerability" in finding.keys():
+            openscapID = finding["vulnerability"]
+            cveID = (
+                finding["vulnerability"] + "-" + finding["vuln_description"]
+            )
+            trigger_id_inherited = finding["vulnerability"]
+            trigger_id = finding["vulnerability"]
 
-            if "vulnerability" in finding.keys():
-                openscapID = finding["vulnerability"]
-                cveID = (
-                    finding["vulnerability"] + "-" + finding["vuln_description"]
-                )
-                trigger_id_inherited = finding["vulnerability"]
-                trigger_id = finding["vulnerability"]
+            # Twistlock finding
+            if finding["vuln_source"] == "twistlock_cve":
+                if finding["whitelist_source"] == sourceImageName:
+                    cveTwistlock[cveID] = finding["justification"]
+                else:
+                    cveTwistlock[cveID] = "Inherited from base image."
 
-                # Twistlock finding
-                if finding["vuln_source"] == "twistlock_cve":
-                    if file == sourceImageGreylistFile:
-                        cveTwistlock[cveID] = finding["justification"]
-                    else:
-                        cveTwistlock[cveID] = "Inherited from base image."
+            # Anchore finding
+            elif finding["vuln_source"] == "anchore_cve":
+                if finding["whitelist_source"] == sourceImageName:
+                    cveAnchore[cveID] = finding["justification"]
+                    cveAnchore[trigger_id] = finding["justification"]
+                else:
+                    cveAnchore[cveID] = "Inherited from base image."
+                    if trigger_id in inheritableTriggerIds:
+                        cveAnchore[trigger_id] = "Inherited from base image."
 
-                # Anchore finding
-                elif finding["vuln_source"] == "anchore_cve":
-                    if file == sourceImageGreylistFile:
-                        cveAnchore[cveID] = finding["justification"]
-                        cveAnchore[trigger_id] = finding["justification"]
-                    else:
-                        cveAnchore[cveID] = "Inherited from base image."
-                        if trigger_id in inheritableTriggerIds:
-                            cveAnchore[
-                                trigger_id
-                            ] = "Inherited from base image."
-
-                # OpenSCAP finding
-                elif finding["vuln_source"] == "OpenSCAP":
-                    if file == sourceImageGreylistFile:
-                        cveOpenscap[openscapID] = finding["justification"]
-                    else:
-                        cveOpenscap[openscapID] = "Inherited from base image."
-            # print(cveAnchore)
+            # OpenSCAP finding
+            elif finding["vuln_source"] == "oscap_comp":
+                if finding["whitelist_source"] == sourceImageName:
+                    cveOpenscap[openscapID] = finding["justification"]
+                else:
+                    cveOpenscap[openscapID] = "Inherited from base image."
+        # print(cveAnchore)
     return cveOpenscap, cveTwistlock, cveAnchore
 
 
@@ -731,6 +667,7 @@ def main(argv, inheritableTriggerIds):
 
     # Get all justifications
     print("Gathering list of all justifications... ", end="", flush=True)
+    logging.debug(os.environ["IMAGE_NAME"])
     jOpenscap, jTwistlock, jAnchore = getJustifications(
         total_whitelist, os.environ["IMAGE_NAME"]
     )
