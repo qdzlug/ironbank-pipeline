@@ -274,7 +274,11 @@ def _vat_approval_query(im_name, im_version):
     finally:
         if conn is not None and conn.is_connected():
             conn.close()
-    return result
+    if result and result[0][2]:
+        approval_status = result[0][2]
+    else:
+        approval_status = "notapproved"
+    return approval_status
 
 
 def _vat_vuln_query(im_name, im_version):
@@ -318,11 +322,7 @@ def _vat_vuln_query(im_name, im_version):
     finally:
         if conn is not None and conn.is_connected():
             conn.close()
-    if result and result[0][2]:
-        approval_status = result[0][2]
-    else:
-        approval_status = "notapproved"
-    return approval_status
+    return result
 
 
 def _get_vulns_from_query(row):
