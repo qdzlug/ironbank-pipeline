@@ -275,8 +275,14 @@ def _vat_approval_query(im_name, im_version):
 
 
 def _vat_vuln_query(im_name, im_version):
+    """
+    Returns the container approval status which is returned by the query as:
+    [(image_name, image_version, container_status)]
+
+    """
     conn = None
     result = None
+    approval_status = ""
     try:
         conn = _connect_to_db()
         cursor = conn.cursor(buffered=True)
@@ -309,7 +315,11 @@ def _vat_vuln_query(im_name, im_version):
     finally:
         if conn is not None and conn.is_connected():
             conn.close()
-    return result
+    if result and result[0][2]:
+        approval_status = result[0][2]
+    else:
+        approval_status = "notapproved"
+    return approval_status
 
 
 def _get_vulns_from_query(row):
@@ -390,17 +400,12 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     approval_status = _vat_approval_query(
         os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
     )
+
+    logging.debug("CONTAINER APPROVAL STATUS")
     logging.debug(approval_status)
-    # get container approval from first row in result, if record in vat, get from record, else set NotFoundInVat
-    if approval_status and approval_status[0][2]:
-        check_container_approval = approval_status[0][2]
-    else:
-        check_container_approval = "notapproved"
-    logging.debug("CHECK CONTAINER APPROVAL")
-    logging.debug(check_container_approval)
     with open("variables.env", "w") as f:
         # all cves for container have container approval at ind 2
-        if check_container_approval.lower() == "approve":
+        if approval_status.lower() == "approve":
             f.write(f"IMAGE_APPROVAL_STATUS=approved\n")
             logging.debug(f"IMAGE_APPROVAL_STATUS=approved")
         else:
