@@ -239,6 +239,7 @@ def _get_greylist_file_contents(image_path, branch):
 
     return contents
 
+
 def _vat_approval_query(im_name, im_version):
     conn = None
     result = None
@@ -271,6 +272,7 @@ def _vat_approval_query(im_name, im_version):
         if conn is not None and conn.is_connected():
             conn.close()
     return result
+
 
 def _vat_vuln_query(im_name, im_version):
     conn = None
@@ -385,7 +387,9 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         "Length of total whitelist for source image: " + str(len(total_whitelist))
     )
     # get container approval from separate query
-    approval_status = _vat_approval_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
+    approval_status = _vat_approval_query(
+        os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
+    )
     logging.debug(approval_status)
     # get container approval from first row in result, if record in vat, get from record, else set NotFoundInVat
     if approval_status and approval_status[0][2]:
