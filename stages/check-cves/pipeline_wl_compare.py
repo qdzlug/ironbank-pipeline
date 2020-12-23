@@ -257,13 +257,16 @@ def _vat_approval_query(im_name, im_version):
                 INNER JOIN containers c on c.id = cl.imageid
                 INNER JOIN
                 (SELECT fa.imageid,
-                COUNT(*)
-                , MAX(fl.date_time) as maxdate
-                FROM findings_approvals fa
-                INNER JOIN findings_log fl on fl.approval_id = fa.id AND fl.id in (SELECT max(id) FROM findings_log group by approval_id)
-                WHERE fa.imageid = (SELECT id from containers WHERE name=%s AND version=%s)
-                AND fa.inherited_id is NULL AND fa.in_current_scan = 1 ) FC
-                WHERE c.name=%s AND c.version=%s AND cl.id in (SELECT max(id) from container_log GROUP BY imageid);"""
+                    COUNT(*)
+                    , MAX(fl.date_time) as maxdate
+                    FROM findings_approvals fa
+                    INNER JOIN findings_log fl on fl.approval_id = fa.id AND fl.id in (
+                        SELECT max(id) FROM findings_log group by approval_id)
+                    WHERE fa.imageid = (
+                        SELECT id from containers WHERE name=%s AND version=%s)
+                    AND fa.inherited_id is NULL AND fa.in_current_scan = 1 ) FC
+                    WHERE c.name=%s AND c.version=%s AND cl.id in (
+                        SELECT max(id) from container_log GROUP BY imageid);"""
         cursor.execute(query, (im_name, im_version, im_name, im_version))
         result = cursor.fetchall()
     except Error as error:
