@@ -318,7 +318,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         sys.exit(1)
     else:
         for row in result:
-            #logging.debug(row)
+            logging.debug(row)
             vuln_dict = _get_vulns_from_query(row)
             if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
                 total_whitelist.append(vuln_dict)
@@ -350,7 +350,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         result = _vat_vuln_query(greylist["image_name"], greylist["image_tag"])
         #logging.debug(result[0])
         for row in result:
-            #logging.debug(row)
+            logging.debug(row)
             vuln_dict = _get_vulns_from_query(row)
             if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
                 total_whitelist.append(vuln_dict)
