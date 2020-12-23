@@ -334,6 +334,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     logging.info(f"Grabbing CVEs for: {image_name}")
     # get cves from vat
     result = _vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
+    logging.debug(result)
     # parse CVEs from VAT query
     # empty list is returned if no entry or no cves. NoneType only returned if error.
     if result is None:
@@ -399,6 +400,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
         # TODO: swap this for hardening manifest after 30 day merge cutoff
         result = _vat_vuln_query(greylist["image_name"], greylist["image_tag"])
+
         for row in result:
             vuln_dict = _get_vulns_from_query(row)
             if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
