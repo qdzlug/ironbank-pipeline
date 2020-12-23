@@ -314,7 +314,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     result = _vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
     # parse CVEs from VAT query
     # empty list is returned if no entry or no cves. NoneType only returned if error.
-    #logging.info(result[0])
+    # logging.info(result[0])
     if result is None:
         logging.error("No results from vat. Fatal error.")
         sys.exit(1)
@@ -326,7 +326,9 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
                 total_whitelist.append(vuln_dict)
                 logging.debug(vuln_dict)
             else:
-                logging.debug("There is no approval status present in result or cve not approved")
+                logging.debug(
+                    "There is no approval status present in result or cve not approved"
+                )
 
     logging.debug(
         "Length of total whitelist for source image: " + str(len(total_whitelist))
@@ -350,7 +352,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
         # TODO: swap this for hardening manifest after 30 day merge cutoff
         result = _vat_vuln_query(greylist["image_name"], greylist["image_tag"])
-        #logging.debug(result[0])
+        # logging.debug(result[0])
         for row in result:
             logging.debug(row)
             vuln_dict = _get_vulns_from_query(row)
@@ -379,9 +381,7 @@ def getJustifications(total_whitelist, sourceImageName):
     for finding in total_whitelist:
         if "vulnerability" in finding.keys():
             openscapID = finding["vulnerability"]
-            cveID = (
-                finding["vulnerability"] + "-" + finding["vuln_description"]
-            )
+            cveID = finding["vulnerability"] + "-" + finding["vuln_description"]
             trigger_id_inherited = finding["vulnerability"]
             trigger_id = finding["vulnerability"]
             logging.debug(cveID)
@@ -394,7 +394,10 @@ def getJustifications(total_whitelist, sourceImageName):
                     logging.debug("Twistlock inherited cve")
 
             # Anchore finding
-            elif finding["vuln_source"] == "anchore_cve" or finding["vuln_source"] == "anchore_comp":
+            elif (
+                finding["vuln_source"] == "anchore_cve"
+                or finding["vuln_source"] == "anchore_comp"
+            ):
                 if finding["whitelist_source"] == sourceImageName:
                     cveAnchore[cveID] = finding["justification"]
                     cveAnchore[trigger_id] = finding["justification"]
@@ -674,9 +677,7 @@ def main(argv, inheritableTriggerIds):
 
     # Get all justifications
     print("Gathering list of all justifications... ", end="", flush=True)
-    jOpenscap, jTwistlock, jAnchore = getJustifications(
-        total_whitelist, sourceImage
-    )
+    jOpenscap, jTwistlock, jAnchore = getJustifications(total_whitelist, sourceImage)
     print("done.")
 
     # Open the Excel file of the application we are updating
