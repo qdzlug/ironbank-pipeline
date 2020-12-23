@@ -239,6 +239,38 @@ def _get_greylist_file_contents(image_path, branch):
 
     return contents
 
+def _vat_approval_query(im_name, im_version):
+    conn = None
+    result = None
+    try:
+        conn = _connect_to_db()
+        cursor = conn.cursor(buffered=True)
+        # TODO: add new scan logic
+        query = """SELECT c.name as container
+                , c.version
+                , CASE
+                WHEN cl.type is NULL THEN 'Pending'
+                WHEN cl.type = 'Approved' and cl.date_time < FC.maxdate THEN 'Pending'
+                ELSE cl.type END as container_approval_status
+                FROM container_log cl
+                INNER JOIN containers c on c.id = cl.imageid
+                INNER JOIN
+                (SELECT fa.imageid,
+                COUNT(*)
+                , MAX(fl.date_time) as maxdate
+                FROM findings_approvals fa
+                INNER JOIN findings_log fl on fl.approval_id = fa.id AND fl.id in (SELECT max(id) FROM findings_log group by approval_id)
+                WHERE fa.imageid = (SELECT id from containers WHERE name=%s AND version=%s)
+                AND fa.inherited_id is NULL AND fa.in_current_scan = 1 ) FC
+                WHERE c.name=%s AND c.version=%s AND cl.id in (SELECT max(id) from container_log GROUP BY imageid);"""
+        cursor.execute(query, (im_name, im_version, im_name, im_version))
+        result = cursor.fetchall()
+    except Error as error:
+        logging.info(error)
+    finally:
+        if conn is not None and conn.is_connected():
+            conn.close()
+    return result
 
 def _vat_vuln_query(im_name, im_version):
     conn = None
