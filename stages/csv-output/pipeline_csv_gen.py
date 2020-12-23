@@ -10,6 +10,9 @@ import argparse
 import pandas as pd
 from bs4 import BeautifulSoup
 
+from scanners import anchore
+from scanners.helper import _write_csv_from_dict_list
+
 
 def main():
     # Get logging level, set manually when running pipeline
@@ -50,8 +53,8 @@ def main():
     oscap_fail_count = 0
     oval_fail_count = 0
     twist_fail_count = 0
-    anc_sec_count = 0
-    anc_gate_count = 0
+    anchore_num_cves = 0
+    anchore_compliance = {"stop_count": 0, "image_id": None}
 
     if args.oscap:
         oscap_fail_count = generate_oscap_report(
@@ -68,11 +71,11 @@ def main():
             csv_dir=args.output_dir, twistlock_cve_json=args.twistlock
         )
     if args.anchore_sec:
-        anc_sec_count = generate_anchore_sec_report(
+        anchore_num_cves = anchore.vulnerability_report(
             csv_dir=args.output_dir, anchore_security_json=args.anchore_sec
         )
     if args.anchore_gates:
-        anc_gate_count = generate_anchore_gates_report(
+        anchore_compliance = anchore.compliance_report(
             csv_dir=args.output_dir, anchore_gates_json=args.anchore_gates
         )
 
@@ -81,8 +84,8 @@ def main():
         osc=oscap_fail_count,
         ovf=oval_fail_count,
         tlf=twist_fail_count,
-        asf=anc_sec_count,
-        agf=anc_gate_count,
+        anchore_num_cves=anchore_num_cves,
+        anchore_compliance=anchore_compliance,
     )
     convert_to_excel(csv_dir=args.output_dir)
 
@@ -141,41 +144,54 @@ def generate_blank_oval_report(csv_dir):
 
 
 # SUMMARY REPORT
-def generate_summary_report(csv_dir, osc, ovf, tlf, asf, agf):
+def generate_summary_report(
+    csv_dir, osc, ovf, tlf, anchore_num_cves, anchore_compliance
+):
     sum_data = open(csv_dir + "summary.csv", "w", encoding="utf-8")
     csv_writer = csv.writer(sum_data)
 
     header = ["Scan", "Automated Findings", "Manual Checks", "Total"]
+
     # if the osc arg type is an int, the scan was skipped so output zero values
     if type(osc) == int:
         osl = ["OpenSCAP - DISA Compliance", 0, 0, 0]
     # osc arg is a tuple, meaning the generate_oscap_report and generate_oval_report functions were run
     else:
         osl = ["OpenSCAP - DISA Compliance", osc[0], osc[1], osc[0] + osc[1]]
+
     ovf = ["OpenSCAP - OVAL Results", int(ovf or 0), 0, int(ovf or 0)]
-    ancl = ["Anchore CVE Results", int(asf or 0), 0, int(asf or 0)]
-    ancc = ["Anchore Compliance Results", int(agf[0] or 0), 0, int(agf[0] or 0)]
+    anchore_vulns = ["Anchore CVE Results", anchore_num_cves, 0, anchore_num_cves]
+    anchore_comps = [
+        "Anchore Compliance Results",
+        anchore_compliance["stop_count"],
+        0,
+        anchore_compliance["stop_count"],
+    ]
     twl = ["Twistlock Vulnerability Results", int(tlf or 0), 0, int(tlf or 0)]
 
     csv_writer.writerow(header)
     csv_writer.writerow(osl)
     csv_writer.writerow(ovf)
     csv_writer.writerow(twl)
-    csv_writer.writerow(ancl)
-    csv_writer.writerow(ancc)
+    csv_writer.writerow(anchore_vulns)
+    csv_writer.writerow(anchore_comps)
     csv_writer.writerow(
         [
             "Totals",
-            osl[1] + ovf[1] + ancl[1] + ancc[1] + twl[1],
-            osl[2] + ovf[2] + ancl[2] + ancc[2] + twl[2],
-            osl[3] + ovf[3] + ancl[3] + ancc[3] + twl[3],
+            osl[1] + ovf[1] + anchore_vulns[1] + anchore_comps[1] + twl[1],
+            osl[2] + ovf[2] + anchore_vulns[2] + anchore_comps[2] + twl[2],
+            osl[3] + ovf[3] + anchore_vulns[3] + anchore_comps[3] + twl[3],
         ]
     )
 
     csv_writer.writerow("")
     # date_str = 'Scans performed on: ' + str(osc[2])
     # csv_writer.writerow(['Scans performed on:', ]) # need date scanned
-    sha_str = "Scans performed on container layer sha256:" + agf[1] + ",,,"
+    sha_str = (
+        "Scans performed on container layer sha256:"
+        + anchore_compliance["image_id"]
+        + ",,,"
+    )
     csv_writer.writerow([sha_str])
     sum_data.close()
 
@@ -343,129 +359,6 @@ def generate_twistlock_report(csv_dir, twistlock_cve_json):
     )
 
     return len(cves)
-
-
-def _write_csv_from_dict_list(csv_dir, dict_list, fieldnames, filename):
-    """
-    Create csv file based off prepared data. The data must be provided as a list
-    of dictionaries and the rest will be taken care of.
-
-    """
-    filepath = pathlib.Path(csv_dir, filename)
-
-    with filepath.open(mode="w", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        if dict_list:
-            writer.writerows(dict_list)
-
-
-# ANCHORE SECURITY CSV
-def generate_anchore_sec_report(csv_dir, anchore_security_json):
-    with open(anchore_security_json, mode="r", encoding="utf-8") as f:
-        json_data = json.load(f)
-        cves = [
-            {
-                "tag": json_data["imageFullTag"],
-                "cve": d["vuln"],
-                "severity": d["severity"],
-                "package": d["package"],
-                "package_path": d["package_path"],
-                "fix": d["fix"],
-                "url": d["url"],
-                "inherited": d.get("inherited_from_base") or "no_data",
-            }
-            for d in json_data["vulnerabilities"]
-        ]
-
-    fieldnames = [
-        "tag",
-        "cve",
-        "severity",
-        "package",
-        "package_path",
-        "fix",
-        "url",
-        "inherited",
-    ]
-
-    _write_csv_from_dict_list(
-        csv_dir=csv_dir,
-        dict_list=cves,
-        fieldnames=fieldnames,
-        filename="anchore_security.csv",
-    )
-
-    return len(cves)
-
-
-# ANCHORE GATES CSV
-def generate_anchore_gates_report(csv_dir, anchore_gates_json):
-    with open(anchore_gates_json, encoding="utf-8") as f:
-        json_data = json.load(f)
-        sha = list(json_data.keys())[0]
-        anchore_data = json_data[sha]["result"]["rows"]
-
-    gates = list()
-    stop_count = 0
-    image_id = "unable_to_determine"
-    for ad in anchore_data:
-        gate = {
-            "image_id": ad[0],
-            "repo_tag": ad[1],
-            "trigger_id": ad[2],
-            "gate": ad[3],
-            "trigger": ad[4],
-            "check_output": ad[5],
-            "gate_action": ad[6],
-            "policy_id": ad[8],
-        }
-
-        if ad[7]:
-            gate["matched_rule_id"] = ad[7]["matched_rule_id"]
-            gate["whitelist_id"] = ad[7]["whitelist_id"]
-            gate["whitelist_name"] = ad[7]["whitelist_name"]
-        else:
-            gate["matched_rule_id"] = ""
-            gate["whitelist_id"] = ""
-            gate["whitelist_name"] = ""
-
-        try:
-            gate["inherited"] = ad[9]
-            if gate["gate"] == "dockerfile":
-                gate["inherited"] = False
-        except IndexError:
-            gate["inherited"] = "no_data"
-
-        gates.append(gate)
-
-        if gate["gate_action"] == "stop":
-            stop_count += 1
-
-        image_id = gate["image_id"]
-
-    fieldnames = [
-        "image_id",
-        "repo_tag",
-        "trigger_id",
-        "gate",
-        "trigger",
-        "check_output",
-        "gate_action",
-        "policy_id",
-        "matched_rule_id",
-        "whitelist_id",
-        "whitelist_name",
-        "inherited",
-    ]
-
-    _write_csv_from_dict_list(
-        csv_dir=csv_dir,
-        dict_list=gates,
-        fieldnames=fieldnames,
-        filename="anchore_gates.csv",
-    )
-    return stop_count, image_id
 
 
 if __name__ == "__main__":
