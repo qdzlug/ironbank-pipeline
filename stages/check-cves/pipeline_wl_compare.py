@@ -386,6 +386,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     )
     # get container approval from separate query
     approval_status = _vat_approval_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
+    logging.debug(approval_status)
     # get container approval from first row in result, if record in vat, get from record, else set NotFoundInVat
     if approval_status and approval_status[0]:
         check_container_approval = approval_status[0]
