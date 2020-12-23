@@ -392,7 +392,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         check_container_approval = approval_status[0]
     else:
         check_container_approval = "notapproved"
-
+    logging.debug("CHECK CONTAINER APPROVAL")
     logging.debug(check_container_approval)
     with open("variables.env", "w") as f:
         # all cves for container have container approval at ind 2
