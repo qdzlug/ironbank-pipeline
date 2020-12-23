@@ -384,20 +384,18 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     logging.debug(
         "Length of total whitelist for source image: " + str(len(total_whitelist))
     )
-
+    # get container approval from separate query
+    approval_status = _vat_approval_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
     # get container approval from first row in result, if record in vat, get from record, else set NotFoundInVat
-    if result and result[0][2]:
-        check_container_approval = result[0]
+    if approval_status and approval_status[0]:
+        check_container_approval = approval_status[0]
     else:
-        check_container_approval = (
-            os.environ["IMAGE_NAME"],
-            os.environ["IMAGE_VERSION"],
-            "NotFoundInVat",
-        )
+        check_container_approval = "notapproved"
+
     logging.debug(check_container_approval)
     with open("variables.env", "w") as f:
         # all cves for container have container approval at ind 2
-        if check_container_approval[2].lower() == "approve":
+        if check_container_approval.lower() == "approve":
             f.write(f"IMAGE_APPROVAL_STATUS=approved\n")
             logging.debug(f"IMAGE_APPROVAL_STATUS=approved")
         else:
