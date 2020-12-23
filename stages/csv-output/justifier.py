@@ -289,6 +289,8 @@ def _get_vulns_from_query(row):
     vuln_dict["justification"] = row[8]
     if row[4] and row[4] == "anchore_cve":
         vuln_dict["vuln_description"] = row[10]
+    elif row[4] and row[4] == "anchore_comp":
+        vuln_dict["vuln_description"] = row[9].split("\n")[0]
     else:
         vuln_dict["vuln_description"] = row[9]
     # logging.debug(vuln_dict)
@@ -392,7 +394,7 @@ def getJustifications(total_whitelist, sourceImageName):
                     logging.debug("Twistlock inherited cve")
 
             # Anchore finding
-            elif finding["vuln_source"] == "anchore_cve":
+            elif finding["vuln_source"] == "anchore_cve" or finding["vuln_source"] == "anchore_comp":
                 if finding["whitelist_source"] == sourceImageName:
                     cveAnchore[cveID] = finding["justification"]
                     cveAnchore[trigger_id] = finding["justification"]
