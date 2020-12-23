@@ -288,9 +288,9 @@ def _get_vulns_from_query(row):
     vuln_dict["status"] = row[6]
     vuln_dict["justification"] = row[8]
     if row[4] and row[4] == "anchore_cve":
-        vuln_dict["vuln_description"] = row[9].split("\n")[0].replace("_3.1", "")
+        vuln_dict["vuln_description"] = row[10]
     else:
-        vuln_dict["vuln_description"] = row[9].replace("_3.1", "")
+        vuln_dict["vuln_description"] = row[9]
     # logging.debug(vuln_dict)
     return vuln_dict
 
@@ -321,7 +321,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             #logging.debug(row)
             vuln_dict = _get_vulns_from_query(row)
             if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
-                total_whitelist.append(Vuln(vuln_dict, image_name))
+                total_whitelist.append(vuln_dict)
                 logging.debug(vuln_dict)
             else:
                 logging.debug("There is no approval status present in result or cve not approved")
