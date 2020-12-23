@@ -154,17 +154,6 @@ def cloneWhitelist(whitelistDir, whitelistRepo):
     )
 
 
-# ##### Get the greylist for the source image
-# def getSourceImageGreylistFile(whitelistDir, sourceImage):
-#     sourceImageGreylistFile = ""
-#     files = os.listdir(whitelistDir + "/" + sourceImage)
-#     for file in files:
-#         if fnmatch.fnmatch(file, "*.greylist"):
-#             sourceImageGreylistFile = whitelistDir + "/" + sourceImage + "/" + file
-#             print(sourceImageGreylistFile)
-#     return sourceImageGreylistFile
-
-
 def _get_greylist_file_contents(image_path, branch):
     """
     Grab the contents of a greylist file. Takes in the path to the image and
@@ -234,6 +223,10 @@ def _connect_to_db():
 
 
 def _vat_vuln_query(im_name, im_version):
+    """
+    Gather the vulns for an image as a list of tuples to add to the total_whitelist.
+
+    """
     conn = None
     result = None
     try:
@@ -280,6 +273,19 @@ def _vat_vuln_query(im_name, im_version):
 
 
 def _get_vulns_from_query(row):
+    """
+    For each row in result (returned from VAT db query), create a dictionary gathering
+    the necessary items to be compared for each entry in the twistlock, anchore and openscap scans.
+
+    Each row should have 12 items in the form:
+    (image_name, image_version, container_status, vuln, source (e.g. anchore_cve), in_current_scan (bool)
+    vuln_status (e.g. Approve), approval_comments, justification, description, package, package_path)
+
+    example: ('redhat/ubi/ubi8', '8.3', 'Approve', 'CCE-82360-9', 'oscap_comp', 1, 'Approve', 'Approved, imported from spreadsheet.',
+    'Not applicable. This performs automatic updates to installed packages which does not apply to immutable containers.',
+    'Enable dnf-automatic Timer', 'N/A', 'N/A')
+
+    """
     vuln_dict = {}
     vuln_dict["whitelist_source"] = row[0]
     vuln_dict["version"] = row[1]
@@ -293,7 +299,6 @@ def _get_vulns_from_query(row):
         vuln_dict["vuln_description"] = row[9].split("\n")[0]
     else:
         vuln_dict["vuln_description"] = row[9]
-    # logging.debug(vuln_dict)
     return vuln_dict
 
 
@@ -369,7 +374,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
 
 ##### Read all greylist files and process into dictionary object
-def getJustifications(total_whitelist, sourceImageName):
+def _get_justifications(total_whitelist, sourceImageName):
 
     cveOpenscap = {}
     cveTwistlock = {}
@@ -677,7 +682,7 @@ def main(argv, inheritableTriggerIds):
 
     # Get all justifications
     print("Gathering list of all justifications... ", end="", flush=True)
-    jOpenscap, jTwistlock, jAnchore = getJustifications(total_whitelist, sourceImage)
+    jOpenscap, jTwistlock, jAnchore = _get_justifications(total_whitelist, sourceImage)
     print("done.")
 
     # Open the Excel file of the application we are updating
