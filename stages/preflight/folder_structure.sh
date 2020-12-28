@@ -16,7 +16,7 @@ if ! [[ -f "LICENSE" ]]; then
 fi
 
 # test for CLAMAV_WHITELIST CI variable existence and clamav-whitelist file existence
-# exits if the CI varible CLAMAV_WHITELIST exists but a whitelist file named `clamav-whitelist` is not found
+# exits if the CI varible CLAMAV_WHITELIST exists but a whitelist file named clamav-whitelist is not found
 if [[ "${CLAMAV_WHITELIST:-}" ]] && ! [[ -f "clamav-whitelist" ]]; then
   echo "CLAMAV_WHITELIST CI variable exists but clamav-whitelist file not found"
   exit 1
