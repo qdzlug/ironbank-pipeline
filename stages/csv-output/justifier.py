@@ -135,25 +135,6 @@ def _next_ancestor(image_path, greylist, hardening_manifest=None):
         sys.exit(1)
 
 
-##### Clone the dccscr-whitelist repository
-def cloneWhitelist(whitelistDir, whitelistRepo):
-    # Delete the dccscr-whitelist folder (if it exists)
-    if os.path.exists(whitelistDir):
-        try:
-            shutil.rmtree(whitelistDir)
-        except OSError as e:
-            print("Error: %s : %s" % (whitelistDir, e.strerror))
-
-    # Clone the dccscr-whitelists repo
-    dccscrWhitelistBranch = os.getenv("WL_TARGET_BRANCH")
-    # Clone the dccscr-whitelists repo
-    git.Repo.clone_from(
-        whitelistRepo,
-        os.path.join("./", "dccscr-whitelists"),
-        branch=dccscrWhitelistBranch,
-    )
-
-
 def _get_greylist_file_contents(image_path, branch):
     """
     Grab the contents of a greylist file. Takes in the path to the image and
@@ -192,7 +173,7 @@ def _get_greylist_file_contents(image_path, branch):
 
 def _connect_to_db():
     """
-    @return mariadb connection
+    @return mariadb connection for the VAT
     """
     conn = None
     try:
@@ -225,6 +206,7 @@ def _connect_to_db():
 def _vat_vuln_query(im_name, im_version):
     """
     Gather the vulns for an image as a list of tuples to add to the total_whitelist.
+    Collects all findings for the source image layer in VAT
 
     """
     conn = None
@@ -281,6 +263,8 @@ def _get_vulns_from_query(row):
     (image_name, image_version, container_status, vuln, source (e.g. anchore_cve), in_current_scan (bool)
     vuln_status (e.g. Approve), approval_comments, justification, description, package, package_path)
 
+    For anchore_comp and anchore_cve, the vuln_description is the package instead of the description.
+
     example: ('redhat/ubi/ubi8', '8.3', 'Approve', 'CCE-82360-9', 'oscap_comp', 1, 'Approve', 'Approved, imported from spreadsheet.',
     'Not applicable. This performs automatic updates to installed packages which does not apply to immutable containers.',
     'Enable dnf-automatic Timer', 'N/A', 'N/A')
@@ -305,7 +289,7 @@ def _get_vulns_from_query(row):
 def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_manifest):
     """
     Pull all whitelisted CVEs for an image. Walk through the ancestry of a given
-    image and grab all of vulnerabilities in the greylist associated with w layer.
+    image and grab all of the approved vulnerabilities in VAT associated with w layer.
 
     """
     total_whitelist = list()
@@ -373,9 +357,17 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     return total_whitelist
 
 
-##### Read all greylist files and process into dictionary object
 def _get_justifications(total_whitelist, sourceImageName):
+    """
+    Gather all justifications for any approved CVE for anchore, twistlock and openscap.
+    Keys are in the form vuln-packagename (anchore_cve), vuln-description (twistlock), or vuln (anchore_comp, openscap).
 
+    Examples:
+        CVE-2020-13434-sqlite-libs-3.26.0-11.el8 (anchore key)
+        CVE-2020-8285-A malicious server can use... (twistlock key, truncated)
+        CCE-82315-3 (openscap key)
+
+    """
     cveOpenscap = {}
     cveTwistlock = {}
     cveAnchore = {}
@@ -385,8 +377,8 @@ def _get_justifications(total_whitelist, sourceImageName):
     # Loop through the findings and create the corresponding dict object based on the vuln_source
     for finding in total_whitelist:
         if "vulnerability" in finding.keys():
-            openscapID = finding["vulnerability"]
             cveID = finding["vulnerability"] + "-" + finding["vuln_description"]
+            openscapID = finding["vulnerability"]
             trigger_id_inherited = finding["vulnerability"]
             trigger_id = finding["vulnerability"]
             logging.debug(cveID)
