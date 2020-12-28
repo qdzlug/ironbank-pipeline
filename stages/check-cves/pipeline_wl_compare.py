@@ -198,7 +198,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         logging.error(
             f"Scans are not passing 100%. Vuln Set Delta Length: {len(delta)}"
         )
-        if os.getenv("CI_COMMIT_BRANCH") == "mm-integration-test":
+        if os.getenv("CI_COMMIT_BRANCH") == "master":
             pipeline_repo_dir = os.environ["PIPELINE_REPO_DIR"]
             subprocess.run([f"{pipeline_repo_dir}/stages/check-cves/mattermost-failure-webhook.sh"])
             sys.exit(1)
