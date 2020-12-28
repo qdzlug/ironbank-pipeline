@@ -244,9 +244,56 @@ def _get_greylist_file_contents(image_path, branch):
     return contents
 
 
-def _vat_vuln_query(im_name, im_version):
+def _vat_approval_query(im_name, im_version):
     conn = None
     result = None
+    try:
+        conn = _connect_to_db()
+        cursor = conn.cursor(buffered=True)
+        # TODO: add new scan logic
+        query = """SELECT c.name as container
+                , c.version
+                , CASE
+                WHEN cl.type is NULL THEN 'Pending'
+                WHEN cl.type = 'Approved' and cl.date_time < FC.maxdate THEN 'Pending'
+                ELSE cl.type END as container_approval_status
+                FROM container_log cl
+                INNER JOIN containers c on c.id = cl.imageid
+                INNER JOIN
+                (SELECT fa.imageid,
+                    COUNT(*)
+                    , MAX(fl.date_time) as maxdate
+                    FROM findings_approvals fa
+                    INNER JOIN findings_log fl on fl.approval_id = fa.id AND fl.id in (
+                        SELECT max(id) FROM findings_log group by approval_id)
+                    WHERE fa.imageid = (
+                        SELECT id from containers WHERE name=%s AND version=%s)
+                    AND fa.inherited_id is NULL AND fa.in_current_scan = 1 ) FC
+                    WHERE c.name=%s AND c.version=%s AND cl.id in (
+                        SELECT max(id) from container_log GROUP BY imageid);"""
+        cursor.execute(query, (im_name, im_version, im_name, im_version))
+        result = cursor.fetchall()
+    except Error as error:
+        logging.info(error)
+    finally:
+        if conn is not None and conn.is_connected():
+            conn.close()
+    if result and result[0][2]:
+        approval_status = result[0][2]
+    else:
+        approval_status = "notapproved"
+    return approval_status
+
+
+def _vat_vuln_query(im_name, im_version):
+    """
+    Returns the container approval status which is returned by the query as:
+    [(image_name, image_version, container_status)]
+
+    """
+    conn = None
+    result = None
+    approval_status = ""
     try:
         conn = _connect_to_db()
         cursor = conn.cursor(buffered=True)
@@ -356,20 +403,16 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     logging.debug(
         "Length of total whitelist for source image: " + str(len(total_whitelist))
     )
+    # get container approval from separate query
+    approval_status = _vat_approval_query(
+        os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
+    )
 
-    # get container approval from first row in result, if record in vat, get from record, else set NotFoundInVat
-    if result and result[0][2]:
-        check_container_approval = result[0]
-    else:
-        check_container_approval = (
-            os.environ["IMAGE_NAME"],
-            os.environ["IMAGE_VERSION"],
-            "NotFoundInVat",
-        )
-    logging.debug(check_container_approval)
+    logging.debug("CONTAINER APPROVAL STATUS")
+    logging.debug(approval_status)
     with open("variables.env", "w") as f:
         # all cves for container have container approval at ind 2
-        if check_container_approval[2].lower() == "approve":
+        if approval_status.lower() == "approve":
             f.write(f"IMAGE_APPROVAL_STATUS=approved\n")
             logging.debug(f"IMAGE_APPROVAL_STATUS=approved")
         else:
@@ -378,7 +421,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             pipeline_branch = os.getenv("CI_COMMIT_BRANCH")
             if pipeline_branch == "master":
                 logging.error(
-                    "This is container is listed as unapproved in the VAT. Unapproved images cannot run on master branch. Failing stage."
+                    "This container is not noted as an approved image in VAT. Unapproved images cannot run on master branch. Failing stage."
                 )
                 sys.exit(1)
         f.write(f"BASE_IMAGE={hardening_manifest['args']['BASE_IMAGE']}\n")
