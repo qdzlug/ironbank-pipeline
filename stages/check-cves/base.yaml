@@ -1,8 +1,6 @@
 check cves:
   stage: check cves
   rules:
-    - if: '$CI_COMMIT_BRANCH == "mm-integration-test"'
-      allow_failure: false
     - if: '$CI_COMMIT_BRANCH == "master"'
       allow_failure: false
   tags:
