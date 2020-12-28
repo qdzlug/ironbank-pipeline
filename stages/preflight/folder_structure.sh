@@ -25,6 +25,6 @@ fi
 # test for clamav-whitelist and no CLAMAV_WHITELIST CI varaible
 # exits if a `clamav-whitelist` file is found, but there is no CLAMAV_WHITELIST CI variable
 if [[ -f "clamav-whitelist" ]] && [[ -z "${CLAMAV_WHITELIST:-}" ]]; then
-  echo "clamav-file found but CLAMAV_WHITELIST CI variable does not exist"
+  echo "clamav-whitelist file found but CLAMAV_WHITELIST CI variable does not exist"
   exit 1
 fi
