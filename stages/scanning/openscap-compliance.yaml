@@ -7,7 +7,6 @@ openscap compliance:
   variables:
     OSCAP_SCANS: "${ARTIFACT_STORAGE}/scan-results/openscap"
     OSCAP_FILENAME: "${OSCAP_HTML_FILENAME}"
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1"
   # Load in the IMG_VERSION variable from load scripts env
   dependencies:
     - load scripts
@@ -18,4 +17,7 @@ openscap compliance:
     when: always
     paths:
       - "${OSCAP_SCANS}"
+    reports:
+      dotenv: oscap-compliance.env
+
     expire_in: 1 week

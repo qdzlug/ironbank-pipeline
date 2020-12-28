@@ -1,0 +1,5 @@
+python-gitlab
+GitPython
+jsonschema
+dockerfile-parse
+pyyaml

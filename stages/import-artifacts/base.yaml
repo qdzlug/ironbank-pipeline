@@ -1,8 +1,10 @@
 import artifacts:
   stage: import artifacts
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/all-in-one-fedora:1.0"
+  tags:
+    - ironbank
   dependencies:
     - load scripts
+    - hardening_manifest
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/import-artifacts"
   script:
@@ -12,5 +14,3 @@ import artifacts:
     paths:
       - "${ARTIFACT_DIR}/"
     expire_in: 1 week
-    reports:
-      dotenv: artifact.env

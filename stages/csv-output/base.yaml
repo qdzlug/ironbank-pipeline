@@ -1,13 +1,14 @@
 csv output:
   stage: csv output
-
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1"
+  tags:
+    - ironbank
   dependencies:
     - twistlock scan
     - openscap cve
     - openscap compliance
     - anchore scan
     - load scripts
+    - hardening_manifest
     - wl compare lint
     - build
   variables:
@@ -19,4 +20,6 @@ csv output:
     when: always
     paths:
       - "${CSV_REPORT}"
+    reports:
+      dotenv: csv_output.env
     expire_in: 1 week

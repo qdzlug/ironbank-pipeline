@@ -10,10 +10,11 @@ openscap cve:
     - build
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/openscap"
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1"
   script:
     - '"${PIPELINE_REPO_DIR}/stages/scanning/oscap-cve-run.sh"'
   artifacts:
     when: always
     paths:
       - "${ARTIFACT_DIR}"
+    reports:
+      dotenv: oscap-cve.env

@@ -1,11 +1,11 @@
 harbor:
   extends: .publish
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/rootless-build:1.3"
   only:
     - master
   dependencies:
     - build
     - load scripts
+    - hardening_manifest
   script:
     - |
       if [[ "${SPECIAL_IMAGE_PATH}" ]]; then

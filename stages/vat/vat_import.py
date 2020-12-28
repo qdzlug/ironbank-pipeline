@@ -13,7 +13,6 @@ import re
 import ast
 
 import pandas
-import numpy
 
 import mysql.connector
 from mysql.connector import Error
@@ -63,6 +62,7 @@ parser.add_argument(
     help="Link to openscap compliance reports directory",
     required=True,
 )
+
 
 
 # This shuts off pandas informational messages for row manipulation
@@ -274,7 +274,7 @@ def get_packages(package_string):
     # Capture the package
     # Remove any security, enhancement, bug fix or any combination of those.
     # Match and throw away anything after this up to the severity ().
-    initial_re = ".*: (?:Updated )?(.*?)(?:security|enhancement|bug fix).*\("
+    initial_re = ".*: (?:Updated )?(.*?)(?:security|enhancement|bug fix).*\\("
     logs.debug("packages - perform pattern match %s", initial_re)
     match = re.match(initial_re, package_string)
 
@@ -355,6 +355,7 @@ def parse_oscap_compliance(os_path):
     """
     @return dataframe with standarized columns for OSCAP compliance scan
     """
+
     report_link = os.path.join(args.comp_link, "report.html")
     d_f = pandas.read_csv(os_path)
 
@@ -371,9 +372,13 @@ def parse_oscap_compliance(os_path):
 
     # This is used where the identifier has not been set in the column (NaN)
     # It will replace these rows with data from the refs column.
-    d_f["identifiers"] = d_f["identifiers"].replace(
-        numpy.nan, d_f["refs"].apply(get_oscap_comp_finding)
+    d_f["identifiers"] = d_f.apply(
+        lambda x: get_oscap_comp_finding(x["refs"])
+        if pandas.isnull(x["identifiers"])
+        else x["identifiers"],
+        axis=1,
     )
+
     d_f.drop(columns=["refs"], inplace=True)
 
     d_f.rename(columns={"identifiers": "finding", "title": "description"}, inplace=True)

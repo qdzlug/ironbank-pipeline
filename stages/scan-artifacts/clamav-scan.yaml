@@ -1,7 +1,8 @@
 clamav scan:
   stage: scan artifacts
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/clamav:0.102.4"
-
+  tags:
+    - ironbank
+  image: "${REGISTRY_URL}/opensource/clamav/clamav:0.103.0"
   dependencies:
     - import artifacts
     - load scripts

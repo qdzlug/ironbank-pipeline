@@ -1,13 +1,12 @@
 upload to s3:
   extends: .publish
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml"
   resource_group: s3_phase
   only:
     - master
     - development
   variables:
     #TODO: Put these in globals
-    IMAGE_FILE: "${CI_PROJECT_NAME}-${IMG_VERSION}"
+    IMAGE_FILE: "${CI_PROJECT_NAME}-${IMAGE_VERSION}"
     SCAN_DIRECTORY: "${ARTIFACT_STORAGE}/scan-results"
     DOCUMENTATION_DIRECTORY: "${ARTIFACT_STORAGE}/documentation"
     BUILD_DIRECTORY: "${ARTIFACT_STORAGE}/build"
@@ -15,8 +14,9 @@ upload to s3:
     BASE_BUCKET_DIRECTORY: testing/container-scan-reports
     DOCUMENTATION_FILENAME: documentation
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
-    REPORT_TAR_NAME: ${CI_PROJECT_NAME}-${IMG_VERSION}-reports-signature.tar.gz
+    REPORT_TAR_NAME: ${CI_PROJECT_NAME}-${IMAGE_VERSION}-reports-signature.tar.gz
   dependencies:
+    - load scripts
     - build
     - sign image
     - sign manifest
@@ -26,7 +26,7 @@ upload to s3:
     - openscap cve
     - openscap compliance
     - csv output
-    - load scripts
+    - hardening_manifest
     - wl compare lint
   script:
     - '"${PIPELINE_REPO_DIR}/stages/publish/upload-to-s3-run.sh"'

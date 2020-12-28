@@ -1,6 +1,5 @@
 .lint:
   stage: lint
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/jenkins-oscap-agent:1.1"
 
   dependencies:
     - load scripts
@@ -44,12 +43,15 @@ wl compare lint:
   extends: .lint
   dependencies:
     - load scripts
+    - hardening_manifest
+  tags:
+    - ironbank
   script:
     # The following step assumes contributor projects have an environment variable set for the image version
     # in the gitlab-ci.yml file.
     # TODO: output the error for unsuccessful runs
-    - '"${PIPELINE_REPO_DIR}/stages/lint/wl-compare-run.sh"'
+    - python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py" --lint
   artifacts:
     paths: []
     reports:
-      dotenv: lint.env
+      dotenv: variables.env

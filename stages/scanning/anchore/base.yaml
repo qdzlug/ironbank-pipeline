@@ -1,0 +1,40 @@
+#
+# Anchore Scanning stage
+#
+# The anchore_scan.py script makes use of the environment variables already
+# present in the pipeline.
+#
+# NOTE: The ANCHORE_TIMEOUT variable is set as an environment
+#       variable in the gitlab dsop group. This allows it to be modified
+#       without needing to submit code changes.
+#
+# Test command:
+#   ANCHORE_PASSWORD=<pass>\
+#   ANCHORE_SERVER_ADDRESS=https://anchore-api.admin.dsop.io \
+#   ANCHORE_USERNAME=<user> \
+#   IM_NAME=redhat/ubi/ubi8 \
+#   IMG_VERSION=8.3 \
+#   CI_PIPELINE_ID=87168 \
+#   ANCHORE_SCANS=/tmp/anchore/ \
+#   python3 anchore_scan.py
+#
+
+anchore scan:
+  extends: .scanning
+  image: "${REGISTRY_URL}/anchore/cli/cli:0.8.2"
+  stage: scanning
+  # Load in the IMG_VERSION variable from load scripts env
+  dependencies:
+    - load scripts
+    - build
+  variables:
+    # put all scan outputs in the scan-results folder
+    ANCHORE_SCANS: "${ARTIFACT_STORAGE}/scan-results/anchore"
+    IMAGE_FULLTAG: "${REGISTRY1_URL}/ironbank-staging/${IM_NAME}:${CI_PIPELINE_ID}"
+  script:
+    - python3 "${PIPELINE_REPO_DIR}/stages/scanning/anchore/anchore_scan.py"
+  artifacts:
+    when: always
+    paths:
+      - "${ANCHORE_SCANS}/"
+    expire_in: 1 week

@@ -2,14 +2,14 @@ build:
   stage: build
   tags:
     - ironbank-isolated
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/rootless-build:1.3"
   dependencies:
     - import artifacts
     - load scripts
     - wl compare lint
+    - hardening_manifest
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
-    IMAGE_FILE: "${CI_PROJECT_NAME}-${IMG_VERSION}"
+    IMAGE_FILE: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
   script:
     - '"${PIPELINE_REPO_DIR}/stages/build/build-run.sh"'
   artifacts:

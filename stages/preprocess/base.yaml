@@ -1,6 +1,7 @@
 .preprocess:
   stage: .pre
-
+  tags:
+    - ironbank
   except:
     refs:
       - tags
