@@ -14,6 +14,8 @@ import fnmatch
 import sys
 import getopt
 import logging
+import mysql.connector
+from mysql.connector import Error
 
 ##### The InheritableTriggerIds variable contains a list of Anchore compliance trigger_ids
 ##### that are inheritable by child images.
@@ -133,154 +135,283 @@ def _next_ancestor(image_path, greylist, hardening_manifest=None):
         sys.exit(1)
 
 
-##### Clone the dccscr-whitelist repository
-def cloneWhitelist(whitelistDir, whitelistRepo):
-    # Delete the dccscr-whitelist folder (if it exists)
-    if os.path.exists(whitelistDir):
-        try:
-            shutil.rmtree(whitelistDir)
-        except OSError as e:
-            print("Error: %s : %s" % (whitelistDir, e.strerror))
+def _get_greylist_file_contents(image_path, branch):
+    """
+    Grab the contents of a greylist file. Takes in the path to the image and
+    determines the appropriate greylist.
 
-    # Clone the dccscr-whitelists repo
-    dccscrWhitelistBranch = os.getenv("WL_TARGET_BRANCH")
-    # Clone the dccscr-whitelists repo
-    git.Repo.clone_from(
-        whitelistRepo,
-        os.path.join("./", "dccscr-whitelists"),
-        branch=dccscrWhitelistBranch,
+    """
+    greylist_file_path = f"{image_path}/{image_path.split('/')[-1]}.greylist"
+    try:
+        gl = gitlab.Gitlab(os.environ["REPO1_URL"])
+        proj = gl.projects.get("dsop/dccscr-whitelists", lazy=True)
+        f = proj.files.get(file_path=greylist_file_path, ref=branch)
+
+    except gitlab.exceptions.GitlabError:
+        logging.error(
+            f"Whitelist retrieval attempted: {greylist_file_path} on {branch}"
+        )
+        logging.error(f"Error retrieving whitelist file: {sys.exc_info()[1]}")
+        sys.exit(1)
+
+    try:
+        contents = json.loads(f.decode())
+    except ValueError as e:
+        logging.error("Could not load greylist as json")
+        logging.error(e)
+        sys.exit(1)
+
+    if (
+        contents["approval_status"] != "approved"
+        and os.environ.get("CI_COMMIT_BRANCH").lower() == "master"
+    ):
+        logging.error("Unapproved image running on master branch")
+        sys.exit(1)
+
+    return contents
+
+
+def _connect_to_db():
+    """
+    @return mariadb connection for the VAT
+    """
+    conn = None
+    try:
+        conn = mysql.connector.connect(
+            host=os.environ["vat_db_host"],
+            database=os.environ["vat_db_database_name"],
+            user=os.environ["vat_db_connection_user"],
+            passwd=os.environ["vat_db_connection_pass"],
+        )
+        if conn.is_connected():
+            # there are many connections to db so this should be uncommented
+            # for troubleshooting
+            logging.debug(
+                "Connected to the host %s with user %s",
+                os.environ["vat_db_host"],
+                os.environ["vat_db_connection_user"],
+            )
+        else:
+            logging.critical("Failed to connect to DB")
+            sys.exit(1)
+    except Error as err:
+        logging.critical(err)
+        if conn is not None and conn.is_connected():
+            conn.close()
+        sys.exit(1)
+
+    return conn
+
+
+def _vat_vuln_query(im_name, im_version):
+    """
+    Gather the vulns for an image as a list of tuples to add to the total_whitelist.
+    Collects all findings for the source image layer in VAT
+
+    """
+    conn = None
+    result = None
+    try:
+        conn = _connect_to_db()
+        cursor = conn.cursor(buffered=True)
+        # TODO: add new scan logic
+        query = """SELECT c.name as container
+                , c.version
+                , CASE WHEN cl.type is NULL THEN "Pending" ELSE cl.type END as container_approval_status
+                , f.finding
+                , f.scan_source
+                , f.in_current_scan
+                , CASE
+                WHEN fl.type is NULL THEN "Pending"
+                WHEN cl.date_time is NULL and fl.type = "Approve" THEN "Reviewed"
+                WHEN fl.date_time > cl.date_time and fl.type = "Approve" THEN "Reviewed"
+                ELSE fl.type END as finding_status
+                ,fl.text as approval_comments
+                , fl2.text as justification
+                , sr.description
+                , f.package
+                , f.package_path
+                FROM findings_approvals f
+                INNER JOIN containers c on f.imageid = c.id
+                LEFT JOIN findings_log fl on f.id = fl.approval_id
+                AND fl.id in (SELECT max(id) from findings_log WHERE type != "Justification" group by approval_id)
+                LEFT JOIN findings_log fl2 on f.id = fl2.approval_id
+                AND fl2.id in (SELECT max(id) from findings_log WHERE type = "Justification" group by approval_id)
+                LEFT JOIN container_log cl on c.id = cl.imageid
+                AND cl.id in (SELECT max(id) from container_log group by imageid)
+                LEFT JOIN scan_results sr on c.id = sr.imageid AND f.finding = sr.finding AND f.package = sr.package AND f.package_path = sr.package_path
+                AND jenkins_run in (SELECT max(jenkins_run) from scan_results WHERE imageid = c.id AND finding = f.finding AND package = f.package)
+                WHERE f.inherited_id is NULL
+                AND c.name=%s and c.version=%s
+                AND f.in_current_scan = 1;"""
+        cursor.execute(query, (im_name, im_version))
+        result = cursor.fetchall()
+    except Error as error:
+        logging.info(error)
+    finally:
+        if conn is not None and conn.is_connected():
+            conn.close()
+    return result
+
+
+def _get_vulns_from_query(row):
+    """
+    For each row in result (returned from VAT db query), create a dictionary gathering
+    the necessary items to be compared for each entry in the twistlock, anchore and openscap scans.
+
+    Each row should have 12 items in the form:
+    (image_name, image_version, container_status, vuln, source (e.g. anchore_cve), in_current_scan (bool)
+    vuln_status (e.g. Approve), approval_comments, justification, description, package, package_path)
+
+    For anchore_comp and anchore_cve, the vuln_description is the package instead of the description.
+
+    example: ('redhat/ubi/ubi8', '8.3', 'Approve', 'CCE-82360-9', 'oscap_comp', 1, 'Approve', 'Approved, imported from spreadsheet.',
+    'Not applicable. This performs automatic updates to installed packages which does not apply to immutable containers.',
+    'Enable dnf-automatic Timer', 'N/A', 'N/A')
+
+    """
+    vuln_dict = {}
+    vuln_dict["whitelist_source"] = row[0]
+    vuln_dict["version"] = row[1]
+    vuln_dict["vulnerability"] = row[3]
+    vuln_dict["vuln_source"] = row[4]
+    vuln_dict["status"] = row[6]
+    vuln_dict["justification"] = row[8]
+    if row[4] and row[4] == "anchore_cve":
+        vuln_dict["vuln_description"] = row[10]
+    elif row[4] and row[4] == "anchore_comp":
+        vuln_dict["vuln_description"] = row[9].split("\n")[0]
+    else:
+        vuln_dict["vuln_description"] = row[9]
+    return vuln_dict
+
+
+def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_manifest):
+    """
+    Pull all whitelisted CVEs for an image. Walk through the ancestry of a given
+    image and grab all of the approved vulnerabilities in VAT associated with w layer.
+
+    """
+    total_whitelist = list()
+
+    # TODO: remove after 30 day hardening_manifest merge cutoff
+    greylist = _get_greylist_file_contents(
+        image_path=image_name, branch=whitelist_branch
+    )
+    logging.info(f"Grabbing CVEs for: {image_name}")
+    # get cves from vat
+    result = _vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
+    # parse CVEs from VAT query
+    # empty list is returned if no entry or no cves. NoneType only returned if error.
+    # logging.info(result[0])
+    if result is None:
+        logging.error("No results from vat. Fatal error.")
+        sys.exit(1)
+    else:
+        for row in result:
+            logging.debug(row)
+            vuln_dict = _get_vulns_from_query(row)
+            if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
+                total_whitelist.append(vuln_dict)
+                logging.debug(vuln_dict)
+            else:
+                logging.debug(
+                    "There is no approval status present in result or cve not approved"
+                )
+
+    logging.debug(
+        "Length of total whitelist for source image: " + str(len(total_whitelist))
     )
 
+    #
+    # Use the local hardening manifest to get the first parent. From here *only* the
+    # the master branch should be used for the ancestry.
+    #
+    parent_image = _next_ancestor(
+        image_path=image_name, greylist=greylist, hardening_manifest=hardening_manifest
+    )
 
-##### Get the greylist for the source image
-def getSourceImageGreylistFile(whitelistDir, sourceImage):
-    sourceImageGreylistFile = ""
-    files = os.listdir(whitelistDir + "/" + sourceImage)
-    for file in files:
-        if fnmatch.fnmatch(file, "*.greylist"):
-            sourceImageGreylistFile = whitelistDir + "/" + sourceImage + "/" + file
-            print(sourceImageGreylistFile)
-    return sourceImageGreylistFile
-
-
-##### Get the greylist file for all the base images
-def getAllGreylistFiles(
-    whitelistDir, sourceImage, sourceImageGreylistFile, hardening_manifest
-):
-    # extract base_image from sourceImage .greylist file
-    baseImage = ""
-
-    # Add source image greylist file to allFiles
-    allFiles.append(sourceImageGreylistFile)
-
-    # Load the greylist file to pass to _next_ancestor
-    with open(sourceImageGreylistFile) as f:
-        try:
-            data = json.load(f)
-        except ValueError as e:
-            print("Error processing file: " + sourceImageGreylistFile, file=sys.stderr)
-            sys.exit(1)
-
-    # Check for empty .greylist file
-    if os.stat(sourceImageGreylistFile).st_size == 0:
-        print("Source image greylist file is empty")
-
-    # Get first parent image from hardening_manifest
-    else:
-        baseImage = _next_ancestor(
-            image_path=sourceImage,
-            greylist=data,
-            hardening_manifest=hardening_manifest,
+    # get parent cves from VAT
+    while parent_image:
+        logging.info(f"Grabbing CVEs for: {parent_image}")
+        # TODO: remove this after 30 day hardening_manifest merge cutoff
+        greylist = _get_greylist_file_contents(
+            image_path=parent_image, branch=whitelist_branch
         )
-        if len(baseImage) == 0:
-            print("No parent image")
 
-    print("The following base image greylist files have been identified...")
+        # TODO: swap this for hardening manifest after 30 day merge cutoff
+        result = _vat_vuln_query(greylist["image_name"], greylist["image_tag"])
+        # logging.debug(result[0])
+        for row in result:
+            logging.debug(row)
+            vuln_dict = _get_vulns_from_query(row)
+            if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
+                total_whitelist.append(vuln_dict)
 
-    # Add all parent image greylists to allFiles
-    # Break loop when it finds the last parent image
-    while len(baseImage) != 0:
-        files = os.listdir(whitelistDir + "/" + baseImage)
-        for file in files:
-            if fnmatch.fnmatch(file, "*.greylist"):
-                baseImageGreylistFile = whitelistDir + "/" + baseImage + "/" + file
-                print(baseImageGreylistFile)
-                allFiles.append(baseImageGreylistFile)
-                with open(baseImageGreylistFile) as f:
-                    try:
-                        data = json.load(f)
-                    except ValueError as e:
-                        print("Error processing file: " + file, file=sys.stderr)
-                if os.stat(baseImageGreylistFile).st_size == 0:
-                    print("Source image greylist file is empty")
-                    baseImage = ""
-                # return base image, checking hardening manifest first, then greylist. If no BASE_IMAGE, exit
-                else:
-                    baseImage = _next_ancestor(image_path=baseImage, greylist=data)
-                    logging.debug(baseImage)
+        parent_image = _next_ancestor(
+            image_path=parent_image,
+            greylist=greylist,
+        )
 
-    return allFiles
+    logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
+    return total_whitelist
 
 
-##### Read all greylist files and process into dictionary object
-def getJustifications(whitelistDir, allFiles, sourceImageGreylistFile):
+def _get_justifications(total_whitelist, sourceImageName):
+    """
+    Gather all justifications for any approved CVE for anchore, twistlock and openscap.
+    Keys are in the form vuln-packagename (anchore_cve), vuln-description (twistlock), or vuln (anchore_comp, openscap).
 
+    Examples:
+        CVE-2020-13434-sqlite-libs-3.26.0-11.el8 (anchore key)
+        CVE-2020-8285-A malicious server can use... (twistlock key, truncated)
+        CCE-82315-3 (openscap key)
+
+    """
     cveOpenscap = {}
     cveTwistlock = {}
     cveAnchore = {}
 
     # Loop through all the greylist files
-    for file in allFiles:
-        # Load file into JSON object, print an error if the file doesn't load
-        with open(file) as f:
-            try:
-                data = json.load(f)
-            except ValueError as e:
-                print("Error processing file: " + file, file=sys.stderr)
+    # Getting results from VAT, just loop all findings, check if finding is related to base_images or source image
+    # Loop through the findings and create the corresponding dict object based on the vuln_source
+    for finding in total_whitelist:
+        if "vulnerability" in finding.keys():
+            cveID = finding["vulnerability"] + "-" + finding["vuln_description"]
+            openscapID = finding["vulnerability"]
+            trigger_id_inherited = finding["vulnerability"]
+            trigger_id = finding["vulnerability"]
+            logging.debug(cveID)
+            # Twistlock finding
+            if finding["vuln_source"] == "twistlock_cve":
+                if finding["whitelist_source"] == sourceImageName:
+                    cveTwistlock[cveID] = finding["justification"]
+                else:
+                    cveTwistlock[cveID] = "Inherited from base image."
+                    logging.debug("Twistlock inherited cve")
 
-        # Check to see if the application is in approved status
-        if "approval_status" in data.keys() and data["approval_status"] == "approved":
-            # Get a list of all the whitelisted findings
-            findings = data["whitelisted_vulnerabilities"]
+            # Anchore finding
+            elif (
+                finding["vuln_source"] == "anchore_cve"
+                or finding["vuln_source"] == "anchore_comp"
+            ):
+                if finding["whitelist_source"] == sourceImageName:
+                    cveAnchore[cveID] = finding["justification"]
+                    cveAnchore[trigger_id] = finding["justification"]
+                else:
+                    logging.debug("Anchore inherited cve")
+                    cveAnchore[cveID] = "Inherited from base image."
+                    if trigger_id in inheritableTriggerIds:
+                        cveAnchore[trigger_id] = "Inherited from base image."
 
-            # Loop through the findings and create the corresponding dict object based on the vuln_source
-            for finding in findings:
-                if finding["status"] == "approved":
-
-                    if "vulnerability" in finding.keys():
-                        openscapID = finding["vulnerability"]
-                        cveID = (
-                            finding["vulnerability"] + "-" + finding["vuln_description"]
-                        )
-                        trigger_id_inherited = finding["vulnerability"]
-                        trigger_id = finding["vulnerability"]
-
-                        # Twistlock finding
-                        if finding["vuln_source"] == "Twistlock":
-                            if file == sourceImageGreylistFile:
-                                cveTwistlock[cveID] = finding["justification"]
-                            else:
-                                cveTwistlock[cveID] = "Inherited from base image."
-
-                        # Anchore finding
-                        elif finding["vuln_source"] == "Anchore":
-                            if file == sourceImageGreylistFile:
-                                cveAnchore[cveID] = finding["justification"]
-                                cveAnchore[trigger_id] = finding["justification"]
-                            else:
-                                cveAnchore[cveID] = "Inherited from base image."
-                                if trigger_id in inheritableTriggerIds:
-                                    cveAnchore[
-                                        trigger_id
-                                    ] = "Inherited from base image."
-
-                        # OpenSCAP finding
-                        elif finding["vuln_source"] == "OpenSCAP":
-                            if file == sourceImageGreylistFile:
-                                cveOpenscap[openscapID] = finding["justification"]
-                            else:
-                                cveOpenscap[openscapID] = "Inherited from base image."
-            # print(cveAnchore)
+            # OpenSCAP finding
+            elif finding["vuln_source"] == "oscap_comp":
+                if finding["whitelist_source"] == sourceImageName:
+                    cveOpenscap[openscapID] = finding["justification"]
+                else:
+                    cveOpenscap[openscapID] = "Inherited from base image."
+                    logging.debug("Oscap inherited cve")
+        # print(cveAnchore)
     return cveOpenscap, cveTwistlock, cveAnchore
 
 
@@ -329,7 +460,7 @@ def justificationsTwistlock(wb, justifications):
                 id = cell.value
             else:
                 id = cell.value + "-" + cell2.value
-
+            logging.debug(id)
             if id in justifications.keys():
                 cell_justification.value = justifications[id]
 
@@ -499,43 +630,51 @@ def main(argv, inheritableTriggerIds):
     print("Output file is " + outputFile)
     print("Source image is " + sourceImage)
 
-    sourceImageGreylistFile = ""
-    global allFiles
-    allFiles = []
+    # sourceImageGreylistFile = ""
+    # global allFiles
+    # allFiles = []
 
+    # TODO: Remove these commented out lines
     # Whitelist directory
-    global whitelistDir
-    whitelistDir = "dccscr-whitelists"
+    # global whitelistDir
+    # whitelistDir = "dccscr-whitelists"
 
-    # Clone the whitelist repository
-    print("Cloning the dccscr-whitelists repository... ", end="", flush=True)
-    cloneWhitelist(whitelistDir, "https://repo1.dsop.io/dsop/dccscr-whitelists.git")
-    print("done.")
+    # # Clone the whitelist repository
+    # print("Cloning the dccscr-whitelists repository... ", end="", flush=True)
+    # cloneWhitelist(whitelistDir, "https://repo1.dsop.io/dsop/dccscr-whitelists.git")
+    # print("done.")
 
-    print("Getting source image greylist... ", end="", flush=True)
-    sourceImageGreylistFile = getSourceImageGreylistFile(whitelistDir, sourceImage)
-    print("done.")
+    # print("Getting source image greylist... ", end="", flush=True)
+    # sourceImageGreylistFile = getSourceImageGreylistFile(whitelistDir, sourceImage)
+    # print("done.")
 
     hardening_manifest = _load_local_hardening_manifest()
     if hardening_manifest is None:
         logging.error("Please update your project to contain a hardening_manifest.yaml")
 
+    # TODO: Change this message
     print(
         "Getting greylist files for all parent images of " + sourceImage + "\n",
         end="",
         flush=True,
     )
-    # may need logic for hardening_manifest not being recovered if hardening_manifest == none etc.
-    allFiles = getAllGreylistFiles(
-        whitelistDir, sourceImage, sourceImageGreylistFile, hardening_manifest
+    image_name = hardening_manifest["name"]
+    wl_branch = os.getenv("WL_TARGET_BRANCH", default="master")
+
+    total_whitelist = _get_complete_whitelist_for_image(
+        image_name, wl_branch, hardening_manifest
     )
+
+    # may need logic for hardening_manifest not being recovered if hardening_manifest == none etc.
+    # Query vat for all whitelisted vulnerabilities
+    # allFiles = getAllGreylistFiles(
+    #     whitelistDir, sourceImage, sourceImageGreylistFile, hardening_manifest
+    # )
     print("done.")
 
     # Get all justifications
     print("Gathering list of all justifications... ", end="", flush=True)
-    jOpenscap, jTwistlock, jAnchore = getJustifications(
-        whitelistDir, allFiles, sourceImageGreylistFile
-    )
+    jOpenscap, jTwistlock, jAnchore = _get_justifications(total_whitelist, sourceImage)
     print("done.")
 
     # Open the Excel file of the application we are updating
