@@ -200,7 +200,9 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         )
         if os.getenv("CI_COMMIT_BRANCH") == "master":
             pipeline_repo_dir = os.environ["PIPELINE_REPO_DIR"]
-            subprocess.run([f"{pipeline_repo_dir}/stages/check-cves/mattermost-failure-webhook.sh"])
+            subprocess.run(
+                [f"{pipeline_repo_dir}/stages/check-cves/mattermost-failure-webhook.sh"]
+            )
             sys.exit(1)
 
     logging.info("ALL VULNERABILITIES WHITELISTED")
