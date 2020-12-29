@@ -19,6 +19,7 @@ import pathlib
 import logging
 import argparse
 import mysql.connector
+import subprocess
 from mysql.connector import Error
 
 from scanners import oscap
@@ -197,7 +198,12 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         logging.error(
             f"Scans are not passing 100%. Vuln Set Delta Length: {len(delta)}"
         )
-        sys.exit(1)
+        if os.getenv("CI_COMMIT_BRANCH") == "master":
+            pipeline_repo_dir = os.environ["PIPELINE_REPO_DIR"]
+            subprocess.run(
+                [f"{pipeline_repo_dir}/stages/check-cves/mattermost-failure-webhook.sh"]
+            )
+            sys.exit(1)
 
     logging.info("ALL VULNERABILITIES WHITELISTED")
     logging.info("Scans are passing 100%")
