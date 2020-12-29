@@ -53,6 +53,23 @@ def source_values(source_file, key):
     return val_list
 
 
+def _get_source_keys_values(source_file):
+    """
+    Returns the labels from the hardening_manifest.yaml file as dictionary.
+    Ignore keywords since IBFE already has an implementation for gathering keywords
+
+    """
+    num_vals = 0
+    hm_labels = {}
+    if os.path.exists(source_file):
+        with open(source_file, mode="r", encoding="utf-8") as sf:
+            for line in sf:
+                key, value = line.rstrip().split("=")
+                if key != "mil.dso.ironbank.image.keywords":
+                    hm_labels[key] = value
+    return hm_labels
+
+
 def main():
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
@@ -78,6 +95,7 @@ def main():
         f"{artifact_storage}/preflight/keywords.txt", "Keywords"
     )
     tag_list = source_values(f"{artifact_storage}/preflight/tags.txt", "Tags")
+    label_dict = _get_source_keys_values(f"{artifact_storage}/preflight/labels.env")
 
     new_data = {
         os.environ.get("build_number"): {
@@ -106,6 +124,7 @@ def main():
             "Repo_Name": os.environ.get("repo_name"),
             "Keywords": keyword_list,
             "Tags": tag_list,
+            "Labels": label_dict,
         }
     }
 
