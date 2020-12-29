@@ -9,6 +9,8 @@ touch "${env_filename}"
 # pip3 install --upgrade pip
 # pip3 install bs4 pandas argparse openpyxl gitpython
 if [[ "${DISTROLESS:-}" ]]; then
+  echo "OSCAP_CVE_URL=''" >>"${env_filename}"
+  echo "OSCAP_COMPLIANCE_URL=''" >>"${env_filename}"
   python3 "${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py" \
     --twistlock "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json" \
     --anchore-sec "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json" \
