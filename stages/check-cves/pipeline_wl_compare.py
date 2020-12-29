@@ -203,7 +203,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
             subprocess.run(
                 [f"{pipeline_repo_dir}/stages/check-cves/mattermost-failure-webhook.sh"]
             )
-            sys.exit(1)
+        sys.exit(1)
 
     logging.info("ALL VULNERABILITIES WHITELISTED")
     logging.info("Scans are passing 100%")
