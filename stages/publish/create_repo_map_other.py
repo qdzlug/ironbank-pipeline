@@ -91,6 +91,7 @@ def main():
 
     existing_repomap = get_repomap(object_name)
     artifact_storage = os.environ.get("ARTIFACT_STORAGE")
+
     keyword_list = source_values(
         f"{artifact_storage}/preflight/keywords.txt", "Keywords"
     )
