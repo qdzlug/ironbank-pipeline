@@ -62,7 +62,13 @@ parser.add_argument(
     help="Link to openscap compliance reports directory",
     required=True,
 )
-
+parser.add_argument(
+    "-rl",
+    "--repo_link",
+    help="Link to container repository",
+    default="",
+    required=False,
+)
 
 
 # This shuts off pandas informational messages for row manipulation
@@ -457,6 +463,8 @@ def check_container():
     # find parent container and get its id
     parent_id = get_parent_id()
     container_id = None
+    repo_link = args.repo_link if args.repo_link else None
+    # Once the container_links get added we can update and add them to the container table
     query = (
         "INSERT INTO `containers` "
         + "(`id`, `name`, `version`, `parent_id`) "
