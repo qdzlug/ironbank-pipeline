@@ -34,6 +34,10 @@ class IncorrectUsage(Exception):
     pass
 
 
+class TwistlockReportErrorValue(Exception):
+    pass
+
+
 class Twist:
     """
     Class to add an image to twistlock and retrieve the scan results.
