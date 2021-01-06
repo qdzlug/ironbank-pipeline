@@ -90,6 +90,10 @@ class Twist:
         if len(response) == 0:
             return None
 
+        # Raise an error if the returned report has a value for the 'err' key
+        if response[0]["err"]:
+            raise TwistlockReportErrorValue(response[0]["err"])
+
         return response
 
     # It was determined that the version file was not actually being used so it was removed
