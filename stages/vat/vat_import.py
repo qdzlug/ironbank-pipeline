@@ -540,19 +540,19 @@ def check_container():
                 container_id = row[0]
                 logs.debug("\nFound container with id: %s", str(container_id))
 
+        # Update all the containers matching the container name with the repo link
+        # info only when the repo link is passed in.
         if args.repo_link != "":
             query = "SELECT * FROM `containers` WHERE name=%s"
             cursor.execute(
                 query,
-                (
-                    args.container,
-                ),
+                (args.container,),
             )
             results = cursor.fetchall()
 
             update_query = (
                 "UPDATE containers SET link = %s, "
-                + "link_health = %s, link_health_timestamp =%s "
+                + "link_health = %s, link_health_timestamp = %s "
                 + "where id = %s"
             )
             for row in results:
@@ -568,6 +568,7 @@ def check_container():
                 )
 
         conn.commit()
+
     except Error as error:
         logs.error(error)
         container_id = False
