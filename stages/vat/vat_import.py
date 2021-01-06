@@ -464,23 +464,23 @@ def check_container():
 
     # find parent container and get its id
     parent_id = get_parent_id()
-    container_id = None
-    if args.repo_link == "":
-        repo_link = None
-        repo_link_health = 0
-        repo_link_timestamp = None
+    if parent_id is None:
+        str_parent_id = None
     else:
+        str_parent_id = str(parent_id)
+
+    container_id = None
+    if args.repo_link != "":
         repo_link = args.repo_link
         repo_link_health = 1
         ts = time.time()
         repo_link_timestamp = datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
-    # Once the container_links get added we can update and add them to the container table
+
     query = (
         "INSERT INTO `containers` "
-        + "(`id`, `name`, `version`, `parent_id`, `link`, `link_health`, `link_health_timestamp`) "
-        + "VALUES (%s, %s, %s, %s, %s, %s, %s) "
-        + "ON DUPLICATE KEY UPDATE parent_id=%s, link=%s, link_health=%s, "
-        + "link_health_timestamp=%s"
+        + "(`id`, `name`, `version`, `parent_id`) "
+        + "VALUES (%s, %s, %s, %s) "
+        + "ON DUPLICATE KEY UPDATE parent_id=%s"
     )
     if parent_id is None:
         container_id_tuple = (
@@ -488,13 +488,7 @@ def check_container():
             args.container,
             args.version,
             None,
-            repo_link,
-            repo_link_health,
-            repo_link_timestamp,
             None,
-            repo_link,
-            repo_link_health,
-            repo_link_timestamp,
         )
         logs.debug(
             query,
@@ -502,13 +496,7 @@ def check_container():
             args.container,
             args.version,
             None,
-            repo_link,
-            repo_link_health,
-            repo_link_timestamp,
             None,
-            repo_link,
-            repo_link_health,
-            repo_link_timestamp,
         )
     else:
         container_id_tuple = (
@@ -516,13 +504,7 @@ def check_container():
             args.container,
             args.version,
             str(parent_id),
-            repo_link,
-            repo_link_health,
-            repo_link_timestamp,
             str(parent_id),
-            repo_link,
-            repo_link_health,
-            repo_link_timestamp,
         )
         logs.debug(
             query,
@@ -530,13 +512,7 @@ def check_container():
             args.container,
             args.version,
             str(parent_id),
-            repo_link,
-            repo_link_health,
-            repo_link_timestamp,
             str(parent_id),
-            repo_link,
-            repo_link_health,
-            repo_link_timestamp,
         )
 
     try:
@@ -563,6 +539,34 @@ def check_container():
             for row in results:
                 container_id = row[0]
                 logs.debug("\nFound container with id: %s", str(container_id))
+
+        if args.repo_link != "":
+            query = "SELECT * FROM `containers` WHERE name=%s"
+            cursor.execute(
+                query,
+                (
+                    args.container,
+                ),
+            )
+            results = cursor.fetchall()
+
+            update_query = (
+                "UPDATE containers SET link = %s, "
+                + "link_health = %s, link_health_timestamp =%s "
+                + "where id = %s"
+            )
+            for row in results:
+                cont_id = row[0]
+                cursor.execute(
+                    update_query,
+                    (
+                        repo_link,
+                        repo_link_health,
+                        repo_link_timestamp,
+                        cont_id,
+                    ),
+                )
+
         conn.commit()
     except Error as error:
         logs.error(error)
@@ -803,6 +807,7 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
                 cursor.execute(parent_logs_query, (inherited_id,))
                 all_logs = cursor.fetchall()
                 for l in all_logs:
+                    false_positive = 0 if l[10] is NONE else l[10]
                     new_values = (
                         None,
                         finding_id,
@@ -814,7 +819,7 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
                         l[7],  # inheritable
                         inherited_id,  # inherited_id,
                         1,  # inherited
-                        l[10],  # false_positive
+                        false_positive,  # false_positive
                         l[11],  # user_id
                         l[12],  # record_timestamp
                         l[13],  # active
