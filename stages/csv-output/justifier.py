@@ -154,20 +154,6 @@ def _get_greylist_file_contents(image_path, branch):
         logging.error(f"Error retrieving whitelist file: {sys.exc_info()[1]}")
         sys.exit(1)
 
-    try:
-        contents = json.loads(f.decode())
-    except ValueError as e:
-        logging.error("Could not load greylist as json")
-        logging.error(e)
-        sys.exit(1)
-
-    if (
-        contents["approval_status"] != "approved"
-        and os.environ.get("CI_COMMIT_BRANCH").lower() == "master"
-    ):
-        logging.error("Unapproved image running on master branch")
-        sys.exit(1)
-
     return contents
 
 
