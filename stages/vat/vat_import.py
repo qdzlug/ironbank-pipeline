@@ -482,16 +482,9 @@ def check_container():
         + "VALUES (%s, %s, %s, %s) "
         + "ON DUPLICATE KEY UPDATE parent_id=%s"
     )
+
     if parent_id is None:
         container_id_tuple = (
-            None,
-            args.container,
-            args.version,
-            None,
-            None,
-        )
-        logs.debug(
-            query,
             None,
             args.container,
             args.version,
@@ -506,17 +499,10 @@ def check_container():
             str(parent_id),
             str(parent_id),
         )
-        logs.debug(
-            query,
-            None,
-            args.container,
-            args.version,
-            str(parent_id),
-            str(parent_id),
-        )
 
     try:
-        logs.debug("Find Container or Add it query:%s\n", query)
+        logs.debug("Find Container or Add it query:")
+        logs.debug(query % container_id_tuple)
 
         cursor.execute(query, container_id_tuple)
         if cursor.lastrowid:
@@ -842,22 +828,25 @@ def insert_new_log(cursor, finding_id, system_user_id):
     Inserts a finding log for a new finding with no inherited logs
     :params finding int
     """
+
+    logs.debug("In insert_new_log")
+
     new_values = (
         None,
         finding_id,
-        "state_change",
-        "needs_justification",
-        "New Finding",
-        1,
-        None,
-        1,
-        None,
-        0,
-        None,
-        system_user_id,
-        args.scan_date,
-        1,
-        1,
+        "state_change",  # record_type
+        "needs_justification",  # state
+        "New Finding",  # record_text
+        1,  # in_current_scan
+        None,  # expiration_date
+        1,  # inheritable
+        None,  # inherited_id
+        0,  # inherited
+        0,  # false_positive
+        system_user_id,  # user_id
+        args.scan_date,  # record_timestamp
+        1,  # active
+        1,  # record_type_active
     )
     insert_finding_log(cursor, new_values)
 
@@ -867,6 +856,9 @@ def insert_finding_log(cursor, values):
     Insert a new finding_log into finding_logs
     :params values tuple of insert values
     """
+
+    logs.debug("In insert_finding_log")
+
     insert_query = """INSERT INTO `finding_logs` (
         id, finding_id, record_type, state, record_text, in_current_scan, expiration_date,
         inheritable, inherited_id, inherited, false_positive, user_id, record_timestamp, active, record_type_active
