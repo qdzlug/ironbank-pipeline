@@ -340,7 +340,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         parent_image_name, parent_image_version = _next_ancestor(
             image_path=parent_image_name,
             whitelist_branch=whitelist_branch,
-            hardening_manifest=hardening_manifest,
         )
 
     logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
