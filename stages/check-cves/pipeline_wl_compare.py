@@ -334,7 +334,7 @@ def _get_vulns_from_query(row):
     return vuln_dict
 
 
-def _next_ancestor(image_path, greylist, hardening_manifest=None):
+def _next_ancestor(image_path, whitelist_branch, hardening_manifest=None):
     """
     Grabs the parent image path from the current context. Will initially attempt to load
     a new hardening manifest and then pull the parent image from there. Otherwise it will
@@ -347,15 +347,18 @@ def _next_ancestor(image_path, greylist, hardening_manifest=None):
 
     # Try to get the parent image out of the local hardening_manifest.
     if hardening_manifest:
-        return hardening_manifest["args"]["BASE_IMAGE"]
+        return (hardening_manifest["args"]["BASE_IMAGE"], hardening_manifest["args"]["BASE_TAG"])
 
     # Try to load the hardening manifest from a remote repo.
     hm = _load_remote_hardening_manifest(project=image_path)
     if hm is not None:
-        return hm["args"]["BASE_IMAGE"]
+        return (hm["args"]["BASE_IMAGE"], hm["args"]["BASE_TAG"])
 
     try:
-        return greylist["image_parent_name"]
+        greylist = _get_greylist_file_contents(
+            image_path=image_path, branch=whitelist_branch
+        )
+        return (greylist["image_parent_name"],greylist["image_parent_tag"])
     except KeyError as e:
         logging.error("Looks like a hardening_manifest.yaml cannot be found")
         logging.error(
@@ -373,10 +376,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     """
     total_whitelist = list()
 
-    # TODO: remove after 30 day hardening_manifest merge cutoff
-    greylist = _get_greylist_file_contents(
-        image_path=image_name, branch=whitelist_branch
-    )
     logging.info(f"Grabbing CVEs for: {image_name}")
     # get cves from vat
     result = _vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
@@ -428,29 +427,26 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     # Use the local hardening manifest to get the first parent. From here *only* the
     # the master branch should be used for the ancestry.
     #
-    parent_image = _next_ancestor(
-        image_path=image_name, greylist=greylist, hardening_manifest=hardening_manifest
+    parent_image_name, parent_image_version = _next_ancestor(
+        image_path=image_name, whitelist_branch=whitelist_branch, hardening_manifest=hardening_manifest
     )
 
     # get parent cves from VAT
-    while parent_image:
-        logging.info(f"Grabbing CVEs for: {parent_image}")
-        # TODO: remove this after 30 day hardening_manifest merge cutoff
-        greylist = _get_greylist_file_contents(
-            image_path=parent_image, branch=whitelist_branch
-        )
-
+    while parent_image_name:
+        logging.info(f"Grabbing CVEs for: {parent_image_name}")
+        # TODO: remove this after 30 day hardening_manifest merge cutof
         # TODO: swap this for hardening manifest after 30 day merge cutoff
-        result = _vat_vuln_query(greylist["image_name"], greylist["image_tag"])
+        result = _vat_vuln_query(parent_image_name, parent_image_version)
 
         for row in result:
             vuln_dict = _get_vulns_from_query(row)
             if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
                 total_whitelist.append(Vuln(vuln_dict, image_name))
 
-        parent_image = _next_ancestor(
+        parent_image,parent_image_version = _next_ancestor(
             image_path=parent_image,
-            greylist=greylist,
+            whitelist_branch=whitelist_branch,
+            hardening_manifest=hardening_manifest,
         )
 
     logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
