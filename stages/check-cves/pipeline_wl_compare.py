@@ -345,6 +345,13 @@ def _next_ancestor(image_path, whitelist_branch, hardening_manifest=None):
 
     """
 
+    # Try to get the parent image out of the local hardening_manifest.
+    if hardening_manifest:
+        return (
+            hardening_manifest["args"]["BASE_IMAGE"],
+            hardening_manifest["args"]["BASE_TAG"],
+        )
+
     # Try to load the hardening manifest from a remote repo.
     hm = _load_remote_hardening_manifest(project=image_path)
     if hm is not None:
