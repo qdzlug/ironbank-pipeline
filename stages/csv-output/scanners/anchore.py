@@ -24,36 +24,60 @@ def _vulnerability_record(fulltag, vuln):
     vuln_record["inherited"] = vuln.get("inherited_from_base") or "no_data"
 
     if vuln["nvd_data"] and vuln["nvd_data"][0]["cvss_v3"]:
-        vuln_record["nvd_cvss_v3_base_score"] = vuln["nvd_data"][0]["cvss_v3"]["base_score"]
-        vuln_record["nvd_cvss_v3_exploitability_score"] = vuln["nvd_data"][0]["cvss_v3"]["exploitability_score"]
-        vuln_record["nvd_cvss_v3_impact_score"] = vuln["nvd_data"][0]["cvss_v3"]["impact_score"]
+        vuln_record["nvd_cvss_v3_base_score"] = vuln["nvd_data"][0]["cvss_v3"][
+            "base_score"
+        ]
+        vuln_record["nvd_cvss_v3_exploitability_score"] = vuln["nvd_data"][0][
+            "cvss_v3"
+        ]["exploitability_score"]
+        vuln_record["nvd_cvss_v3_impact_score"] = vuln["nvd_data"][0]["cvss_v3"][
+            "impact_score"
+        ]
     else:
         vuln_record["nvd_cvss_v3_base_score"] = ""
         vuln_record["nvd_cvss_v3_exploitability_score"] = ""
         vuln_record["nvd_cvss_v3_impact_score"] = ""
 
     if vuln["nvd_data"] and vuln["nvd_data"][0]["cvss_v2"]:
-        vuln_record["nvd_cvss_v2_base_score"] = vuln["nvd_data"][0]["cvss_v2"]["base_score"]
-        vuln_record["nvd_cvss_v2_exploitability_score"] = vuln["nvd_data"][0]["cvss_v2"]["exploitability_score"]
-        vuln_record["nvd_cvss_v2_impact_score"] = vuln["nvd_data"][0]["cvss_v2"]["impact_score"]
+        vuln_record["nvd_cvss_v2_base_score"] = vuln["nvd_data"][0]["cvss_v2"][
+            "base_score"
+        ]
+        vuln_record["nvd_cvss_v2_exploitability_score"] = vuln["nvd_data"][0][
+            "cvss_v2"
+        ]["exploitability_score"]
+        vuln_record["nvd_cvss_v2_impact_score"] = vuln["nvd_data"][0]["cvss_v2"][
+            "impact_score"
+        ]
     else:
         vuln_record["nvd_cvss_v2_base_score"] = ""
         vuln_record["nvd_cvss_v2_exploitability_score"] = ""
         vuln_record["nvd_cvss_v2_impact_score"] = ""
 
     if vuln["vendor_data"] and vuln["vendor_data"][0]["cvss_v3"]:
-        vuln_record["vendor_cvss_v3_base_score"] = vuln["vendor_data"][0]["cvss_v3"]["base_score"]
-        vuln_record["vendor_cvss_v3_exploitability_score"] = vuln["vendor_data"][0]["cvss_v3"]["exploitability_score"]
-        vuln_record["vendor_cvss_v3_impact_score"] = vuln["vendor_data"][0]["cvss_v3"]["impact_score"]
+        vuln_record["vendor_cvss_v3_base_score"] = vuln["vendor_data"][0]["cvss_v3"][
+            "base_score"
+        ]
+        vuln_record["vendor_cvss_v3_exploitability_score"] = vuln["vendor_data"][0][
+            "cvss_v3"
+        ]["exploitability_score"]
+        vuln_record["vendor_cvss_v3_impact_score"] = vuln["vendor_data"][0]["cvss_v3"][
+            "impact_score"
+        ]
     else:
         vuln_record["vendor_cvss_v3_base_score"] = ""
         vuln_record["vendor_cvss_v3_exploitability_score"] = ""
         vuln_record["vendor_cvss_v3_impact_score"] = ""
 
     if vuln["vendor_data"] and vuln["vendor_data"][0]["cvss_v2"]:
-        vuln_record["vendor_cvss_v2_base_score"] = vuln["vendor_data"][0]["cvss_v2"]["base_score"]
-        vuln_record["vendor_cvss_v2_exploitability_score"] = vuln["vendor_data"][0]["cvss_v2"]["exploitability_score"]
-        vuln_record["vendor_cvss_v2_impact_score"] = vuln["vendor_data"][0]["cvss_v2"]["impact_score"]
+        vuln_record["vendor_cvss_v2_base_score"] = vuln["vendor_data"][0]["cvss_v2"][
+            "base_score"
+        ]
+        vuln_record["vendor_cvss_v2_exploitability_score"] = vuln["vendor_data"][0][
+            "cvss_v2"
+        ]["exploitability_score"]
+        vuln_record["vendor_cvss_v2_impact_score"] = vuln["vendor_data"][0]["cvss_v2"][
+            "impact_score"
+        ]
     else:
         vuln_record["vendor_cvss_v2_base_score"] = ""
         vuln_record["vendor_cvss_v2_exploitability_score"] = ""
@@ -69,7 +93,10 @@ def vulnerability_report(csv_dir, anchore_security_json):
     """
     with open(anchore_security_json, mode="r", encoding="utf-8") as f:
         json_data = json.load(f)
-        cves = [_vulnerability_record(fulltag=json_data["imageFullTag"], vuln=d) for d in json_data["vulnerabilities"]]
+        cves = [
+            _vulnerability_record(fulltag=json_data["imageFullTag"], vuln=d)
+            for d in json_data["vulnerabilities"]
+        ]
 
     if cves:
         fieldnames = list(cves[0].keys())
