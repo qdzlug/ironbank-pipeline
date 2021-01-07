@@ -794,7 +794,7 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
                 cursor.execute(parent_logs_query, (inherited_id,))
                 all_logs = cursor.fetchall()
                 for l in all_logs:
-                    false_positive = 0 if l[10] is NONE else l[10]
+                    false_positive = 0 if l[10] is None else l[10]
                     new_values = (
                         None,
                         finding_id,
