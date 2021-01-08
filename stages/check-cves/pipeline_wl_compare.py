@@ -409,7 +409,10 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     logging.debug(approval_status)
     with open("variables.env", "w") as f:
         # all cves for container have container approval at ind 2
-        if approval_status.lower() == "approve" or approval_status.lower() == "conditional":
+        if (
+            approval_status.lower() == "approve"
+            or approval_status.lower() == "conditional"
+        ):
             f.write(f"IMAGE_APPROVAL_STATUS=approved\n")
             logging.debug(f"IMAGE_APPROVAL_STATUS=approved")
         else:
