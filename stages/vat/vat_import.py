@@ -836,7 +836,7 @@ def insert_new_log(cursor, finding_id, system_user_id):
         finding_id,
         "state_change",  # record_type
         "needs_justification",  # state
-        "New Finding",  # record_text
+        "",  # record_text
         1,  # in_current_scan
         None,  # expiration_date
         1,  # inheritable
@@ -1086,9 +1086,10 @@ def update_inheritance_id(findings):
 
 def update_in_current_scan(iid, findings, scan_source):
     """
-    check if any findings are no longer in the current scan
-    we are going to reset all the in_current_results to 1 and
-    then flip the findings not in the current scan (dataframe)
+    Check if any findings are no longer in the current scan
+    Find all findings in_current_results
+    Deactivate in_current_scan logs
+    Create new with in_current_scan = 0 logs for all dropped findings
     @param findings dataframe
     @param iid imageid
     @param scan_source current scan type
@@ -1125,26 +1126,13 @@ def update_in_current_scan(iid, findings, scan_source):
             conn.commit()
             return
 
-        # Set all the findings to 1 for the image ID and the scan source
-        update_to_in_current_scan = (
-            "UPDATE finding_logs fl INNER JOIN findings f ON fl.finding_id = f.id "
-            + "SET fl.in_current_scan=1 WHERE f.container_id =%s and scan_source=%s"
-        )
-        logs.debug(update_to_in_current_scan, str(iid), scan_source)
-        cursor.execute(
-            update_to_in_current_scan,
-            (
-                str(iid),
-                scan_source,
-            ),
-        )
-
         # Query for all the findings for the image ID and the scan source
-        select_all_image_scan_source = (
-            "SELECT f.id, finding, package, package_path FROM findings f "
-            + "INNER JOIN finding_logs fl ON f.id = fl.finding_id "
-            + "WHERE f.container_id = %s and f.scan_source = %s"
-        )
+        select_all_image_scan_source = """
+            SELECT f.id, finding, package, package_path FROM findings f
+            INNER JOIN finding_logs fl ON f.id = fl.finding_id
+            WHERE f.container_id = %s and f.scan_source = %s and record_type_active = 1
+            AND in_current_scan = 1
+            """
         logs.debug(select_all_image_scan_source, str(iid), scan_source)
         cursor.execute(
             select_all_image_scan_source,
@@ -1161,14 +1149,42 @@ def update_in_current_scan(iid, findings, scan_source):
 
             # Remove the current scan from all the findings list
             for i, row in findings.iterrows():
-                d_f.drop(
-                    d_f[
-                        (d_f["finding"] == row["finding"])
-                        & (d_f["package"] == row["package"])
-                        & (d_f["package_path"] == row["package_path"])
-                    ].index,
-                    inplace=True,
-                )
+                if row["package_path"] and row["package"]:
+                    d_f.drop(
+                        d_f[
+                            (d_f["finding"] == row["finding"])
+                            & (d_f["package"] == row["package"])
+                            & (d_f["package_path"] == row["package_path"])
+                        ].index,
+                        inplace=True,
+                    )
+                elif not row["package_path"] and not row["package"]:
+                    d_f.drop(
+                        d_f[
+                            (d_f["finding"] == row["finding"])
+                            & (d_f["package"].isnull())
+                            & (d_f["package_path"].isnull())
+                        ].index,
+                        inplace=True,
+                    )
+                elif not row["package_path"]:
+                    d_f.drop(
+                        d_f[
+                            (d_f["finding"] == row["finding"])
+                            & (d_f["package"] == row["package"])
+                            & (d_f["package_path"].isnull())
+                        ].index,
+                        inplace=True,
+                    )
+                elif not row["package"]:
+                    d_f.drop(
+                        d_f[
+                            (d_f["finding"] == row["finding"])
+                            & (d_f["package"].isnull())
+                            & (d_f["package_path"] == row["package_path"])
+                        ].index,
+                        inplace=True,
+                    )
 
             # Loop for the remaining rows which are not in the current scan
             logs.debug(d_f)
@@ -1268,7 +1284,7 @@ def is_new_scan(iid):
             cursor.execute(query, parms)
             result = cursor.fetchone()
             logs.debug(result)
-            scan_date_datetime = datetime.strptime(args.scan_date, "%Y-%m-%d %H:%M:%S")
+            scan_date_datetime = datetime.strptime(args.scan_date, "%Y-%m-%dT%H:%M:%S")
             if result is None:
                 new_scan = True
             elif result[0] < int(args.job_id) or result[1] < scan_date_datetime:
