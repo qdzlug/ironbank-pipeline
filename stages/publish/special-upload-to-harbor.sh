@@ -10,6 +10,6 @@ echo "${DOCKER_AUTH_CONFIG_PROD}" | base64 -d >>prod_auth.json
 # Upload image to prod Harbor for special images
 while IFS= read -r tag; do
   skopeo copy --src-authfile staging_auth.json --dest-authfile prod_auth.json \
-    "docker://${STAGING_REGISTRY_URL}/${IM_NAME}:${CI_PIPELINE_ID}" \
+    "docker://${STAGING_REGISTRY_URL}/${IM_NAME}:@${IMAGE_PODMAN_SHA}" \
     "docker://${REGISTRY_URL}/${SPECIAL_IMAGE_PATH}:${tag}"
 done <"${ARTIFACT_DIR}/preflight/tags.txt"

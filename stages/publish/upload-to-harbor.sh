@@ -10,6 +10,6 @@ echo "${DOCKER_AUTH_CONFIG_PROD}" | base64 -d >prod_auth.json
 # Copy from staging to prod with each tag listed in descriptions.yaml
 while IFS= read -r tag; do
   skopeo copy --src-authfile staging_auth.json --dest-authfile prod_auth.json \
-    "docker://${STAGING_REGISTRY_URL}/${IM_NAME}:${CI_PIPELINE_ID}" \
+    "docker://${STAGING_REGISTRY_URL}/${IM_NAME}@${IMAGE_PODMAN_SHA}" \
     "docker://${REGISTRY_URL}/${IM_NAME}:${tag}"
 done <"${ARTIFACT_STORAGE}/preflight/tags.txt"

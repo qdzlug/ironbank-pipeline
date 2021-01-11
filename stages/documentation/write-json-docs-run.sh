@@ -69,8 +69,11 @@ cat scan-metadata.json
 mv scan-metadata.json "${ARTIFACT_DIR}"
 # Create manifest.json
 
+export DOCKER_REFERENCE="${REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_VERSION}@${IMAGE_PODMAN_SHA}"
+
 jq -n '
 {
+  "image": env.DOCKER_REFERENCE,
   "timestamp": env.TIMESTAMP,
   "git": {
     "hash": env.CI_COMMIT_SHA,
