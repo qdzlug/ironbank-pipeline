@@ -1,5 +1,5 @@
 #!/bin/bash
-set -Eeo pipefail
+set -Eeuo pipefail
 
 dnf install jq -y
 echo "${IB_CONTAINER_GPG_KEY}" | base64 -d >key
@@ -9,15 +9,15 @@ mkdir -p tmp_gpg "${ARTIFACT_DIR}/reports"
 GPG_VERSION_INFO=$(gpg --version | grep "gpg")
 
 if [[ "${DISTROLESS:-}" ]]; then
-  ANCHORE_VERSION=$(cat "${ANCHORE_VERSION_FILE}" | sed 's/"//g')
-  TWISTLOCK_VERSION=$(cat "${TWISTLOCK_VERSION_FILE}" | sed 's/"//g')
+  ANCHORE_VERSION=$(sed 's/"//g' "${ANCHORE_VERSION_FILE}")
+  TWISTLOCK_VERSION=$(sed 's/"//g' "${TWISTLOCK_VERSION_FILE}")
 else
-  OPENSCAP_VERSION=$(cat "${OPENSCAP_VERSION_FILE}")
-  ANCHORE_VERSION=$(cat "${ANCHORE_VERSION_FILE}" | sed 's/"//g')
-  TWISTLOCK_VERSION=$(cat "${TWISTLOCK_VERSION_FILE}" | sed 's/"//g')
+  OPENSCAP_VERSION=$(<"${OPENSCAP_VERSION_FILE}")
+  ANCHORE_VERSION=$(sed 's/"//g' "${ANCHORE_VERSION_FILE}")
+  TWISTLOCK_VERSION=$(sed 's/"//g' "${TWISTLOCK_VERSION_FILE}")
 fi
 
-#- OPENSCAP_VERSION=$(cat ${OPENSCAP_VERSION})
+#- OPENSCAP_VERSION=$(<"${OPENSCAP_VERSION}"")
 GPG_PUB_KEY=$(awk '{printf "%s\\n", $0}' "${IB_CONTAINER_GPG_PUBKEY}")
 
 # Create manifest.json

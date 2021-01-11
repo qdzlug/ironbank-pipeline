@@ -8,6 +8,7 @@ write json documentation:
     TWISTLOCK_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock-version.txt"
     ANCHORE_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/anchore/anchore-version.txt"
   dependencies:
+    - hardening_manifest
     - load scripts
     - wl compare lint
     - openscap compliance
