@@ -129,6 +129,27 @@ def main():
                     item["validation"]["value"],
                     artifacts_path,
                 )
+        if download_type == "github":
+            credential_id = item["auth"]["id"].replace("-", "_")
+                password = b64decode(
+                    os.getenv("CREDENTIAL_PASSWORD_" + GITHUB_SVC_ACCOUNT_USERNAME)
+                ).decode("utf-8")
+                username = b64decode(
+                    os.getenv("CREDENTIAL_USERNAME_" + GITHUB_ROBOT_ACCT_PASS)
+                ).decode("utf-8")
+            docker_download(
+                item["url"],
+                item["tag"],
+                item["tag"],
+                username,
+                password,
+            )
+        else:
+            logging.error(
+                "Incorrect values provided for GitHub package download, failing"
+            )
+            sys.exit(1)
+
 
 
 def _load_hardening_manifest():
@@ -166,12 +187,15 @@ def resource_type(url):
     docker_string = "docker://"
     http_string = "http"
     s3_string = "s3://"
+    github_string = "docker.pkg.github.com/"
     if docker_string in check:
         return "docker"
     elif http_string in check:
         return "http"
     elif s3_string in check:
         return "s3"
+    elif github_string in check:
+        return "github"
     else:
         return "Error in parsing resource type."
 
