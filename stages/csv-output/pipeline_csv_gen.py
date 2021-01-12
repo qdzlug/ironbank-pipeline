@@ -14,10 +14,12 @@ import mysql.connector
 from mysql.connector import Error
 from bs4 import BeautifulSoup
 
+from scanners import anchore
+from scanners.helper import _write_csv_from_dict_list
 
 # The InheritableTriggerIds variable contains a list of Anchore compliance trigger_ids
 # that are inheritable by child images.
-inheritableTriggerIds = [
+_inheritable_trigger_ids = [
     "639f6f1177735759703e928c14714a59",
     "c2e44319ae5b3b040044d8ae116d1c2f",
     "698044205a9c4a6d48b7937e66a6bf4f",
@@ -36,8 +38,6 @@ inheritableTriggerIds = [
 
 
 def main():
-    global csv_dir
-
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
     if loglevel == "DEBUG":
@@ -71,9 +71,8 @@ def main():
     )
     args = parser.parse_args()
 
-    csv_dir = args.output_dir
-    if not os.path.exists(csv_dir):
-        os.mkdir(csv_dir)
+    # Create the csv directory if not present
+    pathlib.Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 
     # Get the hardening manifest and additional parameters for _get_complete_whitelist_for_image
     hardening_manifest = _load_local_hardening_manifest()
@@ -88,57 +87,46 @@ def main():
     )
 
     # Get all justifications
+    logging.info("Gathering list of all justifications...")
 
-    print("Gathering list of all justifications...", end="", flush=True)
-
-    jOpenscap, jTwistlock, jAnchore = _get_justifications(total_whitelist, image_name)
+    j_openscap, j_twistlock, j_anchore = _get_justifications(
+        total_whitelist, image_name
+    )
     oscap_fail_count = 0
     oval_fail_count = 0
     twist_fail_count = 0
-    anc_sec_count = 0
-    anc_gate_count = 0
+    anchore_num_cves = 0
+    anchore_compliance = 0
     if args.oscap:
-        oscap_fail_count = generate_oscap_report(args.oscap, jOpenscap)
+        oscap_fail_count = generate_oscap_report(
+            args.oscap, j_openscap, csv_dir=args.output_dir
+        )
     else:
-        generate_blank_oscap_report()
+        generate_blank_oscap_report(csv_dir=args.output_dir)
     if args.oval:
-        oval_fail_count = generate_oval_report(args.oval)
+        oval_fail_count = generate_oval_report(args.oval, csv_dir=args.output_dir)
     else:
-        generate_blank_oval_report()
+        generate_blank_oval_report(csv_dir=args.output_dir)
     if args.twistlock:
-        twist_fail_count = generate_twistlock_report(args.twistlock, jTwistlock)
+        twist_fail_count = generate_twistlock_report(
+            args.twistlock, j_twistlock, csv_dir=args.output_dir
+        )
     if args.anchore_sec:
-        anc_sec_count = generate_anchore_sec_report(args.anchore_sec, jAnchore)
+        anchore_num_cves = anchore.vulnerability_report(
+            args.anchore_sec, j_anchore, csv_dir=args.output_dir
+        )
     if args.anchore_gates:
-        anc_gate_count = generate_anchore_gates_report(args.anchore_gates, jAnchore)
+        anchore_compliance = anchore.compliance_report(
+            args.anchore_gates, j_anchore, csv_dir=args.output_dir
+        )
 
     generate_summary_report(
-        oscap_fail_count,
-        oval_fail_count,
-        twist_fail_count,
-        anc_sec_count,
-        anc_gate_count,
-    )
-    # csv_dir = sys.argv[6]
-    # if not os.path.exists(csv_dir):
-    #     os.mkdir(csv_dir)
-    # generate_all_reports(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
-
-
-# NOT USED IN PIPELINE: GENERATES ALL OF THE REPORTS FOR ALL OF THE THINGS INCLUDING A SUMMARY INTO /tmp/csvs/
-def generate_all_reports(oscap, oval, twistlock, anchore_sec, anchore_gates):
-    oscap_fail_count = generate_oscap_report(oscap)
-    oval_fail_count = generate_oval_report(oval)
-    twist_fail_count = generate_twistlock_report(twistlock)
-    anc_sec_count = generate_anchore_sec_report(anchore_sec)
-    anc_gate_count = generate_anchore_gates_report(anchore_gates)
-
-    generate_summary_report(
-        oscap_fail_count,
-        oval_fail_count,
-        twist_fail_count,
-        anc_sec_count,
-        anc_gate_count,
+        csv_dir=args.output_dir,
+        osc=oscap_fail_count,
+        ovf=oval_fail_count,
+        tlf=twist_fail_count,
+        anchore_num_cves=anchore_num_cves,
+        anchore_compliance=anchore_compliance,
     )
 
 
@@ -494,7 +482,7 @@ def _get_justifications(total_whitelist, sourceImageName):
                 else:
                     logging.debug("Anchore inherited cve")
                     cveAnchore[cveID] = "Inherited from base image."
-                    if trigger_id in inheritableTriggerIds:
+                    if trigger_id in _inheritable_trigger_ids:
                         cveAnchore[trigger_id] = "Inherited from base image."
 
             # OpenSCAP finding
@@ -504,12 +492,11 @@ def _get_justifications(total_whitelist, sourceImageName):
                 else:
                     cveOpenscap[openscapID] = "Inherited from base image."
                     logging.debug("Oscap inherited cve")
-        # print(cveAnchore)
     return cveOpenscap, cveTwistlock, cveAnchore
 
 
 # Blank OSCAP Report
-def generate_blank_oscap_report():
+def generate_blank_oscap_report(csv_dir):
     oscap_report = open(csv_dir + "oscap.csv", "w", encoding="utf-8")
     csv_writer = csv.writer(oscap_report)
     csv_writer.writerow(
@@ -519,7 +506,7 @@ def generate_blank_oscap_report():
 
 
 # Blank oval Report
-def generate_blank_oval_report():
+def generate_blank_oval_report(csv_dir):
     oval_report = open(csv_dir + "oval.csv", "w", encoding="utf-8")
     csv_writer = csv.writer(oval_report)
     csv_writer.writerow(
@@ -529,47 +516,56 @@ def generate_blank_oval_report():
 
 
 # SUMMARY REPORT
-def generate_summary_report(osc, ovf, tlf, asf, agf):
+def generate_summary_report(
+    csv_dir, osc, ovf, tlf, anchore_num_cves, anchore_compliance
+):
     sum_data = open(csv_dir + "summary.csv", "w", encoding="utf-8")
     csv_writer = csv.writer(sum_data)
 
     header = ["Scan", "Automated Findings", "Manual Checks", "Total"]
+
     # if the osc arg type is an int, the scan was skipped so output zero values
     if type(osc) == int:
         osl = ["OpenSCAP - DISA Compliance", 0, 0, 0]
     # osc arg is a tuple, meaning the generate_oscap_report and generate_oval_report functions were run
     else:
         osl = ["OpenSCAP - DISA Compliance", osc[0], osc[1], osc[0] + osc[1]]
+
     ovf = ["OpenSCAP - OVAL Results", int(ovf or 0), 0, int(ovf or 0)]
-    ancl = ["Anchore CVE Results", int(asf or 0), 0, int(asf or 0)]
-    ancc = ["Anchore Compliance Results", int(agf[0] or 0), 0, int(agf[0] or 0)]
+    anchore_vulns = ["Anchore CVE Results", anchore_num_cves, 0, anchore_num_cves]
+    anchore_comps = [
+        "Anchore Compliance Results",
+        anchore_compliance["stop_count"],
+        0,
+        anchore_compliance["stop_count"],
+    ]
     twl = ["Twistlock Vulnerability Results", int(tlf or 0), 0, int(tlf or 0)]
 
     csv_writer.writerow(header)
     csv_writer.writerow(osl)
     csv_writer.writerow(ovf)
     csv_writer.writerow(twl)
-    csv_writer.writerow(ancl)
-    csv_writer.writerow(ancc)
+    csv_writer.writerow(anchore_vulns)
+    csv_writer.writerow(anchore_comps)
     csv_writer.writerow(
         [
             "Totals",
-            osl[1] + ovf[1] + ancl[1] + ancc[1] + twl[1],
-            osl[2] + ovf[2] + ancl[2] + ancc[2] + twl[2],
-            osl[3] + ovf[3] + ancl[3] + ancc[3] + twl[3],
+            osl[1] + ovf[1] + anchore_vulns[1] + anchore_comps[1] + twl[1],
+            osl[2] + ovf[2] + anchore_vulns[2] + anchore_comps[2] + twl[2],
+            osl[3] + ovf[3] + anchore_vulns[3] + anchore_comps[3] + twl[3],
         ]
     )
 
     csv_writer.writerow("")
     # date_str = 'Scans performed on: ' + str(osc[2])
     # csv_writer.writerow(['Scans performed on:', ]) # need date scanned
-    sha_str = "Scans performed on container layer sha256:" + agf[1] + ",,,"
+    sha_str = f"Scans performed on container layer sha256: {anchore_compliance['image_id']},,,"
     csv_writer.writerow([sha_str])
     sum_data.close()
 
 
 # Generate csv for OSCAP findings with justifications
-def generate_oscap_report(oscap, justifications):
+def generate_oscap_report(oscap, justifications, csv_dir):
     oscap_cves = get_oscap_full(oscap, justifications)
     oscap_data = open(csv_dir + "oscap.csv", "w", encoding="utf-8")
     csv_writer = csv.writer(oscap_data)
@@ -590,7 +586,7 @@ def generate_oscap_report(oscap, justifications):
         try:
             csv_writer.writerow(line.values())
         except Exception as e:
-            print("problem writing line:", line.values())
+            logging.error(f"problem writing line: {line.values()}")
             raise e
     oscap_data.close()
     return fail_count, nc_count, scanned
@@ -655,7 +651,7 @@ def get_oscap_full(oscap_file, justifications):
 
 
 # Generate oval csv
-def generate_oval_report(oval):
+def generate_oval_report(oval, csv_dir):
     oval_cves = get_oval_full(oval)
     oval_data = open(csv_dir + "oval.csv", "w", encoding="utf-8")
     csv_writer = csv.writer(oval_data)
@@ -704,7 +700,7 @@ def get_oval_full(oval_file):
 
 
 # Get results from Twistlock report for csv export
-def generate_twistlock_report(twistlock_cve_json, justifications):
+def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
     with open(twistlock_cve_json, mode="r", encoding="utf-8") as f:
         json_data = json.load(f)
         cves = []
@@ -750,146 +746,153 @@ def generate_twistlock_report(twistlock_cve_json, justifications):
         "Justification",
     ]
 
-    _write_csv_from_dict_list(dict_list=cves, fieldnames=fieldnames, filename="tl.csv")
-
-    return len(cves)
-
-
-def _write_csv_from_dict_list(dict_list, fieldnames, filename):
-    """
-    Create csv file based off prepared data. The data must be provided as a list
-    of dictionaries and the rest will be taken care of.
-
-    """
-    filepath = pathlib.Path(csv_dir, filename)
-
-    with filepath.open(mode="w", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        if dict_list:
-            writer.writerows(dict_list)
-
-
-# Get results from Anchore security for csv export, becomes anchore cve spreadsheet
-def generate_anchore_sec_report(anchore_security_json, justifications):
-    with open(anchore_security_json, mode="r", encoding="utf-8") as f:
-        json_data = json.load(f)
-        cves = []
-        for d in json_data["vulnerabilities"]:
-            cve_justification = ""
-            id = d["vuln"] + "-" + d["package"]
-            if id in justifications.keys():
-                cve_justification = justifications[id]
-            cves.append(
-                {
-                    "tag": json_data["imageFullTag"],
-                    "cve": d["vuln"],
-                    "severity": d["severity"],
-                    "package": d["package"],
-                    "package_path": d["package_path"],
-                    "fix": d["fix"],
-                    "url": d["url"],
-                    "inherited": d.get("inherited_from_base") or "no_data",
-                    "Justification": cve_justification,
-                }
-            )
-
-    fieldnames = [
-        "tag",
-        "cve",
-        "severity",
-        "package",
-        "package_path",
-        "fix",
-        "url",
-        "inherited",
-        "Justification",
-    ]
-
     _write_csv_from_dict_list(
-        dict_list=cves, fieldnames=fieldnames, filename="anchore_security.csv"
+        dict_list=cves, fieldnames=fieldnames, filename="tl.csv", csv_dir=csv_dir
     )
 
     return len(cves)
 
 
-# Get results of Anchore gates for csv export, becomes anchore compliance spreadsheet
-def generate_anchore_gates_report(anchore_gates_json, justifications):
-    with open(anchore_gates_json, encoding="utf-8") as f:
-        json_data = json.load(f)
-        sha = list(json_data.keys())[0]
-        anchore_data = json_data[sha]["result"]["rows"]
+# def _write_csv_from_dict_list(dict_list, fieldnames, filename, csv_dir):
+#     """
+#     Create csv file based off prepared data. The data must be provided as a list
+#     of dictionaries and the rest will be taken care of.
+#
+#     """
+#     filepath = pathlib.Path(csv_dir, filename)
+#
+#     with filepath.open(mode="w", encoding="utf-8") as f:
+#         writer = csv.DictWriter(f, fieldnames=fieldnames)
+#         writer.writeheader()
+#         if dict_list:
+#             writer.writerows(dict_list)
 
-    gates = []
-    stop_count = 0
-    image_id = "unable_to_determine"
-    for ad in anchore_data:
-        gate = {
-            "image_id": ad[0],
-            "repo_tag": ad[1],
-            "trigger_id": ad[2],
-            "gate": ad[3],
-            "trigger": ad[4],
-            "check_output": ad[5],
-            "gate_action": ad[6],
-            "policy_id": ad[8],
-        }
 
-        if ad[7]:
-            gate["matched_rule_id"] = ad[7]["matched_rule_id"]
-            gate["whitelist_id"] = ad[7]["whitelist_id"]
-            gate["whitelist_name"] = ad[7]["whitelist_name"]
-        else:
-            gate["matched_rule_id"] = ""
-            gate["whitelist_id"] = ""
-            gate["whitelist_name"] = ""
-
-        try:
-            gate["inherited"] = ad[9]
-            if gate["gate"] == "dockerfile":
-                gate["inherited"] = False
-        except IndexError:
-            gate["inherited"] = "no_data"
-
-        cve_justification = ""
-        # ad[2] is trigger_id -- e.g. CVE-2020-####
-        id = ad[2]
-        if ad[4] == "package":
-            cve_justification = "See Anchore CVE Results sheet"
-
-        if id in justifications.keys():
-            cve_justification = justifications[id]
-        gate["Justification"] = cve_justification
-
-        gates.append(gate)
-
-        if gate["gate_action"] == "stop":
-            stop_count += 1
-
-        image_id = gate["image_id"]
-
-    fieldnames = [
-        "image_id",
-        "repo_tag",
-        "trigger_id",
-        "gate",
-        "trigger",
-        "check_output",
-        "gate_action",
-        "policy_id",
-        "matched_rule_id",
-        "whitelist_id",
-        "whitelist_name",
-        "inherited",
-        "Justification",
-    ]
-
-    _write_csv_from_dict_list(
-        dict_list=gates, fieldnames=fieldnames, filename="anchore_gates.csv"
-    )
-    return stop_count, image_id
+# # Get results from Anchore security for csv export, becomes anchore cve spreadsheet
+# def generate_anchore_sec_report(anchore_security_json, justifications, csv_dir):
+#     with open(anchore_security_json, mode="r", encoding="utf-8") as f:
+#         json_data = json.load(f)
+#         cves = []
+#         for d in json_data["vulnerabilities"]:
+#             cve_justification = ""
+#             id = d["vuln"] + "-" + d["package"]
+#             if id in justifications.keys():
+#                 cve_justification = justifications[id]
+#             cves.append(
+#                 {
+#                     "tag": json_data["imageFullTag"],
+#                     "cve": d["vuln"],
+#                     "severity": d["severity"],
+#                     "package": d["package"],
+#                     "package_path": d["package_path"],
+#                     "fix": d["fix"],
+#                     "url": d["url"],
+#                     "inherited": d.get("inherited_from_base") or "no_data",
+#                     "Justification": cve_justification,
+#                 }
+#             )
+#
+#     fieldnames = [
+#         "tag",
+#         "cve",
+#         "severity",
+#         "package",
+#         "package_path",
+#         "fix",
+#         "url",
+#         "inherited",
+#         "Justification",
+#     ]
+#
+#     _write_csv_from_dict_list(
+#         dict_list=cves,
+#         fieldnames=fieldnames,
+#         filename="anchore_security.csv",
+#         csv_dir=csv_dir,
+#     )
+#
+#     return len(cves)
+#
+#
+# # Get results of Anchore gates for csv export, becomes anchore compliance spreadsheet
+# def generate_anchore_gates_report(anchore_gates_json, justifications, csv_dir):
+#     with open(anchore_gates_json, encoding="utf-8") as f:
+#         json_data = json.load(f)
+#         sha = list(json_data.keys())[0]
+#         anchore_data = json_data[sha]["result"]["rows"]
+#
+#     gates = []
+#     stop_count = 0
+#     image_id = "unable_to_determine"
+#     for ad in anchore_data:
+#         gate = {
+#             "image_id": ad[0],
+#             "repo_tag": ad[1],
+#             "trigger_id": ad[2],
+#             "gate": ad[3],
+#             "trigger": ad[4],
+#             "check_output": ad[5],
+#             "gate_action": ad[6],
+#             "policy_id": ad[8],
+#         }
+#
+#         if ad[7]:
+#             gate["matched_rule_id"] = ad[7]["matched_rule_id"]
+#             gate["whitelist_id"] = ad[7]["whitelist_id"]
+#             gate["whitelist_name"] = ad[7]["whitelist_name"]
+#         else:
+#             gate["matched_rule_id"] = ""
+#             gate["whitelist_id"] = ""
+#             gate["whitelist_name"] = ""
+#
+#         try:
+#             gate["inherited"] = ad[9]
+#             if gate["gate"] == "dockerfile":
+#                 gate["inherited"] = False
+#         except IndexError:
+#             gate["inherited"] = "no_data"
+#
+#         cve_justification = ""
+#         # ad[2] is trigger_id -- e.g. CVE-2020-####
+#         id = ad[2]
+#         if ad[4] == "package":
+#             cve_justification = "See Anchore CVE Results sheet"
+#
+#         if id in justifications.keys():
+#             cve_justification = justifications[id]
+#         gate["Justification"] = cve_justification
+#
+#         gates.append(gate)
+#
+#         if gate["gate_action"] == "stop":
+#             stop_count += 1
+#
+#         image_id = gate["image_id"]
+#
+#     fieldnames = [
+#         "image_id",
+#         "repo_tag",
+#         "trigger_id",
+#         "gate",
+#         "trigger",
+#         "check_output",
+#         "gate_action",
+#         "policy_id",
+#         "matched_rule_id",
+#         "whitelist_id",
+#         "whitelist_name",
+#         "inherited",
+#         "Justification",
+#     ]
+#
+#     _write_csv_from_dict_list(
+#         dict_list=gates,
+#         fieldnames=fieldnames,
+#         filename="anchore_gates.csv",
+#         csv_dir=csv_dir,
+#     )
+#     return stop_count, image_id
 
 
 if __name__ == "__main__":
     main()  # with if
-
