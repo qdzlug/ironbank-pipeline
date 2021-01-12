@@ -45,19 +45,19 @@ def main(argv):
     convert_to_excel(csv_dir, output_file)
     wb = openpyxl.load_workbook(output_file)
     # Colorize justifications for output_file
-    colorize_full(wb)
-    setAllColumnWidths(wb)
+    _colorize_full(wb)
+    _set_all_column_widths(wb)
     wb.save(output_file)
 
 
-def colorize_full(wb):
-    colorize_anchore(wb)
-    colorize_anchore_comp(wb)
-    colorize_twistlock(wb)
-    colorize_openscap(wb)
+def _colorize_full(wb):
+    _colorize_anchore(wb)
+    _colorize_anchore_comp(wb)
+    _colorize_twistlock(wb)
+    _colorize_openscap(wb)
 
 
-def colorize_anchore(wb):
+def _colorize_anchore(wb):
     # colorize anchore justifications column
     sheet = wb["Anchore CVE Results"]
     for r in range(1, sheet.max_row + 1):
@@ -82,7 +82,7 @@ def colorize_anchore(wb):
                 )
 
 
-def colorize_anchore_comp(wb):
+def _colorize_anchore_comp(wb):
     # colorize anchore comp justifications column
     sheet = wb["Anchore Compliance Results"]
     for r in range(1, sheet.max_row + 1):
@@ -111,7 +111,7 @@ def colorize_anchore_comp(wb):
                 )
 
 
-def colorize_twistlock(wb):
+def _colorize_twistlock(wb):
     # colorize twistlock justifications column
     sheet = wb["Twistlock Vulnerability Results"]
     for r in range(1, sheet.max_row + 1):
@@ -136,7 +136,7 @@ def colorize_twistlock(wb):
                 )
 
 
-def colorize_openscap(wb):
+def _colorize_openscap(wb):
     # colorize oscap justifications column
     sheet = wb["OpenSCAP - DISA Compliance"]
     for r in range(1, sheet.max_row + 1):
@@ -161,7 +161,7 @@ def colorize_openscap(wb):
 
 # convert all csvs to Excel file
 # Generates output_file (w/ justifications) and all_scans.xlsx (w/o justifications)
-def convert_to_excel(csv_dir, justificationSheet):
+def convert_to_excel(csv_dir, justification_sheet):
     read_sum = pd.read_csv(csv_dir + "summary.csv")
     read_oscap = pd.read_csv(csv_dir + "oscap.csv")
     read_oval = pd.read_csv(csv_dir + "oval.csv")
@@ -198,7 +198,7 @@ def convert_to_excel(csv_dir, justificationSheet):
         )
     writer.save()
     with pd.ExcelWriter(
-        justificationSheet
+        justification_sheet
     ) as writer:  # pylint: disable=abstract-class-instantiated
         read_sum.to_excel(writer, sheet_name="Summary", header=True, index=False)
         read_oscap.to_excel(
@@ -222,7 +222,7 @@ def convert_to_excel(csv_dir, justificationSheet):
     writer.save()
 
 
-def setColumnWidth(sheet, column, width, wrap=False):
+def _set_column_width(sheet, column, width, wrap=False):
     """Set column width and enable text wrap"""
     sheet.column_dimensions[get_column_letter(column)].width = width
     if wrap:
@@ -230,31 +230,31 @@ def setColumnWidth(sheet, column, width, wrap=False):
             cell.alignment = Alignment(wrap_text=True)
 
 
-def setAllColumnWidths(wb):
+def _set_all_column_widths(wb):
     openscap_disa = wb["OpenSCAP - DISA Compliance"]
-    setColumnWidth(openscap_disa, column=9, width=20)  # scanned_date
-    setColumnWidth(openscap_disa, column=10, width=30)  # justification
+    _set_column_width(openscap_disa, column=9, width=20)  # scanned_date
+    _set_column_width(openscap_disa, column=10, width=30)  # justification
 
     twistlock = wb["Twistlock Vulnerability Results"]
-    setColumnWidth(twistlock, column=1, width=25)  # CVE
-    setColumnWidth(twistlock, column=5, width=20)  # packageName
-    setColumnWidth(twistlock, column=6, width=20)  # packageVersion
-    setColumnWidth(twistlock, column=9, width=45)  # vecStr
-    setColumnWidth(twistlock, column=10, width=100)  # justification
+    _set_column_width(twistlock, column=1, width=25)  # CVE
+    _set_column_width(twistlock, column=5, width=20)  # packageName
+    _set_column_width(twistlock, column=6, width=20)  # packageVersion
+    _set_column_width(twistlock, column=9, width=45)  # vecStr
+    _set_column_width(twistlock, column=10, width=100)  # justification
 
     anchore_cve = wb["Anchore CVE Results"]
-    setColumnWidth(anchore_cve, column=2, width=25, wrap=False)  # CVE
-    setColumnWidth(anchore_cve, column=7, width=60)  # url
-    setColumnWidth(anchore_cve, column=9, width=100)  # justification
+    _set_column_width(anchore_cve, column=2, width=25, wrap=False)  # CVE
+    _set_column_width(anchore_cve, column=7, width=60)  # url
+    _set_column_width(anchore_cve, column=9, width=100)  # justification
 
     anchore_compliance = wb["Anchore Compliance Results"]
-    setColumnWidth(
+    _set_column_width(
         anchore_compliance, column=12, width=30, wrap=False
     )  # whitelist_name
-    setColumnWidth(
+    _set_column_width(
         anchore_compliance, column=13, width=100, wrap=False
     )  # justification
-    setColumnWidth(anchore_compliance, column=6, width=75)  # check_output
+    _set_column_width(anchore_compliance, column=6, width=75)  # check_output
 
 
 if __name__ == "__main__":
