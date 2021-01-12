@@ -19,6 +19,7 @@ import pathlib
 import logging
 import argparse
 import mysql.connector
+import subprocess
 from mysql.connector import Error
 
 from scanners import oscap
@@ -197,6 +198,11 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         logging.error(
             f"Scans are not passing 100%. Vuln Set Delta Length: {len(delta)}"
         )
+        if os.getenv("CI_COMMIT_BRANCH") == "master":
+            pipeline_repo_dir = os.environ["PIPELINE_REPO_DIR"]
+            subprocess.run(
+                [f"{pipeline_repo_dir}/stages/check-cves/mattermost-failure-webhook.sh"]
+            )
         sys.exit(1)
 
     logging.info("ALL VULNERABILITIES WHITELISTED")
@@ -230,19 +236,59 @@ def _get_greylist_file_contents(image_path, branch):
         logging.error(e)
         sys.exit(1)
 
-    if (
-        contents["approval_status"] != "approved"
-        and os.environ.get("CI_COMMIT_BRANCH").lower() == "master"
-    ):
-        logging.error("Unapproved image running on master branch")
-        sys.exit(1)
-
     return contents
 
 
-def _vat_vuln_query(im_name, im_version):
+def _vat_approval_query(im_name, im_version):
     conn = None
     result = None
+    try:
+        conn = _connect_to_db()
+        cursor = conn.cursor(buffered=True)
+        # TODO: add new scan logic
+        query = """SELECT c.name as container
+                , c.version
+                , CASE
+                WHEN cl.type is NULL THEN 'Pending'
+                WHEN cl.type = 'Approved' and cl.date_time < FC.maxdate THEN 'Pending'
+                ELSE cl.type END as container_approval_status
+                FROM container_log cl
+                INNER JOIN containers c on c.id = cl.imageid
+                INNER JOIN
+                (SELECT fa.imageid,
+                    COUNT(*)
+                    , MAX(fl.date_time) as maxdate
+                    FROM findings_approvals fa
+                    INNER JOIN findings_log fl on fl.approval_id = fa.id AND fl.id in (
+                        SELECT max(id) FROM findings_log group by approval_id)
+                    WHERE fa.imageid = (
+                        SELECT id from containers WHERE name=%s AND version=%s)
+                    AND fa.inherited_id is NULL AND fa.in_current_scan = 1 ) FC
+                    WHERE c.name=%s AND c.version=%s AND cl.id in (
+                        SELECT max(id) from container_log GROUP BY imageid);"""
+        cursor.execute(query, (im_name, im_version, im_name, im_version))
+        result = cursor.fetchall()
+    except Error as error:
+        logging.info(error)
+    finally:
+        if conn is not None and conn.is_connected():
+            conn.close()
+    if result and result[0][2]:
+        approval_status = result[0][2]
+    else:
+        approval_status = "notapproved"
+    return approval_status
+
+
+def _vat_vuln_query(im_name, im_version):
+    """
+    Returns the container approval status which is returned by the query as:
+    [(image_name, image_version, container_status)]
+
+    """
+    conn = None
+    result = None
+    approval_status = ""
     try:
         conn = _connect_to_db()
         cursor = conn.cursor(buffered=True)
@@ -288,7 +334,7 @@ def _get_vulns_from_query(row):
     return vuln_dict
 
 
-def _next_ancestor(image_path, greylist, hardening_manifest=None):
+def _next_ancestor(image_path, whitelist_branch, hardening_manifest=None):
     """
     Grabs the parent image path from the current context. Will initially attempt to load
     a new hardening manifest and then pull the parent image from there. Otherwise it will
@@ -301,15 +347,21 @@ def _next_ancestor(image_path, greylist, hardening_manifest=None):
 
     # Try to get the parent image out of the local hardening_manifest.
     if hardening_manifest:
-        return hardening_manifest["args"]["BASE_IMAGE"]
+        return (
+            hardening_manifest["args"]["BASE_IMAGE"],
+            hardening_manifest["args"]["BASE_TAG"],
+        )
 
     # Try to load the hardening manifest from a remote repo.
     hm = _load_remote_hardening_manifest(project=image_path)
     if hm is not None:
-        return hm["args"]["BASE_IMAGE"]
+        return (hm["args"]["BASE_IMAGE"], hm["args"]["BASE_TAG"])
 
     try:
-        return greylist["image_parent_name"]
+        greylist = _get_greylist_file_contents(
+            image_path=image_path, branch=whitelist_branch
+        )
+        return (greylist["image_parent_name"], greylist["image_parent_tag"])
     except KeyError as e:
         logging.error("Looks like a hardening_manifest.yaml cannot be found")
         logging.error(
@@ -327,10 +379,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     """
     total_whitelist = list()
 
-    # TODO: remove after 30 day hardening_manifest merge cutoff
-    greylist = _get_greylist_file_contents(
-        image_path=image_name, branch=whitelist_branch
-    )
     logging.info(f"Grabbing CVEs for: {image_name}")
     # get cves from vat
     result = _vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
@@ -352,20 +400,19 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     logging.debug(
         "Length of total whitelist for source image: " + str(len(total_whitelist))
     )
+    # get container approval from separate query
+    approval_status = _vat_approval_query(
+        os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
+    )
 
-    # get container approval from first row in result, if record in vat, get from record, else set NotFoundInVat
-    if result and result[0][2]:
-        check_container_approval = result[0]
-    else:
-        check_container_approval = (
-            os.environ["IMAGE_NAME"],
-            os.environ["IMAGE_VERSION"],
-            "NotFoundInVat",
-        )
-    logging.debug(check_container_approval)
+    logging.debug("CONTAINER APPROVAL STATUS")
+    logging.debug(approval_status)
     with open("variables.env", "w") as f:
         # all cves for container have container approval at ind 2
-        if check_container_approval[2].lower() == "approve":
+        if (
+            approval_status.lower() == "approve"
+            or approval_status.lower() == "conditional"
+        ):
             f.write(f"IMAGE_APPROVAL_STATUS=approved\n")
             logging.debug(f"IMAGE_APPROVAL_STATUS=approved")
         else:
@@ -374,7 +421,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             pipeline_branch = os.getenv("CI_COMMIT_BRANCH")
             if pipeline_branch == "master":
                 logging.error(
-                    "This is container is listed as unapproved in the VAT. Unapproved images cannot run on master branch. Failing stage."
+                    "This container is not noted as an approved image in VAT. Unapproved images cannot run on master branch. Failing stage."
                 )
                 sys.exit(1)
         f.write(f"BASE_IMAGE={hardening_manifest['args']['BASE_IMAGE']}\n")
@@ -386,29 +433,27 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     # Use the local hardening manifest to get the first parent. From here *only* the
     # the master branch should be used for the ancestry.
     #
-    parent_image = _next_ancestor(
-        image_path=image_name, greylist=greylist, hardening_manifest=hardening_manifest
+    parent_image_name, parent_image_version = _next_ancestor(
+        image_path=image_name,
+        whitelist_branch=whitelist_branch,
+        hardening_manifest=hardening_manifest,
     )
 
     # get parent cves from VAT
-    while parent_image:
-        logging.info(f"Grabbing CVEs for: {parent_image}")
-        # TODO: remove this after 30 day hardening_manifest merge cutoff
-        greylist = _get_greylist_file_contents(
-            image_path=parent_image, branch=whitelist_branch
-        )
-
+    while parent_image_name:
+        logging.info(f"Grabbing CVEs for: {parent_image_name}")
+        # TODO: remove this after 30 day hardening_manifest merge cutof
         # TODO: swap this for hardening manifest after 30 day merge cutoff
-        result = _vat_vuln_query(greylist["image_name"], greylist["image_tag"])
+        result = _vat_vuln_query(parent_image_name, parent_image_version)
 
         for row in result:
             vuln_dict = _get_vulns_from_query(row)
             if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
                 total_whitelist.append(Vuln(vuln_dict, image_name))
 
-        parent_image = _next_ancestor(
-            image_path=parent_image,
-            greylist=greylist,
+        parent_image_name, parent_image_version = _next_ancestor(
+            image_path=parent_image_name,
+            whitelist_branch=whitelist_branch,
         )
 
     logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")

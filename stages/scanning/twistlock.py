@@ -34,6 +34,10 @@ class IncorrectUsage(Exception):
     pass
 
 
+class TwistlockReportErrorValue(Exception):
+    pass
+
+
 class Twist:
     """
     Class to add an image to twistlock and retrieve the scan results.
@@ -85,6 +89,10 @@ class Twist:
 
         if len(response) == 0:
             return None
+
+        # Raise an error if the returned report has a value for the 'err' key
+        if response[0]["err"]:
+            raise TwistlockReportErrorValue(response[0]["err"])
 
         return response
 
