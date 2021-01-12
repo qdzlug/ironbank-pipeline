@@ -129,6 +129,17 @@ def main():
                     item["validation"]["value"],
                     artifacts_path,
                 )
+        if download_type == "github":
+            # credential_id = item["auth"]["id"].replace("-", "_")
+            username = b64decode(os.getenv("GITHUB_ROBOT_USER")).decode("utf-8")
+            password = b64decode(os.getenv("GITHUB_ROBOT_TOKEN")).decode("utf-8")
+            github_download(
+                item["url"],
+                item["tag"],
+                item["tag"],
+                username,
+                password,
+            )
 
 
 def _load_hardening_manifest():
@@ -166,12 +177,15 @@ def resource_type(url):
     docker_string = "docker://"
     http_string = "http"
     s3_string = "s3://"
+    github_string = "docker.pkg.github.com/"
     if docker_string in check:
         return "docker"
     elif http_string in check:
         return "http"
     elif s3_string in check:
         return "s3"
+    elif github_string in check:
+        return "github"
     else:
         return "Error in parsing resource type."
 
@@ -311,6 +325,63 @@ def generate_checksum(validation_type, checksum_value, artifacts_path, resource_
 def docker_download(download_item, tag_value, tar_name, username=None, password=None):
     logging.info(f"===== ARTIFACT: {download_item}")
     image = download_item.split("//")[1]
+    tar_name = tar_name.replace("/", "-")
+    tar_name = tar_name.replace(":", "-")
+    logging.info(f"Pulling {image}")
+
+    pull_cmd = [
+        "podman",
+        "pull",
+        "--storage-driver=vfs",
+        "--authfile=/tmp/prod_auth.json",
+    ]
+    if username and password:
+        pull_cmd += ["--creds", f"{username}:{password}"]
+    pull_cmd += ["--", image]
+
+    retry = True
+    retry_count = 0
+    while retry:
+        try:
+            subprocess.run(pull_cmd, check=True)
+            logging.info(f"Tagging image as {tag_value}")
+            subprocess.run(
+                ["podman", "tag", image, tag_value, "--storage-driver=vfs"], check=True
+            )
+            logging.info(f"Saving {tag_value} as tar file")
+            subprocess.run(
+                [
+                    "podman",
+                    "save",
+                    "-o",
+                    tar_name + ".tar",
+                    tag_value,
+                    "--storage-driver=vfs",
+                ],
+                check=True,
+            )
+            logging.info("Moving tar file into stage artifacts")
+            shutil.copy(
+                tar_name + ".tar",
+                os.getenv("ARTIFACT_STORAGE") + "/import-artifacts/images/",
+            )
+            retry = False
+        except subprocess.CalledProcessError:
+            if retry_count == 2:
+                logging.exception(
+                    "Docker resource failed to pull, please check hardening_manifest.yaml configuration"
+                )
+                sys.exit(1)
+            else:
+                retry_count += 1
+                logging.warning(
+                    f"Docker resource failed to pull, retrying: {retry_count}/2"
+                )
+
+
+def github_download(download_item, tag_value, tar_name, username=None, password=None):
+    logging.info(f"===== ARTIFACT: {download_item}")
+    image = download_item
     tar_name = tar_name.replace("/", "-")
     tar_name = tar_name.replace(":", "-")
     logging.info(f"Pulling {image}")
