@@ -140,7 +140,7 @@ def main():
                 username,
                 password,
             )
-            sys.exit(1)
+            # sys.exit(1)
 
 
 def _load_hardening_manifest():
