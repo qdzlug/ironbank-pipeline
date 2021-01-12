@@ -27,9 +27,13 @@ def main(argv):
     csv_dir = ""
     output_file = ""
 
-    parser = argparse.ArgumentParser(description="Gather csv directory path and name of justification spreadsheet")
+    parser = argparse.ArgumentParser(
+        description="Gather csv directory path and name of justification spreadsheet"
+    )
     parser.add_argument("-i", "--csv-dir", dest="csv", help="Directory for scan csvs")
-    parser.add_argument("-o", "--output-file", dest="output", help="Name for justification excel file")
+    parser.add_argument(
+        "-o", "--output-file", dest="output", help="Name for justification excel file"
+    )
     args = parser.parse_args()
 
     # csv_dir is the directory of the scan csvs, output_file is final xlsx file with justifications and coloring
