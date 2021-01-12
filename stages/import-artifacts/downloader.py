@@ -131,8 +131,8 @@ def main():
                 )
         if download_type == "github":
             # credential_id = item["auth"]["id"].replace("-", "_")
-            password = b64decode(os.getenv("GITHUB_ROBOT_USER")).decode("utf-8")
-            username = b64decode(os.getenv("GITHUB_ROBOT_ACCT_PASS")).decode("utf-8")
+            password = b64decode(os.getenv("GITHUB_ROBOT_ACCT_PASS")).decode("utf-8")
+            username = b64decode(os.getenv("GITHUB_ROBOT_USER")).decode("utf-8")
             github_download(
                 item["url"],
                 item["tag"],
