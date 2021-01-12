@@ -140,10 +140,6 @@ def main():
                 username,
                 password,
             )
-        else:
-            logging.error(
-                "Incorrect values provided for GitHub package download, failing"
-            )
             sys.exit(1)
 
 
