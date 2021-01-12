@@ -131,9 +131,7 @@ def main():
                 )
         if download_type == "github":
             # credential_id = item["auth"]["id"].replace("-", "_")
-            password = b64decode(os.getenv("GITHUB_ROBOT_USER")).decode(
-                "utf-8"
-            )
+            password = b64decode(os.getenv("GITHUB_ROBOT_USER")).decode("utf-8")
             username = b64decode(os.getenv("GITHUB_ROBOT_ACCT_PASS")).decode("utf-8")
             github_download(
                 item["url"],
@@ -385,9 +383,10 @@ def docker_download(download_item, tag_value, tar_name, username=None, password=
                     f"Docker resource failed to pull, retrying: {retry_count}/2"
                 )
 
+
 def github_download(download_item, tag_value, tar_name, username=None, password=None):
     logging.info(f"===== ARTIFACT: {download_item}")
-    image = download_item.split("docker.pkg.github.com/")[1]
+    image = download_item
     tar_name = tar_name.replace("/", "-")
     tar_name = tar_name.replace(":", "-")
     logging.info(f"Pulling {image}")
@@ -440,6 +439,7 @@ def github_download(download_item, tag_value, tar_name, username=None, password=
                 logging.warning(
                     f"Docker resource failed to pull, retrying: {retry_count}/2"
                 )
+
 
 if __name__ == "__main__":
     main()
