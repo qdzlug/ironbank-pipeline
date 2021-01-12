@@ -6,7 +6,7 @@ from openpyxl.utils import get_column_letter
 import pandas as pd
 import logging
 import sys
-import getopt
+import argparse
 import os
 
 
@@ -24,30 +24,26 @@ def main(argv):
         logging.info("Log level set to info")
 
     # Process command-line arguments
-    csvDir = ""
-    outputFile = ""
+    csv_dir = ""
+    output_file = ""
 
-    try:
-        opts, args = getopt.getopt(argv, "hi:o:s:", ["csvDir=", "outputFile="])
-    except getopt.GetoptError:
-        print("excel_convert.py -i <csvDir> -o <outputFile>")
-        sys.exit(2)
+    parser = argparse.ArgumentParser(description="Gather csv directory path and name of justification spreadsheet")
+    parser.add_argument("-i", "--csv-dir", dest="csv", help="Directory for scan csvs")
+    parser.add_argument("-o", "--output-file", dest="output", help="Name for justification excel file")
+    args = parser.parse_args()
 
-    # sourceFile is csv, outFile is final xlsx file with justifications and coloring
-    for opt, arg in opts:
-        if opt in ("-i", "--csvDir"):
-            csvDir = arg
-        elif opt in ("-o", "--outputFile"):
-            outputFile = arg
+    # csv_dir is the directory of the scan csvs, output_file is final xlsx file with justifications and coloring
+    csv_dir = args.csv
+    output_file = args.output
 
     # Convert all csvs to excel sheets
-    # Generates two .xlsx spreadsheets, one with justifications (outputFile) and one without justifications (all_scans.xlsx)
-    convert_to_excel(csvDir, outputFile)
-    wb = openpyxl.load_workbook(outputFile)
-    # Colorize justifications for outputFile
+    # Generates two .xlsx spreadsheets, one with justifications (output_file) and one without justifications (all_scans.xlsx)
+    convert_to_excel(csv_dir, output_file)
+    wb = openpyxl.load_workbook(output_file)
+    # Colorize justifications for output_file
     colorize_full(wb)
     setAllColumnWidths(wb)
-    wb.save(outputFile)
+    wb.save(output_file)
 
 
 def colorize_full(wb):
@@ -160,7 +156,7 @@ def colorize_openscap(wb):
 
 
 # convert all csvs to Excel file
-# Generates outputFile (w/ justifications) and all_scans.xlsx (w/o justifications)
+# Generates output_file (w/ justifications) and all_scans.xlsx (w/o justifications)
 def convert_to_excel(csv_dir, justificationSheet):
     read_sum = pd.read_csv(csv_dir + "summary.csv")
     read_oscap = pd.read_csv(csv_dir + "oscap.csv")
