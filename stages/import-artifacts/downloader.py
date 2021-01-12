@@ -398,7 +398,8 @@ def github_download(download_item, tag_value, tar_name, username=None, password=
         "--authfile=/tmp/prod_auth.json",
     ]
     if username and password:
-        pull_cmd += ["--creds", f"{username}:{password}"]
+        pull_cmd += ["--username", f"{username}", "--passsword", f"{password}"]
+        # pull_cmd += ["--creds", f"{username}:{password}"]
     pull_cmd += ["--", image]
 
     retry = True
