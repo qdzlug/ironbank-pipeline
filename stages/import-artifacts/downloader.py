@@ -131,12 +131,12 @@ def main():
                 )
         if download_type == "github":
             credential_id = item["auth"]["id"].replace("-", "_")
-                password = b64decode(
-                    os.getenv("CREDENTIAL_PASSWORD_" + GITHUB_SVC_ACCOUNT_USERNAME)
-                ).decode("utf-8")
-                username = b64decode(
-                    os.getenv("CREDENTIAL_USERNAME_" + GITHUB_ROBOT_ACCT_PASS)
-                ).decode("utf-8")
+            password = b64decode(
+                os.getenv("CREDENTIAL_PASSWORD_" + GITHUB_SVC_ACCOUNT_USERNAME)
+            ).decode("utf-8")
+            username = b64decode(
+                os.getenv("CREDENTIAL_USERNAME_" + GITHUB_ROBOT_ACCT_PASS)
+            ).decode("utf-8")
             docker_download(
                 item["url"],
                 item["tag"],
