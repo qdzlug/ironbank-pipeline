@@ -494,7 +494,8 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         )
 
     artifact_dir = os.environ.get("ARTIFACT_DIR")
-    filename = pathlib.Path(artifact_dir, "vat-findings.json")
+    logging.info(f"Artifact Directory: {artifact_dir}")
+    filename = pathlib.Path(f"{artifact_dir}/vat-findings.json")
 
     with filename.open(mode="w") as f:
         json.dump(vat_findings, f)
