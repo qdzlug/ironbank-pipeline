@@ -46,12 +46,16 @@ wl compare lint:
     - hardening_manifest
   tags:
     - ironbank
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/lint"
   script:
     # The following step assumes contributor projects have an environment variable set for the image version
     # in the gitlab-ci.yml file.
     # TODO: output the error for unsuccessful runs
     - python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py" --lint
   artifacts:
-    paths: []
+    paths:
+      - "${ARTIFACT_DIR}/"
+    expire_in: 1 week
     reports:
       dotenv: variables.env
