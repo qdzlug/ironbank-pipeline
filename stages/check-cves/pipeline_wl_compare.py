@@ -333,12 +333,35 @@ def _vat_vuln_query(im_name, im_version):
 
 
 def _get_vulns_from_query(row):
+    """
+    For each row in result (returned from VAT db query), create a dictionary gathering
+    the necessary items to be compared for each entry in the twistlock, anchore and openscap scans.
+
+    Each row should have 12 items in the form:
+    (image_name, image_version, container_status, vuln, source (e.g. anchore_cve), in_current_scan (bool)
+    vuln_status (e.g. Approve), approval_comments, justification, description, package, package_path)
+
+    For anchore_comp and anchore_cve, the vuln_description is the package instead of the description.
+
+    example: ('redhat/ubi/ubi8', '8.3', 'Approve', 'CCE-82360-9', 'oscap_comp', 1, 'Approve', 'Approved, imported from spreadsheet.',
+    'Not applicable. This performs automatic updates to installed packages which does not apply to immutable containers.',
+    'Enable dnf-automatic Timer', 'N/A', 'N/A')
+
+    """
     vuln_dict = {}
     vuln_dict["whitelist_source"] = row[0]
+    vuln_dict["version"] = row[1]
     vuln_dict["vulnerability"] = row[3]
     vuln_dict["vuln_source"] = row[4]
     vuln_dict["status"] = row[6]
-    # logging.debug(vuln_dict)
+    vuln_dict["justification"] = row[8]
+    if row[4] and row[4] == "anchore_cve":
+        vuln_dict["vuln_description"] = row[10]
+    elif row[4] and row[4] == "anchore_comp":
+        vuln_dict["vuln_description"] = row[9].split("\n")[0]
+    else:
+        vuln_dict["vuln_description"] = row[9]
+    logging.debug(vuln_dict)
     return vuln_dict
 
 
