@@ -14,12 +14,5 @@ check cves:
     - openscap cve
     - openscap compliance
     - anchore scan
-  variables:
-    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/check_cves"
   script:
     - python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py"
-  artifacts:
-    when: always
-    paths:
-      - "${ARTIFACT_DIR}/"
-    expire_in: 1 week
