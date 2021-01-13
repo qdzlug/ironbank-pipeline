@@ -1150,8 +1150,7 @@ def update_in_current_scan(iid, findings, scan_source):
         all_in_current_scan = cursor.fetchall()
         current_scan_list = [x[0] for x in all_in_current_scan]
         removed_findings = set([x for x in active_list if x not in current_scan_list])
-        logs.debug("Deactivating these findings")
-        logs.debug(removed_findings)
+        logs.debug(f"Removing in_current_scan for these findings: \n {removed_findings}")
         for finding_id in removed_findings:
             find_log_query = """SELECT id, record_type, in_current_scan,
                 active, record_text from `finding_logs` WHERE
@@ -1161,9 +1160,13 @@ def update_in_current_scan(iid, findings, scan_source):
             cursor.execute(find_log_query, find_log_tuple)
             active_logs = cursor.fetchall()
             for r in active_logs:
-                logs.debug("Deactivating log id:")
-                logs.debug(r[0])
-                deactivate_log_row(cursor, r[0])
+                logs.debug(f"Removing_current_scan flag for log id: {r[0]}")
+                update_not_in_current_scan = """UPDATE finding_logs fl
+                SET fl.in_current_scan=0 WHERE fl.id=%s"""
+                logs.debug(update_not_in_current_scan, r[0])
+                cursor.execute(
+                    update_not_in_current_scan, (r[0],),
+                )
         conn.commit()
 
     except Error as error:
