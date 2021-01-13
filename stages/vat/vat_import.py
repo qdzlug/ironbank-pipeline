@@ -612,10 +612,10 @@ def insert_finding(cursor, iid, scan_source, index, row):
 
             # it doesn't exist so insert it
             cursor.execute(
-                "INSERT INTO `findings` "
-                + "(`container_id`, `finding`, `scan_source`, "
-                + "`package`, `package_path`)"
-                + "VALUES (%s, %s, %s, %s, %s)",
+                """INSERT INTO `findings`
+                (`container_id`, `finding`, `scan_source`,
+                `package`, `package_path`)
+                VALUES (%s, %s, %s, %s, %s)""",
                 (
                     iid,
                     row["finding"],
@@ -764,7 +764,7 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
                 )
 
             if sc_record:
-                update_text = "Finding reinstated from current scan"
+                update_text = sc_record[0][4] + "Finding reinstated from current scan"
                 is_active_record = 1
                 record_id = sc_record[0][0]
                 logs.debug("Update sc_record id: %s", record_id)
@@ -782,11 +782,8 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
 
         if lineage:
             parents = find_parent_findings(cursor, row, lineage, scan_source)
-            inherited = 0
-            inherited_id = None
             if parents:
-                # Need to fix this to be more explicit. Re-evaluate getting parent
-                # This gets the parent finding - TO DO is this correct?
+                # This gets the parent finding
                 inherited_id = parents[0][0]
                 inherited = 1
                 # TO DO if parent is not inheritable (Do this POST MIGRATION RELEASE) do not import logs.
@@ -909,7 +906,7 @@ def find_parent_findings(cursor, finding, lineage, scan_source):
     """
     Takes a finding and finds its parent
     :params finding dict
-    :params lineage list of parents
+    :params lineage list of parents - May be used later to obtain root parent, for now parent is sufficient
     :params scan_source
     :return parents list of tuples with finding id and container id
     """
@@ -922,22 +919,16 @@ def find_parent_findings(cursor, finding, lineage, scan_source):
 
     logs.debug(f"find_parent_findings for {finding}")
     logs.debug(f"lineage: {lineage}")  # temp
-    len_lineage = ", ".join(["%s"] * len(lineage))
 
-    inherited = 0
-    inherited_id = None
     find_parent_finding_query = f"""SELECT id, container_id from findings where finding = %s and scan_source = %s and package {package_query_string} %s and
-        package_path {package_path_query_string} %s and container_id in ({len_lineage})
+        package_path {package_path_query_string} %s and container_id = %s
         """
-    unique_values_list = [
+    unique_values = (
         finding["finding"],
         scan_source,
         finding["package"],
         finding["package_path"],
-    ]
-    unique_values_list += lineage
-    unique_values = tuple(
-        unique_values_list,
+        lineage[0],
     )
 
     logs.debug(find_parent_finding_query % unique_values)
@@ -973,7 +964,7 @@ def find_lineage(cursor, container_id):
 
 def insert_scan(data, iid, scan_source):
     """
-    Inserts all scan data into four three tables findings, findings_scan_results and finding_logs
+    Inserts all scan data into three tables findings, findings_scan_results and finding_logs
     :params data
     :params iid int container_id
     :params scan_source str
@@ -1111,10 +1102,8 @@ def update_in_current_scan(iid, findings, scan_source):
             # This is for the special case where a finding existed and the following
             # run there were no findings for the scan_source so set not in_current_scan
             # for existing findings from previous runs.
-            update_not_in_current_scan = (
-                "UPDATE finding_logs fl INNER JOIN findings f ON fl.finding_id = f.id "
-                + "SET fl.in_current_scan=0 WHERE f.container_id =%s and scan_source=%s"
-            )
+            update_not_in_current_scan = """UPDATE finding_logs fl INNER JOIN findings f ON fl.finding_id = f.id
+                SET fl.in_current_scan=0 WHERE f.container_id =%s and f.scan_source=%s"""
             logs.debug(update_not_in_current_scan, str(iid), scan_source)
             cursor.execute(
                 update_not_in_current_scan,
@@ -1128,10 +1117,10 @@ def update_in_current_scan(iid, findings, scan_source):
 
         # Query for all the findings for the image ID and the scan source
         select_all_image_scan_source = """
-            SELECT f.id, finding, package, package_path FROM findings f
+            SELECT f.id FROM findings f
             INNER JOIN finding_logs fl ON f.id = fl.finding_id
-            WHERE f.container_id = %s and f.scan_source = %s and record_type_active = 1
-            AND in_current_scan = 1
+            WHERE f.container_id = %s  and f.scan_source = %s and fl.record_type_active = 1
+            AND fl.in_current_scan = 1
             """
         logs.debug(select_all_image_scan_source, str(iid), scan_source)
         cursor.execute(
@@ -1141,115 +1130,40 @@ def update_in_current_scan(iid, findings, scan_source):
                 scan_source,
             ),
         )
+        all_active_findings = cursor.fetchall()
+        active_list = [x[0] for x in all_active_findings]
 
-        # Load the query into a dataframe
-        d_f = pandas.DataFrame(cursor.fetchall())
-        if not d_f.empty:
-            d_f.columns = cursor.column_names
-
-            # Remove the current scan from all the findings list
-            for i, row in findings.iterrows():
-                if row["package_path"] and row["package"]:
-                    d_f.drop(
-                        d_f[
-                            (d_f["finding"] == row["finding"])
-                            & (d_f["package"] == row["package"])
-                            & (d_f["package_path"] == row["package_path"])
-                        ].index,
-                        inplace=True,
-                    )
-                elif not row["package_path"] and not row["package"]:
-                    d_f.drop(
-                        d_f[
-                            (d_f["finding"] == row["finding"])
-                            & (d_f["package"].isnull())
-                            & (d_f["package_path"].isnull())
-                        ].index,
-                        inplace=True,
-                    )
-                elif not row["package_path"]:
-                    d_f.drop(
-                        d_f[
-                            (d_f["finding"] == row["finding"])
-                            & (d_f["package"] == row["package"])
-                            & (d_f["package_path"].isnull())
-                        ].index,
-                        inplace=True,
-                    )
-                elif not row["package"]:
-                    d_f.drop(
-                        d_f[
-                            (d_f["finding"] == row["finding"])
-                            & (d_f["package"].isnull())
-                            & (d_f["package_path"] == row["package_path"])
-                        ].index,
-                        inplace=True,
-                    )
-
-            # Loop for the remaining rows which are not in the current scan
-            logs.debug(d_f)
-            for i, row in d_f.iterrows():
-
-                find_log_query = """SELECT id, record_type, in_current_scan, 
-                    active, record_text from `finding_logs` WHERE
-                    finding_id = %s and record_type_active = 1 ORDER BY active desc"""
-                find_log_tuple = (str(row["id"]),)
-                logs.debug(find_log_query, (str(row["id"])))
-                cursor.execute(find_log_query, find_log_tuple)
-                active_records = cursor.fetchall()
-
-                # Need to deactivate all the rows for all findings in finding_logs
-                # Do this for the active records smd where in_current_scan is false
-                # in_current_scan is active_records[0][2]
-                logs.debug("active_record[0]: %s", active_records[0])
-                if active_records and not active_records[0][2]:
-                    # If now in current_scan add it back into the logs
-                    # deactivate the old logs and add the new ones
-                    deactivate_all_rows = [
-                        deactivate_log_row(cursor, r[0]) for r in active_records
-                    ]
-
-                    # Create active log row(s) with last active row data(record_type_active)
-                    # and in_current_scan set to 0
-                    j_record = [x for x in active_records if x[1] == "justification"]
-                    sc_record = [x for x in active_records if x[1] == "state_change"]
-                    new_entry_selection = """
-                        SELECT NULL, finding_id, record_type, state, %s, 0, expiration_date, inheritable, inherited_id,
-                        inherited, false_positive, %s, %s, %s, 1 from `finding_logs` WHERE id = %s
-                        """
-                    if j_record:
-                        update_text = j_record[0][4]
-                        is_active_record = 0
-                        record_id = j_record[0][0]
-                        logs.debug("Add j_record id: %s", record_id)
-
-                        tuple_values = (
-                            update_text,
-                            system_user_id,
-                            args.scan_date,
-                            is_active_record,
-                            record_id,
-                        )
-                        new_j_record_id = add_active_log_row(
-                            cursor, new_entry_selection, tuple_values
-                        )
-
-                    if sc_record:
-                        update_text = "Finding reinstated from current scan"
-                        is_active_record = 1
-                        record_id = sc_record[0][0]
-                        logs.debug("Add sc_record id: %s", record_id)
-                        tuple_values = (
-                            update_text,
-                            system_user_id,
-                            args.scan_date,
-                            is_active_record,
-                            record_id,
-                        )
-                        new_sc_record_id = add_active_log_row(
-                            cursor, new_entry_selection, tuple_values
-                        )
-
+        select_all_findings_in_scan = """
+        SELECT finding_id from finding_scan_results fsr
+        INNER JOIN findings f on f.id = fsr.finding_id
+        where fsr.job_id = %s and f.scan_source = %s and f.container_id = %s
+        """
+        logs.debug(select_all_findings_in_scan, args.job_id, scan_source, str(iid))
+        cursor.execute(
+            select_all_findings_in_scan,
+            (
+                args.job_id,
+                scan_source,
+                str(iid),
+            ),
+        )
+        all_in_current_scan = cursor.fetchall()
+        current_scan_list = [x[0] for x in all_in_current_scan]
+        removed_findings = set([x for x in active_list if x not in current_scan_list])
+        logs.debug("Deactivating these findings")
+        logs.debug(removed_findings)
+        for finding_id in removed_findings:
+            find_log_query = """SELECT id, record_type, in_current_scan,
+                active, record_text from `finding_logs` WHERE
+                finding_id = %s and record_type_active = 1 ORDER BY active desc"""
+            find_log_tuple = (finding_id,)
+            logs.debug(find_log_query, find_log_tuple)
+            cursor.execute(find_log_query, find_log_tuple)
+            active_logs = cursor.fetchall()
+            for r in active_logs:
+                logs.debug("Deactivating log id:")
+                logs.debug(r[0])
+                deactivate_log_row(cursor, r[0])
         conn.commit()
 
     except Error as error:
