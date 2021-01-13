@@ -94,7 +94,7 @@ def _vulnerability_record(fulltag, justifications, vuln):
     return vuln_record
 
 
-def vulnerability_report(csv_dir, justifications, anchore_security_json):
+def vulnerability_report(csv_dir, anchore_security_json, justifications):
     """
     Generate the anchore vulnerability report
 
@@ -102,7 +102,9 @@ def vulnerability_report(csv_dir, justifications, anchore_security_json):
     with open(anchore_security_json, mode="r", encoding="utf-8") as f:
         json_data = json.load(f)
         cves = [
-            _vulnerability_record(fulltag=json_data["imageFullTag"], justifications=justifications, vuln=d)
+            _vulnerability_record(
+                fulltag=json_data["imageFullTag"], justifications=justifications, vuln=d
+            )
             for d in json_data["vulnerabilities"]
         ]
 

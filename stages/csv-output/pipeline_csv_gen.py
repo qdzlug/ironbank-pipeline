@@ -113,11 +113,15 @@ def main():
         )
     if args.anchore_sec:
         anchore_num_cves = anchore.vulnerability_report(
-            args.anchore_sec, j_anchore, csv_dir=args.output_dir
+            csv_dir=args.output_dir,
+            anchore_security_json=args.anchore_sec,
+            justifications=j_anchore,
         )
     if args.anchore_gates:
         anchore_compliance = anchore.compliance_report(
-            args.anchore_gates, j_anchore, csv_dir=args.output_dir
+            csv_dir=args.output_dir,
+            anchore_gates_json=args.anchore_gates,
+            justifications=j_anchore,
         )
 
     generate_summary_report(
