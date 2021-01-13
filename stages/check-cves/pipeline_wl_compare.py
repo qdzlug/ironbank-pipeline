@@ -378,6 +378,9 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
     """
     total_whitelist = list()
+    vat_findings = {}
+
+    vat_findings[image_name] = []
 
     logging.info(f"Grabbing CVEs for: {image_name}")
     # get cves from vat
