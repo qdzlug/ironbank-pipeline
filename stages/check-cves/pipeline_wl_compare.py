@@ -132,6 +132,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         image_name=image_name,
         whitelist_branch=wl_branch,
         hardening_manifest=hardening_manifest,
+        lint=lint,
     )
 
     wl_set = set()
@@ -402,7 +403,9 @@ def _next_ancestor(image_path, whitelist_branch, hardening_manifest=None):
         sys.exit(1)
 
 
-def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_manifest):
+def _get_complete_whitelist_for_image(
+    image_name, whitelist_branch, hardening_manifest, lint
+):
     """
     Pull all whitelisted CVEs for an image. Walk through the ancestry of a given
     image and grab all of vulnerabilities in the greylist associated with w layer.
