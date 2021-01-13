@@ -493,6 +493,12 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             whitelist_branch=whitelist_branch,
         )
 
+    artifact_dir = os.environ.get("ARTIFACT_DIR")
+    filename = pathlib.Path(artifact_dir, "vat-findings.json")
+
+    with filename.open(mode="w") as f:
+        json.dump(vat_findings, f)
+
     logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
     return total_whitelist
 
