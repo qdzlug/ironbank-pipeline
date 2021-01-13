@@ -294,26 +294,34 @@ def _vat_vuln_query(im_name, im_version):
         cursor = conn.cursor(buffered=True)
         # TODO: add new scan logic
         query = """SELECT c.name as container
-            , c.version
-            , CASE WHEN cl.type is NULL THEN 'Pending' ELSE cl.type END as container_approval_status
-            , f.finding
-            , f.scan_source
-            , f.in_current_scan
-            , CASE fl.type
-            WHEN fl.type is NULL THEN 'Pending'
-            WHEN fl.date_time > cl.date_time and fl.type = 'Approve' THEN 'Reviewed'
-            WHEN cl.date_time is NULL and fl.type = 'Approve' THEN 'Reviewed'
-            ELSE fl.type END as finding_status
-            FROM findings_approvals f
-            INNER JOIN containers c on f.imageid = c.id
-            LEFT JOIN findings_log fl on f.id = fl.approval_id
-            AND fl.id in (SELECT max(id) from findings_log group by approval_id)
-            LEFT JOIN container_log cl on c.id = cl.imageid
-            AND cl.id in (SELECT max(id) from container_log GROUP BY imageid)
-            WHERE f.inherited_id is NULL
-            AND c.name=%s
-            AND c.version=%s
-            AND f.in_current_scan = 1;"""
+                , c.version
+                , CASE WHEN cl.type is NULL THEN "Pending" ELSE cl.type END as container_approval_status
+                , f.finding
+                , f.scan_source
+                , f.in_current_scan
+                , CASE
+                WHEN fl.type is NULL THEN "Pending"
+                WHEN cl.date_time is NULL and fl.type = "Approve" THEN "Reviewed"
+                WHEN fl.date_time > cl.date_time and fl.type = "Approve" THEN "Reviewed"
+                ELSE fl.type END as finding_status
+                ,fl.text as approval_comments
+                , fl2.text as justification
+                , sr.description
+                , f.package
+                , f.package_path
+                FROM findings_approvals f
+                INNER JOIN containers c on f.imageid = c.id
+                LEFT JOIN findings_log fl on f.id = fl.approval_id
+                AND fl.id in (SELECT max(id) from findings_log WHERE type != "Justification" group by approval_id)
+                LEFT JOIN findings_log fl2 on f.id = fl2.approval_id
+                AND fl2.id in (SELECT max(id) from findings_log WHERE type = "Justification" group by approval_id)
+                LEFT JOIN container_log cl on c.id = cl.imageid
+                AND cl.id in (SELECT max(id) from container_log group by imageid)
+                LEFT JOIN scan_results sr on c.id = sr.imageid AND f.finding = sr.finding AND f.package = sr.package AND f.package_path = sr.package_path
+                AND jenkins_run in (SELECT max(jenkins_run) from scan_results WHERE imageid = c.id AND finding = f.finding AND package = f.package)
+                WHERE f.inherited_id is NULL
+                AND c.name=%s and c.version=%s
+                AND f.in_current_scan = 1;"""
         cursor.execute(query, (im_name, im_version))
         result = cursor.fetchall()
     except Error as error:
