@@ -128,15 +128,14 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
 
     wl_branch = os.getenv("WL_TARGET_BRANCH", default="master")
 
-    image_whitelist = _get_complete_whitelist_for_image(
-        image_name=image_name,
-        whitelist_branch=wl_branch,
-        hardening_manifest=hardening_manifest,
-        lint=lint,
-    )
-
     # Don't go any further if just linting
     if lint:
+        image_whitelist = _get_complete_whitelist_for_image(
+            image_name=image_name,
+            whitelist_branch=wl_branch,
+            hardening_manifest=hardening_manifest,
+        )
+        logging.debug(image_whitelist)
         sys.exit(0)
 
     artifacts_path = os.environ["ARTIFACT_STORAGE"]
@@ -146,15 +145,13 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         with vat_findings_file.open(mode="r") as f:
             vat_findings = json.load(f)
     except Exception as e:
-        logging.exception(e)
+        logging.exception(f"Error reading findings file.")
         sys.exit(1)
 
     wl_set = set()
 
     # add each finding to its respective scan source whitelist set
-    _finding_approval_status_check(
-        vat_findings, wl_set
-    )
+    _finding_approval_status_check(vat_findings, wl_set)
 
     vuln_set = set()
 
@@ -195,9 +192,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     try:
         delta = vuln_set.difference(wl_set)
     except Exception as e:
-        logging.exception(
-            f"There was an error making the vulnerability delta request."
-        )
+        logging.exception(f"There was an error making the vulnerability delta request.")
         sys.exit(1)
 
     if len(delta) != 0:
@@ -219,10 +214,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     sys.exit(0)
 
 
-def _finding_approval_status_check(
-    finding_dictionary,
-    whitelist
-):
+def _finding_approval_status_check(finding_dictionary, whitelist):
     for image in finding_dictionary:
         for finding in finding_dictionary[image]:
             finding_status = finding["finding_status"].lower()
@@ -230,9 +222,13 @@ def _finding_approval_status_check(
                 if finding["scan_source"] == "twislock_cve":
                     whitelist.add(f"tl_{finding['finding']}-{finding['package']}")
                 elif finding["scan_source"] == "anchore_cve":
-                    whitelist.add(f"anchore_cve_{finding['finding']}-{finding['package']}")
+                    whitelist.add(
+                        f"anchore_cve_{finding['finding']}-{finding['package']}"
+                    )
                 elif finding["scan_source"] == "anchore_comp":
-                    whitelist.add(f"anchore_comp_{finding['finding']}-{finding['package']}")
+                    whitelist.add(
+                        f"anchore_comp_{finding['finding']}-{finding['package']}"
+                    )
                 elif finding["scan_source"] == "oval_cve":
                     whitelist.add(f"oval_{finding['finding']}")
                 elif finding["scan_source"] == "oscap_cve":
@@ -317,7 +313,6 @@ def _vat_vuln_query(im_name, im_version):
     """
     conn = None
     result = None
-    approval_status = ""
     try:
         conn = _connect_to_db()
         cursor = conn.cursor(buffered=True)
@@ -447,9 +442,7 @@ def _next_ancestor(image_path, whitelist_branch, hardening_manifest=None):
         sys.exit(1)
 
 
-def _get_complete_whitelist_for_image(
-    image_name, whitelist_branch, hardening_manifest, lint
-):
+def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_manifest):
     """
     Pull all whitelisted CVEs for an image. Walk through the ancestry of a given
     image and grab all of vulnerabilities in the greylist associated with w layer.
@@ -463,7 +456,6 @@ def _get_complete_whitelist_for_image(
     logging.info(f"Grabbing CVEs for: {image_name}")
     # get cves from vat
     result = _vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
-    logging.debug(result)
     # parse CVEs from VAT query
     # empty list is returned if no entry or no cves. NoneType only returned if error.
     if result is None:
@@ -476,7 +468,6 @@ def _get_complete_whitelist_for_image(
             vat_findings[image_name].append(finding_dict)
             if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
                 total_whitelist.append(Vuln(vuln_dict, image_name))
-                logging.debug(vuln_dict)
             else:
                 logging.debug("There is no approval status present in result.")
 
@@ -542,13 +533,12 @@ def _get_complete_whitelist_for_image(
             whitelist_branch=whitelist_branch,
         )
 
-    if lint:
-        artifact_dir = os.environ.get("ARTIFACT_DIR")
-        logging.info(f"Artifact Directory: {artifact_dir}")
-        filename = pathlib.Path(f"{artifact_dir}/vat-findings.json")
+    artifact_dir = os.environ.get("ARTIFACT_DIR")
+    logging.info(f"Artifact Directory: {artifact_dir}")
+    filename = pathlib.Path(f"{artifact_dir}/vat-findings.json")
 
-        with filename.open(mode="w") as f:
-            json.dump(vat_findings, f)
+    with filename.open(mode="w") as f:
+        json.dump(vat_findings, f)
 
     logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
     return total_whitelist
