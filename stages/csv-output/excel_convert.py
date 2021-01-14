@@ -57,29 +57,44 @@ def colorize_full(wb):
     colorize_openscap(wb)
 
 
+def _get_justification_column(sheet):
+    justification_column = None
+    for i, col in enumerate(sheet.columns):
+        if col[0].value == "Justification":
+            justification_column = i + 1
+            break
+
+    if not justification_column:
+        logging.error("Could not find 'Justification' column")
+        sys.exit(1)
+
+    return justification_column
+
+
 def colorize_anchore(wb):
-    # colorize anchore justifications column
+    """
+    Colorize anchore cve justifications column
+
+    """
     sheet = wb["Anchore CVE Results"]
+
+    justification_column = _get_justification_column(sheet)
+
     for r in range(1, sheet.max_row + 1):
-        cell = sheet.cell(row=r, column=2)
-        if cell.value == "cve":
-            cell = sheet.cell(row=r, column=9)
-            cell.value = "Justification"
+        cell_justification = sheet.cell(row=r, column=justification_column)
+        # Apply appropriate highlighting to justification cell
+        if cell_justification.value is None:
+            cell_justification.fill = PatternFill(
+                start_color="00ffff00", end_color="00ffff00", fill_type="solid"
+            )
+        elif cell_justification.value == "Inherited from base image.":
+            cell_justification.fill = PatternFill(
+                start_color="0000b050", end_color="0000b050", fill_type="solid"
+            )
         else:
-            cell_justification = sheet.cell(row=r, column=9)
-            # Apply appropriate highlighting to justification cell
-            if cell_justification.value is None:
-                cell_justification.fill = PatternFill(
-                    start_color="00ffff00", end_color="00ffff00", fill_type="solid"
-                )
-            elif cell_justification.value == "Inherited from base image.":
-                cell_justification.fill = PatternFill(
-                    start_color="0000b050", end_color="0000b050", fill_type="solid"
-                )
-            else:
-                cell_justification.fill = PatternFill(
-                    start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
-                )
+            cell_justification.fill = PatternFill(
+                start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
+            )
 
 
 def colorize_anchore_comp(wb):
