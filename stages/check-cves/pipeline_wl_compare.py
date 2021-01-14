@@ -135,7 +135,12 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         lint=lint,
     )
 
-    wl_set = set()
+    # wl_set = set()
+    tl_wl_set = set()
+    anchore_cve_wl_set = set()
+    anchore_comp_wl_set = set()
+    oscap_cve_wl_set = set()
+    oscap_comp_wl_set = set()
     # approval status is checked when retrieving image_whitelist
     for image in image_whitelist:
         wl_set.add(image.vulnerability)
@@ -144,10 +149,15 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     if lint:
         sys.exit(0)
 
-    logging.info(f"Whitelist Set:{wl_set}")
-    logging.info(f"Whitelist Set Length: {len(wl_set)}")
+    # logging.info(f"Whitelist Set:{wl_set}")
+    # logging.info(f"Whitelist Set Length: {len(wl_set)}")
 
-    vuln_set = set()
+    # vuln_set = set()
+    tl_vuln_set = set()
+    anchore_cve_vuln_set = set()
+    anchore_comp_vuln_set = set()
+    oscap_cve_vuln_set = set()
+    oscap_comp_vuln_set = set()
 
     #
     # If this is NOT a DISTROLESS scan then OpenSCAP findings will be present
@@ -176,14 +186,14 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
 
     twistlock_cves = twistlock.get_full()
     for tl in twistlock_cves:
-        vuln_set.add(tl["id"])
+        tl_vuln_set.add(f"{tl['id']}-{tl['packageName']}-{tl['packageVersion']}")
 
     anchore_cves = anchore.get_full()
     for anc in anchore_cves:
-        vuln_set.add(anc["cve"])
+        anchore_cve_vuln_set.add(f"{anc['cve']}-{anc['package']}")
 
-    logging.info(f"Vuln Set: {vuln_set}")
-    logging.info(f"Vuln Set Length: {len(vuln_set)}")
+    # logging.info(f"Vuln Set: {vuln_set}")
+    # logging.info(f"Vuln Set Length: {len(vuln_set)}")
     try:
         delta = vuln_set.difference(wl_set)
     except Exception as e:
