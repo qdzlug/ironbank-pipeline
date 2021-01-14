@@ -139,6 +139,8 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     if lint:
         sys.exit(0)
 
+    artifacts_path = os.environ["ARTIFACT_STORAGE"]
+
     vat_findings_file = pathlib.Path(artifacts_path, "lint", "vat-findings.json")
     try:
         with vat_findings_file.open(mode="r") as f:
@@ -172,7 +174,6 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     # and should be factored in.
     #
     if not bool(os.environ.get("DISTROLESS")):
-        artifacts_path = os.environ["ARTIFACT_STORAGE"]
         oscap_file = pathlib.Path(
             artifacts_path, "scan-results", "openscap", "report.html"
         )
