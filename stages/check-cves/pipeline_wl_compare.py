@@ -444,7 +444,8 @@ def _get_complete_whitelist_for_image(
     else:
         for row in result:
             vuln_dict = _get_vulns_from_query(row)
-            vat_findings[image_name].append(row)
+            finding_dict = _get_findings_from_query(row)
+            vat_findings[image_name].append(finding_dict)
             if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
                 total_whitelist.append(Vuln(vuln_dict, image_name))
                 logging.debug(vuln_dict)
@@ -503,7 +504,8 @@ def _get_complete_whitelist_for_image(
 
         for row in result:
             vuln_dict = _get_vulns_from_query(row)
-            vat_findings[parent_image_name].append(row)
+            finding_dict = _get_findings_from_query(row)
+            vat_findings[parent_image_name].append(finding_dict)
             if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
                 total_whitelist.append(Vuln(vuln_dict, image_name))
 
