@@ -219,7 +219,10 @@ def _write_content_csv(csv_dir, content_dir, filename):
         content = [{"Content": f"No content returned for report: {report_type}"}]
 
     _write_csv_from_dict_list(
-        dict_list=content, fieldnames=fields, filename=filename, csv_dir=csv_dir
+        dict_list=content,
+        fieldnames=fields,
+        filename=filename,
+        csv_dir=f"{csv_dir}/sbom",
     )
 
     return {"csv_file_path": str(output_file_name), "report_type": report_type}

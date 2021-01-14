@@ -79,6 +79,8 @@ def main():
     hardening_manifest = _load_local_hardening_manifest()
     if hardening_manifest is None:
         logging.error("Please update your project to contain a hardening_manifest.yaml")
+        sys.exit(1)
+
     image_name = hardening_manifest["name"]
     wl_branch = os.getenv("WL_TARGET_BRANCH", default="master")
 
@@ -125,9 +127,7 @@ def main():
             justifications=j_anchore,
         )
     if args.sbom_dir:
-        sbom_csvs = anchore.sbom_report(
-            csv_dir=args.output_dir, content_dir=args.sbom_dir
-        )
+        anchore.sbom_report(csv_dir=args.output_dir, content_dir=args.sbom_dir)
 
     generate_summary_report(
         csv_dir=args.output_dir,
