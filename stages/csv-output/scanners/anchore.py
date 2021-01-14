@@ -208,7 +208,6 @@ def _write_content_csv(csv_dir, content_dir, filename):
 
     logging.debug(f"Creating {report_type} CSV.")
 
-    output_file_name = pathlib.Path(csv_dir, f"{report_type}.csv")
 
     if report_data["content"]:
         fields = list(report_data["content"][0].keys())
@@ -221,8 +220,6 @@ def _write_content_csv(csv_dir, content_dir, filename):
     _write_csv_from_dict_list(
         dict_list=content,
         fieldnames=fields,
-        filename=filename,
+        filename=f"{report_type}.csv",
         csv_dir=f"{csv_dir}/sbom",
     )
-
-    return {"csv_file_path": str(output_file_name), "report_type": report_type}
