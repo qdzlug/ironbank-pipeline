@@ -236,7 +236,7 @@ def _finding_approval_status_check(
                 elif finding["scan_source"] == "oval_cve":
                     whitelist.add(f"oval_{finding['finding']}")
                 elif finding["scan_source"] == "oscap_cve":
-                    whitelist.add(f"oscap_{finding["finding"]}")
+                    whitelist.add(f"oscap_{finding['finding']}")
 
 
 def _get_greylist_file_contents(image_path, branch):
