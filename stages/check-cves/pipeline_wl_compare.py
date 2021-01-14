@@ -193,11 +193,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     logging.info(f"Vuln Set: {vuln_set}")
     logging.info(f"Vuln Set Length: {len(vuln_set)}")
     try:
-        tl_delta = tl_vuln_set.difference(wl_set)
-        anchore_cve_delta = anchore_cve_vuln_set.difference(wl_set)
-        anchore_comp_delta = anchore_comp_vuln_set.difference(wl_set)
-        oscap_comp_delta = oscap_comp_vuln_set.difference(wl_set)
-        oscap_cve_delta = oscap_cve_vuln_set.difference(wl_set)
+        delta = vuln_set.difference(wl_set)
     except Exception as e:
         logging.exception(
             f"There was an error making the vulnerability delta request."
@@ -225,10 +221,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
 
 def _finding_approval_status_check(
     finding_dictionary,
-    tl_whitelist,
-    anchore_cve_whitelist,
-    oval_whitelist,
-    oscap_cve_whitelist,
+    whitelist
 ):
     for image in finding_dictionary:
         for finding in finding_dictionary[image]:
@@ -243,7 +236,7 @@ def _finding_approval_status_check(
                 elif finding["scan_source"] == "oval_cve":
                     whitelist.add(f"oval_{finding['finding']}")
                 elif finding["scan_source"] == "oscap_cve":
-                    whitelist.add(f"oval_{finding["finding"]}")
+                    whitelist.add(f"oscap_{finding["finding"]}")
 
 
 def _get_greylist_file_contents(image_path, branch):
