@@ -144,7 +144,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     try:
         with vat_findings_file.open(mode="r") as f:
             vat_findings = json.load(f)
-    except Exception as e:
+    except Exception:
         logging.exception(f"Error reading findings file.")
         sys.exit(1)
 
