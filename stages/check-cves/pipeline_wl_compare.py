@@ -233,6 +233,17 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     sys.exit(0)
 
 
+def _finding_approval_status_check(finding_dictionary, fields, scan_source, whitelist):
+    for image in finding_dictionary:
+        for finding in finding_dictionary[image]:
+            finding_status = finding["finding_status"].lower()
+            if finding_status == "approve" or finding_status == "conditional":
+                if "scap" in scan_source:
+                    whitelist.add(finding["finding"])
+                else:
+                    whitelist.add(f"{finding['finding']}-{finding['package']}")
+
+
 def _get_greylist_file_contents(image_path, branch):
     """
     Grab the contents of a greylist file. Takes in the path to the image and
