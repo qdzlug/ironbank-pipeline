@@ -135,6 +135,18 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         lint=lint,
     )
 
+    # Don't go any further if just linting
+    if lint:
+        sys.exit(0)
+    else:
+        vat_findings_file = pathlib.Path(artifacts_path, "lint", "vat-findings.json")
+        try:
+            with vat_findings_file.open(mode="r") as f:
+                vat_findings = json.load(f)
+        except Exception as e:
+            logging.exception(e)
+            sys.exit(1)
+
     # wl_set = set()
     tl_wl_set = set()
     anchore_cve_wl_set = set()
@@ -144,10 +156,6 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     # approval status is checked when retrieving image_whitelist
     for image in image_whitelist:
         wl_set.add(image.vulnerability)
-
-    # Don't go any further if just linting
-    if lint:
-        sys.exit(0)
 
     # logging.info(f"Whitelist Set:{wl_set}")
     # logging.info(f"Whitelist Set Length: {len(wl_set)}")
@@ -195,7 +203,10 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     # logging.info(f"Vuln Set: {vuln_set}")
     # logging.info(f"Vuln Set Length: {len(vuln_set)}")
     try:
-        delta = vuln_set.difference(wl_set)
+        tl_delta = tl_vuln_set.difference(wl_set)
+        anchore_delta = anchore_cve_vuln_set.difference(wl_set)
+        oscap_comp_delta = oscap_comp_vuln_set.difference(wl_set)
+        oscap_cve_delta = oscap_cve_vuln_set.difference(wl_set)
     except Exception as e:
         logging.exception(
             f"There was an error making the vulnerability delta request {e}"
