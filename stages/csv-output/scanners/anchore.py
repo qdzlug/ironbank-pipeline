@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-import csv
 import json
+import logging
+import os
 import pathlib
 
 from scanners.helper import _write_csv_from_dict_list
@@ -28,10 +29,14 @@ def _vulnerability_record(fulltag, justifications, vuln):
     vuln_record["nvd_cvss_v3_vector"] = ""
     if vuln["extra"]["nvd_data"]:
         if vuln["extra"]["nvd_data"][0]["cvss_v2"]["vector_string"]:
-            vuln_record["nvd_cvss_v2_vector"] = vuln["extra"]["nvd_data"][0]["cvss_v2"]["vector_string"]
+            vuln_record["nvd_cvss_v2_vector"] = vuln["extra"]["nvd_data"][0]["cvss_v2"][
+                "vector_string"
+            ]
 
         if vuln["extra"]["nvd_data"][0]["cvss_v3"]["vector_string"]:
-            vuln_record["nvd_cvss_v3_vector"] = vuln["extra"]["nvd_data"][0]["cvss_v3"]["vector_string"]
+            vuln_record["nvd_cvss_v3_vector"] = vuln["extra"]["nvd_data"][0]["cvss_v3"][
+                "vector_string"
+            ]
 
     vuln_record["vendor_cvss_v2_vector"] = ""
     vuln_record["vendor_cvss_v3_vector"] = ""
@@ -186,3 +191,35 @@ def compliance_report(csv_dir, anchore_gates_json, justifications):
     )
 
     return {"stop_count": stop_count, "image_id": image_id}
+
+
+def sbom_report(csv_dir, content_dir):
+    return [
+        _write_content_csv(csv_dir=csv_dir, content_dir=content_dir, filename=filename)
+        for filename in os.listdir(content_dir)
+    ]
+
+
+def _write_content_csv(csv_dir, content_dir, filename):
+    with pathlib.Path(f"{content_dir}{filename}").open(mode="r") as f:
+        report_data = json.load(f)
+
+    report_type = report_data["content_type"]
+
+    logging.debug(f"Creating {report_type} CSV.")
+
+    output_file_name = pathlib.Path(csv_dir, f"{report_type}.csv")
+
+    if report_data["content"]:
+        fields = list(report_data["content"][0].keys())
+        content = report_data["content"]
+    else:
+        logging.debug(f"{report_type} returned no content data.")
+        fields = ["Content"]
+        content = [{"Content": f"No content returned for report: {report_type}"}]
+
+    _write_csv_from_dict_list(
+        dict_list=content, fieldnames=fields, filename=filename, csv_dir=csv_dir
+    )
+
+    return {"csv_file_path": str(output_file_name), "report_type": report_type}

@@ -15,6 +15,7 @@ if [[ "${DISTROLESS:-}" ]]; then
     --twistlock "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json" \
     --anchore-sec "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json" \
     --anchore-gates "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json" \
+    --sbom-dir "${ARTIFACT_STORAGE}/scan-results/anchore/content" \
     --output-dir "${CSV_REPORT}"/
 else
   # output OSCAP link variables for the VAT stage to use
@@ -28,6 +29,7 @@ else
     --twistlock "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json" \
     --anchore-sec "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json" \
     --anchore-gates "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json" \
+    --sbom-dir "${ARTIFACT_STORAGE}/scan-results/anchore/content" \
     --output-dir "${CSV_REPORT}"/
 fi
 python3 "${PIPELINE_REPO_DIR}"/stages/csv-output/excel_convert.py -i "${CSV_REPORT}"/ -o "${CSV_REPORT}"/"${CI_PROJECT_NAME}":"${IMAGE_VERSION}"-"${CI_PIPELINE_ID}"-justifications.xlsx

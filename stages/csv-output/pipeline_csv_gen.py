@@ -69,6 +69,7 @@ def main():
         help="directory in which to write CSV output",
         default="./",
     )
+    parser.add_argument("--sbom-dir", help="location of the anchore content directory")
     args = parser.parse_args()
 
     # Create the csv directory if not present
@@ -122,6 +123,10 @@ def main():
             csv_dir=args.output_dir,
             anchore_gates_json=args.anchore_gates,
             justifications=j_anchore,
+        )
+    if args.sbom_dir:
+        sbom_csvs = anchore.sbom_report(
+            csv_dir=args.output_dir, content_dir=args.sbom_dir
         )
 
     generate_summary_report(
