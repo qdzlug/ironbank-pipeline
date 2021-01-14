@@ -156,8 +156,10 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     oscap_cve_wl_set = set()
     oscap_comp_wl_set = set()
 
-# finding_dictionary, fields, scan_source, whitelist
-    _finding_approval_status_check(vat_findings, tl_wl_set, anchore_cve_wl_set, oscap_cve_wl_set, oscap_comp_wl_set)
+    # finding_dictionary, fields, scan_source, whitelist
+    _finding_approval_status_check(
+        vat_findings, tl_wl_set, anchore_cve_wl_set, oscap_cve_wl_set, oscap_comp_wl_set
+    )
 
     # approval status is checked when retrieving image_whitelist
     for image in image_whitelist:
@@ -237,7 +239,13 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     sys.exit(0)
 
 
-def _finding_approval_status_check(finding_dictionary, tl_whitelist, anchore_cve_whitelist, oval_whitelist, oscap_cve_whitelist):
+def _finding_approval_status_check(
+    finding_dictionary,
+    tl_whitelist,
+    anchore_cve_whitelist,
+    oval_whitelist,
+    oscap_cve_whitelist,
+):
     for image in finding_dictionary:
         for finding in finding_dictionary[image]:
             finding_status = finding["finding_status"].lower()
@@ -245,7 +253,9 @@ def _finding_approval_status_check(finding_dictionary, tl_whitelist, anchore_cve
                 if finding["scan_source"] == "twislock_cve":
                     tl_whitelist.add(f"{finding['finding']}-{finding['package']}")
                 elif finding["scan_source"] == "anchore_cve":
-                    anchore_cve_whitelist.add(f"{finding['finding']}-{finding['package']}")
+                    anchore_cve_whitelist.add(
+                        f"{finding['finding']}-{finding['package']}"
+                    )
                 elif finding["scan_source"] == "oval_cve":
                     oval_whitelist.add(finding["finding"])
                 elif finding["scan_source"] == "oscap_cve":
