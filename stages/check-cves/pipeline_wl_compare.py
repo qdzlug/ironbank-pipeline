@@ -138,14 +138,14 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     # Don't go any further if just linting
     if lint:
         sys.exit(0)
-    else:
-        vat_findings_file = pathlib.Path(artifacts_path, "lint", "vat-findings.json")
-        try:
-            with vat_findings_file.open(mode="r") as f:
-                vat_findings = json.load(f)
-        except Exception as e:
-            logging.exception(e)
-            sys.exit(1)
+
+    vat_findings_file = pathlib.Path(artifacts_path, "lint", "vat-findings.json")
+    try:
+        with vat_findings_file.open(mode="r") as f:
+            vat_findings = json.load(f)
+    except Exception as e:
+        logging.exception(e)
+        sys.exit(1)
 
     # wl_set = set()
     tl_wl_set = set()
