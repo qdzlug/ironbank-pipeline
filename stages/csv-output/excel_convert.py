@@ -59,15 +59,15 @@ def _colorize_full(wb):
     _colorize_openscap(wb)
 
 
-def _get_justification_column(sheet):
+def _get_column_index(sheet, value):
     justification_column = None
     for i, col in enumerate(sheet.columns):
-        if col[0].value == "Justification":
+        if col[0].value == value:
             justification_column = i + 1
             break
 
     if not justification_column:
-        logging.error("Could not find 'Justification' column")
+        logging.error(f"Could not find '{value}' column")
         sys.exit(1)
 
     return justification_column
@@ -80,7 +80,7 @@ def _colorize_anchore(wb):
     """
     sheet = wb["Anchore CVE Results"]
 
-    justification_column = _get_justification_column(sheet)
+    justification_column = _get_column_index(sheet=sheet, value="Justification")
 
     for r in range(1, sheet.max_row + 1):
         cell_justification = sheet.cell(row=r, column=justification_column)
@@ -102,30 +102,28 @@ def _colorize_anchore(wb):
 def _colorize_anchore_comp(wb):
     # colorize anchore comp justifications column
     sheet = wb["Anchore Compliance Results"]
+
+    justification_column = _get_column_index(sheet=sheet, value="Justification")
+
     for r in range(1, sheet.max_row + 1):
-        cell = sheet.cell(row=r, column=3)
-        if cell.value == "trigger_id":
-            cell = sheet.cell(row=r, column=13)
-            cell.value = "Justification"
+        cell_justification = sheet.cell(row=r, column=justification_column)
+        # Apply appropriate highlighting to justification cell
+        if cell_justification.value is None:
+            cell_justification.fill = PatternFill(
+                start_color="00ffff00", end_color="00ffff00", fill_type="solid"
+            )
+        elif cell_justification.value == "Inherited from base image.":
+            cell_justification.fill = PatternFill(
+                start_color="0000b050", end_color="0000b050", fill_type="solid"
+            )
+        elif cell_justification.value == "See Anchore CVE Results sheet":
+            cell_justification.fill = PatternFill(
+                start_color="96969696", end_color="96969696", fill_type="solid"
+            )
         else:
-            cell_justification = sheet.cell(row=r, column=13)
-            # Apply appropriate highlighting to justification cell
-            if cell_justification.value is None:
-                cell_justification.fill = PatternFill(
-                    start_color="00ffff00", end_color="00ffff00", fill_type="solid"
-                )
-            elif cell_justification.value == "Inherited from base image.":
-                cell_justification.fill = PatternFill(
-                    start_color="0000b050", end_color="0000b050", fill_type="solid"
-                )
-            elif cell_justification.value == "See Anchore CVE Results sheet":
-                cell_justification.fill = PatternFill(
-                    start_color="96969696", end_color="96969696", fill_type="solid"
-                )
-            else:
-                cell_justification.fill = PatternFill(
-                    start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
-                )
+            cell_justification.fill = PatternFill(
+                start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
+            )
 
 
 def _colorize_twistlock(wb):
@@ -252,8 +250,12 @@ def convert_to_excel(csv_dir, justification_sheet):
     writer.save()
 
 
-def _set_column_width(sheet, column, width, wrap=False):
-    """Set column width and enable text wrap"""
+def _set_column_width(sheet, column_value, width, wrap=False):
+    """
+    Set column width and enable text wrap
+
+    """
+    column = _get_column_index(sheet=sheet, value=column_value)
     sheet.column_dimensions[get_column_letter(column)].width = width
     if wrap:
         for cell in sheet[get_column_letter(column)]:
@@ -262,29 +264,41 @@ def _set_column_width(sheet, column, width, wrap=False):
 
 def _set_all_column_widths(wb):
     openscap_disa = wb["OpenSCAP - DISA Compliance"]
-    _set_column_width(openscap_disa, column=9, width=20)  # scanned_date
-    _set_column_width(openscap_disa, column=10, width=30)  # justification
+    _set_column_width(
+        openscap_disa, column_value="scanned_date", width=20
+    )  # scanned_date
+    _set_column_width(
+        openscap_disa, column_value="Justification", width=30
+    )  # justification
 
     twistlock = wb["Twistlock Vulnerability Results"]
-    _set_column_width(twistlock, column=1, width=25)  # CVE
-    _set_column_width(twistlock, column=5, width=20)  # packageName
-    _set_column_width(twistlock, column=6, width=20)  # packageVersion
-    _set_column_width(twistlock, column=9, width=45)  # vecStr
-    _set_column_width(twistlock, column=10, width=100)  # justification
+    _set_column_width(twistlock, column_value="id", width=25)  # CVE
+    _set_column_width(twistlock, column_value="packageName", width=20)  # packageName
+    _set_column_width(
+        twistlock, column_value="packageVersion", width=20
+    )  # packageVersion
+    _set_column_width(twistlock, column_value="vecStr", width=45)  # vecStr
+    _set_column_width(
+        twistlock, column_value="Justification", width=100
+    )  # justification
 
     anchore_cve = wb["Anchore CVE Results"]
-    _set_column_width(anchore_cve, column=2, width=25, wrap=False)  # CVE
-    _set_column_width(anchore_cve, column=7, width=60)  # url
-    _set_column_width(anchore_cve, column=9, width=100)  # justification
+    _set_column_width(anchore_cve, column_value="cve", width=25)  # CVE
+    _set_column_width(anchore_cve, column_value="url", width=60)  # url
+    _set_column_width(
+        anchore_cve, column_value="Justification", width=100
+    )  # justification
 
     anchore_compliance = wb["Anchore Compliance Results"]
     _set_column_width(
-        anchore_compliance, column=12, width=30, wrap=False
+        anchore_compliance, column_value="whitelist_name", width=30
     )  # whitelist_name
     _set_column_width(
-        anchore_compliance, column=13, width=100, wrap=False
+        anchore_compliance, column_value="check_output", width=75
+    )  # check_output
+    _set_column_width(
+        anchore_compliance, column_value="Justification", width=100
     )  # justification
-    _set_column_width(anchore_compliance, column=6, width=75)  # check_output
 
 
 if __name__ == "__main__":

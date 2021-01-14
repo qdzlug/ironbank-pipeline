@@ -201,7 +201,7 @@ def sbom_report(csv_dir, content_dir):
 
 
 def _write_content_csv(csv_dir, content_dir, filename):
-    with pathlib.Path(f"{content_dir}{filename}").open(mode="r") as f:
+    with pathlib.Path(content_dir, filename).open(mode="r") as f:
         report_data = json.load(f)
 
     report_type = report_data["content_type"]
