@@ -172,17 +172,17 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
             artifacts_path, "scan-results", "openscap", "report-cve.html"
         )
 
-        oscap_cves = oscap.get_fails(oscap_file)
+        oscap_disa_comp = oscap.get_fails(oscap_file)
         oscap_notchecked = oscap.get_notchecked(oscap_file)
         for o in oscap_notchecked:
-            oscap_cves.append(o)
+            oscap_disa_comp.append(o)
 
-        for o in oscap_cves:
-            vuln_set.add(o["identifiers"])
+        for o in oscap_disa_comp:
+            oscap_comp_vuln_set.add(o["identifiers"])
 
         oval_cves = oscap.get_oval(oval_file)
         for oval in oval_cves:
-            vuln_set.add(oval)
+            oscap_cve_vuln_set.add(oval)
 
     twistlock_cves = twistlock.get_full()
     for tl in twistlock_cves:
