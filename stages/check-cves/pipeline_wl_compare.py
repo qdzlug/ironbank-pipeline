@@ -149,31 +149,14 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         logging.exception(e)
         sys.exit(1)
 
-    # wl_set = set()
-    tl_wl_set = set()
-    anchore_cve_wl_set = set()
-    anchore_comp_wl_set = set()
-    oscap_cve_wl_set = set()
-    oscap_comp_wl_set = set()
+    wl_set = set()
 
-    # finding_dictionary, fields, scan_source, whitelist
+    # add each finding to its respective scan source whitelist set
     _finding_approval_status_check(
-        vat_findings, tl_wl_set, anchore_cve_wl_set, oscap_cve_wl_set, oscap_comp_wl_set
+        vat_findings, wl_set
     )
 
-    # approval status is checked when retrieving image_whitelist
-    for image in image_whitelist:
-        wl_set.add(image.vulnerability)
-
-    # logging.info(f"Whitelist Set:{wl_set}")
-    # logging.info(f"Whitelist Set Length: {len(wl_set)}")
-
-    # vuln_set = set()
-    tl_vuln_set = set()
-    anchore_cve_vuln_set = set()
-    anchore_comp_vuln_set = set()
-    oscap_cve_vuln_set = set()
-    oscap_comp_vuln_set = set()
+    vuln_set = set()
 
     #
     # If this is NOT a DISTROLESS scan then OpenSCAP findings will be present
@@ -193,30 +176,31 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
             oscap_disa_comp.append(o)
 
         for o in oscap_disa_comp:
-            oscap_comp_vuln_set.add(o["identifiers"])
+            vuln_set.add(f"oscap_comp_{o['identifiers']}")
 
         oval_cves = oscap.get_oval(oval_file)
         for oval in oval_cves:
-            oscap_cve_vuln_set.add(oval)
+            vuln_set.add(f"oval_{oval})
 
     twistlock_cves = twistlock.get_full()
     for tl in twistlock_cves:
-        tl_vuln_set.add(f"{tl['id']}-{tl['packageName']}-{tl['packageVersion']}")
+        vuln_set.add(f"tl_{tl['id']}-{tl['packageName']}-{tl['packageVersion']}")
 
     anchore_cves = anchore.get_full()
     for anc in anchore_cves:
-        anchore_cve_vuln_set.add(f"{anc['cve']}-{anc['package']}")
+        vuln_set.add(f"anchore_cve_{anc['cve']}-{anc['package']}")
 
-    # logging.info(f"Vuln Set: {vuln_set}")
-    # logging.info(f"Vuln Set Length: {len(vuln_set)}")
+    logging.info(f"Vuln Set: {vuln_set}")
+    logging.info(f"Vuln Set Length: {len(vuln_set)}")
     try:
         tl_delta = tl_vuln_set.difference(wl_set)
-        anchore_delta = anchore_cve_vuln_set.difference(wl_set)
+        anchore_cve_delta = anchore_cve_vuln_set.difference(wl_set)
+        anchore_comp_delta = anchore_comp_vuln_set.difference(wl_set)
         oscap_comp_delta = oscap_comp_vuln_set.difference(wl_set)
         oscap_cve_delta = oscap_cve_vuln_set.difference(wl_set)
     except Exception as e:
         logging.exception(
-            f"There was an error making the vulnerability delta request {e}"
+            f"There was an error making the vulnerability delta request."
         )
         sys.exit(1)
 
@@ -251,15 +235,15 @@ def _finding_approval_status_check(
             finding_status = finding["finding_status"].lower()
             if finding_status == "approve" or finding_status == "conditional":
                 if finding["scan_source"] == "twislock_cve":
-                    tl_whitelist.add(f"{finding['finding']}-{finding['package']}")
+                    whitelist.add(f"tl_{finding['finding']}-{finding['package']}")
                 elif finding["scan_source"] == "anchore_cve":
-                    anchore_cve_whitelist.add(
-                        f"{finding['finding']}-{finding['package']}"
-                    )
+                    whitelist.add(f"anchore_cve_{finding['finding']}-{finding['package']}")
+                elif finding["scan_source"] == "anchore_comp":
+                    whitelist.add(f"anchore_comp_{finding['finding']}-{finding['package']}")
                 elif finding["scan_source"] == "oval_cve":
-                    oval_whitelist.add(finding["finding"])
+                    whitelist.add(f"oval_{finding['finding']}")
                 elif finding["scan_source"] == "oscap_cve":
-                    oscap_cve_whitelist.add(finding["finding"])
+                    whitelist.add(f"oval_{finding["finding"]}")
 
 
 def _get_greylist_file_contents(image_path, branch):
