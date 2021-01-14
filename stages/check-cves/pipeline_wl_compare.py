@@ -366,6 +366,22 @@ def _get_vulns_from_query(row):
     return vuln_dict
 
 
+def _get_findings_from_query(row):
+    finding_dict = {}
+    finding_dict["image_name"] = row[0]
+    finding_dict["image_version"] = row[1]
+    finding_dict["container_approval_status"] = row[2]
+    finding_dict["finding"] = row[3]
+    finding_dict["scan_source"] = row[4]
+    finding_dict["finding_status"] = row[6]
+    finding_dict["approval_comments"] = row[7]
+    finding_dict["justification"] = row[8]
+    finding_dict["scan_result_description"] = row[9]
+    finding_dict["package"] = row[10]
+    finding_dict["package_path"] = row[11]
+    return finding_dict
+
+
 def _next_ancestor(image_path, whitelist_branch, hardening_manifest=None):
     """
     Grabs the parent image path from the current context. Will initially attempt to load
