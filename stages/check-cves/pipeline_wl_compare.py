@@ -153,6 +153,9 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     # add each finding to its respective scan source whitelist set
     _finding_approval_status_check(vat_findings, wl_set)
 
+    logging.info(f"Whitelist Set:{wl_set}")
+    logging.info(f"Whitelist Set Length: {len(wl_set)}")
+
     vuln_set = set()
 
     #
