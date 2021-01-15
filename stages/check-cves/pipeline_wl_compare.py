@@ -241,6 +241,14 @@ def _format_finding(finding):
     return f"{formatted_source} - {vuln}"
 
 
+def _format_list(delta_list, formatted_list=[]):
+    for finding in delta_list:
+        formatted_finding = _format_finding(finding)
+        formatted_list.append(formatted_finding)
+
+    return formatted_list
+
+
 def _finding_approval_status_check(finding_dictionary, whitelist):
     for image in finding_dictionary:
         for finding in finding_dictionary[image]:
