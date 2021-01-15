@@ -176,7 +176,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
             oscap_disa_comp.append(o)
 
         for o in oscap_disa_comp:
-            vuln_set.add(f"oscap_comp_{o['identifiers']}")
+            vuln_set.add(f"oscapcomp_{o['identifiers']}")
 
         oval_cves = oscap.get_oval(oval_file)
         for oval in oval_cves:
@@ -188,7 +188,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
 
     anchore_cves = anchore.get_full()
     for anc in anchore_cves:
-        vuln_set.add(f"anchore_cve_{anc['cve']}-{anc['package']}")
+        vuln_set.add(f"anchorecve_{anc['cve']}-{anc['package']}")
 
     logging.info(f"Vuln Set: {vuln_set}")
     logging.info(f"Vuln Set Length: {len(vuln_set)}")
@@ -258,16 +258,16 @@ def _finding_approval_status_check(finding_dictionary, whitelist):
                     whitelist.add(f"tl_{finding['finding']}-{finding['package']}")
                 elif finding["scan_source"] == "anchore_cve":
                     whitelist.add(
-                        f"anchore_cve_{finding['finding']}-{finding['package']}"
+                        f"anchorecve_{finding['finding']}-{finding['package']}"
                     )
                 elif finding["scan_source"] == "anchore_comp":
                     whitelist.add(
-                        f"anchore_comp_{finding['finding']}-{finding['package']}"
+                        f"anchorecomp_{finding['finding']}-{finding['package']}"
                     )
                 elif finding["scan_source"] == "oval_cve":
                     whitelist.add(f"oval_{finding['finding']}")
                 elif finding["scan_source"] == "oscap_cve":
-                    whitelist.add(f"oscap_{finding['finding']}")
+                    whitelist.add(f"oscapcomp_{finding['finding']}")
 
 
 def _get_greylist_file_contents(image_path, branch):
