@@ -194,14 +194,18 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     logging.info(f"Vuln Set Length: {len(vuln_set)}")
     try:
         delta = vuln_set.difference(wl_set)
-    except Exception as e:
+    except Exception:
         logging.exception(f"There was an error making the vulnerability delta request.")
         sys.exit(1)
 
     if len(delta) != 0:
         logging.warning("NON-WHITELISTED VULNERABILITIES FOUND")
-        logging.warning(f"Vuln Set Delta: {delta}")
         logging.warning(f"Vuln Set Delta Length: {len(delta)}")
+        delta_list = list(delta)
+        delta_list.sort()
+        formatted_delta_list = _format_list(delta_list)
+        for finding in formatted_delta_list:
+            logging.warning(f"{finding}")
         logging.error(
             f"Scans are not passing 100%. Vuln Set Delta Length: {len(delta)}"
         )
