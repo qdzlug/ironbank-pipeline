@@ -208,7 +208,6 @@ def _write_content_csv(csv_dir, content_dir, filename):
 
     logging.debug(f"Creating {report_type} CSV.")
 
-
     if report_data["content"]:
         fields = list(report_data["content"][0].keys())
         content = report_data["content"]
