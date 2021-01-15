@@ -221,6 +221,17 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     sys.exit(0)
 
 
+def _format_scan_source(x):
+
+    return {
+        "tl": "Twistlock CVE",
+        "anchorecve": "Anchore CVE",
+        "anchorecomp": "Anchore Compliance",
+        "oscapcomp": "OpenSCAP DISA Compliance",
+        "oval": "OpenSCAP OVAL",
+    }.get(x, "Unknown Source")
+
+
 def _finding_approval_status_check(finding_dictionary, whitelist):
     for image in finding_dictionary:
         for finding in finding_dictionary[image]:
