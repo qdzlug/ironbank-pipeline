@@ -232,6 +232,15 @@ def _format_scan_source(x):
     }.get(x, "Unknown Source")
 
 
+def _format_finding(finding):
+    underscore_position = finding.find("_")
+    scan_source = finding[:underscore_position]
+    vuln = finding[underscore_position + 1 :]
+    formatted_source = _format_scan_source(scan_source)
+
+    return f"{formatted_source} - {vuln}"
+
+
 def _finding_approval_status_check(finding_dictionary, whitelist):
     for image in finding_dictionary:
         for finding in finding_dictionary[image]:
