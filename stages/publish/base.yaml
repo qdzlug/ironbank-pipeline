@@ -1,5 +1,8 @@
 .publish:
   stage: publish
+  artifacts:
+    paths:
+      - repo_map.json
   tags:
     - ironbank
 include:
