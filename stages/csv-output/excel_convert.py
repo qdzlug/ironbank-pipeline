@@ -179,7 +179,7 @@ def _write_sbom_to_excel(csv_dir, writer):
         read_report = pd.read_csv(pathlib.Path(csv_dir, "sbom", report))
         read_report.to_excel(
             writer,
-            sheet_name=f"SBOM: {report.split('.')[0]}",
+            sheet_name=f"SBOM {report.split('.')[0]}",
             header=True,
             index=False,
         )
