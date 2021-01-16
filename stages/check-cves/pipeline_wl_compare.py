@@ -180,7 +180,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
 
         oval_cves = oscap.get_oval(oval_file)
         for oval in oval_cves:
-            vuln_set.add(f"oval_{oval}")
+            vuln_set.add(f"oscapcve_{oval}")
 
     twistlock_cves = twistlock.get_full()
     for tl in twistlock_cves:
@@ -228,7 +228,7 @@ def _format_scan_source(x):
         "anchorecve": "Anchore CVE",
         "anchorecomp": "Anchore Compliance",
         "oscapcomp": "OpenSCAP DISA Compliance",
-        "oval": "OpenSCAP OVAL",
+        "oscapcve": "OpenSCAP OVAL",
     }.get(x, "Unknown Source")
 
 
