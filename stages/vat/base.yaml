@@ -3,7 +3,7 @@ vat:
     - if: $CI_PROJECT_NAME =~ /pipeline-test-project/
       when: never
     - if: '$CI_COMMIT_BRANCH == "development"'
-      when: 'on_success'
+      when: "on_success"
   stage: vat
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml"
   tags:
