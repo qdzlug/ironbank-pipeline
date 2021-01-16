@@ -254,19 +254,17 @@ def _finding_approval_status_check(finding_dictionary, whitelist):
         for finding in finding_dictionary[image]:
             finding_status = finding["finding_status"].lower()
             if finding_status == "approve" or finding_status == "conditional":
-                if finding["scan_source"] == "twislock_cve":
+                if finding["scan_source"] == "twistlock_cve":
                     whitelist.add(f"tl_{finding['finding']}-{finding['package']}")
                 elif finding["scan_source"] == "anchore_cve":
                     whitelist.add(
                         f"anchorecve_{finding['finding']}-{finding['package']}"
                     )
                 elif finding["scan_source"] == "anchore_comp":
-                    whitelist.add(
-                        f"anchorecomp_{finding['finding']}-{finding['package']}"
-                    )
-                elif finding["scan_source"] == "oval_cve":
-                    whitelist.add(f"oval_{finding['finding']}")
+                    whitelist.add(f"anchorecomp_{finding['finding']}")
                 elif finding["scan_source"] == "oscap_cve":
+                    whitelist.add(f"oscapcve{finding['finding']}")
+                elif finding["scan_source"] == "oscap_comp":
                     whitelist.add(f"oscapcomp_{finding['finding']}")
 
 
