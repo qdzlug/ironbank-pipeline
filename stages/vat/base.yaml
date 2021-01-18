@@ -1,6 +1,6 @@
 vat:
   rules:
-    - if: $CI_PROJECT_NAME =~ /pipeline-test-project/
+    - if: $CI_PROJECT_PATH =~ /pipeline-test-project/
       when: never
     - if: '$CI_COMMIT_BRANCH == "development"'
       when: "on_success"
