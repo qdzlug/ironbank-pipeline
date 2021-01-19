@@ -9,7 +9,10 @@ from scanners.helper import _write_csv_from_dict_list
 
 
 def _vulnerability_record(fulltag, justifications, vuln):
+    """
+    Create an individual vulnerability record
 
+    """
     vuln_record = dict()
     vuln_record["tag"] = fulltag
     vuln_record["cve"] = vuln["vuln"]
@@ -113,8 +116,11 @@ def vulnerability_report(csv_dir, anchore_security_json, justifications):
     return len(cves)
 
 
-# Get results of Anchore gates for csv export, becomes anchore compliance spreadsheet
 def compliance_report(csv_dir, anchore_gates_json, justifications):
+    """
+    Get results of Anchore gates for csv export, becomes anchore compliance spreadsheet
+
+    """
     with open(anchore_gates_json, encoding="utf-8") as f:
         json_data = json.load(f)
         sha = list(json_data.keys())[0]
@@ -195,6 +201,10 @@ def compliance_report(csv_dir, anchore_gates_json, justifications):
 
 
 def sbom_report(csv_dir, sbom_dir):
+    """
+    Generate the entire sbom report for all files in the sbom directory
+
+    """
     return [
         _write_sbom_csv(csv_dir=csv_dir, sbom_dir=sbom_dir, filename=filename)
         for filename in os.listdir(sbom_dir)
@@ -202,6 +212,10 @@ def sbom_report(csv_dir, sbom_dir):
 
 
 def _write_sbom_csv(csv_dir, sbom_dir, filename):
+    """
+    Convert an individual content file into it's csv counterpart
+
+    """
     with pathlib.Path(sbom_dir, filename).open(mode="r") as f:
         report_data = json.load(f)
 
