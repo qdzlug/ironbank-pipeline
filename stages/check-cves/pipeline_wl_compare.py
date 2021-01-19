@@ -154,7 +154,6 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     # add each finding to its respective scan source whitelist set
     _finding_approval_status_check(vat_findings, wl_set, approval_status_list)
 
-    logging.info(f"Whitelist Set:{wl_set}")
     logging.info(f"Whitelist Set Length: {len(wl_set)}")
 
     vuln_set = set()
@@ -191,7 +190,6 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     for anc in anchore_cves:
         vuln_set.add(f"anchorecve_{anc['cve']}-{anc['package']}")
 
-    logging.info(f"Vuln Set: {vuln_set}")
     logging.info(f"Vuln Set Length: {len(vuln_set)}")
     try:
         delta = vuln_set.difference(wl_set)
