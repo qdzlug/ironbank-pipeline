@@ -140,17 +140,19 @@ def main():
             data = json.load(f)
         data.update(new_data)
 
-        with open("repo_map.json", "w+") as f:
+        with open("repo_map.json", "r+") as f:
             content = f.read()
-            f.seek(0)
+            f.seek(0,0)
+            f.truncate()
             content.replace('\\n','')
             f.write(content)
             json.dump(data, f, indent=4)
 
     else:
-        with open("repo_map.json", "w+") as outfile:
+        with open("repo_map.json", "r+") as outfile:
             content = outfile.read()
-            outfile.seek(0)
+            outfile.seek(0,0)
+            outfile.truncate()
             content.replace('\\n','')
             outfile.write(content)
             json.dump(new_data, outfile, indent=4, sort_keys=True)
