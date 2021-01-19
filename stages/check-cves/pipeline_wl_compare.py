@@ -154,7 +154,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     # add each finding to its respective scan source whitelist set
     _finding_approval_status_check(vat_findings, wl_set, approval_status_list)
 
-    logging.info(f"Whitelist Set Length: {len(wl_set)}")
+    logging.info(f"Number of whitelisted vulnerabilities: {len(wl_set)}")
 
     vuln_set = set()
 
@@ -190,7 +190,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     for anc in anchore_cves:
         vuln_set.add(f"anchorecve_{anc['cve']}-{anc['package']}")
 
-    logging.info(f"Vuln Set Length: {len(vuln_set)}")
+    logging.info(f"Vulnerabilities found in scanning stage: {len(vuln_set)}")
     try:
         delta = vuln_set.difference(wl_set)
     except Exception:
@@ -198,16 +198,14 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         sys.exit(1)
 
     if len(delta) != 0:
-        logging.warning("NON-WHITELISTED VULNERABILITIES FOUND")
-        logging.warning(f"Vuln Set Delta Length: {len(delta)}")
+        logging.error("NON-WHITELISTED VULNERABILITIES FOUND")
+        logging.error(f"Number of non-whitelisted vulnerabilities: {len(delta)}")
+        logging.error("The following vulnerabilities are not whitelisted:")
         delta_list = list(delta)
         delta_list.sort()
         formatted_delta_list = _format_list(delta_list)
         for finding in formatted_delta_list:
-            logging.warning(f"{finding}")
-        logging.error(
-            f"Scans are not passing 100%. Vuln Set Delta Length: {len(delta)}"
-        )
+            logging.error(f"{finding}")
         if os.getenv("CI_COMMIT_BRANCH") == "master":
             pipeline_repo_dir = os.environ["PIPELINE_REPO_DIR"]
             subprocess.run(
