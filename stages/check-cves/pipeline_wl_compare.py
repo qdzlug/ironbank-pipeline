@@ -531,29 +531,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     with filename.open(mode="w") as f:
         json.dump(vat_findings, f)
 
-    logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
-    return total_whitelist
-
-
-# need feedback on adjusting vuln
-class Vuln:
-    vuln_id = ""  # e.g. CVE-2020-14040
-    vuln_source = ""  # e.g. Anchore (vat returns anchore_cve)
-    whitelist_source = ""  # IM_NAME
-    status = ""  # e.g. Pending, Approved
-
-    def __repr__(self):
-        return f"Vuln: {self.vulnerability} - {self.vuln_source} - {self.whitelist_source} - {self.status}"
-
-    def __str__(self):
-        return f"Vuln: {self.vulnerability} - {self.vuln_source} - {self.whitelist_source} - {self.status}"
-
-    def __init__(self, v, im_name):
-        self.vulnerability = v["vulnerability"]
-        self.vuln_source = v["vuln_source"]
-        self.status = v["status"]
-        self.whitelist_source = im_name
-
 
 def main():
     # Get logging level, set manually when running pipeline
