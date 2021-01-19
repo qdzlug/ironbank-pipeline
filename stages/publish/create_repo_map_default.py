@@ -158,7 +158,7 @@ def main():
             f.truncate()
             content.replace('\\n','')
             f.write(content)
-            json.dump(data, f, indent=4)
+            json.dump(new_data, f, indent=4)
         
 
 if __name__ == "__main__":
