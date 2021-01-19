@@ -251,11 +251,14 @@ def _format_list(delta_list, formatted_list=[]):
     return formatted_list
 
 
-def _finding_approval_status_check(finding_dictionary, whitelist):
+def _finding_approval_status_check(finding_dictionary, whitelist, status_list):
     for image in finding_dictionary:
+        # loop through all findings for each image listed in the vat-findings.json file
         for finding in finding_dictionary[image]:
             finding_status = finding["finding_status"].lower()
-            if finding_status == "approve" or finding_status == "conditional":
+            # if a findings status is in the status list the finding is considered approved in VAT and is added to the whitelist
+            if finding_status in status_list:
+                # if / elif statements check scan source and format whitelisted finding for comparison with found vulnerabilities
                 if finding["scan_source"] == "twistlock_cve":
                     whitelist.add(f"tl_{finding['finding']}-{finding['package']}")
                 elif finding["scan_source"] == "anchore_cve":
