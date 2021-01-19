@@ -150,7 +150,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     wl_set = set()
 
     # list of finding statuses that denote a finding is approved within VAT
-    approval_status_list = ["approve", "conditional", "reviewed"]
+    approval_status_list = ["approve", "conditional"]
     # add each finding to its respective scan source whitelist set
     _finding_approval_status_check(vat_findings, wl_set, approval_status_list)
 
