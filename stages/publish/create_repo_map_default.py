@@ -141,13 +141,23 @@ def main():
         data.update(new_data)
 
         with open("repo_map.json", "w") as f:
-            "repo_map.json"="repo_map.json".replace('\n', '')
             json.dump(data, f, indent=4)
+        
+        with open("repo_map.json", "r") as f:
+            content = f.read()
+            f.seek(0)
+            content.replace('\n','')
+            f.write()
+
     else:
         with open("repo_map.json", "w") as outfile:
-            "repo_map.json"="repo_map.json".replace('\n', '')
             json.dump(new_data, outfile, indent=4, sort_keys=True)
-
+        
+        with open("repo_map.json", "r") as f:
+            content = f.read()
+            f.seek(0)
+            content.replace('\n','')
+            f.write()
 
 if __name__ == "__main__":
     sys.exit(main())
