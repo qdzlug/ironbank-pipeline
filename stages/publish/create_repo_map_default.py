@@ -149,13 +149,16 @@ def main():
             json.dump(data, f, indent=4)
 
     else:
-        with open("repo_map.json", "r+") as outfile:
-            content = outfile.read()
-            outfile.seek(0,0)
-            outfile.truncate()
-            content.replace('\\n','')
-            outfile.write(content)
+        with open("repo_map.json", "w") as outfile:
             json.dump(new_data, outfile, indent=4, sort_keys=True)
+
+        with open("repo_map.json", "r+") as f:
+            content = f.read()
+            f.seek(0,0)
+            f.truncate()
+            content.replace('\\n','')
+            f.write(content)
+            json.dump(data, f, indent=4)
         
 
 if __name__ == "__main__":
