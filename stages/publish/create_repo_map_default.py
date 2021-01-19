@@ -147,7 +147,7 @@ def main():
             content = f.read()
             f.seek(0)
             content.replace('\n','')
-            f.write()
+            f.write(content)
 
     else:
         with open("repo_map.json", "w") as outfile:
@@ -157,7 +157,7 @@ def main():
             content = f.read()
             f.seek(0)
             content.replace('\n','')
-            f.write()
+            f.write(content)
 
 if __name__ == "__main__":
     sys.exit(main())
