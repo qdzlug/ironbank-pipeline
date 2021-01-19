@@ -56,7 +56,8 @@ def _colorize_full(wb):
     _colorize_anchore(wb)
     _colorize_anchore_comp(wb)
     _colorize_twistlock(wb)
-    _colorize_openscap(wb)
+    if not os.getenv("DISTROLESS"):
+        _colorize_openscap(wb)
 
 
 def _get_column_index(sheet, value):
@@ -263,13 +264,14 @@ def _set_column_width(sheet, column_value, width, wrap=False):
 
 
 def _set_all_column_widths(wb):
-    openscap_disa = wb["OpenSCAP - DISA Compliance"]
-    _set_column_width(
-        openscap_disa, column_value="scanned_date", width=20
-    )  # scanned_date
-    _set_column_width(
-        openscap_disa, column_value="Justification", width=30
-    )  # justification
+    if not os.getenv("DISTROLESS"):
+        openscap_disa = wb["OpenSCAP - DISA Compliance"]
+        _set_column_width(
+            openscap_disa, column_value="scanned_date", width=20
+        )  # scanned_date
+        _set_column_width(
+            openscap_disa, column_value="Justification", width=30
+        )  # justification
 
     twistlock = wb["Twistlock Vulnerability Results"]
     _set_column_width(twistlock, column_value="id", width=25)  # CVE
