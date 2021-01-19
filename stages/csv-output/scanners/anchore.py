@@ -202,15 +202,15 @@ def compliance_report(csv_dir, anchore_gates_json, justifications):
     return {"stop_count": stop_count, "image_id": image_id}
 
 
-def sbom_report(csv_dir, content_dir):
+def sbom_report(csv_dir, sbom_dir):
     return [
-        _write_content_csv(csv_dir=csv_dir, content_dir=content_dir, filename=filename)
-        for filename in os.listdir(content_dir)
+        _write_sbom_csv(csv_dir=csv_dir, sbom_dir=sbom_dir, filename=filename)
+        for filename in os.listdir(sbom_dir)
     ]
 
 
-def _write_content_csv(csv_dir, content_dir, filename):
-    with pathlib.Path(content_dir, filename).open(mode="r") as f:
+def _write_sbom_csv(csv_dir, sbom_dir, filename):
+    with pathlib.Path(sbom_dir, filename).open(mode="r") as f:
         report_data = json.load(f)
 
     report_type = report_data["content_type"]

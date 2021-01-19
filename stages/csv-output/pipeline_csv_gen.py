@@ -127,7 +127,7 @@ def main():
             justifications=j_anchore,
         )
     if args.sbom_dir:
-        anchore.sbom_report(csv_dir=args.output_dir, content_dir=args.sbom_dir)
+        anchore.sbom_report(csv_dir=args.output_dir, sbom_dir=args.sbom_dir)
 
     generate_summary_report(
         csv_dir=args.output_dir,

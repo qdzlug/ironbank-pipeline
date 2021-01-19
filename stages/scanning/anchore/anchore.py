@@ -346,7 +346,7 @@ class Anchore:
             digest,
         ]
 
-        pathlib.Path(artifacts_path, "content").mkdir(parents=True, exist_ok=True)
+        pathlib.Path(artifacts_path, "sbom").mkdir(parents=True, exist_ok=True)
 
         content_types = self.__get_content(cmd=content_cmd)
 
@@ -354,7 +354,7 @@ class Anchore:
             cmd = content_cmd + [ct]
             content = self.__get_content(cmd=cmd)
             logging.debug(content)
-            filename = pathlib.Path(artifacts_path, "content", f"{ct}.json")
+            filename = pathlib.Path(artifacts_path, "sbom", f"{ct}.json")
             logging.debug(f"Writing to {filename}")
             with filename.open(mode="w") as f:
                 json.dump(content, f)
