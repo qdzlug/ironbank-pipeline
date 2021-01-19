@@ -26,36 +26,36 @@ def _vulnerability_record(fulltag, justifications, vuln):
     vuln_record["description"] = vuln["extra"]["description"]
 
     key = "nvd_cvss_v2_vector"
+    vuln_record[key] = ""
     try:
         vuln_record[key] = vuln["extra"]["nvd_data"][0]["cvss_v2"]["vector_string"]
     except Exception:
         logging.debug(f"no {key}")
-        vuln_record[key] = ""
 
     key = "nvd_cvss_v3_vector"
+    vuln_record[key] = ""
     try:
         vuln_record[key] = vuln["extra"]["nvd_data"][0]["cvss_v3"]["vector_string"]
     except Exception:
         logging.debug(f"no {key}")
-        vuln_record[key] = ""
 
     key = "vendor_cvss_v2_vector"
+    vuln_record[key] = ""
     try:
         for d in vuln["extra"]["vendor_data"]:
             if d["cvss_v2"] and d["cvss_v2"]["vector_string"]:
                 vuln_record[key] = d["cvss_v2"]["vector_string"]
     except Exception:
         logging.debug(f"no {key}")
-        vuln_record[key] = ""
 
     key = "vendor_cvss_v3_vector"
+    vuln_record[key] = ""
     try:
         for d in vuln["extra"]["vendor_data"]:
             if d["cvss_v3"] and d["cvss_v3"]["vector_string"]:
                 vuln_record[key] = d["cvss_v3"]["vector_string"]
     except Exception:
         logging.debug(f"no {key}")
-        vuln_record[key] = ""
 
     vuln_record["Justification"] = ""
     id = vuln["vuln"] + "-" + vuln["package"]
