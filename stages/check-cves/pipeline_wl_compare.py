@@ -432,17 +432,26 @@ def _next_ancestor(image_path, whitelist_branch, hardening_manifest=None):
     if hm is not None:
         return (hm["args"]["BASE_IMAGE"], hm["args"]["BASE_TAG"])
 
-    try:
-        greylist = _get_greylist_file_contents(
-            image_path=image_path, branch=whitelist_branch
-        )
-        return (greylist["image_parent_name"], greylist["image_parent_tag"])
-    except KeyError as e:
-        logging.error("Looks like a hardening_manifest.yaml cannot be found")
+    if os.environ["GREYLIST_BACK_COMPAT"].lower() == "true":
+        try:
+            greylist = _get_greylist_file_contents(
+                image_path=image_path, branch=whitelist_branch
+            )
+            return (greylist["image_parent_name"], greylist["image_parent_tag"])
+        except KeyError as e:
+            logging.error("Looks like a hardening_manifest.yaml cannot be found")
+            logging.error(
+                "Looks like the greylist has been updated to remove fields that should be present in hardening_manifest.yaml"
+            )
+            logging.error(e)
+            sys.exit(1)
+    else:
         logging.error(
-            "Looks like the greylist has been updated to remove fields that should be present in hardening_manifest.yaml"
+            "hardening_manifest.yaml does not exist for "
+            + image_path
+            + ". Please add a hardening_manifest.yaml file to this project"
         )
-        logging.error(e)
+        logging.error("Exiting.")
         sys.exit(1)
 
 

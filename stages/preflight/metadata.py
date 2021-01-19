@@ -31,7 +31,7 @@ def main():
         with hardening_manifest_yaml_path.open("r") as f:
             content = yaml.safe_load(f)
         validate_yaml(content)
-    else:
+    elif os.environ["GREYLIST_BACK_COMPAT"].lower() == "true":
         # Use the generated description.yaml file path if not
         logging.warning("hardening_manifest.yaml does not exist, autogenerating")
         project_path = os.environ["CI_PROJECT_PATH"].split("/")
@@ -48,7 +48,12 @@ def main():
         generated_file.write_text(hardening_manifest_yaml_string)
         content = yaml.safe_load(hardening_manifest_yaml_string)
         # Generated hardening_manifest.yaml is already validated
-
+    else:
+        logging.error(
+            "hardening_manifest.yaml does not exist, please add a hardening_manifest.yaml file to your project"
+        )
+        logging.error("Exiting.")
+        sys.exit(1)
     process_yaml(content)
 
 
