@@ -130,12 +130,11 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
 
     # Don't go any further if just linting
     if lint:
-        image_whitelist = _get_complete_whitelist_for_image(
+        _get_complete_whitelist_for_image(
             image_name=image_name,
             whitelist_branch=wl_branch,
             hardening_manifest=hardening_manifest,
         )
-        logging.debug(image_whitelist)
         sys.exit(0)
 
     artifacts_path = os.environ["ARTIFACT_STORAGE"]
@@ -486,7 +485,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     image and grab all of vulnerabilities in the greylist associated with w layer.
 
     """
-    total_whitelist = list()
     vat_findings = {}
 
     vat_findings[image_name] = []
@@ -501,17 +499,8 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         sys.exit(1)
     else:
         for row in result:
-            vuln_dict = _get_vulns_from_query(row)
             finding_dict = _get_findings_from_query(row)
             vat_findings[image_name].append(finding_dict)
-            if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
-                total_whitelist.append(Vuln(vuln_dict, image_name))
-            else:
-                logging.debug("There is no approval status present in result.")
-
-    logging.debug(
-        "Length of total whitelist for source image: " + str(len(total_whitelist))
-    )
     # get container approval from separate query
     approval_status = _vat_approval_query(
         os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
@@ -560,11 +549,8 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         vat_findings[parent_image_name] = []
 
         for row in result:
-            vuln_dict = _get_vulns_from_query(row)
             finding_dict = _get_findings_from_query(row)
             vat_findings[parent_image_name].append(finding_dict)
-            if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
-                total_whitelist.append(Vuln(vuln_dict, image_name))
 
         parent_image_name, parent_image_version = _next_ancestor(
             image_path=parent_image_name,
