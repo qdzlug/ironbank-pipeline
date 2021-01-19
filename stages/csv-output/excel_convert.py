@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
+
+import argparse
+import logging
+import os
+import pathlib
+import sys
+
 import openpyxl
 from openpyxl.styles import Alignment, PatternFill
 from openpyxl.utils import get_column_letter
-
 import pandas as pd
-import logging
-import sys
-import argparse
-import os
 
 
 def main(argv):
@@ -54,61 +56,75 @@ def _colorize_full(wb):
     _colorize_anchore(wb)
     _colorize_anchore_comp(wb)
     _colorize_twistlock(wb)
-    _colorize_openscap(wb)
+    if not os.getenv("DISTROLESS"):
+        _colorize_openscap(wb)
+
+
+def _get_column_index(sheet, value):
+    justification_column = None
+    for i, col in enumerate(sheet.columns):
+        if col[0].value == value:
+            justification_column = i + 1
+            break
+
+    if not justification_column:
+        logging.error(f"Could not find '{value}' column")
+        sys.exit(1)
+
+    return justification_column
 
 
 def _colorize_anchore(wb):
-    # colorize anchore justifications column
+    """
+    Colorize anchore cve justifications column
+
+    """
     sheet = wb["Anchore CVE Results"]
+
+    justification_column = _get_column_index(sheet=sheet, value="Justification")
+
     for r in range(1, sheet.max_row + 1):
-        cell = sheet.cell(row=r, column=2)
-        if cell.value == "cve":
-            cell = sheet.cell(row=r, column=9)
-            cell.value = "Justification"
+        cell_justification = sheet.cell(row=r, column=justification_column)
+        # Apply appropriate highlighting to justification cell
+        if cell_justification.value is None:
+            cell_justification.fill = PatternFill(
+                start_color="00ffff00", end_color="00ffff00", fill_type="solid"
+            )
+        elif cell_justification.value == "Inherited from base image.":
+            cell_justification.fill = PatternFill(
+                start_color="0000b050", end_color="0000b050", fill_type="solid"
+            )
         else:
-            cell_justification = sheet.cell(row=r, column=9)
-            # Apply appropriate highlighting to justification cell
-            if cell_justification.value is None:
-                cell_justification.fill = PatternFill(
-                    start_color="00ffff00", end_color="00ffff00", fill_type="solid"
-                )
-            elif cell_justification.value == "Inherited from base image.":
-                cell_justification.fill = PatternFill(
-                    start_color="0000b050", end_color="0000b050", fill_type="solid"
-                )
-            else:
-                cell_justification.fill = PatternFill(
-                    start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
-                )
+            cell_justification.fill = PatternFill(
+                start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
+            )
 
 
 def _colorize_anchore_comp(wb):
     # colorize anchore comp justifications column
     sheet = wb["Anchore Compliance Results"]
+
+    justification_column = _get_column_index(sheet=sheet, value="Justification")
+
     for r in range(1, sheet.max_row + 1):
-        cell = sheet.cell(row=r, column=3)
-        if cell.value == "trigger_id":
-            cell = sheet.cell(row=r, column=13)
-            cell.value = "Justification"
+        cell_justification = sheet.cell(row=r, column=justification_column)
+        # Apply appropriate highlighting to justification cell
+        if cell_justification.value is None:
+            cell_justification.fill = PatternFill(
+                start_color="00ffff00", end_color="00ffff00", fill_type="solid"
+            )
+        elif cell_justification.value == "Inherited from base image.":
+            cell_justification.fill = PatternFill(
+                start_color="0000b050", end_color="0000b050", fill_type="solid"
+            )
+        elif cell_justification.value == "See Anchore CVE Results sheet":
+            cell_justification.fill = PatternFill(
+                start_color="96969696", end_color="96969696", fill_type="solid"
+            )
         else:
-            cell_justification = sheet.cell(row=r, column=13)
-            # Apply appropriate highlighting to justification cell
-            if cell_justification.value is None:
-                cell_justification.fill = PatternFill(
-                    start_color="00ffff00", end_color="00ffff00", fill_type="solid"
-                )
-            elif cell_justification.value == "Inherited from base image.":
-                cell_justification.fill = PatternFill(
-                    start_color="0000b050", end_color="0000b050", fill_type="solid"
-                )
-            elif cell_justification.value == "See Anchore CVE Results sheet":
-                cell_justification.fill = PatternFill(
-                    start_color="96969696", end_color="96969696", fill_type="solid"
-                )
-            else:
-                cell_justification.fill = PatternFill(
-                    start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
-                )
+            cell_justification.fill = PatternFill(
+                start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
+            )
 
 
 def _colorize_twistlock(wb):
@@ -159,6 +175,17 @@ def _colorize_openscap(wb):
                 )
 
 
+def _write_sbom_to_excel(csv_dir, writer):
+    for report in os.listdir(f"{csv_dir}/sbom"):
+        read_report = pd.read_csv(pathlib.Path(csv_dir, "sbom", report))
+        read_report.to_excel(
+            writer,
+            sheet_name=f"SBOM {report.split('.')[0]}",
+            header=True,
+            index=False,
+        )
+
+
 # convert all csvs to Excel file
 # Generates output_file (w/ justifications) and all_scans.xlsx (w/o justifications)
 def convert_to_excel(csv_dir, justification_sheet):
@@ -196,6 +223,7 @@ def convert_to_excel(csv_dir, justification_sheet):
         read_gates_no_justifications.to_excel(
             writer, sheet_name="Anchore Compliance Results", header=True, index=False
         )
+        _write_sbom_to_excel(csv_dir=csv_dir, writer=writer)
     writer.save()
     with pd.ExcelWriter(
         justification_sheet
@@ -219,11 +247,16 @@ def convert_to_excel(csv_dir, justification_sheet):
         read_gates.to_excel(
             writer, sheet_name="Anchore Compliance Results", header=True, index=False
         )
+        _write_sbom_to_excel(csv_dir=csv_dir, writer=writer)
     writer.save()
 
 
-def _set_column_width(sheet, column, width, wrap=False):
-    """Set column width and enable text wrap"""
+def _set_column_width(sheet, column_value, width, wrap=False):
+    """
+    Set column width and enable text wrap
+
+    """
+    column = _get_column_index(sheet=sheet, value=column_value)
     sheet.column_dimensions[get_column_letter(column)].width = width
     if wrap:
         for cell in sheet[get_column_letter(column)]:
@@ -231,30 +264,43 @@ def _set_column_width(sheet, column, width, wrap=False):
 
 
 def _set_all_column_widths(wb):
-    openscap_disa = wb["OpenSCAP - DISA Compliance"]
-    _set_column_width(openscap_disa, column=9, width=20)  # scanned_date
-    _set_column_width(openscap_disa, column=10, width=30)  # justification
+    if not os.getenv("DISTROLESS"):
+        openscap_disa = wb["OpenSCAP - DISA Compliance"]
+        _set_column_width(
+            openscap_disa, column_value="scanned_date", width=20
+        )  # scanned_date
+        _set_column_width(
+            openscap_disa, column_value="Justification", width=30
+        )  # justification
 
     twistlock = wb["Twistlock Vulnerability Results"]
-    _set_column_width(twistlock, column=1, width=25)  # CVE
-    _set_column_width(twistlock, column=5, width=20)  # packageName
-    _set_column_width(twistlock, column=6, width=20)  # packageVersion
-    _set_column_width(twistlock, column=9, width=45)  # vecStr
-    _set_column_width(twistlock, column=10, width=100)  # justification
+    _set_column_width(twistlock, column_value="id", width=25)  # CVE
+    _set_column_width(twistlock, column_value="packageName", width=20)  # packageName
+    _set_column_width(
+        twistlock, column_value="packageVersion", width=20
+    )  # packageVersion
+    _set_column_width(twistlock, column_value="vecStr", width=45)  # vecStr
+    _set_column_width(
+        twistlock, column_value="Justification", width=100
+    )  # justification
 
     anchore_cve = wb["Anchore CVE Results"]
-    _set_column_width(anchore_cve, column=2, width=25, wrap=False)  # CVE
-    _set_column_width(anchore_cve, column=7, width=60)  # url
-    _set_column_width(anchore_cve, column=9, width=100)  # justification
+    _set_column_width(anchore_cve, column_value="cve", width=25)  # CVE
+    _set_column_width(anchore_cve, column_value="url", width=60)  # url
+    _set_column_width(
+        anchore_cve, column_value="Justification", width=100
+    )  # justification
 
     anchore_compliance = wb["Anchore Compliance Results"]
     _set_column_width(
-        anchore_compliance, column=12, width=30, wrap=False
+        anchore_compliance, column_value="whitelist_name", width=30
     )  # whitelist_name
     _set_column_width(
-        anchore_compliance, column=13, width=100, wrap=False
+        anchore_compliance, column_value="check_output", width=75
+    )  # check_output
+    _set_column_width(
+        anchore_compliance, column_value="Justification", width=100
     )  # justification
-    _set_column_width(anchore_compliance, column=6, width=75)  # check_output
 
 
 if __name__ == "__main__":
