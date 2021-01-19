@@ -148,7 +148,8 @@ def main():
             f.seek(0)
             content.replace('\n','')
             f.write(content)
-
+            data = json.load(f)
+            json.dump(data, f, indent=4)
     else:
         with open("repo_map.json", "w") as outfile:
             json.dump(new_data, outfile, indent=4, sort_keys=True)
@@ -158,6 +159,8 @@ def main():
             f.seek(0)
             content.replace('\n','')
             f.write(content)
+            new_data = json.load(f)
+            json.dump(new_data, f, indent=4, sort_keys=True)
 
 if __name__ == "__main__":
     sys.exit(main())
