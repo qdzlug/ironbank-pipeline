@@ -5,7 +5,7 @@ import logging
 import os
 import pathlib
 
-from scanners.helper import _write_csv_from_dict_list
+from scanners.helper import write_csv_from_dict_list
 
 
 def _vulnerability_record(fulltag, justifications, vuln):
@@ -106,7 +106,7 @@ def vulnerability_report(csv_dir, anchore_security_json, justifications):
             "Justification",
         ]
 
-    _write_csv_from_dict_list(
+    write_csv_from_dict_list(
         csv_dir=csv_dir,
         dict_list=cves,
         fieldnames=fieldnames,
@@ -190,7 +190,7 @@ def compliance_report(csv_dir, anchore_gates_json, justifications):
         "Justification",
     ]
 
-    _write_csv_from_dict_list(
+    write_csv_from_dict_list(
         dict_list=gates,
         fieldnames=fieldnames,
         filename="anchore_gates.csv",
@@ -231,7 +231,7 @@ def _write_sbom_csv(csv_dir, sbom_dir, filename):
         fields = ["Content"]
         content = [{"Content": f"No content returned for report: {report_type}"}]
 
-    _write_csv_from_dict_list(
+    write_csv_from_dict_list(
         dict_list=content,
         fieldnames=fields,
         filename=f"{report_type}.csv",

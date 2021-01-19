@@ -15,7 +15,7 @@ from mysql.connector import Error
 from bs4 import BeautifulSoup
 
 from scanners import anchore
-from scanners.helper import _write_csv_from_dict_list
+from scanners.helper import write_csv_from_dict_list
 
 # The InheritableTriggerIds variable contains a list of Anchore compliance trigger_ids
 # that are inheritable by child images.
@@ -764,7 +764,7 @@ def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
         "Justification",
     ]
 
-    _write_csv_from_dict_list(
+    write_csv_from_dict_list(
         dict_list=cves, fieldnames=fieldnames, filename="tl.csv", csv_dir=csv_dir
     )
 

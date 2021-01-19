@@ -4,7 +4,7 @@ import csv
 import pathlib
 
 
-def _write_csv_from_dict_list(csv_dir, dict_list, fieldnames, filename):
+def write_csv_from_dict_list(csv_dir, dict_list, fieldnames, filename):
     """
     Create csv file based off prepared data. The data must be provided as a list
     of dictionaries and the rest will be taken care of.
