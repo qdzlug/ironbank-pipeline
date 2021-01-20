@@ -88,6 +88,32 @@ class Anchore:
         with open(filename, "w") as f:
             json.dump(version_json["service"]["version"], f)
 
+    def __get_extra_vuln_data(self, vulnerability):
+        """
+        Grab extra vulnerability data
+
+        """
+        url = f"{self.url}/query/vulnerabilities?id={vulnerability['vuln']}"
+        logging.info(url)
+
+        extra = dict()
+        description = "none"
+
+        resp = self.__get_anchore_api_json(url=url)
+
+        for vuln in resp["vulnerabilities"]:
+            if vuln["description"]:
+                description = vuln["description"]
+
+        for vuln in resp["vulnerabilities"]:
+            if vuln["namespace"] == vulnerability["feed_group"]:
+                if not vuln["description"]:
+                    vuln["description"] = description
+                del vuln["affected_packages"]
+                extra["vuln_data"] = vuln
+
+        return extra
+
     #
     # For a multi-ancestor image the ancestry must be walked
     #
@@ -110,6 +136,7 @@ class Anchore:
             url = f"{self.url}/enterprise/images/{digest}/vuln/all"
 
         vuln_dict = self.__get_anchore_api_json(url)
+        vuln_dict["imageFullTag"] = image
 
         for vulnerability in vuln_dict["vulnerabilities"]:
             # If VulnDB record found, retrive set of reference URLs associated with the record.
@@ -123,7 +150,15 @@ class Anchore:
                 for vulndb_vuln in vulndb_dict["vulnerabilities"]:
                     vulnerability["url"] = vulndb_vuln["references"]
 
-        vuln_dict["imageFullTag"] = image
+        filename = pathlib.Path(artifacts_path, "anchore_api_security_full.json")
+        logging.debug(f"Writing to {filename}")
+        with filename.open(mode="w") as f:
+            json.dump(vuln_dict, f)
+
+        # Add the extra vuln details
+        for i in range(len(vuln_dict["vulnerabilities"])):
+            extra = self.__get_extra_vuln_data(vuln_dict["vulnerabilities"][i])
+            vuln_dict["vulnerabilities"][i]["extra"] = extra["vuln_data"]
 
         # Create json report called anchore_security.json
         filename = pathlib.Path(artifacts_path, "anchore_security.json")
@@ -141,16 +176,13 @@ class Anchore:
         """
         logging.info("Getting compliance results")
 
-        #
         # Fetch the immediate parent digest if available
-        # TODO: Uncomment this when ready to pull inheritance for policy checks.
         parent_digest = self.__get_parent_sha(digest)
 
         if parent_digest:
             url = f"{self.url}/enterprise/images/{digest}/check?tag={image}&detail=true&base_digest={parent_digest}"
         else:
             url = f"{self.url}/enterprise/images/{digest}/check?tag={image}&detail=true"
-        # url = f"{self.url}/enterprise/images/{digest}/check?tag={image}&detail=true"
 
         body_json = self.__get_anchore_api_json(url)
 
@@ -220,6 +252,10 @@ class Anchore:
         return json.loads(image_add.stdout)[0]["imageDigest"]
 
     def image_wait(self, digest):
+        """
+        Wait for Anchore to scan the image.
+
+        """
         logging.info(f"Waiting for Anchore to scan {digest}")
         wait_cmd = [
             "anchore-cli",
@@ -261,3 +297,64 @@ class Anchore:
             logging.error(image_wait.stdout)
             logging.error(image_wait.stderr)
             sys.exit(image_wait.returncode)
+
+    #
+    # Content Fetching to build the SBOM
+    #
+    def __get_content(self, cmd):
+        """
+        Use anchore-cli to fetch the content specified
+
+        """
+        try:
+            logging.info(" ".join(cmd))
+            image_content = subprocess.run(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding="utf-8",
+            )
+        except subprocess.SubprocessError:
+            logging.exception("Could not get content of image")
+            sys.exit(1)
+
+        if image_content.returncode != 0:
+            logging.error(image_content.stdout)
+            logging.error(image_content.stderr)
+            sys.exit(image_content.returncode)
+
+        logging.info(image_content.stdout)
+
+        return json.loads(image_content.stdout)
+
+    def image_content(self, digest, artifacts_path):
+        """
+        Grab the SBOM from Anchore
+
+        """
+        content_cmd = [
+            "anchore-cli",
+            "--json",
+            "--u",
+            self.username,
+            "--p",
+            self.password,
+            "--url",
+            self.url,
+            "image",
+            "content",
+            digest,
+        ]
+
+        pathlib.Path(artifacts_path, "sbom").mkdir(parents=True, exist_ok=True)
+
+        content_types = self.__get_content(cmd=content_cmd)
+
+        for ct in content_types:
+            cmd = content_cmd + [ct]
+            content = self.__get_content(cmd=cmd)
+            logging.debug(content)
+            filename = pathlib.Path(artifacts_path, "sbom", f"{ct}.json")
+            logging.debug(f"Writing to {filename}")
+            with filename.open(mode="w") as f:
+                json.dump(content, f)
