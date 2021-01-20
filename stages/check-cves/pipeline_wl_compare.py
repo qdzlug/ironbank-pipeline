@@ -155,6 +155,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     _finding_approval_status_check(vat_findings, wl_set, approval_status_list)
 
     logging.info(f"Number of whitelisted vulnerabilities: {len(wl_set)}")
+    logging.info(f"Whitelisted vulnerabilities: {wl_set}")
 
     vuln_set = set()
 
@@ -191,6 +192,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         vuln_set.add(f"anchorecve_{anc['cve']}-{anc['package']}")
 
     logging.info(f"Vulnerabilities found in scanning stage: {len(vuln_set)}")
+    logging.info(f"{vuln_set}")
     try:
         delta = vuln_set.difference(wl_set)
     except Exception:
