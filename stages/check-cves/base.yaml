@@ -10,6 +10,7 @@ check cves:
   dependencies:
     - hardening_manifest
     - load scripts
+    - wl compare lint
     - twistlock scan
     - openscap cve
     - openscap compliance
