@@ -275,7 +275,7 @@
               }
             },
             "additionalProperties": false,
-            "required": ["url"]
+            "required": ["url", "tag"]
           }
         ]
       },
