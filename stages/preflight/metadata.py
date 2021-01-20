@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import sys
+import signal
 from pathlib import Path
 
 import jsonschema
@@ -57,13 +58,28 @@ def main():
     process_yaml(content)
 
 
+def handle_sigterm(signal, frame):
+    logging.error(
+        "A field in the hardening_manifest.yaml is invalid and is causing an infinite loop during validation"
+    )
+    logging.error(
+        "Please check your hardening manifest to confirm all fields have valid input"
+    )
+    sys.exit(1)
+
+
 def validate_yaml(content):
     logging.info("Validating schema")
     schema_path = Path(__file__).parent / "../../schema/hardening_manifest.schema.json"
     with schema_path.open("r") as s:
         schema_s = s.read()
     schema = json.loads(schema_s)
-    jsonschema.validate(content, schema)
+    try:
+        # may hang from catastrophic backtracking if format is invalid
+        logging.info("This task will exit if not completed within 2 minutes")
+        jsonschema.validate(content, schema)
+    except jsonschema.ValidationError as ex:
+        logging.info(ex.message)
 
 
 def process_yaml(content):
@@ -105,4 +121,5 @@ def process_yaml(content):
 
 
 if __name__ == "__main__":
+    signal.signal(signal.SIGUSR1, handle_sigterm)
     main()
