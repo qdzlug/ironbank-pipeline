@@ -143,7 +143,6 @@ def main():
         with open("repo_map.json", "r+") as f:
             content = f.read()
             f.seek(0,0)
-            f.truncate()
             content.replace('\\n','')
             f.write(content)
             json.dump(data, f, indent=4)
@@ -155,7 +154,6 @@ def main():
         with open("repo_map.json", "r+") as f:
             content = f.read()
             f.seek(0,0)
-            f.truncate()
             content.replace('\\n','')
             f.write(content)
             json.dump(new_data, f, indent=4)
