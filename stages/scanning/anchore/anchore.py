@@ -323,7 +323,7 @@ class Anchore:
             logging.error(image_content.stderr)
             sys.exit(image_content.returncode)
 
-        logging.info(image_content.stdout)
+        logging.debug(image_content.stdout)
 
         return json.loads(image_content.stdout)
 
