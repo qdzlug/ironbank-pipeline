@@ -147,12 +147,10 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         logging.exception(f"Error reading findings file.")
         sys.exit(1)
 
-    wl_set = set()
-
     # list of finding statuses that denote a finding is approved within VAT
     approval_status_list = ["approve", "conditional"]
     # add each finding to its respective scan source whitelist set
-    _finding_approval_status_check(vat_findings, wl_set, approval_status_list)
+    wl_set = _finding_approval_status_check(vat_findings, approval_status_list)
 
     whitelist_length = len(wl_set)
     logging.info(f"Number of whitelisted vulnerabilities: {whitelist_length}")
@@ -253,7 +251,8 @@ def _format_list(delta_list, formatted_list=[]):
     return formatted_list
 
 
-def _finding_approval_status_check(finding_dictionary, whitelist, status_list):
+def _finding_approval_status_check(finding_dictionary, status_list):
+    whitelist = set()
     for image in finding_dictionary:
         # loop through all findings for each image listed in the vat-findings.json file
         for finding in finding_dictionary[image]:
@@ -273,6 +272,7 @@ def _finding_approval_status_check(finding_dictionary, whitelist, status_list):
                     whitelist.add(f"oscapcve{finding['finding']}")
                 elif finding["scan_source"] == "oscap_comp":
                     whitelist.add(f"oscapcomp_{finding['finding']}")
+    return whitelist
 
 
 def _get_greylist_file_contents(image_path, branch):
