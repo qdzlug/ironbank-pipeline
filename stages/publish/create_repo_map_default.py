@@ -137,7 +137,9 @@ def main():
 
     if ~existing_repomap:
         with open("repo_map.json", "w") as outfile:
-            new_data[key]["Public_Key"] = new_data[key]["Public_Key"].replace("\\n", "\n")
+            new_data[key]["Public_Key"] = new_data[key]["Public_Key"].replace(
+                "\\n", "\n"
+                )
             json.dump(new_data, outfile, indent=4)
         
 
