@@ -93,9 +93,9 @@ class Anchore:
         logging.info("Getting Anchore version")
         url = f"{self.url}/version"
         version_json = self.__get_anchore_api_json(url)
-        filename = os.path.join(artifacts_path, "anchore-version.txt")
+        filename = pathlib.Path(artifacts_path, "anchore-version.txt")
         logging.debug(f"Writing to {filename}")
-        with open(filename, "w") as f:
+        with filename.open(mode="w") as f:
             json.dump(version_json["service"]["version"], f)
 
     def __get_extra_vuln_data(self, vulnerability):
@@ -240,7 +240,7 @@ class Anchore:
         add_cmd += ["--force", image]
 
         try:
-            logging.info(" ".join(add_cmd))
+            logging.info(f"{' '.join(add_cmd[0:3])} {' '.join(add_cmd[5:])}")
             image_add = subprocess.run(
                 add_cmd,
                 stdout=subprocess.PIPE,
@@ -283,7 +283,7 @@ class Anchore:
         ]
         try:
             os.environ["PYTHONUNBUFFERED"] = "1"
-            logging.info(" ".join(wait_cmd))
+            logging.info(f"{' '.join(wait_cmd[0:2])} {' '.join(wait_cmd[4:])}")
             image_wait = subprocess.Popen(
                 wait_cmd,
                 stdout=subprocess.PIPE,
@@ -317,7 +317,7 @@ class Anchore:
 
         """
         try:
-            logging.info(" ".join(cmd))
+            logging.info(f"{' '.join(cmd[0:3])} {' '.join(cmd[5:])}")
             image_content = subprocess.run(
                 cmd,
                 stdout=subprocess.PIPE,
