@@ -141,7 +141,7 @@ def main():
                 "\\n", "\n"
             )
             json.dump(new_data, outfile, indent=4)
-        
+
 
 if __name__ == "__main__":
     sys.exit(main())
