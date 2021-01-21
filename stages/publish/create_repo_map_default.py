@@ -139,7 +139,7 @@ def main():
         with open("repo_map.json", "r+") as f:
             data = json.load(f)
             data.update(new_data)
-            for key in content.keys():
+            for key in data.keys():
                 data[key]["Public_Key"] = data[key]["Public_Key"].replace("\\n", "\n")
             f.seek(0, 0)
             f.truncate()
