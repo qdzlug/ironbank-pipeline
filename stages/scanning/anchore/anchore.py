@@ -28,7 +28,7 @@ class Anchore:
         self.password = password
         self.verify = verify
 
-    def __get_anchore_api_json(self, url, payload=""):
+    def __get_anchore_api_json(self, url, payload="", ignore404=False):
         """
         Internal api response fetcher. Will check for a valid return code and
         ensure the response has valid json. Once everything has been validated
@@ -50,9 +50,13 @@ class Anchore:
             raise e
 
         if r.status_code != 200:
-            raise Exception(
-                f"Non-200 response recieved from Anchore {r.status_code} - {r.text}"
-            )
+            if ignore404 and r.status_code == 404:
+                logging.warning("No ancestry detected")
+                return None
+            else:
+                raise Exception(
+                    f"Non-200 response from Anchore {r.status_code} - {r.text}"
+                )
 
         logging.debug("Got response from Anchore. Testing if valid json")
         try:
@@ -61,9 +65,15 @@ class Anchore:
             raise Exception("Got 200 response but is not valid JSON")
 
     def __get_parent_sha(self, digest):
-        # Fetch the ancestry and look for the immediate parent digest
+        """
+        Fetch the ancestry and look for the immediate parent digest
+
+        Use the ignore404 flag when fetching the ancestry from the API to mitigate
+        the pipeline failing hard when ancestry is not available.
+        """
         ancestry = self.__get_anchore_api_json(
-            f"{self.url}/enterprise/images/{digest}/ancestors"
+            f"{self.url}/enterprise/images/{digest}/ancestors",
+            ignore404=True,
         )
 
         if ancestry:
@@ -83,9 +93,9 @@ class Anchore:
         logging.info("Getting Anchore version")
         url = f"{self.url}/version"
         version_json = self.__get_anchore_api_json(url)
-        filename = os.path.join(artifacts_path, "anchore-version.txt")
+        filename = pathlib.Path(artifacts_path, "anchore-version.txt")
         logging.debug(f"Writing to {filename}")
-        with open(filename, "w") as f:
+        with filename.open(mode="w") as f:
             json.dump(version_json["service"]["version"], f)
 
     def __get_extra_vuln_data(self, vulnerability):
@@ -230,7 +240,7 @@ class Anchore:
         add_cmd += ["--force", image]
 
         try:
-            logging.info(" ".join(add_cmd))
+            logging.info(f"{' '.join(add_cmd[0:3])} {' '.join(add_cmd[5:])}")
             image_add = subprocess.run(
                 add_cmd,
                 stdout=subprocess.PIPE,
@@ -273,7 +283,7 @@ class Anchore:
         ]
         try:
             os.environ["PYTHONUNBUFFERED"] = "1"
-            logging.info(" ".join(wait_cmd))
+            logging.info(f"{' '.join(wait_cmd[0:2])} {' '.join(wait_cmd[4:])}")
             image_wait = subprocess.Popen(
                 wait_cmd,
                 stdout=subprocess.PIPE,
@@ -307,7 +317,7 @@ class Anchore:
 
         """
         try:
-            logging.info(" ".join(cmd))
+            logging.info(f"{' '.join(cmd[0:3])} {' '.join(cmd[5:])}")
             image_content = subprocess.run(
                 cmd,
                 stdout=subprocess.PIPE,
