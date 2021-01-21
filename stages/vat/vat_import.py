@@ -462,6 +462,15 @@ def check_container():
     conn = connect_to_db()
     cursor = conn.cursor()
 
+    # check if this is a new container
+    query = "SELECT * FROM `containers` WHERE name=%s and version=%s"
+    cursor.execute(query, (args.container, args.version,),)
+    results = cursor.fetchall()
+    if results:
+        new_container = False
+    else:
+        new_container = True
+
     # find parent container and get its id
     parent_id = get_parent_id()
     if parent_id is None:
@@ -561,7 +570,7 @@ def check_container():
     finally:
         if conn is not None and conn.is_connected():
             conn.close()
-    return container_id
+    return container_id, new_container
 
 
 def insert_finding(cursor, iid, scan_source, index, row):
@@ -1331,6 +1340,73 @@ def parse_anchore_json(links):
     except:
         return links
 
+def get_last_version(cursor, container_id):
+    """
+    finds the latst version for the container if it exists
+    returns the container_id of the latest version
+    """
+
+    get_container_name = ("select name from containers where id = %s")
+    get_name_tuple = (str(container_id),)
+    cursor.execute(get_container_name, get_name_tuple)
+    container_name = cursor.fetchone()
+
+    get_version_query = (
+        "SELECT id, version FROM containers WHERE name = '%s'"
+        + "ORDER BY id"
+    )
+    get_versions_Tuple = (container_name,)
+    logs.debug(get_version_query % get_versions_Tuple[0])
+    cursor.execute(get_version_query, get_versions_Tuple)
+    versions = cursor.fetchall()
+
+    # row 0 is the current container
+    version = versions[1][0]
+    logs.debug("Last container version %s ", version)
+    return version
+
+
+def are_findings_equal(iid, last_version_id):
+    """
+    checks if the findings are equal
+    """
+
+    # do for both containers.`
+    get_findings_sql = (
+        "SELECT finding, package, package_path, scan_source FROM findings WHERE "
+        + "container_id = %s ORDER BY finding, package, package_path, scan_source"
+    )
+
+    finding_tuple = (str(iid),)
+
+    # read result into datframes
+
+    if d_f1.equals(df_2):
+        return True
+    else:
+        return False
+
+def copy_findings(iid, last_version_id):
+    """
+    This will copy the finding_logs from the last conatiner version
+    to the current container.
+    Need approval state and justification, but want the entire row copied
+    """
+    a = 5 # placeholder - remove
+
+
+def set_approval_state(iid, last_version_id):
+    """
+    This will enter the container log entry for the version update.
+    """
+
+    user_id = get_system_user_id()
+    #if last_version_id container_log is 'Approved','Conditionally Approved':
+    #    update container_log for iid to approves
+    # -- set that this copied from the previous version
+    #update_sql = 
+
+
 
 def main():
     """
@@ -1341,13 +1417,19 @@ def main():
         logs.warning("The Parent information passed by param does not exist in db.")
         logs.warning("Enter a parent scan to create it")
     data = parse_csvs()
-    iid = check_container()
+    iid, new_container = check_container()
     # false if no imageid found
     if iid and is_new_scan(iid):
         push_all_csv_data(data, iid)
         clean_up_finding_scan(iid)
         # d_f = get_all_inheritable_findings(iid) TO DO: I think we can get rid of these two
         # update_inheritance_id(d_f)
+
+        if new_container:
+            last_version_id = get_last_version(cursor, iid)
+            if last_version_id:
+                set_approval_state(iid, last_version_id)
+                copy_finding_logs(iid, last_version_id)
     else:
         logs.warning("newer scan exists not inserting scan report")
 
