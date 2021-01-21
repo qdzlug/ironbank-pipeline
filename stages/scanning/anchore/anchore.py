@@ -50,12 +50,12 @@ class Anchore:
             raise e
 
         if r.status_code != 200:
-            if r.status_code == 404 and ignore404:
+            if ignore404 and r.status_code == 404:
                 logging.warning("No ancestry detected")
                 return None
             else:
                 raise Exception(
-                    f"Non-200 response recieved from Anchore {r.status_code} - {r.text}"
+                    f"Non-200 response from Anchore {r.status_code} - {r.text}"
                 )
 
         logging.debug("Got response from Anchore. Testing if valid json")
