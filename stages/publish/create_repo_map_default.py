@@ -141,9 +141,7 @@ def main():
                 data = json.load(f)
             data.update(new_data)
             for key in content.keys():
-                data[key]["Public_Key"] = data[key]["Public_Key"].replace(
-                    "\\n", "\n"
-                )
+                data[key]["Public_Key"] = data[key]["Public_Key"].replace("\\n", "\n")
             f.seek(0,0)
             f.truncate()
             json.dump(data, f, indent=4)
