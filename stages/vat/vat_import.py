@@ -1441,6 +1441,8 @@ def copy_finding_logs(cursor, container_id, last_version_id):
     logs.debug("In copy_finding_logs")
 
 
+
+
 def set_approval_state(cursor, container_id, last_version_id):
     """
     This will enter the container log entry for the version update.
