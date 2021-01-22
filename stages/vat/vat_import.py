@@ -717,7 +717,7 @@ def clean_up_finding_scan(iid):
             conn.close()
 
 
-def update_finding_logs(cursor, container_id, row, finding_id, scan_source, lineage):
+def update_finding_logs(cursor, container_id, row, finding_id, scan_source, lineage, new_container):
     """
     insert a row into the finding_logs table if new or inheritability changes
     if row is inserted,
@@ -785,7 +785,8 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
                 )
             return True
 
-        if lineage:
+        if lineage or new_container:
+            logs.debug("In add logs lineage: %s  new_container: %s", lineage, new_container)
             parents = find_parent_findings(cursor, row, lineage, scan_source)
             if parents:
                 # This gets the parent finding
@@ -795,25 +796,26 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
                 parent_logs_query = "select * from `finding_logs` where finding_id = %s"
                 cursor.execute(parent_logs_query, (inherited_id,))
                 all_logs = cursor.fetchall()
-                for l in all_logs:
-                    false_positive = 0 if l[10] is None else l[10]
+                for log in all_logs:
+                    false_positive = 0 if log[10] is None else log[10]
                     new_values = (
                         None,
                         finding_id,
-                        l[2],  # record_type
-                        l[3],  # state
-                        l[4],  # record_text
+                        log[2],  # record_type
+                        log[3],  # state
+                        log[4],  # record_text
                         1,  # in_current_scan
-                        l[6],  # expiration_date
-                        l[7],  # inheritable
+                        log[6],  # expiration_date
+                        log[7],  # inheritable
                         inherited_id,  # inherited_id,
                         1,  # inherited
                         false_positive,  # false_positive
-                        l[11],  # user_id
-                        l[12],  # record_timestamp
-                        l[13],  # active
-                        l[14],  # record_type_active
+                        log[11],  # user_id
+                        log[12],  # record_timestamp
+                        log[13],  # active
+                        log[14],  # record_type_active
                     )
+                    logs.debug("Update_finding_logs - Add log from parent")
                     insert_finding_log(cursor, new_values)
             else:  # has lineage but this finding is not inherited
                 insert_new_log(cursor, finding_id, system_user_id)
@@ -967,7 +969,7 @@ def find_lineage(cursor, container_id):
     return [t[0] for t in lineage]
 
 
-def insert_scan(data, iid, scan_source):
+def insert_scan(data, iid, scan_source, new_container):
     """
     Inserts all scan data into three tables findings, findings_scan_results and finding_logs
     :params data
@@ -989,7 +991,7 @@ def insert_scan(data, iid, scan_source):
         for index, row in data.iterrows():
             finding_id = insert_finding(cursor, iid, scan_source, index, row)
             insert_finding_scan(cursor, row, finding_id)
-            update_finding_logs(cursor, iid, row, finding_id, scan_source, lineage)
+            update_finding_logs(cursor, iid, row, finding_id, scan_source, lineage, new_container)
 
     except Error as error:
         logs.error(error)
@@ -1295,14 +1297,14 @@ def get_all_inheritable_findings(iid):
             conn.close()
 
 
-def push_all_csv_data(data, iid):
+def push_all_csv_data(data, iid, new_container):
     """
     This takes the data dictionary from parsing all csvs and calls insert_scan
     for each entry in the dictionary
     """
     for key in data:
         logs.debug("\n Pushing data set from: %s\n ", key)
-        insert_scan(data[key], iid, key)
+        insert_scan(data[key], iid, key, new_container)
         update_in_current_scan(iid, data[key], key)
 
 
@@ -1408,6 +1410,8 @@ def copy_finding_logs(cursor, container_id, last_version_id):
     logs.debug("In copy_finding_logs")
 
 
+
+
 def set_approval_state(cursor, container_id, last_version_id):
     """
     This will enter the container log entry for the version update.
@@ -1473,7 +1477,7 @@ def main():
     iid, new_container = check_container()
     # false if no imageid found
     if iid and is_new_scan(iid):
-        push_all_csv_data(data, iid)
+        push_all_csv_data(data, iid, new_container)
         clean_up_finding_scan(iid)
         # d_f = get_all_inheritable_findings(iid) TO DO: I think we can get rid of these two
         # update_inheritance_id(d_f)
