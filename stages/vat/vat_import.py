@@ -1437,7 +1437,9 @@ def set_approval_state(cursor, container_id, last_version_id):
 
 
 def set_version_log_and_auto_approval(container_id):
-    """"""
+    """
+    This connects to the DB and calls the functions to perform the auto approval.
+    """
 
     logs.debug("In set_version_log_and_auto_approval")
 
@@ -1448,6 +1450,7 @@ def set_version_log_and_auto_approval(container_id):
         if last_version_id:
             copy_finding_logs(cursor, container_id, last_version_id)
             set_approval_state(cursor, container_id, last_version_id)
+            conn.commit()
 
     except Error as error:
         logs.error(error)
