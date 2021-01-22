@@ -455,7 +455,13 @@ def check_container():
 
     # check if this is a new container
     query = "SELECT * FROM `containers` WHERE name=%s and version=%s"
-    cursor.execute(query, (args.container, args.version,),)
+    cursor.execute(
+        query,
+        (
+            args.container,
+            args.version,
+        ),
+    )
     results = cursor.fetchall()
     if results:
         new_container = False
@@ -674,19 +680,9 @@ def insert_finding_scan(cursor, row, finding_id):
             row["description"],
             1,
         )
-        logs.debug(
-            insert_finding_query,
-            finding_id,
-            args.job_id,
-            args.scan_date,
-            row["severity"],
-            row["link"],
-            row["score"],
-            row["description"],
-            "1",
-        )
-
+        logs.debug(insert_finding_query % insert_values)
         cursor.execute(insert_finding_query, insert_values)
+
     except Error as error:
         logs.error(error)
 
@@ -1369,25 +1365,28 @@ def parse_anchore_json(links):
     except:
         return links
 
+
 def get_last_version(cursor, container_id):
     """
     finds the latst version for the container if it exists
     returns the container_id of the latest version
     """
 
-    get_container_name = ("select name from containers where id = %s")
+    logs.debug("In get_last_version, container_id: %s", str(container_id))
+    get_container_name = "select name from containers where id = %s"
     get_name_tuple = (str(container_id),)
     cursor.execute(get_container_name, get_name_tuple)
     container_name = cursor.fetchone()
 
     get_version_query = (
-        "SELECT id, version FROM containers WHERE name = '%s'"
-        + "ORDER BY id"
+        "SELECT id, version FROM containers WHERE name = %s " + "ORDER BY id DESC"
     )
-    get_versions_Tuple = (container_name,)
-    logs.debug(get_version_query % get_versions_Tuple[0])
-    cursor.execute(get_version_query, get_versions_Tuple)
+    get_versions_tuple = container_name
+    logs.debug(get_version_query % get_versions_tuple)
+    cursor.execute(get_version_query, get_versions_tuple)
     versions = cursor.fetchall()
+    logs.debug("get_last_version - versions:")
+    logs.debug(versions)
 
     # row 0 is the current container
     version = versions[1][0]
@@ -1395,46 +1394,97 @@ def get_last_version(cursor, container_id):
     return version
 
 
-def are_findings_equal(iid, last_version_id):
+def findings_are_equal(cursor, container_id, last_version_id):
     """
     checks if the findings are equal
     """
 
-    # do for both containers.`
+    logs.debug("In findings_are_equal, container_id: %s", str(container_id))
     get_findings_sql = (
         "SELECT finding, package, package_path, scan_source FROM findings WHERE "
         + "container_id = %s ORDER BY finding, package, package_path, scan_source"
     )
 
-    finding_tuple = (str(iid),)
+    finding_tuple = (str(container_id),)
+    cursor.execute(get_findings_sql, finding_tuple)
+    df_cur = pandas.DataFrame(cursor.fetchall())
 
-    # read result into datframes
+    finding_tuple = (str(last_version_id),)
+    cursor.execute(get_findings_sql, finding_tuple)
+    df_last = pandas.DataFrame(cursor.fetchall())
 
-    if d_f1.equals(df_2):
+    # Check if the sorted dataframes of findings are equal
+    if df_cur.equals(df_last):
+        logs.debug(
+            "findings are equal for containers %s and %s", container_id, last_version_id
+        )
         return True
     else:
+        logs.debug(
+            "findings are NOT equal for containers %s and %s",
+            container_id,
+            last_version_id,
+        )
         return False
 
-def copy_findings(iid, last_version_id):
+
+def copy_finding_logs(cursor, container_id, last_version_id):
     """
     This will copy the finding_logs from the last conatiner version
     to the current container.
     Need approval state and justification, but want the entire row copied
     """
-    a = 5 # placeholder - remove
+    logs.debug("In copy_finding_logs")
 
 
-def set_approval_state(iid, last_version_id):
+def set_approval_state(cursor, container_id, last_version_id):
     """
     This will enter the container log entry for the version update.
     """
 
+    logs.debug("In set_approval_state")
     user_id = get_system_user_id()
-    #if last_version_id container_log is 'Approved','Conditionally Approved':
-    #    update container_log for iid to approves
-    # -- set that this copied from the previous version
-    #update_sql = 
+    if findings_are_equal(cursor, container_id, last_version_id):
+        insert_log_sql = (
+            "INSERT INTO `container_log` (id, imageid, user_id, type, text) VALUES "
+            + "(%s, %s, %s, %s, %s)"
+        )
+        text = "Auto approved from container id {}".format(last_version_id)
+        insert_log_tuple = (
+            None,
+            container_id,
+            user_id,
+            "Approved",
+            text,
+        )
+        logs.debug(insert_log_sql % insert_log_tuple)
+        cursor.execute(insert_log_sql, insert_log_tuple)
+        if cursor.lastrowid:
+            logs.debug("id from container_log insert id %s", cursor.lastrowid)
+        else:
+            logs.debug("container_log not inserted")
 
+
+def set_version_log_and_auto_approval(container_id):
+    """"""
+
+    logs.debug("In set_version_log_and_auto_approval")
+
+    conn = connect_to_db()
+    try:
+        cursor = conn.cursor()
+        last_version_id = get_last_version(cursor, container_id)
+        if last_version_id:
+            copy_finding_logs(cursor, container_id, last_version_id)
+            set_approval_state(cursor, container_id, last_version_id)
+
+    except Error as error:
+        logs.error(error)
+        logs.error("dataset:")
+        logs.error(error)
+    finally:
+        if conn is not None and conn.is_connected():
+            conn.close()
 
 
 def main():
@@ -1455,10 +1505,8 @@ def main():
         # update_inheritance_id(d_f)
 
         if new_container:
-            last_version_id = get_last_version(cursor, iid)
-            if last_version_id:
-                set_approval_state(iid, last_version_id)
-                copy_finding_logs(iid, last_version_id)
+            set_version_log_and_auto_approval(iid)
+
     else:
         logs.warning("newer scan exists not inserting scan report")
 
@@ -1484,3 +1532,4 @@ if __name__ == "__main__":
     logs.info(args)
     logs.info("\n\n")
     main()
+    logging.info("Exiting vat_import")
