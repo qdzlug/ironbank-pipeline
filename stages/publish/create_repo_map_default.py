@@ -138,9 +138,8 @@ def main():
     if existing_repomap:
         with open("repo_map.json", "r+") as f:
             data = json.load(f)
+            new_data[key]["Public_Key"] = new_data[key]["Public_Key"].replace("\\n", "\n")
             data.update(new_data)
-            for key in data.keys():
-                data[key]["Public_Key"] = data[key]["Public_Key"].replace("\\n", "\n")
             f.seek(0, 0)
             f.truncate()
             json.dump(data, f, indent=4, sort_keys=True)
