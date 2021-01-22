@@ -708,7 +708,7 @@ def clean_up_finding_scan(iid):
             conn.close()
 
 
-def update_finding_logs(cursor, container_id, row, finding_id, scan_source, lineage):
+def update_finding_logs(cursor, container_id, row, finding_id, scan_source, lineage, new_container):
     """
     insert a row into the finding_logs table if new or inheritability changes
     if row is inserted,
@@ -993,7 +993,7 @@ def find_lineage(cursor, container_id):
     return [t[0] for t in lineage]
 
 
-def insert_scan(data, iid, scan_source):
+def insert_scan(data, iid, scan_source, new_container):
     """
     Inserts all scan data into three tables findings, findings_scan_results and finding_logs
     :params data
@@ -1015,7 +1015,7 @@ def insert_scan(data, iid, scan_source):
         for index, row in data.iterrows():
             finding_id = insert_finding(cursor, iid, scan_source, index, row)
             insert_finding_scan(cursor, row, finding_id)
-            update_finding_logs(cursor, iid, row, finding_id, scan_source, lineage)
+            update_finding_logs(cursor, iid, row, finding_id, scan_source, lineage, new_container)
 
     except Error as error:
         logs.error(error)
@@ -1324,14 +1324,14 @@ def get_all_inheritable_findings(iid):
             conn.close()
 
 
-def push_all_csv_data(data, iid):
+def push_all_csv_data(data, iid, new_container):
     """
     This takes the data dictionary from parsing all csvs and calls insert_scan
     for each entry in the dictionary
     """
     for key in data:
         logs.debug("\n Pushing data set from: %s\n ", key)
-        insert_scan(data[key], iid, key)
+        insert_scan(data[key], iid, key, new_container)
         update_in_current_scan(iid, data[key], key)
 
 
@@ -1437,6 +1437,8 @@ def copy_finding_logs(cursor, container_id, last_version_id):
     logs.debug("In copy_finding_logs")
 
 
+
+
 def set_approval_state(cursor, container_id, last_version_id):
     """
     This will enter the container log entry for the version update.
@@ -1502,7 +1504,7 @@ def main():
     iid, new_container = check_container()
     # false if no imageid found
     if iid and is_new_scan(iid):
-        push_all_csv_data(data, iid)
+        push_all_csv_data(data, iid, new_container)
         clean_up_finding_scan(iid)
         # d_f = get_all_inheritable_findings(iid) TO DO: I think we can get rid of these two
         # update_inheritance_id(d_f)
