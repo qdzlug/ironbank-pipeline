@@ -141,7 +141,7 @@ def main():
             data.update(new_data)
             f.seek(0, 0)
             f.truncate()
-            json.dump(data, f, indent=4, sort_keys=True)
+            json.dump(data, f, indent=4)
 
     else:
         with open("repo_map.json", "w") as outfile:
