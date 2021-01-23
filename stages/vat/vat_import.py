@@ -708,7 +708,9 @@ def clean_up_finding_scan(iid):
             conn.close()
 
 
-def update_finding_logs(cursor, container_id, row, finding_id, scan_source, lineage, new_container):
+def update_finding_logs(
+    cursor, container_id, row, finding_id, scan_source, lineage, new_container
+):
     """
     insert a row into the finding_logs table if new or inheritability changes
     if row is inserted,
@@ -1015,7 +1017,9 @@ def insert_scan(data, iid, scan_source, new_container):
         for index, row in data.iterrows():
             finding_id = insert_finding(cursor, iid, scan_source, index, row)
             insert_finding_scan(cursor, row, finding_id)
-            update_finding_logs(cursor, iid, row, finding_id, scan_source, lineage, new_container)
+            update_finding_logs(
+                cursor, iid, row, finding_id, scan_source, lineage, new_container
+            )
 
     except Error as error:
         logs.error(error)
@@ -1435,8 +1439,6 @@ def copy_finding_logs(cursor, container_id, last_version_id):
     Need approval state and justification, but want the entire row copied
     """
     logs.debug("In copy_finding_logs")
-
-
 
 
 def set_approval_state(cursor, container_id, last_version_id):
