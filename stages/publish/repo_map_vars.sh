@@ -1,13 +1,13 @@
 #!/bin/bash
 S3_HTML_LINK="https://s3-us-gov-west-1.amazonaws.com/${S3_REPORT_BUCKET}/${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}"
-GPG_PUB_KEY=$(awk '{printf "%s\\n", $0}' "${IB_CONTAINER_GPG_PUBKEY}")
 directory_date=$(date --utc '+%FT%T.%3N')
+public_key=$(<"${IB_CONTAINER_GPG_PUBKEY}")
 
 export REMOTE_DOCUMENTATION_DIRECTORY="${directory_date}_${CI_PIPELINE_ID}"
 export REMOTE_REPORT_DIRECTORY="${REMOTE_DOCUMENTATION_DIRECTORY}/reports"
 export repo_name="${IM_NAME}"
 export approval_status="${IMAGE_APPROVAL_STATUS}"
-export public_key="${GPG_PUB_KEY}"
+export public_key
 export image_sha="${IMAGE_ID}"
 export image_name="${CI_PROJECT_NAME}"
 export image_tag="${IMAGE_VERSION}"
