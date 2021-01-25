@@ -37,6 +37,7 @@ def main():
 
     digest = anchore_scan.image_add(image)
     anchore_scan.image_wait(digest=digest)
+    anchore_scan.image_content(digest=digest, artifacts_path=artifacts_path)
     anchore_scan.get_vulns(digest=digest, image=image, artifacts_path=artifacts_path)
     anchore_scan.get_compliance(
         digest=digest, image=image, artifacts_path=artifacts_path

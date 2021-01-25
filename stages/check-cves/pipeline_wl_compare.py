@@ -19,6 +19,7 @@ import pathlib
 import logging
 import argparse
 import mysql.connector
+import subprocess
 from mysql.connector import Error
 
 from scanners import oscap
@@ -127,23 +128,34 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
 
     wl_branch = os.getenv("WL_TARGET_BRANCH", default="master")
 
-    image_whitelist = _get_complete_whitelist_for_image(
-        image_name=image_name,
-        whitelist_branch=wl_branch,
-        hardening_manifest=hardening_manifest,
-    )
-
-    wl_set = set()
-    # approval status is checked when retrieving image_whitelist
-    for image in image_whitelist:
-        wl_set.add(image.vulnerability)
-
     # Don't go any further if just linting
     if lint:
+        _get_complete_whitelist_for_image(
+            image_name=image_name,
+            whitelist_branch=wl_branch,
+            hardening_manifest=hardening_manifest,
+        )
         sys.exit(0)
 
-    logging.info(f"Whitelist Set:{wl_set}")
-    logging.info(f"Whitelist Set Length: {len(wl_set)}")
+    artifacts_path = os.environ["ARTIFACT_STORAGE"]
+
+    vat_findings_file = pathlib.Path(artifacts_path, "lint", "vat-findings.json")
+    try:
+        with vat_findings_file.open(mode="r") as f:
+            vat_findings = json.load(f)
+    except Exception:
+        logging.exception(f"Error reading findings file.")
+        sys.exit(1)
+
+    # list of finding statuses that denote a finding is approved within VAT
+    approval_status_list = ["approve", "conditional"]
+    # add each finding to its respective scan source whitelist set
+    wl_set = _finding_approval_status_check(vat_findings, approval_status_list)
+
+    whitelist_length = len(wl_set)
+    logging.info(f"Number of whitelisted vulnerabilities: {whitelist_length}")
+    if whitelist_length > 0:
+        logging.info(f"Whitelisted vulnerabilities: {wl_set}")
 
     vuln_set = set()
 
@@ -152,7 +164,6 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     # and should be factored in.
     #
     if not bool(os.environ.get("DISTROLESS")):
-        artifacts_path = os.environ["ARTIFACT_STORAGE"]
         oscap_file = pathlib.Path(
             artifacts_path, "scan-results", "openscap", "report.html"
         )
@@ -160,48 +171,108 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
             artifacts_path, "scan-results", "openscap", "report-cve.html"
         )
 
-        oscap_cves = oscap.get_fails(oscap_file)
+        oscap_disa_comp = oscap.get_fails(oscap_file)
         oscap_notchecked = oscap.get_notchecked(oscap_file)
         for o in oscap_notchecked:
-            oscap_cves.append(o)
+            oscap_disa_comp.append(o)
 
-        for o in oscap_cves:
-            vuln_set.add(o["identifiers"])
+        for o in oscap_disa_comp:
+            vuln_set.add(f"oscapcomp_{o['identifiers']}")
 
         oval_cves = oscap.get_oval(oval_file)
         for oval in oval_cves:
-            vuln_set.add(oval)
+            vuln_set.add(f"oscapcve_{oval}")
 
     twistlock_cves = twistlock.get_full()
     for tl in twistlock_cves:
-        vuln_set.add(tl["id"])
+        vuln_set.add(f"tl_{tl['id']}-{tl['packageName']}-{tl['packageVersion']}")
 
     anchore_cves = anchore.get_full()
     for anc in anchore_cves:
-        vuln_set.add(anc["cve"])
+        vuln_set.add(f"anchorecve_{anc['cve']}-{anc['package']}")
 
-    logging.info(f"Vuln Set: {vuln_set}")
-    logging.info(f"Vuln Set Length: {len(vuln_set)}")
+    vuln_length = len(vuln_set)
+    logging.info(f"Vulnerabilities found in scanning stage: {vuln_length}")
+    if vuln_length > 0:
+        logging.info(f"{vuln_set}")
     try:
         delta = vuln_set.difference(wl_set)
-    except Exception as e:
-        logging.exception(
-            f"There was an error making the vulnerability delta request {e}"
-        )
+    except Exception:
+        logging.exception(f"There was an error making the vulnerability delta request.")
         sys.exit(1)
 
-    if len(delta) != 0:
-        logging.warning("NON-WHITELISTED VULNERABILITIES FOUND")
-        logging.warning(f"Vuln Set Delta: {delta}")
-        logging.warning(f"Vuln Set Delta Length: {len(delta)}")
-        logging.error(
-            f"Scans are not passing 100%. Vuln Set Delta Length: {len(delta)}"
-        )
+    delta_length = len(delta)
+    if delta_length != 0:
+        logging.error("NON-WHITELISTED VULNERABILITIES FOUND")
+        logging.error(f"Number of non-whitelisted vulnerabilities: {delta_length}")
+        logging.error("The following vulnerabilities are not whitelisted:")
+        delta_list = list(delta)
+        delta_list.sort()
+        formatted_delta_list = _format_list(delta_list)
+        for finding in formatted_delta_list:
+            logging.error(f"{finding}")
+        if os.getenv("CI_COMMIT_BRANCH") == "master":
+            pipeline_repo_dir = os.environ["PIPELINE_REPO_DIR"]
+            subprocess.run(
+                [f"{pipeline_repo_dir}/stages/check-cves/mattermost-failure-webhook.sh"]
+            )
         sys.exit(1)
 
     logging.info("ALL VULNERABILITIES WHITELISTED")
     logging.info("Scans are passing 100%")
     sys.exit(0)
+
+
+def _format_scan_source(x):
+
+    return {
+        "tl": "Twistlock CVE",
+        "anchorecve": "Anchore CVE",
+        "anchorecomp": "Anchore Compliance",
+        "oscapcomp": "OpenSCAP DISA Compliance",
+        "oscapcve": "OpenSCAP OVAL",
+    }.get(x, "Unknown Source")
+
+
+def _format_finding(finding):
+    underscore_position = finding.find("_")
+    scan_source = finding[:underscore_position]
+    vuln = finding[underscore_position + 1 :]
+    formatted_source = _format_scan_source(scan_source)
+
+    return f"{formatted_source} - {vuln}"
+
+
+def _format_list(delta_list, formatted_list=[]):
+    for finding in delta_list:
+        formatted_finding = _format_finding(finding)
+        formatted_list.append(formatted_finding)
+
+    return formatted_list
+
+
+def _finding_approval_status_check(finding_dictionary, status_list):
+    whitelist = set()
+    for image in finding_dictionary:
+        # loop through all findings for each image listed in the vat-findings.json file
+        for finding in finding_dictionary[image]:
+            finding_status = finding["finding_status"].lower()
+            # if a findings status is in the status list the finding is considered approved in VAT and is added to the whitelist
+            if finding_status in status_list:
+                # if / elif statements check scan source and format whitelisted finding for comparison with found vulnerabilities
+                if finding["scan_source"] == "twistlock_cve":
+                    whitelist.add(f"tl_{finding['finding']}-{finding['package']}")
+                elif finding["scan_source"] == "anchore_cve":
+                    whitelist.add(
+                        f"anchorecve_{finding['finding']}-{finding['package']}"
+                    )
+                elif finding["scan_source"] == "anchore_comp":
+                    whitelist.add(f"anchorecomp_{finding['finding']}")
+                elif finding["scan_source"] == "oscap_cve":
+                    whitelist.add(f"oscapcve{finding['finding']}")
+                elif finding["scan_source"] == "oscap_comp":
+                    whitelist.add(f"oscapcomp_{finding['finding']}")
+    return whitelist
 
 
 def _get_greylist_file_contents(image_path, branch):
@@ -228,13 +299,6 @@ def _get_greylist_file_contents(image_path, branch):
     except ValueError as e:
         logging.error("Could not load greylist as json")
         logging.error(e)
-        sys.exit(1)
-
-    if (
-        contents["approval_status"] != "approved"
-        and os.environ.get("CI_COMMIT_BRANCH").lower() == "master"
-    ):
-        logging.error("Unapproved image running on master branch")
         sys.exit(1)
 
     return contents
@@ -289,32 +353,39 @@ def _vat_vuln_query(im_name, im_version):
     """
     conn = None
     result = None
-    approval_status = ""
     try:
         conn = _connect_to_db()
         cursor = conn.cursor(buffered=True)
         # TODO: add new scan logic
         query = """SELECT c.name as container
-            , c.version
-            , CASE WHEN cl.type is NULL THEN 'Pending' ELSE cl.type END as container_approval_status
-            , f.finding
-            , f.scan_source
-            , f.in_current_scan
-            , CASE fl.type
-            WHEN fl.type is NULL THEN 'Pending'
-            WHEN fl.date_time > cl.date_time and fl.type = 'Approve' THEN 'Reviewed'
-            WHEN cl.date_time is NULL and fl.type = 'Approve' THEN 'Reviewed'
-            ELSE fl.type END as finding_status
-            FROM findings_approvals f
-            INNER JOIN containers c on f.imageid = c.id
-            LEFT JOIN findings_log fl on f.id = fl.approval_id
-            AND fl.id in (SELECT max(id) from findings_log group by approval_id)
-            LEFT JOIN container_log cl on c.id = cl.imageid
-            AND cl.id in (SELECT max(id) from container_log GROUP BY imageid)
-            WHERE f.inherited_id is NULL
-            AND c.name=%s
-            AND c.version=%s
-            AND f.in_current_scan = 1;"""
+                , c.version
+                , CASE WHEN cl.type is NULL THEN "Pending" ELSE cl.type END as container_approval_status
+                , f.finding
+                , f.scan_source
+                , f.in_current_scan
+                , CASE
+                WHEN fl.type is NULL THEN "Pending"
+                WHEN cl.date_time is NULL and fl.type = "Approve" THEN "Reviewed"
+                WHEN fl.date_time > cl.date_time and fl.type = "Approve" THEN "Reviewed"
+                ELSE fl.type END as finding_status
+                ,fl.text as approval_comments
+                , fl2.text as justification
+                , sr.description
+                , f.package
+                , f.package_path
+                FROM findings_approvals f
+                INNER JOIN containers c on f.imageid = c.id
+                LEFT JOIN findings_log fl on f.id = fl.approval_id
+                AND fl.id in (SELECT max(id) from findings_log WHERE type != "Justification" group by approval_id)
+                LEFT JOIN findings_log fl2 on f.id = fl2.approval_id
+                AND fl2.id in (SELECT max(id) from findings_log WHERE type = "Justification" group by approval_id)
+                LEFT JOIN container_log cl on c.id = cl.imageid
+                AND cl.id in (SELECT max(id) from container_log group by imageid)
+                LEFT JOIN scan_results sr on c.id = sr.imageid AND f.finding = sr.finding AND f.package = sr.package AND f.package_path = sr.package_path
+                AND jenkins_run in (SELECT max(jenkins_run) from scan_results WHERE imageid = c.id AND finding = f.finding AND package = f.package)
+                WHERE f.inherited_id is NULL
+                AND c.name=%s and c.version=%s
+                AND f.in_current_scan = 1;"""
         cursor.execute(query, (im_name, im_version))
         result = cursor.fetchall()
     except Error as error:
@@ -325,17 +396,23 @@ def _vat_vuln_query(im_name, im_version):
     return result
 
 
-def _get_vulns_from_query(row):
-    vuln_dict = {}
-    vuln_dict["whitelist_source"] = row[0]
-    vuln_dict["vulnerability"] = row[3]
-    vuln_dict["vuln_source"] = row[4]
-    vuln_dict["status"] = row[6]
-    # logging.debug(vuln_dict)
-    return vuln_dict
+def _get_findings_from_query(row):
+    finding_dict = {}
+    finding_dict["image_name"] = row[0]
+    finding_dict["image_version"] = row[1]
+    finding_dict["container_approval_status"] = row[2]
+    finding_dict["finding"] = row[3]
+    finding_dict["scan_source"] = row[4]
+    finding_dict["finding_status"] = row[6]
+    finding_dict["approval_comments"] = row[7]
+    finding_dict["justification"] = row[8]
+    finding_dict["scan_result_description"] = row[9]
+    finding_dict["package"] = row[10]
+    finding_dict["package_path"] = row[11]
+    return finding_dict
 
 
-def _next_ancestor(image_path, greylist, hardening_manifest=None):
+def _next_ancestor(image_path, whitelist_branch, hardening_manifest=None):
     """
     Grabs the parent image path from the current context. Will initially attempt to load
     a new hardening manifest and then pull the parent image from there. Otherwise it will
@@ -348,21 +425,36 @@ def _next_ancestor(image_path, greylist, hardening_manifest=None):
 
     # Try to get the parent image out of the local hardening_manifest.
     if hardening_manifest:
-        return hardening_manifest["args"]["BASE_IMAGE"]
+        return (
+            hardening_manifest["args"]["BASE_IMAGE"],
+            hardening_manifest["args"]["BASE_TAG"],
+        )
 
     # Try to load the hardening manifest from a remote repo.
     hm = _load_remote_hardening_manifest(project=image_path)
     if hm is not None:
-        return hm["args"]["BASE_IMAGE"]
+        return (hm["args"]["BASE_IMAGE"], hm["args"]["BASE_TAG"])
 
-    try:
-        return greylist["image_parent_name"]
-    except KeyError as e:
-        logging.error("Looks like a hardening_manifest.yaml cannot be found")
+    if os.environ["GREYLIST_BACK_COMPAT"].lower() == "true":
+        try:
+            greylist = _get_greylist_file_contents(
+                image_path=image_path, branch=whitelist_branch
+            )
+            return (greylist["image_parent_name"], greylist["image_parent_tag"])
+        except KeyError as e:
+            logging.error("Looks like a hardening_manifest.yaml cannot be found")
+            logging.error(
+                "Looks like the greylist has been updated to remove fields that should be present in hardening_manifest.yaml"
+            )
+            logging.error(e)
+            sys.exit(1)
+    else:
         logging.error(
-            "Looks like the greylist has been updated to remove fields that should be present in hardening_manifest.yaml"
+            "hardening_manifest.yaml does not exist for "
+            + image_path
+            + ". Please add a hardening_manifest.yaml file to this project"
         )
-        logging.error(e)
+        logging.error("Exiting.")
         sys.exit(1)
 
 
@@ -372,16 +464,13 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     image and grab all of vulnerabilities in the greylist associated with w layer.
 
     """
-    total_whitelist = list()
+    vat_findings = {}
 
-    # TODO: remove after 30 day hardening_manifest merge cutoff
-    greylist = _get_greylist_file_contents(
-        image_path=image_name, branch=whitelist_branch
-    )
+    vat_findings[image_name] = []
+
     logging.info(f"Grabbing CVEs for: {image_name}")
     # get cves from vat
     result = _vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
-    logging.debug(result)
     # parse CVEs from VAT query
     # empty list is returned if no entry or no cves. NoneType only returned if error.
     if result is None:
@@ -389,16 +478,8 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         sys.exit(1)
     else:
         for row in result:
-            vuln_dict = _get_vulns_from_query(row)
-            if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
-                total_whitelist.append(Vuln(vuln_dict, image_name))
-                logging.debug(vuln_dict)
-            else:
-                logging.debug("There is no approval status present in result.")
-
-    logging.debug(
-        "Length of total whitelist for source image: " + str(len(total_whitelist))
-    )
+            finding_dict = _get_findings_from_query(row)
+            vat_findings[image_name].append(finding_dict)
     # get container approval from separate query
     approval_status = _vat_approval_query(
         os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
@@ -408,7 +489,10 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     logging.debug(approval_status)
     with open("variables.env", "w") as f:
         # all cves for container have container approval at ind 2
-        if approval_status.lower() == "approve":
+        if (
+            approval_status.lower() == "approve"
+            or approval_status.lower() == "conditional"
+        ):
             f.write(f"IMAGE_APPROVAL_STATUS=approved\n")
             logging.debug(f"IMAGE_APPROVAL_STATUS=approved")
         else:
@@ -429,53 +513,35 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     # Use the local hardening manifest to get the first parent. From here *only* the
     # the master branch should be used for the ancestry.
     #
-    parent_image = _next_ancestor(
-        image_path=image_name, greylist=greylist, hardening_manifest=hardening_manifest
+    parent_image_name, parent_image_version = _next_ancestor(
+        image_path=image_name,
+        whitelist_branch=whitelist_branch,
+        hardening_manifest=hardening_manifest,
     )
 
     # get parent cves from VAT
-    while parent_image:
-        logging.info(f"Grabbing CVEs for: {parent_image}")
-        # TODO: remove this after 30 day hardening_manifest merge cutoff
-        greylist = _get_greylist_file_contents(
-            image_path=parent_image, branch=whitelist_branch
-        )
-
+    while parent_image_name:
+        logging.info(f"Grabbing CVEs for: {parent_image_name}")
+        # TODO: remove this after 30 day hardening_manifest merge cutof
         # TODO: swap this for hardening manifest after 30 day merge cutoff
-        result = _vat_vuln_query(greylist["image_name"], greylist["image_tag"])
+        result = _vat_vuln_query(parent_image_name, parent_image_version)
+        vat_findings[parent_image_name] = []
 
         for row in result:
-            vuln_dict = _get_vulns_from_query(row)
-            if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
-                total_whitelist.append(Vuln(vuln_dict, image_name))
+            finding_dict = _get_findings_from_query(row)
+            vat_findings[parent_image_name].append(finding_dict)
 
-        parent_image = _next_ancestor(
-            image_path=parent_image,
-            greylist=greylist,
+        parent_image_name, parent_image_version = _next_ancestor(
+            image_path=parent_image_name,
+            whitelist_branch=whitelist_branch,
         )
 
-    logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
-    return total_whitelist
+    artifact_dir = os.environ.get("ARTIFACT_DIR")
+    logging.info(f"Artifact Directory: {artifact_dir}")
+    filename = pathlib.Path(f"{artifact_dir}/vat-findings.json")
 
-
-# need feedback on adjusting vuln
-class Vuln:
-    vuln_id = ""  # e.g. CVE-2020-14040
-    vuln_source = ""  # e.g. Anchore (vat returns anchore_cve)
-    whitelist_source = ""  # IM_NAME
-    status = ""  # e.g. Pending, Approved
-
-    def __repr__(self):
-        return f"Vuln: {self.vulnerability} - {self.vuln_source} - {self.whitelist_source} - {self.status}"
-
-    def __str__(self):
-        return f"Vuln: {self.vulnerability} - {self.vuln_source} - {self.whitelist_source} - {self.status}"
-
-    def __init__(self, v, im_name):
-        self.vulnerability = v["vulnerability"]
-        self.vuln_source = v["vuln_source"]
-        self.status = v["status"]
-        self.whitelist_source = im_name
+    with filename.open(mode="w") as f:
+        json.dump(vat_findings, f)
 
 
 def main():

@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import sys
+import signal
 from pathlib import Path
 
 import jsonschema
@@ -31,7 +32,7 @@ def main():
         with hardening_manifest_yaml_path.open("r") as f:
             content = yaml.safe_load(f)
         validate_yaml(content)
-    else:
+    elif os.environ["GREYLIST_BACK_COMPAT"].lower() == "true":
         # Use the generated description.yaml file path if not
         logging.warning("hardening_manifest.yaml does not exist, autogenerating")
         project_path = os.environ["CI_PROJECT_PATH"].split("/")
@@ -48,8 +49,23 @@ def main():
         generated_file.write_text(hardening_manifest_yaml_string)
         content = yaml.safe_load(hardening_manifest_yaml_string)
         # Generated hardening_manifest.yaml is already validated
-
+    else:
+        logging.error(
+            "hardening_manifest.yaml does not exist, please add a hardening_manifest.yaml file to your project"
+        )
+        logging.error("Exiting.")
+        sys.exit(1)
     process_yaml(content)
+
+
+def handle_sigterm(signal, frame):
+    logging.error(
+        "A field in the hardening_manifest.yaml is invalid and is causing an infinite loop during validation"
+    )
+    logging.error(
+        "Please check your hardening manifest to confirm all fields have valid input"
+    )
+    sys.exit(1)
 
 
 def validate_yaml(content):
@@ -58,7 +74,12 @@ def validate_yaml(content):
     with schema_path.open("r") as s:
         schema_s = s.read()
     schema = json.loads(schema_s)
-    jsonschema.validate(content, schema)
+    try:
+        # may hang from catastrophic backtracking if format is invalid
+        logging.info("This task will exit if not completed within 2 minutes")
+        jsonschema.validate(content, schema)
+    except jsonschema.ValidationError as ex:
+        logging.info(ex.message)
 
 
 def process_yaml(content):
@@ -100,4 +121,5 @@ def process_yaml(content):
 
 
 if __name__ == "__main__":
+    signal.signal(signal.SIGUSR1, handle_sigterm)
     main()

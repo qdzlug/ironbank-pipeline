@@ -65,6 +65,10 @@ stages:
 include:
   - local: stages/preprocess/load-scripts.yaml
 
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
 variables:
   # Gitlab CI vars
   ARTIFACT_STORAGE: "ci-artifacts"
