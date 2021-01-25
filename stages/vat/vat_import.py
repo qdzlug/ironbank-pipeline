@@ -1128,21 +1128,17 @@ def update_inheritance_id(findings):
         else:
             for i, row in findings.iterrows():
                 sql = (
-                    "SELECT id FROM `findings_approvals` WHERE imageid='"
-                    + str(parent_id)
-                    + "' and scan_source='"
-                    + row["scan_source"]
-                    + "' and finding='"
-                    + row["finding"]
-                    + "' and package='"
-                    + row["package"]
-                    + "' and package_path='"
-                    + row["package_path"]
-                    + "'"
+                    """SELECT id FROM `findings_approvals` WHERE imageid= %s
+                    and scan_source = %s and finding = %s and package = %s
+                    and package_path = %s"""
                 )
+                params = (parent_id,
+                row["scan_source"],
+                row["finding"],
+                row["package"],
+                row["package_path"],)
 
-                logs.debug("For row=%d, Executing %s", i, sql)
-                cursor.execute(sql)
+                cursor.execute(sql, params)
                 result = cursor.fetchone()
                 if result is not None:
                     logs.debug("Updating inherited_id for %s", (str(row["id"])))
@@ -1150,16 +1146,13 @@ def update_inheritance_id(findings):
                         "UPDATE `findings_approvals` SET inherited_id=%s WHERE id=%s",
                         (result[0], row["id"]),
                     )
-                    # entering as user account 1 but we should create a
-                    # default service account to tag actions like this TODO
 
                     sql = (
-                        "SELECT * FROM `findings_log` "
-                        + "WHERE `approval_id` = "
-                        + (str(row["id"]))
-                        + " and `type` =  'Inherited'"
+                        """SELECT * FROM `findings_log` WHERE `approval_id` = %s
+                        AND `type` = 'Inherited'"""
                     )
-                    cursor.execute(sql)
+                    params = (row["id"],)
+                    cursor.execute(sql, params)
                     i_finding = cursor.fetchone()
                     if i_finding is None:
                         vat_user_query = "SELECT id from users where username = 'legacy_container_contributor'"
