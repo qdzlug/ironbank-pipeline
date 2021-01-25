@@ -604,16 +604,16 @@ def update_inheritance_id(findings):
                 cursor.execute(sql, params)
         else:
             for i, row in findings.iterrows():
-                sql = (
-                    """SELECT id FROM `findings_approvals` WHERE imageid= %s
+                sql = """SELECT id FROM `findings_approvals` WHERE imageid= %s
                     and scan_source = %s and finding = %s and package = %s
                     and package_path = %s"""
+                params = (
+                    parent_id,
+                    row["scan_source"],
+                    row["finding"],
+                    row["package"],
+                    row["package_path"],
                 )
-                params = (parent_id,
-                row["scan_source"],
-                row["finding"],
-                row["package"],
-                row["package_path"],)
 
                 cursor.execute(sql, params)
                 result = cursor.fetchone()
@@ -624,10 +624,8 @@ def update_inheritance_id(findings):
                         (result[0], row["id"]),
                     )
 
-                    sql = (
-                        """SELECT * FROM `findings_log` WHERE `approval_id` = %s
+                    sql = """SELECT * FROM `findings_log` WHERE `approval_id` = %s
                         AND `type` = 'Inherited'"""
-                    )
                     params = (row["id"],)
                     cursor.execute(sql, params)
                     i_finding = cursor.fetchone()
