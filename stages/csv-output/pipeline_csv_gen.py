@@ -405,8 +405,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         for row in result:
             logging.debug(row)
             vuln_dict = _get_vulns_from_query(row)
-            if vuln_dict["status"] and vuln_dict["status"].lower() == "approved":
-                # Question: Should you also look for conditional approval? 'conditional' as that status
+            if vuln_dict["status"] and vuln_dict["status"].lower() in ["approved", "conditional"]:
                 total_whitelist.append(vuln_dict)
                 logging.debug(vuln_dict)
             else:
