@@ -29,7 +29,7 @@ def main():
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
 
-    artifacts_path = os.getenv("ARTIFACT_DIR", ".")
+    artifacts_path = os.environ["ARTIFACT_DIR"]
     logging.info(f"Output directory: {artifacts_path}")
 
     # Read hardening_manifest.yaml file
@@ -42,7 +42,14 @@ def main():
     if "resources" not in downloads or not downloads["resources"]:
         logging.info(f"No resources in {downloads}")
         sys.exit(0)
+    try:
+        download_all_resources(downloads, artifacts_path)
+    except KeyError as ke:
+        logging.error(f"The following auth key does not have a value: {str(ke)}")
+        sys.exit(1)
 
+
+def download_all_resources(downloads, artifacts_path):
     for item in downloads["resources"]:
         download_type = resource_type(item["url"])
         if download_type == "http":
@@ -50,10 +57,10 @@ def main():
                 if item["auth"]["type"] == "basic":
                     credential_id = item["auth"]["id"].replace("-", "_")
                     password = b64decode(
-                        os.getenv("CREDENTIAL_PASSWORD_" + credential_id)
+                        os.environ["CREDENTIAL_PASSWORD_" + credential_id]
                     )
                     username = b64decode(
-                        os.getenv("CREDENTIAL_USERNAME_" + credential_id)
+                        os.environ["CREDENTIAL_USERNAME_" + credential_id]
                     )
                     http_download(
                         item["url"],
@@ -82,10 +89,10 @@ def main():
                 if item["auth"]["type"] == "basic":
                     credential_id = item["auth"]["id"].replace("-", "_")
                     password = b64decode(
-                        os.getenv("CREDENTIAL_PASSWORD_" + credential_id)
+                        os.environ["CREDENTIAL_PASSWORD_" + credential_id]
                     ).decode("utf-8")
                     username = b64decode(
-                        os.getenv("CREDENTIAL_USERNAME_" + credential_id)
+                        os.environ["CREDENTIAL_USERNAME_" + credential_id]
                     ).decode("utf-8")
                     docker_download(
                         item["url"],
@@ -105,10 +112,10 @@ def main():
             if "auth" in item:
                 credential_id = item["auth"]["id"].replace("-", "_")
                 username = b64decode(
-                    os.getenv("S3_ACCESS_KEY_" + credential_id)
+                    os.environ["S3_ACCESS_KEY_" + credential_id]
                 ).decode("utf-8")
                 password = b64decode(
-                    os.getenv("S3_SECRET_KEY_" + credential_id)
+                    os.environ["S3_SECRET_KEY_" + credential_id]
                 ).decode("utf-8")
                 region = item["auth"]["region"]
                 s3_download(
@@ -131,8 +138,8 @@ def main():
                 )
         if download_type == "github":
             # credential_id = item["auth"]["id"].replace("-", "_")
-            username = b64decode(os.getenv("GITHUB_ROBOT_USER")).decode("utf-8")
-            password = b64decode(os.getenv("GITHUB_ROBOT_TOKEN")).decode("utf-8")
+            username = b64decode(os.environ["GITHUB_ROBOT_USER"]).decode("utf-8")
+            password = b64decode(os.environ["GITHUB_ROBOT_TOKEN"]).decode("utf-8")
             github_download(
                 item["url"],
                 item["tag"],
@@ -363,7 +370,7 @@ def docker_download(download_item, tag_value, tar_name, username=None, password=
             logging.info("Moving tar file into stage artifacts")
             shutil.copy(
                 tar_name + ".tar",
-                os.getenv("ARTIFACT_STORAGE") + "/import-artifacts/images/",
+                os.environ["ARTIFACT_STORAGE"] + "/import-artifacts/images/",
             )
             retry = False
         except subprocess.CalledProcessError:
@@ -420,7 +427,7 @@ def github_download(download_item, tag_value, tar_name, username=None, password=
             logging.info("Moving tar file into stage artifacts")
             shutil.copy(
                 tar_name + ".tar",
-                os.getenv("ARTIFACT_STORAGE") + "/import-artifacts/images/",
+                os.environ["ARTIFACT_STORAGE"] + "/import-artifacts/images/",
             )
             retry = False
         except subprocess.CalledProcessError:
