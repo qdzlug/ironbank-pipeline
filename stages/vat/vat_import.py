@@ -196,10 +196,6 @@ def parse_twistlock_security(tl_path):
 
     twistlock = pandas.read_csv(tl_path)
 
-    # convert severity to high from important
-    twistlock.replace(to_replace="important", value="high", regex=True, inplace=True)
-    twistlock.replace(to_replace="moderate", value="medium", regex=True, inplace=True)
-
     # grab the relevant columns we are homogenizing
     d_f = twistlock[
         ["id", "severity", "desc", "link", "cvss", "packageName", "packageVersion"]
@@ -310,10 +306,10 @@ def parse_oscap_security(ov_path):
     report_link = os.path.join(args.sec_link, "report-cve.html")
     severity_dict = {
         "Critical": "critical",
-        "Important": "high",
-        "Moderate": "medium",
+        "Important": "important",
+        "Moderate": "moderate",
         "Low": "low",
-        "Unknown": "low",
+        "Unknown": "unknown",
     }
 
     logs.debug("parse oscap security")
@@ -376,7 +372,6 @@ def parse_oscap_compliance(os_path):
 
     # grab the relevant columns we are homogenizing
     d_f = oscap_compliance[["severity", "identifiers", "refs", "title"]]
-    d_f.replace(to_replace="unknown", value="low", regex=True, inplace=True)
 
     # This is used where the identifier has not been set in the column (NaN)
     # It will replace these rows with data from the refs column.
@@ -725,27 +720,144 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
     logs.debug("Starting Update to Findings Log")
     try:
         system_user_id = get_system_user_id()
-        find_log_query = """SELECT id, record_type, in_current_scan, active, record_text from `finding_logs` WHERE
+        find_log_query = """SELECT id, record_type, in_current_scan, active, record_text, inherited_id, state from `finding_logs` WHERE
             finding_id = %s and record_type_active = 1 ORDER BY active desc"""
         find_log_tuple = (finding_id,)
         logs.debug(find_log_query, finding_id)
         cursor.execute(find_log_query, find_log_tuple)
         active_records = cursor.fetchall()
+        log_inherited_id = active_records[0][5] if active_records else None
+        parents = (
+            find_parent_findings(cursor, row, lineage, scan_source) if lineage else None
+        )
+        parent_finding = parents[0][0] if parents else None
+        inherited = 1 if parent_finding else 0
+        log_in_current_scan = active_records[0][2] if active_records else 0
+        j_record = (
+            [x for x in active_records if x[1] == "justification"]
+            if active_records
+            else None
+        )
+        sc_record = (
+            [x for x in active_records if x[1] == "state_change"]
+            if active_records
+            else None
+        )
+        finding_state = sc_record[0][6] if sc_record else None
+        new_entry_selection = """
+            SELECT NULL, finding_id, record_type, state, %s, 1, expiration_date, inheritable, %s,
+            %s, false_positive, %s, %s, %s, 1 from `finding_logs` WHERE id = %s
+            """
 
-        # in_current_scan is active_records[0][2]
-        if active_records and active_records[0][2]:
-            return True  # If found and in_current_scan = 1, no updates needed. TO DO Ensure this is correct
-        elif active_records and not active_records[0][2]:
+        if active_records and log_in_current_scan:
+            logs.debug("Has Records and is in current_scan")
+            if parent_finding:
+                if log_inherited_id == parent_finding:
+                    logs.debug("No Change 1")
+                    return True  # No change in inherited_id
+                elif finding_state in [
+                    "conditional",
+                    "approved",
+                ]:  # Retain approval and updated inherited id ???
+                    deactivate_all_rows = [
+                        deactivate_log_row(cursor, r[0]) for r in active_records
+                    ]
+                    if j_record:
+                        update_text = j_record[0][4]
+                        is_active_record = 0
+                        record_id = j_record[0][0]
+                        logs.debug("Update j_record id: %s", record_id)
+                        tuple_values = (
+                            update_text,
+                            parent_finding,
+                            inherited,
+                            system_user_id,
+                            args.scan_date,
+                            is_active_record,
+                            record_id,
+                        )
+                        new_j_record_id = add_active_log_row(
+                            cursor, new_entry_selection, tuple_values
+                        )
+                    if sc_record:
+                        update_text = (
+                            sc_record[0][4]
+                            + f" - Logs retained from previously inherited finding {log_inherited_id}"
+                        )
+                        is_active_record = 1
+                        record_id = sc_record[0][0]
+                        logs.debug("Update sc_record id: %s", record_id)
+                        tuple_values = (
+                            update_text,
+                            parent_finding,
+                            inherited,
+                            system_user_id,
+                            args.scan_date,
+                            is_active_record,
+                            record_id,
+                        )
+                        new_sc_record_id = add_active_log_row(
+                            cursor, new_entry_selection, tuple_values
+                        )
+                    return True
+                else:  # Inherits from another parent and is not in an approved state
+                    delete_inherited_sql = "DELETE FROM finding_logs where finding_id = %s and inherited = 1"
+                    cursor.execute(delete_inherited_sql, (finding_id,))
+                    deactivate_all_rows = [
+                        deactivate_log_row(cursor, r[0]) for r in active_records
+                    ]
+                    # Continue to next if statement to add logs of new parent
+            elif not log_inherited_id:  # No inherited_id in logs and no parent finding
+                logs.debug("No Change 2")
+                return True  # No change in inherited_id
+            else:  # no parent finding but has an inherited_id in current logs
+                logs.debug(
+                    f"No parent but has an inherited_id id current logs: {log_inherited_id}"
+                )
+                delete_inherited_sql = (
+                    "DELETE FROM finding_logs where finding_id = %s and inherited = 1"
+                )
+                cursor.execute(delete_inherited_sql, (finding_id,))
+                check_log_count_sql = (
+                    "SELECT COUNT(*) from finding_logs where finding_id = %s"
+                )
+                cursor.execute(check_log_count_sql, (finding_id,))
+                log_count = cursor.fetchall()[0][0]
+                if not log_count:
+                    insert_new_log(cursor, finding_id, system_user_id)
+                else:
+                    logs.debug("Deactivating")
+                    deactivate_all_rows = [
+                        deactivate_log_row(cursor, r[0]) for r in active_records
+                    ]
+                    get_logs = "SELECT record_type, max(id) from finding_logs where finding_id = %s group by record_type"
+                    cursor.execute(get_logs, (finding_id,))
+                    current_logs = cursor.fetchall()
+                    j_id = (
+                        [x[1] for x in current_logs if x[0] == "justification"]
+                        if current_logs
+                        else None
+                    )
+                    sc_id = (
+                        [x[1] for x in current_logs if x[0] == "state_change"]
+                        if current_logs
+                        else None
+                    )
+                    if sc_id:
+                        activate_sc = "UPDATE finding_logs SET active = 1, record_type_active = 1, inherited_id = NULL where id = %s"
+                        cursor.execute(activate_sc, (sc_id[0],))
+                        if j_id:
+                            activate_j = "UPDATE finding_logs SET active = 0, record_type_active = 1, inherited_id = NULL where id = %s"
+                            cursor.execute(activate_j, (j_id[0],))
+                    else:
+                        activate_j = "UPDATE finding_logs SET active = 1, record_type_active = 1, inherited_id = NULL where id = %s"
+                        cursor.execute(activate_j, (j_id,))
+                return True
+        elif active_records and not log_in_current_scan:
             # If now in current_scan add it back into the logs deactivate the old logs and add the new ones
             deactivate_all_rows = [
                 deactivate_log_row(cursor, r[0]) for r in active_records
             ]
-            j_record = [x for x in active_records if x[1] == "justification"]
-            sc_record = [x for x in active_records if x[1] == "state_change"]
-            new_entry_selection = """
-                SELECT NULL, finding_id, record_type, state, %s, 1, expiration_date, inheritable, inherited_id,
-                inherited, false_positive, %s, %s, %s, 1 from `finding_logs` WHERE id = %s
-                """
             if j_record:
                 update_text = j_record[0][4]
                 is_active_record = 0
@@ -754,6 +866,8 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
 
                 tuple_values = (
                     update_text,
+                    parent_finding,
+                    inherited,
                     system_user_id,
                     args.scan_date,
                     is_active_record,
@@ -770,6 +884,8 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
                 logs.debug("Update sc_record id: %s", record_id)
                 tuple_values = (
                     update_text,
+                    parent_finding,
+                    inherited,
                     system_user_id,
                     args.scan_date,
                     is_active_record,
@@ -780,39 +896,31 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
                 )
             return True
 
-        if lineage:
-            parents = find_parent_findings(cursor, row, lineage, scan_source)
-            if parents:
-                # This gets the parent finding
-                inherited_id = parents[0][0]
-                inherited = 1
-                # TO DO if parent is not inheritable (Do this POST MIGRATION RELEASE) do not import logs.
-                parent_logs_query = "select * from `finding_logs` where finding_id = %s"
-                cursor.execute(parent_logs_query, (inherited_id,))
-                all_logs = cursor.fetchall()
-                for l in all_logs:
-                    false_positive = 0 if l[10] is None else l[10]
-                    new_values = (
-                        None,
-                        finding_id,
-                        l[2],  # record_type
-                        l[3],  # state
-                        l[4],  # record_text
-                        1,  # in_current_scan
-                        l[6],  # expiration_date
-                        l[7],  # inheritable
-                        inherited_id,  # inherited_id,
-                        1,  # inherited
-                        false_positive,  # false_positive
-                        l[11],  # user_id
-                        l[12],  # record_timestamp
-                        l[13],  # active
-                        l[14],  # record_type_active
-                    )
-                    insert_finding_log(cursor, new_values)
-            else:  # has lineage but this finding is not inherited
-                insert_new_log(cursor, finding_id, system_user_id)
-        else:  # New not inherited finding
+        if parents:
+            parent_logs_query = "select * from `finding_logs` where finding_id = %s"
+            cursor.execute(parent_logs_query, (parent_finding,))
+            all_logs = cursor.fetchall()
+            for l in all_logs:
+                false_positive = 0 if l[10] is None else l[10]
+                new_values = (
+                    None,
+                    finding_id,
+                    l[2],  # record_type
+                    l[3],  # state
+                    l[4],  # record_text
+                    1,  # in_current_scan
+                    l[6],  # expiration_date
+                    l[7],  # inheritable
+                    parent_finding,  # inherited_id,
+                    1,  # inherited
+                    false_positive,  # false_positive
+                    l[11],  # user_id
+                    l[12],  # record_timestamp
+                    l[13],  # active
+                    l[14],  # record_type_active
+                )
+                insert_finding_log(cursor, new_values)
+        else:  # has lineage but this finding is not inherited
             insert_new_log(cursor, finding_id, system_user_id)
         return True
     except Error as error:

@@ -328,30 +328,20 @@ def _vat_vuln_query(im_name, im_version):
                 , CASE WHEN cl.type is NULL THEN "Pending" ELSE cl.type END as container_approval_status
                 , f.finding
                 , f.scan_source
-                , f.in_current_scan
-                , CASE
-                WHEN fl.type is NULL THEN "Pending"
-                WHEN cl.date_time is NULL and fl.type = "Approve" THEN "Reviewed"
-                WHEN fl.date_time > cl.date_time and fl.type = "Approve" THEN "Reviewed"
-                ELSE fl.type END as finding_status
-                ,fl.text as approval_comments
-                , fl2.text as justification
+                , fl1.in_current_scan
+                , fl1.state as finding_status
+                , fl1.record_text as approval_comments
+                , fl2.record_text as justification
                 , sr.description
                 , f.package
                 , f.package_path
-                FROM findings_approvals f
-                INNER JOIN containers c on f.imageid = c.id
-                LEFT JOIN findings_log fl on f.id = fl.approval_id
-                AND fl.id in (SELECT max(id) from findings_log WHERE type != "Justification" group by approval_id)
-                LEFT JOIN findings_log fl2 on f.id = fl2.approval_id
-                AND fl2.id in (SELECT max(id) from findings_log WHERE type = "Justification" group by approval_id)
-                LEFT JOIN container_log cl on c.id = cl.imageid
-                AND cl.id in (SELECT max(id) from container_log group by imageid)
-                LEFT JOIN scan_results sr on c.id = sr.imageid AND f.finding = sr.finding AND f.package = sr.package AND f.package_path = sr.package_path
-                AND jenkins_run in (SELECT max(jenkins_run) from scan_results WHERE imageid = c.id AND finding = f.finding AND package = f.package)
-                WHERE f.inherited_id is NULL
-                AND c.name=%s and c.version=%s
-                AND f.in_current_scan = 1;"""
+                FROM findings f
+                INNER JOIN containers c on f.container_id = c.id
+                LEFT JOIN container_log cl on c.id = cl.imageid AND cl.id in (SELECT max(id) from container_log group by imageid)
+                LEFT JOIN finding_logs fl1 ON fl1.record_type_active = 1 and fl1.record_type = 'state_change' and f.id = fl1.finding_id
+                LEFT JOIN finding_logs fl2 ON fl2.record_type_active = 1 and fl2.record_type = 'justification' and f.id = fl2.finding_id
+                LEFT JOIN finding_scan_results sr on f.id = sr.finding_id and sr.active = 1
+                WHERE c.name=%s and c.version = %s and fl1.in_current_scan = 1 and fl2.in_current_scan = 1;"""
         cursor.execute(query, (im_name, im_version))
         result = cursor.fetchall()
     except Error as error:
@@ -369,11 +359,11 @@ def _get_vulns_from_query(row):
 
     Each row should have 12 items in the form:
     (image_name, image_version, container_status, vuln, source (e.g. anchore_cve), in_current_scan (bool)
-    vuln_status (e.g. Approve), approval_comments, justification, description, package, package_path)
+    vuln_status (e.g. Approved), approval_comments, justification, description, package, package_path)
 
     For anchore_comp and anchore_cve, the vuln_description is the package instead of the description.
 
-    example: ('redhat/ubi/ubi8', '8.3', 'Approve', 'CCE-82360-9', 'oscap_comp', 1, 'Approve', 'Approved, imported from spreadsheet.',
+    example: ('redhat/ubi/ubi8', '8.3', 'Approved', 'CCE-82360-9', 'oscap_comp', 1, 'approved', 'Approved, imported from spreadsheet.',
     'Not applicable. This performs automatic updates to installed packages which does not apply to immutable containers.',
     'Enable dnf-automatic Timer', 'N/A', 'N/A')
 
@@ -415,7 +405,8 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         for row in result:
             logging.debug(row)
             vuln_dict = _get_vulns_from_query(row)
-            if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
+            if vuln_dict["status"] and vuln_dict["status"].lower() == "approved":
+                # Question: Should you also look for conditional approval? 'conditional' as that status
                 total_whitelist.append(vuln_dict)
                 logging.debug(vuln_dict)
             else:
@@ -445,7 +436,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
         for row in result:
             vuln_dict = _get_vulns_from_query(row)
-            if vuln_dict["status"] and vuln_dict["status"].lower() == "approve":
+            if vuln_dict["status"] and vuln_dict["status"].lower() == "approved":
                 total_whitelist.append(vuln_dict)
 
         parent_image_name, parent_image_version = _next_ancestor(
