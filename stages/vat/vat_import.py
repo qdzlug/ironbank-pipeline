@@ -753,7 +753,7 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
             logs.debug("Has Records and is in current_scan")
             if parent_finding:
                 if log_inherited_id == parent_finding:
-                    logs.debug("No Change 1")
+                    logs.debug("No inheritance change")
                     return True  # No change in inherited_id
                 elif finding_state in [
                     "conditional",
@@ -808,7 +808,7 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
                     ]
                     # Continue to next if statement to add logs of new parent
             elif not log_inherited_id:  # No inherited_id in logs and no parent finding
-                logs.debug("No Change 2")
+                logs.debug("Not inherited, no inheritance change")
                 return True  # No change in inherited_id
             else:  # no parent finding but has an inherited_id in current logs
                 logs.debug(
