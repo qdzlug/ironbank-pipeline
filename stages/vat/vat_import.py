@@ -587,70 +587,76 @@ def update_inheritance_id(findings):
     logs.debug("insert_scan")
     parent_id = get_parent_id()
     # this would have been checked when generating the findings but just in case check again
-    if parent_id is None:
-        logs.info("no parent exists")
-        return None
     try:
         conn = connect_to_db()
         cursor = conn.cursor(buffered=True)
-        for i, row in findings.iterrows():
-            sql = (
-                "SELECT id FROM `findings_approvals` WHERE imageid='"
-                + str(parent_id)
-                + "' and scan_source='"
-                + row["scan_source"]
-                + "' and finding='"
-                + row["finding"]
-                + "' and package='"
-                + row["package"]
-                + "' and package_path='"
-                + row["package_path"]
-                + "'"
-            )
-
-            logs.debug("For row=%d, Executing %s", i, sql)
-            cursor.execute(sql)
-            result = cursor.fetchone()
-            if result is not None:
-                logs.debug("Updating inherited_id for %s", (str(row["id"])))
-                cursor.execute(
-                    "UPDATE `findings_approvals` SET inherited_id=%s WHERE id=%s",
-                    (result[0], row["id"]),
-                )
-                # entering as user account 1 but we should create a
-                # default service account to tag actions like this TODO
-
-                sql = (
-                    "SELECT * FROM `findings_log` "
-                    + "WHERE `approval_id` = "
-                    + (str(row["id"]))
-                    + " and `type` =  'Inherited'"
-                )
-                cursor.execute(sql)
-                i_finding = cursor.fetchone()
-                if i_finding is None:
-                    sql = (
-                        "INSERT INTO `findings_log` "
-                        + "(`approval_id`, `date_time`, `user_id`, `type`, `text`)  VALUES ("
-                        + str(row["id"])
-                        + ", NOW(), '1', 'Inherited', 'Inherited from parent')"
-                    )
-                    cursor.execute(sql)
-            else:
+        if parent_id is None:
+            logs.info("no parent exists")
+            for i, row in findings.iterrows():
                 # Resets inherited id to NULL if finding is not inherited
                 logs.debug("Resetting inheritance for approval_id " + (str(row["id"])))
-                cursor.execute(
-                    "UPDATE `findings_approvals` SET inherited_id=NULL WHERE id="
-                    + str(row["id"])
-                )
+                sql = "UPDATE `findings_approvals` SET inherited_id=NULL WHERE id= %s"
+                params = (row["id"],)
+                cursor.execute(sql, params)
                 # Deletes Inherited Log
-                sql = (
-                    "DELETE FROM `findings_log` "
-                    + "WHERE `approval_id` = "
-                    + (str(row["id"]))
-                    + " and `type` =  'Inherited'"
+                sql = "DELETE FROM `findings_log` WHERE `approval_id` = %s and `type` =  'Inherited'"
+                params = (row["id"],)
+                cursor.execute(sql, params)
+        else:
+            for i, row in findings.iterrows():
+                sql = """SELECT id FROM `findings_approvals` WHERE imageid= %s
+                    and scan_source = %s and finding = %s and package = %s
+                    and package_path = %s"""
+                params = (
+                    parent_id,
+                    row["scan_source"],
+                    row["finding"],
+                    row["package"],
+                    row["package_path"],
                 )
-                cursor.execute(sql)
+
+                cursor.execute(sql, params)
+                result = cursor.fetchone()
+                if result is not None:
+                    logs.debug("Updating inherited_id for %s", (str(row["id"])))
+                    cursor.execute(
+                        "UPDATE `findings_approvals` SET inherited_id=%s WHERE id=%s",
+                        (result[0], row["id"]),
+                    )
+
+                    sql = """SELECT * FROM `findings_log` WHERE `approval_id` = %s
+                        AND `type` = 'Inherited'"""
+                    params = (row["id"],)
+                    cursor.execute(sql, params)
+                    i_finding = cursor.fetchone()
+                    if i_finding is None:
+                        vat_user_query = "SELECT id from users where username = 'legacy_container_contributor'"
+                        cursor.execute(vat_user_query)
+                        vat_user = cursor.fetchone()[0]
+                        sql = """INSERT INTO `findings_log` (`approval_id`, `date_time`, `user_id`, `type`, `text`)
+                            VALUES (%s, NOW(), %s, 'Inherited', 'Inherited from parent')"""
+                        params = (
+                            row["id"],
+                            vat_user,
+                        )
+                        cursor.execute(sql, params)
+                else:
+                    # Resets inherited id to NULL if finding is not inherited
+                    logs.debug(
+                        "Resetting inheritance for approval_id " + (str(row["id"]))
+                    )
+                    cursor.execute(
+                        "UPDATE `findings_approvals` SET inherited_id=NULL WHERE id="
+                        + str(row["id"])
+                    )
+                    # Deletes Inherited Log
+                    sql = (
+                        "DELETE FROM `findings_log` "
+                        + "WHERE `approval_id` = "
+                        + (str(row["id"]))
+                        + " and `type` =  'Inherited'"
+                    )
+                    cursor.execute(sql)
 
         conn.commit()
     except Error as error:
@@ -826,9 +832,6 @@ def get_all_inheritable_findings(iid):
         conn = connect_to_db()
         cursor = conn.cursor()
         parent_id = get_parent_id()
-        if parent_id is None:
-            logs.info("no parent exists to inherit from")
-            return None
         sql = (
             "SELECT id, finding, scan_source, package, package_path FROM findings_approvals WHERE is_inheritable=1 and imageid="
             + str(iid)
