@@ -311,13 +311,14 @@ def _vat_approval_query(im_name, im_version):
         conn = _connect_to_db()
         cursor = conn.cursor(buffered=True)
         # TODO: add new scan logic
-        query = """ SELECT c.name as container
+        query = """SELECT c.name as container
                 , c.version
                 , CASE
                 WHEN cl.type is NULL THEN 'Pending'
                 WHEN cl.type = 'Approved' and UA.unapproved > 0 THEN 'Pending'
                 WHEN cl.type = 'Conditionally Approved' and UA.unapproved > 0 THEN 'Pending'
-                ELSE cl.type END as container_approval_status
+                ELSE cl.type END as container_approval_status,
+                cl.text as approval_text
                 FROM containers c
                 LEFT JOIN container_log cl on c.id = cl.imageid  AND cl.id in (
                         SELECT max(id) from container_log GROUP BY imageid)
@@ -377,7 +378,7 @@ def _vat_vuln_query(im_name, im_version):
                 LEFT JOIN finding_logs fl1 ON fl1.record_type_active = 1 and fl1.record_type = 'state_change' and f.id = fl1.finding_id
                 LEFT JOIN finding_logs fl2 ON fl2.record_type_active = 1 and fl2.record_type = 'justification' and f.id = fl2.finding_id
                 LEFT JOIN finding_scan_results sr on f.id = sr.finding_id and sr.active = 1
-                WHERE c.name='redhat/ubi/ubi8' and c.version = '8.3' and fl1.in_current_scan = 1 and fl2.in_current_scan = 1;"""
+                WHERE c.nam = %s and c.version = %s and fl1.in_current_scan = 1 and fl2.in_current_scan = 1;"""
         cursor.execute(query, (im_name, im_version))
         result = cursor.fetchall()
     except Error as error:
