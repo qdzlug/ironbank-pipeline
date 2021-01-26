@@ -32,5 +32,6 @@ python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
   --password "${vat_db_connection_pass}" \
   --parent_version "${BASE_TAG:-}" \
   --scan_date "$(date +%FT%T)" \
-  --sec_link "${OSCAP_CVE_URL}/" \
-  --comp_link "${OSCAP_COMPLIANCE_URL}/"
+  --sec_link "${OSCAP_CVE_URL}" \
+  --comp_link "${OSCAP_COMPLIANCE_URL}" \
+  --repo_link "${CI_PROJECT_URL}"
