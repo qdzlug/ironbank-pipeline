@@ -315,7 +315,7 @@ def _vat_approval_query(im_name, im_version):
                 , c.version
                 , CASE
                 WHEN cl.type is NULL THEN 'Pending'
-                WHEN cl.type = 'Approved' and cl.date_time < FC.maxdate THEN 'Pending'
+                WHEN cl.type = 'Approve' and cl.date_time < FC.maxdate THEN 'Pending'
                 ELSE cl.type END as container_approval_status
                 FROM container_log cl
                 INNER JOIN containers c on c.id = cl.imageid
