@@ -1352,7 +1352,7 @@ def get_last_version(cursor, container_id):
     """
 
     logs.debug("In get_last_version, container_id: %s", str(container_id))
-    get_container_name = "select name from containers where id = %s"
+    get_container_name = "SELECT name FROM containers WHERE id = %s"
     get_name_tuple = (str(container_id),)
     cursor.execute(get_container_name, get_name_tuple)
     container_name = cursor.fetchone()
@@ -1470,25 +1470,41 @@ def set_approval_state(cursor, container_id, last_version_id):
 
     logs.debug("In set_approval_state")
     user_id = get_system_user_id()
-    if findings_are_equal(cursor, container_id, last_version_id):
-        insert_log_sql = (
-            "INSERT INTO `container_log` (id, imageid, user_id, type, text) VALUES "
-            + "(%s, %s, %s, %s, %s)"
-        )
-        text = "Auto approved from container id {}".format(last_version_id)
-        insert_log_tuple = (
-            None,
-            container_id,
-            user_id,
-            "Approved",
-            text,
-        )
-        logs.debug(insert_log_sql % insert_log_tuple)
-        cursor.execute(insert_log_sql, insert_log_tuple)
-        if cursor.lastrowid:
-            logs.debug("id from container_log insert id %s", cursor.lastrowid)
-        else:
-            logs.debug("container_log not inserted")
+
+    get_container_info = "SELECT name, version FROM containers WHERE id = %s"
+    get_info_tuple = (str(last_version_id),)
+    cursor.execute(get_container_info, get_info_tuple)
+    container_info = cursor.fetchone()
+    container_name = container_info[0]
+    container_version = container_info[1]
+
+    last_log_query = (
+        "SELECT id, type, text FROM container_log WHERE imageid = %s ORDER BY id DESC"
+    )
+    last_log_tuple = (str(last_version_id),)
+    logs.debug(last_log_query % last_log_tuple)
+    cursor.execute(last_log_query, last_log_tuple)
+    container_log_info = cursor.fetchone()
+    container_log_id = container_log_info[0]
+    container_log_type = container_log_info[1]
+    container_log_text = container_log_info[2]
+
+    insert_log_sql = (
+        "INSERT INTO `container_log` (id, imageid, user_id, type, text) VALUES "
+        + "(%s, %s, %s, %s, %s)"
+    )
+    text = "{} - Approval derived from previous version {}:{}".format(
+        container_log_text, container_name, container_version
+    )
+    insert_log_tuple = (
+        None,
+        container_id,
+        user_id,
+        container_log_type,
+        text,
+    )
+    logs.debug(insert_log_sql % insert_log_tuple)
+    cursor.execute(insert_log_sql, insert_log_tuple)
 
 
 def set_version_log_and_auto_approval(container_id):
