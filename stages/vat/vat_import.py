@@ -227,9 +227,6 @@ def parse_anchore_compliance(ac_path):
     d_f = pandas.read_csv(ac_path)
     d_f = d_f[columns]
 
-    # Drop bad header row
-    d_f = d_f.drop(d_f.index[0])
-
     # This removes the rows where the gate does <> 'vulnerabilities'
     anchore_compliance = d_f[(d_f["gate"] != "vulnerabilities")]
 
