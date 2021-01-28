@@ -1378,10 +1378,17 @@ def findings_are_equal(cursor, container_id, last_version_id):
     checks if the findings are equal
     """
 
-    logs.debug("In findings_are_equal, container_id: %s", str(container_id))
+    logs.debug(
+        "In findings_are_equal, container_id: %s last version id: %s",
+        str(container_id),
+        str(last_version_id),
+    )
+
     get_findings_sql = (
-        "SELECT finding, package, package_path, scan_source FROM findings WHERE "
-        + "container_id = %s ORDER BY finding, package, package_path, scan_source"
+        "SELECT DISTINCT f.finding, f.package, f.package_path, scan_source "
+        + "FROM findings f INNER JOIN finding_logs fl ON f.id = fl.finding_id WHERE "
+        + "f.container_id = %s AND fl.in_current_scan = 1 ORDER BY "
+        + "f.finding, f.package, f.package_path, f.scan_source"
     )
 
     finding_tuple = (str(container_id),)
@@ -1392,19 +1399,59 @@ def findings_are_equal(cursor, container_id, last_version_id):
     cursor.execute(get_findings_sql, finding_tuple)
     df_last = pandas.DataFrame(cursor.fetchall())
 
-    # Check if the sorted dataframes of findings are equal
-    if df_cur.equals(df_last):
+    df_cur_len = len(df_cur)
+    df_last_len = len(df_last)
+
+    if df_cur_len > df_last_len:
         logs.debug(
-            "findings are equal for containers %s and %s", container_id, last_version_id
-        )
-        return True
-    else:
-        logs.debug(
-            "findings are NOT equal for containers %s and %s",
-            container_id,
+            "fewer findings for last container %s than current %s - New findings",
             last_version_id,
+            container_id,
         )
         return False
+
+    elif df_cur_len == df_last_len:
+        # Check if the sorted dataframes of findings are equal
+        if df_cur.equals(df_last):
+            logs.debug(
+                "findings are equal for containers %s and %s - No new findings",
+                container_id,
+                last_version_id,
+            )
+            return True
+        else:
+            logs.debug(
+                "findings are NOT equal for containers %s and %s",
+                df_cur_len,
+                df_last_len,
+            )
+            return True
+    else:  # There are more last container version findings than current findings
+        df_intersection = df_cur.merge(df_last)
+        df_inter_len = len(df_intersection)
+        logs.debug(
+            "More last version findings, current findings: %s  last findings: %s  "
+            + "intersection findings: %s",
+            df_cur_len,
+            df_last_len,
+            df_inter_len,
+        )
+        # logs.debug("df_intersection:")
+        # logs.debug(df_intersection)
+        if df_cur_len == df_inter_len:
+            logs.debug(
+                "More last version findings, all current findings are in last version"
+            )
+            return True
+        else:
+            logs.debug(
+                "More last version findings, all current findings: %s  are NOT "
+                + "in last version: %s  intersection findings: %s",
+                df_cur_len,
+                df_last_len,
+                df_inter_len,
+            )
+            return False
 
 
 def copy_finding_logs(cursor, container_id, last_version_id):
