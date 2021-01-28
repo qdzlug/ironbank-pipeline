@@ -755,51 +755,6 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
                 if log_inherited_id == parent_finding:
                     logs.debug("No inheritance change")
                     return True  # No change in inherited_id
-                elif finding_state in [
-                    "conditional",
-                    "approved",
-                ]:  # Retain approval and updated inherited id ???
-                    deactivate_all_rows = [
-                        deactivate_log_row(cursor, r[0]) for r in active_records
-                    ]
-                    if j_record:
-                        update_text = j_record[0][4]
-                        is_active_record = 0
-                        record_id = j_record[0][0]
-                        logs.debug("Update j_record id: %s", record_id)
-                        tuple_values = (
-                            update_text,
-                            parent_finding,
-                            inherited,
-                            system_user_id,
-                            args.scan_date,
-                            is_active_record,
-                            record_id,
-                        )
-                        new_j_record_id = add_active_log_row(
-                            cursor, new_entry_selection, tuple_values
-                        )
-                    if sc_record:
-                        update_text = (
-                            sc_record[0][4]
-                            + f" - Logs retained from previously inherited finding {log_inherited_id}"
-                        )
-                        is_active_record = 1
-                        record_id = sc_record[0][0]
-                        logs.debug("Update sc_record id: %s", record_id)
-                        tuple_values = (
-                            update_text,
-                            parent_finding,
-                            inherited,
-                            system_user_id,
-                            args.scan_date,
-                            is_active_record,
-                            record_id,
-                        )
-                        new_sc_record_id = add_active_log_row(
-                            cursor, new_entry_selection, tuple_values
-                        )
-                    return True
                 else:  # Inherits from another parent and is not in an approved state
                     delete_inherited_sql = "DELETE FROM finding_logs where finding_id = %s and inherited = 1"
                     cursor.execute(delete_inherited_sql, (finding_id,))
