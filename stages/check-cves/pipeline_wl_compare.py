@@ -269,7 +269,7 @@ def _finding_approval_status_check(finding_dictionary, status_list):
                 elif finding["scan_source"] == "anchore_comp":
                     whitelist.add(f"anchorecomp_{finding['finding']}")
                 elif finding["scan_source"] == "oscap_cve":
-                    whitelist.add(f"oscapcve{finding['finding']}")
+                    whitelist.add(f"oscapcve_{finding['finding']}")
                 elif finding["scan_source"] == "oscap_comp":
                     whitelist.add(f"oscapcomp_{finding['finding']}")
     return whitelist
