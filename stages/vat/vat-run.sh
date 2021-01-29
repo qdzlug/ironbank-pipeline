@@ -25,12 +25,13 @@ python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
   --user "${vat_db_connection_user}" \
   --host "${vat_db_host}" \
   --csv_dir "${ARTIFACT_DIR}" \
-  --jenkins "${CI_PIPELINE_ID}" \
+  --job_id "${CI_PIPELINE_ID}" \
   --container "${IM_NAME}" \
   --version "${IMAGE_VERSION}" \
   --parent "${BASE_IMAGE:-}" \
   --password "${vat_db_connection_pass}" \
   --parent_version "${BASE_TAG:-}" \
   --scan_date "$(date +%FT%T)" \
-  --sec_link "${OSCAP_CVE_URL}/" \
-  --comp_link "${OSCAP_COMPLIANCE_URL}/"
+  --sec_link "${OSCAP_CVE_URL}" \
+  --comp_link "${OSCAP_COMPLIANCE_URL}" \
+  --repo_link "${CI_PROJECT_URL}"

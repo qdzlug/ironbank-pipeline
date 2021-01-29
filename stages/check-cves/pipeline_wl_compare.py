@@ -148,7 +148,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         sys.exit(1)
 
     # list of finding statuses that denote a finding is approved within VAT
-    approval_status_list = ["approve", "conditional"]
+    approval_status_list = ["approved", "conditional"]
     # add each finding to its respective scan source whitelist set
     wl_set = _finding_approval_status_check(vat_findings, approval_status_list)
 
@@ -315,23 +315,26 @@ def _vat_approval_query(im_name, im_version):
                 , c.version
                 , CASE
                 WHEN cl.type is NULL THEN 'Pending'
-                WHEN cl.type = 'Approve' and cl.date_time < FC.maxdate THEN 'Pending'
-                ELSE cl.type END as container_approval_status
-                FROM container_log cl
-                INNER JOIN containers c on c.id = cl.imageid
-                INNER JOIN
-                (SELECT fa.imageid,
-                    COUNT(*)
-                    , MAX(fl.date_time) as maxdate
-                    FROM findings_approvals fa
-                    INNER JOIN findings_log fl on fl.approval_id = fa.id AND fl.id in (
-                        SELECT max(id) FROM findings_log group by approval_id)
-                    WHERE fa.imageid = (
-                        SELECT id from containers WHERE name=%s AND version=%s)
-                    AND fa.inherited_id is NULL AND fa.in_current_scan = 1 ) FC
-                    WHERE c.name=%s AND c.version=%s AND cl.id in (
-                        SELECT max(id) from container_log GROUP BY imageid);"""
-        cursor.execute(query, (im_name, im_version, im_name, im_version))
+                WHEN cl.type = 'Approved' and UA.unapproved > 0 THEN 'Pending'
+                WHEN cl.type = 'Conditionally Approved' and UA.unapproved > 0 THEN 'Pending'
+                ELSE cl.type END as container_approval_status,
+                cl.text as approval_text
+                FROM containers c
+                LEFT JOIN container_log cl on c.id = cl.imageid  AND cl.id in (
+                        SELECT max(id) from container_log GROUP BY imageid)
+                LEFT JOIN (SELECT c.id, FC.count as unapproved from containers c
+                LEFT JOIN (SELECT f.container_id as c_id, count(*) as count FROM findings f
+                INNER JOIN (SELECT * from finding_logs WHERE record_type_active = 1 and record_type = 'state_change'
+                        and in_current_scan = 1 and state not in ('approved', 'conditional') and inherited = 0) fl on f.id = fl.finding_id
+                        group by f.container_id) FC on c.id = FC.c_id) UA on c.id = UA.id
+            WHERE c.name = %s and c.version = %s;"""
+        cursor.execute(
+            query,
+            (
+                im_name,
+                im_version,
+            ),
+        )
         result = cursor.fetchall()
     except Error as error:
         logging.info(error)
@@ -362,30 +365,20 @@ def _vat_vuln_query(im_name, im_version):
                 , CASE WHEN cl.type is NULL THEN "Pending" ELSE cl.type END as container_approval_status
                 , f.finding
                 , f.scan_source
-                , f.in_current_scan
-                , CASE
-                WHEN fl.type is NULL THEN "Pending"
-                WHEN cl.date_time is NULL and fl.type = "Approve" THEN "Reviewed"
-                WHEN fl.date_time > cl.date_time and fl.type = "Approve" THEN "Reviewed"
-                ELSE fl.type END as finding_status
-                ,fl.text as approval_comments
-                , fl2.text as justification
+                , fl1.in_current_scan
+                , fl1.state as finding_status
+                , fl1.record_text as approval_comments
+                , fl2.record_text as justification
                 , sr.description
                 , f.package
                 , f.package_path
-                FROM findings_approvals f
-                INNER JOIN containers c on f.imageid = c.id
-                LEFT JOIN findings_log fl on f.id = fl.approval_id
-                AND fl.id in (SELECT max(id) from findings_log WHERE type != "Justification" group by approval_id)
-                LEFT JOIN findings_log fl2 on f.id = fl2.approval_id
-                AND fl2.id in (SELECT max(id) from findings_log WHERE type = "Justification" group by approval_id)
-                LEFT JOIN container_log cl on c.id = cl.imageid
-                AND cl.id in (SELECT max(id) from container_log group by imageid)
-                LEFT JOIN scan_results sr on c.id = sr.imageid AND f.finding = sr.finding AND f.package = sr.package AND f.package_path = sr.package_path
-                AND jenkins_run in (SELECT max(jenkins_run) from scan_results WHERE imageid = c.id AND finding = f.finding AND package = f.package)
-                WHERE f.inherited_id is NULL
-                AND c.name=%s and c.version=%s
-                AND f.in_current_scan = 1;"""
+                FROM findings f
+                INNER JOIN containers c on f.container_id = c.id
+                LEFT JOIN container_log cl on c.id = cl.imageid AND cl.id in (SELECT max(id) from container_log group by imageid)
+                LEFT JOIN finding_logs fl1 ON fl1.record_type_active = 1 and fl1.record_type = 'state_change' and f.id = fl1.finding_id
+                LEFT JOIN finding_logs fl2 ON fl2.record_type_active = 1 and fl2.record_type = 'justification' and f.id = fl2.finding_id
+                LEFT JOIN finding_scan_results sr on f.id = sr.finding_id and sr.active = 1
+                WHERE c.name = %s and c.version = %s and fl1.in_current_scan = 1 and fl2.in_current_scan = 1;"""
         cursor.execute(query, (im_name, im_version))
         result = cursor.fetchall()
     except Error as error:
@@ -490,8 +483,8 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     with open("variables.env", "w") as f:
         # all cves for container have container approval at ind 2
         if (
-            approval_status.lower() == "approve"
-            or approval_status.lower() == "conditional"
+            approval_status.lower() == "approved"
+            or approval_status.lower() == "conditionally approved"
         ):
             f.write(f"IMAGE_APPROVAL_STATUS=approved\n")
             logging.debug(f"IMAGE_APPROVAL_STATUS=approved")
