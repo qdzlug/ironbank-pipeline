@@ -378,7 +378,7 @@ def _vat_vuln_query(im_name, im_version):
                 LEFT JOIN finding_logs fl1 ON fl1.record_type_active = 1 and fl1.record_type = 'state_change' and f.id = fl1.finding_id
                 LEFT JOIN finding_logs fl2 ON fl2.record_type_active = 1 and fl2.record_type = 'justification' and f.id = fl2.finding_id
                 LEFT JOIN finding_scan_results sr on f.id = sr.finding_id and sr.active = 1
-                WHERE c.nam = %s and c.version = %s and fl1.in_current_scan = 1 and fl2.in_current_scan = 1;"""
+                WHERE c.name = %s and c.version = %s and fl1.in_current_scan = 1 and fl2.in_current_scan = 1;"""
         cursor.execute(query, (im_name, im_version))
         result = cursor.fetchall()
     except Error as error:
