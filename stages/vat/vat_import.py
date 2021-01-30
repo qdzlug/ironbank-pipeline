@@ -347,7 +347,6 @@ def parse_oscap_security(ov_path):
     # Each row is duplicated with a package in each list.
     df_split = d_f.explode("package").reset_index(drop=True)
 
-
     d_f_clean = df_split.where(pandas.notnull(df_split), None)
     logs.debug(f"oscap security dataframe: \n {d_f_clean}")
     return d_f_clean
