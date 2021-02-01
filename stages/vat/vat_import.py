@@ -115,40 +115,40 @@ def parse_csvs():
             remove_lame_header_row(tl_path)
             try:
                 data_dict["twistlock_cve"] = parse_twistlock_security(tl_path)
-            except:
-                logs.error("Failed to parse twistlock")
+            except Error as error:
+                logs.error(f"Failed to parse twistlock \n{error}")
         as_path = csv_dir.joinpath("anchore_security.csv")
         if as_path.exists():
             logs.debug("Parsing Anchore Security CSV\n")
             remove_lame_header_row(as_path)
             try:
                 data_dict["anchore_cve"] = parse_anchore_security(as_path)
-            except:
-                logs.error("Failed to parse anchore cve")
+            except Error as error:
+                logs.error(f"Failed to parse anchore cve \n{error}")
         ac_path = csv_dir.joinpath("anchore_gates.csv")
         if ac_path.exists():
             logs.debug("Parsing Anchore Compliance CSV\n")
             remove_lame_header_row(ac_path)
             try:
                 data_dict["anchore_comp"] = parse_anchore_compliance(ac_path)
-            except:
-                logs.error("Failed to parse anchore compliance")
+            except Error as error:
+                logs.error(f"Failed to parse anchore compliance \n{error}")
         ov_path = csv_dir.joinpath("oval.csv")
         if ov_path.exists():
             logs.debug("Parsing OSCAP Security CSV\n")
             remove_lame_header_row(ov_path)
             try:
                 data_dict["oscap_cve"] = parse_oscap_security(ov_path)
-            except:
-                logs.error("Failed to parse oscap cve")
+            except Error as error:
+                logs.error(f"Failed to parse oscap cve \n{error}")
         os_path = csv_dir.joinpath("oscap.csv")
         if os_path.exists():
             logs.debug("Parsing OSCAP Compliance CSV\n")
             remove_lame_header_row(os_path)
             try:
                 data_dict["oscap_comp"] = parse_oscap_compliance(os_path)
-            except:
-                logs.error("Failed to parse oscap compliance")
+            except Error as error:
+                logs.error(f"Failed to parse oscap compliance \n{error}")
         return data_dict
     else:
         logs.error("\nArgument for csv directory is not a valid directory")
@@ -182,10 +182,10 @@ def parse_anchore_security(as_path):
 
     # needed to add empty row to match twistlock
     d_f = d_f.assign(score="")
-    logs.debug("anchore security dataframe:")
-    logs.debug(d_f)
 
-    return d_f
+    d_f_clean = d_f.where(pandas.notnull(d_f), None)
+    logs.debug(f"anchore security dataframe: \n {d_f_clean}")
+    return d_f_clean
 
 
 def parse_twistlock_security(tl_path):
@@ -210,10 +210,9 @@ def parse_twistlock_security(tl_path):
 
     d_f = d_f.assign(package_path=None)
 
-    logs.debug("twistlock dataframe:")
-    logs.debug(d_f)
-
-    return d_f
+    d_f_clean = d_f.where(pandas.notnull(d_f), None)
+    logs.debug(f"twistlock dataframe: \n {d_f_clean}")
+    return d_f_clean
 
 
 def parse_anchore_compliance(ac_path):
@@ -261,10 +260,9 @@ def parse_anchore_compliance(ac_path):
 
     d_f = d_f.assign(package_path=None)
 
-    logs.debug("anchore compliance dataframe:")
-    logs.debug(d_f)
-
-    return d_f
+    d_f_clean = d_f.where(pandas.notnull(d_f), None)
+    logs.debug(f"anchore compliance dataframe: \n {d_f_clean}")
+    return d_f_clean
 
 
 def get_packages(package_string):
@@ -349,10 +347,9 @@ def parse_oscap_security(ov_path):
     # Each row is duplicated with a package in each list.
     df_split = d_f.explode("package").reset_index(drop=True)
 
-    logs.debug("oscap security dataframe:")
-    logs.debug(d_f)
-
-    return df_split
+    d_f_clean = df_split.where(pandas.notnull(df_split), None)
+    logs.debug(f"oscap security dataframe: \n {d_f_clean}")
+    return d_f_clean
 
 
 def parse_oscap_compliance(os_path):
@@ -395,10 +392,9 @@ def parse_oscap_compliance(os_path):
 
     d_f = d_f.assign(package_path=None)
 
-    logs.debug("oscap compliance dataframe:")
-    logs.debug(d_f)
-
-    return d_f
+    d_f_clean = d_f.where(pandas.notnull(d_f), None)
+    logs.debug(f"oscap compliance dataframe: \n {d_f_clean}")
+    return d_f_clean
 
 
 def get_oscap_comp_finding(references):
@@ -748,8 +744,17 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
             SELECT NULL, finding_id, record_type, state, %s, 1, expiration_date, inheritable, %s,
             %s, false_positive, %s, %s, %s, 1 from `finding_logs` WHERE id = %s
             """
+        if active_records and not log_in_current_scan:
+            # If not in current_scan in logs update active logs to indicate that it now is in scan
+            update_in_current_scan = (
+                "UPDATE finding_logs SET in_current_scan = 1 where id = %s"
+            )
+            if sc_record:
+                cursor.execute(update_in_current_scan, (sc_record[0][0],))
+            if j_record:
+                cursor.execute(update_in_current_scan, (j_record[0][0],))
 
-        if active_records and log_in_current_scan:
+        if active_records:
             logs.debug("Has Records and is in current_scan")
             if parent_finding:
                 if log_inherited_id == parent_finding:
@@ -808,48 +813,6 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
                         activate_j = "UPDATE finding_logs SET active = 1, record_type_active = 1, inherited_id = NULL where id = %s"
                         cursor.execute(activate_j, (j_id,))
                 return True
-        elif active_records and not log_in_current_scan:
-            # If now in current_scan add it back into the logs deactivate the old logs and add the new ones
-            deactivate_all_rows = [
-                deactivate_log_row(cursor, r[0]) for r in active_records
-            ]
-            if j_record:
-                update_text = j_record[0][4]
-                is_active_record = 0
-                record_id = j_record[0][0]
-                logs.debug("Update j_record id: %s", record_id)
-
-                tuple_values = (
-                    update_text,
-                    parent_finding,
-                    inherited,
-                    system_user_id,
-                    args.scan_date,
-                    is_active_record,
-                    record_id,
-                )
-                new_j_record_id = add_active_log_row(
-                    cursor, new_entry_selection, tuple_values
-                )
-
-            if sc_record:
-                update_text = sc_record[0][4] + "Finding reinstated from current scan"
-                is_active_record = 1
-                record_id = sc_record[0][0]
-                logs.debug("Update sc_record id: %s", record_id)
-                tuple_values = (
-                    update_text,
-                    parent_finding,
-                    inherited,
-                    system_user_id,
-                    args.scan_date,
-                    is_active_record,
-                    record_id,
-                )
-                new_sc_record_id = add_active_log_row(
-                    cursor, new_entry_selection, tuple_values
-                )
-            return True
 
         if parents:
             parent_logs_query = "select * from `finding_logs` where finding_id = %s"
