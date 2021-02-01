@@ -488,7 +488,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             f.write(f"IMAGE_APPROVAL_STATUS={formatted_approval_status}\n")
             logging.debug(f"IMAGE_APPROVAL_STATUS={formatted_approval_status}")
             logging.info(f"Is that you John Wayne?")
-            f.write(f"IMAGE_APPROVAL_TEXT='{approval_text}'\n")
+            f.write(f'IMAGE_APPROVAL_TEXT="{approval_text}"\n')
             logging.debug(f"IMAGE_APPROVAL_TEXT={approval_text}")
         else:
             f.write(f"IMAGE_APPROVAL_STATUS=notapproved\n")
