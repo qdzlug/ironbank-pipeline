@@ -484,7 +484,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     with open("variables.env", "w") as f:
         # all cves for container have container approval at ind 2
         formatted_approval_status = approval_status.lower().replace(" ", "_")
-        if formatted_approval_status in ["approved", "conditionally approved"]:
+        if formatted_approval_status in ["approved", "conditionally_approved"]:
             f.write(f"IMAGE_APPROVAL_STATUS={formatted_approval_status}\n")
             logging.debug(f"IMAGE_APPROVAL_STATUS={formatted_approval_status}")
             f.write(f"IMAGE_APPROVAL_TEXT={approval_text}\n")
