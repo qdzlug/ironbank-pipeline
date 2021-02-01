@@ -121,6 +121,7 @@ def main():
             "Image_Tag": os.environ.get("image_tag"),
             "Manifest_Name": os.environ.get("manifest_name"),
             "Approval_Status": os.environ.get("approval_status"),
+            "Approval_Text": os.environ.get("approval_text"),
             "Image_Name": os.environ.get("image_name"),
             "Version_Documentation": os.environ.get("version_documentation"),
             "OVAL_Report": os.environ.get("oval_report"),
@@ -134,6 +135,8 @@ def main():
             "Labels": label_dict,
         }
     }
+
+    logging.debug(f"repo_map data:\n{new_data}")
 
     if existing_repomap:
         with open("repo_map.json", "r+") as f:
