@@ -475,7 +475,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             finding_dict = _get_findings_from_query(row)
             vat_findings[image_name].append(finding_dict)
     # get container approval from separate query
-    approval_status = _vat_approval_query(
+    approval_status, approval_text = _vat_approval_query(
         os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
     )
 
