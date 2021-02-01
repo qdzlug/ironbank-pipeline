@@ -108,6 +108,7 @@ def parse_csvs():
     """
     data_dict = {}
     csv_dir = Path(args.csv_dir)
+    distroless = os.environ.get("DISTROLESS", None)
     if csv_dir.is_dir():
         tl_path = csv_dir.joinpath("tl.csv")
         if tl_path.exists():
@@ -134,7 +135,7 @@ def parse_csvs():
             except Error as error:
                 logs.error(f"Failed to parse anchore compliance \n{error}")
         ov_path = csv_dir.joinpath("oval.csv")
-        if ov_path.exists():
+        if ov_path.exists() and not distroless:
             logs.debug("Parsing OSCAP Security CSV\n")
             remove_lame_header_row(ov_path)
             try:
@@ -142,7 +143,7 @@ def parse_csvs():
             except Error as error:
                 logs.error(f"Failed to parse oscap cve \n{error}")
         os_path = csv_dir.joinpath("oscap.csv")
-        if os_path.exists():
+        if os_path.exists() and not distroless:
             logs.debug("Parsing OSCAP Compliance CSV\n")
             remove_lame_header_row(os_path)
             try:
