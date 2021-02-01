@@ -343,9 +343,10 @@ def _vat_approval_query(im_name, im_version):
             conn.close()
     if result and result[0][2]:
         approval_status = result[0][2]
+        approval_text = result[0][3]
     else:
         approval_status = "notapproved"
-    return approval_status
+    return approval_status, approval_text
 
 
 def _vat_vuln_query(im_name, im_version):
