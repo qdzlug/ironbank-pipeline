@@ -139,7 +139,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
 
     artifacts_path = os.environ["ARTIFACT_STORAGE"]
 
-    vat_findings_file = pathlib.Path(artifacts_path, "lint", "vat-findings.json")
+    vat_findings_file = pathlib.Path(artifacts_path, "lint", "vat_findings.json")
     try:
         with vat_findings_file.open(mode="r") as f:
             vat_findings = json.load(f)
