@@ -23,7 +23,7 @@ GPG_PUB_KEY=$(awk '{printf "%s\\n", $0}' "${IB_CONTAINER_GPG_PUBKEY}")
 # Create manifest.json
 export IMAGE_VERSION
 export CI_COMMIT_SHA
-IMAGE_APPROVAL_STATUS=$(jq .IMAGE_APPROVAL_STATUS "${ARTIFACT_STORAGE}/lint/image_approval.json")
+IMAGE_APPROVAL_STATUS=$(jq -r .IMAGE_APPROVAL_STATUS "${ARTIFACT_STORAGE}/lint/image_approval.json")
 export IMAGE_APPROVAL_STATUS
 export IMAGE_TAR_SHA
 export IMAGE_PODMAN_SHA
