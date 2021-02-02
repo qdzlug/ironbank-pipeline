@@ -107,6 +107,10 @@ def main():
     tag_list = source_values(f"{artifact_storage}/preflight/tags.txt", "Tags")
     label_dict = _get_source_keys_values(f"{artifact_storage}/preflight/labels.env")
 
+    approval_status, approval_text = _get_approval_status(
+        f"{artifact_storage}/lint/image_approval_status.json"
+    )
+
     new_data = {
         os.environ.get("build_number"): {
             "Anchore_Gates_Results": os.environ.get("anchore_gates_results"),
@@ -129,8 +133,8 @@ def main():
             "OpenSCAP_Report": os.environ.get("openscap_report"),
             "Image_Tag": os.environ.get("image_tag"),
             "Manifest_Name": os.environ.get("manifest_name"),
-            "Approval_Status": os.environ.get("approval_status"),
-            "Approval_Text": os.environ.get("approval_text"),
+            "Approval_Status": approval_status,
+            "Approval_Text": approval_text,
             "Image_Name": os.environ.get("image_name"),
             "Version_Documentation": os.environ.get("version_documentation"),
             "OVAL_Report": os.environ.get("oval_report"),
