@@ -543,7 +543,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         )
 
     logging.info(f"Artifact Directory: {artifact_dir}")
-    filename = pathlib.Path(f"{artifact_dir}/vat-findings.json")
+    filename = pathlib.Path(f"{artifact_dir}/vat_findings.json")
 
     with filename.open(mode="w") as f:
         json.dump(vat_findings, f)
