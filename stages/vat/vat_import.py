@@ -444,7 +444,7 @@ def get_system_user_id(static_user_id=[None]):
     return static_user_id[0]
 
 
-def find_all_versions(cursor):
+def find_all_versions(cursor, container_id):
     """
     Gets the id of the last approved container and
     any containers since that did not inherit the approval
@@ -467,10 +467,24 @@ def find_all_versions(cursor):
     else:
         add_logs = False
     container_versions["add_logs"] = add_logs
+    new_version = new_container_version(versions, container_id)
+    container_versions["new_version"] = new_version
 
     logs.debug(f"Container versions: {container_versions}")
 
     return container_versions
+
+
+def new_container_version(versions, container_id):
+    """
+    Checks if this scan is a version bump
+    :param dict of approved and unapproved versions
+    :param int container_id to check
+    :return bool True if needs approval added
+    """
+    if container_id in versions["unapproved"] and versions["add_logs"]:
+        return True
+    return False
 
 
 def check_container():
@@ -535,7 +549,7 @@ def check_container():
                 container_id = row[0]
                 logs.debug("\nFound container with id: %s", str(container_id))
 
-        versions = find_all_versions(cursor)
+        versions = find_all_versions(cursor, container_id)
 
         # Update all the containers matching the container name with the repo link
         # info only when the repo link is passed in.
