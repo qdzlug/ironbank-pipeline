@@ -498,14 +498,14 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             )
             sys.exit(1)
 
-    image_approval_status = {
+    image_approval = {
         "IMAGE_APPROVAL_STATUS": approval_status,
         "IMAGE_APPROVAL_TEXT": approval_text,
     }
 
-    approval_status_file = pathlib.Path(f"{artifact_dir}/image_approval_status.json")
+    approval_status_file = pathlib.Path(f"{artifact_dir}/image_approval.json")
     with approval_status_file.open(mode="w") as f:
-        json.dump(image_approval_status, f)
+        json.dump(image_approval, f)
 
     with open("variables.env", "w") as f:
         f.write(f"BASE_IMAGE={hardening_manifest['args']['BASE_IMAGE']}\n")
