@@ -108,7 +108,7 @@ def main():
     label_dict = _get_source_keys_values(f"{artifact_storage}/preflight/labels.env")
 
     approval_status, approval_text = _get_approval_status(
-        f"{artifact_storage}/lint/image_approval_status.json"
+        f"{artifact_storage}/lint/image_approval.json"
     )
 
     new_data = {
