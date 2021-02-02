@@ -481,24 +481,33 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
     logging.debug("CONTAINER APPROVAL STATUS")
     logging.debug(approval_status)
+
+    artifact_dir = os.environ["ARTIFACT_DIR"]
+
+    # all cves for container have container approval at ind 2
+    formatted_approval_status = approval_status.lower().replace(" ", "_")
+    if formatted_approval_status in ["approved", "conditionally_approved"]:
+        approval_status = formatted_approval_status
+    else:
+        approval_status = "notapproved"
+        logging.warning(f"IMAGE_APPROVAL_STATUS=notapproved")
+        pipeline_branch = os.environ["CI_COMMIT_BRANCH"]
+        if pipeline_branch == "master":
+            logging.error(
+                "This container is not noted as an approved image in VAT. Unapproved images cannot run on master branch. Failing stage."
+            )
+            sys.exit(1)
+
+    image_approval_status = {
+        "IMAGE_APPROVAL_STATUS": approval_status,
+        "IMAGE_APPROVAL_TEXT": approval_text,
+    }
+
+    approval_status_file = pathlib.Path(f"{artifact_dir}/image_approval_status.json")
+    with approval_status_file.open(mode="w") as f:
+        json.dump(image_approval_status, f)
+
     with open("variables.env", "w") as f:
-        # all cves for container have container approval at ind 2
-        formatted_approval_status = approval_status.lower().replace(" ", "_")
-        if formatted_approval_status in ["approved", "conditionally_approved"]:
-            f.write(f"IMAGE_APPROVAL_STATUS={formatted_approval_status}\n")
-            logging.debug(f"IMAGE_APPROVAL_STATUS={formatted_approval_status}")
-            logging.info(f"Is that you John Wayne?")
-            f.write(f'IMAGE_APPROVAL_TEXT="{approval_text}"\n')
-            logging.debug(f"IMAGE_APPROVAL_TEXT={approval_text}")
-        else:
-            f.write(f"IMAGE_APPROVAL_STATUS=notapproved\n")
-            logging.debug(f"IMAGE_APPROVAL_STATUS=notapproved")
-            pipeline_branch = os.environ["CI_COMMIT_BRANCH"]
-            if pipeline_branch == "master":
-                logging.error(
-                    "This container is not noted as an approved image in VAT. Unapproved images cannot run on master branch. Failing stage."
-                )
-                sys.exit(1)
         f.write(f"BASE_IMAGE={hardening_manifest['args']['BASE_IMAGE']}\n")
         f.write(f"BASE_TAG={hardening_manifest['args']['BASE_TAG']}")
         logging.debug(
@@ -531,7 +540,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             whitelist_branch=whitelist_branch,
         )
 
-    artifact_dir = os.environ["ARTIFACT_DIR"]
     logging.info(f"Artifact Directory: {artifact_dir}")
     filename = pathlib.Path(f"{artifact_dir}/vat-findings.json")
 
