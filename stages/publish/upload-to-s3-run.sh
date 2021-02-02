@@ -20,9 +20,9 @@ PROJECT_LICENSE="LICENSE"
 source "${PIPELINE_REPO_DIR}"/stages/publish/repo_map_vars.sh
 
 if [[ "${DISTROLESS:-}" ]]; then
-  python3 "${PIPELINE_REPO_DIR}"/stages/publish/create_repo_map_other.py --target ${BASE_BUCKET_DIRECTORY}/"${IMAGE_PATH}"/repo_map.json
+  python3 "${PIPELINE_REPO_DIR}"/stages/publish/create_repo_map_other.py --target "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/repo_map.json"
 else
-  python3 "${PIPELINE_REPO_DIR}"/stages/publish/create_repo_map_default.py --target ${BASE_BUCKET_DIRECTORY}/"${IMAGE_PATH}"/repo_map.json
+  python3 "${PIPELINE_REPO_DIR}"/stages/publish/create_repo_map_default.py --target "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/repo_map.json"
 fi
 
 mkdir reports
@@ -38,7 +38,7 @@ ls reports
 
 tar -zcvf "${REPORT_TAR_NAME}" reports
 
-python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file repo_map.json --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IM_NAME}/repo_map.json"
+python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file repo_map.json --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/repo_map.json"
 for file in $(find "${DOCUMENTATION_DIRECTORY}" -name "*" -type f); do
   object_path="${file#"$ARTIFACT_STORAGE/documentation/"}"
   python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "$file" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_DOCUMENTATION_DIRECTORY}/$object_path"
