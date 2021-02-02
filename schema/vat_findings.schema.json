@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/schema/vat_findings.schema.json",
+  "definitions": {
+    "printable-characters-without-newlines": {
+      "type": "string",
+      "pattern": "^[ -~]*$",
+      "minLength": 1
+    },
+    "docker-TagRegexp": {
+      "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
+      "type": "string",
+      "pattern": "^[\\w][\\w.-]{0,127}$"
+    },
+    "docker-name-and-tag": {
+      "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?:[\\w][\\w.-]{0,127}$"
+    },
+    "timestamp": {
+      "$comment": "Timestamp in 'YYYY-MM-DD HH:MM:SS' format",
+      "type": "string",
+      "pattern": "[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]"
+    }
+
+  },
+  "title": "VAT",
+  "description": "VAT Findings and Justifications Schema",
+  "type": "object",
+  "properties": {
+    "image": {
+      "$ref": "#/definitions/docker-name-and-tag"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "package": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "inheritance": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/definitions/docker-name-and-tag"
+              }
+            ]
+          },
+          "false_positive": {
+            "type": "boolean"
+          },
+          "expiration": {
+            "$ref": "#/definitions/timestamp"
+          },
+          "log": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "timestamp": {
+                  "$ref": "#/definitions/timestamp"
+                },
+                "text": {
+                  "$comment": "TODO: Do we want to allow newlines?",
+                  "$ref": "#/definitions/printable-characters-without-newlines"
+                },
+                "state": {
+                  "$comment": "TODO: Complete filling in this approval enum.",
+                  "type": "string",
+                  "enum": ["approved", "not_approved"]
+                },
+                "user": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "$comment": "TODO: Complete filling in this approvers enum.",
+                      "type": "string",
+                      "enum": ["container_approver", "findings_approver"]
+                    }
+                  },
+                  "required": ["name", "role"]
+                }
+              },
+              "required": ["timestamp", "text", "state", "user"]
+            }
+          }
+        },
+        "required": ["id", "package", "path", "inheritance", "false_positive", "log"]
+      },
+      "uniqueItems": true
+    },
+    "approval": {
+      "status": {
+        "$comment": "TODO: Complete filling in this approval enum.",
+        "type": "string",
+        "enum": ["approved", "not_approved"]
+      },
+      "expiration": {
+        "$ref": "#/definitions/timestamp"
+      },
+      "log": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "timestamp": {
+              "$comment": "TODO: Decide Timestamp regex for this field.",
+              "$ref": "#/definitions/timestamp"
+            },
+            "text": {
+              "$comment": "TODO: Do we want to allow newlines?",
+              "$ref": "#/definitions/printable-characters-without-newlines"
+            },
+            "user": {
+              "$ref": "#/definitions/printable-characters-without-newlines"
+            },
+            "state": {
+              "$comment": "TODO: Complete filling in this approval enum.",
+              "type": "string",
+              "enum": ["approved", "not_approved"]
+            },
+            "required": ["timestamp", "text", "state", "user"]
+          }
+        }
+      },
+      "required": ["status", "log"]
+    }
+  },
+  "required": ["image", "findings", "approval"]
+}
