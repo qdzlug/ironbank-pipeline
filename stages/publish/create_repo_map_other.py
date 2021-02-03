@@ -111,6 +111,7 @@ def main():
         f"{artifact_storage}/lint/image_approval.json"
     )
 
+    # all environment vars used for adding new data to the repo map must have a value set or they will throw a KeyError
     new_data = {
         os.environ["build_number"]: {
             "Anchore_Gates_Results": os.environ["anchore_gates_results"],
