@@ -346,6 +346,7 @@ def _vat_approval_query(im_name, im_version):
         approval_text = result[0][3]
     else:
         approval_status = "notapproved"
+        approval_text = None
     return approval_status, approval_text
 
 
@@ -497,9 +498,13 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             )
             sys.exit(1)
 
+    if approval_text:
+        approval_text = approval_text.rstrip()
+    else:
+        approval_text = ""
     image_approval = {
         "IMAGE_APPROVAL_STATUS": approval_status,
-        "IMAGE_APPROVAL_TEXT": approval_text.rstrip(),
+        "IMAGE_APPROVAL_TEXT": approval_text,
     }
 
     approval_status_file = pathlib.Path(f"{artifact_dir}/image_approval.json")
