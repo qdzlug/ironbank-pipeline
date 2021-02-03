@@ -346,6 +346,7 @@ def _vat_approval_query(im_name, im_version):
         approval_text = result[0][3]
     else:
         approval_status = "notapproved"
+        approval_text = None
     return approval_status, approval_text
 
 
