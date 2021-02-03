@@ -25,10 +25,10 @@ def main():
         url=os.environ["ANCHORE_SERVER_ADDRESS"],
         username=os.environ["ANCHORE_USERNAME"],
         password=os.environ["ANCHORE_PASSWORD"],
-        verify=os.getenv("ANCHORE_VERIFY", default=True),
+        verify=os.environ.get("ANCHORE_VERIFY", default=True),
     )
 
-    artifacts_path = os.getenv("ANCHORE_SCANS", default="/tmp/anchore_scans")
+    artifacts_path = os.environ.get("ANCHORE_SCANS", default="/tmp/anchore_scans")
 
     # Create the directory if it does not exist
     pathlib.Path(artifacts_path).mkdir(parents=True, exist_ok=True)
