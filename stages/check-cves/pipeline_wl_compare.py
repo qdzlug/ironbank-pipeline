@@ -211,7 +211,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         formatted_delta_list = _format_list(delta_list)
         for finding in formatted_delta_list:
             logging.error(f"{finding}")
-        if os.environ.get("CI_COMMIT_BRANCH") == "master":
+        if os.environ["CI_COMMIT_BRANCH"] == "master":
             pipeline_repo_dir = os.environ["PIPELINE_REPO_DIR"]
             subprocess.run(
                 [f"{pipeline_repo_dir}/stages/check-cves/mattermost-failure-webhook.sh"]
@@ -491,7 +491,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         else:
             f.write(f"IMAGE_APPROVAL_STATUS=notapproved\n")
             logging.debug(f"IMAGE_APPROVAL_STATUS=notapproved")
-            pipeline_branch = os.environ.get("CI_COMMIT_BRANCH")
+            pipeline_branch = os.environ["CI_COMMIT_BRANCH"]
             if pipeline_branch == "master":
                 logging.error(
                     "This container is not noted as an approved image in VAT. Unapproved images cannot run on master branch. Failing stage."
@@ -529,7 +529,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             whitelist_branch=whitelist_branch,
         )
 
-    artifact_dir = os.environ.get("ARTIFACT_DIR")
+    artifact_dir = os.environ["ARTIFACT_DIR"]
     logging.info(f"Artifact Directory: {artifact_dir}")
     filename = pathlib.Path(f"{artifact_dir}/vat-findings.json")
 
