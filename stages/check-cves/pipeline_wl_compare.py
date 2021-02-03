@@ -491,18 +491,15 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     if approval_status not in ["approved", "conditionally_approved"]:
         approval_status = "notapproved"
         logging.warning(f"IMAGE_APPROVAL_STATUS=notapproved")
-        pipeline_branch = os.environ["CI_COMMIT_BRANCH"]
-        if pipeline_branch == "master":
+        if os.environ["CI_COMMIT_BRANCH"] == "master":
             logging.error(
                 "This container is not noted as an approved image in VAT. Unapproved images cannot run on master branch. Failing stage."
             )
             sys.exit(1)
 
-    # remove any trailing newline characters from approval text
-    formatted_approval_text = approval_text.rstrip()
     image_approval = {
         "IMAGE_APPROVAL_STATUS": approval_status,
-        "IMAGE_APPROVAL_TEXT": formatted_approval_text,
+        "IMAGE_APPROVAL_TEXT": approval_text.rstrip(),
     }
 
     approval_status_file = pathlib.Path(f"{artifact_dir}/image_approval.json")
