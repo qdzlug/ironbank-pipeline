@@ -98,7 +98,6 @@ def main():
     tag_list = source_values(f"{artifact_storage}/preflight/tags.txt", "Tags")
     label_dict = _get_source_keys_values(f"{artifact_storage}/preflight/labels.env")
 
-    # openscap environment variables are optional since they may not be included for a distroless image
     # all os.environ[] fields are required and will throw a KeyError if not found
     new_data = {
         os.environ["build_number"]: {
