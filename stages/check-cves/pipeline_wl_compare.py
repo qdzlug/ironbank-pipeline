@@ -481,6 +481,8 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
     logging.debug("CONTAINER APPROVAL STATUS")
     logging.debug(approval_status)
+    logging.debug("CONTAINER APPROVAL TEXT")
+    logging.debug(approval_text)
 
     artifact_dir = os.environ["ARTIFACT_DIR"]
 
