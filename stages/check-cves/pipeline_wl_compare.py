@@ -498,9 +498,13 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             )
             sys.exit(1)
 
+    if approval_text:
+        approval_text = approval_text.rstrip()
+    else:
+        approval_text = ""
     image_approval = {
         "IMAGE_APPROVAL_STATUS": approval_status,
-        "IMAGE_APPROVAL_TEXT": approval_text.rstrip(),
+        "IMAGE_APPROVAL_TEXT": approval_text,
     }
 
     approval_status_file = pathlib.Path(f"{artifact_dir}/image_approval.json")
