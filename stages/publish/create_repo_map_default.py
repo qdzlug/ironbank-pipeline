@@ -74,8 +74,8 @@ def _get_approval_status(source_file):
     if os.path.exists(source_file):
         with open(source_file, mode="r", encoding="utf-8") as sf:
             approval_object = json.load(sf)
-    approval_status = image_approval_status["IMAGE_APPROVAL_STATUS"]
-    approval_text = image_approval_status["IMAGE_APPROVAL_TEXT"]
+    approval_status = approval_object["IMAGE_APPROVAL_STATUS"]
+    approval_text = approval_object["IMAGE_APPROVAL_TEXT"]
     return approval_status, approval_text
 
 
