@@ -889,12 +889,10 @@ def find_bumped_id(cursor, finding_id, versions):
     Find the log from the parent version to inherit from
     return version_bump_id
     """
-    finding_row_query = """
-    SELECT * FROM findings where id = %s
-    """
-    cursor.execute(finding_row_query, (finding_id,))
-    finding = cursor.fetchone()
-    find_parent_findings(cursor, row, lineage, scan_source)
+    bumped_findings = find_parent_findings(
+        cursor, row, versions["approved"], scan_source
+    )
+    return bumped_findings[0][0]
 
 
 def insert_new_log(cursor, finding_id, system_user_id):
@@ -1097,51 +1095,45 @@ def add_approved_logs_for_prev_version(
     parent_finding = parents[0][0] if parents else None
 
     if parent_finding:
-        add_bumped_logs(cursor, iid, versions, parents, row, finding_id, parent_finding)
+        add_bumped_logs(cursor, versions, finding_id, parent_finding)
 
 
-def add_bumped_logs(
-    cursor, iid, versions, parents, row, finding_id, parent_finding, scan_source
-):
+def add_bumped_logs(cursor, versions, finding_id, parent_finding, scan_source):
     """
     Adds the finding logs from the previous approved containers to the
     existing container
     """
+    # temp - determine if there are logs where record_type_active = 1
+    active_logs_query = """
+        SELECT id, record_type, state FROM finding_logs
+        WHERE finding_id = %s and record_type_active = 1 AND in_current_scan = 1
+        """
+    finding_tuple = (finding_id,)
+    cursor.execute(active_logs_query, prev_finding_tuple)
+    results = cursor.fetchall()
 
-    for root in parents:
-        # temp - determine if there are logs where record_type_active = 1
-        active_logs_query = """
-            SELECT id, record_type, state FROM finding_logs
-            WHERE finding_id = %s and record_type_active = 1 AND in_current_scan = 1
-            """
-        active_logs_tuple = (parent_finding,)
-        cursor.execute(active_findings_query, active_qry_tuple)
-        results = cursor.fetchall()
-        # These are approved so don't move them forward
-        # if record_type = 'state_change' and state = 'conditional' or state == 'approved'
-        #    continue
-        # else
-        #     not an approved finding
-        #     drop the log for the finding_id
-        #     add the logs from the approved finding from the parent
-        #     insert_logs_with_inheritance(cursor, parent_finding, finding_id, version_bump_id)
-        for line in results:
-            state = line[2]
-            if line[1] == "state_change" and (
-                state == "conditional" or state == "approved"
-            ):
-                continue
-            else:
-                version_bump_id = find_bumped_id(
-                    cursor, finding_id, versions, scan_source
-                )
-                insert_logs_with_inheritance(
-                    cursor, parent_finding, finding_id, version_bump_id
-                )
-                # Deletes the finding Log
-                delete_sql = "DELETE FROM `findings_log` " + "WHERE `approval_id` = %s"
-                delete_tuple = str(line[id])
-                cursor.execute(delete_sql, delete_tuple)
+    # These are approved so don't move them forward
+    # if record_type = 'state_change' and state = 'conditional' or state == 'approved'
+    #    continue
+    # else
+    #     not an approved finding
+    #     drop the log for the finding_id
+    #     add the logs from the approved finding from the parent
+    #     insert_logs_with_inheritance(cursor, parent_finding, finding_id, version_bump_id)
+    for line in results:
+        state = line[2]
+        if line[1] == "state_change" and (
+            state == "conditional" or state == "approved"
+        ):
+            return
+
+    version_bump_id = find_bumped_id(cursor, finding_id, versions, scan_source)
+    # Deletes the finding Logs
+    delete_sql = "DELETE FROM `finding_logs` WHERE `finding_id` = %s"
+    delete_tuple = (finding_id,)
+    cursor.execute(delete_sql, delete_tuple)
+
+    insert_logs_with_inheritance(cursor, parent_finding, finding_id, version_bump_id)
 
 
 def update_inheritance_id(findings):
@@ -1680,7 +1672,7 @@ def main():
         # update_inheritance_id(d_f)
 
         if versions["unapproved"]:
-            set_approval_state(iid)
+            set_approval_state(iid, versions)
 
     else:
         logs.warning("newer scan exists not inserting scan report")
