@@ -70,6 +70,15 @@ def _get_source_keys_values(source_file):
     return hm_labels
 
 
+def _get_approval_status(source_file):
+    if os.path.exists(source_file):
+        with open(source_file, mode="r", encoding="utf-8") as sf:
+            approval_object = json.load(sf)
+    approval_status = approval_object["IMAGE_APPROVAL_STATUS"]
+    approval_text = approval_object["IMAGE_APPROVAL_TEXT"]
+    return approval_status, approval_text
+
+
 def main():
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
@@ -98,6 +107,10 @@ def main():
     tag_list = source_values(f"{artifact_storage}/preflight/tags.txt", "Tags")
     label_dict = _get_source_keys_values(f"{artifact_storage}/preflight/labels.env")
 
+    approval_status, approval_text = _get_approval_status(
+        f"{artifact_storage}/lint/image_approval.json"
+    )
+
     new_data = {
         os.environ.get("build_number"): {
             "Anchore_Gates_Results": os.environ.get("anchore_gates_results"),
@@ -115,7 +128,8 @@ def main():
             "Tar_Name": os.environ.get("tar_name"),
             "Image_Tag": os.environ.get("image_tag"),
             "Manifest_Name": os.environ.get("manifest_name"),
-            "Approval_Status": os.environ.get("approval_status"),
+            "Approval_Status": approval_status,
+            "Approval_Text": approval_text,
             "Image_Name": os.environ.get("image_name"),
             "Version_Documentation": os.environ.get("version_documentation"),
             "PROJECT_FILE": os.environ.get("project_license"),
@@ -128,6 +142,8 @@ def main():
             "Labels": label_dict,
         }
     }
+
+    logging.debug(f"repo_map data:\n{new_data}")
 
     if existing_repomap:
         with open("repo_map.json", "r+") as f:
