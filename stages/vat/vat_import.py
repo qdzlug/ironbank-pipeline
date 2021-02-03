@@ -1064,9 +1064,10 @@ def insert_scan(data, iid, scan_source, versions):
         for index, row in data.iterrows():
             finding_id = insert_finding(cursor, iid, scan_source, index, row)
             insert_finding_scan(cursor, row, finding_id)
-            if versions["add_logs"]:
-                find_parent_findings(cursor, row, versions["approved"], scan_source)
-                add_bumped_logs(cursor, versions)
+            if versions["new_version"]:
+                add_approved_logs_for_prev_version(
+                    cursor, iid, row, versions, scan_source, finding_id, lineage
+                )
             update_finding_logs(cursor, iid, row, finding_id, scan_source, lineage)
 
     except Error as error:
@@ -1075,6 +1076,72 @@ def insert_scan(data, iid, scan_source, versions):
         if conn is not None and conn.is_connected():
             conn.commit()
             conn.close()
+
+
+def find_bumped_id(cursor, finding_id, versions, scan_source):
+    """
+    Find the log from the parent version to inherit from
+    return version_bump_id
+    """
+    bumped_findings = find_parent_findings(
+        cursor, row, versions["approved"], scan_source
+    )
+    return bumped_findings[0][0]
+
+
+def add_approved_logs_for_prev_version(
+    cursor, iid, row, versions, scan_source, finding_id, lineage
+):
+    # temp - gets a list of finding and container id pairs
+    parents = find_parent_findings(cursor, row, lineage, scan_source)
+    parent_finding = parents[0][0] if parents else None
+
+    if parent_finding:
+        add_bumped_logs(cursor, iid, versions, parents, row, finding_id, parent_finding)
+
+
+def add_bumped_logs(
+    cursor, iid, versions, parents, row, finding_id, parent_finding, scan_source
+):
+    """
+    Adds the finding logs from the previous approved containers to the
+    existing container
+    """
+
+    for root in parents:
+        # temp - determine if there are logs where record_type_active = 1
+        active_logs_query = """
+            SELECT id, record_type, state FROM finding_logs
+            WHERE finding_id = %s and record_type_active = 1 AND in_current_scan = 1
+            """
+        active_logs_tuple = (parent_finding,)
+        cursor.execute(active_findings_query, active_qry_tuple)
+        results = cursor.fetchall()
+        # These are approved so don't move them forward
+        # if record_type = 'state_change' and state = 'conditional' or state == 'approved'
+        #    continue
+        # else
+        #     not an approved finding
+        #     drop the log for the finding_id
+        #     add the logs from the approved finding from the parent
+        #     insert_logs_with_inheritance(cursor, parent_finding, finding_id, version_bump_id)
+        for line in results:
+            state = line[2]
+            if line[1] == "state_change" and (
+                state == "conditional" or state == "approved"
+            ):
+                continue
+            else:
+                version_bump_id = find_bumped_id(
+                    cursor, finding_id, versions, scan_source
+                )
+                insert_logs_with_inheritance(
+                    cursor, parent_finding, finding_id, version_bump_id
+                )
+                # Deletes the finding Log
+                delete_sql = "DELETE FROM `findings_log` " + "WHERE `approval_id` = %s"
+                delete_tuple = str(line[id])
+                cursor.execute(delete_sql, delete_tuple)
 
 
 def update_inheritance_id(findings):
@@ -1525,15 +1592,6 @@ def findings_are_equal(cursor, container_id, last_version_id):
                 df_inter_len,
             )
             return False
-
-
-def copy_finding_logs(cursor, container_id, last_version_id):
-    """
-    This will copy the finding_logs from the last conatiner version
-    to the current container.
-    Need approval state and justification, but want the entire row copied
-    """
-    logs.debug("In copy_finding_logs")
 
 
 def set_approval_state(cursor, container_id, last_version_id):
