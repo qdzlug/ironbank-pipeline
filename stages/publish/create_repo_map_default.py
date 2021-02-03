@@ -73,7 +73,7 @@ def _get_source_keys_values(source_file):
 def _get_approval_status(source_file):
     if os.path.exists(source_file):
         with open(source_file, mode="r", encoding="utf-8") as sf:
-            image_approval_status = json.load(sf)
+            approval_object = json.load(sf)
     approval_status = image_approval_status["IMAGE_APPROVAL_STATUS"]
     approval_text = image_approval_status["IMAGE_APPROVAL_TEXT"]
     return approval_status, approval_text
