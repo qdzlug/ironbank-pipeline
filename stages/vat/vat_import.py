@@ -467,7 +467,7 @@ def find_all_versions(cursor, container_id):
     else:
         add_logs = False
     container_versions["add_logs"] = add_logs
-    new_version = new_container_version(versions, container_id)
+    new_version = new_container_version(container_versions, container_id)
     container_versions["new_version"] = new_version
 
     logs.debug(f"Container versions: {container_versions}")
@@ -1076,7 +1076,7 @@ def insert_scan(data, iid, scan_source, versions):
             conn.close()
 
 
-def find_bumped_id(cursor, finding_id, versions, scan_source):
+def find_bumped_id(cursor, row, finding_id, versions, scan_source):
     """
     Find the log from the parent version to inherit from
     return version_bump_id
@@ -1095,10 +1095,10 @@ def add_approved_logs_for_prev_version(
     parent_finding = parents[0][0] if parents else None
 
     if parent_finding:
-        add_bumped_logs(cursor, versions, finding_id, parent_finding)
+        add_bumped_logs(cursor, row, versions, finding_id, parent_finding, scan_source)
 
 
-def add_bumped_logs(cursor, versions, finding_id, parent_finding, scan_source):
+def add_bumped_logs(cursor, row, versions, finding_id, parent_finding, scan_source):
     """
     Adds the finding logs from the previous approved containers to the
     existing container
@@ -1109,7 +1109,7 @@ def add_bumped_logs(cursor, versions, finding_id, parent_finding, scan_source):
         WHERE finding_id = %s and record_type_active = 1 AND in_current_scan = 1
         """
     finding_tuple = (finding_id,)
-    cursor.execute(active_logs_query, prev_finding_tuple)
+    cursor.execute(active_logs_query, finding_tuple)
     results = cursor.fetchall()
 
     # These are approved so don't move them forward
@@ -1127,7 +1127,7 @@ def add_bumped_logs(cursor, versions, finding_id, parent_finding, scan_source):
         ):
             return
 
-    version_bump_id = find_bumped_id(cursor, finding_id, versions, scan_source)
+    version_bump_id = find_bumped_id(cursor, row, finding_id, versions, scan_source)
     # Deletes the finding Logs
     delete_sql = "DELETE FROM `finding_logs` WHERE `finding_id` = %s"
     delete_tuple = (finding_id,)
@@ -1586,48 +1586,64 @@ def findings_are_equal(cursor, container_id, last_version_id):
             return False
 
 
-def set_approval_state(cursor, container_id, last_version_id):
+def set_approval_state(container_id, version):
     """
     This will enter the container log entry for the version update.
     """
 
     logs.debug("In set_approval_state")
 
-    get_container_info = "SELECT name, version FROM containers WHERE id = %s"
-    get_info_tuple = (str(last_version_id),)
-    cursor.execute(get_container_info, get_info_tuple)
-    container_info = cursor.fetchone()
-    container_name = container_info[0]
-    container_version = container_info[1]
+    container_list = version["approved"]
+    container_list.sort()
+    last_container_id = container_list[-1]
 
-    last_log_query = "SELECT id, type, text, user_id, date_time FROM container_log WHERE imageid = %s"
-    last_log_tuple = (str(last_version_id),)
-    logs.debug(last_log_query % last_log_tuple)
-    cursor.execute(last_log_query, last_log_tuple)
-    container_logs = cursor.fetchall()
+    conn = connect_to_db()
+    try:
+       cursor = conn.cursor()
 
-    insert_log_sql = (
-        "INSERT INTO `container_log` (id, imageid, user_id, type, text, date_time) VALUES "
-        + "(%s, %s, %s, %s, %s)"
-    )
-    for log in container_logs:
-        container_log_type = log[1]
-        container_log_text = log[2]
-        container_log_userid = log[3]
-        container_log_datetime = log[4]
-        text = "{} - Approval derived from previous version {}:{}".format(
-            container_log_text, container_name, container_version
-        )
-        insert_log_tuple = (
-            None,
-            container_id,
-            container_log_userid,  # This should probably stay with the approver name
-            container_log_type,
-            text,
-            container_log_datetime,
-        )
-        logs.debug(insert_log_sql % insert_log_tuple)
-        cursor.execute(insert_log_sql, insert_log_tuple)
+       get_container_info = "SELECT name, version FROM containers WHERE id = %s"
+       get_info_tuple = (str(last_container_id),)
+       cursor.execute(get_container_info, get_info_tuple)
+       container_info = cursor.fetchone()
+       container_name = container_info[0]
+       container_version = container_info[1]
+
+       last_log_query = """
+       SELECT id, type, text, user_id, date_time FROM container_log WHERE imageid = %s"""
+       last_log_tuple = (str(last_container_id),)
+       logs.debug(last_log_query % last_log_tuple)
+       cursor.execute(last_log_query, last_log_tuple)
+       container_logs = cursor.fetchall()
+
+       insert_log_sql = """
+           INSERT INTO container_log (id, imageid, user_id, type, text, date_time) VALUES
+           (%s, %s, %s, %s, %s, %s)"""
+       for log in container_logs:
+           container_log_type = log[1]
+           container_log_text = log[2]
+           container_log_userid = log[3]
+           container_log_datetime = log[4]
+           text = "{} - Approval derived from previous version {}:{}".format(
+               container_log_text, container_name, container_version
+           )
+           insert_log_tuple = (
+               None,
+               container_id,
+               container_log_userid,  # This should probably stay with the approver name
+               container_log_type,
+               text,
+               container_log_datetime,
+           )
+           logs.debug(insert_log_sql % insert_log_tuple)
+           cursor.execute(insert_log_sql, insert_log_tuple)
+           conn.commit()
+
+    except Error as error:
+        logs.error(f"Error in set_approval_state: {error}")
+    finally:
+        if conn is not None and conn.is_connected():
+            conn.close()
+
 
 
 def set_version_log_and_auto_approval(container_id):
@@ -1643,7 +1659,6 @@ def set_version_log_and_auto_approval(container_id):
         cursor = conn.cursor()
         last_version_id = get_last_version(cursor, container_id)
         if last_version_id:
-            copy_finding_logs(cursor, container_id, last_version_id)
             set_approval_state(cursor, container_id, last_version_id)
             conn.commit()
 
@@ -1671,7 +1686,7 @@ def main():
         # d_f = get_all_inheritable_findings(iid) TO DO: I think we can get rid of these two
         # update_inheritance_id(d_f)
 
-        if versions["unapproved"]:
+        if iid in versions["unapproved"]:
             set_approval_state(iid, versions)
 
     else:
