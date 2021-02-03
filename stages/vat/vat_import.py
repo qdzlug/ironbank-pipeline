@@ -1599,51 +1599,50 @@ def set_approval_state(container_id, version):
 
     conn = connect_to_db()
     try:
-       cursor = conn.cursor()
+        cursor = conn.cursor()
 
-       get_container_info = "SELECT name, version FROM containers WHERE id = %s"
-       get_info_tuple = (str(last_container_id),)
-       cursor.execute(get_container_info, get_info_tuple)
-       container_info = cursor.fetchone()
-       container_name = container_info[0]
-       container_version = container_info[1]
+        get_container_info = "SELECT name, version FROM containers WHERE id = %s"
+        get_info_tuple = (str(last_container_id),)
+        cursor.execute(get_container_info, get_info_tuple)
+        container_info = cursor.fetchone()
+        container_name = container_info[0]
+        container_version = container_info[1]
 
-       last_log_query = """
+        last_log_query = """
        SELECT id, type, text, user_id, date_time FROM container_log WHERE imageid = %s"""
-       last_log_tuple = (str(last_container_id),)
-       logs.debug(last_log_query % last_log_tuple)
-       cursor.execute(last_log_query, last_log_tuple)
-       container_logs = cursor.fetchall()
+        last_log_tuple = (str(last_container_id),)
+        logs.debug(last_log_query % last_log_tuple)
+        cursor.execute(last_log_query, last_log_tuple)
+        container_logs = cursor.fetchall()
 
-       insert_log_sql = """
+        insert_log_sql = """
            INSERT INTO container_log (id, imageid, user_id, type, text, date_time) VALUES
            (%s, %s, %s, %s, %s, %s)"""
-       for log in container_logs:
-           container_log_type = log[1]
-           container_log_text = log[2]
-           container_log_userid = log[3]
-           container_log_datetime = log[4]
-           text = "{} - Approval derived from previous version {}:{}".format(
-               container_log_text, container_name, container_version
-           )
-           insert_log_tuple = (
-               None,
-               container_id,
-               container_log_userid,  # This should probably stay with the approver name
-               container_log_type,
-               text,
-               container_log_datetime,
-           )
-           logs.debug(insert_log_sql % insert_log_tuple)
-           cursor.execute(insert_log_sql, insert_log_tuple)
-           conn.commit()
+        for log in container_logs:
+            container_log_type = log[1]
+            container_log_text = log[2]
+            container_log_userid = log[3]
+            container_log_datetime = log[4]
+            text = "{} - Approval derived from previous version {}:{}".format(
+                container_log_text, container_name, container_version
+            )
+            insert_log_tuple = (
+                None,
+                container_id,
+                container_log_userid,  # This should probably stay with the approver name
+                container_log_type,
+                text,
+                container_log_datetime,
+            )
+            logs.debug(insert_log_sql % insert_log_tuple)
+            cursor.execute(insert_log_sql, insert_log_tuple)
+            conn.commit()
 
     except Error as error:
         logs.error(f"Error in set_approval_state: {error}")
     finally:
         if conn is not None and conn.is_connected():
             conn.close()
-
 
 
 def set_version_log_and_auto_approval(container_id):
