@@ -485,10 +485,8 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     artifact_dir = os.environ["ARTIFACT_DIR"]
 
     # all cves for container have container approval at ind 2
-    formatted_approval_status = approval_status.lower().replace(" ", "_")
-    if formatted_approval_status in ["approved", "conditionally_approved"]:
-        approval_status = formatted_approval_status
-    else:
+    approval_status = approval_status.lower().replace(" ", "_")
+    if approval_status not in ["approved", "conditionally_approved"]:
         approval_status = "notapproved"
         logging.warning(f"IMAGE_APPROVAL_STATUS=notapproved")
         pipeline_branch = os.environ["CI_COMMIT_BRANCH"]
