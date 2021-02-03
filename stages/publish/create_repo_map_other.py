@@ -70,6 +70,15 @@ def _get_source_keys_values(source_file):
     return hm_labels
 
 
+def _get_approval_status(source_file):
+    if os.path.exists(source_file):
+        with open(source_file, mode="r", encoding="utf-8") as sf:
+            approval_object = json.load(sf)
+    approval_status = approval_object["IMAGE_APPROVAL_STATUS"]
+    approval_text = approval_object["IMAGE_APPROVAL_TEXT"]
+    return approval_status, approval_text
+
+
 def main():
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
@@ -98,7 +107,10 @@ def main():
     tag_list = source_values(f"{artifact_storage}/preflight/tags.txt", "Tags")
     label_dict = _get_source_keys_values(f"{artifact_storage}/preflight/labels.env")
 
-    # all os.environ[] fields are required and will throw a KeyError if not found
+    approval_status, approval_text = _get_approval_status(
+        f"{artifact_storage}/lint/image_approval.json"
+    )
+
     new_data = {
         os.environ["build_number"]: {
             "Anchore_Gates_Results": os.environ["anchore_gates_results"],
@@ -129,6 +141,8 @@ def main():
             "Labels": label_dict,
         }
     }
+
+    logging.debug(f"repo_map data:\n{new_data}")
 
     if existing_repomap:
         with open("repo_map.json", "r+") as f:
