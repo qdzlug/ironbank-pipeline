@@ -890,9 +890,11 @@ def find_bumped_id(cursor, row, finding_id, versions, scan_source):
     return version_bump_id
     """
     try:
-        bumped_findings = find_parent_findings(
-            cursor, row, versions["approved"], scan_source
-        )
+        logs.debug(f"Entering Find bumped id for {finding_id}")
+        versions["approved"].sort()
+        last_approved = versions["approved"][-1:]
+        bumped_findings = find_parent_findings(cursor, row, last_approved, scan_source)
+        logs.debug(f"Bumped Findings {bumped_findings}")
         if bumped_findings == None:
             return None
         return bumped_findings[0][0]
@@ -1069,6 +1071,7 @@ def insert_scan(data, iid, scan_source, versions):
             finding_id = insert_finding(cursor, iid, scan_source, index, row)
             insert_finding_scan(cursor, row, finding_id)
             if versions["new_version"]:
+                logs.debug(f"New Version - Bumping Approval for {args.container}")
                 add_approved_logs_for_prev_version(
                     cursor, iid, row, versions, scan_source, finding_id, lineage
                 )
@@ -1085,11 +1088,13 @@ def insert_scan(data, iid, scan_source, versions):
 def add_approved_logs_for_prev_version(
     cursor, iid, row, versions, scan_source, finding_id, lineage
 ):
-    # temp - gets a list of finding and container id pairs
+    logs.debug("Entering Add Approved Logs")
+    version_bump_id = find_bumped_id(cursor, row, finding_id, versions, scan_source)
     parents = find_parent_findings(cursor, row, lineage, scan_source)
     parent_finding = parents[0][0] if parents else None
 
-    if parent_finding:
+    if version_bump_id:
+        logs.debug("Found Prev Version Finding")
         add_bumped_logs(cursor, row, versions, finding_id, parent_finding, scan_source)
 
 
@@ -1107,14 +1112,6 @@ def add_bumped_logs(cursor, row, versions, finding_id, parent_finding, scan_sour
     cursor.execute(active_logs_query, finding_tuple)
     results = cursor.fetchall()
 
-    # These are approved so don't move them forward
-    # if record_type = 'state_change' and state = 'conditional' or state == 'approved'
-    #    continue
-    # else
-    #     not an approved finding
-    #     drop the log for the finding_id
-    #     add the logs from the approved finding from the parent
-    #     insert_logs_with_inheritance(cursor, parent_finding, finding_id, version_bump_id)
     for line in results:
         state = line[2]
         if line[1] == "state_change" and (
