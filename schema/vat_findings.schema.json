@@ -6,8 +6,17 @@
 
     "TimestampRegex": {
       "$comment": "TODO: Get this regex",
-      "description": "Timestamp in 'YYYY-MM-DD HH:MM:SS' format",
-      "type": "string"
+      "description": "Timestamp in 'YYYY-MM-DDTHH:MM:SS.sssZ' format (RFC3389 Zulu)",
+      "type": "string",
+      "pattern": "^[2-9][0-9]{1,3}-[0-9]{1,2}-[0-9]{1,2}T[0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}.[0-9]{1,3}Z$"
+
+    },
+
+
+    "DockerTagRegex": {
+      "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
+      "type": "string",
+      "pattern": "^[\\w][\\w.-]{0,127}$"
     },
 
 
@@ -15,6 +24,13 @@
       "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
       "type": "string",
       "pattern": "^[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?:[\\w][\\w.-]{0,127}$"
+    },
+
+
+    "DockerNameWithoutDomainRegex": {
+      "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?$"
     },
 
 
@@ -63,7 +79,6 @@
 
     "UserRoleEnum": {
       "type": "string",
-      "$comment": "TODO: Find out all of the roles",
       "description": "The roles a user can hold",
       "enum": [
         "container_contributor",
@@ -179,7 +194,6 @@
         },
         "inheritsFrom": {
           "description": "A non-empty array implies the finding is inherited. Array of ubi/ubi8:8.2 etc ordered from oldest parent image (first) to immediate parent (last) [Could be the opposite]. Finding will be present in the first element of the array.",
-
           "type": "array",
           "items": [
             { "$ref": "#/definitions/DockerNameAndTagRegex" }
@@ -274,10 +288,10 @@
   "type": "object",
   "properties": {
     "imageName": {
-      "type": "string"
+      "$ref": "#/definitions/DockerNameWithoutDomainRegex"
     },
     "imageTag": {
-      "type": "string"
+      "$ref": "#/definitions/DockerTagRegex"
     },
     "containerState": {
       "$ref": "#/definitions/ContainerStateEnum"
