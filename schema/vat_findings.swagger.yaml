@@ -44,11 +44,21 @@ paths:
         '400':
           description: Bad Request, missing either parameter
           schema:
-            $ref: '#/definitions/ApiErrorResponse'
+            allOf:
+              - $ref: '#/definitions/ApiErrorResponse'
+              - properties:
+                  statusCode:
+                    enum:
+                    - 400
         '404':
           description: Container not found
           schema:
-            $ref: '#/definitions/ApiErrorResponse'
+            allOf:
+              - $ref: '#/definitions/ApiErrorResponse'
+              - properties:
+                  statusCode:
+                    enum:
+                    - 404
 definitions:
   ApiErrorResponse:
     description: Generic HTTP API error response
@@ -218,7 +228,7 @@ definitions:
       findingsState:
         $ref: '#/definitions/FindingStateEnum'
       inheritsFrom:
-        description: 'A non-empty array implies the finding is inherited. Array of ubi/ubi8:8.2 etc ordered from oldest parent image (first) to immediate parent (last) [Could be the opposite]. Finding will be present in the first element of the array.'
+        description: 'A non-empty array implies the finding is inherited. Array of ubi/ubi8:8.2 etc ordered from oldest parent image (first) to immediate parent (last). Finding will be present in the first element of the array.'
         type: array
         items:
           $ref: '#/definitions/DockerNameAndTagRegex'
