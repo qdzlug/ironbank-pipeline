@@ -82,7 +82,7 @@ def main():
         sys.exit(1)
 
     image_name = hardening_manifest["name"]
-    wl_branch = os.getenv("WL_TARGET_BRANCH", default="master")
+    wl_branch = os.environ.get("WL_TARGET_BRANCH", default="master")
 
     # get cves and justifications from VAT
     total_whitelist = _get_complete_whitelist_for_image(
