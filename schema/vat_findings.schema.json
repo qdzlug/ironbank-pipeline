@@ -18,7 +18,6 @@
     },
 
 
-
     "ContainerStateEnum": {
       "type": "string",
       "description": "Any state other than 'Approved' or 'Conditionally Approved' are considered unapproved",
@@ -172,20 +171,34 @@
         "package": {
           "type": "string"
         },
+        "packagePath": {
+          "type": "string"
+        },
         "findingsState": {
           "$ref": "#/definitions/FindingStateEnum"
         },
         "inheritsFrom": {
+          "description": "A non-empty array implies the finding is inherited. Array of ubi/ubi8:8.2 etc ordered from oldest parent image (first) to immediate parent (last) [Could be the opposite]. Finding will be present in the first element of the array.",
+
           "type": "array",
           "items": [
             { "$ref": "#/definitions/DockerNameAndTagRegex" }
           ]
         },
-        "contributor": { "$ref": "#/definitions/FindingsContributor" },
-        "reviewer": { "$ref": "#/definitions/FindingsReviewer" },
-        "approver": { "$ref": "#/definitions/FindingsApprover" }
+        "contributor": {
+          "description": "This object will be missing if there is no justification text",
+          "$ref": "#/definitions/FindingsContributor"
+        },
+        "reviewer": {
+          "description": "This object will only exist if there is a contributor. Will be missing until the reviewer has performed an action.",
+          "$ref": "#/definitions/FindingsReviewer"
+        },
+        "approver": {
+          "description": "This object will only exist if there is a reviewer. May be missing if there is no approval action.",
+          "$ref": "#/definitions/FindingsApprover"
+        }
       },
-      "required": ["identifier", "source", "description", "findingsState"]
+      "required": ["identifier", "source", "description", "findingsState", "inheritsFrom"]
     },
 
 
@@ -237,6 +250,9 @@
       "properties": {
         "state": {
           "$ref": "#/definitions/FindingStateEnum"
+        },
+        "expires": {
+          "$ref": "#definitions/TimestampRegex"
         },
         "date": {
           "$ref": "#definitions/TimestampRegex"
