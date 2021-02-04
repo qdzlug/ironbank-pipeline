@@ -4,13 +4,13 @@ info:
   version: 0.0.1
   title: VAT API Server
   contact:
-    email: jpetersen@anchore.com
+    email: ironbank@dsop.io
   license:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
 tags:
   - name: Container
-    description: Container Findings
+    description: Container findings with approval chain
 basePath: /api
 schemes:
   - http
@@ -62,7 +62,7 @@ definitions:
       error:
         type: string
   Container:
-    description: Container description
+    description: Container definition including all findings and approval logs
     type: object
     properties:
       imageName:
@@ -160,7 +160,7 @@ definitions:
       email:
         type: string
       role:
-        enum: 
+        enum:
           - container_approver
     required:
       - name
