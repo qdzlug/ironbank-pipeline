@@ -38,11 +38,11 @@ paths:
           description: Specific tag for the image
       responses:
         '200':
-          description: Delete success
+          description: Successfully return a container with findings
           schema:
             $ref: '#/definitions/Container'
         '400':
-          description: Internal Error
+          description: Bad Request, missing either parameter
           schema:
             $ref: '#/definitions/ApiErrorResponse'
         '404':
