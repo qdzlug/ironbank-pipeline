@@ -884,7 +884,7 @@ def insert_logs_with_inheritance(cursor, parent_finding, finding_id, version_bum
         insert_finding_log(cursor, new_values)
 
 
-def find_bumped_id(cursor, finding_id, versions):
+def find_bumped_id(cursor, row, finding_id, versions, scan_source):
     """
     Find the log from the parent version to inherit from
     return version_bump_id
