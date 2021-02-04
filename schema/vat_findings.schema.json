@@ -4,11 +4,19 @@
   "definitions": {
 
 
-    "Timestamp": {
+    "TimestampRegex": {
       "$comment": "TODO: Get this regex",
       "description": "Timestamp in 'YYYY-MM-DD HH:MM:SS' format",
       "type": "string"
     },
+
+
+    "DockerNameAndTagRegex": {
+      "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?:[\\w][\\w.-]{0,127}$"
+    },
+
 
 
     "ContainerStateEnum": {
@@ -54,13 +62,32 @@
     },
 
 
-    "UserRoles": {
+    "UserRoleEnum": {
       "type": "string",
+      "$comment": "TODO: Find out all of the roles",
       "description": "The roles a user can hold",
       "enum": [
+        "container_contributor",
         "container_approver",
         "findings_approver"
       ]
+    },
+
+
+    "UserStrictContainerFindingsApprover": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "role": {
+          "enum": ["findings_approver", "container_approver"]
+        }
+      },
+      "required": ["name", "email", "role"]
     },
 
 
@@ -91,7 +118,7 @@
           "type": "string"
         },
         "role": {
-          "$ref": "#/definitions/UserRoles"
+          "$ref": "#/definitions/UserRoleEnum"
         }
       },
       "required": ["name", "email", "role"]
@@ -103,10 +130,10 @@
       "type": "object",
       "properties": {
         "expires": {
-          "$ref": "#definitions/Timestamp"
+          "$ref": "#definitions/TimestampRegex"
         },
         "date": {
-          "$ref": "#definitions/Timestamp"
+          "$ref": "#definitions/TimestampRegex"
         },
         "comment": {
           "type": "string"
@@ -135,9 +162,93 @@
         "identifier": {
           "description": "TODO: ASCII minus newlines - no whitespace?",
           "type": "string"
+        },
+        "source": {
+          "$ref": "#/definitions/ScanSourceEnum"
+        },
+        "description": {
+          "type": "string"
+        },
+        "package": {
+          "type": "string"
+        },
+        "findingsState": {
+          "$ref": "#/definitions/FindingStateEnum"
+        },
+        "inheritsFrom": {
+          "type": "array",
+          "items": [
+            { "$ref": "#/definitions/DockerNameAndTagRegex" }
+          ]
+        },
+        "contributor": { "$ref": "#/definitions/FindingsContributor" },
+        "reviewer": { "$ref": "#/definitions/FindingsReviewer" },
+        "approver": { "$ref": "#/definitions/FindingsApprover" }
+      },
+      "required": ["identifier", "source", "description", "findingsState"]
+    },
+
+
+    "FindingsContributor": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "$ref": "#/definitions/FindingStateEnum"
+        },
+        "date": {
+          "$ref": "#definitions/TimestampRegex"
+        },
+        "justification": {
+          "type": "string"
+        },
+        "user": {
+          "$ref": "#/definitions/User"
         }
       },
-      "required": ["identifier"]
+      "required": ["state", "date", "justification", "user"]
+    },
+
+
+    "FindingsReviewer": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "$ref": "#/definitions/FindingStateEnum"
+        },
+        "date": {
+          "$ref": "#definitions/TimestampRegex"
+        },
+        "comment": {
+          "type": "string"
+        },
+        "falsePositive": {
+          "type": "boolean"
+        },
+        "user": {
+          "$ref": "#/definitions/User"
+        }
+      },
+      "required": ["state", "date", "comment", "user"]
+    },
+
+
+    "FindingsApprover": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "$ref": "#/definitions/FindingStateEnum"
+        },
+        "date": {
+          "$ref": "#definitions/TimestampRegex"
+        },
+        "comment": {
+          "type": "string"
+        },
+        "user": {
+          "$ref": "#/definitions/UserStrictContainerFindingsApprover"
+        }
+      },
+      "required": ["state", "date", "comment", "user"]
     }
   },
 
@@ -157,7 +268,7 @@
     },
     "earliestExpiration": {
       "description": "Only exists if either the container OR any of the findings have an expiration. Computed field of the earliest date that either the container or any of the findings expires. This may be a date in the past, if the container or the finding is expired",
-      "$ref": "#/definitions/Timestamp"
+      "$ref": "#/definitions/TimestampRegex"
     },
     "approver": {
       "description": "Only exists if the container is approved or conditionally approved",
