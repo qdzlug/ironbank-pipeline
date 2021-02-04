@@ -1081,6 +1081,7 @@ def insert_scan(data, iid, scan_source, versions):
             conn.commit()
             conn.close()
 
+
 def add_approved_logs_for_prev_version(
     cursor, iid, row, versions, scan_source, finding_id, lineage
 ):
