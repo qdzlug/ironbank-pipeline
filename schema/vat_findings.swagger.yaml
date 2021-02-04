@@ -46,7 +46,7 @@ paths:
           schema:
             $ref: '#/definitions/ApiErrorResponse'
         '404':
-          description: Policy not found to delete
+          description: Container not found
           schema:
             $ref: '#/definitions/ApiErrorResponse'
 definitions:
