@@ -893,7 +893,7 @@ def find_bumped_id(cursor, row, finding_id, versions, scan_source):
         bumped_findings = find_parent_findings(
             cursor, row, versions["approved"], scan_source
         )
-        if bumped_findings = None:
+        if bumped_findings == None:
             return None
         return bumped_findings[0][0]
     except Error as error:
