@@ -896,7 +896,7 @@ def find_bumped_id(cursor, row, finding_id, versions, scan_source):
         return bumped_findings[0][0]
     except Error as error:
         logs.error(error)
-        return None
+    return None
 
 
 def insert_new_log(cursor, finding_id, system_user_id):
