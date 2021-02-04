@@ -1,140 +1,171 @@
 {
   "$schema": "https://json-schema.org/draft/2019-09/schema",
-  "$id": "https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/schema/vat_findings.schema.json",
+  "$id": "https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/schema/hardening_manifest.schema.json",
   "definitions": {
-    "printable-characters-without-newlines": {
-      "type": "string",
-      "pattern": "^[ -~]*$",
-      "minLength": 1
-    },
-    "docker-TagRegexp": {
-      "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
-      "type": "string",
-      "pattern": "^[\\w][\\w.-]{0,127}$"
-    },
-    "docker-name-and-tag": {
-      "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
-      "type": "string",
-      "pattern": "^[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?:[\\w][\\w.-]{0,127}$"
-    },
-    "timestamp": {
-      "$comment": "Timestamp in 'YYYY-MM-DD HH:MM:SS' format",
-      "type": "string",
-      "pattern": "[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]"
-    }
 
-  },
-  "title": "VAT",
-  "description": "VAT Findings and Justifications Schema",
-  "type": "object",
-  "properties": {
-    "image": {
-      "$ref": "#/definitions/docker-name-and-tag"
+
+    "Timestamp": {
+      "$comment": "TODO: Get this regex",
+      "description": "Timestamp in 'YYYY-MM-DD HH:MM:SS' format",
+      "type": "string"
     },
-    "findings": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "package": {
-            "type": "string"
-          },
-          "path": {
-            "type": "string"
-          },
-          "inheritance": {
-            "type": "array",
-            "items": [
-              {
-                "$ref": "#/definitions/docker-name-and-tag"
-              }
-            ]
-          },
-          "false_positive": {
-            "type": "boolean"
-          },
-          "expiration": {
-            "$ref": "#/definitions/timestamp"
-          },
-          "log": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "timestamp": {
-                  "$ref": "#/definitions/timestamp"
-                },
-                "text": {
-                  "$comment": "TODO: Do we want to allow newlines?",
-                  "$ref": "#/definitions/printable-characters-without-newlines"
-                },
-                "state": {
-                  "$comment": "TODO: Complete filling in this approval enum.",
-                  "type": "string",
-                  "enum": ["approved", "not_approved"]
-                },
-                "user": {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string"
-                    },
-                    "role": {
-                      "$comment": "TODO: Complete filling in this approvers enum.",
-                      "type": "string",
-                      "enum": ["container_approver", "findings_approver"]
-                    }
-                  },
-                  "required": ["name", "role"]
-                }
-              },
-              "required": ["timestamp", "text", "state", "user"]
-            }
-          }
+
+
+    "ContainerStateEnum": {
+      "type": "string",
+      "description": "Any state other than 'Approved' or 'Conditionally Approved' are considered unapproved",
+      "enum": [
+        "Approved",
+        "Conditionally Approved",
+        "Rejected",
+        "Under Review",
+        "Pending Approval"
+      ]
+    },
+
+
+    "FindingStateEnum": {
+      "description": "Any state other than 'approved' or 'conditional' are considered unapproved",
+      "type": "string",
+      "enum": [
+        "needs_justification",
+        "has_justification",
+        "justified",
+        "needs_review",
+        "needs_rework",
+        "reviewed",
+        "rejected",
+        "conditional",
+        "approved"
+      ]
+    },
+
+
+    "ScanSourceEnum": {
+      "type": "string",
+      "description": "Enum of all available scanning tools",
+      "enum": [
+        "oscap_comp",
+        "oscap_cve",
+        "anchore_comp",
+        "anchore_cve",
+        "twistlock_cve"
+      ]
+    },
+
+
+    "UserRoles": {
+      "type": "string",
+      "description": "The roles a user can hold",
+      "enum": [
+        "container_approver",
+        "findings_approver"
+      ]
+    },
+
+
+    "UserStrictContainerApprover": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
         },
-        "required": ["id", "package", "path", "inheritance", "false_positive", "log"]
-      },
-      "uniqueItems": true
-    },
-    "approval": {
-      "status": {
-        "$comment": "TODO: Complete filling in this approval enum.",
-        "type": "string",
-        "enum": ["approved", "not_approved"]
-      },
-      "expiration": {
-        "$ref": "#/definitions/timestamp"
-      },
-      "log": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "timestamp": {
-              "$comment": "TODO: Decide Timestamp regex for this field.",
-              "$ref": "#/definitions/timestamp"
-            },
-            "text": {
-              "$comment": "TODO: Do we want to allow newlines?",
-              "$ref": "#/definitions/printable-characters-without-newlines"
-            },
-            "user": {
-              "$ref": "#/definitions/printable-characters-without-newlines"
-            },
-            "state": {
-              "$comment": "TODO: Complete filling in this approval enum.",
-              "type": "string",
-              "enum": ["approved", "not_approved"]
-            },
-            "required": ["timestamp", "text", "state", "user"]
-          }
+        "email": {
+          "type": "string"
+        },
+        "role": {
+          "const": "container_approver"
         }
       },
-      "required": ["status", "log"]
+      "required": ["name", "email", "role"]
+    },
+
+
+    "User": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/definitions/UserRoles"
+        }
+      },
+      "required": ["name", "email", "role"]
+    },
+
+
+    "ContainerApprover": {
+      "description": "The approver associated with the container (not findings). Only exists if the container is approved",
+      "type": "object",
+      "properties": {
+        "expires": {
+          "$ref": "#definitions/Timestamp"
+        },
+        "date": {
+          "$ref": "#definitions/Timestamp"
+        },
+        "comment": {
+          "type": "string"
+        },
+        "user": {
+          "$ref": "#/definitions/UserStrictContainerApprover"
+        }
+      },
+      "required": ["date", "comment", "user"]
+    },
+
+
+    "FindingsArray": {
+      "description": "FindingsArray description",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Finding"
+      }
+    },
+
+
+    "Finding": {
+      "description": "Findings description",
+      "type": "object",
+      "properties": {
+        "identifier": {
+          "description": "TODO: ASCII minus newlines - no whitespace?",
+          "type": "string"
+        }
+      },
+      "required": ["identifier"]
     }
   },
-  "required": ["image", "findings", "approval"]
+
+
+  "title": "VAT Finding",
+  "description": "Finding schema",
+  "type": "object",
+  "properties": {
+    "imageName": {
+      "type": "string"
+    },
+    "imageTag": {
+      "type": "string"
+    },
+    "containerState": {
+      "$ref": "#/definitions/ContainerStateEnum"
+    },
+    "earliestExpiration": {
+      "description": "Only exists if either the container OR any of the findings have an expiration. Computed field of the earliest date that either the container or any of the findings expires. This may be a date in the past, if the container or the finding is expired",
+      "$ref": "#/definitions/Timestamp"
+    },
+    "approver": {
+      "description": "Only exists if the container is approved or conditionally approved",
+      "$ref": "#/definitions/ContainerApprover"
+    },
+    "findings": {
+      "$ref": "#/definitions/FindingsArray"
+    }
+  },
+  "required": ["imageName", "imageTag", "containerState", "findings"]
 }
