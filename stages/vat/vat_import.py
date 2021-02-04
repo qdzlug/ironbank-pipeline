@@ -1586,6 +1586,18 @@ def findings_are_equal(cursor, container_id, last_version_id):
             return False
 
 
+def get_log_base_text(str):
+    """
+    This checks the text for a '-' and strips off the text after '-'
+    returns the text
+    """
+
+    if str.find("-") > 0:
+        return str[: str.find("-") - 1]
+    else:
+        return str
+
+
 def set_approval_state(container_id, version):
     """
     This will enter the container log entry for the version update.
@@ -1609,7 +1621,7 @@ def set_approval_state(container_id, version):
         container_version = container_info[1]
 
         last_log_query = """
-       SELECT id, type, text, user_id, date_time FROM container_log WHERE imageid = %s"""
+        SELECT id, type, text, user_id, date_time FROM container_log WHERE imageid = %s"""
         last_log_tuple = (str(last_container_id),)
         logs.debug(last_log_query % last_log_tuple)
         cursor.execute(last_log_query, last_log_tuple)
@@ -1620,7 +1632,7 @@ def set_approval_state(container_id, version):
            (%s, %s, %s, %s, %s, %s)"""
         for log in container_logs:
             container_log_type = log[1]
-            container_log_text = log[2]
+            container_log_text = get_log_base_text(log[2])
             container_log_userid = log[3]
             container_log_datetime = log[4]
             text = "{} - Approval derived from previous version {}:{}".format(
