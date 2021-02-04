@@ -889,10 +889,14 @@ def find_bumped_id(cursor, finding_id, versions):
     Find the log from the parent version to inherit from
     return version_bump_id
     """
-    bumped_findings = find_parent_findings(
-        cursor, row, versions["approved"], scan_source
-    )
-    return bumped_findings[0][0]
+    try:
+        bumped_findings = find_parent_findings(
+            cursor, row, versions["approved"], scan_source
+        )
+        return bumped_findings[0][0]
+    except Error as error:
+        logs.error(error)
+        return None
 
 
 def insert_new_log(cursor, finding_id, system_user_id):
@@ -1074,18 +1078,6 @@ def insert_scan(data, iid, scan_source, versions):
         if conn is not None and conn.is_connected():
             conn.commit()
             conn.close()
-
-
-def find_bumped_id(cursor, row, finding_id, versions, scan_source):
-    """
-    Find the log from the parent version to inherit from
-    return version_bump_id
-    """
-    bumped_findings = find_parent_findings(
-        cursor, row, versions["approved"], scan_source
-    )
-    return bumped_findings[0][0]
-
 
 def add_approved_logs_for_prev_version(
     cursor, iid, row, versions, scan_source, finding_id, lineage
@@ -1592,8 +1584,8 @@ def get_log_base_text(str):
     returns the text
     """
 
-    if str.find("-") > 0:
-        return str[: str.find("-") - 1]
+    if str.find("- Approval derived") > 0:
+        return str[: str.find("- Approval derived") - 1]
     else:
         return str
 
