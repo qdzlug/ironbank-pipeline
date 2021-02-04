@@ -1,0 +1,291 @@
+swagger: '2.0'
+info:
+  description: This is the VAT container findings API
+  version: 0.0.1
+  title: VAT API Server
+  contact:
+    email: jpetersen@anchore.com
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: Container
+    description: Container Findings
+basePath: /api
+schemes:
+  - http
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /internal/container:
+    get:
+      tags:
+        - Container
+      description: Get the container approval information
+      parameters:
+        - name: name
+          in: query
+          required: true
+          type: string
+          description: Full path for the image
+        - name: tag
+          in: query
+          required: true
+          type: string
+          description: Specific tag for the image
+      responses:
+        '200':
+          description: Delete success
+          schema:
+            $ref: '#/definitions/Container'
+        '400':
+          description: Internal Error
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '404':
+          description: Policy not found to delete
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+definitions:
+  ApiErrorResponse:
+    description: Generic HTTP API error response
+    type: object
+    properties:
+      statusCode:
+        type: integer
+        format: int32
+      message:
+        type: string
+      error:
+        type: string
+  Container:
+    description: Container description
+    type: object
+    properties:
+      imageName:
+        $ref: '#/definitions/DockerNameWithoutDomainRegex'
+      imageTag:
+        $ref: '#/definitions/DockerTagRegex'
+      containerState:
+        $ref: '#/definitions/ContainerStateEnum'
+      earliestExpiration:
+        description: 'Only exists if either the container OR any of the findings have an expiration. Computed field of the earliest date that either the container or any of the findings expires. This may be a date in the past, if the container or the finding is expired'
+        $ref: '#/definitions/TimestampRegex'
+      approver:
+        description: Only exists if the container is approved or conditionally approved
+        $ref: '#/definitions/ContainerApprover'
+      findings:
+        $ref: '#/definitions/FindingsArray'
+  TimestampRegex:
+    description: 'Timestamp in ''YYYY-MM-DDTHH:MM:SS.sssZ'' format (RFC3389 Zulu)'
+    type: string
+    pattern: '^[2-9][0-9]{1,3}-[0-9]{1,2}-[0-9]{1,2}T[0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}.[0-9]{1,3}Z$'
+  DockerTagRegex:
+    description: 'https://github.com/docker/distribution/blob/master/reference/regexp.go'
+    type: string
+    pattern: '^[\w][\w.-]{0,127}$'
+  DockerNameAndTagRegex:
+    description: 'https://github.com/docker/distribution/blob/master/reference/regexp.go'
+    type: string
+    pattern: '^[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?:[\w][\w.-]{0,127}$'
+  DockerNameWithoutDomainRegex:
+    description: 'https://github.com/docker/distribution/blob/master/reference/regexp.go'
+    type: string
+    pattern: '^[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?$'
+  PrintableCharactersWithoutNewlinesOrSlashes:
+    type: string
+    pattern: '^[A-Za-z0-9][ -.0-~]*$'
+    minLength: 1
+  ContainerStateEnum:
+    type: string
+    description: Any state other than 'Approved' or 'Conditionally Approved' are considered unapproved
+    enum:
+      - Approved
+      - Conditionally Approved
+      - Rejected
+      - Under Review
+      - Pending Approval
+  FindingStateEnum:
+    description: Any state other than 'approved' or 'conditional' are considered unapproved
+    type: string
+    enum:
+      - needs_justification
+      - has_justification
+      - justified
+      - needs_review
+      - needs_rework
+      - reviewed
+      - rejected
+      - conditional
+      - approved
+  ScanSourceEnum:
+    type: string
+    description: Enum of all available scanning tools
+    enum:
+      - oscap_comp
+      - oscap_cve
+      - anchore_comp
+      - anchore_cve
+      - twistlock_cve
+  UserRoleEnum:
+    type: string
+    description: The roles a user can hold
+    enum:
+      - container_contributor
+      - container_approver
+      - findings_approver
+  UserStrictContainerFindingsApprover:
+    type: object
+    properties:
+      name:
+        type: string
+      email:
+        type: string
+      role:
+        enum:
+          - findings_approver
+          - container_approver
+    required:
+      - name
+      - email
+      - role
+  UserStrictContainerApprover:
+    type: object
+    properties:
+      name:
+        type: string
+      email:
+        type: string
+      role:
+        enum: 
+          - container_approver
+    required:
+      - name
+      - email
+      - role
+  User:
+    type: object
+    properties:
+      name:
+        type: string
+      email:
+        type: string
+      role:
+        $ref: '#/definitions/UserRoleEnum'
+    required:
+      - name
+      - email
+      - role
+  ContainerApprover:
+    description: The approver associated with the container (not findings). Only exists if the container is approved
+    type: object
+    properties:
+      expires:
+        $ref: '#/definitions/TimestampRegex'
+      date:
+        $ref: '#/definitions/TimestampRegex'
+      comment:
+        type: string
+      user:
+        $ref: '#/definitions/UserStrictContainerApprover'
+    required:
+      - date
+      - comment
+      - user
+  FindingsArray:
+    description: FindingsArray description
+    type: array
+    items:
+      $ref: '#/definitions/Finding'
+  Finding:
+    description: Findings description
+    type: object
+    properties:
+      identifier:
+        description: Finding identifier (vulnerability ID or policy violation ID)
+        $ref: '#/definitions/PrintableCharactersWithoutNewlinesOrSlashes'
+      source:
+        $ref: '#/definitions/ScanSourceEnum'
+      description:
+        type: string
+      package:
+        type: string
+      packagePath:
+        type: string
+      findingsState:
+        $ref: '#/definitions/FindingStateEnum'
+      inheritsFrom:
+        description: 'A non-empty array implies the finding is inherited. Array of ubi/ubi8:8.2 etc ordered from oldest parent image (first) to immediate parent (last) [Could be the opposite]. Finding will be present in the first element of the array.'
+        type: array
+        items:
+          $ref: '#/definitions/DockerNameAndTagRegex'
+      contributor:
+        description: This object will be missing if there is no justification text
+        $ref: '#/definitions/FindingsContributor'
+      reviewer:
+        description: This object will only exist if there is a contributor. Will be missing until the reviewer has performed an action.
+        $ref: '#/definitions/FindingsReviewer'
+      approver:
+        description: This object will only exist if there is a reviewer. May be missing if there is no approval action.
+        $ref: '#/definitions/FindingsApprover'
+    required:
+      - identifier
+      - source
+      - description
+      - findingsState
+      - inheritsFrom
+  FindingsContributor:
+    type: object
+    properties:
+      state:
+        $ref: '#/definitions/FindingStateEnum'
+      date:
+        $ref: '#/definitions/TimestampRegex'
+      justification:
+        type: string
+      user:
+        $ref: '#/definitions/User'
+    required:
+      - state
+      - date
+      - justification
+      - user
+  FindingsReviewer:
+    type: object
+    properties:
+      state:
+        $ref: '#/definitions/FindingStateEnum'
+      date:
+        $ref: '#/definitions/TimestampRegex'
+      comment:
+        type: string
+      falsePositive:
+        type: boolean
+      user:
+        $ref: '#/definitions/User'
+    required:
+      - state
+      - date
+      - comment
+      - user
+  FindingsApprover:
+    type: object
+    properties:
+      state:
+        $ref: '#/definitions/FindingStateEnum'
+      expires:
+        $ref: '#/definitions/TimestampRegex'
+      date:
+        $ref: '#/definitions/TimestampRegex'
+      comment:
+        type: string
+      user:
+        $ref: '#/definitions/UserStrictContainerFindingsApprover'
+    required:
+      - state
+      - date
+      - comment
+      - user
