@@ -92,4 +92,3 @@
   },
   "required": ["image", "digest", "timestamp", "repo", "tools", "findings"]
 }
-
