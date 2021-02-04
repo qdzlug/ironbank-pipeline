@@ -44,11 +44,21 @@ paths:
         '400':
           description: Bad Request, missing either parameter
           schema:
-            $ref: '#/definitions/ApiErrorResponse'
+            allOf:
+              - $ref: '#/definitions/ApiErrorResponse'
+              - properties:
+                  statusCode:
+                    enum:
+                    - 400
         '404':
           description: Container not found
           schema:
-            $ref: '#/definitions/ApiErrorResponse'
+            allOf:
+              - $ref: '#/definitions/ApiErrorResponse'
+              - properties:
+                  statusCode:
+                    enum:
+                    - 404
 definitions:
   ApiErrorResponse:
     description: Generic HTTP API error response
