@@ -51,7 +51,10 @@ def _load_swagger_definitions(path=None):
 
 
 def generate(
-    main_model=None, swagger_path=None, dump=False, schema_filename="generated.schema.json"
+    main_model=None,
+    swagger_path=None,
+    dump=False,
+    schema_filename="generated.schema.json",
 ):
     """
     Main entrypoint. Generate json-schema based off the definitions in a swagger spec. The
