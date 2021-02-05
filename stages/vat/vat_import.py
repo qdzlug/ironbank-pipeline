@@ -797,6 +797,7 @@ def insert_logs_with_logs(
     Inserts logs if needed for findings that already have logs.
     """
     system_user_id = get_system_user_id()
+    version_bump_id = None
     if parent_finding:
         if log_inherited_id == parent_finding:
             logs.debug("No inheritance change")
