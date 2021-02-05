@@ -1597,13 +1597,19 @@ def set_approval_state(container_id, version):
 
     logs.debug("In set_approval_state")
 
-    container_list = version["approved"]
-    container_list.sort()
-    last_container_id = container_list[-1]
-
     conn = connect_to_db()
     try:
         cursor = conn.cursor()
+        container_list = version["approved"]
+        container_list.sort()
+        last_container_id = container_list[-1]
+        system_user_id = get_system_user_id()
+        approved_version_query = """
+        SELECT type from container_log cl INNER JOIN containers c on cl.imageid = c.id
+        WHERE cl.id in (SELECT MAX(id) from container_log WHERE imageid = %s)
+        """
+        cursor.execute(approved_version_query, (last_container_id,))
+        bumped_version_status = cursor.fetchone()[0]
 
         get_container_info = "SELECT name, version FROM containers WHERE id = %s"
         get_info_tuple = (str(last_container_id),)
@@ -1618,29 +1624,40 @@ def set_approval_state(container_id, version):
         logs.debug(last_log_query % last_log_tuple)
         cursor.execute(last_log_query, last_log_tuple)
         container_logs = cursor.fetchall()
+        auto_approval_text = "Auto Approval derived from previous version {}:{}".format(
+            container_name, container_version
+        )
 
         insert_log_sql = """
            INSERT INTO container_log (id, imageid, user_id, type, text, date_time) VALUES
            (%s, %s, %s, %s, %s, %s)"""
         for log in container_logs:
             container_log_type = log[1]
-            container_log_text = get_log_base_text(log[2])
+            container_log_text = log[2]
             container_log_userid = log[3]
             container_log_datetime = log[4]
-            text = "{} - Approval derived from previous version {}:{}".format(
-                container_log_text, container_name, container_version
-            )
             insert_log_tuple = (
                 None,
                 container_id,
                 container_log_userid,  # This should probably stay with the approver name
                 container_log_type,
-                text,
+                container_log_text,
                 container_log_datetime,
             )
             logs.debug(insert_log_sql % insert_log_tuple)
             cursor.execute(insert_log_sql, insert_log_tuple)
             conn.commit()
+        auto_approve_tuple = (
+            None,
+            container_id,
+            system_user_id,
+            bumped_version_status,
+            auto_approval_text,
+            args.scan_date,
+        )
+        logs.debug(insert_log_sql % auto_approve_tuple)
+        cursor.execute(insert_log_sql, auto_approve_tuple)
+        conn.commit()
 
     except Error as error:
         logs.error(f"Error in set_approval_state: {error}")
@@ -1686,8 +1703,6 @@ def main():
     if iid and is_new_scan(iid):
         push_all_csv_data(data, iid, versions)
         clean_up_finding_scan(iid)
-        # d_f = get_all_inheritable_findings(iid) TO DO: I think we can get rid of these two
-        # update_inheritance_id(d_f)
 
         if iid in versions["unapproved"]:
             set_approval_state(iid, versions)
