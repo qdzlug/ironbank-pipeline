@@ -70,6 +70,15 @@ def _get_source_keys_values(source_file):
     return hm_labels
 
 
+def _get_approval_status(source_file):
+    if os.path.exists(source_file):
+        with open(source_file, mode="r", encoding="utf-8") as sf:
+            approval_object = json.load(sf)
+    approval_status = approval_object["IMAGE_APPROVAL_STATUS"]
+    approval_text = approval_object["IMAGE_APPROVAL_TEXT"]
+    return approval_status, approval_text
+
+
 def main():
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
@@ -90,7 +99,7 @@ def main():
     object_name = args.target
 
     existing_repomap = get_repomap(object_name)
-    artifact_storage = os.environ.get("ARTIFACT_STORAGE")
+    artifact_storage = os.environ["ARTIFACT_STORAGE"]
 
     keyword_list = source_values(
         f"{artifact_storage}/preflight/keywords.txt", "Keywords"
@@ -98,36 +107,44 @@ def main():
     tag_list = source_values(f"{artifact_storage}/preflight/tags.txt", "Tags")
     label_dict = _get_source_keys_values(f"{artifact_storage}/preflight/labels.env")
 
+    approval_status, approval_text = _get_approval_status(
+        f"{artifact_storage}/lint/image_approval.json"
+    )
+
+    # all environment vars used for adding new data to the repo map must have a value set or they will throw a KeyError
     new_data = {
-        os.environ.get("build_number"): {
-            "Anchore_Gates_Results": os.environ.get("anchore_gates_results"),
-            "Summary_Report": os.environ.get("summary_report"),
-            "Build_Number": os.environ.get("build_number"),
-            "Image_Path": os.environ.get("image_path"),
-            "TwistLock_Results": os.environ.get("twistlock_results"),
-            "Image_Manifest": os.environ.get("image_manifest"),
-            "PGP_Signature": os.environ.get("pgp_signature"),
-            "Signature_Name": os.environ.get("signature_name"),
-            "Public_Key": os.environ.get("public_key"),
-            "Image_URL": os.environ.get("image_url"),
-            "Anchore_Security_Results": os.environ.get("anchore_security_results"),
-            "Image_Sha": os.environ.get("image_sha"),
-            "Tar_Name": os.environ.get("tar_name"),
-            "Image_Tag": os.environ.get("image_tag"),
-            "Manifest_Name": os.environ.get("manifest_name"),
-            "Approval_Status": os.environ.get("approval_status"),
-            "Image_Name": os.environ.get("image_name"),
-            "Version_Documentation": os.environ.get("version_documentation"),
-            "PROJECT_FILE": os.environ.get("project_license"),
-            "PROJECT_README": os.environ.get("project_readme"),
-            "Tar_Location": os.environ.get("tar_location"),
-            "Full_Report": os.environ.get("full_report"),
-            "Repo_Name": os.environ.get("repo_name"),
+        os.environ["build_number"]: {
+            "Anchore_Gates_Results": os.environ["anchore_gates_results"],
+            "Summary_Report": os.environ["summary_report"],
+            "Build_Number": os.environ["build_number"],
+            "Image_Path": os.environ["image_path"],
+            "TwistLock_Results": os.environ["twistlock_results"],
+            "Image_Manifest": os.environ["image_manifest"],
+            "PGP_Signature": os.environ["pgp_signature"],
+            "Signature_Name": os.environ["signature_name"],
+            "Public_Key": os.environ["public_key"],
+            "Image_URL": os.environ["image_url"],
+            "Anchore_Security_Results": os.environ["anchore_security_results"],
+            "Image_Sha": os.environ["image_sha"],
+            "Tar_Name": os.environ["tar_name"],
+            "Image_Tag": os.environ["image_tag"],
+            "Manifest_Name": os.environ["manifest_name"],
+            "Approval_Status": approval_status,
+            "Approval_Text": approval_text,
+            "Image_Name": os.environ["image_name"],
+            "Version_Documentation": os.environ["version_documentation"],
+            "PROJECT_FILE": os.environ["project_license"],
+            "PROJECT_README": os.environ["project_readme"],
+            "Tar_Location": os.environ["tar_location"],
+            "Full_Report": os.environ["full_report"],
+            "Repo_Name": os.environ["repo_name"],
             "Keywords": keyword_list,
             "Tags": tag_list,
             "Labels": label_dict,
         }
     }
+
+    logging.debug(f"repo_map data:\n{new_data}")
 
     if existing_repomap:
         with open("repo_map.json", "r+") as f:
