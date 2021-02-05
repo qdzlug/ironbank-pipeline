@@ -10,17 +10,19 @@
 #
 ##
 
-import os
-import sys
-import json
-import yaml
-import gitlab
-import pathlib
-import logging
 import argparse
-import mysql.connector
+import json
+import logging
+import os
+import pathlib
 import subprocess
+import sys
+
+import gitlab
+import mysql.connector
 from mysql.connector import Error
+import requests
+import yaml
 
 from scanners import oscap
 from scanners import anchore
@@ -304,6 +306,24 @@ def _get_greylist_file_contents(image_path, branch):
     return contents
 
 
+def _vat_findings_query(im_name, im_version):
+    logging.info("Running query to vat api")
+    url = f"https://vat.dso.mil/api/internal/container?name={im_name}&tag={im_version}"
+    logging.info(f"GET {url}")
+
+    try:
+        r = requests.get(url)
+    except requests.exceptions.RequestException as e:
+        raise e
+
+    if r.status_code == 200:
+        logging.info("Fetched data from vat successfully")
+        artifact_dir = os.environ["ARTIFACT_DIR"]
+
+        pathlib.Path(artifact_dir, "vat_api_findings.json").write_text(data=r.text, encoding="utf-8")
+        return r.json()
+
+
 def _vat_approval_query(im_name, im_version):
     conn = None
     result = None
@@ -474,6 +494,9 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             finding_dict = _get_findings_from_query(row)
             vat_findings[image_name].append(finding_dict)
     # get container approval from separate query
+    _vat_findings_query(
+        os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
+    )
     approval_status = _vat_approval_query(
         os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
     )
