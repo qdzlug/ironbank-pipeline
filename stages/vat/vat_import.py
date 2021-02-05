@@ -1705,7 +1705,7 @@ def main():
         push_all_csv_data(data, iid, versions)
         clean_up_finding_scan(iid)
 
-        if iid in versions["unapproved"]:
+        if iid in versions["unapproved"] and versions["new_version"]:
             set_approval_state(iid, versions)
 
     else:
