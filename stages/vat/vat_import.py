@@ -810,7 +810,7 @@ def insert_logs_with_logs(
             deactivate_all_rows = [
                 deactivate_log_row(cursor, r[0]) for r in active_records
             ]
-            insert_logs_with_inheritance(parent_finding, finding_id, version_bump_id)
+            insert_logs_with_inheritance(cursor, parent_finding, finding_id, version_bump_id)
             return True
     elif not log_inherited_id:  # No inherited_id in logs and no parent finding
         logs.debug("Not inherited, no inheritance change")
