@@ -1,4 +1,4 @@
-swagger: '2.0'
+swagger: "2.0"
 info:
   description: This is the VAT container findings API
   version: 0.0.1
@@ -7,7 +7,7 @@ info:
     email: ironbank@dsop.io
   license:
     name: Apache 2.0
-    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
 tags:
   - name: Container
     description: Container findings with approval chain
@@ -37,28 +37,28 @@ paths:
           type: string
           description: Specific tag for the image
       responses:
-        '200':
+        "200":
           description: Successfully return a container with findings
           schema:
-            $ref: '#/definitions/Container'
-        '400':
+            $ref: "#/definitions/Container"
+        "400":
           description: Bad Request, missing either parameter
           schema:
             allOf:
-              - $ref: '#/definitions/ApiErrorResponse'
+              - $ref: "#/definitions/ApiErrorResponse"
               - properties:
                   statusCode:
                     enum:
-                    - 400
-        '404':
+                      - 400
+        "404":
           description: Container not found
           schema:
             allOf:
-              - $ref: '#/definitions/ApiErrorResponse'
+              - $ref: "#/definitions/ApiErrorResponse"
               - properties:
                   statusCode:
                     enum:
-                    - 404
+                      - 404
 definitions:
   ApiErrorResponse:
     description: Generic HTTP API error response
@@ -76,38 +76,38 @@ definitions:
     type: object
     properties:
       imageName:
-        $ref: '#/definitions/DockerNameWithoutDomainRegex'
+        $ref: "#/definitions/DockerNameWithoutDomainRegex"
       imageTag:
-        $ref: '#/definitions/DockerTagRegex'
+        $ref: "#/definitions/DockerTagRegex"
       containerState:
-        $ref: '#/definitions/ContainerStateEnum'
+        $ref: "#/definitions/ContainerStateEnum"
       earliestExpiration:
-        description: 'Only exists if either the container OR any of the findings have an expiration. Computed field of the earliest date that either the container or any of the findings expires. This may be a date in the past, if the container or the finding is expired'
-        $ref: '#/definitions/TimestampRegex'
+        description: "Only exists if either the container OR any of the findings have an expiration. Computed field of the earliest date that either the container or any of the findings expires. This may be a date in the past, if the container or the finding is expired"
+        $ref: "#/definitions/TimestampRegex"
       approver:
         description: Only exists if the container is approved or conditionally approved
-        $ref: '#/definitions/ContainerApprover'
+        $ref: "#/definitions/ContainerApprover"
       findings:
-        $ref: '#/definitions/FindingsArray'
+        $ref: "#/definitions/FindingsArray"
   TimestampRegex:
-    description: 'Timestamp in ''YYYY-MM-DDTHH:MM:SS.sssZ'' format (RFC3389 Zulu)'
+    description: "Timestamp in 'YYYY-MM-DDTHH:MM:SS.sssZ' format (RFC3389 Zulu)"
     type: string
-    pattern: '^[2-9][0-9]{1,3}-[0-9]{1,2}-[0-9]{1,2}T[0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}.[0-9]{1,3}Z$'
+    pattern: "^[2-9][0-9]{1,3}-[0-9]{1,2}-[0-9]{1,2}T[0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}.[0-9]{1,3}Z$"
   DockerTagRegex:
-    description: 'https://github.com/docker/distribution/blob/master/reference/regexp.go'
+    description: "https://github.com/docker/distribution/blob/master/reference/regexp.go"
     type: string
     pattern: '^[\w][\w.-]{0,127}$'
   DockerNameAndTagRegex:
-    description: 'https://github.com/docker/distribution/blob/master/reference/regexp.go'
+    description: "https://github.com/docker/distribution/blob/master/reference/regexp.go"
     type: string
     pattern: '^[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?:[\w][\w.-]{0,127}$'
   DockerNameWithoutDomainRegex:
-    description: 'https://github.com/docker/distribution/blob/master/reference/regexp.go'
+    description: "https://github.com/docker/distribution/blob/master/reference/regexp.go"
     type: string
-    pattern: '^[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?$'
+    pattern: "^[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?$"
   PrintableCharactersWithoutNewlinesOrSlashes:
     type: string
-    pattern: '^[A-Za-z0-9][ -.0-~]*$'
+    pattern: "^[A-Za-z0-9][ -.0-~]*$"
     minLength: 1
   ContainerStateEnum:
     type: string
@@ -184,7 +184,7 @@ definitions:
       email:
         type: string
       role:
-        $ref: '#/definitions/UserRoleEnum'
+        $ref: "#/definitions/UserRoleEnum"
     required:
       - name
       - email
@@ -194,13 +194,13 @@ definitions:
     type: object
     properties:
       expires:
-        $ref: '#/definitions/TimestampRegex'
+        $ref: "#/definitions/TimestampRegex"
       date:
-        $ref: '#/definitions/TimestampRegex'
+        $ref: "#/definitions/TimestampRegex"
       comment:
         type: string
       user:
-        $ref: '#/definitions/UserStrictContainerApprover'
+        $ref: "#/definitions/UserStrictContainerApprover"
     required:
       - date
       - comment
@@ -209,16 +209,16 @@ definitions:
     description: FindingsArray description
     type: array
     items:
-      $ref: '#/definitions/Finding'
+      $ref: "#/definitions/Finding"
   Finding:
     description: Findings description
     type: object
     properties:
       identifier:
         description: Finding identifier (vulnerability ID or policy violation ID)
-        $ref: '#/definitions/PrintableCharactersWithoutNewlinesOrSlashes'
+        $ref: "#/definitions/PrintableCharactersWithoutNewlinesOrSlashes"
       source:
-        $ref: '#/definitions/ScanSourceEnum'
+        $ref: "#/definitions/ScanSourceEnum"
       description:
         type: string
       package:
@@ -226,21 +226,21 @@ definitions:
       packagePath:
         type: string
       findingsState:
-        $ref: '#/definitions/FindingStateEnum'
+        $ref: "#/definitions/FindingStateEnum"
       inheritsFrom:
-        description: 'A non-empty array implies the finding is inherited. Array of ubi/ubi8:8.2 etc ordered from oldest parent image (first) to immediate parent (last). Finding will be present in the first element of the array.'
+        description: "A non-empty array implies the finding is inherited. Array of ubi/ubi8:8.2 etc ordered from oldest parent image (first) to immediate parent (last). Finding will be present in the first element of the array."
         type: array
         items:
-          $ref: '#/definitions/DockerNameAndTagRegex'
+          $ref: "#/definitions/DockerNameAndTagRegex"
       contributor:
         description: This object will be missing if there is no justification text
-        $ref: '#/definitions/FindingsContributor'
+        $ref: "#/definitions/FindingsContributor"
       reviewer:
         description: This object will only exist if there is a contributor. Will be missing until the reviewer has performed an action.
-        $ref: '#/definitions/FindingsReviewer'
+        $ref: "#/definitions/FindingsReviewer"
       approver:
         description: This object will only exist if there is a reviewer. May be missing if there is no approval action.
-        $ref: '#/definitions/FindingsApprover'
+        $ref: "#/definitions/FindingsApprover"
     required:
       - identifier
       - source
@@ -251,13 +251,13 @@ definitions:
     type: object
     properties:
       state:
-        $ref: '#/definitions/FindingStateEnum'
+        $ref: "#/definitions/FindingStateEnum"
       date:
-        $ref: '#/definitions/TimestampRegex'
+        $ref: "#/definitions/TimestampRegex"
       justification:
         type: string
       user:
-        $ref: '#/definitions/User'
+        $ref: "#/definitions/User"
     required:
       - state
       - date
@@ -267,15 +267,15 @@ definitions:
     type: object
     properties:
       state:
-        $ref: '#/definitions/FindingStateEnum'
+        $ref: "#/definitions/FindingStateEnum"
       date:
-        $ref: '#/definitions/TimestampRegex'
+        $ref: "#/definitions/TimestampRegex"
       comment:
         type: string
       falsePositive:
         type: boolean
       user:
-        $ref: '#/definitions/User'
+        $ref: "#/definitions/User"
     required:
       - state
       - date
@@ -285,15 +285,15 @@ definitions:
     type: object
     properties:
       state:
-        $ref: '#/definitions/FindingStateEnum'
+        $ref: "#/definitions/FindingStateEnum"
       expires:
-        $ref: '#/definitions/TimestampRegex'
+        $ref: "#/definitions/TimestampRegex"
       date:
-        $ref: '#/definitions/TimestampRegex'
+        $ref: "#/definitions/TimestampRegex"
       comment:
         type: string
       user:
-        $ref: '#/definitions/UserStrictContainerFindingsApprover'
+        $ref: "#/definitions/UserStrictContainerFindingsApprover"
     required:
       - state
       - date
