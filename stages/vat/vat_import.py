@@ -720,6 +720,29 @@ def clean_up_finding_scan(iid):
             conn.commit()
             conn.close()
 
+def fix_inheritance(cursor, active_records, log_inherited, log_inherited_id):
+    """
+    Fix incorrect inheritance
+    """
+    if log_inherited and not log_inherited_id: # inherited flag but no inherited_id
+        logs.debug("Not inherited, updating incorrect flag")
+        j_record = (
+            [x for x in active_records if x[1] == "justification"]
+            if active_records
+            else None
+        )
+        sc_record = (
+            [x for x in active_records if x[1] == "state_change"]
+            if active_records
+            else None
+        )
+        update_inheritance_query = (
+            "UPDATE finding_logs SET inherited = 0 where id = %s"
+        )
+        if sc_record:
+            cursor.execute(update_inheritance_query, (sc_record[0][0],))
+        if j_record:
+            cursor.execute(update_inheritance_query, (j_record[0][0],))
 
 def update_finding_logs(cursor, container_id, row, finding_id, scan_source, lineage):
     """
@@ -734,13 +757,14 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
     logs.debug("Starting Update to Findings Log")
     try:
         system_user_id = get_system_user_id()
-        find_log_query = """SELECT id, record_type, in_current_scan, active, record_text, inherited_id, state from `finding_logs` WHERE
+        find_log_query = """SELECT id, record_type, in_current_scan, active, record_text, inherited_id, state, inherited from `finding_logs` WHERE
             finding_id = %s and record_type_active = 1 ORDER BY active desc"""
         find_log_tuple = (finding_id,)
         logs.debug(find_log_query, finding_id)
         cursor.execute(find_log_query, find_log_tuple)
         active_records = cursor.fetchall()
         log_inherited_id = active_records[0][5] if active_records else None
+        log_inherited = active_records[0][7] if active_records else None
         parents = (
             find_parent_findings(cursor, row, lineage, scan_source) if lineage else None
         )
@@ -763,6 +787,7 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
             SELECT NULL, finding_id, record_type, state, %s, 1, expiration_date, inheritable, %s,
             %s, false_positive, %s, %s, %s, 1 from `finding_logs` WHERE id = %s
             """
+        fix_inheritance(cursor, active_records, log_inherited, log_inherited_id)
         if active_records and not log_in_current_scan:
             # If not in current_scan in logs update active logs to indicate that it now is in scan
             update_in_current_scan_query = (
@@ -864,6 +889,7 @@ def insert_logs_with_inheritance(cursor, parent_finding, finding_id, version_bum
     parent_logs_query = "select * from `finding_logs` where finding_id = %s"
     inherting_id = version_bump_id if version_bump_id else parent_finding
     cursor.execute(parent_logs_query, (inherting_id,))
+    inherited = 1 if parent_finding else 0
     all_logs = cursor.fetchall()
     for log in all_logs:
         false_positive = 0 if log[10] is None else log[10]
@@ -877,7 +903,7 @@ def insert_logs_with_inheritance(cursor, parent_finding, finding_id, version_bum
             log[6],  # expiration_date
             log[7],  # inheritable
             parent_finding,  # inherited_id,
-            1,  # inherited
+            inherited,  # inherited
             false_positive,  # false_positive
             log[11],  # user_id
             log[12],  # record_timestamp
