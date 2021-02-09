@@ -377,7 +377,7 @@ def _get_vulns_from_query(row):
     vuln_dict["justification"] = row[8]
     if row[4] and row[4] == "anchore_cve":
         vuln_dict["vuln_description"] = row[10]
-    elif row[4] and row[4] == "anchore_comp":
+    elif row[4] and row[4] == "anchore_comp" and row[9]:
         vuln_dict["vuln_description"] = row[9].split("\n")[0]
     else:
         vuln_dict["vuln_description"] = row[9]
