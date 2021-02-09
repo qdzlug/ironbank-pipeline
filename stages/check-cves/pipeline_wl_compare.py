@@ -314,13 +314,16 @@ def _vat_findings_query(im_name, im_version):
     try:
         r = requests.get(url)
     except requests.exceptions.RequestException as e:
-        raise e
+        logging.warning(f"Could not access VAT API: {url}")
+        return None
 
     if r.status_code == 200:
         logging.info("Fetched data from vat successfully")
         artifact_dir = os.environ["ARTIFACT_DIR"]
 
-        pathlib.Path(artifact_dir, "vat_api_findings.json").write_text(data=r.text, encoding="utf-8")
+        pathlib.Path(artifact_dir, "vat_api_findings.json").write_text(
+            data=r.text, encoding="utf-8"
+        )
         return r.json()
 
 
@@ -494,9 +497,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             finding_dict = _get_findings_from_query(row)
             vat_findings[image_name].append(finding_dict)
     # get container approval from separate query
-    _vat_findings_query(
-        os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
-    )
+    _vat_findings_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
     approval_status = _vat_approval_query(
         os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
     )
