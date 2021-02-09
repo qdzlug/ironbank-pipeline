@@ -308,7 +308,7 @@ def _get_greylist_file_contents(image_path, branch):
 
 def _vat_findings_query(im_name, im_version):
     logging.info("Running query to vat api")
-    url = f"http://backend.ironbank-vat.svc.cluster.local/api/internal/container?name={im_name}&tag={im_version}"
+    url = f"http://backend.ironbank-vat.svc.cluster.local:8080/internal/container?name={im_name}&tag={im_version}"
     logging.info(f"GET {url}")
 
     try:
