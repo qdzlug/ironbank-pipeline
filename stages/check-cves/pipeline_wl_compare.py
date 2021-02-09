@@ -12,7 +12,6 @@
 
 import argparse
 import json
-import jsonschema
 import logging
 import os
 import pathlib
@@ -326,15 +325,16 @@ def _vat_findings_query(im_name, im_version):
         pathlib.Path(artifact_dir, "vat_api_findings.json").write_text(
             data=r.text, encoding="utf-8"
         )
-        try:
-            schema = swagger_to_jsonschema.generate(
-                main_model="Container",
-                swagger_path=f"{os.path.dirname(__file__)}/../../vat_findings.swagger.yaml",
-            )
-            jsonschema.validate(r.json(), schema)
-        except Exception as e:
-            logging.warning(f"Error validating the VAT schema {e}")
-            return None
+        # TODO: Uncomment this code when jsonschema is available in the ironbank pipeline image
+        # try:
+        #     schema = swagger_to_jsonschema.generate(
+        #         main_model="Container",
+        #         swagger_path=f"{os.path.dirname(__file__)}/../../vat_findings.swagger.yaml",
+        #     )
+        #     jsonschema.validate(r.json(), schema)
+        # except Exception as e:
+        #     logging.warning(f"Error validating the VAT schema {e}")
+        #     return None
 
         return r.json()
 
