@@ -720,11 +720,12 @@ def clean_up_finding_scan(iid):
             conn.commit()
             conn.close()
 
+
 def fix_inheritance(cursor, active_records, log_inherited, log_inherited_id):
     """
     Fix incorrect inheritance
     """
-    if log_inherited and not log_inherited_id: # inherited flag but no inherited_id
+    if log_inherited and not log_inherited_id:  # inherited flag but no inherited_id
         logs.debug("Not inherited, updating incorrect flag")
         j_record = (
             [x for x in active_records if x[1] == "justification"]
@@ -736,13 +737,12 @@ def fix_inheritance(cursor, active_records, log_inherited, log_inherited_id):
             if active_records
             else None
         )
-        update_inheritance_query = (
-            "UPDATE finding_logs SET inherited = 0 where id = %s"
-        )
+        update_inheritance_query = "UPDATE finding_logs SET inherited = 0 where id = %s"
         if sc_record:
             cursor.execute(update_inheritance_query, (sc_record[0][0],))
         if j_record:
             cursor.execute(update_inheritance_query, (j_record[0][0],))
+
 
 def update_finding_logs(cursor, container_id, row, finding_id, scan_source, lineage):
     """
