@@ -23,7 +23,7 @@ def _vulnerability_record(fulltag, justifications, vuln):
     vuln_record["package_path"] = vuln["package_path"]
     vuln_record["package_type"] = vuln["package_type"]
     vuln_record["package_version"] = vuln["package_version"]
-    vuln_record["fix"] = vuln["fix"]
+    vuln_record["fix"] = vuln["fix"].sort()
     vuln_record["url"] = vuln["url"]
     vuln_record["inherited"] = vuln.get("inherited_from_base") or "no_data"
     vuln_record["description"] = vuln["extra"]["description"]
@@ -75,12 +75,14 @@ def vulnerability_report(csv_dir, anchore_security_json, justifications):
     """
     with open(anchore_security_json, mode="r", encoding="utf-8") as f:
         json_data = json.load(f)
-        cves = [
-            _vulnerability_record(
+        cves = []
+        for d in json_data["vulnerabilities"]:
+            cve = _vulnerability_record(
                 fulltag=json_data["imageFullTag"], justifications=justifications, vuln=d
             )
-            for d in json_data["vulnerabilities"]
-        ]
+            if cve not in cves:
+                cves.append(cve)
+
 
     if cves:
         fieldnames = list(cves[0].keys())
