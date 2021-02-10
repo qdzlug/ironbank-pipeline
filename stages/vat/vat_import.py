@@ -185,6 +185,7 @@ def parse_anchore_security(as_path):
     d_f = d_f.assign(score="")
 
     d_f_clean = d_f.where(pandas.notnull(d_f), None)
+    d_f_clean.drop_duplicates(inplace=True)
     logs.debug(f"anchore security dataframe: \n {d_f_clean}")
     return d_f_clean
 
@@ -212,6 +213,7 @@ def parse_twistlock_security(tl_path):
     d_f = d_f.assign(package_path=None)
 
     d_f_clean = d_f.where(pandas.notnull(d_f), None)
+    d_f_clean.drop_duplicates(inplace=True)
     logs.debug(f"twistlock dataframe: \n {d_f_clean}")
     return d_f_clean
 
@@ -262,6 +264,7 @@ def parse_anchore_compliance(ac_path):
     d_f = d_f.assign(package_path=None)
 
     d_f_clean = d_f.where(pandas.notnull(d_f), None)
+    d_f_clean.drop_duplicates(inplace=True)
     logs.debug(f"anchore compliance dataframe: \n {d_f_clean}")
     return d_f_clean
 
@@ -349,6 +352,7 @@ def parse_oscap_security(ov_path):
     df_split = d_f.explode("package").reset_index(drop=True)
 
     d_f_clean = df_split.where(pandas.notnull(df_split), None)
+    d_f_clean.drop_duplicates(inplace=True)
     logs.debug(f"oscap security dataframe: \n {d_f_clean}")
     return d_f_clean
 
@@ -394,6 +398,7 @@ def parse_oscap_compliance(os_path):
     d_f = d_f.assign(package_path=None)
 
     d_f_clean = d_f.where(pandas.notnull(d_f), None)
+    d_f_clean.drop_duplicates(inplace=True)
     logs.debug(f"oscap compliance dataframe: \n {d_f_clean}")
     return d_f_clean
 
