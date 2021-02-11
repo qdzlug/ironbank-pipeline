@@ -185,7 +185,6 @@ def parse_anchore_security(as_path):
     d_f = d_f.assign(score="")
 
     d_f_clean = d_f.where(pandas.notnull(d_f), None)
-    d_f_clean.drop_duplicates(inplace=True)
     logs.debug(f"anchore security dataframe: \n {d_f_clean}")
     return d_f_clean
 
@@ -213,7 +212,6 @@ def parse_twistlock_security(tl_path):
     d_f = d_f.assign(package_path=None)
 
     d_f_clean = d_f.where(pandas.notnull(d_f), None)
-    d_f_clean.drop_duplicates(inplace=True)
     logs.debug(f"twistlock dataframe: \n {d_f_clean}")
     return d_f_clean
 
@@ -264,7 +262,6 @@ def parse_anchore_compliance(ac_path):
     d_f = d_f.assign(package_path=None)
 
     d_f_clean = d_f.where(pandas.notnull(d_f), None)
-    d_f_clean.drop_duplicates(inplace=True)
     logs.debug(f"anchore compliance dataframe: \n {d_f_clean}")
     return d_f_clean
 
@@ -352,7 +349,6 @@ def parse_oscap_security(ov_path):
     df_split = d_f.explode("package").reset_index(drop=True)
 
     d_f_clean = df_split.where(pandas.notnull(df_split), None)
-    d_f_clean.drop_duplicates(inplace=True)
     logs.debug(f"oscap security dataframe: \n {d_f_clean}")
     return d_f_clean
 
@@ -398,7 +394,6 @@ def parse_oscap_compliance(os_path):
     d_f = d_f.assign(package_path=None)
 
     d_f_clean = d_f.where(pandas.notnull(d_f), None)
-    d_f_clean.drop_duplicates(inplace=True)
     logs.debug(f"oscap compliance dataframe: \n {d_f_clean}")
     return d_f_clean
 
@@ -899,7 +894,7 @@ def check_parent_child_match(cursor, finding_id, parent_id):
     SELECT finding_id, record_type, state, record_text, expiration_date,
     false_positive, user_id, record_timestamp, active, record_type_active
     FROM finding_logs
-    WHERE finding_id in (%s, %s) AND record_type_active = 1
+    WHERE finding_id in (%s, %s) AND record_type_active = 1 and record_type = "state_change"
     """
 
     cursor.execute(
@@ -911,18 +906,9 @@ def check_parent_child_match(cursor, finding_id, parent_id):
     )
     p_c_logs = cursor.fetchall()
 
-    child_sc_log = [
-        log for log in p_c_logs if log[0] == finding_id and log[1] == "state_change"
-    ]
-    parent_sc_log = [
-        log for log in p_c_logs if log[0] == parent_id and log[1] == "state_change"
-    ]
-    child_j_log = [
-        log for log in p_c_logs if log[0] == finding_id and log[1] == "justification"
-    ]
-    parent_j_log = [
-        log for log in p_c_logs if log[0] == parent_id and log[1] == "justification"
-    ]
+    child_sc_log = [log for log in p_c_logs if log[0] == finding_id]
+    parent_sc_log = [log for log in p_c_logs if log[0] == parent_id]
+
     parent_child_match = (
         (child_sc_log[0][2] == parent_sc_log[0][2])
         if parent_sc_log and child_sc_log
