@@ -28,7 +28,7 @@ def _vulnerability_record(fulltag, justifications, vuln):
     vuln_record["package_path"] = vuln["package_path"]
     vuln_record["package_type"] = vuln["package_type"]
     vuln_record["package_version"] = vuln["package_version"]
-    vuln_record["fix"] = sorted_fix
+    vuln_record["fix"] = ", ".join(sorted_fix)
     vuln_record["url"] = vuln["url"]
     vuln_record["inherited"] = vuln.get("inherited_from_base") or "no_data"
     vuln_record["description"] = vuln["extra"]["description"]
