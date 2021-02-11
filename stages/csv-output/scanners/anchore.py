@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import pathlib
+import re
 
 from scanners.helper import write_csv_from_dict_list
 
@@ -11,8 +12,12 @@ from scanners.helper import write_csv_from_dict_list
 def _vulnerability_record(fulltag, justifications, vuln):
     """
     Create an individual vulnerability record
-
+    sorted_fix and fix_version_re needed for sorting fix string in case of duplicate cves with different sorts for the list of fix versions
     """
+    fix_version_re = "([A-Za-z0-9][-.0-~]*)"
+    sorted_fix = re.findall(fix_version_re, vuln["fix"])
+    sorted_fix.sort()
+
     vuln_record = dict()
     vuln_record["tag"] = fulltag
     vuln_record["cve"] = vuln["vuln"]
@@ -23,7 +28,7 @@ def _vulnerability_record(fulltag, justifications, vuln):
     vuln_record["package_path"] = vuln["package_path"]
     vuln_record["package_type"] = vuln["package_type"]
     vuln_record["package_version"] = vuln["package_version"]
-    vuln_record["fix"] = vuln["fix"].sort()
+    vuln_record["fix"] = sorted_fix
     vuln_record["url"] = vuln["url"]
     vuln_record["inherited"] = vuln.get("inherited_from_base") or "no_data"
     vuln_record["description"] = vuln["extra"]["description"]
@@ -82,7 +87,6 @@ def vulnerability_report(csv_dir, anchore_security_json, justifications):
             )
             if cve not in cves:
                 cves.append(cve)
-
 
     if cves:
         fieldnames = list(cves[0].keys())
