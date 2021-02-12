@@ -315,7 +315,7 @@ def parse_oscap_security(ov_path):
     d_f = pandas.read_csv(ov_path)
 
     # This keeps the rows where the result is "true" - pandas loads it as a boolean
-    oscap_security = d_f[d_f["result"] == True]
+    oscap_security = d_f[d_f["result"]]
 
     # grab the relevant columns we are homogenizing
     d_f = oscap_security[["ref", "title"]]
@@ -838,9 +838,7 @@ def insert_logs_with_logs(
             insert_logs_with_inheritance(
                 cursor, parent_finding, finding_id, version_bump_id
             )
-            deactivate_all_rows = [
-                deactivate_log_row(cursor, r[0]) for r in active_records
-            ]
+            [deactivate_log_row(cursor, r[0]) for r in active_records]
             return True
 
     elif not log_inherited_id:  # No inherited_id in logs and no parent finding
@@ -851,7 +849,7 @@ def insert_logs_with_logs(
         logs.debug(
             f"No parent but has an inherited_id id current logs: {log_inherited_id}"
         )
-        deactivate_all_rows = [deactivate_log_row(cursor, r[0]) for r in active_records]
+        [deactivate_log_row(cursor, r[0]) for r in active_records]
         check_log_count_sql = (
             "SELECT COUNT(*) FROM finding_logs WHERE finding_id = %s AND inherited = 0"
         )
@@ -1191,7 +1189,7 @@ def add_bumped_logs(cursor, row, versions, finding_id, parent_finding, scan_sour
 
     version_bump_id = find_bumped_id(cursor, row, finding_id, versions, scan_source)
     # Deactivates old finding Logs
-    deactivate_all_rows = [deactivate_log_row(cursor, r[0]) for r in results]
+    [deactivate_log_row(cursor, r[0]) for r in results]
     insert_logs_with_inheritance(cursor, parent_finding, finding_id, version_bump_id)
 
 
@@ -1378,35 +1376,6 @@ def get_parent_id(static_parent_id=[None]):
             if conn is not None and conn.is_connected():
                 conn.close()
     return static_parent_id[0]
-
-
-def get_all_inheritable_findings(iid):
-    """
-    @param image id
-    @return dataframe with all findings asscoiated with a container that are inhreitable
-    """
-    try:
-        conn = connect_to_db()
-        cursor = conn.cursor()
-        sql = (
-            "SELECT id, finding, scan_source, package, package_path FROM"
-            + " findings_approvals WHERE is_inheritable=1 and imageid=%s"
-        )
-        sql_tuple = (str(iid),)
-        cursor.execute(sql, sql_tuple)
-        logs.debug(sql)
-        d_f = pandas.DataFrame(cursor.fetchall())
-        if not d_f.empty:
-            d_f.columns = cursor.column_names
-        logs.debug("print all findings that are inheritable and not inherited yet\n")
-        logs.debug("----------------------------")
-        logs.debug(d_f)
-        return d_f
-    except Error as error:
-        logs.error(error)
-    finally:
-        if conn is not None and conn.is_connected():
-            conn.close()
 
 
 def push_all_csv_data(data, iid, versions):
