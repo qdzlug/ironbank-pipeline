@@ -450,7 +450,7 @@ def find_all_versions(cursor, container_id):
     any containers since that did not inherit the approval
     : return dict of approved and unapproved container ids
     """
-
+    valid_states = ["Approved", "Conditionally Approved"]
     approved_versions_query = """
         SELECT c.id, cl.type FROM containers c
         LEFT JOIN (SELECT id, imageid, type from container_log
@@ -459,8 +459,8 @@ def find_all_versions(cursor, container_id):
         """
     cursor.execute(approved_versions_query, (args.container,))
     containers = cursor.fetchall()
-    approved_ids = [x[0] for x in containers if x[1] == "Approved"]
-    unapproved_ids = [x[0] for x in containers if x[1] != "Approved"]
+    approved_ids = [x[0] for x in containers if x[1] in valid_states]
+    unapproved_ids = [x[0] for x in containers if x[1] not in valid_states]
     container_versions = {"approved": approved_ids, "unapproved": unapproved_ids}
     if container_versions["approved"] and container_versions["unapproved"]:
         add_logs = True
@@ -825,24 +825,22 @@ def insert_logs_with_logs(
     """
     Inserts logs if needed for findings that already have logs.
     """
-
+    logs.debug("Starting function insert_logs_with_logs")
     system_user_id = get_system_user_id()
     version_bump_id = None
     if parent_finding:
-        if log_inherited_id == parent_finding:
+        match = check_parent_child_match(cursor, finding_id, parent_finding)
+        if log_inherited_id == parent_finding and match:
             logs.debug("No inheritance change")
-            return True  # No change in inherited_id
-        else:  # Inherits from another parent and is not in an approved state
-            delete_inherited_sql = (
-                "DELETE FROM finding_logs WHERE finding_id = %s AND inherited = 1"
-            )
-            cursor.execute(delete_inherited_sql, (finding_id,))
-            deactivate_all_rows = [
-                deactivate_log_row(cursor, r[0]) for r in active_records
-            ]
+            return True  # No change in inherited_id and log state matches
+        else:  # Inherits from another parent or inheritance needs to be updated.
+            logs.debug(f"Inheritance change/log update for {finding_id}")
             insert_logs_with_inheritance(
                 cursor, parent_finding, finding_id, version_bump_id
             )
+            deactivate_all_rows = [
+                deactivate_log_row(cursor, r[0]) for r in active_records
+            ]
             return True
 
     elif not log_inherited_id:  # No inherited_id in logs and no parent finding
@@ -853,24 +851,17 @@ def insert_logs_with_logs(
         logs.debug(
             f"No parent but has an inherited_id id current logs: {log_inherited_id}"
         )
-        delete_inherited_sql = (
-            "DELETE FROM finding_logs WHERE finding_id = %s AND inherited = 1"
+        deactivate_all_rows = [deactivate_log_row(cursor, r[0]) for r in active_records]
+        check_log_count_sql = (
+            "SELECT COUNT(*) FROM finding_logs WHERE finding_id = %s AND inherited = 0"
         )
-        cursor.execute(delete_inherited_sql, (finding_id,))
-        check_log_count_sql = "SELECT COUNT(*) FROM finding_logs WHERE finding_id = %s"
         cursor.execute(check_log_count_sql, (finding_id,))
         log_count = cursor.fetchall()[0][0]
         if not log_count:
             insert_new_log(cursor, finding_id, system_user_id)
         else:
-            logs.debug("Deactivating")
-            deactivate_all_rows = [
-                deactivate_log_row(cursor, r[0]) for r in active_records
-            ]
-            get_logs = """
-                SELECT record_type, MAX(id) FROM finding_logs WHERE finding_id = %s
-                GROUP BY record_type
-                """
+            logs.debug("Reactivating previous logs")
+            get_logs = "SELECT record_type, MAX(id) FROM finding_logs WHERE finding_id = %s AND inherited = 0 group by record_type"
             cursor.execute(get_logs, (finding_id,))
             current_logs = cursor.fetchall()
             j_id = (
@@ -883,6 +874,8 @@ def insert_logs_with_logs(
                 if current_logs
                 else None
             )
+            # This a rare case, but when we do this itwill look off in the logs since the deactivate will most likely affect
+            # the most recent logs. VAT database may need a flag for deactivated rows so we don't pick those up in the display logs.
             if sc_id:
                 activate_sc = """
                     UPDATE finding_logs SET active = 1, record_type_active = 1,
@@ -902,6 +895,42 @@ def insert_logs_with_logs(
                     """
                 cursor.execute(activate_j, (j_id,))
         return True
+
+
+def check_parent_child_match(cursor, finding_id, parent_id):
+    """
+    Checks if the child finding has the same active logs as the parent.
+    If not, adds the two active records to the child.
+    """
+    logs.debug(
+        f"Beginning check_parent_child_match for finding {finding_id} and parent {parent_id}"
+    )
+    get_logs_query = """
+    SELECT finding_id, record_type, state, record_text, expiration_date,
+    false_positive, user_id, record_timestamp, active, record_type_active
+    FROM finding_logs
+    WHERE finding_id in (%s, %s) AND record_type_active = 1 and record_type = "state_change"
+    """
+
+    cursor.execute(
+        get_logs_query,
+        (
+            finding_id,
+            parent_id,
+        ),
+    )
+    p_c_logs = cursor.fetchall()
+
+    child_sc_log = [log for log in p_c_logs if log[0] == finding_id]
+    parent_sc_log = [log for log in p_c_logs if log[0] == parent_id]
+
+    parent_child_match = (
+        (child_sc_log[0][2] == parent_sc_log[0][2])
+        if parent_sc_log and child_sc_log
+        else False
+    )
+
+    return parent_child_match
 
 
 def insert_logs_with_inheritance(cursor, parent_finding, finding_id, version_bump_id):
@@ -1161,11 +1190,8 @@ def add_bumped_logs(cursor, row, versions, finding_id, parent_finding, scan_sour
             return
 
     version_bump_id = find_bumped_id(cursor, row, finding_id, versions, scan_source)
-    # Deletes the finding Logs
-    delete_sql = "DELETE FROM `finding_logs` WHERE `finding_id` = %s"
-    delete_tuple = (finding_id,)
-    cursor.execute(delete_sql, delete_tuple)
-
+    # Deactivates old finding Logs
+    deactivate_all_rows = [deactivate_log_row(cursor, r[0]) for r in results]
     insert_logs_with_inheritance(cursor, parent_finding, finding_id, version_bump_id)
 
 
@@ -1491,7 +1517,7 @@ def set_approval_state(container_id, version):
         )
 
         insert_log_sql = """
-           INSERT INTO container_log (id, imageid, user_id, type, text, date_time) VALUES
+           INSERT INTO container_log (id, imageid, user_id, type, text, date_time, active) VALUES
            (%s, %s, %s, %s, %s, %s)"""
         for log in container_logs:
             container_log_type = log[1]
@@ -1505,6 +1531,7 @@ def set_approval_state(container_id, version):
                 container_log_type,
                 container_log_text,
                 container_log_datetime,
+                0,
             )
             logs.debug(insert_log_sql % insert_log_tuple)
             cursor.execute(insert_log_sql, insert_log_tuple)
@@ -1516,6 +1543,7 @@ def set_approval_state(container_id, version):
             bumped_version_status,
             auto_approval_text,
             args.scan_date,
+            1,
         )
         logs.debug(insert_log_sql % auto_approve_tuple)
         cursor.execute(insert_log_sql, auto_approve_tuple)
