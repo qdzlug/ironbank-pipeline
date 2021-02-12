@@ -190,7 +190,7 @@ definitions:
       - email
       - role
   ContainerApprover:
-    description: The approver associated with the container (not findings). Only exists if the container is approved
+    description: The approver associated with the container (not findings). Only exists if the container is approved or conditionally approved
     type: object
     properties:
       expires:
