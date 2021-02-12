@@ -701,12 +701,17 @@ def insert_finding_scan(cursor, row, finding_id):
 
 
 def clean_up_finding_scan(iid):
+    """
+    This cleans up the finding_scan_results table for this scan by setting all
+    finding_scan_results entries active to 0 which are not part of this job scan
+    """
+
     conn = connect_to_db()
     cursor = conn.cursor(buffered=True)
     try:
         cleanup_query = """
-        UPDATE `finding_scan_results` fsr inner join findings f on fsr.finding_id = f.id
-        SET active = 0 WHERE job_id != %s and f.container_id = %s
+        UPDATE `finding_scan_results` fsr INNER JOIN findings f ON fsr.finding_id = f.id
+        SET active = 0 WHERE job_id != %s AND f.container_id = %s
         """
         update_values = (
             args.job_id,
@@ -988,8 +993,10 @@ def insert_finding_log(cursor, values):
 
     insert_query = """INSERT INTO `finding_logs` (
         id, finding_id, record_type, state, record_text, in_current_scan, expiration_date,
-        inheritable, inherited_id, inherited, false_positive, user_id, record_timestamp, active, record_type_active
-    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+        inheritable, inherited_id, inherited, false_positive, user_id,
+        record_timestamp, active, record_type_active)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
     logs.debug(insert_query % values)
     cursor.execute(insert_query, values)
 
