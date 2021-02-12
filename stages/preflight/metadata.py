@@ -8,6 +8,7 @@ from pathlib import Path
 
 import jsonschema
 import yaml
+from func_timeout import func_timeout
 
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), "../../scripts/"))
 import hardening_manifest_yaml.generate  # noqa: E402
@@ -77,7 +78,7 @@ def validate_yaml(content):
     try:
         # may hang from catastrophic backtracking if format is invalid
         logging.info("This task will exit if not completed within 2 minutes")
-        jsonschema.validate(content, schema)
+        func_timeout(120, jsonschema.validate(content, schema))
     except jsonschema.ValidationError as ex:
         logging.info(ex.message)
 
