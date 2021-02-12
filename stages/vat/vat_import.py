@@ -450,7 +450,7 @@ def find_all_versions(cursor, container_id):
     any containers since that did not inherit the approval
     : return dict of approved and unapproved container ids
     """
-
+    valid_states = ["Approved", "Conditionally Approved"]
     approved_versions_query = """
         SELECT c.id, cl.type FROM containers c
         LEFT JOIN (SELECT id, imageid, type from container_log
@@ -459,8 +459,8 @@ def find_all_versions(cursor, container_id):
         """
     cursor.execute(approved_versions_query, (args.container,))
     containers = cursor.fetchall()
-    approved_ids = [x[0] for x in containers if x[1] == "Approved"]
-    unapproved_ids = [x[0] for x in containers if x[1] != "Approved"]
+    approved_ids = [x[0] for x in containers if x[1] in valid_states]
+    unapproved_ids = [x[0] for x in containers if x[1] not in valid_states]
     container_versions = {"approved": approved_ids, "unapproved": unapproved_ids}
     if container_versions["approved"] and container_versions["unapproved"]:
         add_logs = True
@@ -853,7 +853,7 @@ def insert_logs_with_logs(
         )
         deactivate_all_rows = [deactivate_log_row(cursor, r[0]) for r in active_records]
         check_log_count_sql = (
-            "SELECT COUNT(*) from finding_logs where finding_id = %s and inherited = 0"
+            "SELECT COUNT(*) FROM finding_logs WHERE finding_id = %s AND inherited = 0"
         )
         cursor.execute(check_log_count_sql, (finding_id,))
         log_count = cursor.fetchall()[0][0]
@@ -861,7 +861,7 @@ def insert_logs_with_logs(
             insert_new_log(cursor, finding_id, system_user_id)
         else:
             logs.debug("Reactivating previous logs")
-            get_logs = "SELECT record_type, max(id) from finding_logs where finding_id = %s and inherited = 0 group by record_type"
+            get_logs = "SELECT record_type, MAX(id) FROM finding_logs WHERE finding_id = %s AND inherited = 0 group by record_type"
             cursor.execute(get_logs, (finding_id,))
             current_logs = cursor.fetchall()
             j_id = (
@@ -1517,7 +1517,7 @@ def set_approval_state(container_id, version):
         )
 
         insert_log_sql = """
-           INSERT INTO container_log (id, imageid, user_id, type, text, date_time) VALUES
+           INSERT INTO container_log (id, imageid, user_id, type, text, date_time, active) VALUES
            (%s, %s, %s, %s, %s, %s)"""
         for log in container_logs:
             container_log_type = log[1]
@@ -1531,6 +1531,7 @@ def set_approval_state(container_id, version):
                 container_log_type,
                 container_log_text,
                 container_log_datetime,
+                0,
             )
             logs.debug(insert_log_sql % insert_log_tuple)
             cursor.execute(insert_log_sql, insert_log_tuple)
@@ -1542,6 +1543,7 @@ def set_approval_state(container_id, version):
             bumped_version_status,
             auto_approval_text,
             args.scan_date,
+            1,
         )
         logs.debug(insert_log_sql % auto_approve_tuple)
         cursor.execute(insert_log_sql, auto_approve_tuple)
