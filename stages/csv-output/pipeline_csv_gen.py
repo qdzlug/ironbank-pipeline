@@ -82,7 +82,7 @@ def main():
         sys.exit(1)
 
     image_name = hardening_manifest["name"]
-    wl_branch = os.getenv("WL_TARGET_BRANCH", default="master")
+    wl_branch = os.environ.get("WL_TARGET_BRANCH", default="master")
 
     # get cves and justifications from VAT
     total_whitelist = _get_complete_whitelist_for_image(
@@ -377,7 +377,7 @@ def _get_vulns_from_query(row):
     vuln_dict["justification"] = row[8]
     if row[4] and row[4] == "anchore_cve":
         vuln_dict["vuln_description"] = row[10]
-    elif row[4] and row[4] == "anchore_comp":
+    elif row[4] and row[4] == "anchore_comp" and row[9]:
         vuln_dict["vuln_description"] = row[9].split("\n")[0]
     else:
         vuln_dict["vuln_description"] = row[9]
@@ -470,7 +470,10 @@ def _get_justifications(total_whitelist, sourceImageName):
     # Loop through the findings and create the corresponding dict object based on the vuln_source
     for finding in total_whitelist:
         if "vulnerability" in finding.keys():
-            cveID = finding["vulnerability"] + "-" + finding["vuln_description"]
+            if finding["vuln_description"]:
+                cveID = finding["vulnerability"] + "-" + finding["vuln_description"]
+            else:
+                cveID = finding["vulnerability"]
             openscapID = finding["vulnerability"]
             trigger_id = finding["vulnerability"]
             logging.debug(cveID)

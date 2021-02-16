@@ -278,7 +278,7 @@ class Anchore:
             "image",
             "wait",
             "--timeout",
-            os.getenv("ANCHORE_TIMEOUT", default="2400"),
+            os.environ.get("ANCHORE_TIMEOUT", default="2400"),
             digest,
         ]
         try:
