@@ -32,7 +32,7 @@ def main():
         # Use the project description.yaml file path if one exists
         with hardening_manifest_yaml_path.open("r") as f:
             content = yaml.safe_load(f)
-        validate_yaml(content)
+        func_timeout(120, validate_yaml, (content))
     elif os.environ["GREYLIST_BACK_COMPAT"].lower() == "true":
         # Use the generated description.yaml file path if not
         logging.warning("hardening_manifest.yaml does not exist, autogenerating")
@@ -78,7 +78,7 @@ def validate_yaml(content):
     try:
         # may hang from catastrophic backtracking if format is invalid
         logging.info("This task will exit if not completed within 2 minutes")
-        func_timeout(120, jsonschema.validate, (content, schema))
+        jsonschema.validate(content, schema)
     except jsonschema.ValidationError as ex:
         logging.info(ex.message)
 
