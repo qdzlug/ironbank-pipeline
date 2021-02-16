@@ -812,7 +812,7 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
                 parent_finding,
                 finding_id,
                 log_inherited_id,
-                is_finding_inheritable
+                is_finding_inheritable,
             )
             return True
         if parent_finding:
@@ -821,7 +821,7 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
                 parent_finding,
                 finding_id,
                 version_bump_id,
-                is_finding_inheritable
+                is_finding_inheritable,
             )
         else:  # this finding is not inherited
             insert_new_log(cursor, finding_id, system_user_id, is_finding_inheritable)
@@ -837,7 +837,7 @@ def insert_logs_with_logs(
     parent_finding,
     finding_id,
     log_inherited_id,
-    is_finding_inheritable
+    is_finding_inheritable,
 ):
     """
     Inserts logs if needed for findings that already have logs.
@@ -854,7 +854,7 @@ def insert_logs_with_logs(
                 parent_finding,
                 finding_id,
                 version_bump_id,
-                is_finding_inheritable
+                is_finding_inheritable,
             )
             [deactivate_log_row(cursor, r[0]) for r in active_records]
             return True
@@ -868,7 +868,7 @@ def insert_logs_with_logs(
                 parent_finding,
                 finding_id,
                 version_bump_id,
-                is_finding_inheritable
+                is_finding_inheritable,
             )
             [deactivate_log_row(cursor, r[0]) for r in active_records]
             return True
@@ -1061,7 +1061,6 @@ def insert_finding_log(cursor, values, is_finding_inheritable):
         update_list[9] = 0  # inherited
         values = tuple(update_list)
 
-
     insert_query = """INSERT INTO `finding_logs` (
         id, finding_id, record_type, state, record_text, in_current_scan, expiration_date,
         inheritable, inherited_id, inherited, false_positive, user_id,
@@ -1238,8 +1237,8 @@ def add_bumped_logs(cursor, row, versions, finding_id, parent_finding, scan_sour
     # Deactivates old finding Logs
     [deactivate_log_row(cursor, r[0]) for r in results]
     insert_logs_with_inheritance(
-        cursor, parent_finding, finding_id, version_bump_id, is_finding_inheritable)
-
+        cursor, parent_finding, finding_id, version_bump_id, is_finding_inheritable
+    )
 
 
 def check_finding_inheritable(row, scan_source):
@@ -1255,13 +1254,13 @@ def check_finding_inheritable(row, scan_source):
 
     if scan_source == "anchore_comp" and "Gate: dockerfile" in row["description"]:
         logs.debug(
-             "check_finding_inheritable is NOT inheritable for finding: %s",
-             row["finding"]
+            "check_finding_inheritable is NOT inheritable for finding: %s",
+            row["finding"],
         )
         return False
     logs.debug(
-        "check_finding_inheritable is inheritable for finding: %s",
-        row["finding"])
+        "check_finding_inheritable is inheritable for finding: %s", row["finding"]
+    )
     return True
 
 
