@@ -1487,7 +1487,7 @@ def set_approval_state(container_id, version):
 
         insert_log_sql = """
            INSERT INTO container_log (id, imageid, user_id, type, text, date_time, active) VALUES
-           (%s, %s, %s, %s, %s, %s)"""
+           (%s, %s, %s, %s, %s, %s, %s)"""
         for log in container_logs:
             container_log_type = log[1]
             container_log_text = log[2]
