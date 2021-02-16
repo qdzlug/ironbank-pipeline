@@ -78,7 +78,7 @@ def validate_yaml(content):
     try:
         # may hang from catastrophic backtracking if format is invalid
         logging.info("This task will exit if not completed within 2 minutes")
-        func_timeout(120, jsonschema.validate(content, schema))
+        func_timeout(120, jsonschema.validate, (content, schema))
     except jsonschema.ValidationError as ex:
         logging.info(ex.message)
 
