@@ -15,14 +15,5 @@ check cves:
     - openscap cve
     - openscap compliance
     - anchore scan
-  variables:
-    # Put the vat findings from the vat api in the vat_findings directory
-    VAT_FINDINGS: "${ARTIFACT_STORAGE}/vat_findings"
   script:
     - python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py"
-  artifacts:
-    when: always
-    paths:
-      - "${VAT_FINDINGS}"
-    expire_in: 1 week
-
