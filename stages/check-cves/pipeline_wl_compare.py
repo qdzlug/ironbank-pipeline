@@ -19,6 +19,7 @@ import subprocess
 import sys
 
 import gitlab
+import jsonschema
 import mysql.connector
 from mysql.connector import Error
 import requests
@@ -320,23 +321,36 @@ def _vat_findings_query(im_name, im_version):
 
     if r.status_code == 200:
         logging.info("Fetched data from vat successfully")
-        artifact_dir = os.environ["ARTIFACT_DIR"]
+        try:
+            logging.info("Validating the VAT response against schema")
+            schema = swagger_to_jsonschema.generate(
+                main_model="Container",
+                swagger_path=f"{os.path.dirname(__file__)}/../../vat_findings.swagger.yaml",
+            )
+            jsonschema.validate(r.json(), schema)
+        except Exception as e:
+            logging.warning(f"Error validating the VAT schema {e}")
+            return None
 
+        artifact_dir = os.environ["ARTIFACT_DIR"]
         pathlib.Path(artifact_dir, "vat_api_findings.json").write_text(
             data=r.text, encoding="utf-8"
         )
-        # TODO: Uncomment this code when jsonschema is available in the ironbank pipeline image
-        # try:
-        #     schema = swagger_to_jsonschema.generate(
-        #         main_model="Container",
-        #         swagger_path=f"{os.path.dirname(__file__)}/../../vat_findings.swagger.yaml",
-        #     )
-        #     jsonschema.validate(r.json(), schema)
-        # except Exception as e:
-        #     logging.warning(f"Error validating the VAT schema {e}")
-        #     return None
-
         return r.json()
+
+    elif r.status_code == 404:
+        logging.warning(f"{im_name}:{im_version} not found in VAT")
+        logging.info(r.text)
+
+    elif r.status_code == 400:
+        logging.warning(f"Bad request: {url}")
+        logging.info(r.text)
+
+    else:
+        logging.warning(f"Unknown response from VAT {r.status_code}")
+        logging.warning(r.text)
+        logging.error("Failing the pipeline, please contact the administrators")
+        sys.exit(1)
 
 
 def _vat_approval_query(im_name, im_version):
