@@ -321,6 +321,12 @@ def _vat_findings_query(im_name, im_version):
 
     if r.status_code == 200:
         logging.info("Fetched data from vat successfully")
+
+        artifact_dir = os.environ["ARTIFACT_DIR"]
+        pathlib.Path(artifact_dir, "vat_api_findings.json").write_text(
+            data=r.text, encoding="utf-8"
+        )
+
         try:
             logging.info("Validating the VAT response against schema")
             schema = swagger_to_jsonschema.generate(
@@ -332,10 +338,6 @@ def _vat_findings_query(im_name, im_version):
             logging.warning(f"Error validating the VAT schema {e}")
             return None
 
-        artifact_dir = os.environ["ARTIFACT_DIR"]
-        pathlib.Path(artifact_dir, "vat_api_findings.json").write_text(
-            data=r.text, encoding="utf-8"
-        )
         return r.json()
 
     elif r.status_code == 404:
