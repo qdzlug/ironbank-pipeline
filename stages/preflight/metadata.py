@@ -33,8 +33,8 @@ def main():
         # Use the project description.yaml file path if one exists
         with hardening_manifest_yaml_path.open("r") as f:
             content = yaml.safe_load(f)
-        process = multiprocessing.Process(target=validate_yaml, args=(content,)) 
-        process.start() 
+        process = multiprocessing.Process(target=validate_yaml, args=(content,))
+        process.start()
         time.sleep(120)
         if process.is_alive():
             process.terminate()
