@@ -8,7 +8,8 @@ from pathlib import Path
 
 import jsonschema
 import yaml
-from func_timeout import func_timeout
+import multiprocessing
+import time
 
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), "../../scripts/"))
 import hardening_manifest_yaml.generate  # noqa: E402
@@ -32,7 +33,12 @@ def main():
         # Use the project description.yaml file path if one exists
         with hardening_manifest_yaml_path.open("r") as f:
             content = yaml.safe_load(f)
-        func_timeout(120, validate_yaml, args=(content,))
+        process = multiprocessing.Process(target=validate_yaml, args=(content,)) 
+        process.start() 
+        time.sleep(120)
+        if process.is_alive():
+            process.terminate()
+            sys.exit(1)
     elif os.environ["GREYLIST_BACK_COMPAT"].lower() == "true":
         # Use the generated description.yaml file path if not
         logging.warning("hardening_manifest.yaml does not exist, autogenerating")
