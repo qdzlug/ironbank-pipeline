@@ -50,5 +50,5 @@ def test_parse_twistlock_security():
     ), "package"
     assert rslt.at[0, "score"] == 9.8, "score"
     assert rslt.at[0, "severity"] == "critical", "severity(0)"
-    assert rslt.at[1, "severity"] == "high", "severity(1)"
-    assert rslt.at[4, "severity"] == "medium", "severity(4)"
+    assert rslt.at[1, "severity"] == "important", "severity(1)"
+    assert rslt.at[4, "severity"] == "moderate", "severity(4)"

@@ -24,10 +24,10 @@ vat_import.logs.addHandler(handler)
 
 parser = argparse.ArgumentParser(description="Report Parser")
 parser.add_argument(
-    "--link",
+    "--sec_link",
     nargs="?",
-    const="https://dsop-pipeline-artifacts.s3-us-gov-west-1.amazonaws.com",
-    default="https://dsop-pipeline-artifacts.s3-us-gov-west-1.amazonaws.com",
+    const="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs",
+    default="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs"
 )
 
 
@@ -51,7 +51,7 @@ def test_parse_oscap_security():
     assert rslt.at[0, "finding"] == "CVE-2019-15688", "finding"
     assert rslt.at[0, "description"] == "", "description"
     assert rslt.at[0, "package"] == "libvncserver", "package"
-    assert rslt.at[0, "severity"] == "high", "severity(1)"
+    assert rslt.at[0, "severity"] == "important", "severity(1)"
     assert rslt.at[1, "severity"] == "low", "severity(3)"
     assert rslt.at[2, "severity"] == "critical", "severity(6)"
-    assert rslt.at[3, "severity"] == "medium", "severity(7)"
+    assert rslt.at[3, "severity"] == "moderate", "severity(7)"
