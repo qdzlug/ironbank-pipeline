@@ -33,6 +33,7 @@ cp -r "${SCAN_DIRECTORY}"/* reports/
 
 cp "${BUILD_DIRECTORY}"/"${IMAGE_FILE}".tar reports/"${CI_PROJECT_NAME}"-"${IMAGE_VERSION}".tar
 cp "${PROJECT_LICENSE}" "${PROJECT_README}" reports/
+cp "${VAT_FINDINGS}" reports/
 
 # Debug
 ls reports

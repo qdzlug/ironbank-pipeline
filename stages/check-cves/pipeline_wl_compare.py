@@ -325,7 +325,7 @@ def _vat_findings_query(im_name, im_version):
             logging.info("Validating the VAT response against schema")
             schema = swagger_to_jsonschema.generate(
                 main_model="Container",
-                swagger_path=f"{os.path.dirname(__file__)}/../../vat_findings.swagger.yaml",
+                swagger_path=f"{os.path.dirname(__file__)}/../../schema/vat_findings.swagger.yaml",
             )
             jsonschema.validate(r.json(), schema)
         except Exception as e:
@@ -340,11 +340,11 @@ def _vat_findings_query(im_name, im_version):
 
     elif r.status_code == 404:
         logging.warning(f"{im_name}:{im_version} not found in VAT")
-        logging.info(r.text)
+        logging.warning(r.text)
 
     elif r.status_code == 400:
         logging.warning(f"Bad request: {url}")
-        logging.info(r.text)
+        logging.warning(r.text)
 
     else:
         logging.warning(f"Unknown response from VAT {r.status_code}")
