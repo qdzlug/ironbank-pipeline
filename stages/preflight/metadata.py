@@ -52,7 +52,7 @@ def main():
             sys.exit(1)
         else:
             logging.error("JSON is validated")
-            sys.exit(1)
+
     elif os.environ["GREYLIST_BACK_COMPAT"].lower() == "true":
         # Use the generated description.yaml file path if not
         logging.warning("hardening_manifest.yaml does not exist, autogenerating")
