@@ -33,12 +33,19 @@ def main():
         # Use the project description.yaml file path if one exists
         with hardening_manifest_yaml_path.open("r") as f:
             content = yaml.safe_load(f)
-        process = multiprocessing.Process(target=validate_yaml, args=(content,))
+        parent_conn, child_conn = multiprocessing.Pipe()
+        process = multiprocessing.Process(target=validate_yaml, args=(content,child_conn))
         process.start()
         time.sleep(120)
         if process.is_alive():
             process.terminate()
             sys.exit(1)
+        elif process.exitcode != 0:
+            logging.error("There is an issue with the hardening_manifest.yaml file")
+            logging.error(parent_conn.recv())
+            sys.exit(1)
+        else:
+            print("that worked")
     elif os.environ["GREYLIST_BACK_COMPAT"].lower() == "true":
         # Use the generated description.yaml file path if not
         logging.warning("hardening_manifest.yaml does not exist, autogenerating")
@@ -75,7 +82,7 @@ def handle_sigterm(signal, frame):
     sys.exit(1)
 
 
-def validate_yaml(content):
+def validate_yaml(content, conn):
     logging.info("Validating schema")
     schema_path = Path(__file__).parent / "../../schema/hardening_manifest.schema.json"
     with schema_path.open("r") as s:
@@ -86,7 +93,8 @@ def validate_yaml(content):
         logging.info("This task will exit if not completed within 2 minutes")
         jsonschema.validate(content, schema)
     except jsonschema.ValidationError as ex:
-        logging.info(ex.message)
+        conn.send(ex.message)
+        sys.exit(1)
 
 
 def process_yaml(content):
