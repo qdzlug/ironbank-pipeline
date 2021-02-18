@@ -64,6 +64,7 @@ stages:
 
 include:
   - local: stages/preprocess/load-scripts.yaml
+  - template: Security/Secret-Detection.gitlab-ci.yml
 
 workflow:
   rules:
