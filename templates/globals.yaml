@@ -6,6 +6,10 @@ stages:
   # - executor image with git
   - preprocess
 
+  ### Built-in Gitlab template: https://gitlab.com/gitlab-org/gitlab/-/tree/master/lib/gitlab/ci/templates
+  # See include down below, currently using Security/Secret Detection
+  - test
+
   ### preflight stage
   # check folder structure, check build variables
   # Requirements:
