@@ -37,7 +37,16 @@ def main():
         process.start()
         time.sleep(120)
         if process.is_alive():
+            logging.error(
+                "A field in the hardening_manifest.yaml is invalid and is causing an infinite loop during validation"
+            )
+            logging.error(
+                "Please check your hardening manifest to confirm all fields have valid input"
+            )
             process.terminate()
+            sys.exit(1)
+        elif process.exitcode != 0:
+            logging.error("JSON is validated")
             sys.exit(1)
     elif os.environ["GREYLIST_BACK_COMPAT"].lower() == "true":
         # Use the generated description.yaml file path if not
@@ -63,16 +72,6 @@ def main():
         logging.error("Exiting.")
         sys.exit(1)
     process_yaml(content)
-
-
-def handle_sigterm(signal, frame):
-    logging.error(
-        "A field in the hardening_manifest.yaml is invalid and is causing an infinite loop during validation"
-    )
-    logging.error(
-        "Please check your hardening manifest to confirm all fields have valid input"
-    )
-    sys.exit(1)
 
 
 def validate_yaml(content):
@@ -128,5 +127,4 @@ def process_yaml(content):
 
 
 if __name__ == "__main__":
-    signal.signal(signal.SIGUSR1, handle_sigterm)
     main()
