@@ -27,7 +27,7 @@ parser.add_argument(
     "--comp_link",
     nargs="?",
     const="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs",
-    default="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs"
+    default="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs",
 )
 
 parser.add_argument("--debug", nargs="?", const=True, default=True)
