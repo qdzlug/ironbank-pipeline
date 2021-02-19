@@ -27,10 +27,22 @@ class ParseCsvsTestCase(unittest.TestCase):
         parser = argparse.ArgumentParser()
         parser.add_argument("--csv_dir", nargs="?", const="./test", default="./test")
         parser.add_argument(
-            "--link",
+            "--sec_link",
             nargs="?",
-            const="https://dsop-pipeline-artifacts.s3-us-gov-west-1.amazonaws.com",
-            default="https://dsop-pipeline-artifacts.s3-us-gov-west-1.amazonaws.com",
+            const="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs",
+            default="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs",
+        )
+        parser.add_argument(
+            "--comp_link",
+            nargs="?",
+            const="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs",
+            default="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs",
+        )
+        parser.add_argument(
+            "--repo_link",
+            nargs="?",
+            const="https://repo1.dso.mil/dsop/opensource/pipeline-test-project",
+            default="https://repo1.dso.mil/dsop/opensource/pipeline-test-project",
         )
         test_args, notKnownArgs = parser.parse_known_args()
         if notKnownArgs:
@@ -51,10 +63,22 @@ class ParseCsvsTestCase(unittest.TestCase):
             default="./stages/vat/test/test_data",
         )
         parser.add_argument(
-            "--link",
+            "--sec_link",
             nargs="?",
-            const="https://dsop-pipeline-artifacts.s3-us-gov-west-1.amazonaws.com",
-            default="https://dsop-pipeline-artifacts.s3-us-gov-west-1.amazonaws.com",
+            const="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs",
+            default="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs",
+        )
+        parser.add_argument(
+            "--comp_link",
+            nargs="?",
+            const="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs",
+            default="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs",
+        )
+        parser.add_argument(
+            "--repo_link",
+            nargs="?",
+            const="https://repo1.dso.mil/dsop/opensource/pipeline-test-project",
+            default="https://repo1.dso.mil/dsop/opensource/pipeline-test-project",
         )
         test_args, notKnownArgs = parser.parse_known_args()
         if notKnownArgs:
@@ -82,7 +106,7 @@ class ParseCsvsTestCase(unittest.TestCase):
         assert (
             tlc["package"][0] == "commons-fileupload_commons-fileupload-1.3.1-jenkins-2"
         ), "package"
-        assert tlc["package_path"][0] == "N/A", "package_path = "
+        assert tlc["package_path"][0] == None, "package_path = "
 
         asc = rslt["anchore_cve"]
         assert asc.at[0, "finding"] == "CVE-2019-9948", "finding"
@@ -101,21 +125,21 @@ class ParseCsvsTestCase(unittest.TestCase):
         assert asc.at[3, "severity"] == "High", "severity"
 
         acc = rslt["anchore_comp"]
+        assert acc.at[0, "severity"] == "ga_go", "severity: go"
         assert acc.at[1, "severity"] == "ga_go", "severity: go"
-        assert acc.at[2, "severity"] == "ga_go", "severity: go"
-        assert acc.at[3, "severity"] == "ga_stop", "severity: stop"
-        assert acc.at[4, "severity"] == "ga_go", "severity: go"
-        assert acc.at[5, "severity"] == "ga_warn", "severity: warn"
-        assert acc.at[6, "severity"] == "ga_stop", "severity: go"
+        assert acc.at[2, "severity"] == "ga_stop", "severity: stop"
+        assert acc.at[3, "severity"] == "ga_go", "severity: go"
+        assert acc.at[4, "severity"] == "ga_warn", "severity: warn"
+        assert acc.at[5, "severity"] == "ga_stop", "severity: go"
 
         osc = rslt["oscap_cve"]
         assert osc.at[0, "finding"] == "CVE-2019-15688", "finding"
         assert osc.at[0, "description"] == "", "description"
         assert osc.at[0, "package"] == "libvncserver", "package"
-        assert osc.at[0, "severity"] == "high", "severity(1)"
+        assert osc.at[0, "severity"] == "important", "severity(1)"
         assert osc.at[1, "severity"] == "low", "severity(3)"
         assert osc.at[2, "severity"] == "critical", "severity(6)"
-        assert osc.at[3, "severity"] == "medium", "severity(7)"
+        assert osc.at[3, "severity"] == "moderate", "severity(7)"
 
         occ = rslt["oscap_comp"]
         assert occ.at[137, "finding"] == "OL07-00-040820", "finding"

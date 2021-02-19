@@ -42,14 +42,14 @@ def test_parse_anchore_compliance():
 
     assert rslt.shape[0] == 6, "Row count = 6"
 
-    assert rslt.at[1, "finding"] == "639f6f1177735759703e928c14714a59", "finding"
+    assert rslt.at[0, "finding"] == "639f6f1177735759703e928c14714a59", "finding"
     assert (
-        rslt.at[1, "description"]
+        rslt.at[0, "description"]
         == "SUID or SGID found set on file /usr/bin/chage. Mode: 0o104755\n Gate: files\n Trigger: suid_or_guid_set\n Policy ID: DoDFileChecks"
     )
+    assert rslt.at[0, "severity"] == "ga_go", "severity: go"
     assert rslt.at[1, "severity"] == "ga_go", "severity: go"
-    assert rslt.at[2, "severity"] == "ga_go", "severity: go"
-    assert rslt.at[3, "severity"] == "ga_stop", "severity: stop"
-    assert rslt.at[4, "severity"] == "ga_go", "severity: go"
-    assert rslt.at[5, "severity"] == "ga_warn", "severity: warn"
-    assert rslt.at[6, "severity"] == "ga_stop", "severity: go"
+    assert rslt.at[2, "severity"] == "ga_stop", "severity: stop"
+    assert rslt.at[3, "severity"] == "ga_go", "severity: go"
+    assert rslt.at[4, "severity"] == "ga_warn", "severity: warn"
+    assert rslt.at[5, "severity"] == "ga_stop", "severity: go"
