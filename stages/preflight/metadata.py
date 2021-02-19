@@ -3,7 +3,6 @@ import json
 import logging
 import os
 import sys
-import signal
 from pathlib import Path
 
 import jsonschema
