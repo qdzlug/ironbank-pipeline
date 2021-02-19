@@ -24,11 +24,12 @@ vat_import.logs.addHandler(handler)
 
 parser = argparse.ArgumentParser(description="Report Parser")
 parser.add_argument(
-    "--link",
+    "--comp_link",
     nargs="?",
-    const="https://dsop-pipeline-artifacts.s3-us-gov-west-1.amazonaws.com",
-    default="https://dsop-pipeline-artifacts.s3-us-gov-west-1.amazonaws.com",
+    const="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs",
+    default="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs",
 )
+
 parser.add_argument("--debug", nargs="?", const=True, default=True)
 
 
