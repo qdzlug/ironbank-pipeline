@@ -1,4 +1,5 @@
 # Built-in Gitlab template test stage https://gitlab.com/gitlab-org/gitlab/-/tree/master/lib/gitlab/ci/templates
+# Todo: confirm that it picks up passwords
 
 include:
   - template: Security/Secret-Detection.gitlab-ci.yml
