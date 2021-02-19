@@ -39,7 +39,7 @@ hardening_manifest:
   script:
     - mkdir -p "${ARTIFACT_STORAGE}/preflight"
     - pip3 install jsonschema
-    - timeout --signal=SIGUSR1 --preserve-status 2m python3 "${PIPELINE_REPO_DIR}/stages/preflight/metadata.py"
+    - python3 "${PIPELINE_REPO_DIR}/stages/preflight/metadata.py"
   artifacts:
     when: always
     paths:
