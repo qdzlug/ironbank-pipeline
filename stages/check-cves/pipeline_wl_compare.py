@@ -148,7 +148,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         with vat_findings_file.open(mode="r") as f:
             vat_findings = json.load(f)
     except Exception:
-        logging.exception(f"Error reading findings file.")
+        logging.exception("Error reading findings file.")
         sys.exit(1)
 
     # list of finding statuses that denote a finding is approved within VAT
@@ -202,7 +202,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     try:
         delta = vuln_set.difference(wl_set)
     except Exception:
-        logging.exception(f"There was an error making the vulnerability delta request.")
+        logging.exception("There was an error making the vulnerability delta request.")
         sys.exit(1)
 
     delta_length = len(delta)
@@ -317,6 +317,7 @@ def _vat_findings_query(im_name, im_version):
         r = requests.get(url)
     except requests.exceptions.RequestException as e:
         logging.warning(f"Could not access VAT API: {url}")
+        logging.warning(e)
         return None
 
     if r.status_code == 200:
@@ -545,7 +546,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     approval_status = approval_status.lower().replace(" ", "_")
     if approval_status not in ["approved", "conditionally_approved"]:
         approval_status = "notapproved"
-        logging.warning(f"IMAGE_APPROVAL_STATUS=notapproved")
+        logging.warning("IMAGE_APPROVAL_STATUS=notapproved")
         if os.environ["CI_COMMIT_BRANCH"] == "master":
             logging.error(
                 "This container is not noted as an approved image in VAT. Unapproved images cannot run on master branch. Failing stage."
