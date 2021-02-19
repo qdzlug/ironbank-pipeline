@@ -12,13 +12,13 @@ import os
 import re
 import ast
 
+from datetime import datetime
+import time
+
 import pandas
 
 import mysql.connector
 from mysql.connector import Error
-
-from datetime import datetime
-import time
 
 
 parser = argparse.ArgumentParser(description="SQL Agent")
@@ -315,7 +315,7 @@ def parse_oscap_security(ov_path):
     d_f = pandas.read_csv(ov_path)
 
     # This keeps the rows where the result is "true" - pandas loads it as a boolean
-    oscap_security = d_f[d_f["result"] == True]
+    oscap_security = d_f[d_f["result"]]
 
     # grab the relevant columns we are homogenizing
     d_f = oscap_security[["ref", "title"]]
@@ -355,7 +355,7 @@ def parse_oscap_security(ov_path):
 
 def parse_oscap_compliance(os_path):
     """
-    @return dataframe with standarized columns for OSCAP compliance scan
+    @return dataframe with standarized columns for OpenSCAP compliance scan
     """
 
     report_link = os.path.join(args.comp_link, "report.html")
@@ -450,17 +450,17 @@ def find_all_versions(cursor, container_id):
     any containers since that did not inherit the approval
     : return dict of approved and unapproved container ids
     """
-
+    valid_states = ["Approved", "Conditionally Approved"]
     approved_versions_query = """
-    SELECT c.id, cl.type from containers c
-    LEFT JOIN (SELECT id, imageid, type from container_log
-    WHERE id in (SELECT MAX(id) from container_log group by imageid)) cl
-    ON c.id = cl.imageid where c.name = %s group by c.id;
-    """
+        SELECT c.id, cl.type FROM containers c
+        LEFT JOIN (SELECT id, imageid, type from container_log
+        WHERE id IN (SELECT MAX(id) FROM container_log GROUP BY imageid)) cl
+        ON c.id = cl.imageid WHERE c.name = %s group by c.id;
+        """
     cursor.execute(approved_versions_query, (args.container,))
     containers = cursor.fetchall()
-    approved_ids = [x[0] for x in containers if x[1] == "Approved"]
-    unapproved_ids = [x[0] for x in containers if x[1] != "Approved"]
+    approved_ids = [x[0] for x in containers if x[1] in valid_states]
+    unapproved_ids = [x[0] for x in containers if x[1] not in valid_states]
     container_versions = {"approved": approved_ids, "unapproved": unapproved_ids}
     if container_versions["approved"] and container_versions["unapproved"]:
         add_logs = True
@@ -559,7 +559,7 @@ def check_container():
             update_query = (
                 "UPDATE containers SET link = %s, "
                 + "link_health = %s, link_health_timestamp = %s "
-                + "where id = %s"
+                + "WHERE id = %s"
             )
             for cont_id in all_container_ids:
                 cursor.execute(
@@ -601,8 +601,8 @@ def insert_finding(cursor, iid, scan_source, index, row):
             package_path_query_string = "is"
 
         find_parent_finding_query = f"""
-            SELECT id from `findings` WHERE container_id = %s and
-            finding = %s and scan_source = %s and package {package_query_string} %s and
+            SELECT id FROM `findings` WHERE container_id = %s AND
+            finding = %s AND scan_source = %s AND package {package_query_string} %s AND
             package_path {package_path_query_string} %s"""
 
         cursor.execute(
@@ -664,7 +664,7 @@ def insert_finding_scan(cursor, row, finding_id):
     logs.debug("Starting insert_finding_scan")
     try:
         get_id_query = (
-            "SELECT id from `finding_scan_results` WHERE finding_id = %s and active = 1"
+            "SELECT id FROM `finding_scan_results` WHERE finding_id = %s and active = 1"
         )
         get_id_tuple = (finding_id,)
         logs.debug(get_id_query, get_id_tuple[0])
@@ -701,11 +701,17 @@ def insert_finding_scan(cursor, row, finding_id):
 
 
 def clean_up_finding_scan(iid):
+    """
+    This cleans up the finding_scan_results table for this scan by setting all
+    finding_scan_results entries active to 0 which are not part of this job scan
+    """
+
     conn = connect_to_db()
     cursor = conn.cursor(buffered=True)
     try:
         cleanup_query = """
-        UPDATE `finding_scan_results` fsr inner join findings f on fsr.finding_id = f.id SET active = 0 WHERE job_id != %s and f.container_id = %s
+        UPDATE `finding_scan_results` fsr INNER JOIN findings f ON fsr.finding_id = f.id
+        SET active = 0 WHERE job_id != %s AND f.container_id = %s
         """
         update_values = (
             args.job_id,
@@ -737,7 +743,7 @@ def fix_inheritance(cursor, active_records, log_inherited, log_inherited_id):
             if active_records
             else None
         )
-        update_inheritance_query = "UPDATE finding_logs SET inherited = 0 where id = %s"
+        update_inheritance_query = "UPDATE finding_logs SET inherited = 0 WHERE id = %s"
         if sc_record:
             cursor.execute(update_inheritance_query, (sc_record[0][0],))
         if j_record:
@@ -754,11 +760,18 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
     :params row dict of values to insert
     :params finding_id int value of corresponding finding in the findings table
     """
+
     logs.debug("Starting Update to Findings Log")
+
+    is_finding_inheritable = check_finding_inheritable(row, scan_source)
+
     try:
         system_user_id = get_system_user_id()
-        find_log_query = """SELECT id, record_type, in_current_scan, active, record_text, inherited_id, state, inherited from `finding_logs` WHERE
-            finding_id = %s and record_type_active = 1 ORDER BY active desc"""
+        find_log_query = """
+            SELECT id, record_type, in_current_scan, active, record_text,
+            inherited_id, state, inherited FROM `finding_logs` WHERE
+            finding_id = %s AND record_type_active = 1 ORDER BY active desc
+            """
         find_log_tuple = (finding_id,)
         logs.debug(find_log_query, finding_id)
         cursor.execute(find_log_query, find_log_tuple)
@@ -769,7 +782,6 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
             find_parent_findings(cursor, row, lineage, scan_source) if lineage else None
         )
         parent_finding = parents[0][0] if parents else None
-        inherited = 1 if parent_finding else 0
         log_in_current_scan = active_records[0][2] if active_records else 0
         version_bump_id = None
         j_record = (
@@ -782,16 +794,11 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
             if active_records
             else None
         )
-        finding_state = sc_record[0][6] if sc_record else None
-        new_entry_selection = """
-            SELECT NULL, finding_id, record_type, state, %s, 1, expiration_date, inheritable, %s,
-            %s, false_positive, %s, %s, %s, 1 from `finding_logs` WHERE id = %s
-            """
         fix_inheritance(cursor, active_records, log_inherited, log_inherited_id)
         if active_records and not log_in_current_scan:
             # If not in current_scan in logs update active logs to indicate that it now is in scan
             update_in_current_scan_query = (
-                "UPDATE finding_logs SET in_current_scan = 1 where id = %s"
+                "UPDATE finding_logs SET in_current_scan = 1 WHERE id = %s"
             )
             if sc_record:
                 cursor.execute(update_in_current_scan_query, (sc_record[0][0],))
@@ -800,15 +807,24 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
 
         if active_records:
             insert_logs_with_logs(
-                cursor, active_records, parent_finding, finding_id, log_inherited_id
+                cursor,
+                active_records,
+                parent_finding,
+                finding_id,
+                log_inherited_id,
+                is_finding_inheritable,
             )
             return True
         if parent_finding:
             insert_logs_with_inheritance(
-                cursor, parent_finding, finding_id, version_bump_id
+                cursor,
+                parent_finding,
+                finding_id,
+                version_bump_id,
+                is_finding_inheritable,
             )
         else:  # this finding is not inherited
-            insert_new_log(cursor, finding_id, system_user_id)
+            insert_new_log(cursor, finding_id, system_user_id, is_finding_inheritable)
         return True
     except Error as error:
         logs.error(error)
@@ -816,7 +832,12 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
 
 
 def insert_logs_with_logs(
-    cursor, active_records, parent_finding, finding_id, log_inherited_id
+    cursor,
+    active_records,
+    parent_finding,
+    finding_id,
+    log_inherited_id,
+    is_finding_inheritable,
 ):
     """
     Inserts logs if needed for findings that already have logs.
@@ -826,36 +847,51 @@ def insert_logs_with_logs(
     version_bump_id = None
     if parent_finding:
         match = check_parent_child_match(cursor, finding_id, parent_finding)
-        if log_inherited_id == parent_finding and match:
+        if log_inherited_id == parent_finding and not is_finding_inheritable:
+            logs.debug(f"No Inheritance change/log update for {finding_id}")
+            insert_logs_with_inheritance(
+                cursor,
+                parent_finding,
+                finding_id,
+                version_bump_id,
+                is_finding_inheritable,
+            )
+            [deactivate_log_row(cursor, r[0]) for r in active_records]
+            return True
+        elif log_inherited_id == parent_finding and match:
             logs.debug("No inheritance change")
             return True  # No change in inherited_id and log state matches
         else:  # Inherits from another parent or inheritance needs to be updated.
             logs.debug(f"Inheritance change/log update for {finding_id}")
             insert_logs_with_inheritance(
-                cursor, parent_finding, finding_id, version_bump_id
+                cursor,
+                parent_finding,
+                finding_id,
+                version_bump_id,
+                is_finding_inheritable,
             )
-            deactivate_all_rows = [
-                deactivate_log_row(cursor, r[0]) for r in active_records
-            ]
+            [deactivate_log_row(cursor, r[0]) for r in active_records]
             return True
+
     elif not log_inherited_id:  # No inherited_id in logs and no parent finding
         logs.debug("Not inherited, no inheritance change")
         return True  # No change in inherited_id
+
     else:  # no parent finding but has an inherited_id in current logs
         logs.debug(
             f"No parent but has an inherited_id id current logs: {log_inherited_id}"
         )
-        deactivate_all_rows = [deactivate_log_row(cursor, r[0]) for r in active_records]
+        [deactivate_log_row(cursor, r[0]) for r in active_records]
         check_log_count_sql = (
-            "SELECT COUNT(*) from finding_logs where finding_id = %s and inherited = 0"
+            "SELECT COUNT(*) FROM finding_logs WHERE finding_id = %s AND inherited = 0"
         )
         cursor.execute(check_log_count_sql, (finding_id,))
         log_count = cursor.fetchall()[0][0]
         if not log_count:
-            insert_new_log(cursor, finding_id, system_user_id)
+            insert_new_log(cursor, finding_id, system_user_id, is_finding_inheritable)
         else:
             logs.debug("Reactivating previous logs")
-            get_logs = "SELECT record_type, max(id) from finding_logs where finding_id = %s and inherited = 0 group by record_type"
+            get_logs = "SELECT record_type, MAX(id) FROM finding_logs WHERE finding_id = %s AND inherited = 0 group by record_type"
             cursor.execute(get_logs, (finding_id,))
             current_logs = cursor.fetchall()
             j_id = (
@@ -871,13 +907,22 @@ def insert_logs_with_logs(
             # This a rare case, but when we do this itwill look off in the logs since the deactivate will most likely affect
             # the most recent logs. VAT database may need a flag for deactivated rows so we don't pick those up in the display logs.
             if sc_id:
-                activate_sc = "UPDATE finding_logs SET active = 1, record_type_active = 1, inherited_id = NULL where id = %s"
+                activate_sc = """
+                    UPDATE finding_logs SET active = 1, record_type_active = 1,
+                    inherited_id = NULL WHERE id = %s
+                    """
                 cursor.execute(activate_sc, (sc_id[0],))
                 if j_id:
-                    activate_j = "UPDATE finding_logs SET active = 0, record_type_active = 1, inherited_id = NULL where id = %s"
+                    activate_j = """
+                        UPDATE finding_logs SET active = 0, record_type_active = 1,
+                        inherited_id = NULL WHERE id = %s
+                        """
                     cursor.execute(activate_j, (j_id[0],))
             else:
-                activate_j = "UPDATE finding_logs SET active = 1, record_type_active = 1, inherited_id = NULL where id = %s"
+                activate_j = """
+                    UPDATE finding_logs SET active = 1, record_type_active = 1,
+                    inherited_id = NULL WHERE id = %s
+                    """
                 cursor.execute(activate_j, (j_id,))
         return True
 
@@ -918,8 +963,14 @@ def check_parent_child_match(cursor, finding_id, parent_id):
     return parent_child_match
 
 
-def insert_logs_with_inheritance(cursor, parent_finding, finding_id, version_bump_id):
-    parent_logs_query = "select * from `finding_logs` where finding_id = %s"
+def insert_logs_with_inheritance(
+    cursor, parent_finding, finding_id, version_bump_id, is_finding_inheritable
+):
+    """
+    This will insert the logs for the scan that are inherited.
+    """
+
+    parent_logs_query = "SELECT * FROM `finding_logs` WHERE finding_id = %s"
     inherting_id = version_bump_id if version_bump_id else parent_finding
     cursor.execute(parent_logs_query, (inherting_id,))
     inherited = 1 if parent_finding else 0
@@ -943,7 +994,7 @@ def insert_logs_with_inheritance(cursor, parent_finding, finding_id, version_bum
             log[13],  # active
             log[14],  # record_type_active
         )
-        insert_finding_log(cursor, new_values)
+        insert_finding_log(cursor, new_values, is_finding_inheritable)
 
 
 def find_bumped_id(cursor, row, finding_id, versions, scan_source):
@@ -957,7 +1008,7 @@ def find_bumped_id(cursor, row, finding_id, versions, scan_source):
         last_approved = versions["approved"][-1:]
         bumped_findings = find_parent_findings(cursor, row, last_approved, scan_source)
         logs.debug(f"Bumped Findings {bumped_findings}")
-        if bumped_findings == None:
+        if bumped_findings is None:
             return None
         return bumped_findings[0][0]
     except Error as error:
@@ -965,7 +1016,7 @@ def find_bumped_id(cursor, row, finding_id, versions, scan_source):
     return None
 
 
-def insert_new_log(cursor, finding_id, system_user_id):
+def insert_new_log(cursor, finding_id, system_user_id, is_finding_inheritable):
     """
     Inserts a finding log for a new finding with no inherited logs
     :params finding int
@@ -990,10 +1041,10 @@ def insert_new_log(cursor, finding_id, system_user_id):
         1,  # active
         1,  # record_type_active
     )
-    insert_finding_log(cursor, new_values)
+    insert_finding_log(cursor, new_values, is_finding_inheritable)
 
 
-def insert_finding_log(cursor, values):
+def insert_finding_log(cursor, values, is_finding_inheritable):
     """
     Insert a new finding_log into finding_logs
     :params values tuple of insert values
@@ -1001,30 +1052,23 @@ def insert_finding_log(cursor, values):
 
     logs.debug("In insert_finding_log")
 
+    # If the finding is not inheritable then set the appropriate fields accordingly
+    if not is_finding_inheritable:
+        logs.info("Set finding: %s to not inheritable", values[1])
+        update_list = list(values)
+        update_list[7] = 0  # inheritable
+        update_list[8] = None  # inherited_id
+        update_list[9] = 0  # inherited
+        values = tuple(update_list)
+
     insert_query = """INSERT INTO `finding_logs` (
         id, finding_id, record_type, state, record_text, in_current_scan, expiration_date,
-        inheritable, inherited_id, inherited, false_positive, user_id, record_timestamp, active, record_type_active
-    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+        inheritable, inherited_id, inherited, false_positive, user_id,
+        record_timestamp, active, record_type_active)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
     logs.debug(insert_query % values)
     cursor.execute(insert_query, values)
-
-
-def add_active_log_row(cursor, get_value_query, values_tuple):
-    """
-    Gets values from a row in the table and then uses those values to insert a new row
-    :params get_value_query str
-    :params values_tuple tuple
-    :returns int finding_logs id of insert
-    """
-    logs.debug("add_active_log_row")
-
-    logs.debug("get_value_query: %s", get_value_query)
-    logs.debug("values_tuple: %s", values_tuple)
-    cursor.execute(get_value_query, values_tuple)
-    update_values = cursor.fetchone()
-
-    insert_finding_log(cursor, update_values)
-    return cursor.lastrowid
 
 
 def deactivate_log_row(cursor, log_id, deactivate=True, deactivate_record_type=True):
@@ -1051,7 +1095,8 @@ def find_parent_findings(cursor, finding, lineage, scan_source):
     """
     Takes a finding and finds its parent
     :params finding dict
-    :params lineage list of parents - May be used later to obtain root parent, for now parent is sufficient
+    :params lineage list of parents -
+                May be used later to obtain root parent, for now parent is sufficient
     :params scan_source
     :return parents list of tuples with finding id and container id
     """
@@ -1063,10 +1108,11 @@ def find_parent_findings(cursor, finding, lineage, scan_source):
         package_path_query_string = "is"
 
     logs.debug(f"find_parent_findings for {finding}")
-    logs.debug(f"lineage: {lineage}")  # temp
+    logs.debug(f"lineage: {lineage}")
 
-    find_parent_finding_query = f"""SELECT id, container_id from findings where finding = %s and scan_source = %s and package {package_query_string} %s and
-        package_path {package_path_query_string} %s and container_id = %s
+    find_parent_finding_query = f"""SELECT id, container_id FROM findings
+        WHERE finding = %s AND scan_source = %s AND package {package_query_string} %s 
+        AND package_path {package_path_query_string} %s AND container_id = %s
         """
     for parent in lineage:
         unique_values = (
@@ -1096,13 +1142,13 @@ def find_lineage(cursor, container_id):
 
     recursive_parent_query = """
         WITH RECURSIVE container_tree as (
-        select id, parent_id from containers where id = %s
-        union all
-        select c.id, c.parent_id
-        from containers c
-            join container_tree as p on p.parent_id = c.id
+        SELECT id, parent_id FROM containers WHERE id = %s
+        UNION ALL
+        SELECT c.id, c.parent_id
+        FROM containers c
+            JOIN container_tree AS p ON p.parent_id = c.id
         )
-        select id from container_tree where id <> %s
+        SELECT id FROM container_tree WHERE id <> %s
         """
     container_id_tuple = (container_id, container_id)
     cursor.execute(recursive_parent_query, container_id_tuple)
@@ -1135,7 +1181,7 @@ def insert_scan(data, iid, scan_source, versions):
             if versions["new_version"]:
                 logs.debug(f"New Version - Bumping Approval for {args.container}")
                 add_approved_logs_for_prev_version(
-                    cursor, iid, row, versions, scan_source, finding_id, lineage
+                    cursor, row, versions, scan_source, finding_id, lineage
                 )
             update_finding_logs(cursor, iid, row, finding_id, scan_source, lineage)
 
@@ -1148,8 +1194,14 @@ def insert_scan(data, iid, scan_source, versions):
 
 
 def add_approved_logs_for_prev_version(
-    cursor, iid, row, versions, scan_source, finding_id, lineage
+    cursor, row, versions, scan_source, finding_id, lineage
 ):
+    """
+    This will check if this is the version for this scan has been increased to
+    a higher level (bumped version).
+    If so then it will add the logs to the bumped level.
+    """
+
     logs.debug("Entering Add Approved Logs")
     version_bump_id = find_bumped_id(cursor, row, finding_id, versions, scan_source)
     parents = find_parent_findings(cursor, row, lineage, scan_source)
@@ -1165,7 +1217,9 @@ def add_bumped_logs(cursor, row, versions, finding_id, parent_finding, scan_sour
     Adds the finding logs from the previous approved containers to the
     existing container
     """
-    # temp - determine if there are logs where record_type_active = 1
+
+    is_finding_inheritable = check_finding_inheritable(row, scan_source)
+
     active_logs_query = """
         SELECT id, record_type, state FROM finding_logs
         WHERE finding_id = %s and record_type_active = 1 AND in_current_scan = 1
@@ -1176,102 +1230,38 @@ def add_bumped_logs(cursor, row, versions, finding_id, parent_finding, scan_sour
 
     for line in results:
         state = line[2]
-        if line[1] == "state_change" and (
-            state == "conditional" or state == "approved"
-        ):
+        if line[1] == "state_change" and state in ("conditional", "approved"):
             return
 
     version_bump_id = find_bumped_id(cursor, row, finding_id, versions, scan_source)
     # Deactivates old finding Logs
-    deactivate_all_rows = [deactivate_log_row(cursor, r[0]) for r in results]
-    insert_logs_with_inheritance(cursor, parent_finding, finding_id, version_bump_id)
+    [deactivate_log_row(cursor, r[0]) for r in results]
+    insert_logs_with_inheritance(
+        cursor, parent_finding, finding_id, version_bump_id, is_finding_inheritable
+    )
 
 
-def update_inheritance_id(findings):
+def check_finding_inheritable(row, scan_source):
     """
-    @params int image id
-    @params dataframe with all the findings that are inheritable and the id they are associated with
+    checks and returns if a finding is inheritable
+    return True if there is no condition determining the finding is not inheritable
+      Condition 1:
+        Check if the Anchore compliance gate = 'dockerfile'
+        This column is part of the description column in the dataframe
     """
-    logs.debug("update_inheritance_id")
-    parent_id = get_parent_id()
-    # this would have been checked when generating the findings but just in case check again
-    try:
-        conn = connect_to_db()
-        cursor = conn.cursor(buffered=True)
-        if parent_id is None:
-            logs.info("no parent exists")
-            for i, row in findings.iterrows():
-                # Resets inherited id to NULL if finding is not inherited
-                logs.debug("Resetting inheritance for approval_id " + (str(row["id"])))
-                sql = "UPDATE `findings_approvals` SET inherited_id=NULL WHERE id= %s"
-                params = (row["id"],)
-                cursor.execute(sql, params)
-                # Deletes Inherited Log
-                sql = "DELETE FROM `findings_log` WHERE `approval_id` = %s and `type` =  'Inherited'"
-                params = (row["id"],)
-                cursor.execute(sql, params)
-        else:
-            for i, row in findings.iterrows():
-                sql = """SELECT id FROM `findings_approvals` WHERE imageid= %s
-                    and scan_source = %s and finding = %s and package = %s
-                    and package_path = %s"""
-                params = (
-                    parent_id,
-                    row["scan_source"],
-                    row["finding"],
-                    row["package"],
-                    row["package_path"],
-                )
 
-                cursor.execute(sql, params)
-                result = cursor.fetchone()
-                if result is not None:
-                    logs.debug("Updating inherited_id for %s", (str(row["id"])))
-                    cursor.execute(
-                        "UPDATE `findings_approvals` SET inherited_id=%s WHERE id=%s",
-                        (result[0], row["id"]),
-                    )
+    logs.debug("check_finding_inheritable - scan_source: %s", scan_source)
 
-                    sql = """SELECT * FROM `findings_log` WHERE `approval_id` = %s
-                        AND `type` = 'Inherited'"""
-                    params = (row["id"],)
-                    cursor.execute(sql, params)
-                    i_finding = cursor.fetchone()
-                    if i_finding is None:
-                        vat_user_query = "SELECT id from users where username = 'legacy_container_contributor'"
-                        cursor.execute(vat_user_query)
-                        vat_user = cursor.fetchone()[0]
-                        sql = """INSERT INTO `findings_log` (`approval_id`, `date_time`, `user_id`, `type`, `text`)
-                            VALUES (%s, NOW(), %s, 'Inherited', 'Inherited from parent')"""
-                        params = (
-                            row["id"],
-                            vat_user,
-                        )
-                        cursor.execute(sql, params)
-                else:
-                    # Resets inherited id to NULL if finding is not inherited
-                    logs.debug(
-                        "Resetting inheritance for approval_id " + (str(row["id"]))
-                    )
-                    cursor.execute(
-                        "UPDATE `findings_approvals` SET inherited_id=NULL WHERE id="
-                        + str(row["id"])
-                    )
-                    # Deletes Inherited Log
-                    sql = (
-                        "DELETE FROM `findings_log` "
-                        + "WHERE `approval_id` = "
-                        + (str(row["id"]))
-                        + " and `type` =  'Inherited'"
-                    )
-                    cursor.execute(sql)
-
-        conn.commit()
-    except Error as error:
-        logs.error(error)
-    finally:
-        if conn is not None and conn.is_connected():
-            conn.close()
+    if scan_source == "anchore_comp" and "Gate: dockerfile" in row["description"]:
+        logs.debug(
+            "check_finding_inheritable is NOT inheritable for finding: %s",
+            row["finding"],
+        )
+        return False
+    logs.debug(
+        "check_finding_inheritable is inheritable for finding: %s", row["finding"]
+    )
+    return True
 
 
 def update_in_current_scan(iid, findings, scan_source):
@@ -1301,8 +1291,10 @@ def update_in_current_scan(iid, findings, scan_source):
             # This is for the special case where a finding existed and the following
             # run there were no findings for the scan_source so set not in_current_scan
             # for existing findings from previous runs.
-            update_not_in_current_scan = """UPDATE finding_logs fl INNER JOIN findings f ON fl.finding_id = f.id
-                SET fl.in_current_scan=0 WHERE f.container_id =%s and f.scan_source=%s"""
+            update_not_in_current_scan = """
+                UPDATE finding_logs fl INNER JOIN findings f ON fl.finding_id = f.id
+                SET fl.in_current_scan=0 WHERE f.container_id =%s and f.scan_source=%s
+                """
             logs.debug(update_not_in_current_scan, str(iid), scan_source)
             cursor.execute(
                 update_not_in_current_scan,
@@ -1333,9 +1325,9 @@ def update_in_current_scan(iid, findings, scan_source):
         active_list = [x[0] for x in all_active_findings]
 
         select_all_findings_in_scan = """
-        SELECT finding_id from finding_scan_results fsr
-        INNER JOIN findings f on f.id = fsr.finding_id
-        where fsr.job_id = %s and f.scan_source = %s and f.container_id = %s
+        SELECT finding_id FROM finding_scan_results fsr
+        INNER JOIN findings f ON f.id = fsr.finding_id
+        WHERE fsr.job_id = %s AND f.scan_source = %s AND f.container_id = %s
         """
         logs.debug(select_all_findings_in_scan, args.job_id, scan_source, str(iid))
         cursor.execute(
@@ -1354,8 +1346,8 @@ def update_in_current_scan(iid, findings, scan_source):
         )
         for finding_id in removed_findings:
             find_log_query = """SELECT id, record_type, in_current_scan,
-                active, record_text from `finding_logs` WHERE
-                finding_id = %s and record_type_active = 1 ORDER BY active desc"""
+                active, record_text FROM `finding_logs` WHERE
+                finding_id = %s AND record_type_active = 1 ORDER BY active DESC"""
             find_log_tuple = (finding_id,)
             logs.debug(find_log_query, find_log_tuple)
             cursor.execute(find_log_query, find_log_tuple)
@@ -1392,8 +1384,8 @@ def is_new_scan(iid):
         new_scan = False
         if args.job_id is not None and args.scan_date is not None:
             query = """
-            SELECT job_id, record_timestamp from `finding_scan_results` fsr inner join `findings` f
-            on fsr.finding_id = f.id where f.container_id = %s order by record_timestamp desc limit 1
+            SELECT job_id, record_timestamp FROM `finding_scan_results` fsr INNER JOIN `findings` f
+            ON fsr.finding_id = f.id WHERE f.container_id = %s order by record_timestamp desc limit 1
             """
             parms = (
                 str(iid),
@@ -1457,35 +1449,6 @@ def get_parent_id(static_parent_id=[None]):
     return static_parent_id[0]
 
 
-def get_all_inheritable_findings(iid):
-    """
-    @param image id
-    @return dataframe with all findings asscoiated with a container that are inhreitable
-    """
-    try:
-        conn = connect_to_db()
-        cursor = conn.cursor()
-        parent_id = get_parent_id()
-        sql = (
-            "SELECT id, finding, scan_source, package, package_path FROM findings_approvals WHERE is_inheritable=1 and imageid="
-            + str(iid)
-        )
-        cursor.execute(sql)
-        logs.debug(sql)
-        d_f = pandas.DataFrame(cursor.fetchall())
-        if not d_f.empty:
-            d_f.columns = cursor.column_names
-        logs.debug("print all findings that are inheritable and not inherited yet\n")
-        logs.debug("----------------------------")
-        logs.debug(d_f)
-        return d_f
-    except Error as error:
-        logs.error(error)
-    finally:
-        if conn is not None and conn.is_connected():
-            conn.close()
-
-
 def push_all_csv_data(data, iid, versions):
     """
     This takes the data dictionary from parsing all csvs and calls insert_scan
@@ -1504,7 +1467,6 @@ def remove_lame_header_row(mod_me):
     """
     with open(mod_me, "r+") as input_file:
         temp = input_file.readline()
-        # if "'','','',''," in temp:
         if ",,,," in temp:
             logs.debug("*****************REMOVING HEADER LINE***********************")
             data = input_file.read()  # read the rest
@@ -1556,99 +1518,6 @@ def get_last_version(cursor, container_id):
     return version
 
 
-def findings_are_equal(cursor, container_id, last_version_id):
-    """
-    checks if the findings are equal
-    """
-
-    logs.debug(
-        "In findings_are_equal, container_id: %s last version id: %s",
-        str(container_id),
-        str(last_version_id),
-    )
-
-    get_findings_sql = (
-        "SELECT DISTINCT f.finding, f.package, f.package_path, scan_source "
-        + "FROM findings f INNER JOIN finding_logs fl ON f.id = fl.finding_id WHERE "
-        + "f.container_id = %s AND fl.in_current_scan = 1 ORDER BY "
-        + "f.finding, f.package, f.package_path, f.scan_source"
-    )
-
-    finding_tuple = (str(container_id),)
-    cursor.execute(get_findings_sql, finding_tuple)
-    df_cur = pandas.DataFrame(cursor.fetchall())
-
-    finding_tuple = (str(last_version_id),)
-    cursor.execute(get_findings_sql, finding_tuple)
-    df_last = pandas.DataFrame(cursor.fetchall())
-
-    df_cur_len = len(df_cur)
-    df_last_len = len(df_last)
-
-    if df_cur_len > df_last_len:
-        logs.debug(
-            "fewer findings for last container %s than current %s - New findings",
-            last_version_id,
-            container_id,
-        )
-        return False
-
-    elif df_cur_len == df_last_len:
-        # Check if the sorted dataframes of findings are equal
-        if df_cur.equals(df_last):
-            logs.debug(
-                "findings are equal for containers %s and %s - No new findings",
-                container_id,
-                last_version_id,
-            )
-            return True
-        else:
-            logs.debug(
-                "findings are NOT equal for containers %s and %s",
-                df_cur_len,
-                df_last_len,
-            )
-            return True
-    else:  # There are more last container version findings than current findings
-        df_intersection = df_cur.merge(df_last)
-        df_inter_len = len(df_intersection)
-        logs.debug(
-            "More last version findings, current findings: %s  last findings: %s  "
-            + "intersection findings: %s",
-            df_cur_len,
-            df_last_len,
-            df_inter_len,
-        )
-        # logs.debug("df_intersection:")
-        # logs.debug(df_intersection)
-        if df_cur_len == df_inter_len:
-            logs.debug(
-                "More last version findings, all current findings are in last version"
-            )
-            return True
-        else:
-            logs.debug(
-                "More last version findings, all current findings: %s  are NOT "
-                + "in last version: %s  intersection findings: %s",
-                df_cur_len,
-                df_last_len,
-                df_inter_len,
-            )
-            return False
-
-
-def get_log_base_text(str):
-    """
-    This checks the text for a '-' and strips off the text after '-'
-    returns the text
-    """
-
-    if str.find("- Approval derived") > 0:
-        return str[: str.find("- Approval derived") - 1]
-    else:
-        return str
-
-
 def set_approval_state(container_id, version):
     """
     This will enter the container log entry for the version update.
@@ -1664,9 +1533,9 @@ def set_approval_state(container_id, version):
         last_container_id = container_list[-1]
         system_user_id = get_system_user_id()
         approved_version_query = """
-        SELECT type from container_log cl INNER JOIN containers c on cl.imageid = c.id
-        WHERE cl.id in (SELECT MAX(id) from container_log WHERE imageid = %s)
-        """
+            SELECT type FROM container_log cl INNER JOIN containers c ON cl.imageid = c.id
+            WHERE cl.id in (SELECT MAX(id) FROM container_log WHERE imageid = %s)
+            """
         cursor.execute(approved_version_query, (last_container_id,))
         bumped_version_status = cursor.fetchone()[0]
 
@@ -1688,8 +1557,8 @@ def set_approval_state(container_id, version):
         )
 
         insert_log_sql = """
-           INSERT INTO container_log (id, imageid, user_id, type, text, date_time) VALUES
-           (%s, %s, %s, %s, %s, %s)"""
+           INSERT INTO container_log (id, imageid, user_id, type, text, date_time, active) VALUES
+           (%s, %s, %s, %s, %s, %s, %s)"""
         for log in container_logs:
             container_log_type = log[1]
             container_log_text = log[2]
@@ -1698,10 +1567,11 @@ def set_approval_state(container_id, version):
             insert_log_tuple = (
                 None,
                 container_id,
-                container_log_userid,  # This should probably stay with the approver name
+                container_log_userid,
                 container_log_type,
                 container_log_text,
                 container_log_datetime,
+                0,
             )
             logs.debug(insert_log_sql % insert_log_tuple)
             cursor.execute(insert_log_sql, insert_log_tuple)
@@ -1713,6 +1583,7 @@ def set_approval_state(container_id, version):
             bumped_version_status,
             auto_approval_text,
             args.scan_date,
+            1,
         )
         logs.debug(insert_log_sql % auto_approve_tuple)
         cursor.execute(insert_log_sql, auto_approve_tuple)
@@ -1720,29 +1591,6 @@ def set_approval_state(container_id, version):
 
     except Error as error:
         logs.error(f"Error in set_approval_state: {error}")
-    finally:
-        if conn is not None and conn.is_connected():
-            conn.close()
-
-
-def set_version_log_and_auto_approval(container_id):
-    """
-    Version Bump Auto Approvals
-    This connects to the DB and calls the functions to perform the auto approval.
-    """
-
-    logs.debug("In set_version_log_and_auto_approval")
-
-    conn = connect_to_db()
-    try:
-        cursor = conn.cursor()
-        last_version_id = get_last_version(cursor, container_id)
-        if last_version_id:
-            set_approval_state(cursor, container_id, last_version_id)
-            conn.commit()
-
-    except Error as error:
-        logs.error(f"Error in set_version_log_and_auto_approval: {error}")
     finally:
         if conn is not None and conn.is_connected():
             conn.close()
@@ -1791,4 +1639,4 @@ if __name__ == "__main__":
     logs.info(args)
     logs.info("\n\n")
     main()
-    logging.info("Exiting vat_import")
+    logs.info("Exiting vat_import")
