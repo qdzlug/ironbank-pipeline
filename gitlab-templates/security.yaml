@@ -12,3 +12,4 @@ secret_detection:
 secret_detection_default_branch:
   tags:
     - ironbank
+  allow_failure: false
