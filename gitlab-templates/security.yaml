@@ -10,6 +10,7 @@ include:
 secret_detection:
   tags:
     - ironbank
+  allow_failure: false
 
 secret_detection_default_branch:
   tags:
