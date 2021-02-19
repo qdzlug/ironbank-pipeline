@@ -7,8 +7,6 @@ from pathlib import Path
 
 import jsonschema
 import yaml
-import multiprocessing
-import time
 
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), "../../scripts/"))
 import hardening_manifest_yaml.generate  # noqa: E402
@@ -32,28 +30,7 @@ def main():
         # Use the project description.yaml file path if one exists
         with hardening_manifest_yaml_path.open("r") as f:
             content = yaml.safe_load(f)
-        parent_conn, child_conn = multiprocessing.Pipe()
-        process = multiprocessing.Process(
-            target=validate_yaml, args=(content, child_conn)
-        )
-        process.start()
-        time.sleep(120)
-        if process.is_alive():
-            logging.error(
-                "A field in the hardening_manifest.yaml is invalid and is causing an infinite loop during validation"
-            )
-            logging.error(
-                "Please check your hardening manifest to confirm all fields have valid input"
-            )
-            process.terminate()
-            sys.exit(1)
-        elif process.exitcode != 0:
-            logging.error("There is an issue with the hardening_manifest.yaml file")
-            logging.error(parent_conn.recv())
-            sys.exit(1)
-        else:
-            logging.error("JSON is validated")
-
+        validate_yaml(content)
     elif os.environ["GREYLIST_BACK_COMPAT"].lower() == "true":
         # Use the generated description.yaml file path if not
         logging.warning("hardening_manifest.yaml does not exist, autogenerating")
@@ -80,7 +57,17 @@ def main():
     process_yaml(content)
 
 
-def validate_yaml(content, conn):
+def handle_sigterm(signal, frame):
+    logging.error(
+        "A field in the hardening_manifest.yaml is invalid and is causing an infinite loop during validation"
+    )
+    logging.error(
+        "Please check your hardening manifest to confirm all fields have valid input"
+    )
+    sys.exit(1)
+
+
+def validate_yaml(content):
     logging.info("Validating schema")
     schema_path = Path(__file__).parent / "../../schema/hardening_manifest.schema.json"
     with schema_path.open("r") as s:
@@ -91,8 +78,7 @@ def validate_yaml(content, conn):
         logging.info("This task will exit if not completed within 2 minutes")
         jsonschema.validate(content, schema)
     except jsonschema.ValidationError as ex:
-        conn.send(ex.message)
-        sys.exit(1)
+        logging.info(ex.message)
 
 
 def process_yaml(content):
@@ -134,4 +120,5 @@ def process_yaml(content):
 
 
 if __name__ == "__main__":
+    signal.signal(signal.SIGUSR1, handle_sigterm)
     main()
