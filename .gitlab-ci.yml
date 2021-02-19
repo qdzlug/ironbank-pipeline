@@ -1,8 +1,22 @@
 stages:
+  - test
   - format
   - lint
 
+include:
+  - template: Security/Secret-Detection.gitlab-ci.yml
+
+secret_detection:
+  tags:
+    - ironbank-tools
+
+secret_detection_default_branch:
+  tags:
+    - ironbank-tools
+
 shellcheck:
+  tags:
+    - ironbank-tools
   stage: lint
   image: registry.dsop.io/ironbank-tools/ironbank-pipeline/shellcheck
   # TODO: remove allow_failure
@@ -34,6 +48,8 @@ shellcheck:
       exit "$ret"
 
 black:
+  tags:
+    - ironbank-tools
   stage: format
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml"
   # TODO: remove allow_failure
@@ -42,6 +58,8 @@ black:
     - black --check --diff --color -t py36 .
 
 pylama:
+  tags:
+    - ironbank-tools
   stage: lint
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml"
   # TODO: remove allow_failure
@@ -54,6 +72,8 @@ pylama:
 ## ignore line errors as blacks has been ran against code.
 
 prettier:
+  tags:
+    - ironbank-tools
   stage: format
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/all-in-one-fedora:1.0"
   script:
@@ -62,6 +82,8 @@ prettier:
     - npx prettier -c .
 
 shfmt:
+  tags:
+    - ironbank-tools
   stage: format
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/all-in-one-fedora:1.0"
   script:
