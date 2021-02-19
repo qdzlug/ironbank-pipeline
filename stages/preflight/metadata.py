@@ -33,7 +33,9 @@ def main():
         with hardening_manifest_yaml_path.open("r") as f:
             content = yaml.safe_load(f)
         parent_conn, child_conn = multiprocessing.Pipe()
-        process = multiprocessing.Process(target=validate_yaml, args=(content,child_conn))
+        process = multiprocessing.Process(
+            target=validate_yaml, args=(content, child_conn)
+        )
         process.start()
         time.sleep(120)
         if process.is_alive():
