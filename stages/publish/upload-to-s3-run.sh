@@ -35,10 +35,10 @@ cp "${BUILD_DIRECTORY}"/"${IMAGE_FILE}".tar reports/"${CI_PROJECT_NAME}"-"${IMAG
 cp "${PROJECT_LICENSE}" "${PROJECT_README}" reports/
 
 if [ -f "${VAT_FINDINGS}" ]; then
-    cp "${VAT_FINDINGS}" reports/
-    python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "${VAT_FINDINGS}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/${VAT_FINDINGS}"
+  cp "${VAT_FINDINGS}" reports/
+  python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "${VAT_FINDINGS}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/${VAT_FINDINGS}"
 else
-    echo "WARNING: ${VAT_FINDINGS} does not exist, not copying into report"
+  echo "WARNING: ${VAT_FINDINGS} does not exist, not copying into report"
 fi
 
 # Debug
