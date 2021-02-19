@@ -1,6 +1,5 @@
 image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/ib-pipeline-image:0.1
 stages:
-  - test
   ### preprocess stage
   # clone down the templates directory for use in later stages
   # Requirements:
