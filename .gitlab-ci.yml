@@ -6,15 +6,19 @@ stages:
   - test
   - format
   - lint
+
 include:
   - template: Security/Secret-Detection.gitlab-ci.yml
   - template: Security/SAST.gitlab-ci.yml
+
 secret_detection:
   tags:
     - ironbank-tools
+
 secret_detection_default_branch:
   tags:
     - ironbank-tools
+
 shellcheck:
   tags:
     - ironbank-tools
@@ -47,6 +51,7 @@ shellcheck:
           fi
       done
       exit "$ret"
+
 black:
   tags:
     - ironbank-tools
@@ -56,6 +61,7 @@ black:
   script:
     - pip install git+git://github.com/psf/black
     - black --check --diff --color -t py36 .
+
 pylama:
   tags:
     - ironbank-tools
@@ -68,6 +74,7 @@ pylama:
   script:
     - pip install pylama
     - pylama
+
 ## ignore line errors as blacks has been ran against code.
 prettier:
   tags:
@@ -78,6 +85,7 @@ prettier:
     - curl -sL https://rpm.nodesource.com/setup_12.x | bash -
     - dnf install -y nodejs
     - npx prettier -c .
+
 shfmt:
   tags:
     - ironbank-tools
@@ -88,6 +96,7 @@ shfmt:
     - wget https://github.com/mvdan/sh/releases/download/v3.1.2/shfmt_v3.1.2_linux_amd64
     - chmod a+x shfmt_v3.1.2_linux_amd64
     - "./shfmt_v3.1.2_linux_amd64 -d ."
+
 sast:
   variables:
     SAST_EXCLUDED_ANALYZERS:
