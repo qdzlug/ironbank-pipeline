@@ -1,93 +1,91 @@
+# You can override the included template(s) by including variable overrides
+# See https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
+# Note that environment variables can be set in several places
+# See https://docs.gitlab.com/ee/ci/variables/#priority-of-environment-variables
 stages:
-  - test
-  - format
-  - lint
-
+- test
+- format
+- lint
 include:
-  - template: Security/Secret-Detection.gitlab-ci.yml
-
+- template: Security/Secret-Detection.gitlab-ci.yml
+- template: Security/SAST.gitlab-ci.yml
 secret_detection:
   tags:
-    - ironbank-tools
-
+  - ironbank-tools
 secret_detection_default_branch:
   tags:
-    - ironbank-tools
-
+  - ironbank-tools
 shellcheck:
   tags:
-    - ironbank-tools
+  - ironbank-tools
   stage: lint
   image: registry.dsop.io/ironbank-tools/ironbank-pipeline/shellcheck
-  # TODO: remove allow_failure
   allow_failure: true
   script:
-    - |
-      set -o pipefail
-      set +e # remove gitlab ci setting
-      shopt -s nullglob
-      files=$(echo stages/*/*.sh)
-      if [ -n "$files" ]
-      then
-        shellcheck --exclude=SC2153 --format=gcc -- $files
-        ret=$?
-      fi
-      echo "# Scanning embedded scripts..."
-      ret=0
-      IFS=$'\n' # Minor bug: newlines in filenames will still be processed incorrectly
-      for file in $(find . -name '*.yaml' -o  -name '*.yml')
-      do
-          echo "# $file"
-          yq -r '.[] | objects | .before_script, .script, .after_script | select(. != null) | join("\n")' "$file" | shellcheck --exclude=SC2153 --format=gcc -s bash -
-          yq_ret=$?
-          if [ $yq_ret -ne 0 ]
-          then
-              ret=$yq_ret
-          fi
-      done
-      exit "$ret"
-
+  - |
+    set -o pipefail
+    set +e # remove gitlab ci setting
+    shopt -s nullglob
+    files=$(echo stages/*/*.sh)
+    if [ -n "$files" ]
+    then
+      shellcheck --exclude=SC2153 --format=gcc -- $files
+      ret=$?
+    fi
+    echo "# Scanning embedded scripts..."
+    ret=0
+    IFS=$'\n' # Minor bug: newlines in filenames will still be processed incorrectly
+    for file in $(find . -name '*.yaml' -o  -name '*.yml')
+    do
+        echo "# $file"
+        yq -r '.[] | objects | .before_script, .script, .after_script | select(. != null) | join("\n")' "$file" | shellcheck --exclude=SC2153 --format=gcc -s bash -
+        yq_ret=$?
+        if [ $yq_ret -ne 0 ]
+        then
+            ret=$yq_ret
+        fi
+    done
+    exit "$ret"
 black:
   tags:
-    - ironbank-tools
+  - ironbank-tools
   stage: format
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml"
-  # TODO: remove allow_failure
   script:
-    - pip install git+git://github.com/psf/black
-    - black --check --diff --color -t py36 .
-
+  - pip install git+git://github.com/psf/black
+  - black --check --diff --color -t py36 .
 pylama:
   tags:
-    - ironbank-tools
+  - ironbank-tools
   stage: lint
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml"
-  # TODO: remove allow_failure
   allow_failure: true
   dependencies:
-    - black
+  - black
   script:
-    - pip install pylama
-    - pylama
-## ignore line errors as blacks has been ran against code.
-
+  - pip install pylama
+  - pylama
 prettier:
   tags:
-    - ironbank-tools
+  - ironbank-tools
   stage: format
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/all-in-one-fedora:1.0"
   script:
-    - curl -sL https://rpm.nodesource.com/setup_12.x | bash -
-    - dnf install -y nodejs
-    - npx prettier -c .
-
+  - curl -sL https://rpm.nodesource.com/setup_12.x | bash -
+  - dnf install -y nodejs
+  - npx prettier -c .
 shfmt:
   tags:
-    - ironbank-tools
+  - ironbank-tools
   stage: format
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/all-in-one-fedora:1.0"
   script:
-    - dnf install wget -y
-    - wget https://github.com/mvdan/sh/releases/download/v3.1.2/shfmt_v3.1.2_linux_amd64
-    - chmod a+x shfmt_v3.1.2_linux_amd64
-    - ./shfmt_v3.1.2_linux_amd64 -d .
+  - dnf install wget -y
+  - wget https://github.com/mvdan/sh/releases/download/v3.1.2/shfmt_v3.1.2_linux_amd64
+  - chmod a+x shfmt_v3.1.2_linux_amd64
+  - "./shfmt_v3.1.2_linux_amd64 -d ."
+sast:
+  variables:
+    SAST_EXCLUDED_ANALYZERS: brakeman, eslint, flawfinder, gosec, kubesec, nodejs-scan,
+      phpcs-security-audit, pmd-apex, security-code-scan, sobelow, spotbugs
+  stage: test

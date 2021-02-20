@@ -16,4 +16,5 @@ check cves:
     - openscap compliance
     - anchore scan
   script:
+    - pip3 install jsonschema
     - python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py"
