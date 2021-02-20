@@ -74,8 +74,8 @@ pylama:
   script:
     - pip install pylama
     - pylama
-
 ## ignore line errors as blacks has been ran against code.
+
 prettier:
   tags:
     - ironbank-tools
