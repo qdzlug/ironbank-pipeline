@@ -45,11 +45,12 @@ def main():
             if not process.is_alive():
                 break
         if process.is_alive():
+            logging.error("Hardening manifest validation timeout exceeded.")
             logging.error(
-                "A field in the hardening_manifest.yaml is invalid and is causing an infinite loop during validation"
+                "This is likely due to field in the hardening_manifest.yaml being invalid and causing an infinite loop during validation"
             )
             logging.error(
-                "Please check your hardening manifest to confirm all fields have valid input"
+                "Please check your hardening manifest to confirm all fields have valid values"
             )
             process.terminate()
             sys.exit(1)
