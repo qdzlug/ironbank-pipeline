@@ -3,8 +3,8 @@
 # Note that environment variables can be set in several places
 # See https://docs.gitlab.com/ee/ci/variables/#priority-of-environment-variables
 stages:
-  - test
   - format
+  - lint
 
 shellcheck:
   tags:
