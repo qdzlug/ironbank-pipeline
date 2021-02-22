@@ -517,6 +517,8 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
     logging.info(f"Grabbing CVEs for: {image_name}")
     # get cves from vat
+    logging.info(os.environ["IMAGE_NAME"])
+    logging.info(os.environ["PROJ_PATH"])
     if os.environ["IMAGE_NAME"] != os.environ["PROJ_PATH"]:
         logging.error(
             "Name in hardening_manifest does not match GitLab project name (e.g. redhat/ubi/ubi8)"
