@@ -14,6 +14,7 @@ csv output:
   variables:
     # Put generated csv report in the scan-results folder
     CSV_REPORT: "${ARTIFACT_STORAGE}/scan-results/csvs"
+    PROJ_PATH: $(echo "${CI_PROJECT_PATH}" | sed -e 's/.*dsop\/\(.*\)/\1/')
   script:
     - '"${PIPELINE_REPO_DIR}/stages/csv-output/csv-output.sh"'
   artifacts:
