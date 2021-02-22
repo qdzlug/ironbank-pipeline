@@ -37,7 +37,13 @@ def main():
             target=validate_yaml, args=(content, child_conn)
         )
         process.start()
-        time.sleep(120)
+        # wait for two minutes unless process exits
+        # if process exits, check status
+        # if alive after two minutes, exit
+        for i in range(24):
+            time.sleep(5)
+            if not process.is_alive():
+                break
         if process.is_alive():
             logging.error(
                 "A field in the hardening_manifest.yaml is invalid and is causing an infinite loop during validation"
@@ -52,7 +58,7 @@ def main():
             logging.error(parent_conn.recv())
             sys.exit(1)
         else:
-            logging.error("JSON is validated")
+            logging.info("JSON is validated")
     elif os.environ["GREYLIST_BACK_COMPAT"].lower() == "true":
         # Use the generated description.yaml file path if not
         logging.warning("hardening_manifest.yaml does not exist, autogenerating")
