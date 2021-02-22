@@ -40,8 +40,10 @@ def main():
         # wait for two minutes unless process exits
         # if process exits, check status
         # if alive after two minutes, exit
-        for i in range(24):
-            time.sleep(5)
+        verification_timeout = int(os.environ.get("HM_VERIFY_TIMEOUT", 120))
+        while verification_timeout:
+            time.sleep(1)
+            verfification_timeout -= 1
             if not process.is_alive():
                 break
         if process.is_alive():
