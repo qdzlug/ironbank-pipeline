@@ -518,8 +518,12 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     logging.info(f"Grabbing CVEs for: {image_name}")
     # get cves from vat
     if os.environ["IMAGE_NAME"] != os.environ["PROJ_PATH"]:
-        logging.error("Name in hardening_manifest does not match GitLab project name (e.g. redhat/ubi/ubi8)")
-        logging.error("Quickfix: Edit the name in the hardening_manifest to match the GitLab project name")
+        logging.error(
+            "Name in hardening_manifest does not match GitLab project name (e.g. redhat/ubi/ubi8)"
+        )
+        logging.error(
+            "Quickfix: Edit the name in the hardening_manifest to match the GitLab project name"
+        )
         logging.error("Issue is known and solution is in progress.")
         sys.exit(1)
 
