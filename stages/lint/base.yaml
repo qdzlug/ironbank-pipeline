@@ -48,6 +48,7 @@ wl compare lint:
     - ironbank
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/lint"
+    PROJ_PATH: $(echo "${CI_PROJECT_PATH}" | sed -e 's/.*dsop\/\(.*\)/\1/')
   script:
     # The following step assumes contributor projects have an environment variable set for the image version
     # in the gitlab-ci.yml file.
