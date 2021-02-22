@@ -64,7 +64,6 @@ stages:
 
 include:
   - local: stages/preprocess/load-scripts.yaml
-  - local: gitlab-templates/security.yaml
 
 workflow:
   rules:
