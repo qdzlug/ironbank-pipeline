@@ -48,7 +48,6 @@ wl compare lint:
     - ironbank
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/lint"
-    PROJ_PATH: $(echo "${CI_PROJECT_PATH}" | sed -e 's/.*dsop\/\(.*\)/\1/')
   script:
     # The following step assumes contributor projects have an environment variable set for the image version
     # in the gitlab-ci.yml file.
@@ -59,6 +58,8 @@ wl compare lint:
         echo "Exiting"
         exit 1
       fi
+    - PROJ_PATH=$(echo "${CI_PROJECT_PATH}" | sed -e 's/.*dsop\/\(.*\)/\1/')
+    - export PROJ_PATH
     - pip3 install jsonschema
     - 'mkdir -p "${ARTIFACT_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py" --lint'
