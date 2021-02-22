@@ -16,5 +16,7 @@ check cves:
     - openscap compliance
     - anchore scan
   script:
+    - PROJ_PATH=$(echo "${CI_PROJECT_PATH}" | sed -e 's/.*dsop\/\(.*\)/\1/')
+    - export PROJ_PATH
     - pip3 install jsonschema
     - python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py"
