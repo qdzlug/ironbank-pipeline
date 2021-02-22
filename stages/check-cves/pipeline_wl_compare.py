@@ -517,7 +517,14 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
     logging.info(f"Grabbing CVEs for: {image_name}")
     # get cves from vat
-    result = _vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
+    if os.environ["IMAGE_NAME"] != os.environ["PROJ_PATH"]:
+        query_im_name = os.environ["PROJ_PATH"]
+        query_im_version = os.environ["IMAGE_VERSION"]
+    else:
+        query_im_name = os.environ["IMAGE_NAME"]
+        query_im_version = os.environ["IMAGE_VERSION"]
+
+    result = _vat_vuln_query(query_im_name, query_im_version)
     # parse CVEs from VAT query
     # empty list is returned if no entry or no cves. NoneType only returned if error.
     if result is None:
@@ -529,11 +536,9 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             vat_findings[image_name].append(finding_dict)
 
     # get container approval from separate query
-    _vat_findings_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
+    _vat_findings_query(query_im_name, query_im_version)
 
-    approval_status, approval_text = _vat_approval_query(
-        os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
-    )
+    approval_status, approval_text = _vat_approval_query(query_im_name, query_im_version)
 
     logging.info("CONTAINER APPROVAL STATUS")
     logging.info(approval_status)
