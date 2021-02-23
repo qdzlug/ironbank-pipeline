@@ -579,7 +579,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     # get parent cves from VAT
     while parent_image_path:
         parent_image_name, parent_image_version, parent_image_path = _next_ancestor(
-            image_path=parent_image_path,
+            parent_image_path=parent_image_path,
             whitelist_branch=whitelist_branch,
         )
         logging.info(f"Grabbing CVEs for: {parent_image_name}")
