@@ -575,11 +575,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     # the master branch should be used for the ancestry.
     #
     parent_image_path = hardening_manifest["args"]["BASE_IMAGE"]
-    # parent_image_name, parent_image_version = _next_ancestor(
-    #     image_path=image_name,
-    #     whitelist_branch=whitelist_branch,
-    #     hardening_manifest=hardening_manifest,
-    # )
 
     # get parent cves from VAT
     while parent_image_path:
