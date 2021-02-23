@@ -43,7 +43,7 @@ def main():
         verification_timeout = int(os.environ.get("HM_VERIFY_TIMEOUT", 120))
         while verification_timeout:
             time.sleep(1)
-            verfification_timeout -= 1
+            verification_timeout -= 1
             if not process.is_alive():
                 break
         if process.is_alive():
