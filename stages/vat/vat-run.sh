@@ -8,8 +8,6 @@ export BASE_BUCKET_DIRECTORY="container-scan-reports"
 REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}"
 export REMOTE_REPORT_DIRECTORY
 export S3_HTML_LINK="${S3_REPORT_BUCKET}/${BASE_BUCKET_DIRECTORY}/${CI_PROJECT_NAME}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}"
-IM_NAME=$(echo "${CI_PROJECT_PATH}" | sed -e 's/.*dsop\/\(.*\)/\1/')
-export IM_NAME
 
 # OpenSCAP report links are available from the CSV Output job. Once VAT team updates vat_import.py
 # script to use these values we can begin passing updated arguments
@@ -26,7 +24,7 @@ python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
   --host "${vat_db_host}" \
   --csv_dir "${ARTIFACT_DIR}" \
   --job_id "${CI_PIPELINE_ID}" \
-  --container "${IM_NAME}" \
+  --container "${IMAGE_NAME}" \
   --version "${IMAGE_VERSION}" \
   --parent "${BASE_IMAGE:-}" \
   --password "${vat_db_connection_pass}" \
