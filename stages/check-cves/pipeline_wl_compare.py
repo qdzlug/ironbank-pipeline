@@ -10,21 +10,25 @@
 #
 ##
 
-import os
-import sys
-import json
-import yaml
-import gitlab
-import pathlib
-import logging
 import argparse
-import mysql.connector
+import json
+import logging
+import os
+import pathlib
 import subprocess
+import sys
+
+import gitlab
+import jsonschema
+import mysql.connector
 from mysql.connector import Error
+import requests
+import yaml
 
 from scanners import oscap
 from scanners import anchore
 from scanners import twistlock
+import swagger_to_jsonschema
 
 
 def _connect_to_db():
@@ -144,7 +148,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         with vat_findings_file.open(mode="r") as f:
             vat_findings = json.load(f)
     except Exception:
-        logging.exception(f"Error reading findings file.")
+        logging.exception("Error reading findings file.")
         sys.exit(1)
 
     # list of finding statuses that denote a finding is approved within VAT
@@ -198,7 +202,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     try:
         delta = vuln_set.difference(wl_set)
     except Exception:
-        logging.exception(f"There was an error making the vulnerability delta request.")
+        logging.exception("There was an error making the vulnerability delta request.")
         sys.exit(1)
 
     delta_length = len(delta)
@@ -302,6 +306,54 @@ def _get_greylist_file_contents(image_path, branch):
         sys.exit(1)
 
     return contents
+
+
+def _vat_findings_query(im_name, im_version):
+    logging.info("Running query to vat api")
+    url = f"{os.environ['VAT_BACKEND_SERVER_ADDRESS']}/internal/container?name={im_name}&tag={im_version}"
+    logging.info(f"GET {url}")
+
+    try:
+        r = requests.get(url)
+    except requests.exceptions.RequestException as e:
+        logging.warning(f"Could not access VAT API: {url}")
+        logging.warning(e)
+        return None
+
+    if r.status_code == 200:
+        logging.info("Fetched data from vat successfully")
+
+        artifact_dir = os.environ["ARTIFACT_DIR"]
+        pathlib.Path(artifact_dir, "vat_api_findings.json").write_text(
+            data=r.text, encoding="utf-8"
+        )
+
+        try:
+            logging.info("Validating the VAT response against schema")
+            schema = swagger_to_jsonschema.generate(
+                main_model="Container",
+                swagger_path=f"{os.path.dirname(__file__)}/../../schema/vat_findings.swagger.yaml",
+            )
+            jsonschema.validate(r.json(), schema)
+        except Exception as e:
+            logging.warning(f"Error validating the VAT schema {e}")
+            return None
+
+        return r.json()
+
+    elif r.status_code == 404:
+        logging.warning(f"{im_name}:{im_version} not found in VAT")
+        logging.warning(r.text)
+
+    elif r.status_code == 400:
+        logging.warning(f"Bad request: {url}")
+        logging.warning(r.text)
+
+    else:
+        logging.warning(f"Unknown response from VAT {r.status_code}")
+        logging.warning(r.text)
+        logging.error("Failing the pipeline, please contact the administrators")
+        sys.exit(1)
 
 
 def _vat_approval_query(im_name, im_version):
@@ -465,6 +517,18 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
     logging.info(f"Grabbing CVEs for: {image_name}")
     # get cves from vat
+    logging.info(os.environ["IMAGE_NAME"])
+    logging.info(os.environ["PROJ_PATH"])
+    if os.environ["IMAGE_NAME"] != os.environ["PROJ_PATH"]:
+        logging.error(
+            "Name in hardening_manifest does not match GitLab project name (e.g. redhat/ubi/ubi8)"
+        )
+        logging.error(
+            "Quickfix: Edit the name in the hardening_manifest to match the GitLab project name"
+        )
+        logging.error("Issue is known and solution is in progress.")
+        sys.exit(1)
+
     result = _vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
     # parse CVEs from VAT query
     # empty list is returned if no entry or no cves. NoneType only returned if error.
@@ -475,7 +539,10 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         for row in result:
             finding_dict = _get_findings_from_query(row)
             vat_findings[image_name].append(finding_dict)
+
     # get container approval from separate query
+    _vat_findings_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
+
     approval_status, approval_text = _vat_approval_query(
         os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
     )
@@ -491,7 +558,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     approval_status = approval_status.lower().replace(" ", "_")
     if approval_status not in ["approved", "conditionally_approved"]:
         approval_status = "notapproved"
-        logging.warning(f"IMAGE_APPROVAL_STATUS=notapproved")
+        logging.warning("IMAGE_APPROVAL_STATUS=notapproved")
         if os.environ["CI_COMMIT_BRANCH"] == "master":
             logging.error(
                 "This container is not noted as an approved image in VAT. Unapproved images cannot run on master branch. Failing stage."

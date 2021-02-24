@@ -16,8 +16,9 @@ IMAGE_PATH=$(echo "${CI_PROJECT_PATH}" | sed -e 's/.*dsop\/\(.*\)/\1/')
 # Files are guaranteed to exist by the preflight checks
 PROJECT_README="README.md"
 PROJECT_LICENSE="LICENSE"
+VAT_FINDINGS="${ARTIFACT_STORAGE}/lint/vat_api_findings.json"
 
-source "${PIPELINE_REPO_DIR}"/stages/publish/repo_map_vars.sh
+source "${PIPELINE_REPO_DIR}/stages/publish/repo_map_vars.sh"
 
 if [[ "${DISTROLESS:-}" ]]; then
   python3 "${PIPELINE_REPO_DIR}"/stages/publish/create_repo_map_other.py --target "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/repo_map.json"
@@ -32,6 +33,13 @@ cp -r "${SCAN_DIRECTORY}"/* reports/
 
 cp "${BUILD_DIRECTORY}"/"${IMAGE_FILE}".tar reports/"${CI_PROJECT_NAME}"-"${IMAGE_VERSION}".tar
 cp "${PROJECT_LICENSE}" "${PROJECT_README}" reports/
+
+if [ -f "${VAT_FINDINGS}" ]; then
+  cp "${VAT_FINDINGS}" reports/
+  python3 "${PIPELINE_REPO_DIR}/stages/publish/s3_upload.py" --file "${VAT_FINDINGS}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/${VAT_FINDINGS}"
+else
+  echo "WARNING: ${VAT_FINDINGS} does not exist, not copying into report"
+fi
 
 # Debug
 ls reports

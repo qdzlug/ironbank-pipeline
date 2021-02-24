@@ -9,4 +9,5 @@ environment.sh
 htmlcov/
 *.swp
 *.old
+.DS_Store
 venv/
