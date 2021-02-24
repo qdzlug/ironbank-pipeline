@@ -46,14 +46,16 @@ def test_parse_anchore_security():
     assert rslt.at[0, "finding"] == "CVE-2020-8927", "finding"
     assert (
         rslt.at[1, "description"]
-        == "Due to use of a \"dangling\" pointer, libcurl 7.29.0 through 7.71.1 can use the wrong connection when "
-           "sending data.\nLink: https://access.redhat.com/security/cve/CVE-2020-8231"
+        == 'Due to use of a "dangling" pointer, libcurl 7.29.0 through 7.71.1 can use the wrong connection when '
+        "sending data.\nLink: https://access.redhat.com/security/cve/CVE-2020-8231"
     ), "description"
     assert (
         rslt.at[5, "description"]
         == "none\nLink: https://access.redhat.com/security/cve/CVE-2020-35512"
     ), "description"
-    assert rslt.at[0, "link"] == "https://access.redhat.com/security/cve/CVE-2020-8927", "link"
+    assert (
+        rslt.at[0, "link"] == "https://access.redhat.com/security/cve/CVE-2020-8927"
+    ), "link"
     assert rslt.at[0, "package"] == "brotli-1.0.6-2.el8", "package"
     assert rslt.at[0, "package_path"] is None, "package_path"
 

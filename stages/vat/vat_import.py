@@ -162,7 +162,9 @@ def parse_anchore_security(as_path):
     """
     anchore_security = pandas.read_csv(as_path)
     # grab the relevant columns we are homogenizing
-    d_f = anchore_security[["cve", "severity", "package", "url", "package_path", "description"]]
+    d_f = anchore_security[
+        ["cve", "severity", "package", "url", "package_path", "description"]
+    ]
 
     # replace pkgdb to None
     d_f.replace({"package_path": {"pkgdb": None}}, inplace=True)
