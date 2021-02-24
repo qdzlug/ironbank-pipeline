@@ -264,18 +264,19 @@ def _finding_approval_status_check(finding_dictionary, status_list):
             # if a findings status is in the status list the finding is considered approved in VAT and is added to the whitelist
             if finding_status in status_list:
                 # if / elif statements check scan source and format whitelisted finding for comparison with found vulnerabilities
-                if finding["scan_source"] == "twistlock_cve":
-                    whitelist.add(f"tl_{finding['finding']}-{finding['package']}")
-                elif finding["scan_source"] == "anchore_cve":
-                    whitelist.add(
-                        f"anchorecve_{finding['finding']}-{finding['package']}"
+                if not finding["package"]:
+                    finding["package"] = ""
+                if not finding["package_path"]:
+                    finding["package_path"] = ""
+                whitelist.add(
+                    (
+                        finding["scan_source"],
+                        finding["finding"],
+                        finding["package"],
+                        finding["package_path"],
                     )
-                elif finding["scan_source"] == "anchore_comp":
-                    whitelist.add(f"anchorecomp_{finding['finding']}")
-                elif finding["scan_source"] == "oscap_cve":
-                    whitelist.add(f"oscapcve_{finding['finding']}")
-                elif finding["scan_source"] == "oscap_comp":
-                    whitelist.add(f"oscapcomp_{finding['finding']}")
+                )
+
     return whitelist
 
 
