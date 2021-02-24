@@ -263,11 +263,6 @@ def _finding_approval_status_check(finding_dictionary, status_list):
             finding_status = finding["finding_status"].lower()
             # if a findings status is in the status list the finding is considered approved in VAT and is added to the whitelist
             if finding_status in status_list:
-                # if / elif statements check scan source and format whitelisted finding for comparison with found vulnerabilities
-                if not finding["package"]:
-                    finding["package"] = ""
-                if not finding["package_path"]:
-                    finding["package_path"] = ""
                 whitelist.add(
                     (
                         finding["scan_source"],
