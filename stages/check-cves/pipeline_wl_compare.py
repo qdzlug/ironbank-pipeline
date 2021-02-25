@@ -200,6 +200,8 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
 
     anchore_cves = anchore.get_full()
     for anc in anchore_cves:
+        if anc["package_path"] == "pkgdb":
+            anc["package_path"] = None
         vuln_set.add(("anchore_cve", anc["cve"], anc["package"], anc["package_path"]))
 
     vuln_length = len(vuln_set)
