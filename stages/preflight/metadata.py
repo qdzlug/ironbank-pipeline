@@ -99,7 +99,6 @@ def validate_yaml(content, conn):
         schema["properties"]["labels"]["patternProperties"] = {
             regex: {"$ref": "#/definitions/printable-characters-without-newlines"}
         }
-    logging.info(regex)
     try:
         # may hang from catastrophic backtracking if format is invalid
         logging.info("This task will exit if not completed within 2 minutes")
