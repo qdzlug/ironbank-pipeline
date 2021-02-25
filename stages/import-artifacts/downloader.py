@@ -381,9 +381,7 @@ def docker_download(download_item, tag_value, tar_name, username=None, password=
                 sys.exit(1)
             else:
                 retry_count += 1
-                logging.warning(
-                    f"Resource failed to pull, retrying: {retry_count}/2"
-                )
+                logging.warning(f"Resource failed to pull, retrying: {retry_count}/2")
 
 
 def github_download(download_item, tag_value, tar_name, username=None, password=None):
@@ -438,9 +436,7 @@ def github_download(download_item, tag_value, tar_name, username=None, password=
                 sys.exit(1)
             else:
                 retry_count += 1
-                logging.warning(
-                    f"Resource failed to pull, retrying: {retry_count}/2"
-                )
+                logging.warning(f"Resource failed to pull, retrying: {retry_count}/2")
 
 
 if __name__ == "__main__":
