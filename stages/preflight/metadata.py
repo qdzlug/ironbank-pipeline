@@ -47,7 +47,7 @@ def main():
             if not process.is_alive():
                 break
         if process.is_alive():
-            logging.error("Hardening manifest validation timeout exceeded.")
+            logging.error("Hardening Manifest validation timeout exceeded.")
             logging.error(
                 "This is likely due to field in the hardening_manifest.yaml being invalid and causing an infinite loop during validation"
             )
@@ -57,11 +57,12 @@ def main():
             process.terminate()
             sys.exit(1)
         elif process.exitcode != 0:
-            logging.error("There is an issue with the hardening_manifest.yaml file")
+            logging.error("Hardening Manifest failed jsonschema validation")
+            logging.error("Verify Hardening Manifest content")
             logging.error(parent_conn.recv())
             sys.exit(1)
         else:
-            logging.info("JSON is validated")
+            logging.info("Hardening Manifest passed jsonschema validation")
     elif os.environ["GREYLIST_BACK_COMPAT"].lower() == "true":
         # Use the generated description.yaml file path if not
         logging.warning("hardening_manifest.yaml does not exist, autogenerating")
