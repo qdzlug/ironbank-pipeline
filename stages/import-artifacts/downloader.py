@@ -286,7 +286,7 @@ def s3_download(
             bucket, object_name, artifacts_path + "/external-resources/" + resource_name
         )
     except ClientError as e:
-        logging.error(e)
+        logging.error("S3 client error occured")
         sys.exit(1)
 
     # Calculate SHA256 checksum of downloaded file
@@ -375,7 +375,7 @@ def docker_download(download_item, tag_value, tar_name, username=None, password=
             retry = False
         except subprocess.CalledProcessError:
             if retry_count == 2:
-                logging.exception(
+                logging.error(
                     "Docker resource failed to pull, please check hardening_manifest.yaml configuration"
                 )
                 sys.exit(1)
@@ -432,7 +432,7 @@ def github_download(download_item, tag_value, tar_name, username=None, password=
             retry = False
         except subprocess.CalledProcessError:
             if retry_count == 2:
-                logging.exception(
+                logging.error(
                     "Docker resource failed to pull, please check hardening_manifest.yaml configuration"
                 )
                 sys.exit(1)
