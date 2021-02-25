@@ -181,19 +181,26 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
             oscap_disa_comp.append(o)
 
         for o in oscap_disa_comp:
-            vuln_set.add(f"oscapcomp_{o['identifiers']}")
+            vuln_set.add(("oscap_comp", o["identifiers"], None, None))
 
         oval_cves = oscap.get_oval(oval_file)
         for oval in oval_cves:
-            vuln_set.add(f"oscapcve_{oval}")
+            vuln_set.add(("oscap_cve", oval, None, None))
 
     twistlock_cves = twistlock.get_full()
     for tl in twistlock_cves:
-        vuln_set.add(f"tl_{tl['id']}-{tl['packageName']}-{tl['packageVersion']}")
+        vuln_set.add(
+            (
+                "twistlock_cve",
+                tl["id"],
+                tl["packageName"] + "-" + tl["packageVersion"],
+                None,
+            )
+        )
 
     anchore_cves = anchore.get_full()
     for anc in anchore_cves:
-        vuln_set.add(f"anchorecve_{anc['cve']}-{anc['package']}")
+        vuln_set.add(("anchore_cve", anc["cve"], anc["package"], anc["package_path"]))
 
     vuln_length = len(vuln_set)
     logging.info(f"Vulnerabilities found in scanning stage: {vuln_length}")
