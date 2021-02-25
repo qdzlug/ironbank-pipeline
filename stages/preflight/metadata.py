@@ -94,6 +94,12 @@ def validate_yaml(content, conn):
     with schema_path.open("r") as s:
         schema_s = s.read()
     schema = json.loads(schema_s)
+    regex = os.environ.get("LABEL_ALLOWLIST_REGEX", None)
+    if regex:
+        schema["properties"]["labels"]["patternProperties"] = {
+            regex: {"$ref": "#/definitions/printable-characters-without-newlines"}
+        }
+    logging.info(regex)
     try:
         # may hang from catastrophic backtracking if format is invalid
         logging.info("This task will exit if not completed within 2 minutes")
