@@ -62,7 +62,7 @@ def upload_file(file_name, bucket, object_name=None):
     try:
         response = s3_client.upload_file(file_name, bucket, object_name, extra_args)
     except ClientError as e:
-        logging.error(e)
+        logging.error("S3 client error occured")
         return False
     return True
 
