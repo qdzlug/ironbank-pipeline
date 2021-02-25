@@ -234,34 +234,6 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     sys.exit(0)
 
 
-def _format_scan_source(x):
-
-    return {
-        "tl": "Twistlock CVE",
-        "anchorecve": "Anchore CVE",
-        "anchorecomp": "Anchore Compliance",
-        "oscapcomp": "OpenSCAP DISA Compliance",
-        "oscapcve": "OpenSCAP OVAL",
-    }.get(x, "Unknown Source")
-
-
-def _format_finding(finding):
-    underscore_position = finding.find("_")
-    scan_source = finding[:underscore_position]
-    vuln = finding[underscore_position + 1 :]
-    formatted_source = _format_scan_source(scan_source)
-
-    return f"{formatted_source} - {vuln}"
-
-
-def _format_list(delta_list, formatted_list=[]):
-    for finding in delta_list:
-        formatted_finding = _format_finding(finding)
-        formatted_list.append(formatted_finding)
-
-    return formatted_list
-
-
 def _finding_approval_status_check(finding_dictionary, status_list):
     whitelist = set()
     for image in finding_dictionary:
@@ -522,15 +494,15 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     # get cves from vat
     logging.info(os.environ["IMAGE_NAME"])
     logging.info(os.environ["PROJ_PATH"])
-    if os.environ["IMAGE_NAME"] != os.environ["PROJ_PATH"]:
-        logging.error(
-            "Name in hardening_manifest does not match GitLab project name (e.g. redhat/ubi/ubi8)"
-        )
-        logging.error(
-            "Quickfix: Edit the name in the hardening_manifest to match the GitLab project name"
-        )
-        logging.error("Issue is known and solution is in progress.")
-        sys.exit(1)
+    # if os.environ["IMAGE_NAME"] != os.environ["PROJ_PATH"]:
+    #     logging.error(
+    #         "Name in hardening_manifest does not match GitLab project name (e.g. redhat/ubi/ubi8)"
+    #     )
+    #     logging.error(
+    #         "Quickfix: Edit the name in the hardening_manifest to match the GitLab project name"
+    #     )
+    #     logging.error("Issue is known and solution is in progress.")
+    #     sys.exit(1)
 
     result = _vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
     # parse CVEs from VAT query
