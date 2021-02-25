@@ -376,13 +376,13 @@ def docker_download(download_item, tag_value, tar_name, username=None, password=
         except subprocess.CalledProcessError:
             if retry_count == 2:
                 logging.error(
-                    "Docker resource failed to pull, please check hardening_manifest.yaml configuration"
+                    "Resource failed to pull, please check hardening_manifest.yaml configuration"
                 )
                 sys.exit(1)
             else:
                 retry_count += 1
                 logging.warning(
-                    f"Docker resource failed to pull, retrying: {retry_count}/2"
+                    f"Resource failed to pull, retrying: {retry_count}/2"
                 )
 
 
@@ -433,13 +433,13 @@ def github_download(download_item, tag_value, tar_name, username=None, password=
         except subprocess.CalledProcessError:
             if retry_count == 2:
                 logging.error(
-                    "Docker resource failed to pull, please check hardening_manifest.yaml configuration"
+                    "Resource failed to pull, please check hardening_manifest.yaml configuration"
                 )
                 sys.exit(1)
             else:
                 retry_count += 1
                 logging.warning(
-                    f"Docker resource failed to pull, retrying: {retry_count}/2"
+                    f"Resource failed to pull, retrying: {retry_count}/2"
                 )
 
 
