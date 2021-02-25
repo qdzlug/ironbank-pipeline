@@ -217,11 +217,8 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         logging.error("NON-WHITELISTED VULNERABILITIES FOUND")
         logging.error(f"Number of non-whitelisted vulnerabilities: {delta_length}")
         logging.error("The following vulnerabilities are not whitelisted:")
-        delta_list = list(delta)
-        delta_list.sort()
-        formatted_delta_list = _format_list(delta_list)
-        for finding in formatted_delta_list:
-            logging.error(f"{finding}")
+        for finding in delta:
+            logging.error(*finding, sep="\t")
         if os.environ["CI_COMMIT_BRANCH"] == "master":
             pipeline_repo_dir = os.environ["PIPELINE_REPO_DIR"]
             subprocess.run(
