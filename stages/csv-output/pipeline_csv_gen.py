@@ -542,7 +542,7 @@ def _get_justifications(total_whitelist, sourceImageName):
                 else:
                     cveOpenscap[cveID] = "Inherited from base image."
                     logging.debug("Oscap inherited cve")
-    return cveOpenscap, cveTwistlock, cveAnchore
+    return cveOpenscap, cveTwistlock, cveAnchore, compAnchore
 
 
 # Blank OSCAP Report
