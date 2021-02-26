@@ -30,7 +30,9 @@ from scanners import anchore
 from scanners import twistlock
 import swagger_to_jsonschema
 
-
+# add global var for api failures.
+# TODO: Remove api_exit_code when converting to using the api instead of the query
+api_exit_code = 0
 
 def _connect_to_db():
     """
@@ -358,7 +360,7 @@ def _vat_findings_query(im_name, im_version):
         logging.warning(f"Unknown response from VAT {r.status_code}")
         logging.warning(r.text)
         logging.error("Failing the pipeline, please contact the administrators")
-        api_exit_code = 500
+        global api_exit_code = 500
 
 
 def _vat_approval_query(im_name, im_version):
@@ -626,9 +628,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
 
 def main():
-    # add global var for api failures.
-    # TODO: Remove api_exit_code when converting to using the api instead of the query
-    global api_exit_code = 0
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
     if loglevel == "DEBUG":
