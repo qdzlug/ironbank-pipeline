@@ -493,6 +493,13 @@ def _get_justifications(total_whitelist, sourceImageName):
             logging.debug(cveID)
             # Twistlock finding
             if finding["vuln_source"] == "twistlock_cve":
+                cveID = (
+                    finding["vulnerability"]
+                    + "-"
+                    + finding["package"]
+                    + "-"
+                    + finding["package_path"]
+                )
                 if finding["whitelist_source"] == sourceImageName:
                     cveTwistlock[cveID] = finding["justification"]
                 else:
@@ -500,10 +507,14 @@ def _get_justifications(total_whitelist, sourceImageName):
                     logging.debug("Twistlock inherited cve")
 
             # Anchore finding
-            elif (
-                finding["vuln_source"] == "anchore_cve"
-                or finding["vuln_source"] == "anchore_comp"
-            ):
+            elif finding["vuln_source"] == "anchore_cve":
+                cveID = (
+                    finding["vulnerability"]
+                    + "-"
+                    + finding["package"]
+                    + "-"
+                    + finding["package_path"]
+                )
                 if finding["whitelist_source"] == sourceImageName:
                     cveAnchore[cveID] = finding["justification"]
                     cveAnchore[trigger_id] = finding["justification"]
