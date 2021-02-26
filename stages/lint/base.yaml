@@ -66,6 +66,8 @@ wl compare lint:
     - |
       if [ "$?" == 3 ]; then
         exit 3
+      else
+        echo "something is wrong"
       fi
   allow_failure:
     exit_codes: 3
