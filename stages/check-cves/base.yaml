@@ -19,10 +19,7 @@ check cves:
     - PROJ_PATH=$(echo "${CI_PROJECT_PATH}" | sed -e 's/.*dsop\/\(.*\)/\1/')
     - export PROJ_PATH
     - pip3 install jsonschema
+    - set +e
     - python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py"
-    - |
-      if [ "$?" == 3 ]; then
-        exit 3
-      fi
   allow_failure:
     exit_codes: 3
