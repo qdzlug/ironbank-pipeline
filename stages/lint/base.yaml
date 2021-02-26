@@ -62,6 +62,7 @@ wl compare lint:
     - export PROJ_PATH
     - pip3 install jsonschema
     - 'mkdir -p "${ARTIFACT_DIR}"'
+    - echo "test"
     - 'python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py" --lint'
     - |
       if [ $? == 3 ]; then
