@@ -360,7 +360,8 @@ def _vat_findings_query(im_name, im_version):
         logging.warning(f"Unknown response from VAT {r.status_code}")
         logging.warning(r.text)
         logging.error("Failing the pipeline, please contact the administrators")
-        global api_exit_code = 500
+        global api_exit_code
+        api_exit_code = 500
 
 
 def _vat_approval_query(im_name, im_version):
@@ -668,6 +669,7 @@ def main():
         hardening_manifest=hardening_manifest,
         lint=args.lint,
     )
+    logging.info(api_exit_code)
     sys.exit(api_exit_code)
 
 
