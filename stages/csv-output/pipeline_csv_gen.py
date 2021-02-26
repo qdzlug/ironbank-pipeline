@@ -536,10 +536,11 @@ def _get_justifications(total_whitelist, sourceImageName):
 
             # OpenSCAP finding
             elif finding["vuln_source"] == "oscap_comp":
+                cveID = finding["vulnerability"]
                 if finding["whitelist_source"] == sourceImageName:
-                    cveOpenscap[openscapID] = finding["justification"]
+                    cveOpenscap[cveID] = finding["justification"]
                 else:
-                    cveOpenscap[openscapID] = "Inherited from base image."
+                    cveOpenscap[cveID] = "Inherited from base image."
                     logging.debug("Oscap inherited cve")
     return cveOpenscap, cveTwistlock, cveAnchore
 
