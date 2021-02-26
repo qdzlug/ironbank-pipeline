@@ -143,7 +143,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
             hardening_manifest=hardening_manifest,
         )
         logging.info(api_exit_code)
-        sys.exit(1)
+        sys.exit(api_exit_code)
 
     artifacts_path = os.environ["ARTIFACT_STORAGE"]
 
