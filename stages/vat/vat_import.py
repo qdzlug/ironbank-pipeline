@@ -162,16 +162,21 @@ def parse_anchore_security(as_path):
     """
     anchore_security = pandas.read_csv(as_path)
     # grab the relevant columns we are homogenizing
-    d_f = anchore_security[
-        ["cve", "severity", "package", "url", "package_path", "description"]
-    ]
+    d_f = anchore_security[["cve", "severity", "package", "url", "package_path"]]
 
     # replace pkgdb to None
     d_f.replace({"package_path": {"pkgdb": None}}, inplace=True)
 
+    # copy vuln column to package
+    d_f["description"] = d_f["package"]
+
     d_f.rename(columns={"cve": "finding", "url": "link"}, inplace=True)
     d_f["link"] = d_f["link"].apply(parse_anchore_json)
-    d_f["description"] = d_f["description"] + "\nLink: " + d_f["link"]
+    d_f["description"] = d_f["description"] + "\n" + d_f["link"]
+
+    # Temporarily Removing imported link and replacing with None
+    d_f.drop(columns=["link"], inplace=True)
+    d_f = d_f.assign(link=None)
 
     # REMOVE THIS ONCE PACKAGE PATH FIELD IS ADDED TO DB
     # d_f.drop(columns=["package_path"], inplace=True)
