@@ -30,6 +30,10 @@ from scanners import anchore
 from scanners import twistlock
 import swagger_to_jsonschema
 
+# add global var for api failures.
+# TODO: Remove api_exit_code when converting to using the api instead of the query
+api_exit_code = 0
+
 
 def _connect_to_db():
     """
@@ -139,7 +143,8 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
             whitelist_branch=wl_branch,
             hardening_manifest=hardening_manifest,
         )
-        sys.exit(0)
+        logging.info(api_exit_code)
+        sys.exit(api_exit_code)
 
     artifacts_path = os.environ["ARTIFACT_STORAGE"]
 
@@ -310,11 +315,15 @@ def _get_greylist_file_contents(image_path, branch):
 
 def _vat_findings_query(im_name, im_version):
     logging.info("Running query to vat api")
-    url = f"{os.environ['VAT_BACKEND_SERVER_ADDRESS']}/internal/container?name={im_name}&tag={im_version}"
-    logging.info(f"GET {url}")
 
     try:
-        r = requests.get(url)
+        r = requests.get(
+            f"{os.environ['VAT_BACKEND_SERVER_ADDRESS']}/internal/container",
+            params={
+                "name": im_name,
+                "tag": im_version,
+            },
+        )
     except requests.exceptions.RequestException as e:
         logging.warning(f"Could not access VAT API: {url}")
         logging.warning(e)
@@ -353,7 +362,8 @@ def _vat_findings_query(im_name, im_version):
         logging.warning(f"Unknown response from VAT {r.status_code}")
         logging.warning(r.text)
         logging.error("Failing the pipeline, please contact the administrators")
-        sys.exit(1)
+        global api_exit_code
+        api_exit_code = 3
 
 
 def _vat_approval_query(im_name, im_version):
@@ -390,6 +400,7 @@ def _vat_approval_query(im_name, im_version):
         result = cursor.fetchall()
     except Error as error:
         logging.info(error)
+        sys.exit(1)
     finally:
         if conn is not None and conn.is_connected():
             conn.close()
@@ -437,6 +448,7 @@ def _vat_vuln_query(im_name, im_version):
         result = cursor.fetchall()
     except Error as error:
         logging.info(error)
+        sys.exit(1)
     finally:
         if conn is not None and conn.is_connected():
             conn.close()
@@ -659,6 +671,8 @@ def main():
         hardening_manifest=hardening_manifest,
         lint=args.lint,
     )
+    logging.info(api_exit_code)
+    sys.exit(api_exit_code)
 
 
 if __name__ == "__main__":
