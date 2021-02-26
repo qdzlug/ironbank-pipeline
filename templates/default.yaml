@@ -13,7 +13,7 @@ include:
   # # # Removing post-build stage, not needed for beta
   # # # - local: stages/post-build/base.yaml
 
-  # - local: stages/scanning/base.yaml
+  - local: stages/scanning/base.yaml
 
   - local: stages/csv-output/base.yaml
 
