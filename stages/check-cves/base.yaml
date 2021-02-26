@@ -20,3 +20,5 @@ check cves:
     - export PROJ_PATH
     - pip3 install jsonschema
     - python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py"
+  allow_failure:
+    exit_codes: 500

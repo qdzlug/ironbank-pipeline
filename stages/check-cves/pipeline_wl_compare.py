@@ -30,6 +30,7 @@ from scanners import anchore
 from scanners import twistlock
 import swagger_to_jsonschema
 
+global api_exit_code = 0
 
 def _connect_to_db():
     """
@@ -357,7 +358,7 @@ def _vat_findings_query(im_name, im_version):
         logging.warning(f"Unknown response from VAT {r.status_code}")
         logging.warning(r.text)
         logging.error("Failing the pipeline, please contact the administrators")
-        sys.exit(1)
+        api_exit_code = 500
 
 
 def _vat_approval_query(im_name, im_version):
@@ -394,6 +395,7 @@ def _vat_approval_query(im_name, im_version):
         result = cursor.fetchall()
     except Error as error:
         logging.info(error)
+        sys.exit(1)
     finally:
         if conn is not None and conn.is_connected():
             conn.close()
@@ -441,6 +443,7 @@ def _vat_vuln_query(im_name, im_version):
         result = cursor.fetchall()
     except Error as error:
         logging.info(error)
+        sys.exit(1)
     finally:
         if conn is not None and conn.is_connected():
             conn.close()
@@ -663,6 +666,7 @@ def main():
         hardening_manifest=hardening_manifest,
         lint=args.lint,
     )
+    sys.exit(api_exit_code)
 
 
 if __name__ == "__main__":
