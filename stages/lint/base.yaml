@@ -64,7 +64,7 @@ wl compare lint:
     - 'mkdir -p "${ARTIFACT_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py" --lint'
     - |
-      if [ "$?" == 3 ]; then
+      if [ $? == 3 ]; then
         exit 3
       else
         echo "something is wrong"
