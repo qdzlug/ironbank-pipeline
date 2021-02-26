@@ -44,7 +44,7 @@ stages:
 
   ### scanning stage
   # twistlock, oscap, and anchore scans
-  # - scanning
+  - scanning
 
   ### create csv output
   - csv output
