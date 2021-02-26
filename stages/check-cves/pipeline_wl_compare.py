@@ -34,6 +34,7 @@ import swagger_to_jsonschema
 # TODO: Remove api_exit_code when converting to using the api instead of the query
 api_exit_code = 0
 
+
 def _connect_to_db():
     """
     @return mariadb connection
