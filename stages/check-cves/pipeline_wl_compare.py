@@ -310,11 +310,15 @@ def _get_greylist_file_contents(image_path, branch):
 
 def _vat_findings_query(im_name, im_version):
     logging.info("Running query to vat api")
-    url = f"{os.environ['VAT_BACKEND_SERVER_ADDRESS']}/internal/container?name={im_name}&tag={im_version}"
-    logging.info(f"GET {url}")
 
     try:
-        r = requests.get(url)
+        r = requests.get(
+            f"{os.environ['VAT_BACKEND_SERVER_ADDRESS']}/internal/container",
+            params={
+                "name": im_name,
+                "tag": im_version,
+            },
+        )
     except requests.exceptions.RequestException as e:
         logging.warning(f"Could not access VAT API: {url}")
         logging.warning(e)
