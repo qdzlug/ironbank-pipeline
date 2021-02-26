@@ -3,10 +3,10 @@ csv output:
   tags:
     - ironbank
   dependencies:
-    # - twistlock scan
-    # - openscap cve
-    # - openscap compliance
-    # - anchore scan
+    - twistlock scan
+    - openscap cve
+    - openscap compliance
+    - anchore scan
     - load scripts
     - hardening_manifest
     - wl compare lint
