@@ -523,6 +523,16 @@ def _get_justifications(total_whitelist, sourceImageName):
                     cveAnchore[cveID] = "Inherited from base image."
                     if trigger_id in _inheritable_trigger_ids:
                         cveAnchore[trigger_id] = "Inherited from base image."
+            elif finding["vuln_source"] == "anchore_comp":
+                cveID = finding["vulnerability"]
+                if finding["whitelist_source"] == sourceImageName:
+                    compAnchore[cveID] = finding["justification"]
+                    compAnchore[trigger_id] = finding["justification"]
+                else:
+                    logging.debug("Anchore Comp inherited finding")
+                    compAnchore[cveID] = "Inherited from base image."
+                    if trigger_id in _inheritable_trigger_ids:
+                        compAnchore[trigger_id] = "Inherited from base image."
 
             # OpenSCAP finding
             elif finding["vuln_source"] == "oscap_comp":
