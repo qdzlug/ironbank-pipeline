@@ -22,6 +22,7 @@ def _fetch_file(url, file, branch="development"):
     Grabs a raw file from gitlab.
 
     """
+    assert "/" not in branch
     url = f"{url}/-/raw/{branch}/{file}"
 
     logger.debug(url)
