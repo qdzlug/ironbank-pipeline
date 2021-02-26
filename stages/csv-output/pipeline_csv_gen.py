@@ -92,7 +92,7 @@ def main():
     # Get all justifications
     logging.info("Gathering list of all justifications...")
 
-    j_openscap, j_twistlock, j_anchore = _get_justifications(
+    j_openscap, j_twistlock, j_anchore_cve, j_anchore_comp = _get_justifications(
         total_whitelist, image_name
     )
     oscap_fail_count = 0
@@ -118,13 +118,13 @@ def main():
         anchore_num_cves = anchore.vulnerability_report(
             csv_dir=args.output_dir,
             anchore_security_json=args.anchore_sec,
-            justifications=j_anchore,
+            justifications=j_anchore_cve,
         )
     if args.anchore_gates:
         anchore_compliance = anchore.compliance_report(
             csv_dir=args.output_dir,
             anchore_gates_json=args.anchore_gates,
-            justifications=j_anchore,
+            justifications=j_anchore_comp,
         )
     if args.sbom_dir:
         anchore.sbom_report(csv_dir=args.output_dir, sbom_dir=args.sbom_dir)
@@ -490,7 +490,7 @@ def _get_justifications(total_whitelist, sourceImageName):
             # else:
             #     cveID = finding["vulnerability"]
             trigger_id = finding["vulnerability"]
-            logging.debug(cveID)
+            # logging.debug(cveID)
             # Twistlock finding
             if finding["vuln_source"] == "twistlock_cve":
                 cveID = (
