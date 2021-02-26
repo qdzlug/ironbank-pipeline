@@ -63,8 +63,12 @@ wl compare lint:
     - pip3 install jsonschema
     - 'mkdir -p "${ARTIFACT_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py" --lint'
+    - |
+      if [ "$?" == 3 ]; then
+          exit 3
+      fi
   allow_failure:
-    exit_codes: 500
+    exit_codes: 3
   artifacts:
     paths:
       - "${ARTIFACT_DIR}/"

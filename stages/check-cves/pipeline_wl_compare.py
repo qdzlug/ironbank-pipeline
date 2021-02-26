@@ -362,7 +362,7 @@ def _vat_findings_query(im_name, im_version):
         logging.warning(r.text)
         logging.error("Failing the pipeline, please contact the administrators")
         global api_exit_code
-        api_exit_code = 500
+        api_exit_code = 3
 
 
 def _vat_approval_query(im_name, im_version):
