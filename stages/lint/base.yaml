@@ -69,6 +69,7 @@ wl compare lint:
       else
         echo "something is wrong"
       fi
+    - exit 3
   allow_failure:
     exit_codes: 3
   artifacts:
