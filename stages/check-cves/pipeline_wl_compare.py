@@ -30,7 +30,7 @@ from scanners import anchore
 from scanners import twistlock
 import swagger_to_jsonschema
 
-global api_exit_code = 0
+
 
 def _connect_to_db():
     """
@@ -626,6 +626,9 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
 
 def main():
+    # add global var for api failures.
+    # TODO: Remove api_exit_code when converting to using the api instead of the query
+    global api_exit_code = 0
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
     if loglevel == "DEBUG":
