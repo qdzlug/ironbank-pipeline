@@ -21,10 +21,10 @@ upload to s3:
     - sign image
     - sign manifest
     - write json documentation
-    - anchore scan
-    - twistlock scan
-    - openscap cve
-    - openscap compliance
+    # - anchore scan
+    # - twistlock scan
+    # - openscap cve
+    # - openscap compliance
     - csv output
     - hardening_manifest
     - wl compare lint

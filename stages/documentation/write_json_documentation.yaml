@@ -11,11 +11,11 @@ write json documentation:
     - hardening_manifest
     - load scripts
     - wl compare lint
-    - openscap compliance
-    - anchore scan
-    - twistlock scan
+    # - openscap compliance
+    # - anchore scan
+    # - twistlock scan
     - build
-    - openscap compliance
+    # - openscap compliance
   script:
     - '"${PIPELINE_REPO_DIR}/stages/documentation/write-json-docs-run.sh"'
   artifacts:
