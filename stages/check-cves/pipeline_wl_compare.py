@@ -671,8 +671,6 @@ def main():
         hardening_manifest=hardening_manifest,
         lint=args.lint,
     )
-    logging.info(api_exit_code)
-    sys.exit(api_exit_code)
 
 
 if __name__ == "__main__":
