@@ -478,6 +478,7 @@ def _get_justifications(total_whitelist, sourceImageName):
     cveOpenscap = {}
     cveTwistlock = {}
     cveAnchore = {}
+    compAnchore = {}
 
     # Loop through all the greylist files
     # Getting results from VAT, just loop all findings, check if finding is related to base_images or source image
