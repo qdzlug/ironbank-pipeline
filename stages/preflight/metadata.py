@@ -37,22 +37,32 @@ def main():
             target=validate_yaml, args=(content, child_conn)
         )
         process.start()
-        time.sleep(120)
+        # wait for two minutes unless process exits
+        # if process exits, check status
+        # if alive after two minutes, exit
+        verification_timeout = int(os.environ.get("HM_VERIFY_TIMEOUT", 120))
+        while verification_timeout:
+            time.sleep(1)
+            verification_timeout -= 1
+            if not process.is_alive():
+                break
         if process.is_alive():
+            logging.error("Hardening Manifest validation timeout exceeded.")
             logging.error(
-                "A field in the hardening_manifest.yaml is invalid and is causing an infinite loop during validation"
+                "This is likely due to field in the hardening_manifest.yaml being invalid and causing an infinite loop during validation"
             )
             logging.error(
-                "Please check your hardening manifest to confirm all fields have valid input"
+                "Please check your hardening manifest to confirm all fields have valid values"
             )
             process.terminate()
             sys.exit(1)
         elif process.exitcode != 0:
-            logging.error("There is an issue with the hardening_manifest.yaml file")
+            logging.error("Hardening Manifest failed jsonschema validation")
+            logging.error("Verify Hardening Manifest content")
             logging.error(parent_conn.recv())
             sys.exit(1)
         else:
-            logging.error("JSON is validated")
+            logging.info("Hardening Manifest passed jsonschema validation")
     elif os.environ["GREYLIST_BACK_COMPAT"].lower() == "true":
         # Use the generated description.yaml file path if not
         logging.warning("hardening_manifest.yaml does not exist, autogenerating")
@@ -85,6 +95,11 @@ def validate_yaml(content, conn):
     with schema_path.open("r") as s:
         schema_s = s.read()
     schema = json.loads(schema_s)
+    regex = os.environ.get("LABEL_ALLOWLIST_REGEX", None)
+    if regex:
+        schema["properties"]["labels"]["patternProperties"] = {
+            regex: {"$ref": "#/definitions/printable-characters-without-newlines"}
+        }
     try:
         # may hang from catastrophic backtracking if format is invalid
         logging.info("This task will exit if not completed within 2 minutes")
