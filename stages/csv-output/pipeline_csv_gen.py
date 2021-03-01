@@ -478,10 +478,6 @@ def _get_justifications(total_whitelist, sourceImageName):
     # Loop through the findings and create the corresponding dict object based on the vuln_source
     for finding in total_whitelist:
         if "vulnerability" in finding.keys():
-            # if finding["vuln_description"]:
-            #     cveID = finding["vulnerability"] + "-" + finding["vuln_description"]
-            # else:
-            #     cveID = finding["vulnerability"]
             trigger_id = finding["vulnerability"]
             # logging.debug(cveID)
             # Twistlock finding
