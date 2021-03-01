@@ -479,7 +479,6 @@ def _get_justifications(total_whitelist, sourceImageName):
     for finding in total_whitelist:
         if "vulnerability" in finding.keys():
             trigger_id = finding["vulnerability"]
-            # logging.debug(cveID)
             # Twistlock finding
             if finding["vuln_source"] == "twistlock_cve":
                 cveID = (
@@ -531,6 +530,7 @@ def _get_justifications(total_whitelist, sourceImageName):
                 else:
                     cveOpenscap[cveID] = "Inherited from base image."
                     logging.debug("Oscap inherited cve")
+            logging.debug(f"CVE ID: {cveID}")
     return cveOpenscap, cveTwistlock, cveAnchore, compAnchore
 
 
