@@ -377,8 +377,8 @@ def _get_vulns_from_query(row):
     vuln_dict["status"] = row[6]
     vuln_dict["justification"] = row[8]
     vuln_dict["vuln_description"] = row[9].split("\n")[0] if row[9] else ""
-    vuln_dict["package"] = "" if not row[10] else row[10]
-    vuln_dict["package_path"] = "" if not row[11] else row[11]
+    vuln_dict["package"] = row[10] if row[10] else ""
+    vuln_dict["package_path"] = row[11] if row[11] else ""
     return vuln_dict
 
 
