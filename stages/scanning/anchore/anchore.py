@@ -168,7 +168,10 @@ class Anchore:
         # Add the extra vuln details
         for i in range(len(vuln_dict["vulnerabilities"])):
             extra = self.__get_extra_vuln_data(vuln_dict["vulnerabilities"][i])
-            vuln_dict["vulnerabilities"][i]["extra"] = extra["vuln_data"]
+            try:
+                vuln_dict["vulnerabilities"][i]["extra"] = extra["vuln_data"]
+            except KeyError:
+                vuln_dict["vulnerabilities"][i]["extra"] = dict()
 
         # Create json report called anchore_security.json
         filename = pathlib.Path(artifacts_path, "anchore_security.json")
