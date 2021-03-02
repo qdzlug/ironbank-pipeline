@@ -37,7 +37,6 @@ done
 
 shopt -u nullglob # Disallow images/* and external-resources/* to match nothing
 
-echo "${SATELLITE_URL} satellite" >>/etc/hosts
 echo "${DOCKER_AUTH_CONFIG_PULL}" | base64 -d >>/tmp/prod_auth.json
 echo "/tmp/prod_auth.json" >>.dockerignore
 
@@ -66,6 +65,7 @@ buildah bud \
   --label=org.opencontainers.image.created="$(date --rfc-3339=seconds)" \
   --label=org.opencontainers.image.source="${CI_PROJECT_URL}" \
   --label=org.opencontainers.image.revision="${CI_COMMIT_SHA}" \
+  --add-host="satellite:${SATELLITE_URL}" \
   --authfile /tmp/prod_auth.json \
   --format=docker \
   --loglevel=3 \
