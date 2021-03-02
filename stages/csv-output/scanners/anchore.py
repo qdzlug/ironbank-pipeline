@@ -31,7 +31,11 @@ def _vulnerability_record(fulltag, justifications, vuln):
     vuln_record["fix"] = ", ".join(sorted_fix)
     vuln_record["url"] = vuln["url"]
     vuln_record["inherited"] = vuln.get("inherited_from_base") or "no_data"
-    vuln_record["description"] = vuln["extra"]["description"]
+
+    try:
+        vuln_record["description"] = vuln["extra"]["description"]
+    except Exception:
+        vuln_record["description"] = "none"
 
     key = "nvd_cvss_v2_vector"
     vuln_record[key] = ""
