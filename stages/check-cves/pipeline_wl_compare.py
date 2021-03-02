@@ -471,7 +471,7 @@ def _get_findings_from_query(row):
     return finding_dict
 
 
-def _next_ancestor(image_path, whitelist_branch, hardening_manifest=None):
+def _next_ancestor(parent_image_path, whitelist_branch):
     """
     Grabs the parent image path from the current context. Will initially attempt to load
     a new hardening manifest and then pull the parent image from there. Otherwise it will
@@ -482,24 +482,20 @@ def _next_ancestor(image_path, whitelist_branch, hardening_manifest=None):
 
     """
 
-    # Try to get the parent image out of the local hardening_manifest.
-    if hardening_manifest:
-        return (
-            hardening_manifest["args"]["BASE_IMAGE"],
-            hardening_manifest["args"]["BASE_TAG"],
-        )
-
     # Try to load the hardening manifest from a remote repo.
-    hm = _load_remote_hardening_manifest(project=image_path)
+    hm = _load_remote_hardening_manifest(project=parent_image_path)
+    # REMOVE if statement when we are no longer using greylists
     if hm is not None:
-        return (hm["args"]["BASE_IMAGE"], hm["args"]["BASE_TAG"])
+        return (hm["name"], hm["tags"][0], hm["args"]["BASE_IMAGE"])
 
+    # REMOVE if statement and use of _get_greylist_file_contents
+    #   when we are no longer using greylists
     if os.environ["GREYLIST_BACK_COMPAT"].lower() == "true":
         try:
             greylist = _get_greylist_file_contents(
-                image_path=image_path, branch=whitelist_branch
+                image_path=parent_image_path, branch=whitelist_branch
             )
-            return (greylist["image_parent_name"], greylist["image_parent_tag"])
+            return (greylist["image_name"], greylist["image_tag"])
         except KeyError as e:
             logging.error("Looks like a hardening_manifest.yaml cannot be found")
             logging.error(
@@ -510,7 +506,7 @@ def _next_ancestor(image_path, whitelist_branch, hardening_manifest=None):
     else:
         logging.error(
             "hardening_manifest.yaml does not exist for "
-            + image_path
+            + parent_image_path
             + ". Please add a hardening_manifest.yaml file to this project"
         )
         logging.error("Exiting.")
@@ -529,17 +525,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
     logging.info(f"Grabbing CVEs for: {image_name}")
     # get cves from vat
-    logging.info(os.environ["IMAGE_NAME"])
-    logging.info(os.environ["PROJ_PATH"])
-    if os.environ["IMAGE_NAME"] != os.environ["PROJ_PATH"]:
-        logging.error(
-            "Name in hardening_manifest does not match GitLab project name (e.g. redhat/ubi/ubi8)"
-        )
-        logging.error(
-            "Quickfix: Edit the name in the hardening_manifest to match the GitLab project name"
-        )
-        logging.error("Issue is known and solution is in progress.")
-        sys.exit(1)
+    logging.info(f"Retrieving findings for {os.environ['IMAGE_NAME']}")
 
     result = _vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
     # parse CVEs from VAT query
@@ -600,14 +586,14 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     # Use the local hardening manifest to get the first parent. From here *only* the
     # the master branch should be used for the ancestry.
     #
-    parent_image_name, parent_image_version = _next_ancestor(
-        image_path=image_name,
-        whitelist_branch=whitelist_branch,
-        hardening_manifest=hardening_manifest,
-    )
+    parent_image_path = hardening_manifest["args"]["BASE_IMAGE"]
 
     # get parent cves from VAT
-    while parent_image_name:
+    while parent_image_path:
+        parent_image_name, parent_image_version, parent_image_path = _next_ancestor(
+            parent_image_path=parent_image_path,
+            whitelist_branch=whitelist_branch,
+        )
         logging.info(f"Grabbing CVEs for: {parent_image_name}")
         # TODO: remove this after 30 day hardening_manifest merge cutof
         # TODO: swap this for hardening manifest after 30 day merge cutoff
@@ -617,11 +603,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         for row in result:
             finding_dict = _get_findings_from_query(row)
             vat_findings[parent_image_name].append(finding_dict)
-
-        parent_image_name, parent_image_version = _next_ancestor(
-            image_path=parent_image_name,
-            whitelist_branch=whitelist_branch,
-        )
 
     logging.info(f"Artifact Directory: {artifact_dir}")
     filename = pathlib.Path(f"{artifact_dir}/vat_findings.json")
