@@ -346,6 +346,7 @@ def _vat_vuln_query(im_name, im_version):
         result = cursor.fetchall()
     except Error as error:
         logging.info(error)
+        sys.exit(1)
     finally:
         if conn is not None and conn.is_connected():
             conn.close()
