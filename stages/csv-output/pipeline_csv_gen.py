@@ -739,10 +739,11 @@ def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
                 # get associated justification if one exists
                 id = ""
                 cve_justification = ""
-                if d["description"]:
-                    id = d["cve"] + "-" + d["description"]
-                else:
-                    id = d["cve"]
+                # if d["description"]:
+                id = {d["cve"], f"{d['packageName']}-{d['packageVersion']}"}
+                # id = d["cve"] + "-" + d["description"]
+                # else:
+                #     id = d["cve"]
                 if id in justifications.keys():
                     cve_justification = justifications[id]
                 # else cve_justification is ""
