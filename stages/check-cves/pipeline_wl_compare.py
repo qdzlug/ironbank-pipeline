@@ -233,7 +233,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         delta.sort(key=lambda x: (x[0], x[2], x[1]))
         conv = lambda i: i or ""
         for finding in delta:
-            logging.error("".join([str(conv(i)).ljust(max_width) for i in finding]))
+            logging.error("".join([str(conv(i)+"\t").ljust(30) for i in finding]))
         if os.environ["CI_COMMIT_BRANCH"] == "master":
             pipeline_repo_dir = os.environ["PIPELINE_REPO_DIR"]
             subprocess.run(
