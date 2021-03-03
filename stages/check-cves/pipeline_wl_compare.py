@@ -34,7 +34,7 @@ import swagger_to_jsonschema
 # TODO: Remove api_exit_code when converting to using the api instead of the query
 api_exit_code = 0
 
-Finding = namedtuple("Finding", "scan_source cve_id package package_path")
+Finding = namedtuple("Finding", ["scan_source", "cve_id", "package", "package_path"])
 
 
 def _connect_to_db():
@@ -228,8 +228,9 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         logging.error("NON-WHITELISTED VULNERABILITIES FOUND")
         logging.error(f"Number of non-whitelisted vulnerabilities: {delta_length}")
         logging.error("The following vulnerabilities are not whitelisted:")
+        conv = lambda i: i or ""
         for finding in delta:
-            logging.error("\t".join([item if item else "\t" for item in list(finding)]))
+            logging.error("\t".join([conv(i) for i in finding]))
         if os.environ["CI_COMMIT_BRANCH"] == "master":
             pipeline_repo_dir = os.environ["PIPELINE_REPO_DIR"]
             subprocess.run(
