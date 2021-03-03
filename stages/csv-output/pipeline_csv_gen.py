@@ -92,7 +92,7 @@ def main():
     # Get all justifications
     logging.info("Gathering list of all justifications...")
 
-    j_openscap, j_twistlock, j_anchore = _get_justifications(
+    j_openscap, j_twistlock, j_anchore_cve, j_anchore_comp = _get_justifications(
         total_whitelist, image_name
     )
     oscap_fail_count = 0
@@ -118,13 +118,13 @@ def main():
         anchore_num_cves = anchore.vulnerability_report(
             csv_dir=args.output_dir,
             anchore_security_json=args.anchore_sec,
-            justifications=j_anchore,
+            justifications=j_anchore_cve,
         )
     if args.anchore_gates:
         anchore_compliance = anchore.compliance_report(
             csv_dir=args.output_dir,
             anchore_gates_json=args.anchore_gates,
-            justifications=j_anchore,
+            justifications=j_anchore_comp,
         )
     if args.sbom_dir:
         anchore.sbom_report(csv_dir=args.output_dir, sbom_dir=args.sbom_dir)
@@ -376,12 +376,9 @@ def _get_vulns_from_query(row):
     vuln_dict["vuln_source"] = row[4]
     vuln_dict["status"] = row[6]
     vuln_dict["justification"] = row[8]
-    if row[4] and row[4] == "anchore_cve":
-        vuln_dict["vuln_description"] = row[10]
-    elif row[4] and row[4] == "anchore_comp" and row[9]:
-        vuln_dict["vuln_description"] = row[9].split("\n")[0]
-    else:
-        vuln_dict["vuln_description"] = row[9]
+    vuln_dict["vuln_description"] = row[9].split("\n")[0] if row[9] else ""
+    vuln_dict["package"] = row[10] if row[10] else ""
+    vuln_dict["package_path"] = row[11] if row[11] else ""
     return vuln_dict
 
 
@@ -465,21 +462,23 @@ def _get_justifications(total_whitelist, sourceImageName):
     cveOpenscap = {}
     cveTwistlock = {}
     cveAnchore = {}
+    compAnchore = {}
 
     # Loop through all the greylist files
     # Getting results from VAT, just loop all findings, check if finding is related to base_images or source image
     # Loop through the findings and create the corresponding dict object based on the vuln_source
     for finding in total_whitelist:
         if "vulnerability" in finding.keys():
-            if finding["vuln_description"]:
-                cveID = finding["vulnerability"] + "-" + finding["vuln_description"]
-            else:
-                cveID = finding["vulnerability"]
-            openscapID = finding["vulnerability"]
             trigger_id = finding["vulnerability"]
-            logging.debug(cveID)
             # Twistlock finding
             if finding["vuln_source"] == "twistlock_cve":
+                cveID = (
+                    finding["vulnerability"]
+                    + "-"
+                    + finding["package"]
+                    + "-"
+                    + finding["package_path"]
+                )
                 if finding["whitelist_source"] == sourceImageName:
                     cveTwistlock[cveID] = finding["justification"]
                 else:
@@ -487,10 +486,14 @@ def _get_justifications(total_whitelist, sourceImageName):
                     logging.debug("Twistlock inherited cve")
 
             # Anchore finding
-            elif (
-                finding["vuln_source"] == "anchore_cve"
-                or finding["vuln_source"] == "anchore_comp"
-            ):
+            elif finding["vuln_source"] == "anchore_cve":
+                cveID = (
+                    finding["vulnerability"]
+                    + "-"
+                    + finding["package"]
+                    + "-"
+                    + finding["package_path"]
+                )
                 if finding["whitelist_source"] == sourceImageName:
                     cveAnchore[cveID] = finding["justification"]
                     cveAnchore[trigger_id] = finding["justification"]
@@ -499,15 +502,27 @@ def _get_justifications(total_whitelist, sourceImageName):
                     cveAnchore[cveID] = "Inherited from base image."
                     if trigger_id in _inheritable_trigger_ids:
                         cveAnchore[trigger_id] = "Inherited from base image."
+            elif finding["vuln_source"] == "anchore_comp":
+                cveID = finding["vulnerability"]
+                if finding["whitelist_source"] == sourceImageName:
+                    compAnchore[cveID] = finding["justification"]
+                    compAnchore[trigger_id] = finding["justification"]
+                else:
+                    logging.debug("Anchore Comp inherited finding")
+                    compAnchore[cveID] = "Inherited from base image."
+                    if trigger_id in _inheritable_trigger_ids:
+                        compAnchore[trigger_id] = "Inherited from base image."
 
             # OpenSCAP finding
             elif finding["vuln_source"] == "oscap_comp":
+                cveID = finding["vulnerability"]
                 if finding["whitelist_source"] == sourceImageName:
-                    cveOpenscap[openscapID] = finding["justification"]
+                    cveOpenscap[cveID] = finding["justification"]
                 else:
-                    cveOpenscap[openscapID] = "Inherited from base image."
+                    cveOpenscap[cveID] = "Inherited from base image."
                     logging.debug("Oscap inherited cve")
-    return cveOpenscap, cveTwistlock, cveAnchore
+            logging.debug(f"CVE ID: {cveID}")
+    return cveOpenscap, cveTwistlock, cveAnchore, compAnchore
 
 
 # Blank OSCAP Report
