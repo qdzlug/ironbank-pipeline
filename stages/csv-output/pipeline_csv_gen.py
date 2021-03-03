@@ -371,14 +371,12 @@ def _get_vulns_from_query(row):
     """
     vuln_dict = {}
     vuln_dict["whitelist_source"] = row[0]
-    vuln_dict["version"] = row[1]
     vuln_dict["vulnerability"] = row[3]
     vuln_dict["vuln_source"] = row[4]
     vuln_dict["status"] = row[6]
     vuln_dict["justification"] = row[8]
-    vuln_dict["vuln_description"] = row[9].split("\n")[0] if row[9] else ""
-    vuln_dict["package"] = row[10] if row[10] else ""
-    vuln_dict["package_path"] = row[11] if row[11] else ""
+    vuln_dict["package"] = row[10]
+    vuln_dict["package_path"] = row[11]
     return vuln_dict
 
 
