@@ -229,6 +229,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         logging.error("NON-WHITELISTED VULNERABILITIES FOUND")
         logging.error(f"Number of non-whitelisted vulnerabilities: {delta_length}")
         logging.error("The following vulnerabilities are not whitelisted:")
+        delta = list(delta)
         delta.sort(key=lambda x: (x[0], x[2], x[1]))
         conv = lambda i: i or ""
         for finding in delta:
