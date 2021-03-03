@@ -24,7 +24,7 @@ import mysql.connector
 from mysql.connector import Error
 import requests
 import yaml
-
+from collections import namedtuple
 from scanners import oscap
 from scanners import anchore
 from scanners import twistlock
@@ -33,6 +33,8 @@ import swagger_to_jsonschema
 # add global var for api failures.
 # TODO: Remove api_exit_code when converting to using the api instead of the query
 api_exit_code = 0
+
+Finding = namedtuple("Finding", "scan_source cve_id package package_path")
 
 
 def _connect_to_db():
