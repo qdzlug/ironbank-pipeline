@@ -225,7 +225,6 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
 
     delta_length = len(delta)
     if delta_length != 0:
-        max_width = max([len(val) for vuln in delta for val in vuln])
         logging.error("NON-WHITELISTED VULNERABILITIES FOUND")
         logging.error(f"Number of non-whitelisted vulnerabilities: {delta_length}")
         logging.error("The following vulnerabilities are not whitelisted:")
