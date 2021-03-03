@@ -472,13 +472,7 @@ def _get_justifications(total_whitelist, sourceImageName):
             trigger_id = finding["vulnerability"]
             # Twistlock finding
             if finding["vuln_source"] == "twistlock_cve":
-                cveID = (
-                    finding["vulnerability"]
-                    + "-"
-                    + finding["package"]
-                    + "-"
-                    + finding["package_path"]
-                )
+                cveID = (finding["vulnerability"], finding["package"])
                 if finding["whitelist_source"] == sourceImageName:
                     cveTwistlock[cveID] = finding["justification"]
                 else:
@@ -488,11 +482,9 @@ def _get_justifications(total_whitelist, sourceImageName):
             # Anchore finding
             elif finding["vuln_source"] == "anchore_cve":
                 cveID = (
-                    finding["vulnerability"]
-                    + "-"
-                    + finding["package"]
-                    + "-"
-                    + finding["package_path"]
+                    finding["vulnerability"],
+                    finding["package"],
+                    finding["package_path"],
                 )
                 if finding["whitelist_source"] == sourceImageName:
                     cveAnchore[cveID] = finding["justification"]
@@ -740,7 +732,7 @@ def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
                 id = ""
                 cve_justification = ""
                 # if d["description"]:
-                id = {d["cve"], f"{d['packageName']}-{d['packageVersion']}"}
+                id = (d["cve"], f"{d['packageName']}-{d['packageVersion']}")
                 # id = d["cve"] + "-" + d["description"]
                 # else:
                 #     id = d["cve"]
