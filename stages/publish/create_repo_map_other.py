@@ -64,7 +64,7 @@ def _get_source_keys_values(source_file):
     if os.path.exists(source_file):
         with open(source_file, mode="r", encoding="utf-8") as sf:
             for line in sf:
-                key, value = line.rstrip().split("=")
+                key, value = line.rstrip().split("=",1)
                 if key != "mil.dso.ironbank.image.keywords":
                     hm_labels[key] = value
     return hm_labels
