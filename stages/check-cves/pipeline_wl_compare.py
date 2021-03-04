@@ -24,7 +24,7 @@ import mysql.connector
 from mysql.connector import Error
 import requests
 import yaml
-
+from collections import namedtuple
 from scanners import oscap
 from scanners import anchore
 from scanners import twistlock
@@ -33,6 +33,8 @@ import swagger_to_jsonschema
 # add global var for api failures.
 # TODO: Remove api_exit_code when converting to using the api instead of the query
 api_exit_code = 0
+
+Finding = namedtuple("Finding", ["scan_source", "cve_id", "package", "package_path"])
 
 
 def _connect_to_db():
@@ -186,19 +188,30 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
             oscap_disa_comp.append(o)
 
         for o in oscap_disa_comp:
-            vuln_set.add(f"oscapcomp_{o['identifiers']}")
+            vuln_set.add(Finding("oscap_comp", o["identifiers"], None, None))
 
         oval_cves = oscap.get_oval(oval_file)
         for oval in oval_cves:
-            vuln_set.add(f"oscapcve_{oval}")
+            vuln_set.add(Finding("oscap_cve", oval, None, None))
 
     twistlock_cves = twistlock.get_full()
     for tl in twistlock_cves:
-        vuln_set.add(f"tl_{tl['id']}-{tl['packageName']}-{tl['packageVersion']}")
+        vuln_set.add(
+            Finding(
+                "twistlock_cve",
+                tl["id"],
+                tl["packageName"] + "-" + tl["packageVersion"],
+                None,
+            )
+        )
 
     anchore_cves = anchore.get_full()
     for anc in anchore_cves:
-        vuln_set.add(f"anchorecve_{anc['cve']}-{anc['package']}")
+        if anc["package_path"] == "pkgdb":
+            anc["package_path"] = None
+        vuln_set.add(
+            Finding("anchore_cve", anc["cve"], anc["package"], anc["package_path"])
+        )
 
     vuln_length = len(vuln_set)
     logging.info(f"Vulnerabilities found in scanning stage: {vuln_length}")
@@ -233,34 +246,6 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     sys.exit(0)
 
 
-def _format_scan_source(x):
-
-    return {
-        "tl": "Twistlock CVE",
-        "anchorecve": "Anchore CVE",
-        "anchorecomp": "Anchore Compliance",
-        "oscapcomp": "OpenSCAP DISA Compliance",
-        "oscapcve": "OpenSCAP OVAL",
-    }.get(x, "Unknown Source")
-
-
-def _format_finding(finding):
-    underscore_position = finding.find("_")
-    scan_source = finding[:underscore_position]
-    vuln = finding[underscore_position + 1 :]
-    formatted_source = _format_scan_source(scan_source)
-
-    return f"{formatted_source} - {vuln}"
-
-
-def _format_list(delta_list, formatted_list=[]):
-    for finding in delta_list:
-        formatted_finding = _format_finding(finding)
-        formatted_list.append(formatted_finding)
-
-    return formatted_list
-
-
 def _finding_approval_status_check(finding_dictionary, status_list):
     whitelist = set()
     for image in finding_dictionary:
@@ -269,19 +254,15 @@ def _finding_approval_status_check(finding_dictionary, status_list):
             finding_status = finding["finding_status"].lower()
             # if a findings status is in the status list the finding is considered approved in VAT and is added to the whitelist
             if finding_status in status_list:
-                # if / elif statements check scan source and format whitelisted finding for comparison with found vulnerabilities
-                if finding["scan_source"] == "twistlock_cve":
-                    whitelist.add(f"tl_{finding['finding']}-{finding['package']}")
-                elif finding["scan_source"] == "anchore_cve":
-                    whitelist.add(
-                        f"anchorecve_{finding['finding']}-{finding['package']}"
+                whitelist.add(
+                    Finding(
+                        finding["scan_source"],
+                        finding["finding"],
+                        finding["package"],
+                        finding["package_path"],
                     )
-                elif finding["scan_source"] == "anchore_comp":
-                    whitelist.add(f"anchorecomp_{finding['finding']}")
-                elif finding["scan_source"] == "oscap_cve":
-                    whitelist.add(f"oscapcve_{finding['finding']}")
-                elif finding["scan_source"] == "oscap_comp":
-                    whitelist.add(f"oscapcomp_{finding['finding']}")
+                )
+
     return whitelist
 
 
@@ -316,10 +297,10 @@ def _get_greylist_file_contents(image_path, branch):
 
 def _vat_findings_query(im_name, im_version):
     logging.info("Running query to vat api")
-
+    url = f"{os.environ['VAT_BACKEND_SERVER_ADDRESS']}/internal/container"
     try:
         r = requests.get(
-            f"{os.environ['VAT_BACKEND_SERVER_ADDRESS']}/internal/container",
+            url,
             params={
                 "name": im_name,
                 "tag": im_version,
