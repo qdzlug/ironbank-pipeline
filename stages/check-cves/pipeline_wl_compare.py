@@ -231,8 +231,8 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         delta = list(delta)
         delta.sort(key=lambda x: (x[0], x[2], x[1]))
         conv = lambda i: i or ""
-        header_row = ("scan_source", "cve_id", "package", "package_path")
-        delta.insert(0, header_row)
+
+        delta.insert(0, delta[0]._fields)
         # hardcoding 4 spaces for proper formatting when the string exceeds 30 chars
         for finding in delta:
             logging.error("".join([str(conv(i) + "    ").ljust(30) for i in finding]))
