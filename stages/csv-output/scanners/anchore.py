@@ -70,7 +70,12 @@ def _vulnerability_record(fulltag, justifications, vuln):
         logging.debug(f"no {key}")
 
     vuln_record["Justification"] = ""
-    id = vuln["vuln"] + "-" + vuln["package"]
+    id = (
+        vuln["vuln"],
+        vuln["package"],
+        vuln["package_path"] if vuln["package_path"] != "pkgdb" else None,
+    )
+    logging.debug(f"Anchore vuln record CVE ID: {id}")
     if id in justifications.keys():
         vuln_record["Justification"] = justifications[id]
 
