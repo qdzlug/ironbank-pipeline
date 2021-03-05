@@ -28,3 +28,29 @@ if [[ -f "clamav-whitelist" ]] && [[ -z "${CLAMAV_WHITELIST:-}" ]]; then
   echo "clamav-whitelist file found but CLAMAV_WHITELIST CI variable does not exist"
   exit 1
 fi
+
+# Check if hardening_manifest.yaml exists
+if [[ -f hardening_manifest.yaml ]]; then
+  echo "hardening_manifest.yaml found!"
+else
+  echo "hardening_maifest.yaml not found, please add one to this repo"
+  exit 1
+fi
+
+# Check for Jenkinsfile
+if [[ -f Jenkinsfile ]]; then
+  echo "Jenkinsfile found, please remove this file before rerunning your pipeline"
+  exit 1
+fi
+
+# Check for deprecated download.yaml and download.json file
+if [[ -f download.yaml || -f download.json ]]; then
+  echo "download.yaml found, this file is deprecated please add hardening_manifest.yaml file before rerunning your pipeline"
+  exit 1
+fi
+
+# Check for labels in the Dockerfile
+if grep -i -q '\s*LABEL' Dockerfile; then
+  echo "LABEL found in Dockerfile, move all LABELs to the hardening_manifest.yaml file"
+  exit 1
+fi

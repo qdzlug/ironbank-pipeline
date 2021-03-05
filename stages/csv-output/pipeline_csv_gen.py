@@ -207,10 +207,9 @@ def _load_remote_hardening_manifest(project, branch="master"):
 def _next_ancestor(image_path, whitelist_branch, hardening_manifest=None):
     """
     Grabs the parent image path from the current context. Will initially attempt to load
-    a new hardening manifest and then pull the parent image from there. Otherwise it will
-    default to the old method of using the greylist.
+    a new hardening manifest and then pull the parent image from there.
 
-    If neither the hardening_manifest.yaml or the greylist field can be found then there
+    If the hardening_manifest.yaml can't be found then there
     is a weird mismatch during migration that needs further inspection.
 
     """
@@ -226,20 +225,6 @@ def _next_ancestor(image_path, whitelist_branch, hardening_manifest=None):
     hm = _load_remote_hardening_manifest(project=image_path)
     if hm is not None:
         return (hm["args"]["BASE_IMAGE"], hm["args"]["BASE_TAG"])
-
-    if os.environ["GREYLIST_BACK_COMPAT"].lower() == "true":
-        try:
-            greylist = _get_greylist_file_contents(
-                image_path=image_path, branch=whitelist_branch
-            )
-            return (greylist["image_parent_name"], greylist["image_parent_tag"])
-        except KeyError as e:
-            logging.error("Looks like a hardening_manifest.yaml cannot be found")
-            logging.error(
-                "Looks like the greylist has been updated to remove fields that should be present in hardening_manifest.yaml"
-            )
-            logging.error(e)
-            sys.exit(1)
     else:
         logging.error(
             "hardening_manifest.yaml does not exist for "
@@ -248,35 +233,6 @@ def _next_ancestor(image_path, whitelist_branch, hardening_manifest=None):
         )
         logging.error("Exiting.")
         sys.exit(1)
-
-
-def _get_greylist_file_contents(image_path, branch):
-    """
-    Grab the contents of a greylist file. Takes in the path to the image and
-    determines the appropriate greylist.
-
-    """
-    greylist_file_path = f"{image_path}/{image_path.split('/')[-1]}.greylist"
-    try:
-        gl = gitlab.Gitlab(os.environ["REPO1_URL"])
-        proj = gl.projects.get("dsop/dccscr-whitelists", lazy=True)
-        f = proj.files.get(file_path=greylist_file_path, ref=branch)
-
-    except gitlab.exceptions.GitlabError:
-        logging.error(
-            f"Whitelist retrieval attempted: {greylist_file_path} on {branch}"
-        )
-        logging.error(f"Error retrieving whitelist file: {sys.exc_info()[1]}")
-        sys.exit(1)
-
-    try:
-        contents = json.loads(f.decode())
-    except ValueError as e:
-        logging.error("Could not load greylist as json")
-        logging.error(e)
-        sys.exit(1)
-
-    return contents
 
 
 def _connect_to_db():
@@ -462,7 +418,6 @@ def _get_justifications(total_whitelist, sourceImageName):
     cveAnchore = {}
     compAnchore = {}
 
-    # Loop through all the greylist files
     # Getting results from VAT, just loop all findings, check if finding is related to base_images or source image
     # Loop through the findings and create the corresponding dict object based on the vuln_source
     for finding in total_whitelist:
