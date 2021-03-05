@@ -11,7 +11,6 @@ import multiprocessing
 import time
 
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), "../../scripts/"))
-import hardening_manifest_yaml.generate  # noqa: E402
 
 
 def main():
@@ -62,24 +61,7 @@ def main():
             logging.error(parent_conn.recv())
             sys.exit(1)
         else:
-            logging.info("Hardening Manifest passed jsonschema validation")
-    elif os.environ["GREYLIST_BACK_COMPAT"].lower() == "true":
-        # Use the generated description.yaml file path if not
-        logging.warning("hardening_manifest.yaml does not exist, autogenerating")
-        project_path = os.environ["CI_PROJECT_PATH"].split("/")
-        assert len(project_path) > 2 and project_path[0] == "dsop"
-        greylist_path = "/".join((*project_path[1:], f"{project_path[-1]}.greylist"))
-        hardening_manifest_yaml_string = hardening_manifest_yaml.generate.generate(
-            greylist_path=greylist_path,
-            repo1_url="https://repo1.dsop.io/",
-            dccscr_whitelists_branch=os.environ["WL_TARGET_BRANCH"],
-            log_to_console=True,
-            branch=os.environ["CI_COMMIT_BRANCH"],
-        )
-        generated_file = Path(os.environ["ARTIFACT_DIR"], "hardening_manifest.yaml")
-        generated_file.write_text(hardening_manifest_yaml_string)
-        content = yaml.safe_load(hardening_manifest_yaml_string)
-        # Generated hardening_manifest.yaml is already validated
+            logging.error("JSON is validated")
     else:
         logging.error(
             "hardening_manifest.yaml does not exist, please add a hardening_manifest.yaml file to your project"
