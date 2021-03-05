@@ -299,7 +299,7 @@ def _get_greylist_file_contents(image_path, branch):
 
 def _vat_findings_query(im_name, im_version):
     logging.info("Running query to vat api")
-    url = f"{os.environ['VAT_BACKEND_SERVER_ADDRESS']}/internal/container"
+    url = f"{os.environ['VAT_BACKEND_SERVER_ADDRESS']}/p1/container"
     try:
         r = requests.get(
             url,
