@@ -268,35 +268,6 @@ def _finding_approval_status_check(finding_dictionary, status_list):
     return whitelist
 
 
-def _get_greylist_file_contents(image_path, branch):
-    """
-    Grab the contents of a greylist file. Takes in the path to the image and
-    determines the appropriate greylist.
-
-    """
-    greylist_file_path = f"{image_path}/{image_path.split('/')[-1]}.greylist"
-    try:
-        gl = gitlab.Gitlab(os.environ["REPO1_URL"])
-        proj = gl.projects.get("dsop/dccscr-whitelists", lazy=True)
-        f = proj.files.get(file_path=greylist_file_path, ref=branch)
-
-    except gitlab.exceptions.GitlabError:
-        logging.error(
-            f"Whitelist retrieval attempted: {greylist_file_path} on {branch}"
-        )
-        logging.error(f"Error retrieving whitelist file: {sys.exc_info()[1]}")
-        sys.exit(1)
-
-    try:
-        contents = json.loads(f.decode())
-    except ValueError as e:
-        logging.error("Could not load greylist as json")
-        logging.error(e)
-        sys.exit(1)
-
-    return contents
-
-
 def _vat_findings_query(im_name, im_version):
     logging.info("Running query to vat api")
     url = f"{os.environ['VAT_BACKEND_SERVER_ADDRESS']}/p1/container"
@@ -458,10 +429,9 @@ def _get_findings_from_query(row):
 def _next_ancestor(parent_image_path, whitelist_branch):
     """
     Grabs the parent image path from the current context. Will initially attempt to load
-    a new hardening manifest and then pull the parent image from there. Otherwise it will
-    default to the old method of using the greylist.
+    a new hardening manifest and then pull the parent image from there.
 
-    If neither the hardening_manifest.yaml or the greylist field can be found then there
+    If the hardening_manifest.yaml can't be found then there
     is a weird mismatch during migration that needs further inspection.
 
     """
@@ -471,22 +441,6 @@ def _next_ancestor(parent_image_path, whitelist_branch):
     # REMOVE if statement when we are no longer using greylists
     if hm is not None:
         return (hm["name"], hm["tags"][0], hm["args"]["BASE_IMAGE"])
-
-    # REMOVE if statement and use of _get_greylist_file_contents
-    #   when we are no longer using greylists
-    if os.environ["GREYLIST_BACK_COMPAT"].lower() == "true":
-        try:
-            greylist = _get_greylist_file_contents(
-                image_path=parent_image_path, branch=whitelist_branch
-            )
-            return (greylist["image_name"], greylist["image_tag"])
-        except KeyError as e:
-            logging.error("Looks like a hardening_manifest.yaml cannot be found")
-            logging.error(
-                "Looks like the greylist has been updated to remove fields that should be present in hardening_manifest.yaml"
-            )
-            logging.error(e)
-            sys.exit(1)
     else:
         logging.error(
             "hardening_manifest.yaml does not exist for "
@@ -500,7 +454,7 @@ def _next_ancestor(parent_image_path, whitelist_branch):
 def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_manifest):
     """
     Pull all whitelisted CVEs for an image. Walk through the ancestry of a given
-    image and grab all of vulnerabilities in the greylist associated with w layer.
+    image and grab all of vulnerabilities in the hardening manifest associated with w layer.
 
     """
     vat_findings = {}
@@ -621,7 +575,7 @@ def main():
     #
     # Hardening manifest is expected for all of the current repos that are being processed.
     # At the very least the hardening_manifest.yaml should be generated if it has not been
-    # merged in yet. Fetching the parent greylists must be backwards compatible.
+    # merged in yet.
     #
 
     hardening_manifest = _load_local_hardening_manifest()
