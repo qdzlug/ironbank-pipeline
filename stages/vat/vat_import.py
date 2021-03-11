@@ -861,7 +861,9 @@ def insert_logs_with_logs(
     # Clean up of logs where incorrect logs were added
     if not is_finding_inheritable:
         if need_uninherited_log_fix(active_records, versions):
-            fix_uninherited_logs(cursor, active_records, finding_id, versions, system_user_id)
+            fix_uninherited_logs(
+                cursor, active_records, finding_id, versions, system_user_id
+            )
             return True
 
     if parent_finding:
@@ -962,6 +964,7 @@ def fix_uninherited_logs(cursor, active_records, finding_id, versions, system_us
     """
     Initial fix to remove inheritance logs from findings that should not be approved
     """
+    is_finding_inheritable = False
     [deactivate_log_row(cursor, r[0]) for r in active_records]
     insert_fix_log(cursor, finding_id, system_user_id)
     insert_new_log(cursor, finding_id, system_user_id, is_finding_inheritable)
