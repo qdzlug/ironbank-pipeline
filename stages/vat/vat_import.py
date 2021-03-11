@@ -13,6 +13,7 @@ import re
 import ast
 
 from datetime import datetime
+from datetime import timedelta
 import time
 
 import pandas
@@ -979,6 +980,7 @@ def insert_fix_log(cursor, finding_id, system_user_id):
     log_date_time = datetime.strptime(args.scan_date, "%Y-%m-%dT%H:%M:%S")
     log_date_time = log_date_time - timedelta(seconds=5)
     log_date_time_str = log_date_time.strftime("%Y-%m-%dT%H:%M:%S")
+    is_finding_inheritable = False
 
     new_values = (
         None,
