@@ -12,9 +12,11 @@ gun="${REGISTRY_URL}/${IM_NAME}"
 
 # Perform vault login
 vault login -method=userpass username="${NOTARY_STAGING_USERNAME}" password="${NOTARY_STAGING_PASSWORD}"
-vault kv get -field=delegation.key kv/il2/notary/lod1 | base64 -d >delegation.key
+vault kv get -field=delegation.key kv/il2/notary/delegation1 | base64 -d >delegation.key
 
-echo "${NOTARY_DELEGATION_KEY}" | base64 -d >delegation.key
+echo "Are we actually pulling the delegation key?"
+cat delegation.key
+echo "Did it cat out?"
 
 notary -d trust-dir-delegate/ key import delegation.key
 
