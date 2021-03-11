@@ -1,0 +1,313 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/schema/hardening_manifest.schema.json",
+  "definitions": {
+    "printable-characters-without-newlines": {
+      "type": "string",
+      "pattern": "^[ -~]*$",
+      "minLength": 1
+    },
+    "printable-characters-without-newlines-or-slashes": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][ -.0-~]*$",
+      "minLength": 1
+    },
+    "docker-NameRegexp-without-domain": {
+      "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?$"
+    },
+    "docker-TagRegexp": {
+      "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
+      "type": "string",
+      "pattern": "^[\\w][\\w.-]{0,127}$"
+    },
+    "docker-TagRegexp-non-latest": {
+      "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
+      "type": "string",
+      "pattern": "^(?!latest$)[\\w][\\w.-]{0,127}$"
+    },
+    "docker-ReferenceRegexp-url": {
+      "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
+      "type": "string",
+      "pattern": "^docker://((?:(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])(?:(?:\\.(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]))+)?(?::[0-9]+)?/)?[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?)(?::([\\w][\\w.-]{0,127}))?(?:@([A-Za-z][A-Za-z0-9]*(?:[-_+.][A-Za-z][A-Za-z0-9]*)*[:][0-9A-Fa-f]{32,}))?$"
+    },
+    "docker-name-and-tag": {
+      "$comment": "https://github.com/docker/distribution/blob/master/reference/regexp.go",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?:[\\w][\\w.-]{0,127}$"
+    },
+    "docker-label-name": {
+      "$comment": "https://docs.docker.com/config/labels-custom-metadata/",
+      "type": "string",
+      "pattern": "^[a-z0-9]([.-]?[a-z0-9]+)*$"
+    },
+    "environment-variable-name": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_.-]*$"
+    }
+  },
+  "title": "IronBank",
+  "description": "Metadata surrounding an Iron Bank Container",
+  "type": "object",
+  "properties": {
+    "apiVersion": {
+      "description": "Version of Iron Bank metadata file",
+      "type": "string",
+      "const": "v1"
+    },
+    "name": {
+      "description": "Name of the Iron Bank container",
+      "$ref": "#/definitions/docker-NameRegexp-without-domain"
+    },
+    "tags": {
+      "description": "Tags to tag an image with when pushed to registry1",
+      "type": "array",
+      "items": [
+        {
+          "$ref": "#/definitions/docker-TagRegexp-non-latest"
+        }
+      ],
+      "additionalItems": {
+        "$ref": "#/definitions/docker-TagRegexp"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "args": {
+      "description": "Arguments passed to image build",
+      "type": "object",
+      "properties": {
+        "BASE_IMAGE": {
+          "$comment": "May be an empty string if the Dockerfile does not use this variable",
+          "oneOf": [
+            {
+              "$ref": "#/definitions/docker-NameRegexp-without-domain"
+            },
+            {
+              "const": ""
+            }
+          ]
+        },
+        "BASE_TAG": {
+          "$comment": "May be an empty string if the Dockerfile does not use this variable",
+          "oneOf": [
+            {
+              "$ref": "#/definitions/docker-TagRegexp"
+            },
+            {
+              "const": ""
+            }
+          ]
+        }
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/printable-characters-without-newlines"
+      },
+      "propertyNames": {
+        "$ref": "#/definitions/environment-variable-name"
+      },
+      "required": ["BASE_IMAGE", "BASE_TAG"]
+    },
+    "labels": {
+      "description": "Labels added to Iron Bank containers",
+      "type": "object",
+      "properties": {
+        "org.opencontainers.image.title": {
+          "$ref": "#/definitions/printable-characters-without-newlines"
+        },
+        "org.opencontainers.image.description": {
+          "$ref": "#/definitions/printable-characters-without-newlines"
+        },
+        "org.opencontainers.image.licenses": {
+          "$comment": "MADE TEMPORARILY OPTIONAL",
+          "$comment": "See https://spdx.org/licenses/",
+          "$ref": "#/definitions/printable-characters-without-newlines"
+        },
+        "org.opencontainers.image.url": {
+          "format": "uri",
+          "$ref": "#/definitions/printable-characters-without-newlines"
+        },
+        "org.opencontainers.image.vendor": {
+          "$ref": "#/definitions/printable-characters-without-newlines"
+        },
+        "org.opencontainers.image.version": {
+          "$ref": "#/definitions/printable-characters-without-newlines"
+        },
+        "mil.dso.ironbank.image.keywords": {
+          "$comment": "MADE TEMPORARILY OPTIONAL",
+          "$ref": "#/definitions/printable-characters-without-newlines"
+        },
+        "mil.dso.ironbank.image.type": {
+          "$ref": "#/definitions/printable-characters-without-newlines"
+        },
+        "mil.dso.ironbank.product.name": {
+          "$comment": "MADE TEMPORARILY OPTIONAL",
+          "$ref": "#/definitions/printable-characters-without-newlines"
+        }
+      },
+      "propertyNames": {
+        "$ref": "#/definitions/docker-label-name"
+      },
+      "additionalProperties": false,
+      "required": [
+        "org.opencontainers.image.title",
+        "org.opencontainers.image.version"
+      ]
+    },
+    "resources": {
+      "description": "Resources to download before building the image",
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "pattern": "^https?://.+$"
+              },
+              "filename": {
+                "$ref": "#/definitions/printable-characters-without-newlines-or-slashes"
+              },
+              "validation": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["sha256", "sha512"]
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]+$"
+                  }
+                },
+                "additionalProperties": false,
+                "required": ["type", "value"]
+              },
+              "auth": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "$ref": "#/definitions/environment-variable-name"
+                  },
+                  "type": {
+                    "type": "string",
+                    "const": "basic"
+                  }
+                },
+                "additionalProperties": false,
+                "required": ["id"]
+              }
+            },
+            "additionalProperties": false,
+            "required": ["url", "filename"]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "pattern": "^s3://.+$"
+              },
+              "filename": {
+                "$ref": "#/definitions/printable-characters-without-newlines-or-slashes"
+              },
+              "validation": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["sha256", "sha512"]
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]+$"
+                  }
+                },
+                "additionalProperties": false,
+                "required": ["type", "value"]
+              },
+              "auth": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "$ref": "#/definitions/environment-variable-name"
+                  },
+                  "region": {
+                    "$ref": "#/definitions/printable-characters-without-newlines"
+                  },
+                  "type": {
+                    "$comment": "aws is left for backwards compatibility. Please use s3 moving forward",
+                    "type": "string",
+                    "enum": ["aws", "s3"]
+                  }
+                },
+                "additionalProperties": false,
+                "required": ["id"]
+              }
+            },
+            "additionalProperties": false,
+            "required": ["url", "filename"]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "url": {
+                "$ref": "#/definitions/docker-ReferenceRegexp-url"
+              },
+              "tag": {
+                "$ref": "#/definitions/docker-name-and-tag"
+              },
+              "auth": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "$ref": "#/definitions/environment-variable-name"
+                  },
+                  "type": {
+                    "type": "string",
+                    "const": "basic"
+                  }
+                },
+                "additionalProperties": false,
+                "required": ["id"]
+              }
+            },
+            "additionalProperties": false,
+            "required": ["url", "tag"]
+          }
+        ]
+      },
+      "uniqueItems": true
+    },
+    "maintainers": {
+      "description": "Maintainers for this specific container",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "$ref": "#/definitions/printable-characters-without-newlines"
+          },
+          "username": {
+            "$ref": "#/definitions/printable-characters-without-newlines"
+          },
+          "email": {
+            "$ref": "#/definitions/printable-characters-without-newlines",
+            "format": "email"
+          },
+          "cht_member": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "required": ["email"]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  },
+  "required": ["apiVersion", "name", "tags", "args", "labels", "maintainers"],
+  "additionalProperties": false
+}

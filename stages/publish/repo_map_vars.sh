@@ -1,17 +1,16 @@
 #!/bin/bash
-S3_HTML_LINK="https://s3-us-gov-west-1.amazonaws.com/${S3_REPORT_BUCKET}/${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMG_VERSION}"
-GPG_PUB_KEY=$(awk '{printf "%s\\n", $0}' "${IB_CONTAINER_GPG_PUBKEY}")
+S3_HTML_LINK="https://s3-us-gov-west-1.amazonaws.com/${S3_REPORT_BUCKET}/${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}"
 directory_date=$(date --utc '+%FT%T.%3N')
+public_key=$(<"${IB_CONTAINER_GPG_PUBKEY}")
 
 export REMOTE_DOCUMENTATION_DIRECTORY="${directory_date}_${CI_PIPELINE_ID}"
 export REMOTE_REPORT_DIRECTORY="${REMOTE_DOCUMENTATION_DIRECTORY}/reports"
 export repo_name="${IM_NAME}"
-export approval_status="${IMAGE_APPROVAL_STATUS}"
-export public_key="${GPG_PUB_KEY}"
+export public_key
 export image_sha="${IMAGE_ID}"
 export image_name="${CI_PROJECT_NAME}"
-export image_tag="${IMG_VERSION}"
-export image_path="${REGISTRY_URL}/${IM_NAME}:${IMG_VERSION}"
+export image_tag="${IMAGE_VERSION}"
+export image_path="${REGISTRY_URL}/${IM_NAME}:${IMAGE_VERSION}"
 export image_url="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${IMAGE_FILE}.tar"
 export build_number="${CI_PIPELINE_ID}"
 export image_manifest="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/manifest.json"
@@ -20,7 +19,7 @@ export pgp_signature="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${SIG_FILE}.sig
 export signature_name="${SIG_FILE}.sig"
 export version_documentation="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${DOCUMENTATION_FILENAME}.json"
 export tar_location="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${REPORT_TAR_NAME}"
-export tar_name="${IMAGE_FILE}.tar"
+export tar_name="${REPORT_TAR_NAME}"
 export openscap_compliance_results="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/oscap.csv"
 export openscap_oval_results="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/oval.csv"
 export twistlock_results="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/tl.csv"

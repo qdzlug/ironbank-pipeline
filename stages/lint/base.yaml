@@ -43,12 +43,30 @@ wl compare lint:
   extends: .lint
   dependencies:
     - load scripts
+    - hardening_manifest
+  tags:
+    - ironbank
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/lint"
   script:
     # The following step assumes contributor projects have an environment variable set for the image version
     # in the gitlab-ci.yml file.
     # TODO: output the error for unsuccessful runs
-    - '"${PIPELINE_REPO_DIR}/stages/lint/wl-compare-run.sh"'
+    - |
+      if [[ "${CI_COMMIT_BRANCH}" == "master" || "${CI_COMMIT_BRANCH}" == "development" ]] && [[ "${CI_COMMIT_REF_PROTECTED}" != true ]]; then
+        echo "This pipeline is running on an unprotected "${CI_COMMIT_BRANCH}" branch. Please protect "${CI_COMMIT_BRANCH}" before running the pipeline on this branch"
+        echo "Exiting"
+        exit 1
+      fi
+    - pip3 install jsonschema
+    - 'mkdir -p "${ARTIFACT_DIR}"'
+    - set +e
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py" --lint'
+  allow_failure:
+    exit_codes: 3
   artifacts:
-    paths: []
+    paths:
+      - "${ARTIFACT_DIR}/"
+    expire_in: 1 week
     reports:
-      dotenv: lint.env
+      dotenv: variables.env

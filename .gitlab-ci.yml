@@ -1,8 +1,14 @@
+# You can override the included template(s) by including variable overrides
+# See https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
+# Note that environment variables can be set in several places
+# See https://docs.gitlab.com/ee/ci/variables/#priority-of-environment-variables
 stages:
   - format
   - lint
 
 shellcheck:
+  tags:
+    - ironbank-tools
   stage: lint
   image: registry.dsop.io/ironbank-tools/ironbank-pipeline/shellcheck
   # TODO: remove allow_failure
@@ -34,6 +40,8 @@ shellcheck:
       exit "$ret"
 
 black:
+  tags:
+    - ironbank-tools
   stage: format
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml"
   # TODO: remove allow_failure
@@ -42,6 +50,8 @@ black:
     - black --check --diff --color -t py36 .
 
 pylama:
+  tags:
+    - ironbank-tools
   stage: lint
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml"
   # TODO: remove allow_failure
@@ -54,6 +64,8 @@ pylama:
 ## ignore line errors as blacks has been ran against code.
 
 prettier:
+  tags:
+    - ironbank-tools
   stage: format
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/all-in-one-fedora:1.0"
   script:
@@ -62,10 +74,12 @@ prettier:
     - npx prettier -c .
 
 shfmt:
+  tags:
+    - ironbank-tools
   stage: format
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/all-in-one-fedora:1.0"
   script:
     - dnf install wget -y
     - wget https://github.com/mvdan/sh/releases/download/v3.1.2/shfmt_v3.1.2_linux_amd64
     - chmod a+x shfmt_v3.1.2_linux_amd64
-    - ./shfmt_v3.1.2_linux_amd64 -d .
+    - "./shfmt_v3.1.2_linux_amd64 -d ."

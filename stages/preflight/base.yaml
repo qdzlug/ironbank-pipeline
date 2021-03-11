@@ -1,6 +1,7 @@
 .preflight:
   stage: preflight
-
+  tags:
+    - ironbank
   # Load in the IMG_VERSION variable from the load scripts env
   dependencies:
     - load scripts
@@ -9,27 +10,20 @@
 folder structure:
   extends: .preflight
   script:
-    - |
-      if ! [[ -f README.md ]]; then
-        echo "README.md not found"
-      fi
-      if ! [[ -f Dockerfile ]]; then
-        echo "Docker file not found"
-      fi
-      if ! [[ -f "LICENSE" || -f "LICENSE.md" || -f "LICENSE.txt" || -f "LICENSE.adoc" ]]; then
-        echo "LICENSE not found"
-      fi
+    - '"${PIPELINE_REPO_DIR}/stages/preflight/folder_structure.sh"'
 
-    # - ls -l download.yaml || echo "No download.yaml found"
-    # - ls -l scripts || echo "No download.yaml found"
-    # - ls -l signatures || echo "No download.yaml found"
-    # - ls -l config || echo "No download.yaml found"
-    # - ls -l accreditation || echo "No download.yaml found"
-
-# TODO: Check the following (among others):
-# base image vars??
-# OPTIONAL FOR BETA PIPELINE
-build variables:
-  extends: folder structure
+hardening_manifest:
+  extends: .preflight
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/preflight"
   script:
-    - '"${PIPELINE_REPO_DIR}/stages/preflight/check_base_vars.sh"'
+    - mkdir -p "${ARTIFACT_STORAGE}/preflight"
+    - pip3 install jsonschema
+    - python3 "${PIPELINE_REPO_DIR}/stages/preflight/metadata.py"
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_DIR}/"
+    expire_in: 1 week
+    reports:
+      dotenv: "${ARTIFACT_DIR}/variables.env"

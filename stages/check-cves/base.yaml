@@ -1,12 +1,20 @@
 check cves:
   stage: check cves
-
+  rules:
+    - if: '$CI_COMMIT_BRANCH != "master"'
+      allow_failure: true
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      allow_failure: false
+  tags:
+    - ironbank
   dependencies:
+    - hardening_manifest
     - load scripts
+    - wl compare lint
     - twistlock scan
     - openscap cve
     - openscap compliance
     - anchore scan
-
   script:
-    - '"${PIPELINE_REPO_DIR}/stages/check-cves/check-cves.sh"'
+    - pip3 install jsonschema
+    - python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py"

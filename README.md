@@ -48,14 +48,14 @@ Job artifacts:
 
 #### preflight
 
-The `preflight` stage performs two functions, which are described below:
+The `preflight` stage performs multiple functions, which are described below:
 
 - displaying the folder structure for the project which is running through the Container Hardening pipeline. The `folder structure` job will check for the existence of the following files and/or directories within the project which is being run through the pipeline:
 
-  - README (required file)
+  - README.md (required file)
   - Dockerfile (required file)
   - LICENSE (required file)
-  - download.yaml/download.json (file, not always required, which allows external resources to be validated and used in the container build)
+  - hardening_manifest.yaml (required, includes container metadata and allows external resources to be validated and used in the container build)
   - scripts (directory, not always required, which stores any script files needed in the container)
   - signatures (directory, not always required, which contains signatures needed for validation of any repository or external resource files)
   - config (directory, not always required, which stores any configuration files needed in the container)
@@ -63,34 +63,42 @@ The `preflight` stage performs two functions, which are described below:
 
 - testing/checking the build variables exist using the `build variables` job.
 
+- The `metadata.py` file processes the `hardening_manifest.yaml` file
+  - The structure of the file is validated using the `hardening_manifest.schema.json` jsonschema.
+  - The image name, version (first tag), tags, build args, and labels are extracted for use in later build steps
+
 #### lint
 
 The `lint` stage contains multiple jobs and is used to ensure the formatting used in various project files is valid.
 
-The `yaml lint` and `dockerfile lint` jobs are used to ensure the proper formatting of the following files in each project: `.gitlab-ci.yml`, `download.yaml`/`download.json` file, and `Dockerfile`.
-
-The `wl compare lint` job ensures that the pipeline run will fail on any branch if the repository structure is incorrect, or if the greylist files can't be retrieved or have a mismatched image name/tag.
+The `wl compare lint` job ensures that the pipeline run will fail on any branch if the repository structure is incorrect.
 
 Job artifacts:
 
 - project variables which are used in later pipeline stages.
 
+TODO: A future version of the pipeline will also perform the following lints:
+
+The `yaml lint` will lint the format yaml files for proper formatting in the project. `hardening_manifest.yaml` and any other yaml files will be linted.
+
+`dockerfile lint` will run hadolint (or another linting tool) to lint the `Dockerfile`.
+
 #### import artifacts
 
-The `import artifacts` stage will import any external resources (resources from the internet) provided in the `download.yaml` or `download.json` file for use during the container build. The `import artifacts` stage will download the external resources and validate that the checksums calculated upon download match the checksums provided in the `download.yaml` file.
+The `import artifacts` stage will import any external resources (resources from the internet) provided in the `hardening_maifest.yaml` file for use during the container build. The `import artifacts` stage will download the external resources and validate that the checksums calculated upon download match the checksums provided in the `hardening_manifest.yaml` file.
 
 Assuming this stage validates that the external resources are indeed the ones intended to be used within the container build, it passes along the external resources as artifacts in order to be used in the later `scan-artifacts` and `build` stages.
 
 Job artifacts:
 
-- (if provided) - external resources provided in `download.yaml/download.json` such as binaries, tarballs, RPMs, etc.
-- (if provided) - images - a tar format of images pulled from public registries, as provided in `download.yaml/download.json`.
+- (if provided) - external resources provided in `hardening_manifest.yaml` such as binaries, tarballs, RPMs, etc.
+- (if provided) - images - a tar format of images pulled from public registries, as provided in `hardening_manifest.yaml`.
 
 For more information on this stage, please refer to the `README.md` file [located here](https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/-/blob/master/stages/import-artifacts/README.md).
 
 #### scan artifacts
 
-The `scan artifacts` stage performs an anti-virus/malware scan on the resources obtained in the `import artifacts` stage (if the project includes a `download.yaml` file). This will help guard against any malicious software/code being used in the container build. This stage utilizes ClamAV scans to perform the anti-virus/malware scanning. The scans database is updated each pipeline run, using the `freshclam` command, so that the list of vulnerabilities in the scanning database is always up to date.
+The `scan artifacts` stage performs an anti-virus/malware scan on the resources obtained in the `import artifacts` stage (if the `hardening_mainfest.yaml` file contains any `resources`). This will help guard against any malicious software/code being used in the container build. This stage utilizes ClamAV scans to perform the anti-virus/malware scanning. The scans database is updated each pipeline run, using the `freshclam` command, so that the list of vulnerabilities in the scanning database is always up to date.
 
 The `scan artifacts` stage will automatically fail if there are infected files found in the resources downloaded in the `import artifacts stage`.
 

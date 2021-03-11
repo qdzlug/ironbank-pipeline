@@ -1,7 +1,10 @@
 import artifacts:
   stage: import artifacts
+  tags:
+    - ironbank
   dependencies:
     - load scripts
+    - hardening_manifest
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/import-artifacts"
   script:
@@ -11,5 +14,3 @@ import artifacts:
     paths:
       - "${ARTIFACT_DIR}/"
     expire_in: 1 week
-    reports:
-      dotenv: artifact.env

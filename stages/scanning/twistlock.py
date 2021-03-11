@@ -34,6 +34,10 @@ class IncorrectUsage(Exception):
     pass
 
 
+class TwistlockReportErrorValue(Exception):
+    pass
+
+
 class Twist:
     """
     Class to add an image to twistlock and retrieve the scan results.
@@ -60,6 +64,10 @@ class Twist:
             },
             auth=HTTPBasicAuth(self.username, self.password),
         )
+        logging.info(r)
+        logging.info(f"Registry {self.registry}")
+        logging.info(f"repo     {image}")
+        logging.info(f"tag      {tag}")
 
         if r.status_code != 200:
             raise InvalidTwistlockQuery("bad post")
@@ -81,6 +89,10 @@ class Twist:
 
         if len(response) == 0:
             return None
+
+        # Raise an error if the returned report has a value for the 'err' key
+        if response[0]["err"]:
+            raise TwistlockReportErrorValue(response[0]["err"])
 
         return response
 
@@ -175,6 +187,8 @@ if __name__ == "__main__":
         "--timeout", help="Twistlock scan timeout in seconds", type=int, default=2400
     )
     args = parser.parse_args()
+
+    logging.info(args)
 
     twistlock_scan(
         registry=args.registry,

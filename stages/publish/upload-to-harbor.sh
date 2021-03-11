@@ -1,49 +1,22 @@
 #!/bin/bash
-set -Exeuo pipefail
-# Removed for testing
-#if [[ $(echo "${CI_PROJECT_DIR}" | grep -e 'pipeline-test-project') ]]; then
-#  echo "Skipping Harbor Upload. Cannot push to Harbor when working with pipeline test projects..."
-#  exit 0
-#fi
+set -Eeuo pipefail
 
-if [ -z "${1}" ] || [ -z "${2}" ]; then
-  echo '$gun or $tag not provided as arguments, exiting'
+if echo "${CI_PROJECT_DIR}" | grep -q -F 'pipeline-test-project' && [ -z "${DOCKER_AUTH_CONFIG_TEST:-}" ]; then
+  echo "Skipping Harbor Upload. Cannot push to Harbor when working with pipeline test projects unless DOCKER_AUTH_CONFIG_TEST is set..."
   exit 1
 fi
 
-gun="${1}"
-tag="${2}"
-# Changed for testing
-echo "${DOCKER_AUTH_CONFIG_TEST}" | base64 -d >prod_auth.json
-echo "${NOTARY_DELEGATION_KEY}" | base64 -d >delegation.key
+echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
 
-# Import the delegation key
-notary -d trust-dir-delegate/ key import delegation.key
+if [ -z "${DOCKER_AUTH_CONFIG_TEST:-}" ]; then
+  echo "${DOCKER_AUTH_CONFIG_PROD}" | base64 -d >dest_auth.json
+else
+  echo "${DOCKER_AUTH_CONFIG_TEST}" | base64 -d >dest_auth.json
+fi
 
-# Load image from tarball
-podman load -i "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" "currentimage" --storage-driver=vfs
-
-push_and_sign() {
-
-    current_tag=${1}
-
-    podman tag "currentimage" "$gun:$current_tag" --storage-driver=vfs
-
-    # Upload image to prod Harbor
-    podman push --authfile prod_auth.json \
-      "docker://$gun:$current_tag" \
-      --storage-driver=vfs \
-      --digestfile "${current_tag}_digest"
-
-    # Can we remove the skopeo dependency here? podman inspect doesn't output --raw and therefore might mess with the manifest.json sha
-    skopeo inspect --authfile prod_auth.json --raw "docker://${gun}:${current_tag}" >"${current_tag}_manifest.json"
-
-    # There's a chance for a TOCTOU attack/bug here. Make sure the digest matches this file:
-    echo "$(cut -d: -f2 "${current_tag}_digest") ${current_tag}_manifest.json" | sha256sum --check
-
-    # Sign the image with the delegation key
-    notary -v -s "${NOTARY_URL}" -d trust-dir-delegate add -p --roles=targets/releases "$gun" "$current_tag" "${current_tag}_manifest.json"
-}
-
-push_and_sign "$tag"
-push_and_sign latest
+# Copy from staging to prod with each tag listed in descriptions.yaml
+while IFS= read -r tag; do
+  skopeo copy --src-authfile staging_auth.json --dest-authfile dest_auth.json \
+    "docker://${STAGING_REGISTRY_URL}/${IM_NAME}@${IMAGE_PODMAN_SHA}" \
+    "docker://${REGISTRY_URL}/${IM_NAME}:${tag}"
+done <"${ARTIFACT_STORAGE}/preflight/tags.txt"
