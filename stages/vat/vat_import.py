@@ -1110,9 +1110,11 @@ def find_parent_findings(cursor, finding, lineage, scan_source):
     logs.debug(f"find_parent_findings for {finding}")
     logs.debug(f"lineage: {lineage}")
 
-    find_parent_finding_query = f"""SELECT id, container_id FROM findings
-        WHERE finding = %s AND scan_source = %s AND package {package_query_string} %s 
-        AND package_path {package_path_query_string} %s AND container_id = %s
+    find_parent_finding_query = f"""SELECT f.id, f.container_id FROM findings f
+        INNER JOIN finding_logs fl on f.id = fl.finding_id and fl.active = 1
+        WHERE f.finding = %s AND f.scan_source = %s AND f.package {package_query_string} %s
+        AND f.package_path {package_path_query_string} %s AND f.container_id = %s
+        AND fl.in_current_scan = 1
         """
     for parent in lineage:
         unique_values = (
