@@ -2,9 +2,8 @@ harbor:
   extends: .publish
   variables:
     IMAGE_FILE: "${CI_PROJECT_NAME}-${IMG_VERSION}"
-    # Removed for testing
-    #only:
-    #  - master
+    only:
+     - master
   dependencies:
     - build
     - load scripts
