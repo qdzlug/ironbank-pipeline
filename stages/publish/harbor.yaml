@@ -1,9 +1,7 @@
 harbor:
   extends: .publish
-  variables:
-    IMAGE_FILE: "${CI_PROJECT_NAME}-${IMG_VERSION}"
-    only:
-     - master
+  only:
+    - master
   dependencies:
     - build
     - load scripts
