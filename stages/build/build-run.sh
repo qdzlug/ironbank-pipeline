@@ -76,20 +76,6 @@ IFS=$old_ifs
 
 echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
 
-#
-# VAULT
-#####
-# Perform vault login
-vault login -method=userpass username="${VAULT_STAGING_USERNAME}" password="${VAULT_STAGING_PASSWORD}"
-vault kv get -field=delegation.key kv/il2/notary/delegation1 >delegation.key
-
-echo "Are we actually pulling the delegation key?"
-cat delegation.key
-echo "Did it cat out?"
-#####
-# VAULT
-#
-
 set -x
 
 buildah tag --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" "${IMAGE_FULLTAG}"
