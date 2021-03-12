@@ -32,7 +32,7 @@ test -f "$tags_file"
 
 
 while IFS= read -r tag; do
-  skopeo inspect --src-authfile staging_auth.json --raw "docker://${gun}:${tag}" >"${tag}_manifest.json"
+  skopeo inspect --authfile staging_auth.json --raw "docker://${gun}:${tag}" >"${tag}_manifest.json"
 
   # Sign the image with the delegation key
   notary -v -s "${NOTARY_URL}" -d trust-dir-delegate add -p --roles=targets/releases "$gun" "${tag}" "${tag}_manifest.json"
