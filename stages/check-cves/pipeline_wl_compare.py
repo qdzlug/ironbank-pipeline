@@ -499,7 +499,10 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             logging.error(
                 "This container is not noted as an approved image in VAT. Unapproved images cannot run on master branch. Failing stage."
             )
-            sys.exit(1)
+            if "pipeline-test-project" not in os.environ["CI_PROJECT_DIR"]:
+                sys.exit(1)
+            else:
+                logging.warning("Continuing because pipeline-test-project")
 
     if approval_text:
         approval_text = approval_text.rstrip()
