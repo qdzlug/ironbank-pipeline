@@ -41,7 +41,7 @@ while IFS= read -r tag; do
 
   # Sign the image with the delegation key
   echo "Signing with notary"
-  notary -v -s "${NOTARY_URL}" -d trust-dir-delegate add -p --roles=targets/releases "$gun" "${tag}" "${tag}_manifest.json"
+  notary -v -s "${NOTARY_URL}" -d trust-dir-delegate add -p "$gun" "${tag}" "${tag}_manifest.json"
 
   echo "Copy from staging to destination"
   skopeo copy --src-authfile staging_auth.json --dest-authfile dest_auth.json \
