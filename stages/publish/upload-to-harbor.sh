@@ -11,7 +11,7 @@ echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
 gun="${REGISTRY_URL}/${IM_NAME}"
 
 # Grab the delegation key from vault
-vault login -method=userpass username="${VAULT_STAGING_USERNAME}" password="${VAULT_STAGING_PASSWORD}"
+vault login -no-print=true -method=userpass username="${VAULT_STAGING_USERNAME}" password="${VAULT_STAGING_PASSWORD}"
 # TODO Make dynamic based off naming scheme
 vault kv get -field=delegation.key kv/il2/notary/delegation1 >delegation.key
 
@@ -26,12 +26,19 @@ else
 fi
 
 # Copy from staging to prod with each tag listed in descriptions.yaml
+echo "Read the tags"
+tags_file="${ARTIFACT_STORAGE}/preflight/tags.txt"
+test -f "$tags_file"
+
+
 while IFS= read -r tag; do
+  skopeo inspect --src-authfile staging_auth.json --raw "docker://${gun}:${tag}" >"${tag}_manifest.json"
+
   # Sign the image with the delegation key
-  notary -v -s "${NOTARY_STAGING_ADDR}" -d trust-dir-delegate add -p --roles=targets/releases "$gun" "${tag}" "${tag}_manifest.json"
+  notary -v -s "${NOTARY_URL}" -d trust-dir-delegate add -p --roles=targets/releases "$gun" "${tag}" "${tag}_manifest.json"
 
   skopeo copy --src-authfile staging_auth.json --dest-authfile dest_auth.json \
     "docker://${STAGING_REGISTRY_URL}/${IM_NAME}@${IMAGE_PODMAN_SHA}" \
     "docker://${REGISTRY_URL}/${IM_NAME}:${tag}"
 
-done <"${ARTIFACT_STORAGE}/preflight/tags.txt"
+done <"${tags_file}"
