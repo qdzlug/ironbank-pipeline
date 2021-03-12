@@ -10,15 +10,14 @@ echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
 
 gun="${REGISTRY_URL}/${IM_NAME}"
 
-# Perform vault login
+# Grab the delegation key from vault
 vault login -method=userpass username="${NOTARY_STAGING_USERNAME}" password="${NOTARY_STAGING_PASSWORD}"
-vault kv get -field=delegation.key kv/il2/notary/delegation1 | base64 -d >delegation.key
+# TODO Make dynamic based off naming scheme
+vault kv get -field=delegation.key kv/il2/notary/delegation1 >delegation.key
 
-echo "Are we actually pulling the delegation key?"
-cat delegation.key
-echo "Did it cat out?"
-
+# Import the delegation key to notary
 notary -d trust-dir-delegate/ key import delegation.key
+rm delegation.key
 
 if [ -z "${DOCKER_AUTH_CONFIG_TEST:-}" ]; then
   echo "${DOCKER_AUTH_CONFIG_PROD}" | base64 -d >dest_auth.json
