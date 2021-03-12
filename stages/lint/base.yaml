@@ -58,6 +58,14 @@ wl compare lint:
         echo "Exiting"
         exit 1
       fi
+    - curl https://releases.hashicorp.com/vault/1.7.0-rc1/vault_1.7.0-rc1_linux_amd64.zip -o /tmp/vault.zip
+    - yum install -y unzip
+    - unzip /tmp/vault.zip -d /usr/local/bin/
+    - vault login -method=userpass username="${VAULT_STAGING_USERNAME}" password="${VAULT_STAGING_PASSWORD}"
+    - vault kv get -field=delegation.key kv/il2/notary/delegation1 | base64 -d >delegation.key
+    - echo "Are we actually pulling the delegation key?"
+    - cat delegation.key
+    - echo "Did it cat out?"
     - pip3 install jsonschema
     - 'mkdir -p "${ARTIFACT_DIR}"'
     - set +e
