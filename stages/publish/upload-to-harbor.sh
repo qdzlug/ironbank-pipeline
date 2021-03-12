@@ -8,6 +8,7 @@ fi
 
 echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
 
+staging_image="${STAGING_REGISTRY_URL}/${IM_NAME}"
 gun="${REGISTRY_URL}/${IM_NAME}"
 
 # Grab the delegation key from vault
@@ -34,7 +35,7 @@ test -f "$tags_file"
 while IFS= read -r tag; do
 
   echo "Pulling ${tag}_manifest.json"
-  skopeo inspect --authfile staging_auth.json --raw "docker://${gun}:${tag}" >"${tag}_manifest.json"
+  skopeo inspect --authfile staging_auth.json --raw "docker://${staging_image}:${tag}" >"${tag}_manifest.json"
 
   cat "${tag}_manifest.json"
 
@@ -44,7 +45,7 @@ while IFS= read -r tag; do
 
   echo "Copy from staging to destination"
   skopeo copy --src-authfile staging_auth.json --dest-authfile dest_auth.json \
-    "docker://${STAGING_REGISTRY_URL}/${IM_NAME}@${IMAGE_PODMAN_SHA}" \
+    "docker://${staging_image}@${IMAGE_PODMAN_SHA}" \
     "docker://${REGISTRY_URL}/${IM_NAME}:${tag}"
 
   echo "======"
