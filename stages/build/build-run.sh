@@ -81,7 +81,7 @@ echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
 #####
 # Perform vault login
 vault login -method=userpass username="${VAULT_STAGING_USERNAME}" password="${VAULT_STAGING_PASSWORD}"
-vault kv get -field=delegation.key kv/il2/notary/delegation1 | base64 -d >delegation.key
+vault kv get -field=delegation.key kv/il2/notary/delegation1 >delegation.key
 
 echo "Are we actually pulling the delegation key?"
 cat delegation.key

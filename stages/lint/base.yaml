@@ -62,7 +62,7 @@ wl compare lint:
     - yum install -y unzip
     - unzip /tmp/vault.zip -d /usr/local/bin/
     - vault login -method=userpass username="${VAULT_STAGING_USERNAME}" password="${VAULT_STAGING_PASSWORD}"
-    - vault kv get -field=delegation.key kv/il2/notary/delegation1 | base64 -d >delegation.key
+    - vault kv get -field=delegation.key kv/il2/notary/delegation1 >delegation.key
     - echo "Are we actually pulling the delegation key?"
     - cat delegation.key
     - echo "Did it cat out?"
