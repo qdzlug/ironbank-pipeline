@@ -236,6 +236,12 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         # hardcoding 4 spaces for proper formatting when the string exceeds 30 chars
         for finding in delta:
             logging.error("".join([str(conv(i) + "    ").ljust(30) for i in finding]))
+
+        # TODO: Remove?
+        if "pipeline-test-project" in os.environ["CI_PROJECT_DIR"]:
+            logging.info("pipeline-test-project detected. Allowing the pipeline to continue")
+            sys.exit(0)
+
         if os.environ["CI_COMMIT_BRANCH"] == "master":
             pipeline_repo_dir = os.environ["PIPELINE_REPO_DIR"]
             subprocess.run(
@@ -499,6 +505,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             logging.error(
                 "This container is not noted as an approved image in VAT. Unapproved images cannot run on master branch. Failing stage."
             )
+            # TODO: Remove?
             if "pipeline-test-project" not in os.environ["CI_PROJECT_DIR"]:
                 sys.exit(1)
             else:
