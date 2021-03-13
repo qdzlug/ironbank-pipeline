@@ -6,6 +6,8 @@ import logging
 
 
 def get_oscap_guide(oscap_version, base_image_type):
+    logging.debug("Retrieving Oscap Guide")
+    logging.debug(f"Oscap Version: {oscap_version}, Base Image Type: {base_image_type}")
 
     oscap_guides = {
         "ubi8-container": {
