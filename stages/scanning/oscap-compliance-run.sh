@@ -7,7 +7,7 @@ OSCAP_VERSION=$(curl -fsSLI -o /dev/null -w "%{url_effective}" https://github.co
 base_image_type=$(podman inspect -f '{{index .Labels "com.redhat.component"}}' "${DOCKER_IMAGE_PATH}")
 
 if [[ "${base_image_type}" == "" ]]; then
-  base_image_type=$(podman inspect -f '{{index .Labels "os_type"}}' "${DOCKER_IMAGE_PATH}")
+  base_image_type=$(podman inspect -f '{{index .Labels "mil.dso.ironbank.os_type"}}' "${DOCKER_IMAGE_PATH}")
   if [[ "${base_image_type}" == "" ]]; then
     labels=$(podman inspect -f '{{index .Labels}}' "${DOCKER_IMAGE_PATH}")
     echo "Unknown image type. Can't choose security guide. labels: ${labels}"
