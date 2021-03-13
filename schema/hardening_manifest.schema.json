@@ -146,6 +146,9 @@
         },
         "mil.dso.ironbank.product.name": {
           "$ref": "#/definitions/printable-characters-without-newlines"
+        },
+        "mil.dso.ironbank.os-type": {
+          "$ref": "#/definitions/printable-characters-without-newlines"
         }
       },
       "propertyNames": {
