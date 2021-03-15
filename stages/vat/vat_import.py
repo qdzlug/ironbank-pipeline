@@ -272,18 +272,18 @@ def get_packages(package_string):
     Return a list of packages from the input string.
     """
 
-    logs.debug("In packages: %s", package_string)
+    logs.debug(f"In packages: {package_string}")
 
     # This will basically remove Updated from an "Updated kernel" package.
     # Capture the package
     # Remove any security, enhancement, bug fix or any combination of those.
     # Match and throw away anything after this up to the severity ().
     initial_re = ".*: (?:Updated )?(.*?)(?:security|enhancement|bug fix).*\\("
-    logs.debug("packages - perform pattern match %s", initial_re)
+    logs.debug(f"packages - perform pattern match {initial_re}")
     match = re.match(initial_re, package_string)
 
     pkgs = match.group(1) if match else None
-    logs.debug("After pattern match, pkgs: " + pkgs)
+    logs.debug(f"After pattern match, pkgs: {pkgs}")
 
     # Catch all if no packages are found
     if pkgs is None or pkgs.strip(" ") == "":
@@ -293,7 +293,7 @@ def get_packages(package_string):
     #   Note: that single packages will be returned as a list.
     pkglist = re.split(", and |, | and ", pkgs.strip(" ").replace(":", "-"))
 
-    logs.debug("packages list: %s", pkglist)
+    logs.debug(f"packages list: {pkglist}")
 
     return pkglist
 
