@@ -40,6 +40,7 @@ while IFS= read -r tag; do
   cat "${tag}_manifest.json"
 
   # Sign the image with the delegation key
+  echo
   echo "Signing with notary"
   notary -v -s "${NOTARY_URL}" -d trust-dir-delegate add -p "$gun" "${tag}" "${tag}_manifest.json"
 
