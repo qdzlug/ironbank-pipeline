@@ -1568,7 +1568,7 @@ def parse_anchore_json(links):
             (item["source"] + ": " + item["url"] + "\n") for item in source_list
         )
         return link_string
-    except Error as error:
+    except SyntaxError as error:
         logs.info(error)
         return links
 
