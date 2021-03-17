@@ -120,6 +120,7 @@ def _load_remote_hardening_manifest(project, branch="master"):
 
     except gitlab.exceptions.GitlabError:
         logging.error("Could not load hardening_manifest.")
+        sys.exit(1)
 
     except yaml.YAMLError as e:
         logging.error("Could not load the hardening_manifest.yaml")
