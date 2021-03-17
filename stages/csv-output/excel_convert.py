@@ -60,7 +60,7 @@ def _add_sheet_banners(wb):
         ws.insert_rows(1)
         cell = ws.cell(row=1, column=1)
         cell.value = "THESE FINDINGS ARE UNOFFICIAL AS THEY HAVE BEEN GENERATED ON A BRANCH OTHER THAN DEVELOPMENT. ONLY JUSTIFICATIONS FOR DEVELOPMENT BRANCH FINDINGS ARE CONSIDERED OFFICIAL."
-        cell.font = Font(name='Calibri', size=11, bold=True)
+        cell.font = Font(name="Calibri", size=11, bold=True)
         cell.fill = PatternFill(
             start_color="00ff00ff", end_color="00ff00ff", fill_type="solid"
         )
