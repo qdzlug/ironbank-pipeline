@@ -60,8 +60,11 @@ def _add_sheet_banners(wb):
         ws.insert_rows(1)
         cell = ws.cell(row=1, column=1)
         cell.value = "THESE FINDINGS ARE UNOFFICIAL AS THEY HAVE BEEN GENERATED ON A BRANCH OTHER THAN DEVELOPMENT. ONLY DEVELOPMENT BRANCH IS CONSIDERED OFFICIAL."
-        cell.fill = PatternFill(start_color="00ff00ff", end_color="00ff00ff", fill_type="solid")
+        cell.fill = PatternFill(
+            start_color="00ff00ff", end_color="00ff00ff", fill_type="solid"
+        )
         ws.merge_cells("A1:Z1")
+
 
 def _colorize_full(wb):
     _colorize_anchore(wb)
