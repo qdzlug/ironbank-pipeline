@@ -7,7 +7,7 @@ import pathlib
 import sys
 
 import openpyxl
-from openpyxl.styles import Alignment, PatternFill
+from openpyxl.styles import Alignment, PatternFill, Font
 from openpyxl.utils import get_column_letter
 import pandas as pd
 
