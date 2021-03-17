@@ -55,7 +55,7 @@ def main(argv):
 
 
 def _add_sheet_banners(wb):
-    for sheet in wb.worksheets:
+    for sheet in wb.sheetnames:
         ws = wb[sheet]
         ws.insert_rows(1)
         cell = ws.cell(row=1, column=1)
