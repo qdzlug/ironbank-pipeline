@@ -106,7 +106,7 @@ class ParseCsvsTestCase(unittest.TestCase):
         assert (
             tlc["package"][0] == "commons-fileupload_commons-fileupload-1.3.1-jenkins-2"
         ), "package"
-        assert tlc["package_path"][0] == None, "package_path = "
+        assert tlc["package_path"][0] is None, "package_path = "
 
         asc = rslt["anchore_cve"]
         assert asc.at[0, "finding"] == "CVE-2019-9948", "finding"
