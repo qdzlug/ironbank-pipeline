@@ -32,6 +32,37 @@ def get_oval(oval_file):
     return cves
 
 
+def get_packages(package_string):
+    """
+    Return a list of packages from the input string.
+    """
+
+    print(f"In packages: {package_string}")
+
+    # This will basically remove Updated from an "Updated kernel" package.
+    # Capture the package
+    # Remove any security, enhancement, bug fix or any combination of those.
+    # Match and throw away anything after this up to the severity ().
+    initial_re = ".*: (?:Updated )?(.*?)(?:security|enhancement|bug fix).*\\("
+    print(f"packages - perform pattern match {initial_re}")
+    match = re.match(initial_re, package_string)
+
+    pkgs = match.group(1) if match else None
+    print(f"After pattern match, pkgs: {pkgs}")
+
+    # Catch all if no packages are found
+    if pkgs is None or pkgs.strip(" ") == "":
+        pkgs = "Unknown"
+
+    # This will break up multiple packages as a list.
+    #   Note: that single packages will be returned as a list.
+    pkglist = re.split(", and |, | and ", pkgs.strip(" ").replace(":", "-"))
+
+    print(f"packages list: {pkglist}")
+
+    return pkglist
+
+
 def get_fails(oscap_file):
     with oscap_file.open("r", encoding="utf-8") as of:
         soup = BeautifulSoup(of, "html.parser")
