@@ -226,12 +226,12 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         logging.error("The following vulnerabilities are not whitelisted:")
         delta = list(delta)
         delta.sort(key=lambda x: (x[0], x[2], x[1]))
-        conv = i if i else ""
 
         delta.insert(0, delta[0]._fields)
         # hardcoding 4 spaces for proper formatting when the string exceeds 30 chars
         for finding in delta:
-            logging.error("".join([str(conv(i) + "    ").ljust(30) for i in finding]))
+            logging.error("".join([f"{i}    ".ljust(30) for i in finding]))
+
         if os.environ["CI_COMMIT_BRANCH"] == "master":
             pipeline_repo_dir = os.environ["PIPELINE_REPO_DIR"]
             subprocess.run(
