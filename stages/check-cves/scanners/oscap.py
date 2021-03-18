@@ -18,9 +18,17 @@ def get_oval(oval_file):
             references = set()
             for t in y:
                 references.add(t.text)
-
             for ref in references:
-                cves.append(ref)
+                pkgs = get_packages(title.text)
+                ret = {
+                    "id": id.text,
+                    "result": result.text,
+                    "cls": cls.text,
+                    "ref": ref,
+                    "title": title.text,
+                    "pkg": pkgs[0],
+                }
+                cves.append(ret)
     return cves
 
 
