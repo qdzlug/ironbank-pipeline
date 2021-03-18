@@ -188,7 +188,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
 
         oval_cves = oscap.get_oval(oval_file)
         for oval in oval_cves:
-            vuln_set.add(Finding("oscap_cve", oval, None, None))
+            vuln_set.add(Finding("oscap_cve", oval["ref"], oval["pkg"], None))
 
     twistlock_cves = twistlock.get_full()
     for tl in twistlock_cves:
@@ -226,7 +226,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         logging.error("The following vulnerabilities are not whitelisted:")
         delta = list(delta)
         delta.sort(key=lambda x: (x[0], x[2], x[1]))
-        conv = lambda i: i or ""
+        conv = i if i else ""
 
         delta.insert(0, delta[0]._fields)
         # hardcoding 4 spaces for proper formatting when the string exceeds 30 chars
