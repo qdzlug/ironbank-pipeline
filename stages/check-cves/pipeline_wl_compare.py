@@ -226,7 +226,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         logging.error("The following vulnerabilities are not whitelisted:")
         delta = list(delta)
         delta.sort(key=lambda x: (x[0], x[2], x[1]))
-        conv = lambda i: i or ""
+        conv = i if i else ""
 
         delta.insert(0, delta[0]._fields)
         # hardcoding 4 spaces for proper formatting when the string exceeds 30 chars
