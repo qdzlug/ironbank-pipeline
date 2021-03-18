@@ -9,6 +9,11 @@ def get_oval(oval_file):
         results_bad = soup.find_all("tr", class_=["resultbadA", "resultbadB"])
 
         for x in results_bad:
+
+            id = x.find("td")
+            result = id.find_next_sibling("td")
+            cls = result.find_next_sibling("td")
+            title = cls.find_next_sibling("td").find_next_sibling("td")
             y = x.find_all(target="_blank")
             references = set()
             for t in y:
