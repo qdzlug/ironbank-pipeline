@@ -16,3 +16,4 @@ load scripts:
     expire_in: 1 day
     paths:
       - "${PIPELINE_REPO_DIR}"
+      - "security-profile/"
