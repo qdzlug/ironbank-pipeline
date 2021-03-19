@@ -70,3 +70,23 @@ wl compare lint:
     expire_in: 1 week
     reports:
       dotenv: variables.env
+
+vat compare:
+  extends: .lint
+  dependencies:
+    - load scripts
+    - hardening_manifest
+  tags:
+    - ironbank
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/lint"
+  script:
+    - 'python3 vat_findings.py'
+  allow_failure:
+    exit_codes: 1
+  artifacts:
+    paths:
+      - "${ARTIFACT_DIR}/"
+    expire_in: 1 week
+    reports:
+      dotenv: variables.env
