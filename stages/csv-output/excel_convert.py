@@ -49,11 +49,9 @@ def main(argv):
     # Colorize justifications for output_file
     _colorize_full(wb)
     _set_all_column_widths(wb)
-    if (
-        os.environ["CI_COMMIT_BRANCH"] not in [
-            "development", "master"
-        ]
-    ):
+    if os.environ["CI_COMMIT_BRANCH"] not in ["development", "master"]:
+        _add_sheet_banners(wb)
+    wb.save(output_file)
 
 
 def _add_sheet_banners(wb):
