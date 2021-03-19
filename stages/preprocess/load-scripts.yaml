@@ -7,7 +7,9 @@ load scripts:
   cache: {}
   script:
     - 'mkdir -p "${PIPELINE_REPO_DIR}"'
+    - 'mkdir security-profile'
     - 'git clone -q --depth 1 --branch "${TARGET_BRANCH}" "https://repo1.dsop.io/ironbank-tools/ironbank-pipeline.git" "${PIPELINE_REPO_DIR}"'
+    - 'git clone -q --depth 1 --branch "master" "https://repo1.dso.mil/ironbank-tools/complianceascode.git" "security-profile"'
     - 'rm -rf "${PIPELINE_REPO_DIR}/.git"'
   artifacts:
     when: always
