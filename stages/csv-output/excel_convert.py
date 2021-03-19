@@ -49,7 +49,7 @@ def main(argv):
     # Colorize justifications for output_file
     _colorize_full(wb)
     _set_all_column_widths(wb)
-    if os.environ["CI_COMMIT_BRANCH"] != "development":
+    if os.environ["CI_COMMIT_BRANCH"] != "development" and os.environ["CI_COMMIT_BRANCH"] != "master":
         _add_sheet_banners(wb)
     wb.save(output_file)
 
@@ -59,7 +59,7 @@ def _add_sheet_banners(wb):
         ws = wb[sheet]
         ws.insert_rows(1)
         cell = ws.cell(row=1, column=1)
-        cell.value = "THESE FINDINGS ARE UNOFFICIAL AS THEY HAVE BEEN GENERATED ON A BRANCH OTHER THAN DEVELOPMENT. ONLY JUSTIFICATIONS FOR DEVELOPMENT BRANCH FINDINGS ARE CONSIDERED OFFICIAL."
+        cell.value = "THESE FINDINGS ARE UNOFFICIAL AS THEY HAVE BEEN GENERATED ON A BRANCH OTHER THAN DEVELOPMENT OR MASTER. ONLY JUSTIFICATIONS FOR DEVELOPMENT OR MASTER BRANCH FINDINGS ARE CONSIDERED OFFICIAL."
         cell.font = Font(name="Calibri", size=11, bold=True)
         cell.fill = PatternFill(
             start_color="00ff00ff", end_color="00ff00ff", fill_type="solid"
