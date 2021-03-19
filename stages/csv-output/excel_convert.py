@@ -50,11 +50,10 @@ def main(argv):
     _colorize_full(wb)
     _set_all_column_widths(wb)
     if (
-        os.environ["CI_COMMIT_BRANCH"] != "development"
-        and os.environ["CI_COMMIT_BRANCH"] != "master"
+        os.environ["CI_COMMIT_BRANCH"] not in [
+            "development", "master"
+        ]
     ):
-        _add_sheet_banners(wb)
-    wb.save(output_file)
 
 
 def _add_sheet_banners(wb):
