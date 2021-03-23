@@ -32,7 +32,6 @@ for finding in db[list(db.keys())[0]]:
     )
 
     db_set.add(db_entry)
-    j += 1
 
 
 if api_set == db_set:
