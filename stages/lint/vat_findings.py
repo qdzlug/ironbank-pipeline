@@ -1,8 +1,8 @@
 import json
 
 # Pulled from most recent ubi8 test pipeline run 3/23/201 9:00 AM EDT
-api_findings = open('../../../Downloads/vat_api_findings.json', )
-db_findings = open('../../../Downloads/vat_findings.json', )
+api_findings = open('./vat_api_findings.json', )
+db_findings = open('./vat_findings.json', )
 
 api = json.load(api_findings)
 db = json.load(db_findings)
@@ -13,8 +13,15 @@ api_list = []
 db_list = []
 
 while i < len(api['findings']):
-    if api['findings'][i]['identifier'] not in api_list:
-        api_list.append(api['findings'][i]['identifier'])
+    api_entry = (
+        api['findings'][i]['identifier'],
+        api['findings'][i]['source'],
+        api['findings'][i]['description'],
+        api['findings'][i]['package'] if "package" in api['findings'][i] else None,
+        api['findings'][i]['packagePath'] if "packagePath" in api['findings'][i]  else None
+    )
+    if api_entry not in api_list:
+        api_list.append(api_entry)
     i += 1
 
 while j < len(db['redhat/ubi/ubi8']):
