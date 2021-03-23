@@ -20,13 +20,13 @@ def get_db_findings(db):
     db_set = set()
     for key in db.keys():
         for finding in db[key]:
-            db_entry = (
-                finding["finding"],
-                finding["scan_source"],
-                finding["scan_result_description"],
-                finding["package"] if "package" in finding else None,
-                finding["package_path"] if "package_path" in finding else None,
-            )
+            db_entry = {
+                "id": finding["finding"],
+                "source": finding["scan_source"],
+                "desc": finding["scan_result_description"],
+                "package": finding["package"] if "package" in finding else None,
+                "package_path": finding["package_path"] if "package_path" in finding else None,
+            }
             db_set.add(db_entry)
     return db_set
 
