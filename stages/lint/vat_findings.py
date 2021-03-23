@@ -14,30 +14,29 @@ j = 0
 api_list = []
 db_list = []
 
-while i < len(api["findings"]):
+for finding in api['findings']:
     api_entry = (
-        api["findings"][i]["identifier"],
-        api["findings"][i]["source"],
-        api["findings"][i]["description"],
-        api["findings"][i]["package"] if "package" in api["findings"][i] else None,
-        api["findings"][i]["packagePath"]
-        if "packagePath" in api["findings"][i]
+        finding["identifier"],
+        finding["source"],
+        finding["description"],
+        finding["package"] if "package" in finding else None,
+        finding["packagePath"]
+        if "packagePath" in finding
         else None,
     )
     if api_entry not in api_list:
         api_list.append(api_entry)
-    i += 1
 
-while j < len(db["redhat/ubi/ubi8"]):
+for finding in db[list(db.keys())[0]]:
     db_entry = (
-        db["redhat/ubi/ubi8"][j]["finding"],
-        db["redhat/ubi/ubi8"][j]["scan_source"],
-        db["redhat/ubi/ubi8"][j]["scan_result_description"],
-        db["redhat/ubi/ubi8"][j]["package"]
-        if "package" in db["redhat/ubi/ubi8"][j]
+        finding["finding"],
+        finding["scan_source"],
+        finding["scan_result_description"],
+        finding["package"]
+        if "package" in finding
         else None,
-        db["redhat/ubi/ubi8"][j]["package_path"]
-        if "package_path" in db["redhat/ubi/ubi8"][j]
+        finding["package_path"]
+        if "package_path" in finding
         else None,
     )
     if db_entry not in db_list:
