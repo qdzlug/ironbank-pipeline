@@ -30,6 +30,33 @@ def get_db_findings(db):
             db_set.add(db_entry)
     return db_set
 
+
+def run_issue_check(delta_api_db, delta_db_api, api_set, db_set):
+    #Run checks for api - db
+    #check existence
+    delta_api_db = check_existence(delta_api_db, db_set)
+    #first, check if dupes exist for the finding
+    # check_duplicates()
+    # #check if fields differ for dupes or single value
+    # check_different_fields()
+
+    # #Run checks for db - api
+    # check_existence()
+
+    # check_duplicates()
+
+    # check_different_fields()
+
+
+def check_existence(delta, finding_set):
+    for i in range(len(delta)):
+        # f[0] is the identifier or finding id
+        if f[i]["id"] not in [finding["id"] for finding in finding_set]:
+            f[i]["Issue"] = "Finding does not exist in other set"
+
+
+
+
 def main():
     with open(f'{os.environ["ARTIFACT_DIR"]}/vat_api_findings.json', "r") as api_findings:
         api = json.load(api_findings)
@@ -47,12 +74,14 @@ def main():
         print("Findings are NOT the same!")
         delta_api_db = api_set.difference(db_set)
         delta_db_api = db_set.difference(api_set)
+        #delta_api_db, delta_db_api = run_issue_check(delta_api_db, delta_db_api, api_set, db_set)
         print("Findings from api not in direct query")
         for d in delta_api_db:
             print(d) if delta_api_db else print("None")
         print("Findings from direct query not in api")
         for d in delta_db_api:
             print(d) if delta_db_api else print("None")
+
         diff_art = {
             "api_set_length" : len(api_set),
             "db_set_length" : len(db_set),
