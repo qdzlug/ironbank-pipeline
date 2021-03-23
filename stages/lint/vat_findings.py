@@ -34,7 +34,7 @@ def get_db_findings(db):
 def run_issue_check(delta_api_db, delta_db_api, api_set, db_set):
     #Run checks for api - db
     #check existence
-    delta_api_db = check_existence(delta_api_db, db_set)
+    api_db_issues = check_existence(delta_api_db, db_set)
     #first, check if dupes exist for the finding
     # check_duplicates()
     # #check if fields differ for dupes or single value
@@ -42,18 +42,40 @@ def run_issue_check(delta_api_db, delta_db_api, api_set, db_set):
 
     # #Run checks for db - api
     # check_existence()
-
+    db_api_issues = check_existenct(delta_db_api, api_set)
     # check_duplicates()
 
     # check_different_fields()
-
+    return (api_db_issues, db_api_issues)
 
 def check_existence(delta, finding_set):
-    for i in range(len(delta)):
+    finding_ids = [finding[0] for finding in finding_set]
+    delta_with_issues = []
+    for i in delta:
         # f[0] is the identifier or finding id
-        if f[i]["id"] not in [finding["id"] for finding in finding_set]:
-            f[i]["Issue"] = "Finding does not exist in other set"
+        if i[0] not in finding_ids:
+            delta_with_issues.append(
+                {
+                    "id": i[0],
+                    "source": i[1],
+                    "desc": i[2],
+                    "package": i[3],
+                    "package_path": i[4]
+                    "issue": "CVE ID not in other finding source"
 
+                }
+            )
+        else:
+            delta_with_issues.append(
+                {
+                    "id": i[0],
+                    "source": i[1],
+                    "desc": i[2],
+                    "package": i[3],
+                    "package_path": i[4]
+                    "issue": ""
+                }
+            )
 
 
 
