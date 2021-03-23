@@ -24,17 +24,17 @@ for finding in api["findings"]:
     )
     api_set.add(api_entry)
 
-for finding in db[list(db.keys())[0]]:
-    db_entry = (
-        finding["finding"],
-        finding["scan_source"],
-        finding["scan_result_description"],
-        finding["package"] if "package" in finding else None,
-        finding["package_path"] if "package_path" in finding else None,
-    )
+for key in db.keys():
+    for finding in db[key]:
+        db_entry = (
+            finding["finding"],
+            finding["scan_source"],
+            finding["scan_result_description"],
+            finding["package"] if "package" in finding else None,
+            finding["package_path"] if "package_path" in finding else None,
+        )
+        db_set.add(db_entry)
 
-    db_set.add(db_entry)
-    j += 1
 
 
 if api_set == db_set:
