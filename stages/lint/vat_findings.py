@@ -31,9 +31,9 @@ def get_db_findings(db):
     return db_set
 
 def main():
-    with open(f'./vat_api_findings.json', "r") as api_findings:
+    with open(f'{os.environ["ARTIFACT_DIR"]}/vat_api_findings.json', "r") as api_findings:
         api = json.load(api_findings)
-    with open(f'./vat_findings.json', "r") as db_findings:
+    with open(f'{os.environ["ARTIFACT_DIR"]}/vat_findings.json', "r") as db_findings:
         db = json.load(db_findings)
 
     api_set = get_api_findings(api)
