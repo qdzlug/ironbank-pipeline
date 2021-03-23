@@ -9,7 +9,6 @@ def get_api_findings(api):
         api_entry = (
             finding["identifier"],
             finding["source"],
-            finding["description"],
             finding["package"] if "package" in finding else None,
             finding["packagePath"] if "packagePath" in finding else None,
         )
@@ -23,7 +22,6 @@ def get_db_findings(db):
             db_entry = (
                 finding["finding"],
                 finding["scan_source"],
-                finding["scan_result_description"],
                 finding["package"] if "package" in finding else None,
                 finding["package_path"] if "package_path" in finding else None,
             )
