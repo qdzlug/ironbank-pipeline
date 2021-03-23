@@ -1,4 +1,5 @@
 import re
+import logging
 from bs4 import BeautifulSoup
 
 
@@ -9,14 +10,58 @@ def get_oval(oval_file):
         results_bad = soup.find_all("tr", class_=["resultbadA", "resultbadB"])
 
         for x in results_bad:
+            id = x.find("td")
+            result = id.find_next_sibling("td")
+            cls = result.find_next_sibling("td")
+            title = cls.find_next_sibling("td").find_next_sibling("td")
             y = x.find_all(target="_blank")
             references = set()
             for t in y:
                 references.add(t.text)
 
             for ref in references:
-                cves.append(ref)
+                pkgs = get_packages(title.text)
+                ret = {
+                    "id": id.text,
+                    "result": result.text,
+                    "cls": cls.text,
+                    "ref": ref,
+                    "title": title.text,
+                    "pkg": pkgs[0],
+                }
+                cves.append(ret)
     return cves
+
+
+def get_packages(package_string):
+    """
+    Return a list of packages from the input string.
+    """
+
+    logging.debug(f"In packages: {package_string}")
+
+    # This will basically remove Updated from an "Updated kernel" package.
+    # Capture the package
+    # Remove any security, enhancement, bug fix or any combination of those.
+    # Match and throw away anything after this up to the severity ().
+    initial_re = ".*: (?:Updated )?(.*?)(?:security|enhancement|bug fix).*\\("
+    logging.debug(f"packages - perform pattern match {initial_re}")
+    match = re.match(initial_re, package_string)
+
+    pkgs = match.group(1) if match else None
+    logging.debug(f"After pattern match, pkgs: {pkgs}")
+
+    # Catch all if no packages are found
+    if pkgs is None or pkgs.strip(" ") == "":
+        pkgs = "Unknown"
+
+    # This will break up multiple packages as a list.
+    #   Note: that single packages will be returned as a list.
+    pkglist = re.split(", and |, | and ", pkgs.strip(" ").replace(":", "-"))
+
+    logging.debug(f"packages list: {pkglist}")
+
+    return pkglist
 
 
 def get_fails(oscap_file):
