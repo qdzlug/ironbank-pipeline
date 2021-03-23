@@ -33,8 +33,6 @@ for key in db.keys():
         )
         db_set.add(db_entry)
 
-
-
 if api_set == db_set:
     print("Findings are the same!")
 else:
