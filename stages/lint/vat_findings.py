@@ -41,6 +41,10 @@ if api_set == db_set:
     print("Findings are the same!")
 else:
     print("Findings are NOT the same!")
-    delta = api_set.difference(db_set)
-    [print(d) for d in delta]
+    delta_api_db = api_set.difference(db_set)
+    delta_db_api = db_set.difference(api_set)
+    print("Findings from api not in direct query")
+    [print(d) for d in delta_api_db]
+    print("Findings from direct query not in api")
+    [print(d) for d in delta_db_api]
     sys.exit(4)
