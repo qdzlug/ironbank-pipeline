@@ -51,6 +51,14 @@ def main():
         [print(d) for d in delta_api_db] if delta_api_db else print("None")
         print("Findings from direct query not in api")
         [print(d) for d in delta_db_api] if delta_db_api else print("None")
+        diff_art = {
+            "api_set_length" : len(api_set),
+            "db_set_length" : len(db_set),
+            "delta_api_db" : delta_api_db,
+            "delta_db_api" : delta_db_api
+        }
+        with open(f'{os.environ["ARTIFACT_DIR"]}/vat_diff.json', 'w') as f:
+            json.dump(diff_art, f)
         sys.exit(4)
 
 
