@@ -14,15 +14,13 @@ j = 0
 api_list = []
 db_list = []
 
-for finding in api['findings']:
+for finding in api["findings"]:
     api_entry = (
         finding["identifier"],
         finding["source"],
         finding["description"],
         finding["package"] if "package" in finding else None,
-        finding["packagePath"]
-        if "packagePath" in finding
-        else None,
+        finding["packagePath"] if "packagePath" in finding else None,
     )
     if api_entry not in api_list:
         api_list.append(api_entry)
@@ -32,12 +30,8 @@ for finding in db[list(db.keys())[0]]:
         finding["finding"],
         finding["scan_source"],
         finding["scan_result_description"],
-        finding["package"]
-        if "package" in finding
-        else None,
-        finding["package_path"]
-        if "package_path" in finding
-        else None,
+        finding["package"] if "package" in finding else None,
+        finding["package_path"] if "package_path" in finding else None,
     )
     if db_entry not in db_list:
         db_list.append(db_entry)
