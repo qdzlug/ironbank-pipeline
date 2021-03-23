@@ -33,6 +33,10 @@ for key in db.keys():
         )
         db_set.add(db_entry)
 
+
+print(f"API set length: {len(api_set)}")
+print(f"DB set length: {len(db_set)}")
+
 if api_set == db_set:
     print("Findings are the same!")
 else:
