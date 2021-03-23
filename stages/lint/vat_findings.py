@@ -4,15 +4,15 @@ from os import read
 import sys
 
 # Pulled from most recent ubi8 test pipeline run 3/23/201 9:00 AM EDT
-with open(f'{os.environ["ARTIFACT_DIR"]}/vat_api_findings.json', "r") as api_findings:
+with open(f'./vat_api_findings.json', "r") as api_findings:
     api = json.load(api_findings)
-with open(f'{os.environ["ARTIFACT_DIR"]}/vat_findings.json', "r") as db_findings:
+with open(f'./vat_findings.json', "r") as db_findings:
     db = json.load(db_findings)
 
 i = 0
 j = 0
-api_list = []
-db_list = []
+api_set = set()
+db_set = set()
 
 for finding in api["findings"]:
     api_entry = (
@@ -22,8 +22,7 @@ for finding in api["findings"]:
         finding["package"] if "package" in finding else None,
         finding["packagePath"] if "packagePath" in finding else None,
     )
-    if api_entry not in api_list:
-        api_list.append(api_entry)
+    api_set.add(api_entry)
 
 for finding in db[list(db.keys())[0]]:
     db_entry = (
@@ -33,15 +32,15 @@ for finding in db[list(db.keys())[0]]:
         finding["package"] if "package" in finding else None,
         finding["package_path"] if "package_path" in finding else None,
     )
-    if db_entry not in db_list:
-        db_list.append(db_entry)
+
+    db_set.add(db_entry)
     j += 1
 
 
-if api_list == db_list:
+if api_set == db_set:
     print("Findings are the same!")
 else:
     print("Findings are NOT the same!")
-    delta = api_list.difference(db_list)
+    delta = api_set.difference(db_set)
     [print(d) for d in delta]
     sys.exit(4)
