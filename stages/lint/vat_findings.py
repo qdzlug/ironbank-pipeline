@@ -1,6 +1,7 @@
 import json
 import os
 from os import read
+import sys
 
 # Pulled from most recent ubi8 test pipeline run 3/23/201 9:00 AM EDT
 with open(f'{os.environ["ARTIFACTS_PATH"]}/vat_api_findings.json', 'r') as api_findings:
@@ -50,3 +51,4 @@ else:
     print('Findings are NOT the same!')
     delta = api_list.difference(db_list)
     [print(d) for d in delta]
+    sys.exit(4)

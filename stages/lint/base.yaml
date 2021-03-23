@@ -62,28 +62,11 @@ wl compare lint:
     - 'mkdir -p "${ARTIFACT_DIR}"'
     - set +e
     - 'python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py" --lint'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/vat_findings.py"'
   allow_failure:
-    exit_codes: 3
-  artifacts:
-    paths:
-      - "${ARTIFACT_DIR}/"
-    expire_in: 1 week
-    reports:
-      dotenv: variables.env
-
-vat compare:
-  extends: .lint
-  dependencies:
-    - load scripts
-    - hardening_manifest
-  tags:
-    - ironbank
-  variables:
-    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/lint"
-  script:
-    - 'python3 vat_findings.py'
-  allow_failure:
-    exit_codes: 1
+    exit_codes:
+      - 3
+      - 4
   artifacts:
     paths:
       - "${ARTIFACT_DIR}/"
