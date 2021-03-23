@@ -44,12 +44,6 @@ while j < len(db["redhat/ubi/ubi8"]):
         db_list.append(db_entry)
     j += 1
 
-print("API_FINDINGS\n")
-[print(a) for a in api_list]
-print("\n")
-print("DB_FINDINGS\n")
-[print(d) for d in db_list]
-print("\n")
 
 if api_list == db_list:
     print("Findings are the same!")
