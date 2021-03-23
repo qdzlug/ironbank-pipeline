@@ -4,9 +4,9 @@ from os import read
 import sys
 
 # Pulled from most recent ubi8 test pipeline run 3/23/201 9:00 AM EDT
-with open(f'{os.environ["ARTIFACTS_DIR"]}/vat_api_findings.json', "r") as api_findings:
+with open(f'{os.environ["ARTIFACT_DIR"]}/vat_api_findings.json', "r") as api_findings:
     api = json.load(api_findings)
-with open(f'{os.environ["ARTIFACTS_DIR"]}/vat_findings.json', "r") as db_findings:
+with open(f'{os.environ["ARTIFACT_DIR"]}/vat_findings.json', "r") as db_findings:
     db = json.load(db_findings)
 
 i = 0
