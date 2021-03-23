@@ -44,7 +44,7 @@ else:
     delta_api_db = api_set.difference(db_set)
     delta_db_api = db_set.difference(api_set)
     print("Findings from api not in direct query")
-    [print(d) for d in delta_api_db]
+    [print(d) for d in delta_api_db] if delta_api_db else print("None")
     print("Findings from direct query not in api")
-    [print(d) for d in delta_db_api]
+    [print(d) for d in delta_db_api] if delta_db_api else print("None")
     sys.exit(4)
