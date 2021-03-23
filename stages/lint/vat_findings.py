@@ -54,8 +54,8 @@ def main():
         diff_art = {
             "api_set_length" : len(api_set),
             "db_set_length" : len(db_set),
-            "delta_api_db" : delta_api_db,
-            "delta_db_api" : delta_db_api
+            "delta_api_db" : list(delta_api_db),
+            "delta_db_api" : list(delta_db_api)
         }
         with open(f'{os.environ["ARTIFACT_DIR"]}/vat_diff.json', 'w') as f:
             json.dump(diff_art, f)
