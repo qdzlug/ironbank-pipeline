@@ -58,7 +58,7 @@ def check_existence(delta, finding_set):
                     "source": i[1],
                     "desc": i[2],
                     "package": i[3],
-                    "package_path": i[4]
+                    "package_path": i[4],
                     "issue": "CVE ID not in other finding source"
 
                 }
@@ -70,7 +70,7 @@ def check_existence(delta, finding_set):
                     "source": i[1],
                     "desc": i[2],
                     "package": i[3],
-                    "package_path": i[4]
+                    "package_path": i[4],
                     "issue": ""
                 }
             )
