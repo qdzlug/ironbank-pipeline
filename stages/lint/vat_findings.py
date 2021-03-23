@@ -9,8 +9,6 @@ with open(f'{os.environ["ARTIFACT_DIR"]}/vat_api_findings.json', "r") as api_fin
 with open(f'{os.environ["ARTIFACT_DIR"]}/vat_findings.json', "r") as db_findings:
     db = json.load(db_findings)
 
-i = 0
-j = 0
 api_set = set()
 db_set = set()
 
