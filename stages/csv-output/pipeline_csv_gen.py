@@ -358,6 +358,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             whitelist_branch=whitelist_branch,
         )
 
+    logging.debug(inheritance_list)
 
     # grabbing cves from vat in reverse order to prevent issues with findings that shouldn't be inherited
     for image in inheritance_list.reverse():
