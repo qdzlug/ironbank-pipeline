@@ -343,10 +343,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     # add source image to inheritance list
     inheritance_list.append((os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]))
 
-    if result is None:
-        logging.error("No results from vat. Fatal error.")
-        sys.exit(1)
-
     # add parent images to inheritance list
     parent_image_name, parent_image_version = _next_ancestor(
         image_path=image_name,
@@ -365,6 +361,9 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     # grabbing cves from vat in reverse order to prevent issues with findings that shouldn't be inherited
     for image in inheritance_list.reverse():
         result = _vat_vuln_query(image[0], image[1])
+        if result is None:
+            logging.error("No results from vat. Fatal error.")
+            sys.exit(1)
         # parse CVEs from VAT query
         # empty list is returned if no entry or no cves. NoneType only returned if error.
         for row in result:
