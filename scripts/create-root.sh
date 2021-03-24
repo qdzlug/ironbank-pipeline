@@ -15,14 +15,11 @@ vault_namespace='il2-ironbank-ns'
 
 alias vault=$(docker exec -it vault -- vault &2> /dev/null)
 
-# Get distro
-os=$(uname)
-
 # Install notary if not present
 if ! command -v notary; then
     if [ "$(uname)" = "Darwin" ]; then
         curl -O https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Darwin-amd64
-        mv notary-Linux-amd64 /usr/local/bin/notary
+        mv notary-Darwin-amd64 /usr/local/bin/notary
     else
         curl -O https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64
         mv notary-Linux-amd64 /usr/local/bin/notary
