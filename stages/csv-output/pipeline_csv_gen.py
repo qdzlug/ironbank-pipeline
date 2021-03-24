@@ -350,14 +350,14 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         whitelist_branch=whitelist_branch,
         hardening_manifest=hardening_manifest,
     )
-    inheritance_list.append((parent_image_name, parent_image_version))
 
     while parent_image_name:
+        inheritance_list.append((parent_image_name, parent_image_version))
         parent_image_name, parent_image_version = _next_ancestor(
             image_path=parent_image_name,
             whitelist_branch=whitelist_branch,
         )
-        inheritance_list.append((parent_image_name, parent_image_version))
+
 
     # grabbing cves from vat in reverse order to prevent issues with findings that shouldn't be inherited
     for image in inheritance_list.reverse():
