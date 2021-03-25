@@ -40,7 +40,7 @@ def run_issue_check(delta_api_db, delta_db_api, api_set, db_set):
 
     # #Run checks for db - api
     # check_existence()
-    db_api_issues = check_existenct(delta_db_api, api_set)
+    db_api_issues = check_existence(delta_db_api, api_set)
     # check_duplicates()
 
     # check_different_fields()
