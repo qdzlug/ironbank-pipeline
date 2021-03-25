@@ -3,7 +3,7 @@
 # This script is used to initialize Notary GUNs
 #
 # Usage:
-# export NOTARY_AUTH=$(echo "exampleuser:examplepassword" | base64)
+# export NOTARY_AUTH=$(echo -n "exampleuser:examplepassword" | base64)
 # ./initialize-gun.sh registry1.dso.mil/ironbank/project/image
 #
 # Where exampleuser:examplepassword are your harbor credentials
@@ -19,7 +19,7 @@ vault_namespace='il2-ironbank-ns'
 
 script_help() {
     echo
-    echo "Please provide a GUN to initialize (e.g. registry1.dso.mil/ironbank/redhat/ubi/ubi:8.3)"
+    echo "Please provide a GUN to initialize (e.g. registry1.dso.mil/ironbank/redhat/ubi/ubi)"
     echo "You may provide a single GUN or a file containing a list of newline-delimited GUNs"
     echo "NOTE: The GUN MUST MATCH the 'name' attirbute of the hardening_manifest.yaml for the image being initialized prefixed with the target registry url (e.g. registry1.dso.mil/<name>)"
 }
@@ -31,17 +31,9 @@ fi
 
 # Install notary if not present
 if ! command -v notary; then
-    if [ "$(uname)" = "Darwin" ]; then
-        curl -O https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Darwin-amd64
-        mv notary-Darwin-amd64 /usr/local/bin/notary
-    elif [ "$(uname)" = "Linux" ]; then
-        curl -O https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64
-        mv notary-Linux-amd64 /usr/local/bin/notary
-    else
-        echo
-        echo "Unsupported OS type, exiting"
-        exit 1
-    fi
+    echo
+    echo "notary cli must be installed before continuing, exiting"
+    exit 1
 fi
 
 if ! command -v jq; then
@@ -88,8 +80,12 @@ init_gun() {
     # Parse target keyid value out of targets.json
     keyid=$(cat "trust-dir/tuf/$gun/metadata/targets.json" | jq -r '.signatures[0].keyid')
 
-    # Place target key in Vault at a location determined by the GUN
-    cat "trust-dir/private/$keyid.key" | vault kv put -address=$vault_url -namespace=$vault_namespace "/kv/il2/notary/pipeline/$gun" targetkey=-
+    # Place target key inVault at a location determined by the GUN
+    # Debug
+    #echo ${NOTARY_TARGETS_PASSPHRASE}
+    # Not working yet - "bad magic number"
+    #openssl aes-256-cbc -k "${NOTARY_TARGETS_PASSPHRASE}" -d -a -in "trust-dir/private/$keyid.key" -out /dev/stdout
+    openssl "trust-dir/private/$keyid.key" | vault kv put -address=$vault_url -namespace=$vault_namespace "/kv/il2/notary/pipeline/$gun" targetkey=-
 }
 
 import_root_key
