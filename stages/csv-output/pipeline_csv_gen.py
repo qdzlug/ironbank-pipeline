@@ -359,6 +359,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
     logging.debug(inheritance_list)
 
+    inheritance_list.reverse()
     # grabbing cves from vat in reverse order to prevent issues with findings that shouldn't be inherited
     for image in inheritance_list:
         result = _vat_vuln_query(image[0], image[1])
@@ -380,7 +381,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
                 logging.debug(
                     "There is no approval status present in result or cve not approved"
                 )
-
     logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
     return total_whitelist
 
