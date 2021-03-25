@@ -16,6 +16,12 @@ export NOTARY_TARGETS_PASSPHRASE=$(openssl rand -base64 32)
 notary_url='https://notary.dso.mil'
 vault_url='https://cubbyhole.staging.dso.mil'
 vault_namespace='il2-ironbank-ns'
+rootkeyloc=rootkey-test2
+
+# This designates the current revision of our targets keys.  This should be iterated upon target key rotation.  This should also be updated in the pipeline.
+rev=0
+
+trustdir=$(mktemp -d)
 
 script_help() {
     echo
@@ -36,9 +42,9 @@ if ! command -v notary; then
     exit 1
 fi
 
-if ! command -v jq; then
+if ! command -v vault; then
     echo
-    echo "jq must be installed before continuing, exiting"
+    echo "vault cli must be installed before continuing, exiting"
     exit 1
 fi
 
@@ -60,7 +66,7 @@ import_root_key() {
     vault login -method=userpass -namespace=$vault_namespace -address=$vault_url username=notary-admin
 
     # Retrieve root key
-    vault kv get -field=rootkey -address=$vault_url -namespace=$vault_namespace /kv/il2/notary/admin/rootkey | notary -v -s $notary_url -d trust-dir key import /dev/stdin --role=root
+    vault kv get -field=rootkey-test2 -address=$vault_url -namespace=$vault_namespace "/kv/il2/notary/admin/$rootkeyloc" | notary -v -s $notary_url -d $trustdir key import /dev/stdin --role=root
 }
 
 init_gun() {
@@ -72,20 +78,15 @@ init_gun() {
     echo
 
     # Initialize GUN with root key
-    notary init $gun -p -d trust-dir -s $notary_url
+    notary init $gun -p -d $trustdir -s $notary_url
 
     # Rotate snapshot keys to be managed by notary server
-    notary key rotate $gun snapshot -r -d trust-dir -s $notary_url
-
-    # Parse target keyid value out of targets.json
-    keyid=$(cat "trust-dir/tuf/$gun/metadata/targets.json" | jq -r '.signatures[0].keyid')
+    notary key rotate $gun snapshot -r -d $trustdir -s $notary_url
 
     # Place target key inVault at a location determined by the GUN
-    # Debug
-    #echo ${NOTARY_TARGETS_PASSPHRASE}
-    # Not working yet - "bad magic number"
-    #openssl aes-256-cbc -k "${NOTARY_TARGETS_PASSPHRASE}" -d -a -in "trust-dir/private/$keyid.key" -out /dev/stdout
-    openssl "trust-dir/private/$keyid.key" | vault kv put -address=$vault_url -namespace=$vault_namespace "/kv/il2/notary/pipeline/$gun" targetkey=-
+    decryptedkey=$(notary key export -d $trustdir/ --gun $gun | sed '/:/d' | openssl ec -passin env:NOTARY_TARGETS_PASSPHRASE)
+
+    echo -n "$decryptedkey" | vault kv put -address=$vault_url -namespace=$vault_namespace "/kv/il2/notary/pipeline/targets/$rev/$gun" key=-
 }
 
 import_root_key
@@ -117,4 +118,4 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Clean up root key
-rm -rf trust-dir
+rm -rf $trustdir

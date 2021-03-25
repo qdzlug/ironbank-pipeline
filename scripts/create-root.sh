@@ -12,43 +12,29 @@ set -ue
 vault_url='https://cubbyhole.staging.dso.mil'
 vault_namespace='il2-ironbank-ns'
 
-alias vault=$(docker exec -it vault -- vault &2> /dev/null)
+rootkeyloc="rootkey"
 
 # Install notary if not present
 if ! command -v notary; then
-    if [ "$(uname)" = "Darwin" ]; then
-        curl -O https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Darwin-amd64
-        mv notary-Darwin-amd64 /usr/local/bin/notary
-    else
-        curl -O https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64
-        mv notary-Linux-amd64 /usr/local/bin/notary
-    fi
+    echo
+    echo "notary cli must be installed"
+    echo
+    exit 1
 fi
 
 if ! command -v openssl; then
     echo
     echo "openssl must be installed"
     echo
-    exit
+    exit 1
 fi
 
-if ! command -v openssl; then
+if ! command -v vault; then
     echo
-    echo "notary must be installed"
+    echo "vault cli must be installed"
     echo
-    exit
+    exit 1
 fi
-
-# Sign into registry1
-echo
-echo "========================"
-echo " Logging into registry1 "
-echo "========================"
-echo
-docker login registry1.dso.mil
-
-# Create vault container
-docker run --entrypoint=cat --rm --name vault registry1.dso.mil/ironbank/hashicorp/vault/vault:1.6.3 &
 
 # Generate root key
 mkdir root
@@ -69,11 +55,12 @@ echo "=========================="
 echo " Adding root key to Vault "
 echo "=========================="
 echo
+echo "Enter the initial notary-admin password"
 vault login -method=userpass -namespace=$vault_namespace -address=$vault_url username=notary-admin
 
-# Reset password.  Write it down first.
+# Change notary-admin password.  Write it down first.
 echo
-echo "Set a new notary-admin user password: "
+echo "Change notary-admin user password: "
 echo
 read -s adminpass
 vault write -address=$vault_url -namespace=$vault_namespace auth/userpass/users/notary-admin/password password=$adminpass
@@ -85,7 +72,7 @@ echo
 
 read confirm
 if [ "$confirm" = "y" ]; then
-    cat root/root.key | vault kv put -address=$vault_url -namespace=$vault_namespace /kv/il2/notary/admin/rootkey-test2 rootkey=-
+    cat root/root.key | vault kv put -address=$vault_url -namespace=$vault_namespace /kv/il2/notary/admin/$rootkeyloc rootkey=-
 else
     echo
     echo "'y' not supplied, aborting"
