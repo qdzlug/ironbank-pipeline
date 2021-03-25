@@ -64,11 +64,11 @@ openssl genrsa -out root/root.key 4096
 openssl req -new -sha256 -key root/root.key -out root/root.csr -subj "/C=US/ST=Colorado/L=Colorado Springs/O=Platform1/OU=Iron Bank/CN=ironbank.dso.mil/emailAddress=ironbank@dso.mil"
 
 # Add root key to Vault
-echo ""
+echo
 echo "=========================="
 echo " Adding root key to Vault "
 echo "=========================="
-echo ""
+echo
 vault login -method=userpass -namespace=$vault_namespace -address=$vault_url username=notary-admin
 
 # Reset password.  Write it down first.
