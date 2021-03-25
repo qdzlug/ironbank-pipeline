@@ -31,7 +31,7 @@ vault_token=$(jq --null-input --arg password $VAULT_STAGING_PASSWORD '{"password
         --request PUT "$VAULT_ADDR/v1/auth/userpass/login/$VAULT_STAGING_USERNAME" | \
    jq --raw-output '.auth.client_token')
 
-vault_addr_full="$VAULT_ADDR/v1/kv/il2/notary/pipeline/data/$gun"
+vault_addr_full="$VAULT_ADDR/v1/kv/il2/notary/pipeline/data/targets/0/$gun"
 echo "Grabbing key from"
 echo "    $vault_addr_full"
 
