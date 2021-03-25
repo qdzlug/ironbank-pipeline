@@ -1,6 +1,5 @@
 #!/bin/bash
 #####
-#
 # This script is used to initialize Notary GUNs
 #
 # Usage:
@@ -17,6 +16,7 @@ export NOTARY_TARGETS_PASSPHRASE=$(openssl rand -base64 32)
 notary_url='https://notary.dso.mil'
 vault_url='https://cubbyhole.staging.dso.mil'
 vault_namespace='il2-ironbank-ns'
+
 script_help() {
     echo
     echo "Please provide a GUN to initialize (e.g. registry1.dso.mil/ironbank/redhat/ubi/ubi:8.3)"
@@ -58,21 +58,28 @@ if [ -z "$1" ]; then
 fi
 
 import_root_key() {
-
     echo
     echo "==============================="
     echo " Retrieve root key from Vault "
     echo "==============================="
     echo
+
+    # Login to Vault
     vault login -method=userpass -namespace=$vault_namespace -address=$vault_url username=notary-admin
 
-    vault kv get -field=rootkey-test2 -address=$vault_url -namespace=$vault_namespace /kv/il2/notary/admin/rootkey-test2 | notary -v -s $notary_url -d trust-dir key import /dev/stdin --role=root
-
+    # Retrieve root key
+    vault kv get -field=rootkey -address=$vault_url -namespace=$vault_namespace /kv/il2/notary/admin/rootkey | notary -v -s $notary_url -d trust-dir key import /dev/stdin --role=root
 }
 
 init_gun() {
     gun=$1
+    echo
+    echo "==============================="
     echo "Initializing GUN $gun in Notary"
+    echo "==============================="
+    echo
+
+    # Initialize GUN with root key
     notary init $gun -p -d trust-dir -s $notary_url
 
     # Rotate snapshot keys to be managed by notary server
@@ -87,32 +94,31 @@ init_gun() {
 
 import_root_key
 
- while [[ $# -gt 0 ]]; do
-     key="$1"
-
-     case $key in
-         -f|--file)
-             if [ -z "$2" ]; then
-                 echo
-                 echo "Must provide argument for -f"
-                 exit 1
-             fi
-             filename="$2"
-             while IFS= read -r gun; do
-                 init_gun $gun;
-             done < $filename
-             exit 0
-             ;;
-         -h|--help)
-             script_help
-             exit 0
-             ;;
-         *)
-             init_gun $1
-             exit 0
-             ;;
-     esac
- done
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+        -f|--file)
+            if [ -z "$2" ]; then
+                echo
+                echo "Must provide argument for -f"
+                exit 1
+            fi
+            filename="$2"
+            while IFS= read -r gun; do
+                init_gun $gun;
+            done < $filename
+            exit 0
+            ;;
+        -h|--help)
+            script_help
+            exit 0
+            ;;
+        *)
+            init_gun $1
+            exit 0
+            ;;
+    esac
+done
 
 # Clean up root key
 rm -rf trust-dir
