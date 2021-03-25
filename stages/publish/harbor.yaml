@@ -7,7 +7,4 @@ harbor:
     - load scripts
     - hardening_manifest
   script:
-    - curl https://releases.hashicorp.com/vault/1.7.0-rc1/vault_1.7.0-rc1_linux_amd64.zip -o /tmp/vault.zip
-    - yum install -y unzip
-    - unzip /tmp/vault.zip -d /usr/local/bin/
     - '"${PIPELINE_REPO_DIR}/stages/publish/upload-to-harbor.sh"'

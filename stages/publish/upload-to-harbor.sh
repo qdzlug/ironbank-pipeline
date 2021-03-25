@@ -8,17 +8,44 @@ fi
 
 echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
 
+# TODO: Confirm IM_NAME is hardening manifest
 staging_image="${STAGING_REGISTRY_URL}/${IM_NAME}"
 gun="${REGISTRY_URL}/${IM_NAME}"
 
-# Grab the delegation key from vault
-vault login -no-print=true -method=userpass username="${VAULT_STAGING_USERNAME}" password="${VAULT_STAGING_PASSWORD}"
-# TODO Make dynamic based off naming scheme
-vault kv get -field=delegation.key kv/il2/notary/delegation1 >delegation.key
+# TODO: Use this instead
+trust_dir="trust-dir-target/"
 
-# Import the delegation key to notary
-notary -d trust-dir-delegate/ key import delegation.key
-rm delegation.key
+# Grab the delegation key from vault
+# vault login -no-print=true -method=userpass username="${VAULT_STAGING_USERNAME}" password="${VAULT_STAGING_PASSWORD}"
+
+# TODO Make dynamic based off naming scheme
+# vault kv get -field=delegation.key kv/il2/notary/delegation1 >delegation.key
+
+echo "Logging into vault"
+# Grab the vault token
+vault_token=$(jq --null-input --arg password $VAULT_STAGING_PASSWORD '{"password":$password}' | \
+   curl --silent \
+        --data @- \
+        --header "X-Vault-Request: true" \
+        --header "X-Vault-Namespace: $VAULT_STAGING_NAMESPACE/" \
+        --request PUT "$VAULT_ADDR/v1/auth/userpass/login/$VAULT_STAGING_USERNAME" | \
+   jq --raw-output '.auth.client_token')
+
+vault_addr_full="$VAULT_ADDR/v1/kv/il2/notary/pipeline/data/$gun"
+echo "Grabbing key from"
+echo "    $vault_addr_full"
+
+# Grab the target key and import into notary
+echo "Importing key into notary"
+curl --silent \
+     --header "X-Vault-Request: true" \
+     --header "X-Vault-Token: $vault_token" \
+     --header "X-Vault-Namespace: $VAULT_STAGING_NAMESPACE/" \
+     --request GET "$vault_addr_full" | \
+     jq --raw-output '.data.data.targetkey' | \
+     notary -d trust-dir-delegate/ key import /dev/stdin
+
+echo "Key imported"
 
 if [ -z "${DOCKER_AUTH_CONFIG_TEST:-}" ]; then
   echo "${DOCKER_AUTH_CONFIG_PROD}" | base64 -d >dest_auth.json
