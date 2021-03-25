@@ -9,6 +9,8 @@
 # Where exampleuser:examplepassword are your harbor credentials
 #####
 
+set -euo pipefail
+
 export NOTARY_ROOT_PASSPHRASE=$(openssl rand -base64 32)
 export NOTARY_SNAPSHOT_PASSPHRASE=$(openssl rand -base64 32)
 export NOTARY_TARGETS_PASSPHRASE=$(openssl rand -base64 32)
@@ -86,7 +88,9 @@ init_gun() {
     # Place target key inVault at a location determined by the GUN
     decryptedkey=$(notary key export -d $trustdir/ --gun $gun | sed '/:/d' | openssl ec -passin env:NOTARY_TARGETS_PASSPHRASE)
 
-    echo -n "$decryptedkey" | vault kv put -address=$vault_url -namespace=$vault_namespace "/kv/il2/notary/pipeline/targets/$rev/$gun" key=-
+    if ! (echo -n "$decryptedkey" | vault kv put -address=$vault_url -namespace=$vault_namespace "/kv/il2/notary/pipeline/targets/$rev/$gun" key=-) then
+        echo "WARNING: target key already exists for $gun, skipping"
+    fi
 }
 
 import_root_key
