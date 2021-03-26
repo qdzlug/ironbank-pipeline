@@ -61,7 +61,9 @@ def main():
             f'{os.environ["ARTIFACT_DIR"]}/vat_api_findings.json', "r"
         ) as api_findings:
             api = json.load(api_findings)
-        with open(f'{os.environ["ARTIFACT_DIR"]}/vat_findings.json', "r") as db_findings:
+        with open(
+            f'{os.environ["ARTIFACT_DIR"]}/vat_findings.json', "r"
+        ) as db_findings:
             db = json.load(db_findings)
     except FileNotFoundError:
         print("File does not currently exist.")
