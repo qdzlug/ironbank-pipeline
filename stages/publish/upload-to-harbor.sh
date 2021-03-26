@@ -18,14 +18,14 @@ trust_dir="trust-dir-target/"
 
 echo "Logging into vault"
 # Grab the vault token
-vault_token=$(jq --null-input --arg password ${VAULT_STAGING_PASSWORD} '{"password":$password}' | \
-   curl --silent \
-        --fail \
-        --data @- \
-        --header "X-Vault-Request: true" \
-        --header "X-Vault-Namespace: ${VAULT_NAMESPACE}/" \
-        --request PUT "${VAULT_ADDR}/v1/auth/userpass/login/${VAULT_STAGING_USERNAME}" | \
-   jq --raw-output '.auth.client_token')
+vault_token=$(jq --null-input --arg password ${VAULT_STAGING_PASSWORD} '{"password":$password}' |
+  curl --silent \
+    --fail \
+    --data @- \
+    --header "X-Vault-Request: true" \
+    --header "X-Vault-Namespace: ${VAULT_NAMESPACE}/" \
+    --request PUT "${VAULT_ADDR}/v1/auth/userpass/login/${VAULT_STAGING_USERNAME}" |
+  jq --raw-output '.auth.client_token')
 
 vault_addr_full="${VAULT_ADDR}/v1/kv/il2/notary/pipeline/data/targets/${NOTARY_TARGETS_CURRENT_REVISION}/${gun}"
 echo "Grabbing key from"
@@ -34,21 +34,19 @@ echo "    ${vault_addr_full}"
 # Grab the target key and import into notary
 echo "Importing key into notary"
 curl --silent \
-     --fail \
-     --header "X-Vault-Request: true" \
-     --header "X-Vault-Token: ${vault_token}" \
-     --header "X-Vault-Namespace: ${VAULT_NAMESPACE}/" \
-     --request GET "${vault_addr_full}" | \
-     jq --raw-output '.data.data.key' | \
-     notary --trustDir "${trust_dir}" key import --role "targets" --gun "${gun}" /dev/stdin
+  --fail \
+  --header "X-Vault-Request: true" \
+  --header "X-Vault-Token: ${vault_token}" \
+  --header "X-Vault-Namespace: ${VAULT_NAMESPACE}/" \
+  --request GET "${vault_addr_full}" |
+  jq --raw-output '.data.data.key' |
+  notary --trustDir "${trust_dir}" key import --role "targets" --gun "${gun}" /dev/stdin
 
 echo "Key imported"
 
 if [ -z "${DOCKER_AUTH_CONFIG_TEST:-}" ]; then
-  echo "Prod config"
   echo "${DOCKER_AUTH_CONFIG_PROD}" | base64 --decode >dest_auth.json
 else
-  echo "Test config"
   echo "${DOCKER_AUTH_CONFIG_TEST}" | base64 --decode >dest_auth.json
 fi
 
@@ -57,38 +55,36 @@ echo "Read the tags"
 tags_file="${ARTIFACT_STORAGE}/preflight/tags.txt"
 test -f "${tags_file}"
 
-echo "Testing the dest auth"
-test -f dest_auth.json
-echo "dest auth exists"
-
 while IFS= read -r tag; do
 
+  # TODO Remove to
   echo "Checking target keys"
   notary --server "${NOTARY_URL}" --trustDir "${trust_dir}" list --roles targets "${gun}"
 
   echo "Manually checking ${trust_dir}"
   ls -R "${trust_dir}"
+  # TODO here
 
   echo "Pulling ${tag}_manifest.json"
   skopeo inspect --authfile staging_auth.json --raw "docker://${staging_image}@${IMAGE_PODMAN_SHA}" >"${tag}_manifest.json"
 
   # "Be defensive and test it" ~Blake Burkhart
-  echo "${IMAGE_PODMAN_SHA} ${tag}_manifest.json" | sha256sum --check
+  echo "${IMAGE_PODMAN_SHA#sha256:} ${tag}_manifest.json" | sha256sum --check
 
-
+  # TODO remove dis
   cat "${tag}_manifest.json" | jq
 
   # Sign the image with the delegation key
   echo
-  echo "Signing with notary"
+  echo "Signing ${tag}_manifest.json with notary"
   notary --verbose --server "${NOTARY_URL}" --trustDir ${trust_dir} add --publish "${gun}" "${tag}" "${tag}_manifest.json"
 
   echo "Copy from staging to destination"
   echo skopeo copy --src-authfile staging_auth.json --dest-authfile dest_auth.json "docker://${staging_image}@${IMAGE_PODMAN_SHA}" "docker://${gun}:${tag}"
   skopeo copy --src-authfile staging_auth.json \
-              --dest-authfile dest_auth.json \
-              "docker://${staging_image}@${IMAGE_PODMAN_SHA}" \
-              "docker://${gun}:${tag}"
+    --dest-authfile dest_auth.json \
+    "docker://${staging_image}@${IMAGE_PODMAN_SHA}" \
+    "docker://${gun}:${tag}"
 
   echo "======"
 
