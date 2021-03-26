@@ -15,7 +15,7 @@ set -euo pipefail
 export VAULT_ADDR="${VAULT_ADDR:-https://cubbyhole.staging.dso.mil}"
 export VAULT_NAMESPACE="${VAULT_NAMESPACE:-il2-ironbank-ns}"
 
-rev="${NOTARY_DELEGATION_CURRENT_REVISION:-1}"
+rev="${NOTARY_DELEGATION_CURRENT_REVISION:-0}"
 #TODO update this before putting into production to `delegation`
 delegationkeyloc="delegation-test/$rev"
 delegationdir=$(mktemp -d)
@@ -72,7 +72,7 @@ echo
 
 read confirm
 if [ "$confirm" = "y" ]; then
-    cat "$delegationdir/delegation.key" | vault kv put "/kv/il2/notary/admin/$delegationkeyloc" delegationkey=-
+    cat "$delegationdir/delegation.key" | vault kv put "/kv/il2/notary/pipeline/$delegationkeyloc" delegationkey=-
 else
     echo
     echo "'y' not supplied, aborting"

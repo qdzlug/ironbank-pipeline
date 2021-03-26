@@ -24,9 +24,10 @@ export VAULT_NAMESPACE="${VAULT_NAMESPACE:-il2-ironbank-ns}"
 notary_url="${NOTARY_URL:-https://notary.dso.mil}"
 
 # This designates the current revision of our targets keys.  This should be iterated upon target key rotation.  This should also be updated in the pipeline.
-rev="${NOTARY_TARGETS_CURRENT_REVISION:-0}"
+targetrev="${NOTARY_TARGETS_CURRENT_REVISION:-0}"
+rootrev="${NOTARY_ROOT_CURRENT_REVISION:-0}"
 #TODO update this before putting into production to `rootkey`
-rootkeyloc="rootkey-test/$rev"
+rootkeyloc="rootkey-test/$rootrev"
 
 trustdir=$(mktemp -d)
 
@@ -92,7 +93,7 @@ init_gun() {
     # Place target key inVault at a location determined by the GUN
     decryptedkey=$(notary key export -d "$trustdir/" --gun "$gun" | sed '/:/d' | openssl ec -passin env:NOTARY_TARGETS_PASSPHRASE)
 
-    echo -n "$decryptedkey" | vault kv put "/kv/il2/notary/admin/targets/$rev/$gun" key=-
+    echo -n "$decryptedkey" | vault kv put "/kv/il2/notary/admin/targets/$targetrev/$gun" key=-
 }
 
 is_installed openssl
