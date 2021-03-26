@@ -1,7 +1,6 @@
 trufflehog:
   extends: .preflight
-  dependencies:
-    - []
+  dependencies: []
   image:
     name: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog:2.2.1
     entrypoint: [""]
