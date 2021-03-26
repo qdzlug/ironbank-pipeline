@@ -6,6 +6,9 @@
   dependencies:
     - load scripts
 
+include:
+  - local: stages/preflight/base.yaml
+
 # TODO: Possibly check for deployment files?
 folder structure:
   extends: .preflight
