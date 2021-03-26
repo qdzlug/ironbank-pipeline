@@ -242,7 +242,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
             logging.info(
                 "pipeline-test-project detected. Allowing the pipeline to continue"
             )
-            sys.exit(0)
+            sys.exit(3)
 
         if os.environ["CI_COMMIT_BRANCH"] == "master":
             pipeline_repo_dir = os.environ["PIPELINE_REPO_DIR"]

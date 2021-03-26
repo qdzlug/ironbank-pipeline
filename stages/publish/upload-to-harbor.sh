@@ -18,7 +18,7 @@ trust_dir="trust-dir-target/"
 
 echo "Logging into vault"
 # Grab the vault token
-vault_token=$(jq --null-input --arg password ${VAULT_STAGING_PASSWORD} '{"password":$password}' |
+vault_token=$(jq --null-input --arg password "${VAULT_STAGING_PASSWORD}" '{"password":$password}' |
   curl --silent \
     --fail \
     --data @- \
@@ -30,8 +30,8 @@ vault_token=$(jq --null-input --arg password ${VAULT_STAGING_PASSWORD} '{"passwo
 echo "Importing key into notary"
 
 for ((rev = "${NOTARY_TARGETS_CURRENT_REVISION}"; rev >= 0; rev -= 1)); do
+
   vault_addr_full="${VAULT_ADDR}/v1/kv/il2/notary/pipeline/data/targets/${rev}/${gun}"
-  echo "Try: ${vault_addr_full}"
 
   # Grab the target key and import into notary
   targets_key_data=$(curl --silent \
@@ -40,10 +40,12 @@ for ((rev = "${NOTARY_TARGETS_CURRENT_REVISION}"; rev >= 0; rev -= 1)); do
     --header "X-Vault-Namespace: ${VAULT_NAMESPACE}/" \
     --request GET "${vault_addr_full}")
 
+  echo "${targets_key_data}"
+
   targets_key=$(echo "${targets_key_data}" | jq --raw-output '.data.data.key')
 
   if [ "${targets_key:-}" != "null" ]; then
-    echo "Found key"
+    echo "Found key: ${vault_addr_full}"
     break
   fi
 
