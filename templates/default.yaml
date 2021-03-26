@@ -23,5 +23,4 @@ include:
   #
   # - local: stages/vat/base.yaml
 
-  - local: stages/publish/harbor.yaml
-  # - local: stages/publish/base.yaml
+  - local: stages/publish/base.yaml
