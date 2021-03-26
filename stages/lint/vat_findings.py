@@ -1,6 +1,5 @@
 import json
 import os
-from os import read
 import sys
 
 
@@ -64,9 +63,8 @@ def main():
             api = json.load(api_findings)
         with open(f'{os.environ["ARTIFACT_DIR"]}/vat_findings.json', "r") as db_findings:
             db = json.load(db_findings)
-    except:
+    except FileNotFoundError:
         sys.exit(4)
-        
     api_set = get_api_findings(api)
     db_set = get_db_findings(db)
     print(f"api set length: {len(api_set)}")
