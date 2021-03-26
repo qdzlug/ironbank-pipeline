@@ -7,7 +7,7 @@
     - load scripts
 
 include:
-  - local: stages/preflight/base.yaml
+  - local: stages/preflight/trufflehog.yaml
 
 # TODO: Possibly check for deployment files?
 folder structure:
