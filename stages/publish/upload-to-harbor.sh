@@ -72,7 +72,7 @@ while IFS= read -r tag; do
   echo "${IMAGE_PODMAN_SHA#sha256:} ${tag}_manifest.json" | sha256sum --check
 
   # TODO remove dis
-  cat "${tag}_manifest.json" | jq
+  cat "${tag}_manifest.json"
 
   # Sign the image with the delegation key
   echo
