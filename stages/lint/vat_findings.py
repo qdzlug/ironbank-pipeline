@@ -1,6 +1,5 @@
 import json
 import os
-from os import read
 import sys
 
 
@@ -57,13 +56,18 @@ def check_existence(delta_api_db, delta_db_api, api_set, db_set):
 
 
 def main():
-    with open(
-        f'{os.environ["ARTIFACT_DIR"]}/vat_api_findings.json', "r"
-    ) as api_findings:
-        api = json.load(api_findings)
-    with open(f'{os.environ["ARTIFACT_DIR"]}/vat_findings.json', "r") as db_findings:
-        db = json.load(db_findings)
-
+    try:
+        with open(
+            f'{os.environ["ARTIFACT_DIR"]}/vat_api_findings.json', "r"
+        ) as api_findings:
+            api = json.load(api_findings)
+        with open(
+            f'{os.environ["ARTIFACT_DIR"]}/vat_findings.json', "r"
+        ) as db_findings:
+            db = json.load(db_findings)
+    except FileNotFoundError:
+        print("File does not currently exist.")
+        sys.exit(4)
     api_set = get_api_findings(api)
     db_set = get_db_findings(db)
     print(f"api set length: {len(api_set)}")
@@ -89,11 +93,10 @@ def main():
             "delta_api_db": list(delta_api_db),
             "delta_db_api": list(delta_db_api),
         }
-        try:
-            with open(f'{os.environ["ARTIFACT_DIR"]}/vat_diff.json', "w") as f:
-                json.dump(diff_art, f, indent=4)
-        except:
-            sys.exit(4)
+
+        with open(f'{os.environ["ARTIFACT_DIR"]}/vat_diff.json', "w") as f:
+            json.dump(diff_art, f, indent=4)
+        sys.exit(4)
 
 
 if __name__ == "__main__":
