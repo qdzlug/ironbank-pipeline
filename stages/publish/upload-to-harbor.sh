@@ -61,11 +61,12 @@ while IFS= read -r tag; do
   echo "Pulling ${tag}_manifest.json"
   skopeo inspect --authfile staging_auth.json --raw "docker://${staging_image}:${tag}" >"${tag}_manifest.json"
 
-  cat "${tag}_manifest.json"
+  cat "${tag}_manifest.json" | jq
 
   # Sign the image with the delegation key
   echo
   echo "Signing with notary"
+  ls -R $trust_dir
   notary --verbose --server "${NOTARY_URL}" --trustDir $trust_dir add --publish "$gun" "${tag}" "${tag}_manifest.json"
 
   echo "Copy from staging to destination"
