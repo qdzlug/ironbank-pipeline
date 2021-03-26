@@ -42,8 +42,8 @@ curl --silent \
      --header "X-Vault-Token: $vault_token" \
      --header "X-Vault-Namespace: $VAULT_STAGING_NAMESPACE/" \
      --request GET "$vault_addr_full" | \
-     jq --raw-output '.data.data.targetkey' | \
-     notary -d trust-dir-delegate/ key import /dev/stdin
+     jq --raw-output '.data.data.key' | \
+     notary --trustDir $trust_dir key import /dev/stdin
 
 echo "Key imported"
 
@@ -69,12 +69,13 @@ while IFS= read -r tag; do
   # Sign the image with the delegation key
   echo
   echo "Signing with notary"
-  notary -v -s "${NOTARY_URL}" -d trust-dir-delegate add -p "$gun" "${tag}" "${tag}_manifest.json"
+  notary --verbose --server "${NOTARY_URL}" --trustDir $trust_dir add --publish "$gun" "${tag}" "${tag}_manifest.json"
 
   echo "Copy from staging to destination"
-  skopeo copy --src-authfile staging_auth.json --dest-authfile dest_auth.json \
-    "docker://${staging_image}@${IMAGE_PODMAN_SHA}" \
-    "docker://${REGISTRY_URL}/${IM_NAME}:${tag}"
+  skopeo copy --src-authfile staging_auth.json \
+              --dest-authfile dest_auth.json \
+              "docker://${staging_image}@${IMAGE_PODMAN_SHA}" \
+              "docker://${REGISTRY_URL}/${IM_NAME}:${tag}"
 
   echo "======"
 
