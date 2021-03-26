@@ -19,7 +19,7 @@ trust_dir="trust-dir-target/"
 echo "Logging into vault"
 # Grab the vault token
 vault_token=$(jq --null-input --arg password ${VAULT_STAGING_PASSWORD} '{"password":$password}' | \
-   curl --silent \
+   curl --no-progress-meter \
         --data @- \
         --header "X-Vault-Request: true" \
         --header "X-Vault-Namespace: ${VAULT_NAMESPACE}/" \
@@ -32,13 +32,13 @@ echo "    ${vault_addr_full}"
 
 # Grab the target key and import into notary
 echo "Importing key into notary"
-curl --silent \
+curl --no-progress-meter \
      --header "X-Vault-Request: true" \
      --header "X-Vault-Token: ${vault_token}" \
      --header "X-Vault-Namespace: ${VAULT_NAMESPACE}/" \
      --request GET "${vault_addr_full}" | \
      jq --raw-output '.data.data.key' | \
-     notary --trustDir "${trust_dir}" key import /dev/stdin
+     notary --trustDir "${trust_dir}" key import --role "targets" --gun "${gun}" /dev/stdin
 
 echo "Key imported"
 
@@ -69,6 +69,10 @@ while IFS= read -r tag; do
 
   echo "Pulling ${tag}_manifest.json"
   skopeo inspect --authfile staging_auth.json --raw "docker://${staging_image}:${IMAGE_PODMAN_SHA}" >"${tag}_manifest.json"
+
+  # "Be defensive and test it" ~Blake Burkhart
+  echo "${IMAGE_PODMAN_SHA} ${tag}_manifest.json" | sha256sum --check
+
 
   cat "${tag}_manifest.json" | jq
 
