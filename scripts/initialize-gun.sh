@@ -32,30 +32,39 @@ script_help() {
     echo "NOTE: The GUN MUST MATCH the 'name' attirbute of the hardening_manifest.yaml for the image being initialized prefixed with the target registry url (e.g. registry1.dso.mil/<name>)"
 }
 
-if [ -z "$1" ]; then
+if [ -z "${1:-}" ]; then
     script_help
     exit 1
 fi
 
-# Install notary if not present
-if ! command -v notary; then
+# error if no notary
+if ! command -v notary > /dev/null; then
     echo
     echo "notary cli must be installed before continuing, exiting"
     exit 1
 fi
 
-if ! command -v vault; then
+# error if no vault
+if ! command -v vault > /dev/null; then
     echo
     echo "vault cli must be installed before continuing, exiting"
     exit 1
 fi
 
-if [ -z "$1" ]; then
+# Set NOTARY_AUTH if not set
+if [ -z ${NOTARY_AUTH:-} ]; then
     echo
-    echo "Please provide a GUN to initialize (i.e registry1.dso.mil/ironbank/redhat/ubi/ubi:8.3)"
-    echo "NOTE: This MUST MATCH the 'name' attirbute of the hardening_manifest.yaml for the image being initialized."
-    exit 1
+    echo "Enter registry1.dso.mil username: "
+    read -r -s username
+    echo "Enter registry1.dso.mil password: "
+    read -r -s password
+    export NOTARY_AUTH=$(echo -n "$username:$password" | base64)
 fi
+
+clean() {
+    # Clean up trustdir
+    rm -rf $trustdir
+}
 
 import_root_key() {
     echo
@@ -65,7 +74,7 @@ import_root_key() {
     echo
 
     # Login to Vault
-    vault login -method=userpass -namespace=$vault_namespace -address=$vault_url username=notary-admin
+    export VAULT_TOKEN=$(vault login -token-only -method=userpass -namespace=$vault_namespace -address=$vault_url username=notary-admin)
 
     # Retrieve root key
     vault kv get -field=rootkey-test2 -address=$vault_url -namespace=$vault_namespace "/kv/il2/notary/admin/$rootkeyloc" | notary -v -s $notary_url -d $trustdir key import /dev/stdin --role=root
@@ -121,5 +130,4 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Clean up root key
-rm -rf $trustdir
+trap clean EXIT
