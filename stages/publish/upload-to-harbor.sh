@@ -19,7 +19,8 @@ trust_dir="trust-dir-target/"
 echo "Logging into vault"
 # Grab the vault token
 vault_token=$(jq --null-input --arg password ${VAULT_STAGING_PASSWORD} '{"password":$password}' | \
-   curl --no-progress-meter \
+   curl --silent \
+        --fail \
         --data @- \
         --header "X-Vault-Request: true" \
         --header "X-Vault-Namespace: ${VAULT_NAMESPACE}/" \
@@ -32,7 +33,8 @@ echo "    ${vault_addr_full}"
 
 # Grab the target key and import into notary
 echo "Importing key into notary"
-curl --no-progress-meter \
+curl --silent \
+     --fail \
      --header "X-Vault-Request: true" \
      --header "X-Vault-Token: ${vault_token}" \
      --header "X-Vault-Namespace: ${VAULT_NAMESPACE}/" \
