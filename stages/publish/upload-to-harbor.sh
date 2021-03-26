@@ -6,6 +6,7 @@ if echo "${CI_PROJECT_DIR}" | grep -q -F 'pipeline-test-project' && [ -z "${DOCK
   exit 1
 fi
 
+export NOTARY_TARGETS_PASSPHRASE=$(openssl rand -base64 32)
 echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
 
 # TODO: Confirm IM_NAME is hardening manifest
@@ -19,7 +20,7 @@ vault_token=$(jq --null-input --arg password $VAULT_STAGING_PASSWORD '{"password
    curl --silent \
         --data @- \
         --header "X-Vault-Request: true" \
-        --header "X-Vault-Namespace: $VAULT_STAGING_NAMESPACE/" \
+        --header "X-Vault-Namespace: $VAULT_NAMESPACE/" \
         --request PUT "$VAULT_ADDR/v1/auth/userpass/login/$VAULT_STAGING_USERNAME" | \
    jq --raw-output '.auth.client_token')
 
@@ -32,10 +33,10 @@ echo "Importing key into notary"
 curl --silent \
      --header "X-Vault-Request: true" \
      --header "X-Vault-Token: $vault_token" \
-     --header "X-Vault-Namespace: $VAULT_STAGING_NAMESPACE/" \
+     --header "X-Vault-Namespace: $VAULT_NAMESPACE/" \
      --request GET "$vault_addr_full" | \
      jq --raw-output '.data.data.key' | \
-     notary --trustDir $trust_dir key import /dev/stdin
+     notary --trustDir "$trust_dir" key import /dev/stdin
 
 echo "Key imported"
 
@@ -59,13 +60,13 @@ echo "dest auth exists"
 while IFS= read -r tag; do
 
   echo "Checking target keys"
-  notary --trustDir $trust_dir list --roles targets $gun
+  notary --server "${NOTARY_URL}" --trustDir "$trust_dir" list --roles targets "$gun"
 
   echo "Manually checking $trust_dir"
   ls -R "$trust_dir"
 
   echo "Pulling ${tag}_manifest.json"
-  skopeo inspect --authfile staging_auth.json --raw "docker://${staging_image}:${tag}" >"${tag}_manifest.json"
+  skopeo inspect --authfile staging_auth.json --raw "docker://${staging_image}:${IMAGE_PODMAN_SHA}" >"${tag}_manifest.json"
 
   cat "${tag}_manifest.json" | jq
 
