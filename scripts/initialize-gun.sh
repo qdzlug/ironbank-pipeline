@@ -38,7 +38,7 @@ if [ -z "${1:-}" ]; then
 fi
 
 # error if no notary
-if ! command -v notary /dev/null; then
+if ! command -v notary > /dev/null; then
     echo
     echo "notary cli must be installed before continuing, exiting"
     exit 1
