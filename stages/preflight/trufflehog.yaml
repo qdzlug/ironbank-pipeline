@@ -5,14 +5,16 @@ trufflehog:
     name: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog:2.2.1
     entrypoint: [""]
   script:
+    - git remote -v
+    - git fetch -v origin development
     # Could add exceptions using --exclude_paths <exclusion file>
-    - WARNINGS=$(trufflehog --json --regex --entropy False --branch $CI_COMMIT_BRANCH ./)
+    - WARNINGS=$(trufflehog --json --regex --entropy False --branch "${CI_COMMIT_BRANCH}" ./)
     - SUCCESS=$?
     - |
       if [ $SUCCESS -eq 0 ]; then
         exit 0
       fi
-    - 'echo "${WARNINGS}" | jq -C "{reason,branch,commit,commitHash,date,path}"" | tee trufflehog.json'
+    - 'echo "${WARNINGS}" | jq -C "{reason,branch,commit,commitHash,date,path}" | tee trufflehog.json'
     - echo "FAILED Trufflehog scan. Exiting"
     - exit "${SUCCESS}"
   artifacts:
