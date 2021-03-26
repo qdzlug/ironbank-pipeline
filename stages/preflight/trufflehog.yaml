@@ -1,0 +1,24 @@
+trufflehog:
+  extends: .preflight
+  dependencies:
+    - []
+  image:
+    name: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog:2.2.1
+    entrypoint: [""]
+  script:
+    # Could add exceptions using --exclude_paths <exclusion file>
+    - WARNINGS=$(trufflehog --json --regex --entropy False --branch $CI_COMMIT_BRANCH ./)
+    - SUCCESS=$?
+    - |
+      if [ $SUCCESS -eq 0 ]; then
+        exit 0
+      fi
+    - 'echo "${WARNINGS}" | jq -C "{reason,branch,commit,commitHash,date,path}"" | tee trufflehog.json'
+    - echo "FAILED Trufflehog scan. Exiting"
+    - exit "${SUCCESS}"
+  artifacts:
+    name: $CI_PROJECT_NAME-$CI_JOB_NAME-$CI_PIPELINE_ID
+    when: on_failure
+    expire_in: 1 week
+    paths:
+      - trufflehog.json
