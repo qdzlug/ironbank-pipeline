@@ -58,6 +58,12 @@ echo "dest auth exists"
 
 while IFS= read -r tag; do
 
+  echo "Checking target keys"
+  notary --trustDir $trust_dir list --roles targets $gun
+
+  echo "Manually checking $trust_dir"
+  ls "$trust_dir/private/"
+
   echo "Pulling ${tag}_manifest.json"
   skopeo inspect --authfile staging_auth.json --raw "docker://${staging_image}:${tag}" >"${tag}_manifest.json"
 
