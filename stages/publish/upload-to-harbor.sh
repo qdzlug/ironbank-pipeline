@@ -11,15 +11,7 @@ echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
 # TODO: Confirm IM_NAME is hardening manifest
 staging_image="${STAGING_REGISTRY_URL}/${IM_NAME}"
 gun="${REGISTRY_URL}/${IM_NAME}"
-
-# TODO: Use this instead
 trust_dir="trust-dir-target/"
-
-# Grab the delegation key from vault
-# vault login -no-print=true -method=userpass username="${VAULT_STAGING_USERNAME}" password="${VAULT_STAGING_PASSWORD}"
-
-# TODO Make dynamic based off naming scheme
-# vault kv get -field=delegation.key kv/il2/notary/delegation1 >delegation.key
 
 echo "Logging into vault"
 # Grab the vault token
@@ -48,9 +40,11 @@ curl --silent \
 echo "Key imported"
 
 if [ -z "${DOCKER_AUTH_CONFIG_TEST:-}" ]; then
-  echo "${DOCKER_AUTH_CONFIG_PROD}" | base64 -d >dest_auth.json
+  echo "Prod config"
+  echo "${DOCKER_AUTH_CONFIG_PROD}" | base64 --decode >dest_auth.json
 else
-  echo "${DOCKER_AUTH_CONFIG_TEST}" | base64 -d >dest_auth.json
+  echo "Test config"
+  echo "${DOCKER_AUTH_CONFIG_TEST}" | base64 --decode >dest_auth.json
 fi
 
 # Copy from staging to prod with each tag listed in descriptions.yaml
@@ -58,6 +52,9 @@ echo "Read the tags"
 tags_file="${ARTIFACT_STORAGE}/preflight/tags.txt"
 test -f "$tags_file"
 
+echo "Testing the dest auth"
+test -f dest_auth.json
+echo "dest auth exists"
 
 while IFS= read -r tag; do
 
@@ -72,10 +69,11 @@ while IFS= read -r tag; do
   notary --verbose --server "${NOTARY_URL}" --trustDir $trust_dir add --publish "$gun" "${tag}" "${tag}_manifest.json"
 
   echo "Copy from staging to destination"
+  echo skopeo copy --src-authfile staging_auth.json --dest-authfile dest_auth.json "docker://${staging_image}@${IMAGE_PODMAN_SHA}" "docker://${gun}:${tag}"
   skopeo copy --src-authfile staging_auth.json \
               --dest-authfile dest_auth.json \
               "docker://${staging_image}@${IMAGE_PODMAN_SHA}" \
-              "docker://${REGISTRY_URL}/${IM_NAME}:${tag}"
+              "docker://${gun}:${tag}"
 
   echo "======"
 
