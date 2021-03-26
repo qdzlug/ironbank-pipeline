@@ -27,21 +27,34 @@ vault_token=$(jq --null-input --arg password ${VAULT_STAGING_PASSWORD} '{"passwo
     --request PUT "${VAULT_ADDR}/v1/auth/userpass/login/${VAULT_STAGING_USERNAME}" |
   jq --raw-output '.auth.client_token')
 
-vault_addr_full="${VAULT_ADDR}/v1/kv/il2/notary/pipeline/data/targets/${NOTARY_TARGETS_CURRENT_REVISION}/${gun}"
-echo "Grabbing key from"
-echo "    ${vault_addr_full}"
-
-# Grab the target key and import into notary
 echo "Importing key into notary"
-curl --silent \
-  --fail \
-  --header "X-Vault-Request: true" \
-  --header "X-Vault-Token: ${vault_token}" \
-  --header "X-Vault-Namespace: ${VAULT_NAMESPACE}/" \
-  --request GET "${vault_addr_full}" |
-  jq --raw-output '.data.data.key' |
-  notary --trustDir "${trust_dir}" key import --role "targets" --gun "${gun}" /dev/stdin
 
+for ((rev = "${NOTARY_TARGETS_CURRENT_REVISION}"; rev >= 0; rev -= 1)); do
+  vault_addr_full="${VAULT_ADDR}/v1/kv/il2/notary/pipeline/data/targets/${rev}/${gun}"
+  echo "Try: ${vault_addr_full}"
+
+  # Grab the target key and import into notary
+  targets_key_data=$(curl --silent \
+    --header "X-Vault-Request: true" \
+    --header "X-Vault-Token: ${vault_token}" \
+    --header "X-Vault-Namespace: ${VAULT_NAMESPACE}/" \
+    --request GET "${vault_addr_full}")
+
+  targets_key=$(echo "${targets_key_data}" | jq --raw-output '.data.data.key')
+
+  if [ "${targets_key:-}" != "null" ]; then
+    echo "Found key"
+    break
+  fi
+
+done
+
+if [ "${targets_key:-}" = "null" ]; then
+  echo "Could not find targets key for ${gun} - Please speak to an administrator"
+  exit 1
+fi
+
+echo -n "${targets_key}" | notary --trustDir "${trust_dir}" key import --role "targets" --gun "${gun}" /dev/stdin
 echo "Key imported"
 
 if [ -z "${DOCKER_AUTH_CONFIG_TEST:-}" ]; then
