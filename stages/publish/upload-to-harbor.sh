@@ -70,7 +70,7 @@ while IFS= read -r tag; do
   ls -R "${trust_dir}"
 
   echo "Pulling ${tag}_manifest.json"
-  skopeo inspect --authfile staging_auth.json --raw "docker://${staging_image}:${IMAGE_PODMAN_SHA}" >"${tag}_manifest.json"
+  skopeo inspect --authfile staging_auth.json --raw "docker://${staging_image}@${IMAGE_PODMAN_SHA}" >"${tag}_manifest.json"
 
   # "Be defensive and test it" ~Blake Burkhart
   echo "${IMAGE_PODMAN_SHA} ${tag}_manifest.json" | sha256sum --check
