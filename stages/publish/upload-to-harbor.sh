@@ -29,9 +29,10 @@ vault_token=$(jq --null-input --arg password "${VAULT_STAGING_PASSWORD}" '{"pass
 
 echo "Importing key into notary"
 
-for ((rev = "${NOTARY_TARGETS_CURRENT_REVISION}"; rev >= 0; rev -= 1)); do
+for ((rev = "${NOTARY_DELEGATION_CURRENT_REVISION}"; rev >= 0; rev -= 1)); do
 
-  vault_addr_full="${VAULT_ADDR}/v1/kv/il2/notary/pipeline/data/targets/${rev}/${gun}"
+  # TODO: need delegation
+  vault_addr_full="${VAULT_ADDR}/v1/kv/il2/notary/pipeline/data/delegation-test/${rev}"
 
   # Grab the target key and import into notary
   targets_key_data=$(curl --silent \
@@ -42,7 +43,7 @@ for ((rev = "${NOTARY_TARGETS_CURRENT_REVISION}"; rev >= 0; rev -= 1)); do
 
   echo "${targets_key_data}"
 
-  targets_key=$(echo "${targets_key_data}" | jq --raw-output '.data.data.key')
+  targets_key=$(echo "${targets_key_data}" | jq --raw-output '.data.data.delegationkey')
 
   if [ "${targets_key:-}" != "null" ]; then
     echo "Found key: ${vault_addr_full}"
@@ -56,7 +57,8 @@ if [ "${targets_key:-}" = "null" ]; then
   exit 1
 fi
 
-echo -n "${targets_key}" | notary --trustDir "${trust_dir}" key import --role "targets" --gun "${gun}" /dev/stdin
+# TODO: delegation
+echo -n "${targets_key}" | notary --trustDir "${trust_dir}" key import --role "delegation" --gun "${gun}" /dev/stdin
 echo "Key imported"
 
 if [ -z "${DOCKER_AUTH_CONFIG_TEST:-}" ]; then
@@ -80,7 +82,9 @@ while IFS= read -r tag; do
   # Sign the image with the delegation key
   echo
   echo "Signing ${tag}_manifest.json with notary"
-  notary --verbose --server "${NOTARY_URL}" --trustDir ${trust_dir} add --publish "${gun}" "${tag}" "${tag}_manifest.json"
+
+  # TODO: Need a role?
+  notary --verbose --server "${NOTARY_URL}" --trustDir ${trust_dir} add --roles targets/releases --publish "${gun}" "${tag}" "${tag}_manifest.json"
 
   echo "Copy from staging to destination"
   echo skopeo copy --src-authfile staging_auth.json --dest-authfile dest_auth.json "docker://${staging_image}@${IMAGE_PODMAN_SHA}" "docker://${gun}:${tag}"
