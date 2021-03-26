@@ -9,8 +9,8 @@
 
 set -ue
 
-vault_url='https://cubbyhole.staging.dso.mil'
-vault_namespace='il2-ironbank-ns'
+export VAULT_ADDR="${VAULT_ADDR:-https://cubbyhole.staging.dso.mil}"
+export VAULT_NAMESPACE="${VAULT_NAMESPACE:-il2-ironbank-ns}"
 
 rootkeyloc="rootkey"
 
@@ -37,17 +37,22 @@ if ! command -v vault; then
 fi
 
 # Generate root key
-mkdir root
+rootdir=$(mktemp -d)
+
+clean() {
+    rm -rf -- "$rootdir"
+}
+
 echo
 echo "====================="
 echo " Generating root key "
 echo "====================="
 echo
 
-openssl genrsa -out root/root.key 4096
+openssl genrsa -out "$rootdir/root.key" 4096
 
 # Generate CSR for certificate that will function as CA
-openssl req -new -sha256 -key root/root.key -out root/root.csr -subj "/C=US/ST=Colorado/L=Colorado Springs/O=Platform1/OU=Iron Bank/CN=ironbank.dso.mil/emailAddress=ironbank@dso.mil"
+openssl req -new -sha256 -key "$rootdir/root.key" -out "$rootdir/root.csr" -subj "/C=US/ST=Colorado/L=Colorado Springs/O=Platform1/OU=Iron Bank/CN=ironbank.dso.mil/emailAddress=ironbank@dso.mil"
 
 # Add root key to Vault
 echo
@@ -56,14 +61,14 @@ echo " Adding root key to Vault "
 echo "=========================="
 echo
 echo "Enter the initial notary-admin password"
-vault login -method=userpass -namespace=$vault_namespace -address=$vault_url username=notary-admin
+vault login -method=userpass username=notary-admin
 
 # Change notary-admin password.  Write it down first.
 echo
 echo "Change notary-admin user password: "
 echo
-read -s adminpass
-vault write -address=$vault_url -namespace=$vault_namespace auth/userpass/users/notary-admin/password password=$adminpass
+read -r -s adminpass
+vault write auth/userpass/users/notary-admin/password password="$adminpass"
 
 # Add root key to Vault
 echo
@@ -72,13 +77,12 @@ echo
 
 read confirm
 if [ "$confirm" = "y" ]; then
-    cat root/root.key | vault kv put -address=$vault_url -namespace=$vault_namespace /kv/il2/notary/admin/$rootkeyloc rootkey=-
+    cat "$rootdir/root.key" | vault kv put "/kv/il2/notary/admin/$rootkeyloc" rootkey=-
 else
     echo
     echo "'y' not supplied, aborting"
-    rm -rf root/
     exit 0
 fi
 
-# Destroy root key
-rm -rf root/
+# Clean
+trap clean EXIT
