@@ -7,41 +7,33 @@
 # user.
 ###
 
-set -ue
+set -euo pipefail
 
+#TODO change the default VAULT_ADDR when we have a prod endpoint
 export VAULT_ADDR="${VAULT_ADDR:-https://cubbyhole.staging.dso.mil}"
 export VAULT_NAMESPACE="${VAULT_NAMESPACE:-il2-ironbank-ns}"
 
-rootkeyloc="rootkey"
-
-# Install notary if not present
-if ! command -v notary; then
-    echo
-    echo "notary cli must be installed"
-    echo
-    exit 1
-fi
-
-if ! command -v openssl; then
-    echo
-    echo "openssl must be installed"
-    echo
-    exit 1
-fi
-
-if ! command -v vault; then
-    echo
-    echo "vault cli must be installed"
-    echo
-    exit 1
-fi
-
-# Generate root key
+#TODO update this before putting into production to `rootkey`
+rootkeyloc="rootkey-test2"
 rootdir=$(mktemp -d)
+
+is_installed() {
+    # Install notary if not present
+    if ! command -v "${1}"; then
+        echo
+        echo "${1} must be installed before continuing, exiting"
+        echo
+        exit 1
+    fi
+}
 
 clean() {
     rm -rf -- "$rootdir"
 }
+
+is_installed openssl
+is_installed vault
+is_installed notary
 
 echo
 echo "====================="
@@ -61,7 +53,7 @@ echo " Adding root key to Vault "
 echo "=========================="
 echo
 echo "Enter the initial notary-admin password"
-vault login -method=userpass username=notary-admin
+export VAULT_TOKEN=$(vault login -token-only -method=userpass username=notary-admin)
 
 # Change notary-admin password.  Write it down first.
 echo
