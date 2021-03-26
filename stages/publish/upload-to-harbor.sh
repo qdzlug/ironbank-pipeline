@@ -51,28 +51,16 @@ else
 fi
 
 # Copy from staging to prod with each tag listed in descriptions.yaml
-echo "Read the tags"
 tags_file="${ARTIFACT_STORAGE}/preflight/tags.txt"
 test -f "${tags_file}"
 
 while IFS= read -r tag; do
-
-  # TODO Remove to
-  echo "Checking target keys"
-  notary --server "${NOTARY_URL}" --trustDir "${trust_dir}" list --roles targets "${gun}"
-
-  echo "Manually checking ${trust_dir}"
-  ls -R "${trust_dir}"
-  # TODO here
 
   echo "Pulling ${tag}_manifest.json"
   skopeo inspect --authfile staging_auth.json --raw "docker://${staging_image}@${IMAGE_PODMAN_SHA}" >"${tag}_manifest.json"
 
   # "Be defensive and test it" ~Blake Burkhart
   echo "${IMAGE_PODMAN_SHA#sha256:} ${tag}_manifest.json" | sha256sum --check
-
-  # TODO remove dis
-  cat "${tag}_manifest.json"
 
   # Sign the image with the delegation key
   echo
