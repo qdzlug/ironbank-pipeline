@@ -26,7 +26,7 @@ notary_url="${NOTARY_URL:-https://notary.dso.mil}"
 # This designates the current revision of our targets keys.  This should be iterated upon target key rotation.  This should also be updated in the pipeline.
 rev="${NOTARY_TARGETS_CURRENT_REVISION:-0}"
 #TODO update this before putting into production to `rootkey`
-rootkeyloc=rootkey-test2
+rootkeyloc="rootkey-test/$rev"
 
 trustdir=$(mktemp -d)
 
@@ -66,7 +66,7 @@ import_root_key() {
     export VAULT_TOKEN=$(vault login -token-only -method=userpass username=notary-admin)
 
     # Retrieve root key
-    vault kv get -field=rootkey-test2 "/kv/il2/notary/admin/$rootkeyloc" | notary -v -s "$notary_url" -d "$trustdir" key import /dev/stdin --role=root
+    vault kv get -field=rootkey "/kv/il2/notary/admin/$rootkeyloc" | notary -v -s "$notary_url" -d "$trustdir" key import /dev/stdin --role=root
 }
 
 init_gun() {
@@ -83,6 +83,8 @@ init_gun() {
         return
     fi
 
+    # Add delegation key. `delegation.crt` is already on-disk
+    notary delegation add -s "$notary_url" -p -d "$trustdir" "$gun" targets/releases delegation.crt --all-paths
 
     # Rotate snapshot keys to be managed by notary server
     notary key rotate "$gun" snapshot -r -d "$trustdir" -s "$notary_url"
@@ -90,7 +92,7 @@ init_gun() {
     # Place target key inVault at a location determined by the GUN
     decryptedkey=$(notary key export -d "$trustdir/" --gun "$gun" | sed '/:/d' | openssl ec -passin env:NOTARY_TARGETS_PASSPHRASE)
 
-    echo -n "$decryptedkey" | vault kv put "/kv/il2/notary/pipeline/targets/$rev/$gun" key=-
+    echo -n "$decryptedkey" | vault kv put "/kv/il2/notary/admin/targets/$rev/$gun" key=-
 }
 
 is_installed openssl

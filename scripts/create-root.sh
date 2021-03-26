@@ -13,8 +13,9 @@ set -euo pipefail
 export VAULT_ADDR="${VAULT_ADDR:-https://cubbyhole.staging.dso.mil}"
 export VAULT_NAMESPACE="${VAULT_NAMESPACE:-il2-ironbank-ns}"
 
+rev="${NOTARY_ROOT_CURRENT_REVISION:-0}"
 #TODO update this before putting into production to `rootkey`
-rootkeyloc="rootkey-test2"
+rootkeyloc="rootkey-test/$rev"
 rootdir=$(mktemp -d)
 
 is_installed() {
@@ -42,9 +43,6 @@ echo "====================="
 echo
 
 openssl genrsa -out "$rootdir/root.key" 4096
-
-# Generate CSR for certificate that will function as CA
-openssl req -new -sha256 -key "$rootdir/root.key" -out "$rootdir/root.csr" -subj "/C=US/ST=Colorado/L=Colorado Springs/O=Platform1/OU=Iron Bank/CN=ironbank.dso.mil/emailAddress=ironbank@dso.mil"
 
 # Add root key to Vault
 echo
