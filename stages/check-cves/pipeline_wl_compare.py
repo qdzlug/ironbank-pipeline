@@ -239,7 +239,9 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
 
         # TODO: Remove?
         if "pipeline-test-project" in os.environ["CI_PROJECT_DIR"]:
-            logging.info("pipeline-test-project detected. Allowing the pipeline to continue")
+            logging.info(
+                "pipeline-test-project detected. Allowing the pipeline to continue"
+            )
             sys.exit(0)
 
         if os.environ["CI_COMMIT_BRANCH"] == "master":
