@@ -16,6 +16,7 @@ export NOTARY_ROOT_PASSPHRASE=$(openssl rand -base64 32)
 export NOTARY_SNAPSHOT_PASSPHRASE=$(openssl rand -base64 32)
 export NOTARY_TARGETS_PASSPHRASE=$(openssl rand -base64 32)
 
+#TODO Update VAULT_ADDR default value when we have a prod endpoint
 # Vault environment
 export VAULT_ADDR="${VAULT_ADDR:-https://cubbyhole.staging.dso.mil}"
 export VAULT_NAMESPACE="${VAULT_NAMESPACE:-il2-ironbank-ns}"
@@ -24,6 +25,7 @@ notary_url="${NOTARY_URL:-https://notary.dso.mil}"
 
 # This designates the current revision of our targets keys.  This should be iterated upon target key rotation.  This should also be updated in the pipeline.
 rev="${NOTARY_TARGETS_CURRENT_REVISION:-0}"
+#TODO update this before putting into production to `rootkey`
 rootkeyloc=rootkey-test2
 
 trustdir=$(mktemp -d)
@@ -41,8 +43,7 @@ if [ -z "${1:-}" ]; then
 fi
 
 is_installed() {
-    # error if no notary
-    if ! command -v ${1} > /dev/null; then
+    if ! command -v "${1}" > /dev/null; then
         echo
         echo "${1} must be installed before continuing, exiting"
         exit 1
@@ -77,7 +78,7 @@ init_gun() {
     echo
 
     # Initialize GUN with root key
-    if ! (notary init "$gun" -p -d "$trustdir" -s "$notary_url") then
+    if ! notary init "$gun" -p -d "$trustdir" -s "$notary_url"; then
         echo "WARNING: target key already exists for $gun, skipping"
         return
     fi
