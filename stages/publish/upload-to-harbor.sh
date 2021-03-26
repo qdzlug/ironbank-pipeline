@@ -62,7 +62,7 @@ while IFS= read -r tag; do
   notary --trustDir $trust_dir list --roles targets $gun
 
   echo "Manually checking $trust_dir"
-  ls "$trust_dir/private/"
+  ls -R "$trust_dir"
 
   echo "Pulling ${tag}_manifest.json"
   skopeo inspect --authfile staging_auth.json --raw "docker://${staging_image}:${tag}" >"${tag}_manifest.json"
@@ -72,7 +72,6 @@ while IFS= read -r tag; do
   # Sign the image with the delegation key
   echo
   echo "Signing with notary"
-  ls -R $trust_dir
   notary --verbose --server "${NOTARY_URL}" --trustDir $trust_dir add --publish "$gun" "${tag}" "${tag}_manifest.json"
 
   echo "Copy from staging to destination"
