@@ -89,7 +89,7 @@ def main():
             "delta_api_db": list(delta_api_db),
             "delta_db_api": list(delta_db_api),
         }
-        
+
         with open(f'{os.environ["ARTIFACT_DIR"]}/vat_diff.json', "w") as f:
             json.dump(diff_art, f, indent=4)
         sys.exit(4)
