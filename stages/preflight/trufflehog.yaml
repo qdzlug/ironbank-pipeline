@@ -7,8 +7,6 @@ trufflehog:
   before_script:
     - git branch trufflehog
   script:
-    - git remote -v
-    - git fetch -v origin development
     # Could add exceptions using --exclude_paths <exclusion file>
     - WARNINGS=$(trufflehog --json --regex --entropy False --branch trufflehog .)
     - SUCCESS=$?
