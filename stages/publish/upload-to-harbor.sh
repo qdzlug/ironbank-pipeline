@@ -6,8 +6,8 @@ if echo "${CI_PROJECT_DIR}" | grep -q -F 'pipeline-test-project' && [ -z "${DOCK
   exit 1
 fi
 
-NOTARY_TARGETS_PASSPHRASE=$(openssl rand -base64 32)
-export NOTARY_TARGETS_PASSPHRASE
+NOTARY_DELEGATION_PASSPHRASE=$(openssl rand -base64 32)
+export NOTARY_DELEGATION_PASSPHRASE
 
 echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
 
@@ -40,8 +40,6 @@ for ((rev = "${NOTARY_DELEGATION_CURRENT_REVISION}"; rev >= 0; rev -= 1)); do
     --header "X-Vault-Token: ${vault_token}" \
     --header "X-Vault-Namespace: ${VAULT_NAMESPACE}/" \
     --request GET "${vault_addr_full}")
-
-  echo "${targets_key_data}"
 
   targets_key=$(echo "${targets_key_data}" | jq --raw-output '.data.data.delegationkey')
 
