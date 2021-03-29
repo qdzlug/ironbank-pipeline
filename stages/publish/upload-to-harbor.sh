@@ -31,7 +31,7 @@ echo "Importing key into notary"
 
 for ((rev = "${NOTARY_DELEGATION_CURRENT_REVISION}"; rev >= 0; rev -= 1)); do
 
-  # TODO: need delegation
+  # TODO: Switch `delegation-test` to prod
   vault_addr_full="${VAULT_ADDR}/v1/kv/il2/notary/pipeline/data/delegation-test/${rev}"
 
   # Grab the target key and import into notary
@@ -55,7 +55,6 @@ if [ "${targets_key:-}" = "null" ]; then
   exit 1
 fi
 
-# TODO: delegation
 echo -n "${targets_key}" | notary --trustDir "${trust_dir}" key import --role "delegation" --gun "${gun}" /dev/stdin
 echo "Key imported"
 
@@ -81,7 +80,6 @@ while IFS= read -r tag; do
   echo
   echo "Signing ${tag}_manifest.json with notary"
 
-  # TODO: Need a role?
   notary --verbose --server "${NOTARY_URL}" --trustDir ${trust_dir} add --roles targets/releases --publish "${gun}" "${tag}" "${tag}_manifest.json"
 
   echo "Copy from staging to destination"
