@@ -58,11 +58,11 @@ def check_existence(delta_api_db, delta_db_api, api_set, db_set):
 def main():
     try:
         with open(
-            f'{os.environ["ARTIFACT_DIR"]}/vat_api_findings.json', "r"
+            f'{os.environ["ARTIFACT_DIR"]}/lint/vat_api_findings.json', "r"
         ) as api_findings:
             api = json.load(api_findings)
         with open(
-            f'{os.environ["ARTIFACT_DIR"]}/vat_findings.json', "r"
+            f'{os.environ["ARTIFACT_DIR"]}/lint/vat_findings.json', "r"
         ) as db_findings:
             db = json.load(db_findings)
     except FileNotFoundError:
