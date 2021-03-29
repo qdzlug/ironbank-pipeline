@@ -11,6 +11,6 @@ load scripts:
     - 'rm -rf "${PIPELINE_REPO_DIR}/.git"'
   artifacts:
     when: always
-    expire_in: 1 day
+    expire_in: 1 week
     paths:
       - "${PIPELINE_REPO_DIR}"
