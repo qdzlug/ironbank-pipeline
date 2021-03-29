@@ -60,19 +60,7 @@ wl compare lint:
       fi
     - pip3 install jsonschema
     - 'mkdir -p "${ARTIFACT_DIR}"'
-    - set +e
-    - LINT_STATUS=$(python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py" --lint)
-    - sleep 600
-    - echo "${LINT_STATUS}"
-    - |
-      if [ "${LINT_STATUS}" -eq 1 ]; then
-        exit 1
-      fi
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/vat_findings.py"'
-  allow_failure:
-    exit_codes:
-      - 3
-      - 4
+    - python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py" --lint
   artifacts:
     paths:
       - "${ARTIFACT_DIR}/"
