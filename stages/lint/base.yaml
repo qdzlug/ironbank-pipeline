@@ -61,7 +61,8 @@ wl compare lint:
     - pip3 install jsonschema
     - 'mkdir -p "${ARTIFACT_DIR}"'
     - set +e
-    - 'LINT_STATUS=$(python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py" --lint)'
+    - LINT_STATUS=$(python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py" --lint)
+    - sleep 600
     - echo "${LINT_STATUS}"
     - |
       if [ "${LINT_STATUS}" -eq 1 ]; then
