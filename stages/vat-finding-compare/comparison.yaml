@@ -1,7 +1,9 @@
 vat compare:
+  stage: finding compare
   dependencies:
     - load scripts
     - hardening_manifest
+    - wl compare lint
   tags:
     - ironbank
   variables:
@@ -13,3 +15,7 @@ vat compare:
     exit_codes:
       - 3
       - 4
+  artifacts:
+    paths:
+      - "${ARTIFACT_DIR}/"
+    expire_in: 1 week
