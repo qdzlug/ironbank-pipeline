@@ -8,13 +8,13 @@ trufflehog:
     - git branch trufflehog
   script:
     # Could add exceptions using --exclude_paths <exclusion file>
-    - trufflehog --json --regex --entropy False file://$(pwd)
+    - WARNINGS=$(trufflehog --json --regex --entropy False file://$(pwd))
     - SUCCESS=$?
     - |
       if [ $SUCCESS -eq 0 ]; then
         exit 0
       fi
-    - 'echo "${WARNINGS}" | jq -C "{reason,branch,commit,commitHash,date,path}" | tee trufflehog.json'
+    - 'echo "${WARNINGS}" | tee trufflehog.json'
     - echo "FAILED Trufflehog scan. Exiting"
     - exit "${SUCCESS}"
   artifacts:
