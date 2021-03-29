@@ -67,7 +67,7 @@ def main():
             db = json.load(db_findings)
     except FileNotFoundError:
         print("File does not currently exist.")
-        sys.exit(4)
+        sys.exit(3)
     api_set = get_api_findings(api)
     db_set = get_db_findings(db)
     print(f"api set length: {len(api_set)}")
