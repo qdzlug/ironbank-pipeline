@@ -41,7 +41,7 @@ trufflehog:
       if [ $SUCCESS -eq 0 ]; then
         exit 0
       fi
-    - 'echo "${WARNINGS}" | tee trufflehog.json'
+    - 'echo "${WARNINGS}" | jq -C "{reason,branch,commit,commitHash,date,path}"" | tee trufflehog.json | tee trufflehog.json'
     - echo "FAILED Trufflehog scan. Exiting"
     - exit "${SUCCESS}"
   artifacts:
