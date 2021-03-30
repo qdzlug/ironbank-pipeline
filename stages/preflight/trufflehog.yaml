@@ -5,11 +5,25 @@ trufflehog:
     name: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog:2.2.1
     entrypoint: [""]
   script:
-    # Could add exceptions using --exclude_paths <exclusion file>
-    # - git config http.postBuffer 524288000
+    - dnf install -y jq
+    - set +e
+    # - |
+    #   git fetch origin -v
+    #   if [ "${CI_COMMIT_BRANCH}" == "master" ]; then
+    #     echo "Check is run on development and feature branches"
+    #     exit 0
+    #   elif [ "${CI_COMMIT_BRANCH}" == "development" ]; then
+    #     SINCE_COMMIT=$(git log origin/master.. --stat | grep "commit" | tail -1 | awk '{print $2}')
+    #   else
+    #     SINCE_COMMIT=$(git log origin/development.. --stat | grep "commit" | tail -1 | awk '{print $2}')
+    #   fi
+    #   export SINCE_COMMIT
+    #   # Could add exceptions using --exclude_paths <exclusion file>
+    #   WARNINGS=$(trufflehog --regex --entropy False --json --since_commit "${SINCE_COMMIT}" --branch "${CI_COMMIT_BRANCH}" "${CI_PROJECT_URL}")
+    #   SUCCESS=$?
+    #   export SUCCESS
+    - git fetch origin -v
     - |
-      set -x
-      git fetch origin -v
       if [ "${CI_COMMIT_BRANCH}" == "master" ]; then
         echo "Check is run on development and feature branches"
         exit 0
@@ -18,9 +32,11 @@ trufflehog:
       else
         SINCE_COMMIT=$(git log origin/development.. --stat | grep "commit" | tail -1 | awk '{print $2}')
       fi
-      export SINCE_COMMIT
-      WARNINGS=$(trufflehog --regex --entropy False --since_commit "${SINCE_COMMIT}" --branch "${CI_COMMIT_BRANCH}" "${CI_PROJECT_URL}")
-      SUCCESS=$?
+      # Could add exceptions using --exclude_paths <exclusion file>
+    - WARNINGS=$(trufflehog --regex --entropy False --json --since_commit "${SINCE_COMMIT}" --branch "${CI_COMMIT_BRANCH}" "${CI_PROJECT_URL}")
+    - SUCCESS=$?
+      # export SUCCESS
+    - set -e
     - |
       if [ $SUCCESS -eq 0 ]; then
         exit 0
