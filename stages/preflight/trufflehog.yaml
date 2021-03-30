@@ -8,6 +8,7 @@ trufflehog:
     # Could add exceptions using --exclude_paths <exclusion file>
     # - git config http.postBuffer 524288000
     - |
+      set -x
       if [ "${CI_COMMIT_BRANCH}" == "master" ]; then
         echo "Check is run on development and feature branches"
         exit 0
