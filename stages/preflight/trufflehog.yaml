@@ -21,7 +21,7 @@ trufflehog:
     #   WARNINGS=$(trufflehog --regex --entropy False --json --since_commit "${SINCE_COMMIT}" --branch "${CI_COMMIT_BRANCH}" "${CI_PROJECT_URL}")
     #   SUCCESS=$?
     #   export SUCCESS
-    - git fetch origin -v
+    - git fetch origin -q
     - |
       if [ "${CI_COMMIT_BRANCH}" == "master" ]; then
         echo "Check is run on development and feature branches"
