@@ -16,6 +16,7 @@ trufflehog:
       else
         SINCE_COMMIT=$(git log origin/development.. --stat | grep "commit" | tail -1 | awk '{print $2}')
       fi
+      export SINCE_COMMIT
       WARNINGS=$(trufflehog --regex --entropy False --since_commit "${SINCE_COMMIT}" --branch "${CI_COMMIT_BRANCH}" "${CI_PROJECT_URL}")
       SUCCESS=$?
     - |
