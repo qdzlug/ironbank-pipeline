@@ -7,15 +7,24 @@ trufflehog:
   script:
     # Could add exceptions using --exclude_paths <exclusion file>
     # - git config http.postBuffer 524288000
-    - 'trufflehog --regex --entropy False --max_depth 50 --branch "${CI_COMMIT_BRANCH}" "${CI_PROJECT_URL}"'
-    # - SUCCESS=$?
-    # - |
-    #   if [ $SUCCESS -eq 0 ]; then
-    #     exit 0
-    #   fi
-    # - 'echo "${WARNINGS}" | tee trufflehog.json'
-    # - echo "FAILED Trufflehog scan. Exiting"
-    # - exit "${SUCCESS}"
+    - |
+      if [ "${CI_COMMIT_BRANCH}" == "master" ]; then
+        echo "Check is run on development and feature branches"
+        exit 0
+      elif [ "${CI_COMMIT_BRANCH}" == "development" ]; then
+        SINCE_COMMIT=$(git log origin/master.. --stat | grep "commit" | tail -1 | awk '{print $2}')
+      else
+        SINCE_COMMIT=$(git log origin/development.. --stat | grep "commit" | tail -1 | awk '{print $2}')
+      fi
+      WARNINGS=$(trufflehog --regex --entropy False --since_commit "${SINCE_COMMIT}" --branch "${CI_COMMIT_BRANCH}" "${CI_PROJECT_URL}")
+      SUCCESS=$?
+    - |
+      if [ $SUCCESS -eq 0 ]; then
+        exit 0
+      fi
+    - 'echo "${WARNINGS}" | tee trufflehog.json'
+    - echo "FAILED Trufflehog scan. Exiting"
+    - exit "${SUCCESS}"
   artifacts:
     name: $CI_PROJECT_NAME-$CI_JOB_ID
     when: on_failure
