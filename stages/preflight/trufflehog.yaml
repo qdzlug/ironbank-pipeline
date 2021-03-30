@@ -7,7 +7,6 @@ trufflehog:
   script:
     # Could add exceptions using --exclude_paths <exclusion file>
     # - git config http.postBuffer 524288000
-    - sleep 600
     - |
       set -x
       git fetch origin -v
