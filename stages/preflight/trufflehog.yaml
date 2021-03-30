@@ -32,8 +32,9 @@ trufflehog:
         SINCE_COMMIT=$(git log origin/development.. --stat | grep "commit" | tail -1 | awk '{print $2}')
       fi
       # Could add exceptions using --exclude_paths <exclusion file>
-    - trufflehog --regex --entropy False --since_commit "${SINCE_COMMIT}" --branch "${CI_COMMIT_BRANCH}" "${CI_PROJECT_URL}" | tee trufflehog_findings.txt
-    - SUCCESS=$?
+    - |
+      trufflehog --regex --entropy False --since_commit "${SINCE_COMMIT}" --branch "${CI_COMMIT_BRANCH}" "${CI_PROJECT_URL}" | tee trufflehog_findings.txt
+      SUCCESS=$?
       # export SUCCESS
     - set -e
     - |
