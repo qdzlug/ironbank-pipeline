@@ -6,6 +6,7 @@ trufflehog:
     entrypoint: [""]
   script:
     # Could add exceptions using --exclude_paths <exclusion file>
+    - git config http.postBuffer 524288000
     - WARNINGS=$(trufflehog --json --regex --entropy False file://$(pwd))
     - SUCCESS=$?
     - |
