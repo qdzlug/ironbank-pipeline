@@ -7,10 +7,7 @@ trufflehog:
   script:
     # Could add exceptions using --exclude_paths <exclusion file>
     # - git config http.postBuffer 524288000
-    - set -x
-    - echo "${CI_PROJECT_DIR}"
-    - pwd
-    - 'trufflehog --regex --entropy False "file://${CI_PROJECT_DIR}"'
+    - 'trufflehog --regex --entropy False --mex_depth 50 --branch "${CI_COMMIT_BRANCH}" "${CI_PROJECT_URL}"'
     # - SUCCESS=$?
     # - |
     #   if [ $SUCCESS -eq 0 ]; then
