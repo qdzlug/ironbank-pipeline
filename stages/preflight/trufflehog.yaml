@@ -25,8 +25,9 @@ trufflehog:
       if [ $SUCCESS -eq 0 ]; then
         exit 0
       fi
-    - echo "ERROR Trufflehog scan failed. Exiting"
-    - echo "ERROR you need to remove the offening commits from your commit history"
+    - |
+      echo "ERROR Trufflehog scan failed. Exiting"
+      echo "ERROR you need to remove the offening commits from your commit history"
     - exit "${SUCCESS}"
   artifacts:
     name: $CI_PROJECT_NAME-$CI_JOB_ID
