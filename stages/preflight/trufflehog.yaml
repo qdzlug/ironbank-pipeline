@@ -7,7 +7,7 @@ trufflehog:
   script:
     # Could add exceptions using --exclude_paths <exclusion file>
     - git config http.postBuffer 524288000
-    - 'WARNINGS=$(trufflehog --json --regex --entropy False --branch "${CI_COMMIT_BRANCH}" file://$(pwd))'
+    - WARNINGS=$(trufflehog --json --regex --entropy False file://$(pwd))
     - SUCCESS=$?
     - |
       if [ $SUCCESS -eq 0 ]; then
