@@ -10,6 +10,7 @@ trufflehog:
     - sleep 600
     - |
       set -x
+      git fetch origin -v
       if [ "${CI_COMMIT_BRANCH}" == "master" ]; then
         echo "Check is run on development and feature branches"
         exit 0
