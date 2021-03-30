@@ -8,6 +8,8 @@ trufflehog:
     # Could add exceptions using --exclude_paths <exclusion file>
     # - git config http.postBuffer 524288000
     - set -x
+    - echo "${CI_PROJECT_DIR}"
+    - pwd
     - 'trufflehog --regex --entropy False "file://${CI_PROJECT_DIR}"'
     # - SUCCESS=$?
     # - |
