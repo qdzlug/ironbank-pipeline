@@ -4,8 +4,6 @@ trufflehog:
   image:
     name: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog:2.2.1
     entrypoint: [""]
-  before_script:
-    - git branch trufflehog
   script:
     # Could add exceptions using --exclude_paths <exclusion file>
     - WARNINGS=$(trufflehog --json --regex --entropy False file://$(pwd))
