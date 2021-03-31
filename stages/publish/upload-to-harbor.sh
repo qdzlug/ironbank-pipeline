@@ -14,7 +14,7 @@ echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
 # TODO: Confirm IM_NAME is hardening manifest
 staging_image="${STAGING_REGISTRY_URL}/${IM_NAME}"
 gun="${REGISTRY_URL}/${IM_NAME}"
-trust_dir="trust-dir-target/"
+trust_dir="trust-dir-delegation/"
 
 # TODO: Change VAULT_STAGING_PASSWORD to actual
 # TODO: Change VAULT_STAGING_USERNAME to actual
@@ -54,7 +54,7 @@ for ((rev = "${NOTARY_DELEGATION_CURRENT_REVISION}"; rev >= 0; rev -= 1)); do
 done
 
 if [ "${delegation_key:-}" = "null" ]; then
-  echo "Could not find targets key for ${gun} - Please speak to an administrator"
+  echo "Could not find key for ${gun} - Please speak to an administrator"
   exit 1
 fi
 
