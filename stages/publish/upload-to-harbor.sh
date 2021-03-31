@@ -16,6 +16,9 @@ staging_image="${STAGING_REGISTRY_URL}/${IM_NAME}"
 gun="${REGISTRY_URL}/${IM_NAME}"
 trust_dir="trust-dir-target/"
 
+# TODO: Change VAULT_STAGING_PASSWORD to actual
+# TODO: Change VAULT_STAGING_USERNAME to actual
+
 echo "Logging into vault"
 # Grab the vault token
 vault_token=$(jq --null-input --arg password "${VAULT_STAGING_PASSWORD}" '{"password":$password}' |
@@ -31,31 +34,31 @@ echo "Importing key into notary"
 
 for ((rev = "${NOTARY_DELEGATION_CURRENT_REVISION}"; rev >= 0; rev -= 1)); do
 
-  # TODO: Switch `delegation-test` to prod
+  # TODO: Switch `delegation-test` to prod path
   vault_addr_full="${VAULT_ADDR}/v1/kv/il2/notary/pipeline/data/delegation-test/${rev}"
 
   # Grab the target key and import into notary
-  targets_key_data=$(curl --silent \
+  delegation_key_data=$(curl --silent \
     --header "X-Vault-Request: true" \
     --header "X-Vault-Token: ${vault_token}" \
     --header "X-Vault-Namespace: ${VAULT_NAMESPACE}/" \
     --request GET "${vault_addr_full}")
 
-  targets_key=$(echo "${targets_key_data}" | jq --raw-output '.data.data.delegationkey')
+  delegation_key=$(echo "${delegation_key_data}" | jq --raw-output '.data.data.delegationkey')
 
-  if [ "${targets_key:-}" != "null" ]; then
+  if [ "${delegation_key:-}" != "null" ]; then
     echo "Found key: ${vault_addr_full}"
     break
   fi
 
 done
 
-if [ "${targets_key:-}" = "null" ]; then
+if [ "${delegation_key:-}" = "null" ]; then
   echo "Could not find targets key for ${gun} - Please speak to an administrator"
   exit 1
 fi
 
-echo -n "${targets_key}" | notary --trustDir "${trust_dir}" key import --role "delegation" --gun "${gun}" /dev/stdin
+echo -n "${delegation_key}" | notary --trustDir "${trust_dir}" key import --role "delegation" --gun "${gun}" /dev/stdin
 echo "Key imported"
 
 if [ -z "${DOCKER_AUTH_CONFIG_TEST:-}" ]; then
