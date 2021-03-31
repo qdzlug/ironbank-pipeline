@@ -73,7 +73,7 @@ def main():
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         encoding="utf-8",
-            )
+    )
 
     if p.returncode != 0:
         logging.error(p.stdout)
@@ -112,17 +112,17 @@ def main():
     trust_dir = "trust-dir-delegation/"
 
     cmd = [
-            "notary",
-            "--trustDir",
-            trust_dir,
-            "key",
-            "import",
-            "--role",
-            "delegation",
-            "--gun",
-            gun,
-            "/dev/stdin",
-        ]
+        "notary",
+        "--trustDir",
+        trust_dir,
+        "key",
+        "import",
+        "--role",
+        "delegation",
+        "--gun",
+        gun,
+        "/dev/stdin",
+    ]
     logging.info(" ".join(cmd))
     p = subprocess.run(
         cmd,
@@ -144,7 +144,9 @@ def main():
     if test_auth:
         dest_auth = base64.b64decode(test_auth).decode("utf-8")
     else:
-        dest_auth = base64.b64decode(os.environ["DOCKER_AUTH_CONFIG_PROD"]).decode("utf-8")
+        dest_auth = base64.b64decode(os.environ["DOCKER_AUTH_CONFIG_PROD"]).decode(
+            "utf-8"
+        )
 
     pathlib.Path("dest_auth.json").write_text(dest_auth)
 
@@ -191,21 +193,21 @@ def main():
             logging.info(f"Signing {tag}_manifest.json with notary")
 
             p = subprocess.run(
-                    [
-                        "notary",
-                        "--verbose",
-                        "--server",
-                        os.environ["NOTARY_URL"],
-                        "--trustDir",
-                        trust_dir,
-                        "add",
-                        "--roles",
-                        "targets/releases",
-                        "--publish",
-                        gun,
-                        tag,
-                        f"{tag}_manifest.json",
-                    ],
+                [
+                    "notary",
+                    "--verbose",
+                    "--server",
+                    os.environ["NOTARY_URL"],
+                    "--trustDir",
+                    trust_dir,
+                    "add",
+                    "--roles",
+                    "targets/releases",
+                    "--publish",
+                    gun,
+                    tag,
+                    f"{tag}_manifest.json",
+                ],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 encoding="utf-8",
