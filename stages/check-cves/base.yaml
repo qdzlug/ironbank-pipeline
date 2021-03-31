@@ -2,15 +2,10 @@ check cves:
   stage: check cves
   rules:
     - if: '$CI_COMMIT_BRANCH != "master"'
-      allow_failure:
-        exit_codes:
-          - 1
-          - 3
+      allow_failure: true
 
     - if: '$CI_COMMIT_BRANCH == "master"'
-      allow_failure:
-        exit_codes: 3
-
+      allow_failure: false
   tags:
     - ironbank
   dependencies:

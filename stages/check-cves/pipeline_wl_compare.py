@@ -224,7 +224,10 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         sys.exit(1)
 
     delta_length = len(delta)
+    exit_code = 0
+
     if delta_length != 0:
+        exit_code = 1
         logging.error("NON-WHITELISTED VULNERABILITIES FOUND")
         logging.error(f"Number of non-whitelisted vulnerabilities: {delta_length}")
         logging.error("The following vulnerabilities are not whitelisted:")
@@ -237,25 +240,25 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         for finding in delta:
             logging.error("".join([str(conv(i) + "    ").ljust(30) for i in finding]))
 
-        # TODO: Remove?
-        if "pipeline-test-project" in os.environ["CI_PROJECT_DIR"]:
-            logging.info(
-                "pipeline-test-project detected. Allowing the pipeline to continue"
-            )
-            ecode = 3
-            logging.info(f"Exiting with error code {ecode}")
-            sys.exit(ecode)
-
         if os.environ["CI_COMMIT_BRANCH"] == "master":
             pipeline_repo_dir = os.environ["PIPELINE_REPO_DIR"]
             subprocess.run(
                 [f"{pipeline_repo_dir}/stages/check-cves/mattermost-failure-webhook.sh"]
             )
-        sys.exit(1)
 
-    logging.info("ALL VULNERABILITIES WHITELISTED")
-    logging.info("Scans are passing 100%")
-    sys.exit(0)
+        if "pipeline-test-project" in os.environ["CI_PROJECT_DIR"]:
+            # Check if pipeline-test-project's should be allowed through. Change the exit code
+            # so it doesn't fail the pipeline.
+            logging.info(
+                "pipeline-test-project detected. Allowing the pipeline to continue"
+            )
+            exit_code = 0
+
+    else:
+        logging.info("ALL VULNERABILITIES WHITELISTED")
+        logging.info("Scans are passing 100%")
+
+    sys.exit(exit_code)
 
 
 def _finding_approval_status_check(finding_dictionary, status_list):
