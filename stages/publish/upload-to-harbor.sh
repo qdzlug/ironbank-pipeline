@@ -11,10 +11,8 @@ export NOTARY_DELEGATION_PASSPHRASE
 
 echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
 
-# TODO: Confirm IM_NAME is hardening manifest
-staging_image="${STAGING_REGISTRY_URL}/${IM_NAME}"
-gun="${REGISTRY_URL}/${IM_NAME}"
-trust_dir="trust-dir-delegation/"
+staging_image="${STAGING_REGISTRY_URL}/${IMAGE_NAME}"
+gun="${REGISTRY_URL}/${IMAGE_NAME}"
 
 # TODO: Change VAULT_STAGING_PASSWORD to actual
 # TODO: Change VAULT_STAGING_USERNAME to actual

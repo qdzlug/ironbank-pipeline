@@ -97,8 +97,8 @@ def main():
     )
     pathlib.Path("staging_auth.json").write_text(staging_auth)
 
-    staging_image = f"{os.environ['STAGING_REGISTRY_URL']}/{os.environ['IM_NAME']}"
-    gun = f"{os.environ['REGISTRY_URL']}/{os.environ['IM_NAME']}"
+    staging_image = f"{os.environ['STAGING_REGISTRY_URL']}/{os.environ['IMAGE_NAME']}"
+    gun = f"{os.environ['REGISTRY_URL']}/{os.environ['IMAGE_NAME']}"
 
     key = get_delegation_key(gun=gun)
     if not key:
