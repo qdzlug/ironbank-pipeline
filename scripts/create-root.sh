@@ -17,17 +17,17 @@ rootkeyloc="rootkey/$rev"
 rootdir=$(mktemp -d)
 
 is_installed() {
-    # Install notary if not present
-    if ! command -v "${1}"; then
-        echo
-        echo "${1} must be installed before continuing, exiting"
-        echo
-        exit 1
-    fi
+  # Install notary if not present
+  if ! command -v "${1}"; then
+    echo
+    echo "${1} must be installed before continuing, exiting"
+    echo
+    exit 1
+  fi
 }
 
 clean() {
-    rm -rf -- "$rootdir"
+  rm -rf -- "$rootdir"
 }
 
 is_installed openssl
@@ -68,11 +68,11 @@ echo
 
 read confirm
 if [ "$confirm" = "y" ]; then
-    cat "$rootdir/root.key" | vault kv put "/kv/il2/notary/admin/$rootkeyloc" rootkey=-
+  cat "$rootdir/root.key" | vault kv put "/kv/il2/notary/admin/$rootkeyloc" rootkey=-
 else
-    echo
-    echo "'y' not supplied, aborting"
-    exit 0
+  echo
+  echo "'y' not supplied, aborting"
+  exit 0
 fi
 
 # Clean

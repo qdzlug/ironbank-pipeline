@@ -19,17 +19,17 @@ delegationkeyloc="delegation/$rev"
 delegationdir=$(mktemp -d)
 
 is_installed() {
-    # Install notary if not present
-    if ! command -v "${1}"; then
-        echo
-        echo "${1} must be installed before continuing, exiting"
-        echo
-        exit 1
-    fi
+  # Install notary if not present
+  if ! command -v "${1}"; then
+    echo
+    echo "${1} must be installed before continuing, exiting"
+    echo
+    exit 1
+  fi
 }
 
 clean() {
-    rm -rf -- "$delegationdir"
+  rm -rf -- "$delegationdir"
 }
 
 is_installed openssl
@@ -46,7 +46,7 @@ openssl genrsa -out "$delegationdir/delegation.key" 4096
 
 # Generate CSR for certificate that will function as CA
 openssl req -new -sha256 -key "$delegationdir/delegation.key" -out "delegation.csr" -subj "/C=US/ST=Colorado/L=Colorado Springs/O=Platform1/OU=Iron Bank/CN=notary-delegation-0.il2.ironbank.dso.mil/emailAddress=ironbank@dso.mil"
-``
+$()
 
 # Add delegation key to Vault
 echo
@@ -64,11 +64,11 @@ echo
 
 read confirm
 if [ "$confirm" = "y" ]; then
-    cat "$delegationdir/delegation.key" | vault kv put "/kv/il2/notary/pipeline/$delegationkeyloc" delegationkey=-
+  cat "$delegationdir/delegation.key" | vault kv put "/kv/il2/notary/pipeline/$delegationkeyloc" delegationkey=-
 else
-    echo
-    echo "'y' not supplied, aborting"
-    exit 0
+  echo
+  echo "'y' not supplied, aborting"
+  exit 0
 fi
 
 # Clean
