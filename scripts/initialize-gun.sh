@@ -81,6 +81,7 @@ init_gun() {
     if ! notary init "$gun" -p -d "$trustdir" -s "$notary_url"; then
       echo "WARNING: notary error or target key already exists for $gun, retrying"
       echo ""
+      sleep 5
       continue
     fi
 
