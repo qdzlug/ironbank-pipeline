@@ -53,18 +53,11 @@ openssl req -new -sha256 -key "$delegationdir/delegation.key" -out "delegation.c
 # Add delegation key to Vault
 echo
 echo "=================================="
-echo " Adding deletegation key to Vault "
+echo " Adding delegation key to Vault "
 echo "=================================="
 echo
-echo "Enter the initial notary-admin password"
+echo "Enter the notary-admin password"
 export VAULT_TOKEN=$(vault login -token-only -method=userpass username=notary-admin)
-
-# Change notary-admin password.  Write it down first.
-echo
-echo "Change notary-admin user password: "
-echo
-read -r -s adminpass
-vault write auth/userpass/users/notary-admin/password password="$adminpass"
 
 # Add delegation key to Vault
 echo
