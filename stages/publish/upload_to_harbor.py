@@ -51,6 +51,7 @@ def get_delegation_key(gun):
         elif r.status_code == 200:
             key = r.json()["data"]["data"]["delegationkey"]
             break
+        # Return None if no delegationkey was received 
 
     return key
 
