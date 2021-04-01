@@ -81,7 +81,7 @@ def main():
     if p.returncode != 0:
         logging.error(p.stdout)
         logging.error(p.stderr)
-        sys.exit(p.returncode)
+        sys.exit(1)
 
     os.environ["NOTARY_DELEGATION_PASSPHRASE"] = p.stdout
 
