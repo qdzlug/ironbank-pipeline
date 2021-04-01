@@ -20,3 +20,4 @@ vat compare:
     paths:
       - "${ARTIFACT_DIR}/"
     expire_in: 1 week
+    when: on_failure
