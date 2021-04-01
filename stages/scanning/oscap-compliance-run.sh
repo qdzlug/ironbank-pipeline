@@ -3,7 +3,7 @@ set -Eeuo pipefail
 mkdir -p "${OSCAP_SCANS}"
 DOCKER_IMAGE_PATH=$(podman load -i "${ARTIFACT_STORAGE}"/build/"${CI_PROJECT_NAME}"-"${CI_PIPELINE_ID}".tar | awk '{print $3}')
 echo "${DOCKER_IMAGE_PATH}"
-OSCAP_VERSION=$(cat security-profile/version.json | jq .version | sed -e 's/"//g')
+OSCAP_VERSION=$(cat "${PIPELINE_REPO_DIR}"/stages/scanning/rhel-oscap-version.json | jq .version | sed -e 's/"//g')
 base_image_type=$(podman inspect -f '{{index .Labels "com.redhat.component"}}' "${DOCKER_IMAGE_PATH}")
 
 if [[ "${base_image_type}" == "" ]]; then
