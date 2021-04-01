@@ -76,20 +76,34 @@ init_gun() {
   echo "==============================="
   echo
 
+  init_done=0
   for i in $(seq 1 5); do
     # Initialize GUN with root key
-    if ! notary init "$gun" -p -d "$trustdir" -s "$notary_url"; then
-      echo "WARNING: notary error or target key already exists for $gun, retrying"
+    if [ "$init_done" -eq 0 ]; then
+      if ! notary init "$gun" -p -d "$trustdir" -s "$notary_url"; then
+        echo "WARNING: notary error or target key already exists for $gun, retrying"
+        echo ""
+        sleep 5
+        continue
+      fi
+    fi
+    init_done=1
+
+    # Add delegation key. `delegation.crt` is already on-disk
+    if ! notary delegation add -s "$notary_url" -p -d "$trustdir" "$gun" targets/releases delegation.crt --all-paths; then
+      echo "WARNING: notary error, retrying"
       echo ""
       sleep 5
       continue
     fi
 
-    # Add delegation key. `delegation.crt` is already on-disk
-    notary delegation add -s "$notary_url" -p -d "$trustdir" "$gun" targets/releases delegation.crt --all-paths
-
     # Rotate snapshot keys to be managed by notary server
-    notary key rotate "$gun" snapshot -r -d "$trustdir" -s "$notary_url"
+    if ! notary key rotate "$gun" snapshot -r -d "$trustdir" -s "$notary_url"; then
+      echo "WARNING: notary error, retrying"
+      echo ""
+      sleep 5
+      continue
+    fi
 
     # Place target key inVault at a location determined by the GUN
     decryptedkey=$(notary key export -d "$trustdir/" --gun "$gun" | sed '/:/d' | openssl ec -passin env:NOTARY_TARGETS_PASSPHRASE)
