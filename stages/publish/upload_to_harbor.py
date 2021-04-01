@@ -21,7 +21,7 @@ def get_delegation_key(gun):
         data={"password": os.environ["VAULT_STAGING_PASSWORD"]},
         headers={
             "X-Vault-Request": "true",
-            "X-Vault-Namespace": os.environ["VAULT_STAGING_NAMESPACE"],
+            "X-Vault-Namespace": os.environ["VAULT_NAMESPACE"],
         },
     )
 
@@ -91,8 +91,6 @@ def main():
             "Skipping Harbor Upload. Cannot push to Harbor when working with pipeline test projects unless DOCKER_AUTH_CONFIG_TEST is set..."
         )
         sys.exit(1)
-
-    os.environ["NOTARY_TARGETS_PASSPHRASE"] = "radomstring"
 
     staging_auth = base64.b64decode(os.environ["DOCKER_AUTH_CONFIG_STAGING"]).decode(
         "utf-8"
