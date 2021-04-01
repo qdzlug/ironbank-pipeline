@@ -77,6 +77,7 @@ init_gun() {
   echo
 
   init_done=0
+  delegation_done=0
   for i in $(seq 1 5); do
     # Initialize GUN with root key
     if [ "$init_done" -eq 0 ]; then
@@ -90,12 +91,15 @@ init_gun() {
     init_done=1
 
     # Add delegation key. `delegation.crt` is already on-disk
-    if ! notary delegation add -s "$notary_url" -p -d "$trustdir" "$gun" targets/releases delegation.crt --all-paths; then
-      echo "WARNING: notary error, retrying"
-      echo ""
-      sleep 5
-      continue
+    if [ "$delegation_done" -eq 0 ]; then
+      if ! notary delegation add -s "$notary_url" -p -d "$trustdir" "$gun" targets/releases delegation.crt --all-paths; then
+        echo "WARNING: notary error, retrying"
+        echo ""
+        sleep 5
+        continue
+      fi
     fi
+    delegation_done=1
 
     # Rotate snapshot keys to be managed by notary server
     if ! notary key rotate "$gun" snapshot -r -d "$trustdir" -s "$notary_url"; then
