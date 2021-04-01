@@ -173,7 +173,7 @@ def main():
             if p.returncode != 0:
                 logging.error(p.stdout)
                 logging.error(p.stderr)
-                logging.error(f"Failed to import key for {gun}")
+                logging.error(f"Failed to retrieve manifest for {gun}")
                 sys.exit(p.returncode)
 
             logging.info(p.stdout)
