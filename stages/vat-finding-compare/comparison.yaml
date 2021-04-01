@@ -9,6 +9,7 @@ vat compare:
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/compare"
   script:
+    - mkdir "${ARTIFACT_DIR}"
     - set +e
     - 'python3 "${PIPELINE_REPO_DIR}/stages/vat-finding-compare/vat_findings.py"'
   allow_failure:
