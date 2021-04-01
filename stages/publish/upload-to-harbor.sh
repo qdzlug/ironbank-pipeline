@@ -14,26 +14,22 @@ echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
 staging_image="${STAGING_REGISTRY_URL}/${IMAGE_NAME}"
 gun="${REGISTRY_URL}/${IMAGE_NAME}"
 
-# TODO: Change VAULT_STAGING_PASSWORD to actual
-# TODO: Change VAULT_STAGING_USERNAME to actual
-
 echo "Logging into vault"
 # Grab the vault token
-vault_token=$(jq --null-input --arg password "${VAULT_STAGING_PASSWORD}" '{"password":$password}' |
+vault_token=$(jq --null-input --arg password "${VAULT_PASSWORD}" '{"password":$password}' |
   curl --silent \
     --fail \
     --data @- \
     --header "X-Vault-Request: true" \
     --header "X-Vault-Namespace: ${VAULT_NAMESPACE}/" \
-    --request PUT "${VAULT_ADDR}/v1/auth/userpass/login/${VAULT_STAGING_USERNAME}" |
+    --request PUT "${VAULT_ADDR}/v1/auth/userpass/login/${VAULT_USERNAME}" |
   jq --raw-output '.auth.client_token')
 
 echo "Importing key into notary"
 
 for ((rev = "${NOTARY_DELEGATION_CURRENT_REVISION}"; rev >= 0; rev -= 1)); do
 
-  # TODO: Switch `delegation-test` to prod path
-  vault_addr_full="${VAULT_ADDR}/v1/kv/il2/notary/pipeline/data/delegation-test/${rev}"
+  vault_addr_full="${VAULT_ADDR}/v1/kv/il2/notary/pipeline/data/delegation/${rev}"
 
   # Grab the target key and import into notary
   delegation_key_data=$(curl --silent \

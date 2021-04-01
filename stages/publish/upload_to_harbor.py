@@ -14,11 +14,11 @@ from requests import status_codes
 
 def get_delegation_key(gun):
     logging.info("Logging into vault")
-    url = f"{os.environ['VAULT_ADDR']}/v1/auth/userpass/login/{os.environ['VAULT_STAGING_USERNAME']}"
+    url = f"{os.environ['VAULT_ADDR']}/v1/auth/userpass/login/{os.environ['VAULT_USERNAME']}"
 
     r = requests.put(
         url=url,
-        data={"password": os.environ["VAULT_STAGING_PASSWORD"]},
+        data={"password": os.environ["VAULT_PASSWORD"]},
         headers={
             "X-Vault-Request": "true",
             "X-Vault-Namespace": os.environ["VAULT_NAMESPACE"],
@@ -35,7 +35,7 @@ def get_delegation_key(gun):
 
     key = None
     for rev in range(int(os.environ["NOTARY_DELEGATION_CURRENT_REVISION"]), -1, -1):
-        url = f"{os.environ['VAULT_ADDR']}/v1/kv/il2/notary/pipeline/data/delegation-test/{rev}"
+        url = f"{os.environ['VAULT_ADDR']}/v1/kv/il2/notary/pipeline/data/delegation/{rev}"
         logging.info(url)
         r = requests.get(
             url=url,

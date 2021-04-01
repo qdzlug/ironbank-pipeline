@@ -16,18 +16,16 @@ export NOTARY_ROOT_PASSPHRASE=$(openssl rand -base64 32)
 export NOTARY_SNAPSHOT_PASSPHRASE=$(openssl rand -base64 32)
 export NOTARY_TARGETS_PASSPHRASE=$(openssl rand -base64 32)
 
-#TODO Update VAULT_ADDR default value when we have a prod endpoint
 # Vault environment
-export VAULT_ADDR="${VAULT_ADDR:-https://cubbyhole.staging.dso.mil}"
-export VAULT_NAMESPACE="${VAULT_NAMESPACE:-il2-ironbank-ns}"
+export VAULT_ADDR="${VAULT_ADDR:-https://vault.admin.dso.mil}"
+export VAULT_NAMESPACE="${VAULT_NAMESPACE:-notary}"
 
 notary_url="${NOTARY_URL:-https://notary.dso.mil}"
 
 # This designates the current revision of our targets keys.  This should be iterated upon target key rotation.  This should also be updated in the pipeline.
 targetrev="${NOTARY_TARGETS_CURRENT_REVISION:-0}"
 rootrev="${NOTARY_ROOT_CURRENT_REVISION:-0}"
-#TODO update this before putting into production to `rootkey`
-rootkeyloc="rootkey-test/$rootrev"
+rootkeyloc="rootkey/$rootrev"
 
 trustdir=$(mktemp -d)
 

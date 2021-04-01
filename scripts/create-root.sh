@@ -9,13 +9,11 @@
 
 set -euo pipefail
 
-#TODO change the default VAULT_ADDR when we have a prod endpoint
-export VAULT_ADDR="${VAULT_ADDR:-https://cubbyhole.staging.dso.mil}"
-export VAULT_NAMESPACE="${VAULT_NAMESPACE:-il2-ironbank-ns}"
+export VAULT_ADDR="${VAULT_ADDR:-https://vault.admin.dso.mil}"
+export VAULT_NAMESPACE="${VAULT_NAMESPACE:-notary}"
 
 rev="${NOTARY_ROOT_CURRENT_REVISION:-0}"
-#TODO update this before putting into production to `rootkey`
-rootkeyloc="rootkey-test/$rev"
+rootkeyloc="rootkey/$rev"
 rootdir=$(mktemp -d)
 
 is_installed() {
