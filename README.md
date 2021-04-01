@@ -243,22 +243,38 @@ Instructions for security team (notary administrators)
 
 ###### Installing dependencies
 
-Download from here, and unzip. Place in your path
+Download from here, and unzip. Place in your path by unzipping it, and the following command:
 https://www.vaultproject.io/downloads
+```
+# Confirm that `usr/local/bin/` is in the Path
+echo $PATH
+
+cp ~/Downloads/vault /usr/local/bin/
 
 `brew install vault` works, but installs the whole server, ~160MB
 
 ```
-cd scripts/
-NOTARY_ROOT_CURRENT_REVISION=999 ./create-root.sh
+git clone https://repo1.dso.mil/ironbank-tools/ironbank-pipeline
+cd ironbank-pipeline/scripts/
+./create-root.sh
 
 ```
 
 Enter the initial password, the new password, and confirm yes at the prompt.
 
 ```
-NOTARY_DELEGATION_CURRENT_REVISION=999 ./create-delegation.sh
-
+# Will run once per year
+./create-delegation.sh
+open .
 ```
 
 You will need to do this once every 
+
+Security team needs push permisssions to `ironbank` repository in Registry1
+
+```
+Iron Bank Security
+```
+
+./initialize gun -f
+./initialize gun <url>
