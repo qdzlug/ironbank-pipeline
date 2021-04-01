@@ -45,7 +45,7 @@ echo
 openssl genrsa -out "$rootdir/root.key" 4096
 
 # Generate CSR for certificate that will function as CA
-openssl req -new -sha256 -key "$rootdir/root.key" -out "root.csr" -subj "/C=US/ST=Colorado/L=Colorado Springs/O=Plat  form1/OU=Iron Bank/CN=ironbank.dso.mil/emailAddress=ironbank@dso.mil"
+openssl req -new -sha256 -key "$rootdir/root.key" -out "root.csr" -subj "/C=US/ST=Colorado/L=Colorado Springs/O=Platform1/OU=Iron Bank/CN=notary-root.il2.ironbank.dso.mil/emailAddress=ironbank@dso.mil"
 
 # Add root key to Vault
 echo

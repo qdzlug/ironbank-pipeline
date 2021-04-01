@@ -47,7 +47,8 @@ echo
 openssl genrsa -out "$delegationdir/delegation.key" 4096
 
 # Generate CSR for certificate that will function as CA
-openssl req -new -sha256 -key "$delegationdir/delegation.key" -out "delegation.csr" -subj "/C=US/ST=Colorado/L=Colorado Springs/O=Platform1/OU=Iron Bank/CN=ironbank.dso.mil/emailAddress=ironbank@dso.mil"
+openssl req -new -sha256 -key "$delegationdir/delegation.key" -out "delegation.csr" -subj "/C=US/ST=Colorado/L=Colorado Springs/O=Platform1/OU=Iron Bank/CN=notary-delegation-0.il2.ironbank.dso.mil/emailAddress=ironbank@dso.mil"
+``
 
 # Add delegation key to Vault
 echo
