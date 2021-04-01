@@ -174,7 +174,7 @@ def main():
                 logging.error(p.stdout)
                 logging.error(p.stderr)
                 logging.error(f"Failed to retrieve manifest for {gun}")
-                sys.exit(p.returncode)
+                sys.exit(1)
 
             logging.info(p.stdout)
 
