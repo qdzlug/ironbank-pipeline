@@ -7,7 +7,7 @@ import pathlib
 import sys
 
 import openpyxl
-from openpyxl.styles import Alignment, PatternFill
+from openpyxl.styles import Alignment, PatternFill, Font
 from openpyxl.utils import get_column_letter
 import pandas as pd
 
@@ -49,7 +49,22 @@ def main(argv):
     # Colorize justifications for output_file
     _colorize_full(wb)
     _set_all_column_widths(wb)
+    if os.environ["CI_COMMIT_BRANCH"] not in ["development", "master"]:
+        _add_sheet_banners(wb)
     wb.save(output_file)
+
+
+def _add_sheet_banners(wb):
+    for sheet in wb.sheetnames:
+        ws = wb[sheet]
+        ws.insert_rows(1)
+        cell = ws.cell(row=1, column=1)
+        cell.value = "THESE FINDINGS ARE UNOFFICIAL AS THEY HAVE BEEN GENERATED ON A BRANCH OTHER THAN DEVELOPMENT OR MASTER. ONLY JUSTIFICATIONS FOR DEVELOPMENT OR MASTER BRANCH FINDINGS ARE CONSIDERED OFFICIAL."
+        cell.font = Font(name="Calibri", size=11, bold=True)
+        cell.fill = PatternFill(
+            start_color="00ff00ff", end_color="00ff00ff", fill_type="solid"
+        )
+        ws.merge_cells("A1:Z1")
 
 
 def _colorize_full(wb):

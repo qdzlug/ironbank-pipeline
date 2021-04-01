@@ -119,12 +119,8 @@ def _load_remote_hardening_manifest(project, branch="master"):
         return yaml.safe_load(hardening_manifest.decode())
 
     except gitlab.exceptions.GitlabError:
-        logging.info(
-            "Could not load hardening_manifest. Defaulting backwards compatibility."
-        )
-        logging.warning(
-            f"This method will be deprecated soon, please switch {project} to hardening_manifest.yaml"
-        )
+        logging.error("Could not load hardening_manifest.")
+        sys.exit(1)
 
     except yaml.YAMLError as e:
         logging.error("Could not load the hardening_manifest.yaml")
@@ -192,7 +188,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
 
         oval_cves = oscap.get_oval(oval_file)
         for oval in oval_cves:
-            vuln_set.add(Finding("oscap_cve", oval, None, None))
+            vuln_set.add(Finding("oscap_cve", oval["ref"], oval["pkg"], None))
 
     twistlock_cves = twistlock.get_full()
     for tl in twistlock_cves:
@@ -233,12 +229,11 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         logging.error("The following vulnerabilities are not whitelisted:")
         delta = list(delta)
         delta.sort(key=lambda x: (x[0], x[2], x[1]))
-        conv = lambda i: i or ""
 
         delta.insert(0, delta[0]._fields)
         # hardcoding 4 spaces for proper formatting when the string exceeds 30 chars
         for finding in delta:
-            logging.error("".join([str(conv(i) + "    ").ljust(30) for i in finding]))
+            logging.error("".join([f"{i}    ".ljust(30) for i in finding]))
 
         if os.environ["CI_COMMIT_BRANCH"] == "master":
             pipeline_repo_dir = os.environ["PIPELINE_REPO_DIR"]
