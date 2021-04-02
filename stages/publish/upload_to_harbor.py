@@ -49,7 +49,7 @@ def get_delegation_key(gun):
             logging.info("Not found, looping")
             continue
         elif r.status_code == 200:
-            key = r.json()["data"]["data"]["delegationkey"]
+            key = r.json()["data"]["delegationkey"]
             break
         # Return None if no delegationkey was received
 
