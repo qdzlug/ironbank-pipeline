@@ -220,7 +220,10 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         sys.exit(1)
 
     delta_length = len(delta)
+    exit_code = 0
+
     if delta_length != 0:
+        exit_code = 1
         logging.error("NON-WHITELISTED VULNERABILITIES FOUND")
         logging.error(f"Number of non-whitelisted vulnerabilities: {delta_length}")
         logging.error("The following vulnerabilities are not whitelisted:")
@@ -237,11 +240,20 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
             subprocess.run(
                 [f"{pipeline_repo_dir}/stages/check-cves/mattermost-failure-webhook.sh"]
             )
-        sys.exit(1)
 
-    logging.info("ALL VULNERABILITIES WHITELISTED")
-    logging.info("Scans are passing 100%")
-    sys.exit(0)
+        if "pipeline-test-project" in os.environ["CI_PROJECT_DIR"]:
+            # Check if pipeline-test-project's should be allowed through. Change the exit code
+            # so it doesn't fail the pipeline.
+            logging.info(
+                "pipeline-test-project detected. Allowing the pipeline to continue"
+            )
+            exit_code = 0
+
+    else:
+        logging.info("ALL VULNERABILITIES WHITELISTED")
+        logging.info("Scans are passing 100%")
+
+    sys.exit(exit_code)
 
 
 def _finding_approval_status_check(finding_dictionary, status_list):
@@ -495,7 +507,11 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             logging.error(
                 "This container is not noted as an approved image in VAT. Unapproved images cannot run on master branch. Failing stage."
             )
-            sys.exit(1)
+            # TODO: Remove?
+            if "pipeline-test-project" not in os.environ["CI_PROJECT_DIR"]:
+                sys.exit(1)
+            else:
+                logging.warning("Continuing because pipeline-test-project")
 
     if approval_text:
         approval_text = approval_text.rstrip()
