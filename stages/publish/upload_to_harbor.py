@@ -141,7 +141,7 @@ def main():
 
     logging.info("Key imported")
 
-    test_auth = os.environ.get("DOCKER_AUTH_CONFIG_TEST").strip()
+    test_auth = os.environ.get("DOCKER_AUTH_CONFIG_TEST", "").strip()
     if test_auth:
         dest_auth = base64.b64decode(test_auth).decode("utf-8")
     else:
