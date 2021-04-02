@@ -35,7 +35,7 @@ def get_delegation_key(gun):
 
     key = None
     for rev in range(int(os.environ["NOTARY_DELEGATION_CURRENT_REVISION"]), -1, -1):
-        url = f"{os.environ['VAULT_ADDR']}/v1/kv/il2/notary/pipeline/data/delegation/{rev}"
+        url = f"{os.environ['VAULT_ADDR']}/v1/kv/il2/notary/pipeline/delegation/{rev}"
         logging.info(url)
         r = requests.get(
             url=url,
