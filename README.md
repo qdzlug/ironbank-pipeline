@@ -235,8 +235,6 @@ This stage will not run on project master or feature branches.
 
 The `vat` stage uses previous pipeline artifacts (notably, from the `scanning` stages) in order to populate the Vulnerability Assessment Tracker (VAT) at `vat.dsop.io`. VAT access is limited to container contributors, findings approvers, and container approvers. VAT contains the list of the findings associated with the built image in the pipeline, where those with access can justify findings and provide approvals. For those who are attempting to get their containers approved, they will need to provide their justifications for any scan results in the provided spreadsheets and work with a CHT member in order to submit justifications for review.
 
-
-
 #### Vault
 
 Instructions for security team (notary administrators)
@@ -245,6 +243,7 @@ Instructions for security team (notary administrators)
 
 Download from here, and unzip. Place in your path by unzipping it, and the following command:
 https://www.vaultproject.io/downloads
+
 ```
 # Confirm that `usr/local/bin/` is in the Path
 echo $PATH
@@ -254,6 +253,7 @@ cp ~/Downloads/vault /usr/local/bin/
 `brew install vault` works, but installs the whole server, ~160MB
 
 ```
+
 git clone https://repo1.dso.mil/ironbank-tools/ironbank-pipeline
 cd ironbank-pipeline/scripts/
 ./create-root.sh
@@ -263,18 +263,24 @@ cd ironbank-pipeline/scripts/
 Enter the initial password, the new password, and confirm yes at the prompt.
 
 ```
+
 # Will run once per year
+
 ./create-delegation.sh
 open .
+
 ```
 
-You will need to do this once every 
+You will need to do this once every
 
 Security team needs push permisssions to `ironbank` repository in Registry1
 
 ```
+
 Iron Bank Security
+
 ```
 
 ./initialize gun -f
 ./initialize gun <url>
+```
