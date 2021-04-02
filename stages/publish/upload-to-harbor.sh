@@ -29,7 +29,7 @@ echo "Importing key into notary"
 
 for ((rev = "${NOTARY_DELEGATION_CURRENT_REVISION}"; rev >= 0; rev -= 1)); do
 
-  vault_addr_full="${VAULT_ADDR}/v1/kv/il2/notary/pipeline/data/delegation/${rev}"
+  vault_addr_full="${VAULT_ADDR}/v1/kv/il2/notary/pipeline/delegation/${rev}"
 
   # Grab the target key and import into notary
   delegation_key_data=$(curl --silent \
@@ -38,7 +38,7 @@ for ((rev = "${NOTARY_DELEGATION_CURRENT_REVISION}"; rev >= 0; rev -= 1)); do
     --header "X-Vault-Namespace: ${VAULT_NAMESPACE}/" \
     --request GET "${vault_addr_full}")
 
-  delegation_key=$(echo "${delegation_key_data}" | jq --raw-output '.data.data.delegationkey')
+  delegation_key=$(echo "${delegation_key_data}" | jq --raw-output '.data.delegationkey')
 
   if [ "${delegation_key:-}" != "null" ]; then
     echo "Found key: ${vault_addr_full}"
