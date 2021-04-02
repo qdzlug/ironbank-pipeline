@@ -1,11 +1,8 @@
 #!/bin/bash
 set -Eeuo pipefail
 mkdir -p "${OSCAP_SCANS}"
-DOCKER_IMAGE_PATH=$(podman load -i "${ARTIFACT_STORAGE}"/build/"${CI_PROJECT_NAME}"-"${CI_PIPELINE_ID}".tar | awk '{print $3}')
 echo "${DOCKER_IMAGE_PATH}"
 OSCAP_VERSION=$(cat "${PIPELINE_REPO_DIR}"/stages/scanning/rhel-oscap-version.json | jq .version | sed -e 's/"//g')
-base_image_type=$(podman inspect -f '{{index .Labels "com.redhat.component"}}' "${DOCKER_IMAGE_PATH}")
-
 oscap_container=$(python3 "${PIPELINE_REPO_DIR}/stages/scanning/compliance.py" --oscap-version "${OSCAP_VERSION}" --image-type "${base_image_type}" | sed s/\'/\"/g)
 echo "${oscap_container}"
 curl -L "https://github.com/ComplianceAsCode/content/releases/download/v${OSCAP_VERSION}/scap-security-guide-${OSCAP_VERSION}.zip" -o scap-security-guide.zip
