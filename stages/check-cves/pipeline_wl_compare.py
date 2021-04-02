@@ -119,12 +119,8 @@ def _load_remote_hardening_manifest(project, branch="master"):
         return yaml.safe_load(hardening_manifest.decode())
 
     except gitlab.exceptions.GitlabError:
-        logging.info(
-            "Could not load hardening_manifest. Defaulting backwards compatibility."
-        )
-        logging.warning(
-            f"This method will be deprecated soon, please switch {project} to hardening_manifest.yaml"
-        )
+        logging.error("Could not load hardening_manifest.")
+        sys.exit(1)
 
     except yaml.YAMLError as e:
         logging.error("Could not load the hardening_manifest.yaml")
@@ -192,7 +188,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
 
         oval_cves = oscap.get_oval(oval_file)
         for oval in oval_cves:
-            vuln_set.add(Finding("oscap_cve", oval, None, None))
+            vuln_set.add(Finding("oscap_cve", oval["ref"], oval["pkg"], None))
 
     twistlock_cves = twistlock.get_full()
     for tl in twistlock_cves:
@@ -224,28 +220,40 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         sys.exit(1)
 
     delta_length = len(delta)
+    exit_code = 0
+
     if delta_length != 0:
+        exit_code = 1
         logging.error("NON-WHITELISTED VULNERABILITIES FOUND")
         logging.error(f"Number of non-whitelisted vulnerabilities: {delta_length}")
         logging.error("The following vulnerabilities are not whitelisted:")
         delta = list(delta)
         delta.sort(key=lambda x: (x[0], x[2], x[1]))
-        conv = lambda i: i or ""
 
         delta.insert(0, delta[0]._fields)
         # hardcoding 4 spaces for proper formatting when the string exceeds 30 chars
         for finding in delta:
-            logging.error("".join([str(conv(i) + "    ").ljust(30) for i in finding]))
+            logging.error("".join([f"{i}    ".ljust(30) for i in finding]))
+
         if os.environ["CI_COMMIT_BRANCH"] == "master":
             pipeline_repo_dir = os.environ["PIPELINE_REPO_DIR"]
             subprocess.run(
                 [f"{pipeline_repo_dir}/stages/check-cves/mattermost-failure-webhook.sh"]
             )
-        sys.exit(1)
 
-    logging.info("ALL VULNERABILITIES WHITELISTED")
-    logging.info("Scans are passing 100%")
-    sys.exit(0)
+        if "pipeline-test-project" in os.environ["CI_PROJECT_DIR"]:
+            # Check if pipeline-test-project's should be allowed through. Change the exit code
+            # so it doesn't fail the pipeline.
+            logging.info(
+                "pipeline-test-project detected. Allowing the pipeline to continue"
+            )
+            exit_code = 0
+
+    else:
+        logging.info("ALL VULNERABILITIES WHITELISTED")
+        logging.info("Scans are passing 100%")
+
+    sys.exit(exit_code)
 
 
 def _finding_approval_status_check(finding_dictionary, status_list):
@@ -499,7 +507,11 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             logging.error(
                 "This container is not noted as an approved image in VAT. Unapproved images cannot run on master branch. Failing stage."
             )
-            sys.exit(1)
+            # TODO: Remove?
+            if "pipeline-test-project" not in os.environ["CI_PROJECT_DIR"]:
+                sys.exit(1)
+            else:
+                logging.warning("Continuing because pipeline-test-project")
 
     if approval_text:
         approval_text = approval_text.rstrip()

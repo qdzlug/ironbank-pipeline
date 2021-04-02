@@ -13,6 +13,7 @@ import re
 import ast
 
 from datetime import datetime
+from datetime import timedelta
 import time
 
 import pandas
@@ -271,18 +272,18 @@ def get_packages(package_string):
     Return a list of packages from the input string.
     """
 
-    logs.debug("In packages: %s", package_string)
+    logs.debug(f"In packages: {package_string}")
 
     # This will basically remove Updated from an "Updated kernel" package.
     # Capture the package
     # Remove any security, enhancement, bug fix or any combination of those.
     # Match and throw away anything after this up to the severity ().
     initial_re = ".*: (?:Updated )?(.*?)(?:security|enhancement|bug fix).*\\("
-    logs.debug("packages - perform pattern match %s", initial_re)
+    logs.debug(f"packages - perform pattern match {initial_re}")
     match = re.match(initial_re, package_string)
 
     pkgs = match.group(1) if match else None
-    logs.debug("After pattern match, pkgs: " + pkgs)
+    logs.debug(f"After pattern match, pkgs: {pkgs}")
 
     # Catch all if no packages are found
     if pkgs is None or pkgs.strip(" ") == "":
@@ -292,7 +293,7 @@ def get_packages(package_string):
     #   Note: that single packages will be returned as a list.
     pkglist = re.split(", and |, | and ", pkgs.strip(" ").replace(":", "-"))
 
-    logs.debug("packages list: %s", pkglist)
+    logs.debug(f"packages list: {pkglist}")
 
     return pkglist
 
@@ -469,6 +470,10 @@ def find_all_versions(cursor, container_id):
     container_versions["add_logs"] = add_logs
     new_version = new_container_version(container_versions, container_id)
     container_versions["new_version"] = new_version
+    state = (
+        "approved" if container_id in container_versions["approved"] else "unapproved"
+    )
+    container_versions["state"] = state
 
     logs.debug(f"Container versions: {container_versions}")
 
@@ -501,6 +506,7 @@ def check_container():
     parent_id = get_parent_id()
     str_parent_id = str(parent_id) if parent_id else None
     container_id = None
+    versions = {}
 
     if args.repo_link != "":
         repo_link = args.repo_link
@@ -750,7 +756,9 @@ def fix_inheritance(cursor, active_records, log_inherited, log_inherited_id):
             cursor.execute(update_inheritance_query, (j_record[0][0],))
 
 
-def update_finding_logs(cursor, container_id, row, finding_id, scan_source, lineage):
+def update_finding_logs(
+    cursor, container_id, row, finding_id, scan_source, lineage, versions
+):
     """
     insert a row into the finding_logs table if new or inheritability changes
     if row is inserted,
@@ -779,7 +787,9 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
         log_inherited_id = active_records[0][5] if active_records else None
         log_inherited = active_records[0][7] if active_records else None
         parents = (
-            find_parent_findings(cursor, row, lineage, scan_source) if lineage else None
+            find_parent_findings(cursor, row, lineage, scan_source)
+            if lineage and is_finding_inheritable
+            else None
         )
         parent_finding = parents[0][0] if parents else None
         log_in_current_scan = active_records[0][2] if active_records else 0
@@ -813,6 +823,7 @@ def update_finding_logs(cursor, container_id, row, finding_id, scan_source, line
                 finding_id,
                 log_inherited_id,
                 is_finding_inheritable,
+                versions,
             )
             return True
         if parent_finding:
@@ -838,6 +849,7 @@ def insert_logs_with_logs(
     finding_id,
     log_inherited_id,
     is_finding_inheritable,
+    versions,
 ):
     """
     Inserts logs if needed for findings that already have logs.
@@ -845,6 +857,15 @@ def insert_logs_with_logs(
     logs.debug("Starting function insert_logs_with_logs")
     system_user_id = get_system_user_id()
     version_bump_id = None
+
+    # Clean up of logs where incorrect logs were added
+    if not is_finding_inheritable:
+        if need_uninherited_log_fix(active_records, versions):
+            fix_uninherited_logs(
+                cursor, active_records, finding_id, versions, system_user_id
+            )
+            return True
+
     if parent_finding:
         match = check_parent_child_match(cursor, finding_id, parent_finding)
         if log_inherited_id == parent_finding and not is_finding_inheritable:
@@ -925,6 +946,63 @@ def insert_logs_with_logs(
                     """
                 cursor.execute(activate_j, (j_id,))
         return True
+
+
+def need_uninherited_log_fix(active_records, versions):
+    """
+    Check if there's an approved log for an uninherited finding
+    where the container is not approved
+    """
+    if versions["state"] != "approved" and not versions["new_version"]:
+        approved_states = ("conditional", "approved")
+        if active_records[0][6] in approved_states:
+            return True
+    return False
+
+
+def fix_uninherited_logs(cursor, active_records, finding_id, versions, system_user_id):
+    """
+    Initial fix to remove inheritance logs from findings that should not be approved
+    """
+    is_finding_inheritable = False
+    [deactivate_log_row(cursor, r[0]) for r in active_records]
+    insert_fix_log(cursor, finding_id, system_user_id)
+    insert_new_log(cursor, finding_id, system_user_id, is_finding_inheritable)
+
+
+def insert_fix_log(cursor, finding_id, system_user_id):
+    """
+    Inserts a finding log for a finding with incorrect inherited logs
+    :params finding_id int
+    :params system_user_id int
+    """
+
+    logs.debug("In insert_fix_log")
+    record_text = "Previous logs where from parent, but finding requires justifications for current layer"
+    # Add log with needs justification
+    log_date_time = datetime.strptime(args.scan_date, "%Y-%m-%dT%H:%M:%S")
+    log_date_time = log_date_time - timedelta(seconds=5)
+    log_date_time_str = log_date_time.strftime("%Y-%m-%dT%H:%M:%S")
+    is_finding_inheritable = False
+
+    new_values = (
+        None,
+        finding_id,
+        "justification",  # record_type
+        "needs_justification",  # state
+        record_text,  # record_text
+        1,  # in_current_scan
+        None,  # expiration_date
+        0,  # inheritable
+        None,  # inherited_id
+        0,  # inherited
+        0,  # false_positive
+        system_user_id,  # user_id
+        log_date_time_str,  # record_timestamp
+        0,  # active
+        0,  # record_type_active
+    )
+    insert_finding_log(cursor, new_values, is_finding_inheritable)
 
 
 def check_parent_child_match(cursor, finding_id, parent_id):
@@ -1110,9 +1188,11 @@ def find_parent_findings(cursor, finding, lineage, scan_source):
     logs.debug(f"find_parent_findings for {finding}")
     logs.debug(f"lineage: {lineage}")
 
-    find_parent_finding_query = f"""SELECT id, container_id FROM findings
-        WHERE finding = %s AND scan_source = %s AND package {package_query_string} %s 
-        AND package_path {package_path_query_string} %s AND container_id = %s
+    find_parent_finding_query = f"""SELECT f.id, f.container_id FROM findings f
+        INNER JOIN finding_logs fl on f.id = fl.finding_id and fl.active = 1
+        WHERE f.finding = %s AND f.scan_source = %s AND f.package {package_query_string} %s
+        AND f.package_path {package_path_query_string} %s AND f.container_id = %s
+        AND fl.in_current_scan = 1
         """
     for parent in lineage:
         unique_values = (
@@ -1183,7 +1263,9 @@ def insert_scan(data, iid, scan_source, versions):
                 add_approved_logs_for_prev_version(
                     cursor, row, versions, scan_source, finding_id, lineage
                 )
-            update_finding_logs(cursor, iid, row, finding_id, scan_source, lineage)
+            update_finding_logs(
+                cursor, iid, row, finding_id, scan_source, lineage, versions
+            )
 
     except Error as error:
         logs.error(error)
@@ -1486,7 +1568,8 @@ def parse_anchore_json(links):
             (item["source"] + ": " + item["url"] + "\n") for item in source_list
         )
         return link_string
-    except:
+    except SyntaxError as error:
+        logs.info(error)
         return links
 
 
