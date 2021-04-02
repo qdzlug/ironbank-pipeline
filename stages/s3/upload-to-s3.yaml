@@ -1,5 +1,7 @@
 upload to s3:
-  extends: .publish
+  stage: s3 publish
+  tags:
+    - ironbank
   resource_group: s3_phase
   only:
     - master
