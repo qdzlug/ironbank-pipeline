@@ -225,7 +225,8 @@ def main():
 
             p = subprocess.run(
                 [
-                    "skopeo" "copy",
+                    "skopeo",
+                    "copy",
                     "--src-authfile",
                     "staging_auth.json",
                     "--dest-authfile",
