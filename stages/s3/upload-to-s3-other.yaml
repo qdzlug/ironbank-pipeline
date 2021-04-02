@@ -2,7 +2,6 @@ distroless upload to s3:
   stage: s3 publish
   tags:
     - ironbank
-  extends: .publish
   resource_group: s3_phase
   only:
     - master
