@@ -3,8 +3,10 @@ openscap compliance rhel:
   stage: scanning
   before_script:
     - "${PIPELINE_REPO_DIR}/stages/scanning/openscap/base_image_type.sh"
+    - BASE_IMAGE_TYPE_SHORT = $(echo ${BASE_IMAGE_TYPE} | cut -d- -f1 | sed 's/[0-9]//g')
+    - export BASE_IMAGE_TYPE_SHORT
   rules:
-    - if: $(echo ${BASE_IMAGE_TYPE} | cut -d- -f1 | sed 's/[0-9]//g') != "ubi"
+    - if: $BASE_IMAGE_TYPE_SHORT != "ubi"
       when: never
     - if: '$DISTROLESS == "1"'
       when: never
