@@ -25,4 +25,6 @@ include:
 
   - local: stages/vat/base.yaml
 
-  - local: stages/publish/base.yaml
+  - local: stages/harbor/harbor.yaml
+
+  - local: stages/s3/upload-to-s3.yaml
