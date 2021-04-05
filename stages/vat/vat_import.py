@@ -771,6 +771,7 @@ def update_finding_logs(
     logs.debug("Starting Update to Findings Log")
 
     is_finding_inheritable = check_finding_inheritable(row, scan_source)
+    bumped_id = find_bumped_id(cursor, row, finding_id, versions, scan_source)
 
     try:
         system_user_id = get_system_user_id()
@@ -803,6 +804,12 @@ def update_finding_logs(
             if active_records
             else None
         )
+        active = [x for x in active_records if x[3] == 1] if active_records else None
+        if active and active[0][6] == "needs_justification" and bumped_id:
+            # Adds in logs if any version previous to this had approvals
+            add_approved_logs_for_prev_version(
+                cursor, row, versions, scan_source, finding_id, lineage
+            )
         fix_inheritance(cursor, active_records, log_inherited, log_inherited_id)
         if active_records and not log_in_current_scan:
             # If not in current_scan in logs update active logs to indicate that it now is in scan
@@ -1081,13 +1088,22 @@ def find_bumped_id(cursor, row, finding_id, versions, scan_source):
     """
     try:
         logs.debug(f"Entering Find bumped id for {finding_id}")
-        versions["approved"].sort()
-        last_approved = versions["approved"][-1:]
-        bumped_findings = find_parent_findings(cursor, row, last_approved, scan_source)
+        versions["approved"].sort(reverse=True)
+        bumped_findings = None
+        for v in versions["approved"]:
+            bumped_findings = find_parent_findings(cursor, row, [v], scan_source)
+            if bumped_findings:
+                break
         logs.debug(f"Bumped Findings {bumped_findings}")
         if bumped_findings is None:
             return None
-        return bumped_findings[0][0]
+        check_status_query = """
+        SELECT state from finding_logs where finding_id = %s and active = 1
+        """
+        cursor.execute(check_status_query, (bumped_findings[0][0],))
+        status = cursor.fetchone()
+        if status[0] != "needs_justification":
+            return bumped_findings[0][0]
     except Error as error:
         logs.error(error)
     return None
