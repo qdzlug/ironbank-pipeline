@@ -6,9 +6,8 @@ openscap cve rhel:
   rules:
     - if: $(echo ${BASE_IMAGE_TYPE} | cut -d- -f1 | sed 's/[0-9]//g') != "ubi"
       when: never
-  except:
-    variables:
-      - $DISTROLESS
+    - if: `$DISTROLESS == "1"`
+      when: never
   # Load in the IMG_VERSION variable from load scripts env
   dependencies:
     - load scripts
@@ -33,9 +32,8 @@ openscap cve ubuntu:
   rules:
     - if: $(echo ${BASE_IMAGE_TYPE} | cut -d- -f1 | sed 's/[0-9]//g') != "ubuntu"
       when: never
-  except:
-    variables:
-      - $DISTROLESS
+    - if: `$DISTROLESS == "1"`
+      when: never
   # Load in the IMG_VERSION variable from load scripts env
   dependencies:
     - load scripts
