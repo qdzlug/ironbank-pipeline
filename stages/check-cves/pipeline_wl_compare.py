@@ -206,7 +206,9 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         if anc["packagePath"] == "pkgdb":
             anc["packagePath"] = None
         vuln_set.add(
-            Finding(anc["source"], anc["identifier"], anc["package"], anc["packagePath"])
+            Finding(
+                anc["source"], anc["identifier"], anc["package"], anc["packagePath"]
+            )
         )
 
     vuln_length = len(vuln_set)
