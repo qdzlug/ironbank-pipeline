@@ -6,7 +6,7 @@ openscap compliance rhel:
   rules:
     - if: $(echo ${BASE_IMAGE_TYPE} | cut -d- -f1 | sed 's/[0-9]//g') != "ubi"
       when: never
-    - if: `$DISTROLESS == "1"`
+    - if: '$DISTROLESS == "1"'
       when: never
   variables:
     OSCAP_SCANS: "${ARTIFACT_STORAGE}/scan-results/openscap"
@@ -35,7 +35,7 @@ openscap compliance ubuntu:
   rules:
     - if: $(echo ${BASE_IMAGE_TYPE} | cut -d- -f1 | sed 's/[0-9]//g') != "ubuntu"
       when: never
-    - if: `$DISTROLESS == "1"`
+    - if: '$DISTROLESS == "1"'
       when: never
   variables:
     OSCAP_SCANS: "${ARTIFACT_STORAGE}/scan-results/openscap"
