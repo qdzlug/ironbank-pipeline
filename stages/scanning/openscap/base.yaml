@@ -18,8 +18,6 @@ openscap scans:
         fi
       fi
     - export ${BASE_IMAGE_TYPE}
-  trigger:
-    include:
-      - local: stages/scanning/openscap/openscap-compliance.yaml
-      - local: stages/scanning/openscap/openscap-cve.yaml
-    strategy: depend
+  include:
+    - local: stages/scanning/openscap/openscap-compliance.yaml
+    - local: stages/scanning/openscap/openscap-cve.yaml
