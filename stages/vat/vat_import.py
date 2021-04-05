@@ -669,21 +669,20 @@ def insert_finding_scan(cursor, row, finding_id):
     """
     logs.debug("Starting insert_finding_scan")
     try:
-        get_id_query = (
-            "SELECT id FROM `finding_scan_results` WHERE finding_id = %s and active = 1"
-        )
+        get_id_query = "SELECT id, job_id FROM `finding_scan_results` WHERE finding_id = %s and active = 1"
         get_id_tuple = (finding_id,)
         logs.debug(get_id_query, get_id_tuple[0])
         cursor.execute(get_id_query, get_id_tuple)
         active_record = cursor.fetchone()
-
-        if active_record:
+        if active_record and active_record[1] == int(args.job_id):
+            return  # duplicate record, retain the record as active
+        elif active_record:
             update_sql_query = (
                 "UPDATE `finding_scan_results` SET active = 0 WHERE id = %s"
             )
 
             logs.debug(update_sql_query, active_record[0])
-            cursor.execute(update_sql_query, active_record)
+            cursor.execute(update_sql_query, (active_record[0],))
 
         insert_finding_query = """INSERT INTO `finding_scan_results`
             (`finding_id`, `job_id`, `record_timestamp`, `severity`,
