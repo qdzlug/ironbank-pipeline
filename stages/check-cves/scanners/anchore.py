@@ -39,7 +39,7 @@ def _get_full_compliance():
         os.environ["ARTIFACT_STORAGE"],
         "scan-results",
         "anchore",
-        "anchore_security.json",
+        "anchore_gates.json",
     )
     with anchore_file.open("r", encoding="utf-8") as af:
         json_data = json.load(af)
