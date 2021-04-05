@@ -1,5 +1,7 @@
 harbor:
-  extends: .publish
+  stage: harbor
+  tags:
+    - ironbank
   only:
     - master
   dependencies:
