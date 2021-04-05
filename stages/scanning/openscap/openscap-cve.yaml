@@ -2,8 +2,8 @@ openscap cve rhel:
   stage: scanning
   extends: .scanning
   rules:
-    if: '$(echo ${BASE_IMAGE_TYPE} | cut -d- -f1 | sed 's/[0-9]//g') != "ubi"'
-    when: never
+    - if: '$(echo ${BASE_IMAGE_TYPE} | cut -d- -f1 | sed 's/[0-9]//g') != "ubi"'
+      when: never
   except:
     variables:
       - $DISTROLESS
@@ -27,8 +27,8 @@ openscap cve ubuntu:
   extends: .scanning
   image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/ubupodscap1804:1.3.2
   rules:
-    if: '$(echo ${BASE_IMAGE_TYPE} | cut -d- -f1 | sed 's/[0-9]//g') != "ubuntu"'
-    when: never
+    - if: '$(echo ${BASE_IMAGE_TYPE} | cut -d- -f1 | sed 's/[0-9]//g') != "ubuntu"'
+      when: never
   except:
     variables:
       - $DISTROLESS
