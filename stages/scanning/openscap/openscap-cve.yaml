@@ -1,0 +1,48 @@
+openscap cve rhel:
+  stage: scanning
+  extends: .scanning
+  rules:
+    if: '$(echo ${BASE_IMAGE_TYPE} | cut -d- -f1 | sed 's/[0-9]//g') != "ubi"'
+    when: never
+  except:
+    variables:
+      - $DISTROLESS
+  # Load in the IMG_VERSION variable from load scripts env
+  dependencies:
+    - load scripts
+    - build
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/openscap"
+  script:
+    - '"${PIPELINE_REPO_DIR}/stages/scanning/oscap-cve-run.sh"'
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_DIR}"
+    reports:
+      dotenv: oscap-cve.env
+
+openscap cve ubuntu:
+  stage: scanning
+  extends: .scanning
+  image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/ubupodscap1804:1.3.2
+  rules:
+    if: '$(echo ${BASE_IMAGE_TYPE} | cut -d- -f1 | sed 's/[0-9]//g') != "ubuntu"'
+    when: never
+  except:
+    variables:
+      - $DISTROLESS
+  # Load in the IMG_VERSION variable from load scripts env
+  dependencies:
+    - load scripts
+    - build
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/openscap"
+  script:
+    - '"${PIPELINE_REPO_DIR}/stages/scanning/oscap-cve-run.sh"'
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_DIR}"
+    reports:
+      dotenv: oscap-cve.env

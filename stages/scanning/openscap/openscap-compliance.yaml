@@ -1,0 +1,54 @@
+openscap compliance rhel:
+  extends: .scanning
+  stage: scanning
+  rules:
+    if: '$(echo ${BASE_IMAGE_TYPE} | cut -d- -f1 | sed 's/[0-9]//g') != "ubi'
+    when: never
+  except:
+    variables:
+      - $DISTROLESS
+  variables:
+    OSCAP_SCANS: "${ARTIFACT_STORAGE}/scan-results/openscap"
+    OSCAP_FILENAME: "${OSCAP_HTML_FILENAME}"
+  # Load in the IMG_VERSION variable from load scripts env
+  dependencies:
+    - load scripts
+    - build
+  script:
+    - '"${PIPELINE_REPO_DIR}/stages/scanning/oscap-compliance-run.sh"'
+  artifacts:
+    when: always
+    paths:
+      - "${OSCAP_SCANS}"
+    reports:
+      dotenv: oscap-compliance.env
+
+    expire_in: 1 week
+
+openscap compliance ubuntu:
+  extends: .scanning
+  stage: scanning
+  image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/ubupodscap1804:1.3.2
+  rules:
+    if: '$(echo ${BASE_IMAGE_TYPE} | cut -d- -f1 | sed 's/[0-9]//g') != "ubuntu'
+    when: never
+  except:
+    variables:
+      - $DISTROLESS
+  variables:
+    OSCAP_SCANS: "${ARTIFACT_STORAGE}/scan-results/openscap"
+    OSCAP_FILENAME: "${OSCAP_HTML_FILENAME}"
+  # Load in the IMG_VERSION variable from load scripts env
+  dependencies:
+    - load scripts
+    - build
+  script:
+    - '"${PIPELINE_REPO_DIR}/stages/scanning/oscap-compliance-run.sh"'
+  artifacts:
+    when: always
+    paths:
+      - "${OSCAP_SCANS}"
+    reports:
+      dotenv: oscap-compliance.env
+
+    expire_in: 1 week
