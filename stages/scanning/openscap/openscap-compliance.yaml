@@ -1,6 +1,8 @@
 openscap compliance rhel:
   extends: .scanning
   stage: scanning
+  before_script:
+    - "${PIPELINE_REPO_DIR}/stages/scanning/openscap/base_image_type.sh"
   rules:
     - if: $(echo ${BASE_IMAGE_TYPE} | cut -d- -f1 | sed 's/[0-9]//g') != "ubi"
       when: never
@@ -15,7 +17,7 @@ openscap compliance rhel:
     - load scripts
     - build
   script:
-    - '"${PIPELINE_REPO_DIR}/stages/scanning/oscap-compliance-run.sh"'
+    - '"${PIPELINE_REPO_DIR}/stages/scanning/openscap/oscap-compliance-run.sh"'
   artifacts:
     when: always
     paths:
@@ -28,6 +30,8 @@ openscap compliance rhel:
 openscap compliance ubuntu:
   extends: .scanning
   stage: scanning
+  before_script:
+    - "${PIPELINE_REPO_DIR}/stages/scanning/openscap/base_image_type.sh"
   image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/ubupodscap1804:1.3.2
   rules:
     - if: $(echo ${BASE_IMAGE_TYPE} | cut -d- -f1 | sed 's/[0-9]//g') != "ubuntu"
@@ -43,7 +47,7 @@ openscap compliance ubuntu:
     - load scripts
     - build
   script:
-    - '"${PIPELINE_REPO_DIR}/stages/scanning/oscap-compliance-run.sh"'
+    - '"${PIPELINE_REPO_DIR}/stages/scanning/openscap/oscap-compliance-run.sh"'
   artifacts:
     when: always
     paths:
