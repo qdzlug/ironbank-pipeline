@@ -1,5 +1,5 @@
 DOCKER_IMAGE_PATH=$(podman load -i "${ARTIFACT_STORAGE}"/build/"${CI_PROJECT_NAME}"-"${CI_PIPELINE_ID}".tar | awk '{print $3}')
-export "$DOCKER_IMAGE_PATH"
+export DOCKER_IMAGE_PATH
 BASE_IMAGE_TYPE=$(podman inspect -f '{{index .Labels "com.redhat.component"}}' "${DOCKER_IMAGE_PATH}")
 if [[ "${BASE_IMAGE_TYPE}" == "" ]]; then
   BASE_IMAGE_TYPE=$(podman inspect -f '{{index .Labels "os_type"}}' "${DOCKER_IMAGE_PATH}")
@@ -12,4 +12,4 @@ if [[ "${BASE_IMAGE_TYPE}" == "" ]]; then
     fi
   fi
 fi
-export "$BASE_IMAGE_TYPE"
+export BASE_IMAGE_TYPE
