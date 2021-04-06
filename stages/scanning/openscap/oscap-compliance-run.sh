@@ -1,5 +1,6 @@
 #!/bin/bash
 set -Eeuo pipefail
+source "${PIPELINE_REPO_DIR}/stages/scanning/openscap/base_image_type.sh"
 mkdir -p "${OSCAP_SCANS}"
 echo "${DOCKER_IMAGE_PATH}"
 OSCAP_VERSION=$(cat "${PIPELINE_REPO_DIR}"/stages/scanning/rhel-oscap-version.json | jq .version | sed -e 's/"//g')
