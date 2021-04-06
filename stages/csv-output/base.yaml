@@ -4,8 +4,10 @@ csv output:
     - ironbank
   dependencies:
     - twistlock scan
-    - openscap cve
-    - openscap compliance
+    - openscap cve rhel
+    - openscap cve ubuntu
+    - openscap compliance rhel
+    - openscap compliance ubuntu
     - anchore scan
     - load scripts
     - hardening_manifest
