@@ -8,6 +8,7 @@ openscap cve rhel:
       when: never
     - if: '$DISTROLESS == "1"'
       when: never
+    - when: on_success
   # Load in the IMG_VERSION variable from load scripts env
   dependencies:
     - load scripts
@@ -34,6 +35,7 @@ openscap cve ubuntu:
       when: never
     - if: '$DISTROLESS == "1"'
       when: never
+    - when: on_success
   # Load in the IMG_VERSION variable from load scripts env
   dependencies:
     - load scripts
