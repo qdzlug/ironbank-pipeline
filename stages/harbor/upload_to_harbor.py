@@ -9,10 +9,40 @@ import logging
 import base64
 import os
 
-from requests import status_codes
+
+def query_delegation_key(url, token):
+    """
+    Query the delegation key url a few times to make sure there isn't any
+    rate limiting or anything.
+
+    """
+    key = None
+    logging.info(f"Querying {url}")
+    for _ in range(5):
+        r = requests.get(
+            url=url,
+            headers={
+                "X-Vault-Request": "true",
+                "X-Vault-Namespace": os.environ["VAULT_NAMESPACE"],
+                "X-Vault-Token": token,
+            },
+        )
+        if r.status_code == 200:
+            key = r.json()["data"]["delegationkey"]
+            break
+        else:
+            logging.info(f"{r.status_code} - Key not found, trying again.")
+            # key remains None
+
+    return key
 
 
-def get_delegation_key(gun):
+def get_delegation_key():
+    """
+    Interaction with Vault. Log in and grab a session token and then use
+    the session token to grab the delegation key to sign.
+
+    """
     logging.info("Logging into vault")
     url = f"{os.environ['VAULT_ADDR']}/v1/auth/userpass/login/{os.environ['VAULT_USERNAME']}"
 
@@ -36,23 +66,18 @@ def get_delegation_key(gun):
     key = None
     for rev in range(int(os.environ["NOTARY_DELEGATION_CURRENT_REVISION"]), -1, -1):
         url = f"{os.environ['VAULT_ADDR']}/v1/kv/il2/notary/pipeline/delegation/{rev}"
-        logging.info(url)
-        r = requests.get(
-            url=url,
-            headers={
-                "X-Vault-Request": "true",
-                "X-Vault-Namespace": os.environ["VAULT_NAMESPACE"],
-                "X-Vault-Token": token,
-            },
-        )
-        if r.status_code == 404:
-            logging.info("Not found, looping")
-            continue
-        elif r.status_code == 200:
-            key = r.json()["data"]["delegationkey"]
+        key = query_delegation_key(url=url, token=token)
+        if key:
             break
-        # Return None if no delegationkey was received
+        # key remains None if no delegationkey was received
 
+    if not key:
+        logging.error(
+            "Could not retrieve delegation key - Please speak to an Administrator"
+        )
+        sys.exit(1)
+
+    logging.info("Retrieved key")
     return key
 
 
@@ -101,14 +126,7 @@ def main():
     staging_image = f"{os.environ['STAGING_REGISTRY_URL']}/{os.environ['IMAGE_NAME']}"
     gun = f"{os.environ['REGISTRY_URL']}/{os.environ['IMAGE_NAME']}"
 
-    key = get_delegation_key(gun=gun)
-    if not key:
-        logging.error(
-            f"Could not find key for {gun} - Please speak to an Administrator"
-        )
-        sys.exit(1)
-    else:
-        logging.info("Retrieved key")
+    key = get_delegation_key()
 
     trust_dir = "trust-dir-delegation/"
 
