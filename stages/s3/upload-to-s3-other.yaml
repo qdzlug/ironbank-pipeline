@@ -1,5 +1,7 @@
-upload to s3:
-  extends: .publish
+distroless upload to s3:
+  stage: s3 publish
+  tags:
+    - ironbank
   resource_group: s3_phase
   only:
     - master
@@ -27,4 +29,4 @@ upload to s3:
     - wl compare lint
     - hardening_manifest
   script:
-    - '"${PIPELINE_REPO_DIR}/stages/publish/upload-to-s3-run.sh"'
+    - '"${PIPELINE_REPO_DIR}/stages/s3/upload-to-s3-run.sh"'
