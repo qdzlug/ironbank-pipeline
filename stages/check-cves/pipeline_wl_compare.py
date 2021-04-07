@@ -332,6 +332,10 @@ def _vat_findings_query(im_name, im_version):
 
 
 def _vat_approval_query(im_name, im_version):
+    """
+    Returns the container approval status which is returned by the query as:
+    [(image_name, image_version, container_status)]
+    """
     conn = None
     result = None
     try:
@@ -380,9 +384,7 @@ def _vat_approval_query(im_name, im_version):
 
 def _vat_vuln_query(im_name, im_version):
     """
-    Returns the container approval status which is returned by the query as:
-    [(image_name, image_version, container_status)]
-
+    Returns non inherited vulnerabilities for a specific container
     """
     conn = None
     result = None
@@ -404,11 +406,12 @@ def _vat_vuln_query(im_name, im_version):
                 , f.package_path
                 FROM findings f
                 INNER JOIN containers c on f.container_id = c.id
+                INNER JOIN finding_logs fl on active = 1 and in_current_scan = 1 and inherited = 0 and f.id = fl.finding_id
                 LEFT JOIN container_log cl on c.id = cl.imageid AND cl.id in (SELECT max(id) from container_log group by imageid)
                 LEFT JOIN finding_logs fl1 ON fl1.record_type_active = 1 and fl1.record_type = 'state_change' and f.id = fl1.finding_id
                 LEFT JOIN finding_logs fl2 ON fl2.record_type_active = 1 and fl2.record_type = 'justification' and f.id = fl2.finding_id
                 LEFT JOIN finding_scan_results sr on f.id = sr.finding_id and sr.active = 1
-                WHERE c.name = %s and c.version = %s and fl1.in_current_scan = 1 and fl2.in_current_scan = 1;"""
+                WHERE c.name = %s and c.version = %s;"""
         cursor.execute(query, (im_name, im_version))
         result = cursor.fetchall()
     except Error as error:
