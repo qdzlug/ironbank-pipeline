@@ -42,7 +42,9 @@ def check_existence(delta_api_db, api_set, db_set):
     for d in {f[0:2] + f[3:5] for f in delta_api_db}:
         if d not in db_cve_ids:
             cve_missing = True
-            logging.info("There are inherited CVEs returned by the api that are not returned by query")
+            logging.info(
+                "There are inherited CVEs returned by the api that are not returned by query"
+            )
             break
 
 
