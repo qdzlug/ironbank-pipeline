@@ -669,21 +669,20 @@ def insert_finding_scan(cursor, row, finding_id):
     """
     logs.debug("Starting insert_finding_scan")
     try:
-        get_id_query = (
-            "SELECT id FROM `finding_scan_results` WHERE finding_id = %s and active = 1"
-        )
+        get_id_query = "SELECT id, job_id FROM `finding_scan_results` WHERE finding_id = %s and active = 1"
         get_id_tuple = (finding_id,)
         logs.debug(get_id_query, get_id_tuple[0])
         cursor.execute(get_id_query, get_id_tuple)
         active_record = cursor.fetchone()
-
-        if active_record:
+        if active_record and active_record[1] == int(args.job_id):
+            return  # duplicate record, retain the record as active
+        elif active_record:
             update_sql_query = (
                 "UPDATE `finding_scan_results` SET active = 0 WHERE id = %s"
             )
 
             logs.debug(update_sql_query, active_record[0])
-            cursor.execute(update_sql_query, active_record)
+            cursor.execute(update_sql_query, (active_record[0],))
 
         insert_finding_query = """INSERT INTO `finding_scan_results`
             (`finding_id`, `job_id`, `record_timestamp`, `severity`,
@@ -772,6 +771,7 @@ def update_finding_logs(
     logs.debug("Starting Update to Findings Log")
 
     is_finding_inheritable = check_finding_inheritable(row, scan_source)
+    bumped_id = find_bumped_id(cursor, row, finding_id, versions, scan_source)
 
     try:
         system_user_id = get_system_user_id()
@@ -804,6 +804,12 @@ def update_finding_logs(
             if active_records
             else None
         )
+        active = [x for x in active_records if x[3] == 1] if active_records else None
+        if active and active[0][6] == "needs_justification" and bumped_id:
+            # Adds in logs if any version previous to this had approvals
+            add_approved_logs_for_prev_version(
+                cursor, row, versions, scan_source, finding_id, lineage
+            )
         fix_inheritance(cursor, active_records, log_inherited, log_inherited_id)
         if active_records and not log_in_current_scan:
             # If not in current_scan in logs update active logs to indicate that it now is in scan
@@ -1082,13 +1088,22 @@ def find_bumped_id(cursor, row, finding_id, versions, scan_source):
     """
     try:
         logs.debug(f"Entering Find bumped id for {finding_id}")
-        versions["approved"].sort()
-        last_approved = versions["approved"][-1:]
-        bumped_findings = find_parent_findings(cursor, row, last_approved, scan_source)
+        versions["approved"].sort(reverse=True)
+        bumped_findings = None
+        for v in versions["approved"]:
+            bumped_findings = find_parent_findings(cursor, row, [v], scan_source)
+            if bumped_findings:
+                break
         logs.debug(f"Bumped Findings {bumped_findings}")
         if bumped_findings is None:
             return None
-        return bumped_findings[0][0]
+        check_status_query = """
+        SELECT state from finding_logs where finding_id = %s and active = 1
+        """
+        cursor.execute(check_status_query, (bumped_findings[0][0],))
+        status = cursor.fetchone()
+        if status[0] != "needs_justification":
+            return bumped_findings[0][0]
     except Error as error:
         logs.error(error)
     return None
@@ -1616,11 +1631,13 @@ def set_approval_state(container_id, version):
         last_container_id = container_list[-1]
         system_user_id = get_system_user_id()
         approved_version_query = """
-            SELECT type FROM container_log cl INNER JOIN containers c ON cl.imageid = c.id
+            SELECT type, expiration_date FROM container_log cl INNER JOIN containers c ON cl.imageid = c.id
             WHERE cl.id in (SELECT MAX(id) FROM container_log WHERE imageid = %s)
             """
         cursor.execute(approved_version_query, (last_container_id,))
-        bumped_version_status = cursor.fetchone()[0]
+        bumped_info = cursor.fetchone()
+        bumped_version_status = bumped_info[0]
+        bumped_version_exp_date = bumped_info[1]
 
         get_container_info = "SELECT name, version FROM containers WHERE id = %s"
         get_info_tuple = (str(last_container_id),)
@@ -1630,7 +1647,7 @@ def set_approval_state(container_id, version):
         container_version = container_info[1]
 
         last_log_query = """
-        SELECT id, type, text, user_id, date_time FROM container_log WHERE imageid = %s"""
+        SELECT id, type, text, user_id, date_time, expiration_date FROM container_log WHERE imageid = %s"""
         last_log_tuple = (str(last_container_id),)
         logs.debug(last_log_query % last_log_tuple)
         cursor.execute(last_log_query, last_log_tuple)
@@ -1640,13 +1657,14 @@ def set_approval_state(container_id, version):
         )
 
         insert_log_sql = """
-           INSERT INTO container_log (id, imageid, user_id, type, text, date_time, active) VALUES
-           (%s, %s, %s, %s, %s, %s, %s)"""
+           INSERT INTO container_log (id, imageid, user_id, type, text, date_time, active, expiration_date) VALUES
+           (%s, %s, %s, %s, %s, %s, %s, %s)"""
         for log in container_logs:
             container_log_type = log[1]
             container_log_text = log[2]
             container_log_userid = log[3]
             container_log_datetime = log[4]
+            container_log_exp_date = log[5]
             insert_log_tuple = (
                 None,
                 container_id,
@@ -1655,6 +1673,7 @@ def set_approval_state(container_id, version):
                 container_log_text,
                 container_log_datetime,
                 0,
+                container_log_exp_date,
             )
             logs.debug(insert_log_sql % insert_log_tuple)
             cursor.execute(insert_log_sql, insert_log_tuple)
@@ -1667,6 +1686,7 @@ def set_approval_state(container_id, version):
             auto_approval_text,
             args.scan_date,
             1,
+            bumped_version_exp_date,
         )
         logs.debug(insert_log_sql % auto_approve_tuple)
         cursor.execute(insert_log_sql, auto_approve_tuple)
@@ -1674,6 +1694,58 @@ def set_approval_state(container_id, version):
 
     except Error as error:
         logs.error(f"Error in set_approval_state: {error}")
+    finally:
+        if conn is not None and conn.is_connected():
+            conn.close()
+
+
+def check_conditional_date(container_id, versions):
+    """
+    @params int The container id
+    This function will fix any containers with a missing expiration date
+    If one of the previous versions had an expiration date
+    """
+    logs.debug("check_conditional_date")
+    conn = connect_to_db()
+    try:
+        cursor = conn.cursor()
+        container_state_query = """
+        SELECT type, expiration_date FROM container_log cl INNER JOIN containers c ON cl.imageid = c.id
+            WHERE cl.id in (SELECT MAX(id) FROM container_log WHERE imageid = %s)
+        """
+        cursor.execute(container_state_query, (container_id,))
+        container_info = cursor.fetchone()
+        if (
+            container_info
+            and container_info[0] == "Conditionally Approved"
+            and container_info[1] is None
+        ):
+            container_list = versions["approved"]
+            container_list.sort(reverse=True)
+            expiration_date = None
+            for c in container_list:
+                cursor.execute(container_state_query, (c,))
+                version_info = cursor.fetchone()
+                if (
+                    version_info[0] == "Conditionally Approved"
+                    and version_info[1] is not None
+                ):
+                    expiration_date = version_info[1]
+                    break
+            if expiration_date:
+                logs.debug("Updating Conditional Approval Date")
+                update_container_log = """
+                UPDATE container_log SET expiration_date = %s
+                WHERE id = (SELECT MAX(id) FROM container_log WHERE imageid = %s)
+                """
+                container_tuple = (
+                    expiration_date,
+                    container_id,
+                )
+                cursor.execute(update_container_log, container_tuple)
+        conn.commit()
+    except Error as error:
+        logs.error(f"Error in check_conditional_date: {error}")
     finally:
         if conn is not None and conn.is_connected():
             conn.close()
@@ -1696,6 +1768,7 @@ def main():
 
         if iid in versions["unapproved"] and versions["new_version"]:
             set_approval_state(iid, versions)
+        check_conditional_date(iid, versions)
 
     else:
         logs.warning("newer scan exists not inserting scan report")
