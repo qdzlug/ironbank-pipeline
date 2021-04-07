@@ -43,16 +43,6 @@ def check_existence(delta_api_db, delta_db_api, api_set, db_set):
             cve_missing = True
             print("There are CVEs from the api that are not returned by the query")
             break
-    # check if cve from db exists in api (excluding description)
-    for d in {f[0:2] + f[3:5] for f in delta_db_api}:
-        if d not in api_cve_ids:
-            cve_missing = True
-            print("There are CVEs from the query that are not returned by the api")
-            break
-    if cve_missing:
-        print(
-            "Please run the development branch for this project before validating query/api data"
-        )
 
 
 def main():
@@ -76,27 +66,24 @@ def main():
     if api_set == db_set:
         print("Findings are the same!")
     else:
-        print("Findings are NOT the same!")
         delta_api_db = api_set.difference(db_set)
-        delta_db_api = db_set.difference(api_set)
-        check_existence(delta_api_db, delta_db_api, api_set, db_set)
-        print("Findings from api not in direct query")
-        for d in delta_api_db:
-            print(d) if delta_api_db else print("None")
-        print("Findings from direct query not in api")
-        for d in delta_db_api:
-            print(d) if delta_db_api else print("None")
+        if delta_api_db:
+            print(f"Number of findings in api not in query: {len(delta_api_db)}")
+            check_existence(delta_api_db, delta_db_api, api_set, db_set)
+            print("Findings from api not in direct query")
+            for d in delta_api_db:
+                print(d)
+            diff_art = {
+                "api_set_length": len(api_set),
+                "db_set_length": len(db_set),
+                "delta_api_db": list(delta_api_db),
+            }
 
-        diff_art = {
-            "api_set_length": len(api_set),
-            "db_set_length": len(db_set),
-            "delta_api_db": list(delta_api_db),
-            "delta_db_api": list(delta_db_api),
-        }
-
-        with open(f'{os.environ["ARTIFACT_DIR"]}/vat_diff.json', "w") as f:
-            json.dump(diff_art, f, indent=4)
-        sys.exit(4)
+            with open(f'{os.environ["ARTIFACT_DIR"]}/vat_diff.json', "w") as f:
+                json.dump(diff_art, f, indent=4)
+            sys.exit(4)
+        else:
+            print("All findings in api exist in query")
 
 
 if __name__ == "__main__":
