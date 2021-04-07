@@ -1715,7 +1715,11 @@ def check_conditional_date(container_id, versions):
         """
         cursor.execute(container_state_query, (container_id,))
         container_info = cursor.fetchone()
-        if container_info[0] == "Conditionally Approved" and container_info[1] is None:
+        if (
+            container_info
+            and container_info[0] == "Conditionally Approved"
+            and container_info[1] is None
+        ):
             container_list = versions["approved"]
             container_list.sort(reverse=True)
             expiration_date = None
