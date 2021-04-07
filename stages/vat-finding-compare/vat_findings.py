@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import logging
 
 
 def get_api_findings(api):
@@ -32,7 +33,7 @@ def get_db_findings(db):
     return db_set
 
 
-def check_existence(delta_api_db, delta_db_api, api_set, db_set):
+def check_existence(delta_api_db, api_set, db_set):
     # the following slicing is used to remove description from all the tuples
     db_cve_ids = {f[0:2] + f[3:5] for f in db_set}
     api_cve_ids = {f[0:2] + f[3:5] for f in api_set}
@@ -41,7 +42,7 @@ def check_existence(delta_api_db, delta_db_api, api_set, db_set):
     for d in {f[0:2] + f[3:5] for f in delta_api_db}:
         if d not in db_cve_ids:
             cve_missing = True
-            print("There are CVEs from the api that are not returned by the query")
+            logging.info("There are inherited CVEs returned by the api that are not returned by query")
             break
 
 
@@ -56,23 +57,23 @@ def main():
         ) as db_findings:
             db = json.load(db_findings)
     except FileNotFoundError:
-        print("File does not currently exist.")
+        logging.info("File does not currently exist.")
         sys.exit(3)
     api_set = get_api_findings(api)
     db_set = get_db_findings(db)
-    print(f"api set length: {len(api_set)}")
-    print(f"db set length: {len(db_set)}")
+    logging.info(f"api set length: {len(api_set)}")
+    logging.info(f"db set length: {len(db_set)}")
 
     if api_set == db_set:
-        print("Findings are the same!")
+        logging.info("Findings are the same!")
     else:
         delta_api_db = api_set.difference(db_set)
         if delta_api_db:
-            print(f"Number of findings in api not in query: {len(delta_api_db)}")
-            check_existence(delta_api_db, delta_db_api, api_set, db_set)
-            print("Findings from api not in direct query")
+            logging.info(f"Number of findings in api not in query: {len(delta_api_db)}")
+            check_existence(delta_api_db, api_set, db_set)
+            logging.info("Findings from api not in direct query")
             for d in delta_api_db:
-                print(d)
+                logging.info(d)
             diff_art = {
                 "api_set_length": len(api_set),
                 "db_set_length": len(db_set),
@@ -83,8 +84,18 @@ def main():
                 json.dump(diff_art, f, indent=4)
             sys.exit(4)
         else:
-            print("All findings in api exist in query")
+            logging.info("All findings in api exist in query")
 
 
 if __name__ == "__main__":
+    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
+    if loglevel == "DEBUG":
+        logging.basicConfig(
+            level=loglevel,
+            format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
+        )
+        logging.debug("Log level set to debug")
+    else:
+        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
+        logging.info("Log level set to info")
     main()
