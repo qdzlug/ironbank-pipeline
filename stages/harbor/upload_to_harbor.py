@@ -135,17 +135,13 @@ def main():
     logging.info(" ".join(cmd))
     p = subprocess.run(
         cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
         input=key,
         encoding="utf-8",
     )
 
     if p.returncode != 0:
-        logging.error(p.stdout)
-        logging.error(p.stderr)
         logging.error(f"Failed to import key for {gun}")
-        sys.exit(p.returncode)
+        sys.exit(1)
 
     logging.info("Key imported")
 
