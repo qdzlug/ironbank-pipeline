@@ -133,18 +133,20 @@ Job artifacts:
 - `anchore_gates.json` - contains output of compliance checks and findings produced in Anchore scan.
 - `anchore_security.json` - contains output of CVE findings produced in Anchore scan.
 
-##### openscap compliance
+##### openscap compliance (rhel/ubuntu)
 
-The OpenSCAP compliance scan will check for any compliance-related findings.
+The OpenSCAP compliance scan will check for any compliance-related findings. 
+There are two versions of the openscap compliance job, decided at pipeline generation to determine which image will be used.
 
 Job artifacts:
 
 - `oscap-version.txt` - displays the version of OpenSCAP used.
 - `report.html` - OSCAP Evaluation Report, which contains a list of the rules and any findings.
 
-##### openscap cve
+##### openscap cve (rhel/ubuntu)
 
 The OpenSCAP CVE scan will check for CVE findings in the image.
+There are two versions of the openscap cve job, decided at pipeline generation to determine which image will be used.
 
 Job artifacts:
 
