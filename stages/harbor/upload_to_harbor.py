@@ -97,8 +97,6 @@ def main():
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
 
-    os.environ["NOTARY_DELEGATION_PASSPHRASE"] = secrets.token_urlsafe(32)
-
     if "pipeline-test-project" in os.environ["CI_PROJECT_DIR"] and not os.environ.get(
         "DOCKER_AUTH_CONFIG_TEST"
     ):
@@ -138,6 +136,10 @@ def main():
             input=key,
             check=True,
             encoding="utf-8",
+            env={
+                **dict(os.environ),
+                **{"NOTARY_DELEGATION_PASSPHRASE": secrets.token_urlsafe(32)},
+            },
         )
     except subprocess.CalledProcessError:
         logging.error(f"Failed to import key for {gun}")
