@@ -338,17 +338,37 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
     """
     total_whitelist = []
+    inheritance_list = []
 
-    logging.info(f"Grabbing CVEs for: {image_name}")
-    # get cves from vat
-    result = _vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
-    # parse CVEs from VAT query
-    # empty list is returned if no entry or no cves. NoneType only returned if error.
-    # logging.info(result[0])
-    if result is None:
-        logging.error("No results from vat. Fatal error.")
-        sys.exit(1)
-    else:
+    # add source image to inheritance list
+    inheritance_list.append((os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]))
+
+    # add parent images to inheritance list
+    parent_image_name, parent_image_version = _next_ancestor(
+        image_path=image_name,
+        whitelist_branch=whitelist_branch,
+        hardening_manifest=hardening_manifest,
+    )
+
+    while parent_image_name:
+        inheritance_list.append((parent_image_name, parent_image_version))
+        parent_image_name, parent_image_version = _next_ancestor(
+            image_path=parent_image_name,
+            whitelist_branch=whitelist_branch,
+        )
+
+    logging.debug(inheritance_list)
+
+    inheritance_list.reverse()
+    # grabbing cves from vat in reverse order to prevent issues with findings that shouldn't be inherited
+    for image in inheritance_list:
+        logging.info(f"Grabbing CVEs for: {image[0]}:{image[1]}")
+        result = _vat_vuln_query(image[0], image[1])
+        if result is None:
+            logging.error("No results from vat. Fatal error.")
+            sys.exit(1)
+        # parse CVEs from VAT query
+        # empty list is returned if no entry or no cves. NoneType only returned if error.
         for row in result:
             logging.debug(row)
             vuln_dict = _get_vulns_from_query(row)
@@ -362,37 +382,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
                 logging.debug(
                     "There is no approval status present in result or cve not approved"
                 )
-
-    logging.debug(
-        "Length of total whitelist for source image: " + str(len(total_whitelist))
-    )
-
-    #
-    # Use the local hardening manifest to get the first parent. From here *only* the
-    # the master branch should be used for the ancestry.
-    #
-    parent_image_name, parent_image_version = _next_ancestor(
-        image_path=image_name,
-        whitelist_branch=whitelist_branch,
-        hardening_manifest=hardening_manifest,
-    )
-
-    # get parent cves from VAT
-    while parent_image_name:
-        logging.info(f"Grabbing CVEs for: {parent_image_name}")
-
-        result = _vat_vuln_query(parent_image_name, parent_image_version)
-
-        for row in result:
-            vuln_dict = _get_vulns_from_query(row)
-            if vuln_dict["status"] and vuln_dict["status"].lower() == "approved":
-                total_whitelist.append(vuln_dict)
-
-        parent_image_name, parent_image_version = _next_ancestor(
-            image_path=parent_image_name,
-            whitelist_branch=whitelist_branch,
-        )
-
     logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
     return total_whitelist
 
