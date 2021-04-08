@@ -133,13 +133,14 @@ def main():
         "/dev/stdin",
     ]
     logging.info(" ".join(cmd))
-    p = subprocess.run(
-        args=cmd,
-        input=key,
-        encoding="utf-8",
-    )
-
-    if p.returncode != 0:
+    try:
+        subprocess.run(
+            args=cmd,
+            input=key,
+            check=True,
+            encoding="utf-8",
+        )
+    except subprocess.CalledProcessError:
         logging.error(f"Failed to import key for {gun}")
         sys.exit(1)
 
