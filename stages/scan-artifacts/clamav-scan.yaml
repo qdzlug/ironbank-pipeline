@@ -2,7 +2,7 @@ clamav scan:
   stage: scan artifacts
   tags:
     - ironbank
-  image: registry.dso.mil/ironbank-tools/ironbank-pipeline/clamav:0.103.0-db
+  image: registry1.dso.mil/ironbank/opensource/clamav/clamav:0.103.0
   dependencies:
     - import artifacts
     - load scripts
