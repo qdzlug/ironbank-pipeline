@@ -134,7 +134,7 @@ def main():
     ]
     logging.info(" ".join(cmd))
     p = subprocess.run(
-        cmd,
+        args=cmd,
         input=key,
         encoding="utf-8",
     )
@@ -160,30 +160,28 @@ def main():
     ) as f:
         for tag in f:
             tag = tag.strip()
-            p = subprocess.run(
-                [
-                    "skopeo",
-                    "inspect",
-                    "--authfile",
-                    "staging_auth.json",
-                    "--raw",
-                    f"docker://{staging_image}@{os.environ['IMAGE_PODMAN_SHA']}",
-                ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                encoding="utf-8",
-            )
+            cmd = [
+                "skopeo",
+                "inspect",
+                "--authfile",
+                "staging_auth.json",
+                "--raw",
+                f"docker://{staging_image}@{os.environ['IMAGE_PODMAN_SHA']}",
+            ]
 
-            if p.returncode != 0:
-                logging.error(p.stdout)
-                logging.error(p.stderr)
-                logging.error(f"Failed to retrieve manifest for {gun}")
-                sys.exit(1)
-
-            logging.info(p.stdout)
-
-            logging.info(f"Pulling {tag}_manifest.json with notary")
-            pathlib.Path(f"{tag}_manifest.json").write_text(p.stdout)
+            logging.info(f"Pulling {tag}_manifest.json with skopeo")
+            logging.info(" ".join(cmd))
+            with pathlib.Path(f"{tag}_manifest.json").open(mode="w") as f:
+                try:
+                    subprocess.run(
+                        args=cmd,
+                        stdout=f,
+                        check=True,
+                        encoding="utf-8",
+                    )
+                except subprocess.CalledProcessError:
+                    logging.error(f"Failed to retrieve manifest for {gun}")
+                    sys.exit(1)
 
             digest = os.environ["IMAGE_PODMAN_SHA"].split(":")[-1]
 
