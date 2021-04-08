@@ -58,8 +58,7 @@ def get_delegation_key():
     )
 
     if r.status_code != 200:
-        logging.error("Could not log into vault")
-        logging.error(f"Vault returned {r.status_code}")
+        logging.error(f"[{r.status_code}] Could not log into vault")
         sys.exit(1)
 
     logging.info("Log in successful")
@@ -161,6 +160,7 @@ def main():
     ) as f:
         for tag in f:
             tag = tag.strip()
+            manifest_file = pathlib.Path(f"{tag}_manifest.json")
             cmd = [
                 "skopeo",
                 "inspect",
@@ -170,9 +170,9 @@ def main():
                 f"docker://{staging_image}@{os.environ['IMAGE_PODMAN_SHA']}",
             ]
 
-            logging.info(f"Pulling {tag}_manifest.json with skopeo")
+            logging.info(f"Pulling {manifest_file} with skopeo")
             logging.info(" ".join(cmd))
-            with pathlib.Path(f"{tag}_manifest.json").open(mode="w") as f:
+            with manifest_file.open(mode="w") as f:
                 try:
                     subprocess.run(
                         args=cmd,
@@ -186,7 +186,7 @@ def main():
 
             digest = os.environ["IMAGE_PODMAN_SHA"].split(":")[-1]
 
-            manifest = hashlib.sha256(p.stdout.encode())
+            manifest = hashlib.sha256(manifest_file.read_bytes())
 
             if digest == manifest.hexdigest():
                 logging.info("Digests match")
@@ -194,7 +194,7 @@ def main():
                 logging.error(f"Digests do not match {digest}  {manifest.hexdigest()}")
                 sys.exit(1)
 
-            logging.info(f"Signing {tag}_manifest.json with notary")
+            logging.info(f"Signing {manifest_file} with notary")
 
             p = subprocess.run(
                 [
@@ -210,7 +210,7 @@ def main():
                     "--publish",
                     gun,
                     tag,
-                    f"{tag}_manifest.json",
+                    manifest_file,
                 ],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
