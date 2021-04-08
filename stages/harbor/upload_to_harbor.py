@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
-import sys
-import hashlib
-import subprocess
-import pathlib
-import requests
-import logging
 import base64
+import hashlib
+import logging
 import os
+import pathlib
+import secrets
+import subprocess
+import sys
+
+import requests
 
 
 def query_delegation_key(url, token):
@@ -96,19 +98,7 @@ def main():
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
 
-    p = subprocess.run(
-        ["openssl", "rand", "-base64", "32"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        encoding="utf-8",
-    )
-
-    if p.returncode != 0:
-        logging.error(p.stdout)
-        logging.error(p.stderr)
-        sys.exit(1)
-
-    os.environ["NOTARY_DELEGATION_PASSPHRASE"] = p.stdout
+    os.environ["NOTARY_DELEGATION_PASSPHRASE"] = secrets.token_urlsafe(32)
 
     if "pipeline-test-project" in os.environ["CI_PROJECT_DIR"] and not os.environ.get(
         "DOCKER_AUTH_CONFIG_TEST"
