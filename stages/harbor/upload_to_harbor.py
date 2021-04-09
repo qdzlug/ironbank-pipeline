@@ -168,45 +168,45 @@ def main():
 
     pathlib.Path("dest_auth.json").write_text(dest_auth)
 
+    manifest_file = pathlib.Path("manifest.json")
+    cmd = [
+        "skopeo",
+        "inspect",
+        "--authfile",
+        "staging_auth.json",
+        "--raw",
+        f"docker://{staging_image}@{os.environ['IMAGE_PODMAN_SHA']}",
+    ]
+
+    logging.info(f"Pulling {manifest_file} with skopeo")
+    logging.info(" ".join(cmd))
+    with manifest_file.open(mode="w") as f:
+        try:
+            subprocess.run(
+                args=cmd,
+                stdout=f,
+                check=True,
+                encoding="utf-8",
+            )
+        except subprocess.CalledProcessError:
+            logging.error(f"Failed to retrieve manifest for {gun}")
+            sys.exit(1)
+
+    digest = os.environ["IMAGE_PODMAN_SHA"].split(":")[-1]
+
+    manifest = hashlib.sha256(manifest_file.read_bytes())
+
+    if digest == manifest.hexdigest():
+        logging.info("Digests match")
+    else:
+        logging.error(f"Digests do not match {digest}  {manifest.hexdigest()}")
+        sys.exit(1)
+
     with pathlib.Path(os.environ["ARTIFACT_STORAGE"], "preflight", "tags.txt").open(
         mode="r"
     ) as f:
         for tag in f:
             tag = tag.strip()
-            manifest_file = pathlib.Path(f"{tag}_manifest.json")
-            cmd = [
-                "skopeo",
-                "inspect",
-                "--authfile",
-                "staging_auth.json",
-                "--raw",
-                f"docker://{staging_image}@{os.environ['IMAGE_PODMAN_SHA']}",
-            ]
-
-            logging.info(f"Pulling {manifest_file} with skopeo")
-            logging.info(" ".join(cmd))
-            with manifest_file.open(mode="w") as f:
-                try:
-                    subprocess.run(
-                        args=cmd,
-                        stdout=f,
-                        check=True,
-                        encoding="utf-8",
-                    )
-                except subprocess.CalledProcessError:
-                    logging.error(f"Failed to retrieve manifest for {gun}")
-                    sys.exit(1)
-
-            digest = os.environ["IMAGE_PODMAN_SHA"].split(":")[-1]
-
-            manifest = hashlib.sha256(manifest_file.read_bytes())
-
-            if digest == manifest.hexdigest():
-                logging.info("Digests match")
-            else:
-                logging.error(f"Digests do not match {digest}  {manifest.hexdigest()}")
-                sys.exit(1)
-
             logging.info(f"Signing {manifest_file} with notary")
 
             cmd = [
