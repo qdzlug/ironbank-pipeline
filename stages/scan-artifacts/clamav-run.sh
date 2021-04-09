@@ -8,7 +8,8 @@ tar -C /clamav/definitions/ -xzvf definitions.tar.gz
 
 if [[ -f "$DEFPATH/bytecode.cvd" ]] && [[ -f "$DEFPATH/daily.cvd" ]] && [[ -f "$DEFPATH/main.cvd" ]]; then
   echo "clamav definitions successfully imported."
-  echo "clamav definitions version: $(clamscan --version | cut -d/ -f3)"
+  clamav_definitions_version="$(clamscan --version | cut -d/ -f3)"
+  echo "clamav definitions version: $clamav_definitions_version"
 else
   echo "ERROR: clamav definitions did not import"
   exit 1
