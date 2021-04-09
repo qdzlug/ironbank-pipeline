@@ -20,7 +20,7 @@ def query_delegation_key(url, token):
     """
     key = None
     logging.info(f"Querying {url}")
-    for _ in range(5):
+    for _ in range(int(os.environ.get("VAULT_RETRIES", 5))):
         r = requests.get(
             url=url,
             headers={
@@ -49,7 +49,7 @@ def get_delegation_key():
     url = f"{os.environ['VAULT_ADDR']}/v1/auth/userpass/login/{os.environ['VAULT_USERNAME']}"
 
     token = None
-    for _ in range(5):
+    for _ in range(int(os.environ.get("VAULT_RETRIES", 5))):
         r = requests.put(
             url=url,
             data={"password": os.environ["VAULT_PASSWORD"]},
@@ -68,6 +68,9 @@ def get_delegation_key():
 
     if not token:
         logging.error("Could not log into vault")
+        logging.info(
+            "If you are seeing 503, then please try setting VAULT_RETRIES to a higher number and rerunning your stage."
+        )
         sys.exit(1)
 
     logging.info("Log in successful")
