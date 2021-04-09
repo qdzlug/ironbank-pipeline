@@ -215,7 +215,7 @@ def main():
             ]
             logging.info(" ".join(cmd))
             try:
-                p = subprocess.run(
+                subprocess.run(
                     args=cmd,
                     check=True,
                     encoding="utf-8",
@@ -226,29 +226,25 @@ def main():
 
             logging.info(f"Copy from staging to {gun}:{tag}")
 
-            p = subprocess.run(
-                [
-                    "skopeo",
-                    "copy",
-                    "--src-authfile",
-                    "staging_auth.json",
-                    "--dest-authfile",
-                    "dest_auth.json",
-                    f"docker://{staging_image}@{os.environ['IMAGE_PODMAN_SHA']}",
-                    f"docker://{gun}:{tag}",
-                ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                encoding="utf-8",
-            )
-
-            if p.returncode != 0:
-                logging.error(p.stdout)
-                logging.error(p.stderr)
+            cmd = [
+                "skopeo",
+                "copy",
+                "--src-authfile",
+                "staging_auth.json",
+                "--dest-authfile",
+                "dest_auth.json",
+                f"docker://{staging_image}@{os.environ['IMAGE_PODMAN_SHA']}",
+                f"docker://{gun}:{tag}",
+            ]
+            try:
+                subprocess.run(
+                    args=cmd,
+                    check=True,
+                    encoding="utf-8",
+                )
+            except subprocess.CalledProcessError:
                 logging.error(f"Failed to import key for {gun}")
-                sys.exit(p.returncode)
-
-            logging.info(p.stdout)
+                sys.exit(1)
 
 
 if __name__ == "__main__":
