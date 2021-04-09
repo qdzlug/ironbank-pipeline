@@ -2,8 +2,8 @@
 set -Eeuo pipefail
 shopt -s nullglob # Allow import-artifacts/*/* to match nothing
 
-## download definitions.tar.gz from storage artifcat registry
-## curl -o definitions.tar.gz --header "JOB-TOKEN:${CI_JOB_TOKEN}" "https://code.il2.dso.mil/api/v4/projects/${CI_PROJECT_ID}/packages/generic/clamav/definitions.tar.gz"
+curl -L --header "DEPLOY-TOKEN: ${IB_TOOLS_REPO_READ}" "https://repo1.dso.mil/ironbank-tools/av-updater/-/jobs/artifacts/switch-to-generate-def-tar/raw/definitions.tar.gz?job=build" -o definitions.tar.gz
+
 tar -C /clamav/definitions/ -xzvf definitions.tar.gz
 
 if [[ -f "$DEFPATH/bytecode.cvd" ]] && [[ -f "$DEFPATH/daily.cvd" ]] && [[ -f "$DEFPATH/main.cvd" ]]; then
