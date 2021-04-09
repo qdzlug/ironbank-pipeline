@@ -8,10 +8,9 @@ curl -L --header "DEPLOY-TOKEN: ${IB_TOOLS_REPO_READ}" "https://repo1.dso.mil/ir
 tar -C /clamav/definitions/ -xzvf definitions.tar.gz
 
 # Verify existence of expected files
-if [[ -f "$DEFPATH/bytecode.cvd" ]] && [[ -f "$DEFPATH/daily.cvd" ]] && [[ -f "$DEFPATH/main.cvd" ]]; then
+if [[ -f "${DEFPATH}/bytecode.cvd" ]] && [[ -f "${DEFPATH}/daily.cvd" ]] && [[ -f "${DEFPATH}/main.cvd" ]]; then
   echo "clamav definitions successfully installed."
-  clamav_definitions_version="$(clamscan --version | cut -d/ -f3)"
-  echo "clamav definitions version: $clamav_definitions_version"
+  echo "clamav definitions version: $(clamscan --version)"
 else
   echo "ERROR: clamav definitions did not install"
   exit 1
