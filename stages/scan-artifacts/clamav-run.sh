@@ -10,7 +10,8 @@ tar -C /clamav/definitions/ -xzvf definitions.tar.gz
 # Verify existence of expected files
 if [[ -f "${DEFPATH}/bytecode.cvd" ]] && [[ -f "${DEFPATH}/daily.cvd" ]] && [[ -f "${DEFPATH}/main.cvd" ]]; then
   echo "clamav definitions successfully installed."
-  echo "clamav definitions version: $(clamscan --version)"
+  echo "clamscan --version"
+  clamscan --version
 else
   echo "ERROR: clamav definitions did not install"
   exit 1
