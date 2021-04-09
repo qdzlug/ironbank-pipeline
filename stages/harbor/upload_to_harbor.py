@@ -48,21 +48,29 @@ def get_delegation_key():
     logging.info("Logging into vault")
     url = f"{os.environ['VAULT_ADDR']}/v1/auth/userpass/login/{os.environ['VAULT_USERNAME']}"
 
-    r = requests.put(
-        url=url,
-        data={"password": os.environ["VAULT_PASSWORD"]},
-        headers={
-            "X-Vault-Request": "true",
-            "X-Vault-Namespace": os.environ["VAULT_NAMESPACE"],
-        },
-    )
+    token = None
+    for _ in range(5):
+        r = requests.put(
+            url=url,
+            data={"password": os.environ["VAULT_PASSWORD"]},
+            headers={
+                "X-Vault-Request": "true",
+                "X-Vault-Namespace": os.environ["VAULT_NAMESPACE"],
+            },
+        )
 
-    if r.status_code != 200:
-        logging.error(f"[{r.status_code}] Could not log into vault")
+        if r.status_code == 200:
+            token = r.json()["auth"]["client_token"]
+            break
+        else:
+            logging.error(f"[{r.status_code}] Could not log into vault, trying again.")
+            # token remains None
+
+    if not token:
+        logging.error("Could not log into vault")
         sys.exit(1)
 
     logging.info("Log in successful")
-    token = r.json()["auth"]["client_token"]
 
     key = None
     for rev in range(int(os.environ["NOTARY_DELEGATION_CURRENT_REVISION"]), -1, -1):
