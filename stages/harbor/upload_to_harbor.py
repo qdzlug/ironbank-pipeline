@@ -33,7 +33,7 @@ def query_delegation_key(url, token):
             key = r.json()["data"]["delegationkey"]
             break
         else:
-            logging.info(f"{r.status_code} - Key not found, trying again.")
+            logging.info(f"[{r.status_code}] Key not retrieved, trying again.")
             # key remains None
 
     return key
@@ -198,34 +198,32 @@ def main():
 
             logging.info(f"Signing {manifest_file} with notary")
 
-            p = subprocess.run(
-                [
-                    "notary",
-                    "--verbose",
-                    "--server",
-                    os.environ["NOTARY_URL"],
-                    "--trustDir",
-                    trust_dir,
-                    "add",
-                    "--roles",
-                    "targets/releases",
-                    "--publish",
-                    gun,
-                    tag,
-                    manifest_file,
-                ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                encoding="utf-8",
-            )
-
-            if p.returncode != 0:
-                logging.error(p.stdout)
-                logging.error(p.stderr)
+            cmd = [
+                "notary",
+                "--verbose",
+                "--server",
+                os.environ["NOTARY_URL"],
+                "--trustDir",
+                trust_dir,
+                "add",
+                "--roles",
+                "targets/releases",
+                "--publish",
+                gun,
+                tag,
+                str(manifest_file),
+            ]
+            logging.info(" ".join(cmd))
+            try:
+                p = subprocess.run(
+                    args=cmd,
+                    check=True,
+                    encoding="utf-8",
+                )
+            except subprocess.CalledProcessError:
                 logging.error(f"Failed to import key for {gun}")
-                sys.exit(p.returncode)
+                sys.exit(1)
 
-            logging.info(p.stdout)
             logging.info(f"Copy from staging to {gun}:{tag}")
 
             p = subprocess.run(
