@@ -116,20 +116,32 @@ def main():
         )
         sys.exit(1)
 
+    # Grab staging docker auth
     staging_auth = base64.b64decode(os.environ["DOCKER_AUTH_CONFIG_STAGING"]).decode(
         "utf-8"
     )
     pathlib.Path("staging_auth.json").write_text(staging_auth)
 
-    staging_image = f"{os.environ['STAGING_REGISTRY_URL']}/{os.environ['IMAGE_NAME']}"
+    # Grab ironbank/ironbank-testing docker auth
+    test_auth = os.environ.get("DOCKER_AUTH_CONFIG_TEST", "").strip()
+    if test_auth:
+        dest_auth = base64.b64decode(test_auth).decode("utf-8")
+    else:
+        dest_auth = base64.b64decode(os.environ["DOCKER_AUTH_CONFIG_PROD"]).decode(
+            "utf-8"
+        )
+    pathlib.Path("dest_auth.json").write_text(dest_auth)
+
+    staging_image = f"docker://{os.environ['STAGING_REGISTRY_URL']}/{os.environ['IMAGE_NAME']}@{os.environ['IMAGE_PODMAN_SHA']}"
     gun = f"{os.environ['REGISTRY_URL']}/{os.environ['IMAGE_NAME']}"
+    trust_dir = "trust-dir-delegation/"
+
+    # Generated randomly and used in both `notary` commands
+    delegation_passphrase = secrets.token_urlsafe(32)
 
     key = get_delegation_key()
 
-    trust_dir = "trust-dir-delegation/"
-
-    delegation_passphrase = secrets.token_urlsafe(32)
-
+    # Import delegation key
     cmd = [
         "notary",
         "--trustDir",
@@ -160,29 +172,17 @@ def main():
 
     logging.info("Key imported")
 
-    test_auth = os.environ.get("DOCKER_AUTH_CONFIG_TEST", "").strip()
-    if test_auth:
-        dest_auth = base64.b64decode(test_auth).decode("utf-8")
-    else:
-        dest_auth = base64.b64decode(os.environ["DOCKER_AUTH_CONFIG_PROD"]).decode(
-            "utf-8"
-        )
-
-    pathlib.Path("dest_auth.json").write_text(dest_auth)
-
-    staging_image_sha = f"docker://{staging_image}@{os.environ['IMAGE_PODMAN_SHA']}"
-
+    # Pull down image manifest to sign
     manifest_file = pathlib.Path("manifest.json")
+    logging.info(f"Pulling {manifest_file} with skopeo")
     cmd = [
         "skopeo",
         "inspect",
         "--authfile",
         "staging_auth.json",
         "--raw",
-        staging_image_sha,
+        staging_image,
     ]
-
-    logging.info(f"Pulling {manifest_file} with skopeo")
     logging.info(" ".join(cmd))
     with manifest_file.open(mode="w") as f:
         try:
@@ -196,8 +196,8 @@ def main():
             logging.error(f"Failed to retrieve manifest for {gun}")
             sys.exit(1)
 
+    # Confirm digest matches sha of the manifest
     digest = os.environ["IMAGE_PODMAN_SHA"].split(":")[-1]
-
     manifest = hashlib.sha256(manifest_file.read_bytes())
 
     if digest == manifest.hexdigest():
@@ -206,6 +206,7 @@ def main():
         logging.error(f"Digests do not match {digest}  {manifest.hexdigest()}")
         sys.exit(1)
 
+    # Sign and promote all tags
     with pathlib.Path(os.environ["ARTIFACT_STORAGE"], "preflight", "tags.txt").open(
         mode="r"
     ) as f:
@@ -244,7 +245,6 @@ def main():
                 sys.exit(1)
 
             logging.info(f"Copy from staging to {gun}:{tag}")
-
             prod_image = f"docker://{gun}:{tag}"
             cmd = [
                 "skopeo",
@@ -253,7 +253,7 @@ def main():
                 "staging_auth.json",
                 "--dest-authfile",
                 "dest_auth.json",
-                staging_image_sha,
+                staging_image,
                 prod_image,
             ]
             try:
@@ -263,7 +263,7 @@ def main():
                     encoding="utf-8",
                 )
             except subprocess.CalledProcessError:
-                logging.error(f"Failed to copy {staging_image_sha} to {prod_image}")
+                logging.error(f"Failed to copy {staging_image} to {prod_image}")
                 sys.exit(1)
 
 
