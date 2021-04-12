@@ -1,0 +1,5 @@
+include:
+  - local: stages/scanning/openscap/compliance-base.yaml
+
+openscap compliance ubi:
+  extends: .oscap-compliance

@@ -1,0 +1,20 @@
+include:
+  - local: stages/scanning/base.yaml
+
+.oscap-compliance:
+  extends: .scanning
+  variables:
+    OSCAP_SCANS: "${ARTIFACT_STORAGE}/scan-results/openscap"
+    OSCAP_FILENAME: "${OSCAP_HTML_FILENAME}"
+  dependencies:
+    - load scripts
+    - build
+  script:
+    - '"${PIPELINE_REPO_DIR}/stages/scanning/openscap/oscap-compliance-run.sh"'
+  artifacts:
+    when: always
+    paths:
+      - "${OSCAP_SCANS}"
+    reports:
+      dotenv: oscap-compliance.env
+    expire_in: 1 week
