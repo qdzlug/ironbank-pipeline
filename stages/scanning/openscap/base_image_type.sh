@@ -1,3 +1,5 @@
+#!/bin/bash
+set -Eeuo pipefail
 podman load -i "${ARTIFACT_STORAGE}"/build/"${CI_PROJECT_NAME}"-"${CI_PIPELINE_ID}".tar
 DOCKER_IMAGE_PATH=$(podman images --noheading | awk '{print $3}')
 export DOCKER_IMAGE_PATH
