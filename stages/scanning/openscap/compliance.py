@@ -70,21 +70,19 @@ def get_oscap_guide(oscap_version, base_image_type):
             + str(oscap_version)
             + "/ssg-debian9-ds.xml",
         },
-        "ubuntu2004-container": {
-            "profile": "xccdf_org.ssgproject.content_profile_standard",
-            "securityGuide": "scap-security-guide-"
-            + str(oscap_version)
-            + "/ssg-ubuntu2004-ds.xml",
-        },
+        # "ubuntu2004-container": {
+        #     "profile": "xccdf_org.ssgproject.content_profile_standard",
+        #     "securityGuide": "scap-security-guide-"
+        #     + str(oscap_version)
+        #     + "/ssg-ubuntu2004-ds.xml",
+        # },
         "ubuntu1804-container": {
             "profile": "xccdf_mil.disa.stig_profile_MAC-3_Public",
             "securityGuide": "U_CAN_Ubuntu_18-04_V2R1_STIG_SCAP_1-2_Benchmark.xml",
         },
         "ubuntu1604-container": {
-            "profile": "xccdf_org.ssgproject.content_profile_anssi_np_nt28_high",
-            "securityGuide": "scap-security-guide-"
-            + str(oscap_version)
-            + "/ssg-ubuntu1604-ds.xml",
+            "profile": "xccdf_mil.disa.stig_profile_MAC-3_Public",
+            "securityGuide": "U_CAN_Ubuntu_16-04_V2R1_STIG_SCAP_1-2_Benchmark.xml",
         },
     }
     try:
