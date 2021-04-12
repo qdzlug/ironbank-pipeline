@@ -11,10 +11,8 @@ write json documentation:
     - hardening_manifest
     - load scripts
     - wl compare lint
-    - openscap compliance rhel
-    - openscap compliance ubuntu
-    - openscap cve rhel
-    - openscap cve ubuntu
+    - openscap compliance
+    - openscap cve
     - anchore scan
     - twistlock scan
     - build
