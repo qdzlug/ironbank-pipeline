@@ -15,6 +15,7 @@ include:
   # # # Removing post-build stage, not needed for beta
   # # # - local: stages/post-build/base.yaml
   # scanning stage jobs
+  - local: stages/scanning/base.yaml
   - local: stages/scanning/anchore/anchore.yaml
   - local: stages/scanning/openscap/compliance-ubi.yaml
   - local: stages/scanning/openscap/cve-ubi.yaml

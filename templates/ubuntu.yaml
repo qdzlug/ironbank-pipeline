@@ -16,6 +16,7 @@ include:
   # # # - local: stages/post-build/base.yaml
 
   # scanning stage jobs
+  - local: stages/scanning/base.yaml
   - local: stages/scanning/anchore/anchore.yaml
   - local: stages/scanning/openscap/compliance-ubuntu.yaml
   - local: stages/scanning/openscap/cve-ubuntu.yaml

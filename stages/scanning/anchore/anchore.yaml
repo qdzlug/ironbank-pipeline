@@ -18,9 +18,6 @@
 #   ANCHORE_SCANS=/tmp/anchore/ \
 #   python3 anchore_scan.py
 #
-include:
-  - local: stages/scanning/base.yaml
-
 anchore scan:
   extends: .scanning
   image: "registry1.dso.mil/ironbank/anchore/cli/cli:0.9.1"
