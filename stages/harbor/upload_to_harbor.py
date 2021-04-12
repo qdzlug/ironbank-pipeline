@@ -128,6 +128,8 @@ def main():
 
     trust_dir = "trust-dir-delegation/"
 
+    delegation_passphrase = secrets.token_urlsafe(32)
+
     cmd = [
         "notary",
         "--trustDir",
@@ -149,7 +151,7 @@ def main():
             encoding="utf-8",
             env={
                 **dict(os.environ),
-                **{"NOTARY_DELEGATION_PASSPHRASE": secrets.token_urlsafe(32)},
+                **{"NOTARY_DELEGATION_PASSPHRASE": delegation_passphrase},
             },
         )
     except subprocess.CalledProcessError:
@@ -168,6 +170,8 @@ def main():
 
     pathlib.Path("dest_auth.json").write_text(dest_auth)
 
+    staging_image_sha = f"docker://{staging_image}@{os.environ['IMAGE_PODMAN_SHA']}"
+
     manifest_file = pathlib.Path("manifest.json")
     cmd = [
         "skopeo",
@@ -175,7 +179,7 @@ def main():
         "--authfile",
         "staging_auth.json",
         "--raw",
-        f"docker://{staging_image}@{os.environ['IMAGE_PODMAN_SHA']}",
+        staging_image_sha,
     ]
 
     logging.info(f"Pulling {manifest_file} with skopeo")
@@ -230,13 +234,18 @@ def main():
                     args=cmd,
                     check=True,
                     encoding="utf-8",
+                    env={
+                        **dict(os.environ),
+                        **{"NOTARY_DELEGATION_PASSPHRASE": delegation_passphrase},
+                    },
                 )
             except subprocess.CalledProcessError:
-                logging.error(f"Failed to import key for {gun}")
+                logging.error(f"Failed to sign {gun}")
                 sys.exit(1)
 
             logging.info(f"Copy from staging to {gun}:{tag}")
 
+            prod_image = f"docker://{gun}:{tag}"
             cmd = [
                 "skopeo",
                 "copy",
@@ -244,8 +253,8 @@ def main():
                 "staging_auth.json",
                 "--dest-authfile",
                 "dest_auth.json",
-                f"docker://{staging_image}@{os.environ['IMAGE_PODMAN_SHA']}",
-                f"docker://{gun}:{tag}",
+                staging_image_sha,
+                prod_image,
             ]
             try:
                 subprocess.run(
@@ -254,7 +263,7 @@ def main():
                     encoding="utf-8",
                 )
             except subprocess.CalledProcessError:
-                logging.error(f"Failed to import key for {gun}")
+                logging.error(f"Failed to copy {staging_image_sha} to {prod_image}")
                 sys.exit(1)
 
 
