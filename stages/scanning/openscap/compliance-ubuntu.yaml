@@ -1,6 +1,0 @@
-include:
-  - local: stages/scanning/openscap/compliance-base.yaml
-
-openscap compliance ubuntu:
-  extends: .oscap-compliance
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/ubupodscap1804:1.3.2"
