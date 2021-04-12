@@ -15,4 +15,7 @@ if [[ "${BASE_IMAGE_TYPE}" == "" ]]; then
     fi
   fi
 fi
+
+echo "Base Image Type: ${BASE_IMAGE_TYPE}"
+
 export BASE_IMAGE_TYPE
