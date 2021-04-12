@@ -1,3 +1,6 @@
+include:
+  - local: stages/scanning/base.yaml
+
 twistlock scan:
   extends: .scanning
   stage: scanning
