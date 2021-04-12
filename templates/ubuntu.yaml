@@ -17,8 +17,8 @@ include:
 
   # scanning stage jobs
   - local: stages/scanning/anchore/anchore.yaml
-  - local: stages/scanning/openscap/compliance-base.yaml
-  - local: stages/scanning/openscap/cve-base.yaml
+  - local: stages/scanning/openscap/openscap-compliance.yaml
+  - local: stages/scanning/openscap/openscap-cve.yaml
   - local: stages/scanning/twistlock/twistlock.yaml
 
 openscap compliance:
