@@ -1,4 +1,4 @@
-.oscap-compliance:
+openscap compliance:
   extends: .scanning
   variables:
     OSCAP_SCANS: "${ARTIFACT_STORAGE}/scan-results/openscap"

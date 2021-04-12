@@ -13,10 +13,8 @@ check cves:
     - load scripts
     - wl compare lint
     - twistlock scan
-    - openscap cve rhel
-    - openscap cve ubuntu
-    - openscap compliance rhel
-    - openscap compliance ubuntu
+    - openscap cve
+    - openscap compliance
     - anchore scan
   script:
     - |

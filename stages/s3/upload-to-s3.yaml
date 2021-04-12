@@ -25,10 +25,8 @@ upload to s3:
     - write json documentation
     - anchore scan
     - twistlock scan
-    - openscap cve rhel
-    - openscap cve ubuntu
-    - openscap compliance rhel
-    - openscap compliance ubuntu
+    - openscap cve
+    - openscap compliance
     - csv output
     - hardening_manifest
     - wl compare lint
