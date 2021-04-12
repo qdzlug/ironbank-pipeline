@@ -18,6 +18,8 @@
 #   ANCHORE_SCANS=/tmp/anchore/ \
 #   python3 anchore_scan.py
 #
+include:
+  - local: stages/scanning/base.yaml
 
 anchore scan:
   extends: .scanning
