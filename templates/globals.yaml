@@ -61,9 +61,13 @@ stages:
   ### Sign image and manifest and write documentation
   - documentation
 
-  ### publish stage
-  # publish artifacts to S3 (runs on master), push to harbor
-  - publish
+  ### harbor stage
+  # push to harbor (runs on master)
+  - harbor
+
+  ### s3 stage
+  # publish artifacts to S3 (runs on development and master)
+  - s3 publish
 
   ### VAT stage (runs on dev)
   - vat

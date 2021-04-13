@@ -7,7 +7,6 @@ vat:
     - if: '$CI_COMMIT_BRANCH == "development"'
       when: "on_success"
   stage: vat
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml"
   tags:
     - ironbank
   # Load in the IMG_VERSION variable from load scripts env

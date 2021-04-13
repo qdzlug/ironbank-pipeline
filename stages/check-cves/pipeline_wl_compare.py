@@ -201,12 +201,14 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
             )
         )
 
-    anchore_cves = anchore.get_full()
-    for anc in anchore_cves:
-        if anc["package_path"] == "pkgdb":
-            anc["package_path"] = None
+    anchore_findings = anchore.get_findings()
+    for anc in anchore_findings:
+        if anc["packagePath"] == "pkgdb":
+            anc["packagePath"] = None
         vuln_set.add(
-            Finding("anchore_cve", anc["cve"], anc["package"], anc["package_path"])
+            Finding(
+                anc["source"], anc["identifier"], anc["package"], anc["packagePath"]
+            )
         )
 
     vuln_length = len(vuln_set)
@@ -220,7 +222,10 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         sys.exit(1)
 
     delta_length = len(delta)
+    exit_code = 0
+
     if delta_length != 0:
+        exit_code = 1
         logging.error("NON-WHITELISTED VULNERABILITIES FOUND")
         logging.error(f"Number of non-whitelisted vulnerabilities: {delta_length}")
         logging.error("The following vulnerabilities are not whitelisted:")
@@ -237,11 +242,20 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
             subprocess.run(
                 [f"{pipeline_repo_dir}/stages/check-cves/mattermost-failure-webhook.sh"]
             )
-        sys.exit(1)
 
-    logging.info("ALL VULNERABILITIES WHITELISTED")
-    logging.info("Scans are passing 100%")
-    sys.exit(0)
+        if "pipeline-test-project" in os.environ["CI_PROJECT_DIR"]:
+            # Check if pipeline-test-project's should be allowed through. Change the exit code
+            # so it doesn't fail the pipeline.
+            logging.info(
+                "pipeline-test-project detected. Allowing the pipeline to continue"
+            )
+            exit_code = 0
+
+    else:
+        logging.info("ALL VULNERABILITIES WHITELISTED")
+        logging.info("Scans are passing 100%")
+
+    sys.exit(exit_code)
 
 
 def _finding_approval_status_check(finding_dictionary, status_list):
@@ -318,6 +332,10 @@ def _vat_findings_query(im_name, im_version):
 
 
 def _vat_approval_query(im_name, im_version):
+    """
+    Returns the container approval status which is returned by the query as:
+    [(image_name, image_version, container_status)]
+    """
     conn = None
     result = None
     try:
@@ -366,9 +384,7 @@ def _vat_approval_query(im_name, im_version):
 
 def _vat_vuln_query(im_name, im_version):
     """
-    Returns the container approval status which is returned by the query as:
-    [(image_name, image_version, container_status)]
-
+    Returns non inherited vulnerabilities for a specific container
     """
     conn = None
     result = None
@@ -390,11 +406,12 @@ def _vat_vuln_query(im_name, im_version):
                 , f.package_path
                 FROM findings f
                 INNER JOIN containers c on f.container_id = c.id
+                INNER JOIN finding_logs fl on active = 1 and in_current_scan = 1 and inherited = 0 and f.id = fl.finding_id
                 LEFT JOIN container_log cl on c.id = cl.imageid AND cl.id in (SELECT max(id) from container_log group by imageid)
                 LEFT JOIN finding_logs fl1 ON fl1.record_type_active = 1 and fl1.record_type = 'state_change' and f.id = fl1.finding_id
                 LEFT JOIN finding_logs fl2 ON fl2.record_type_active = 1 and fl2.record_type = 'justification' and f.id = fl2.finding_id
                 LEFT JOIN finding_scan_results sr on f.id = sr.finding_id and sr.active = 1
-                WHERE c.name = %s and c.version = %s and fl1.in_current_scan = 1 and fl2.in_current_scan = 1;"""
+                WHERE c.name = %s and c.version = %s;"""
         cursor.execute(query, (im_name, im_version))
         result = cursor.fetchall()
     except Error as error:
@@ -495,7 +512,11 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             logging.error(
                 "This container is not noted as an approved image in VAT. Unapproved images cannot run on master branch. Failing stage."
             )
-            sys.exit(1)
+            # TODO: Remove?
+            if "pipeline-test-project" not in os.environ["CI_PROJECT_DIR"]:
+                sys.exit(1)
+            else:
+                logging.warning("Continuing because pipeline-test-project")
 
     if approval_text:
         approval_text = approval_text.rstrip()
