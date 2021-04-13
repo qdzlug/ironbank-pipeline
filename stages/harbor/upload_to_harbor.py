@@ -162,8 +162,8 @@ def main():
             check=True,
             encoding="utf-8",
             env={
-                **dict(os.environ),
-                **{"NOTARY_DELEGATION_PASSPHRASE": delegation_passphrase},
+                "NOTARY_DELEGATION_PASSPHRASE": delegation_passphrase,
+                **os.environ,
             },
         )
     except subprocess.CalledProcessError:
