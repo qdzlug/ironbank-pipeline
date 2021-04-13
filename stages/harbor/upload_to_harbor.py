@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
-import sys
-import hashlib
-import subprocess
-import pathlib
-import requests
-import logging
 import base64
+import hashlib
+import logging
 import os
+import pathlib
+import secrets
+import subprocess
+import sys
+
+import requests
 
 
 def query_delegation_key(url, token):
@@ -18,7 +20,7 @@ def query_delegation_key(url, token):
     """
     key = None
     logging.info(f"Querying {url}")
-    for _ in range(5):
+    for _ in range(int(os.environ.get("VAULT_RETRIES", 5))):
         r = requests.get(
             url=url,
             headers={
@@ -31,7 +33,7 @@ def query_delegation_key(url, token):
             key = r.json()["data"]["delegationkey"]
             break
         else:
-            logging.info(f"{r.status_code} - Key not found, trying again.")
+            logging.info(f"[{r.status_code}] Key not retrieved, trying again.")
             # key remains None
 
     return key
@@ -46,22 +48,32 @@ def get_delegation_key():
     logging.info("Logging into vault")
     url = f"{os.environ['VAULT_ADDR']}/v1/auth/userpass/login/{os.environ['VAULT_USERNAME']}"
 
-    r = requests.put(
-        url=url,
-        data={"password": os.environ["VAULT_PASSWORD"]},
-        headers={
-            "X-Vault-Request": "true",
-            "X-Vault-Namespace": os.environ["VAULT_NAMESPACE"],
-        },
-    )
+    token = None
+    for _ in range(int(os.environ.get("VAULT_RETRIES", 5))):
+        r = requests.put(
+            url=url,
+            data={"password": os.environ["VAULT_PASSWORD"]},
+            headers={
+                "X-Vault-Request": "true",
+                "X-Vault-Namespace": os.environ["VAULT_NAMESPACE"],
+            },
+        )
 
-    if r.status_code != 200:
+        if r.status_code == 200:
+            token = r.json()["auth"]["client_token"]
+            break
+        else:
+            logging.error(f"[{r.status_code}] Could not log into vault, trying again.")
+            # token remains None
+
+    if not token:
         logging.error("Could not log into vault")
-        logging.error(f"Vault returned {r.status_code}")
+        logging.info(
+            "If you are seeing 503, then please try setting VAULT_RETRIES to a higher number and rerunning your stage."
+        )
         sys.exit(1)
 
     logging.info("Log in successful")
-    token = r.json()["auth"]["client_token"]
 
     key = None
     for rev in range(int(os.environ["NOTARY_DELEGATION_CURRENT_REVISION"]), -1, -1):
@@ -96,20 +108,6 @@ def main():
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
 
-    p = subprocess.run(
-        ["openssl", "rand", "-base64", "32"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        encoding="utf-8",
-    )
-
-    if p.returncode != 0:
-        logging.error(p.stdout)
-        logging.error(p.stderr)
-        sys.exit(1)
-
-    os.environ["NOTARY_DELEGATION_PASSPHRASE"] = p.stdout
-
     if "pipeline-test-project" in os.environ["CI_PROJECT_DIR"] and not os.environ.get(
         "DOCKER_AUTH_CONFIG_TEST"
     ):
@@ -118,18 +116,32 @@ def main():
         )
         sys.exit(1)
 
+    # Grab staging docker auth
     staging_auth = base64.b64decode(os.environ["DOCKER_AUTH_CONFIG_STAGING"]).decode(
         "utf-8"
     )
     pathlib.Path("staging_auth.json").write_text(staging_auth)
 
-    staging_image = f"{os.environ['STAGING_REGISTRY_URL']}/{os.environ['IMAGE_NAME']}"
+    # Grab ironbank/ironbank-testing docker auth
+    test_auth = os.environ.get("DOCKER_AUTH_CONFIG_TEST", "").strip()
+    if test_auth:
+        dest_auth = base64.b64decode(test_auth).decode("utf-8")
+    else:
+        dest_auth = base64.b64decode(os.environ["DOCKER_AUTH_CONFIG_PROD"]).decode(
+            "utf-8"
+        )
+    pathlib.Path("dest_auth.json").write_text(dest_auth)
+
+    staging_image = f"docker://{os.environ['STAGING_REGISTRY_URL']}/{os.environ['IMAGE_NAME']}@{os.environ['IMAGE_PODMAN_SHA']}"
     gun = f"{os.environ['REGISTRY_URL']}/{os.environ['IMAGE_NAME']}"
+    trust_dir = "trust-dir-delegation/"
+
+    # Generated randomly and used in both `notary` commands
+    delegation_passphrase = secrets.token_urlsafe(32)
 
     key = get_delegation_key()
 
-    trust_dir = "trust-dir-delegation/"
-
+    # Import delegation key
     cmd = [
         "notary",
         "--trustDir",
@@ -143,127 +155,116 @@ def main():
         "/dev/stdin",
     ]
     logging.info(" ".join(cmd))
-    p = subprocess.run(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        input=key,
-        encoding="utf-8",
-    )
-
-    if p.returncode != 0:
-        logging.error(p.stdout)
-        logging.error(p.stderr)
+    try:
+        subprocess.run(
+            args=cmd,
+            input=key,
+            check=True,
+            encoding="utf-8",
+            env={
+                "NOTARY_DELEGATION_PASSPHRASE": delegation_passphrase,
+                **os.environ,
+            },
+        )
+    except subprocess.CalledProcessError:
         logging.error(f"Failed to import key for {gun}")
-        sys.exit(p.returncode)
+        sys.exit(1)
 
     logging.info("Key imported")
 
-    test_auth = os.environ.get("DOCKER_AUTH_CONFIG_TEST", "").strip()
-    if test_auth:
-        dest_auth = base64.b64decode(test_auth).decode("utf-8")
+    # Pull down image manifest to sign
+    manifest_file = pathlib.Path("manifest.json")
+    logging.info(f"Pulling {manifest_file} with skopeo")
+    cmd = [
+        "skopeo",
+        "inspect",
+        "--authfile",
+        "staging_auth.json",
+        "--raw",
+        staging_image,
+    ]
+    logging.info(" ".join(cmd))
+    with manifest_file.open(mode="w") as f:
+        try:
+            subprocess.run(
+                args=cmd,
+                stdout=f,
+                check=True,
+                encoding="utf-8",
+            )
+        except subprocess.CalledProcessError:
+            logging.error(f"Failed to retrieve manifest for {gun}")
+            sys.exit(1)
+
+    # Confirm digest matches sha of the manifest
+    digest = os.environ["IMAGE_PODMAN_SHA"].split(":")[-1]
+    manifest = hashlib.sha256(manifest_file.read_bytes())
+
+    if digest == manifest.hexdigest():
+        logging.info("Digests match")
     else:
-        dest_auth = base64.b64decode(os.environ["DOCKER_AUTH_CONFIG_PROD"]).decode(
-            "utf-8"
-        )
+        logging.error(f"Digests do not match {digest}  {manifest.hexdigest()}")
+        sys.exit(1)
 
-    pathlib.Path("dest_auth.json").write_text(dest_auth)
-
+    # Sign and promote all tags
     with pathlib.Path(os.environ["ARTIFACT_STORAGE"], "preflight", "tags.txt").open(
         mode="r"
     ) as f:
         for tag in f:
             tag = tag.strip()
-            p = subprocess.run(
-                [
-                    "skopeo",
-                    "inspect",
-                    "--authfile",
-                    "staging_auth.json",
-                    "--raw",
-                    f"docker://{staging_image}@{os.environ['IMAGE_PODMAN_SHA']}",
-                ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                encoding="utf-8",
-            )
+            logging.info(f"Signing {manifest_file} with notary")
 
-            if p.returncode != 0:
-                logging.error(p.stdout)
-                logging.error(p.stderr)
-                logging.error(f"Failed to retrieve manifest for {gun}")
+            cmd = [
+                "notary",
+                "--verbose",
+                "--server",
+                os.environ["NOTARY_URL"],
+                "--trustDir",
+                trust_dir,
+                "add",
+                "--roles",
+                "targets/releases",
+                "--publish",
+                gun,
+                tag,
+                str(manifest_file),
+            ]
+            logging.info(" ".join(cmd))
+            try:
+                subprocess.run(
+                    args=cmd,
+                    check=True,
+                    encoding="utf-8",
+                    env={
+                        "NOTARY_DELEGATION_PASSPHRASE": delegation_passphrase,
+                        **os.environ,
+                    },
+                )
+            except subprocess.CalledProcessError:
+                logging.error(f"Failed to sign {gun}")
                 sys.exit(1)
 
-            logging.info(p.stdout)
-
-            logging.info(f"Pulling {tag}_manifest.json with notary")
-            pathlib.Path(f"{tag}_manifest.json").write_text(p.stdout)
-
-            digest = os.environ["IMAGE_PODMAN_SHA"].split(":")[-1]
-
-            manifest = hashlib.sha256(p.stdout.encode())
-
-            if digest == manifest.hexdigest():
-                logging.info("Digests match")
-            else:
-                logging.error(f"Digests do not match {digest}  {manifest.hexdigest()}")
-                sys.exit(1)
-
-            logging.info(f"Signing {tag}_manifest.json with notary")
-
-            p = subprocess.run(
-                [
-                    "notary",
-                    "--verbose",
-                    "--server",
-                    os.environ["NOTARY_URL"],
-                    "--trustDir",
-                    trust_dir,
-                    "add",
-                    "--roles",
-                    "targets/releases",
-                    "--publish",
-                    gun,
-                    tag,
-                    f"{tag}_manifest.json",
-                ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                encoding="utf-8",
-            )
-
-            if p.returncode != 0:
-                logging.error(p.stdout)
-                logging.error(p.stderr)
-                logging.error(f"Failed to import key for {gun}")
-                sys.exit(p.returncode)
-
-            logging.info(p.stdout)
             logging.info(f"Copy from staging to {gun}:{tag}")
-
-            p = subprocess.run(
-                [
-                    "skopeo",
-                    "copy",
-                    "--src-authfile",
-                    "staging_auth.json",
-                    "--dest-authfile",
-                    "dest_auth.json",
-                    f"docker://{staging_image}@{os.environ['IMAGE_PODMAN_SHA']}",
-                    f"docker://{gun}:{tag}",
-                ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                encoding="utf-8",
-            )
-
-            if p.returncode != 0:
-                logging.error(p.stdout)
-                logging.error(p.stderr)
-                logging.error(f"Failed to import key for {gun}")
-                sys.exit(p.returncode)
-
-            logging.info(p.stdout)
+            prod_image = f"docker://{gun}:{tag}"
+            cmd = [
+                "skopeo",
+                "copy",
+                "--src-authfile",
+                "staging_auth.json",
+                "--dest-authfile",
+                "dest_auth.json",
+                staging_image,
+                prod_image,
+            ]
+            try:
+                subprocess.run(
+                    args=cmd,
+                    check=True,
+                    encoding="utf-8",
+                )
+            except subprocess.CalledProcessError:
+                logging.error(f"Failed to copy {staging_image} to {prod_image}")
+                sys.exit(1)
 
 
 if __name__ == "__main__":
