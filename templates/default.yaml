@@ -6,6 +6,7 @@ Trufflehog:
   image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:2.0.4
   stage: API Test
   script:
+    - pip install requests
     - 'python3 "${PIPELINE_REPO_DIR}"/stages/preflight/trufflehog.py'
   # - local: stages/preflight/base.yaml
 
