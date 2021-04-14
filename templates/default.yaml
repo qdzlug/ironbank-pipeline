@@ -1,9 +1,9 @@
 stages:
-  - api-test
+  - API Test
 include:
   - local: templates/globals.yaml
-api test:
-  stage: api-test
+Trufflehog:
+  stage: API Test
   script:
     - 'python3 "${PIPELINE_REPO_DIR}"/stages/preflight/trufflehog.py'
   # - local: stages/preflight/base.yaml
