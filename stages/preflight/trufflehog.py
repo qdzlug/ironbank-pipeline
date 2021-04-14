@@ -1,11 +1,10 @@
 #!/usr/bin/python3
-import json
+
 import logging
 import os
 import sys
 import requests
-import git
-from pathlib import Path
+import subprocess
 
 
 def main():
@@ -21,22 +20,53 @@ def main():
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
 
-    report_name = "trufflehog.json"
     branch_name = os.environ["CI_COMMIT_BRANCH"]
     project_id = os.environ["CI_PROJECT_ID"]
     current_commit_sha = os.environ["CI_COMMIT_SHA"]
 
     pipelines = last_pipeline_sha(branch_name, project_id)
-    print(pipelines)
-    logging.info(f"Current commit: {current_commit_sha}")
-    logging.info(f"Last pipeline run from API: {pipelines[0]['sha']}")
+    if pipelines:
+        logging.info(f"Current commit: {current_commit_sha}")
+        logging.info(f"Last pipeline run from API: {pipelines[0]['sha']}")
 
     since_commit_cmd = since_commit_sha(pipelines, current_commit_sha)
 
     print(since_commit_cmd)
 
+    cmd = [
+        "trufflehog3",
+        "--no-entropy",
+        "--branch",
+        branch_name,
+        *since_commit_cmd,
+        ".",
+    ]
+
+    logging.info(" ".join(cmd))
+
+    try:
+        findings = subprocess.run(
+            args=cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding="utf-8",
+        )
+    except subprocess.CalledProcessError:
+        (
+            logging.error("truffleHog found secrets")
+            if findings.returncode == 1 and findings.stdout
+            else logging.error("truffleHog scan failed") and sys.exit(1)
+        )
+
 
 def last_pipeline_sha(branch_name, project_id):
+    """
+    Uses requests to call GitLab API to get list of pipelines
+    Then retrieves the commit shasums of successful pipelines
+    Returns:
+        list of shasums for successful pipeline runs for given project and branch
+        None if pipelines list is empty
+    """
     url = f"https://repo1.dso.mil/api/v4/projects/{project_id}/pipelines"
     try:
         r = requests.get(
@@ -59,17 +89,26 @@ def last_pipeline_sha(branch_name, project_id):
     return None
 
 
-def since_commit_sha(pipeline_lst, current_commit_sha):
-    pipeline_sha_lst = []
-    if pipeline_lst:
-        for sha in [x["sha"] for x in pipeline_lst if x["sha"] != current_commit_sha]:
+def since_commit_sha(pipelines, current_commit_sha, pipeline_sha_lst=[]):
+    """
+    expects a list of pipeline shasums
+    adds sha to list if sha is not the same as the current CI_COMMIT_SHA
+    intent is to use the first element of the pipeline_sha_list
+    if there is no element to select from use no history flag
+    Returns:
+        list with truffleHog3 options
+            --since-commit <first element of pipeline_sha_lst>
+            --no-history
+    """
+    if pipelines:
+        for sha in [x["sha"] for x in pipelines if x["sha"] != current_commit_sha]:
             pipeline_sha_lst.append(sha)
     return (
-        ["--since_commit", pipeline_sha_lst[0]]
+        ["--since-commit", pipeline_sha_lst[0]]
         if pipeline_sha_lst
         else ["--no-history"]
     )
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
