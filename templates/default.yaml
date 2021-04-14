@@ -5,7 +5,7 @@ include:
 api test:
   stage: api-test
   script:
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/preflight/trufflehog.py'
+    - 'python3 "${PIPELINE_REPO_DIR}"/stages/preflight/trufflehog.py'
   # - local: stages/preflight/base.yaml
 
   # - local: stages/lint/base.yaml
