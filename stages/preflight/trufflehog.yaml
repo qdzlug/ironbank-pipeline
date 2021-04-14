@@ -5,33 +5,4 @@ trufflehog:
     name: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog:2.2.1
     entrypoint: [""]
   script:
-    - git fetch origin -q
-    - |
-      if [ "${CI_COMMIT_BRANCH}" == "master" ]; then
-        echo "Check is run on development and feature branches"
-        exit 0
-      elif [ "${CI_COMMIT_BRANCH}" == "development" ]; then
-        SINCE_COMMIT=$(git log origin/master.. --stat | grep "commit" | tail -1 | awk '{print $2}')
-      else
-        SINCE_COMMIT=$(git log origin/development.. --stat | grep "commit" | tail -1 | awk '{print $2}')
-      fi
-      # Could add exceptions using --exclude_paths <exclusion file>
-    - |
-      set +e
-      trufflehog --regex --since_commit "${SINCE_COMMIT}" --branch "${CI_COMMIT_BRANCH}" "${CI_PROJECT_URL}" | tee trufflehog.txt
-      SUCCESS=$?
-      set -e
-    - |
-      if [ $SUCCESS -eq 0 ]; then
-        exit 0
-      fi
-    - |
-      echo "ERROR Trufflehog scan failed. Exiting"
-      echo "ERROR you need to remove the offening commits from your commit history"
-    - exit "${SUCCESS}"
-  artifacts:
-    name: $CI_PROJECT_NAME-$CI_JOB_ID
-    when: on_failure
-    expire_in: 1 week
-    paths:
-      - trufflehog.txt
+    - '"${PIPELINE_REPO_DIR}/stages/preflight/trufflehog.sh"'
