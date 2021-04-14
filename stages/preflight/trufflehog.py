@@ -69,3 +69,7 @@ def since_commit_sha(pipeline_lst, current_commit_sha):
         if pipeline_sha_lst
         else ["--no-history"]
     )
+
+
+if __name__ == "__main__":
+    sys.exit(main())
