@@ -16,7 +16,7 @@ TARGET_NAMESPACE=${TARGET_NAMESPACE:-twistlock}
 TARGET_PODNAME=${TARGET_PODNAME:-twistlock-defender}
 TARGET_LOG_PATH=${TARGET_LOG_PATH:-var/lib/twistlock/log/defender.log}
 
-logfile="${TARGET_NAMESPACE}_${TARGET_PODNAME}_$(echo $TARGET_LOG_PATH |
+logfile="${TARGET_NAMESPACE}_${TARGET_PODNAME}_$(echo "$TARGET_LOG_PATH" |
   awk -F'/' '{print $NF}')_$(date +%F_%H-%M-%S).log"
 
 echo "log file: $logfile"
