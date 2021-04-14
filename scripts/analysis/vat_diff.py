@@ -1,3 +1,8 @@
+"""
+Use Case: find all of the recent jobs run from trigger that failed on the "vat compare" stage of the pipeline, combine the results, and export everything to a file
+Status: done? It doesn't do very much but accomplished what we needed it for when analyzing the VAT API vs VAT query. Also, another solid example of spaghetti code
+"""
+
 import gitlab
 import os
 import sys
