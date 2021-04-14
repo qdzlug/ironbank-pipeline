@@ -62,7 +62,7 @@ def last_pipeline_sha(branch_name, project_id):
 def since_commit_sha(pipeline_lst, current_commit_sha):
     pipeline_sha_lst = []
     if pipeline_lst:
-        for sha in [x["sha"] for x in pipeline_lst]:
+        for sha in [x["sha"] for x in pipeline_lst if x != current_commit_sha]:
             pipeline_sha_lst.append(sha)
     return (
         ["--since_commit", pipeline_sha_lst[0]]
