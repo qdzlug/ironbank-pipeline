@@ -38,6 +38,7 @@ def main():
 
     logging.info(f'truffleHog command: {" ".join(cmd)}')
     th_flags = " ".join(cmd[1:-1])
+    job_image = os.environ["CI_JOB_IMAGE"]
 
     try:
         logging.info("Scanning with truffleHog")
@@ -58,7 +59,7 @@ def main():
                 "To review truffleHog findings locally run the following command from the root of your project"
             )
             logging.error(
-                f"docker run -it --rm -v $(pwd):/proj registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:2.0.4 {th_flags} /proj"
+                f"docker run -it --rm -v $(pwd):/proj {job_image} {th_flags} /proj"
             )
             sys.exit(1)
         else:
