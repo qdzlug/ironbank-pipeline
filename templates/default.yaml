@@ -1,36 +1,30 @@
-stages:
-  - API Test
 include:
   - local: templates/globals.yaml
-Trufflehog:
-  image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:2.0.4
-  stage: API Test
-  script:
-    - 'python3 "${PIPELINE_REPO_DIR}"/stages/preflight/trufflehog.py'
-  # - local: stages/preflight/base.yaml
 
-  # - local: stages/lint/base.yaml
+  - local: stages/preflight/base.yaml
 
-  # - local: stages/vat-finding-compare/comparison.yaml
+  - local: stages/lint/base.yaml
 
-  # - local: stages/import-artifacts/base.yaml
+  - local: stages/vat-finding-compare/comparison.yaml
 
-  # - local: stages/scan-artifacts/clamav-scan.yaml
+  - local: stages/import-artifacts/base.yaml
 
-  # - local: stages/build/base.yaml
-  # # # # Removing post-build stage, not needed for beta
-  # # # # - local: stages/post-build/base.yaml
+  - local: stages/scan-artifacts/clamav-scan.yaml
 
-  # - local: stages/scanning/base.yaml
+  - local: stages/build/base.yaml
+  # # # Removing post-build stage, not needed for beta
+  # # # - local: stages/post-build/base.yaml
 
-  # - local: stages/csv-output/base.yaml
+  - local: stages/scanning/base.yaml
 
-  # - local: stages/check-cves/base.yaml
+  - local: stages/csv-output/base.yaml
 
-  # - local: stages/documentation/base.yaml
+  - local: stages/check-cves/base.yaml
 
-  # - local: stages/vat/base.yaml
+  - local: stages/documentation/base.yaml
 
-  # - local: stages/harbor/harbor.yaml
+  - local: stages/vat/base.yaml
 
-  # - local: stages/s3/upload-to-s3.yaml
+  - local: stages/harbor/harbor.yaml
+
+  - local: stages/s3/upload-to-s3.yaml
