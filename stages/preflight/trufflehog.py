@@ -53,13 +53,19 @@ def main():
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             encoding="utf-8",
+            check=True,
         )
     except subprocess.CalledProcessError:
-        (
-            logging.error("truffleHog found secrets")
-            if findings.returncode == 1 and findings.stdout
-            else logging.error("truffleHog scan failed") and sys.exit(1)
-        )
+        if findings.returncode == 1 and findings.stdout:
+            logging.error(f"Return code: {findings.returncode}")
+            logging.error(f"truffleHog found secrets")
+            sys.exit(1)
+        else:
+            logging.error(f"Return code: {findings.returncode}")
+            logging.error("truffleHog scan failed")
+            sys.exit(1)
+    logging.info("truffleHog found no secrets")
+    logging.info(f"Return code: {findings.returncode}")
 
 
 def last_pipeline_sha(branch_name, project_id):
