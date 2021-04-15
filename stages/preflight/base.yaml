@@ -8,25 +8,6 @@
 
 include:
   - local: stages/preflight/trufflehog.yaml
-
+  - local: stages/preflight/folder-structure.yaml
+  - local: stages/preflight/hardening-manifest.yaml
 # TODO: Possibly check for deployment files?
-folder structure:
-  extends: .preflight
-  script:
-    - '"${PIPELINE_REPO_DIR}/stages/preflight/folder_structure.sh"'
-
-hardening_manifest:
-  extends: .preflight
-  variables:
-    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/preflight"
-  script:
-    - mkdir -p "${ARTIFACT_STORAGE}/preflight"
-    - pip3 install jsonschema
-    - python3 "${PIPELINE_REPO_DIR}/stages/preflight/metadata.py"
-  artifacts:
-    when: always
-    paths:
-      - "${ARTIFACT_DIR}/"
-    expire_in: 1 week
-    reports:
-      dotenv: "${ARTIFACT_DIR}/variables.env"
