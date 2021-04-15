@@ -54,6 +54,7 @@ def main():
             logging.error(f"truffleHog found secrets")
             msg = f"docker run -it --rm -v $(pwd):/proj {job_image} {th_flags} /proj"
             logging.error("=" * len(msg))
+            logging.error("The offending commits must be removed from commit history")
             logging.error(
                 "To review truffleHog findings locally run the following command from the root of your project"
             )
@@ -77,7 +78,8 @@ def get_history_cmd(repo_dir):
     assert "origin/development" in [x.name for x in origin]
     repo = git.Repo(repo_dir)
     commits = list(repo.iter_commits("origin/development.."))
-    logging.info([x.hexsha for x in commits])
+    formatted_commits = "\n".join([x.hexsha for x in commits])
+    logging.info(f"\ngit log origin/development..\n{formatted_commits}")
     return ["--since-commit", commits[-1:][0].hexsha] if commits else ["--no-history"]
 
 
