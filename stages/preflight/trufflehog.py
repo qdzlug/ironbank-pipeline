@@ -48,6 +48,7 @@ def main():
     logging.info(" ".join(cmd))
 
     try:
+        logging.info("Scanning with truffleHog")
         findings = subprocess.run(
             args=cmd,
             stdout=subprocess.PIPE,
@@ -76,6 +77,7 @@ def last_pipeline_sha(branch_name, project_id):
         list of shasums for successful pipeline runs for given project and branch
         None if pipelines list is empty
     """
+    logging.info("Retrieving list of successful pipeline commit shasums")
     url = f"https://repo1.dso.mil/api/v4/projects/{project_id}/pipelines"
     params = {"ref": branch_name}
     url += "?" + urlencode(params)
@@ -100,7 +102,9 @@ def last_pipeline_sha(branch_name, project_id):
         logging.error(f"Response text: {r.text}")
         sys.exit(1)
     if pipelines:
+        logging.info("Found shasums for successful pipeline run")
         return pipelines
+    logging.info("Found no successful pipeline runs")
     return None
 
 
@@ -115,7 +119,9 @@ def since_commit_sha(pipelines, current_commit_sha, pipeline_sha_lst=[]):
             --since-commit <first element of pipeline_sha_lst>
             --no-history
     """
+    logging.info("Retrieving unique pipeline commit shasums")
     if pipelines:
+        logging.info(f"Pipelines: {pipelines}")
         for sha in [x["sha"] for x in pipelines if x["sha"] != current_commit_sha]:
             pipeline_sha_lst.append(sha)
     return (
