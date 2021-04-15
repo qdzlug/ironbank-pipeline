@@ -23,6 +23,8 @@ def main():
     repo_dir = os.environ["CI_PROJECT_DIR"]
     branch_name = os.environ["CI_COMMIT_BRANCH"]
 
+    origin = git.Repo(repo_dir).remotes.origin.fetch()
+    assert "origin/development" in [x.name for x in origin]
     history_cmd = get_history_cmd(repo_dir)
 
     cmd = [
@@ -45,6 +47,7 @@ def main():
             encoding="utf-8",
             check=True,
         )
+        assert findings.returncode == 0
     except subprocess.CalledProcessError as e:
         if e.returncode == 1 and e.stdout:
             logging.error(f"Return code: {e.returncode}")
