@@ -20,11 +20,7 @@ def main():
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
 
-    repo_dir = os.environ["PIPELINE_REPO_DIR"]
-    logging.info(f"Repo Dir: {repo_dir}")
-    logging.info(f"Current dir: {os.listdir(os.getcwd())}")
-    logging.info(f"Current dir: {os.listdir(repo_dir)}")
-
+    repo_dir = os.environ["CI_PROJECT_DIR"]
     branch_name = os.environ["CI_COMMIT_BRANCH"]
 
     history_cmd = get_history_cmd(repo_dir)
