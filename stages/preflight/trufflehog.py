@@ -55,13 +55,13 @@ def main():
             encoding="utf-8",
             check=True,
         )
-    except subprocess.CalledProcessError:
-        if findings.returncode == 1 and findings.stdout:
-            logging.error(f"Return code: {findings.returncode}")
+    except subprocess.CalledProcessError as e:
+        if e.returncode == 1 and e.stdout:
+            logging.error(f"Return code: {e.returncode}")
             logging.error(f"truffleHog found secrets")
             sys.exit(1)
         else:
-            logging.error(f"Return code: {findings.returncode}")
+            logging.error(f"Return code: {e.returncode}")
             logging.error("truffleHog scan failed")
             sys.exit(1)
     logging.info("truffleHog found no secrets")
