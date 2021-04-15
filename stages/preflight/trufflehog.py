@@ -28,9 +28,6 @@ def main():
     current_commit_sha = os.environ["CI_COMMIT_SHA"]
 
     pipelines = last_pipeline_sha(branch_name, project_id)
-    if pipelines:
-        logging.info(f"Current commit: {current_commit_sha}")
-        logging.info(f"Last pipeline run from API: {pipelines[0]['sha']}")
 
     since_commit_cmd = since_commit_sha(pipelines, current_commit_sha)
 
@@ -43,7 +40,7 @@ def main():
         ".",
     ]
 
-    logging.info(" ".join(cmd))
+    logging.info(f'truffleHog command: {" ".join(cmd)}')
 
     try:
         logging.info("Scanning with truffleHog")
@@ -58,13 +55,19 @@ def main():
         if e.returncode == 1 and e.stdout:
             logging.error(f"Return code: {e.returncode}")
             logging.error(f"truffleHog found secrets")
+            logging.error("=" * 145)
+            logging.error(
+                "To review truffleHog findings locally use the following command"
+            )
+            logging.error(
+                "docker run -it --rm -v $(pwd):/proj registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:2.0.4 --no-entropy --branch <branch name> /proj"
+            )
             sys.exit(1)
         else:
             logging.error(f"Return code: {e.returncode}")
             logging.error("truffleHog scan failed")
             sys.exit(1)
     logging.info("truffleHog found no secrets")
-    logging.info(f"Return code: {findings.returncode}")
 
 
 def last_pipeline_sha(branch_name, project_id):
@@ -75,7 +78,6 @@ def last_pipeline_sha(branch_name, project_id):
         list of shasums for successful pipeline runs for given project and branch
         None if pipelines list is empty
     """
-    logging.info("Retrieving list of successful pipeline commit shasums")
     url = f"https://repo1.dso.mil/api/v4/projects/{project_id}/pipelines"
     params = {
         "ref": branch_name,
@@ -101,7 +103,6 @@ def last_pipeline_sha(branch_name, project_id):
         logging.error(f"Response text: {r.text}")
         sys.exit(1)
     if data:
-        logging.info("Found shasums for successful pipeline run")
         return data
     logging.info("Found no successful pipeline runs")
     return None
@@ -120,9 +121,7 @@ def since_commit_sha(pipelines, current_commit_sha, pipeline_sha_lst=[]):
             --no-history
             []
     """
-    logging.info("Retrieving unique pipeline commit shasums")
     if pipelines:
-        logging.info(f"Pipelines: {pipelines}")
         for sha in [x["sha"] for x in pipelines if x["sha"] != current_commit_sha]:
             pipeline_sha_lst.append(sha)
         return (
