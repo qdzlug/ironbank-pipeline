@@ -22,6 +22,8 @@ def main():
 
     repo_dir = os.environ["PIPELINE_REPO_DIR"]
     logging.info(f"Repo Dir: {repo_dir}")
+    logging.info(f"Current dir: {os.listdir(os.getcwd())}")
+    logging.info(f"Current dir: {os.listdir(repo_dir)}")
 
     branch_name = os.environ["CI_COMMIT_BRANCH"]
 
