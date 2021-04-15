@@ -3,8 +3,10 @@
 import logging
 import os
 import sys
-import requests
 import subprocess
+from urllib.parse import urlencode
+from urllib.request import urlopen
+from urllib.error import HTTPError
 
 
 def main():
@@ -68,17 +70,22 @@ def last_pipeline_sha(branch_name, project_id):
         None if pipelines list is empty
     """
     url = f"https://repo1.dso.mil/api/v4/projects/{project_id}/pipelines"
+    params = {"ref": branch_name}
+    url += "?" + urlencode(params)
     try:
-        r = requests.get(
-            url,
-            params={
-                "ref": branch_name,
-            },
-        )
-    except requests.exceptions.RequestException:
-        logging.exception(f"Could not retrieve last pipeline sha")
+        with urlopen(url) as response:
+            r = response.read().decode()
+    except HTTPError as e:
+        logging.error("Pipeline list retrieval failed")
+        logging.error(e.status)
+        logging.error(e.reason)
         sys.exit(1)
-    if r.status_code == 200:
+    except Exception:
+        e = sys.exc_info()[0]
+        logging.error("Something went wrong")
+        logging.error(e)
+        sys.exit(1)
+    if r.status == 200:
         pipelines = [x for x in r.json() if x["status"] == "success"]
     else:
         logging.error("Non 200 status code returned from pipeline sha retrieval")
