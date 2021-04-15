@@ -57,7 +57,7 @@ def main():
             logging.error(f"truffleHog found secrets")
             logging.error("=" * 145)
             logging.error(
-                "To review truffleHog findings locally use the following command"
+                "To review truffleHog findings locally run the following command from the root of your project"
             )
             logging.error(
                 "docker run -it --rm -v $(pwd):/proj registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:2.0.4 --no-entropy --branch <branch name> /proj"
