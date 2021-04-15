@@ -12,9 +12,13 @@
 set -euo pipefail
 
 # Notary environment
-export NOTARY_ROOT_PASSPHRASE=$(openssl rand -base64 32)
-export NOTARY_SNAPSHOT_PASSPHRASE=$(openssl rand -base64 32)
-export NOTARY_TARGETS_PASSPHRASE=$(openssl rand -base64 32)
+NOTARY_ROOT_PASSPHRASE=$(openssl rand -base64 32)
+NOTARY_SNAPSHOT_PASSPHRASE=$(openssl rand -base64 32)
+NOTARY_TARGETS_PASSPHRASE=$(openssl rand -base64 32)
+
+export NOTARY_ROOT_PASSPHRASE
+export NOTARY_SNAPSHOT_PASSPHRASE
+export NOTARY_TARGETS_PASSPHRASE
 
 # Vault environment
 export VAULT_ADDR="${VAULT_ADDR:-https://vault.admin.dso.mil}"
@@ -62,7 +66,8 @@ import_root_key() {
   echo
 
   # Login to Vault
-  export VAULT_TOKEN=$(vault login -token-only -method=userpass username=notary-admin)
+  VAULT_TOKEN=$(vault login -token-only -method=userpass username=notary-admin)
+  export VAULT_TOKEN
 
   # Retrieve root key
   vault kv get -field=rootkey "/kv/il2/notary/admin/$rootkeyloc" | notary -v -s "$notary_url" -d "$trustdir" key import /dev/stdin --role=root
@@ -132,7 +137,8 @@ if [ -z "${NOTARY_AUTH:-}" ]; then
   read -r -s username
   echo "Enter registry1.dso.mil password: "
   read -r -s password
-  export NOTARY_AUTH=$(echo -n "$username:$password" | base64)
+  NOTARY_AUTH=$(echo -n "$username:$password" | base64)
+  export NOTARY_AUTH
 fi
 
 import_root_key
