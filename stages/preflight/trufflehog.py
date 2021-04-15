@@ -34,8 +34,6 @@ def main():
 
     since_commit_cmd = since_commit_sha(pipelines, current_commit_sha)
 
-    print(since_commit_cmd)
-
     cmd = [
         "trufflehog3",
         "--no-entropy",
@@ -79,7 +77,10 @@ def last_pipeline_sha(branch_name, project_id):
     """
     logging.info("Retrieving list of successful pipeline commit shasums")
     url = f"https://repo1.dso.mil/api/v4/projects/{project_id}/pipelines"
-    params = {"ref": branch_name}
+    params = {
+        "ref": branch_name,
+        "status": "success",
+    }
     url += "?" + urlencode(params)
     try:
         with urlopen(url) as response:
@@ -95,15 +96,13 @@ def last_pipeline_sha(branch_name, project_id):
         logging.error("Something went wrong")
         logging.error(e)
         sys.exit(1)
-    if r.status == 200:
-        pipelines = [x for x in data if x["status"] == "success"]
-    else:
+    if r.status != 200:
         logging.error("Non 200 status code returned from pipeline sha retrieval")
         logging.error(f"Response text: {r.text}")
         sys.exit(1)
-    if pipelines:
+    if data:
         logging.info("Found shasums for successful pipeline run")
-        return pipelines
+        return data
     logging.info("Found no successful pipeline runs")
     return None
 
@@ -113,22 +112,25 @@ def since_commit_sha(pipelines, current_commit_sha, pipeline_sha_lst=[]):
     expects a list of pipeline shasums
     adds sha to list if sha is not the same as the current CI_COMMIT_SHA
     intent is to use the first element of the pipeline_sha_list
-    if there is no element to select from use no history flag
+    if pipelines has no value not equal to current commit sha ignore history
+    if pipelines is None return empty list to scan whole history
     Returns:
         list with truffleHog3 options
             --since-commit <first element of pipeline_sha_lst>
             --no-history
+            []
     """
     logging.info("Retrieving unique pipeline commit shasums")
     if pipelines:
         logging.info(f"Pipelines: {pipelines}")
         for sha in [x["sha"] for x in pipelines if x["sha"] != current_commit_sha]:
             pipeline_sha_lst.append(sha)
-    return (
-        ["--since-commit", pipeline_sha_lst[0]]
-        if pipeline_sha_lst
-        else ["--no-history"]
-    )
+        return (
+            ["--since-commit", pipeline_sha_lst[0]]
+            if pipeline_sha_lst
+            else ["--no-history"]
+        )
+    return []
 
 
 if __name__ == "__main__":
