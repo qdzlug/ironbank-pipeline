@@ -1,23 +1,17 @@
 openscap compliance:
   extends: .scanning
-  stage: scanning
-  except:
-    variables:
-      - $DISTROLESS
   variables:
     OSCAP_SCANS: "${ARTIFACT_STORAGE}/scan-results/openscap"
     OSCAP_FILENAME: "${OSCAP_HTML_FILENAME}"
-  # Load in the IMG_VERSION variable from load scripts env
   dependencies:
     - load scripts
     - build
   script:
-    - '"${PIPELINE_REPO_DIR}/stages/scanning/oscap-compliance-run.sh"'
+    - '"${PIPELINE_REPO_DIR}/stages/scanning/openscap/oscap-compliance-run.sh"'
   artifacts:
     when: always
     paths:
       - "${OSCAP_SCANS}"
     reports:
       dotenv: oscap-compliance.env
-
     expire_in: 1 week

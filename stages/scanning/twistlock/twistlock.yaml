@@ -13,7 +13,7 @@ twistlock scan:
     - mkdir -p "${TWISTLOCK_SCANS}"
   script:
     - |
-      python3 "${PIPELINE_REPO_DIR}/stages/scanning/twistlock.py" \
+      python3 "${PIPELINE_REPO_DIR}/stages/scanning/twistlock/twistlock.py" \
         --registry="${REGISTRY1_URL}" \
         --api_url="${twistlock_server_address}/api/v1" \
         --name="ironbank-staging/${IM_NAME}" \
