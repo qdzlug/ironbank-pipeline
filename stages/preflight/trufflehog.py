@@ -21,6 +21,7 @@ def main():
         logging.info("Log level set to info")
 
     repo_dir = os.environ["PIPELINE_REPO_DIR"]
+    logging.info(f"Repo Dir: {repo_dir}")
 
     branch_name = os.environ["CI_COMMIT_BRANCH"]
 
