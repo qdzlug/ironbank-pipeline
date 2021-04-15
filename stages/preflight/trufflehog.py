@@ -37,6 +37,7 @@ def main():
     ]
 
     logging.info(f'truffleHog command: {" ".join(cmd)}')
+    th_flags = " ".join(cmd[1:-1])
 
     try:
         logging.info("Scanning with truffleHog")
@@ -57,7 +58,7 @@ def main():
                 "To review truffleHog findings locally run the following command from the root of your project"
             )
             logging.error(
-                "docker run -it --rm -v $(pwd):/proj registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:2.0.4 --no-entropy --branch <branch name> /proj"
+                f"docker run -it --rm -v $(pwd):/proj registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:2.0.4 {th_flags} /proj"
             )
             sys.exit(1)
         else:
