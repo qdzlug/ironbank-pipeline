@@ -22,9 +22,10 @@ def main():
 
     repo_dir = os.environ["CI_PROJECT_DIR"]
     branch_name = os.environ["CI_COMMIT_BRANCH"]
+    diff_branch = "development" if branch_name != "development" else "master"
     job_image = os.environ["CI_JOB_IMAGE"]
 
-    history_cmd = get_history_cmd(repo_dir)
+    history_cmd = get_history_cmd(repo_dir, diff_branch)
 
     cmd = [
         "trufflehog3",
@@ -67,17 +68,18 @@ def main():
     logging.info("truffleHog found no secrets")
 
 
-def get_history_cmd(repo_dir):
+def get_history_cmd(repo_dir, diff_branch):
     """
     Uses gitpython to get a list of commit shasums of feature branch commits that don't exits in development
     Returns a list of truffleHog3 flags
         [--since-commit, the oldest sha in the commits list]
         if list is empty [--no-history]
     """
+    # fetch origin before performing a git log
     origin = git.Repo(repo_dir).remotes.origin.fetch()
     assert "origin/development" in [x.name for x in origin]
     repo = git.Repo(repo_dir)
-    commits = list(repo.iter_commits("origin/development.."))
+    commits = list(repo.iter_commits(f"origin/{diff_branch}.."))
     formatted_commits = "\n".join([x.hexsha for x in commits])
     logging.info(f"git log origin/development..\n{formatted_commits}")
     return ["--since-commit", commits[-1:][0].hexsha] if commits else ["--no-history"]
