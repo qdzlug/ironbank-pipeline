@@ -22,9 +22,8 @@ def main():
 
     repo_dir = os.environ["CI_PROJECT_DIR"]
     branch_name = os.environ["CI_COMMIT_BRANCH"]
+    job_image = os.environ["CI_JOB_IMAGE"]
 
-    origin = git.Repo(repo_dir).remotes.origin.fetch()
-    assert "origin/development" in [x.name for x in origin]
     history_cmd = get_history_cmd(repo_dir)
 
     cmd = [
@@ -38,7 +37,6 @@ def main():
 
     logging.info(f'truffleHog command: {" ".join(cmd)}')
     th_flags = " ".join(cmd[1:-1])
-    job_image = os.environ["CI_JOB_IMAGE"]
 
     try:
         logging.info("Scanning with truffleHog")
@@ -54,13 +52,12 @@ def main():
         if e.returncode == 1 and e.stdout:
             logging.error(f"Return code: {e.returncode}")
             logging.error(f"truffleHog found secrets")
-            logging.error("=" * 145)
+            msg = f"docker run -it --rm -v $(pwd):/proj {job_image} {th_flags} /proj"
+            logging.error("=" * len(msg))
             logging.error(
                 "To review truffleHog findings locally run the following command from the root of your project"
             )
-            logging.error(
-                f"docker run -it --rm -v $(pwd):/proj {job_image} {th_flags} /proj"
-            )
+            logging.error(msg)
             sys.exit(1)
         else:
             logging.error(f"Return code: {e.returncode}")
@@ -70,6 +67,14 @@ def main():
 
 
 def get_history_cmd(repo_dir):
+    """
+    Uses gitpython to get a list of commit shasums of feature branch commits that don't exits in development
+    Returns a list of truffleHog3 flags
+        [--since-commit, the oldest sha in the commits list]
+        if list is empty [--no-history]
+    """
+    origin = git.Repo(repo_dir).remotes.origin.fetch()
+    assert "origin/development" in [x.name for x in origin]
     repo = git.Repo(repo_dir)
     commits = list(repo.iter_commits("origin/development.."))
     logging.info([x.hexsha for x in commits])
