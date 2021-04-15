@@ -2,5 +2,8 @@ trufflehog:
   extends: .preflight
   dependencies: []
   image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:2.0.4
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "development" || $CI_COMMIT_BRANCH == "master'
+      when: on_success
   script:
     - '"${PIPELINE_REPO_DIR}/stages/preflight/trufflehog.py"'
