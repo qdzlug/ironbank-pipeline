@@ -6,4 +6,5 @@ trufflehog:
     - if: '$CI_COMMIT_BRANCH != "development" || $CI_COMMIT_BRANCH != "master"'
       when: on_success
   script:
+    - ls -lah ${PIPELINE_REPO_DIR}/stages/preflight
     - 'python3 "${PIPELINE_REPO_DIR}/stages/preflight/trufflehog.py"'
