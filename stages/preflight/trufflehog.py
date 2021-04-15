@@ -4,10 +4,7 @@ import logging
 import os
 import sys
 import subprocess
-import json
-from urllib.parse import urlencode
-from urllib.request import urlopen
-from urllib.error import HTTPError
+import git
 
 
 def main():
@@ -23,20 +20,18 @@ def main():
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
 
+    repo_dir = os.environ["PIPELINE_REPO_DIR"]
+
     branch_name = os.environ["CI_COMMIT_BRANCH"]
-    project_id = os.environ["CI_PROJECT_ID"]
-    current_commit_sha = os.environ["CI_COMMIT_SHA"]
 
-    pipelines = last_pipeline_sha(branch_name, project_id)
-
-    since_commit_cmd = since_commit_sha(pipelines, current_commit_sha)
+    history_cmd = get_history_cmd(repo_dir)
 
     cmd = [
         "trufflehog3",
         "--no-entropy",
         "--branch",
         branch_name,
-        *since_commit_cmd,
+        *history_cmd,
         ".",
     ]
 
@@ -70,66 +65,11 @@ def main():
     logging.info("truffleHog found no secrets")
 
 
-def last_pipeline_sha(branch_name, project_id):
-    """
-    Uses requests to call GitLab API to get list of pipelines
-    Then retrieves the commit shasums of successful pipelines
-    Returns:
-        list of shasums for successful pipeline runs for given project and branch
-        None if pipelines list is empty
-    """
-    url = f"https://repo1.dso.mil/api/v4/projects/{project_id}/pipelines"
-    params = {
-        "ref": branch_name,
-        "status": "success",
-    }
-    url += "?" + urlencode(params)
-    try:
-        with urlopen(url) as response:
-            r = response
-            data = json.loads(response.read().decode())
-    except HTTPError as e:
-        logging.error("Pipeline list retrieval failed")
-        logging.error(e.status)
-        logging.error(e.reason)
-        sys.exit(1)
-    except Exception:
-        e = sys.exc_info()[0]
-        logging.error("Something went wrong")
-        logging.error(e)
-        sys.exit(1)
-    if r.status != 200:
-        logging.error("Non 200 status code returned from pipeline sha retrieval")
-        logging.error(f"Response text: {r.text}")
-        sys.exit(1)
-    if data:
-        return data
-    logging.info("Found no successful pipeline runs")
-    return None
-
-
-def since_commit_sha(pipelines, current_commit_sha, pipeline_sha_lst=[]):
-    """
-    expects a list of pipeline shasums
-    adds sha to list if sha is not the same as the current CI_COMMIT_SHA
-    intent is to use the first element of the pipeline_sha_list
-    if pipelines has no value not equal to current commit sha ignore history
-    if pipelines is None return empty list to scan whole history
-    Returns:
-        list with truffleHog3 options
-            --since-commit <first element of pipeline_sha_lst>
-            --no-history
-            []
-    """
-    if pipelines:
-        for sha in [x["sha"] for x in pipelines if x["sha"] != current_commit_sha]:
-            pipeline_sha_lst.append(sha)
-        return (
-            ["--since-commit", pipeline_sha_lst[0]]
-            if pipeline_sha_lst
-            else ["--no-history"]
-        )
-    return []
+def get_history_cmd(repo_dir):
+    repo = git.Repo(repo_dir)
+    commits = list(repo.iter_commits("origin/development.."))
+    logging.info([x.hexsha for x in commits])
+    return ["--since-commit", commits[-1:][0].hexsha] if commits else ["--no-history"]
 
 
 if __name__ == "__main__":
