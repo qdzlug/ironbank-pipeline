@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 import subprocess
+import json
 from urllib.parse import urlencode
 from urllib.request import urlopen
 from urllib.error import HTTPError
@@ -74,7 +75,8 @@ def last_pipeline_sha(branch_name, project_id):
     url += "?" + urlencode(params)
     try:
         with urlopen(url) as response:
-            r = response.read().decode()
+            r = response
+            data = json.loads(response.read().decode())
     except HTTPError as e:
         logging.error("Pipeline list retrieval failed")
         logging.error(e.status)
@@ -86,7 +88,7 @@ def last_pipeline_sha(branch_name, project_id):
         logging.error(e)
         sys.exit(1)
     if r.status == 200:
-        pipelines = [x for x in r.json() if x["status"] == "success"]
+        pipelines = [x for x in data if x["status"] == "success"]
     else:
         logging.error("Non 200 status code returned from pipeline sha retrieval")
         logging.error(f"Response text: {r.text}")
