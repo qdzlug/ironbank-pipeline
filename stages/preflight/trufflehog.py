@@ -79,7 +79,7 @@ def get_history_cmd(repo_dir):
     repo = git.Repo(repo_dir)
     commits = list(repo.iter_commits("origin/development.."))
     formatted_commits = "\n".join([x.hexsha for x in commits])
-    logging.info(f"\ngit log origin/development..\n{formatted_commits}")
+    logging.info(f"git log origin/development..\n{formatted_commits}")
     return ["--since-commit", commits[-1:][0].hexsha] if commits else ["--no-history"]
 
 
