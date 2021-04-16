@@ -22,7 +22,9 @@ def main():
 
     repo_dir = os.environ["CI_PROJECT_DIR"]
     branch_name = os.environ["CI_COMMIT_BRANCH"]
-    diff_branch = "development" if branch_name != "development" else "master"
+    diff_branch = (
+        "origin/development" if branch_name != "development" else "origin/master"
+    )
     job_image = os.environ["CI_JOB_IMAGE"]
 
     history_cmd = get_history_cmd(repo_dir, diff_branch)
