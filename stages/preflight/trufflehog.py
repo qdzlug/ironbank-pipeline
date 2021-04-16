@@ -64,6 +64,9 @@ def main():
             logging.error(f"Return code: {e.returncode}")
             logging.error("truffleHog scan failed")
         sys.exit(1)
+    except AssertionError:
+        logging.error("truffleHog returned a non-zero exit code")
+        sys.exit(1)
     logging.info("truffleHog found no secrets")
 
 
