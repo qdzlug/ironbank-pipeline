@@ -52,7 +52,7 @@ def main():
     except subprocess.CalledProcessError as e:
         if e.returncode == 1 and e.stdout:
             logging.error(f"Return code: {e.returncode}")
-            logging.error(f"truffleHog found secrets")
+            logging.error("truffleHog found secrets")
             msg = f"docker run -it --rm -v $(pwd):/proj {job_image} {th_flags} /proj"
             logging.error("=" * len(msg))
             logging.error("The offending commits must be removed from commit history")
