@@ -91,9 +91,6 @@ while IFS= read -r tag; do
   buildah push --storage-driver=vfs --authfile staging_auth.json "${IMAGE_REGISTRY_REPO}:${tag}"
 done <"$tags_file"
 
-# Provide tar for use in later stages, matching existing tar naming convention
-skopeo copy --src-authfile staging_auth.json "docker://${IMAGE_FULLTAG}" "docker-archive:${ARTIFACT_DIR}/${IMAGE_FILE}.tar"
-
 IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" --format '{{.Id}}')
 echo "IMAGE_ID=${IMAGE_ID}" >>build.env
 
