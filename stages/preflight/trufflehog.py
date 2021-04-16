@@ -70,7 +70,7 @@ def main():
 
 def get_history_cmd(repo_dir, diff_branch):
     """
-    Uses gitpython to get a list of commit shasums of feature branch commits that don't exits in development
+    Uses gitpython to get a list of commit shasums of feature branch commits that don't exist in development
     Returns a list of truffleHog3 flags
         [--since-commit, the oldest sha in the commits list]
         if list is empty [--no-history]
