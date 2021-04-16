@@ -86,7 +86,7 @@ def get_history_cmd(repo_dir, diff_branch):
     repo = git.Repo(repo_dir)
     origin = repo.remotes.origin.fetch()
     assert diff_branch in [x.name for x in origin]
-    commits = list(repo.iter_commits(f"{diff_branch}.."))
+    commits = list(repo.iter_commits(f"{diff_branch}..", "--no-merges"))
     formatted_commits = "\n".join([x.hexsha for x in commits])
     logging.info(f"git log {diff_branch}..\n{formatted_commits}")
     return ["--since-commit", commits[-1].hexsha] if commits else ["--no-history"]
