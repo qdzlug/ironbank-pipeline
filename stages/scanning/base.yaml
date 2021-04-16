@@ -3,10 +3,3 @@
   stage: scanning
   tags:
     - ironbank
-  #  dependencies:
-  #    - post-build
-include:
-  - local: stages/scanning/openscap-compliance.yaml
-  - local: stages/scanning/openscap-cve.yaml
-  - local: stages/scanning/twistlock.yaml
-  - local: stages/scanning/anchore/base.yaml
