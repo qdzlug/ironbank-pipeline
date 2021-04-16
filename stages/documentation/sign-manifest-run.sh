@@ -8,7 +8,7 @@ mkdir -p "${ARTIFACT_DIR}"
 GPG_VERSION=$(gpg --version | grep '(?<=gpg .GnuPG.)([^0-9]+)([0-9]+[.][0-9]+[.][0-9]+)' -oP | sed -E 's/ //g')
 
 # Create manifest.json
-export PODMAN_REFERENCE="${STAGING_REGISTRY_URL}/${IM_NAME}:${IMAGE_VERSION}"
+export PODMAN_REFERENCE="${STAGING_REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_VERSION}"
 export GPG_VERSION
 
 jq -n '
