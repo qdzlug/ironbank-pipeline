@@ -1,6 +1,8 @@
 #!/bin/bash
 set -Eeuo pipefail
-podman load -i "${ARTIFACT_STORAGE}"/build/"${CI_PROJECT_NAME}"-"${CI_PIPELINE_ID}".tar
+# podman load -i "${ARTIFACT_STORAGE}"/build/"${CI_PROJECT_NAME}"-"${CI_PIPELINE_ID}".tar
+echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >staging_auth.json
+podman pull --authfile staging_auth.json "${STAGING_IMAGE_SHA}"
 DOCKER_IMAGE_PATH=$(podman images --noheading | awk '{print $3}')
 export DOCKER_IMAGE_PATH
 BASE_IMAGE_TYPE=$(podman inspect -f '{{index .Labels "com.redhat.component"}}' "${DOCKER_IMAGE_PATH}")
