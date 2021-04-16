@@ -103,3 +103,5 @@ echo "IMAGE_PODMAN_SHA=${IMAGE_PODMAN_SHA}" >>build.env
 echo "IMAGE_FILE=${IMAGE_FILE}" >>build.env
 
 echo "IMAGE_FULLTAG=${IMAGE_FULLTAG}" >>build.env
+
+echo "STAGING_IMAGE_SHA=${STAGING_REGISTRY_URL}/${IMAGE_NAME}@${IMAGE_PODMAN_SHA}" >>build.env
