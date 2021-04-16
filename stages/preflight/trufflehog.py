@@ -57,6 +57,9 @@ def main():
             logging.error("=" * len(msg))
             logging.error("The offending commits must be removed from commit history")
             logging.error(
+                "Secrets committed to a git repository are considered exposed and should be rolled"
+            )
+            logging.error(
                 "To review truffleHog findings locally run the following command from the root of your project"
             )
             logging.error(msg)
