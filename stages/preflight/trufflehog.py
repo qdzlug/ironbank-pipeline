@@ -82,7 +82,7 @@ def get_history_cmd(repo_dir, diff_branch):
     commits = list(repo.iter_commits(f"origin/{diff_branch}.."))
     formatted_commits = "\n".join([x.hexsha for x in commits])
     logging.info(f"git log origin/development..\n{formatted_commits}")
-    return ["--since-commit", commits[-1:][0].hexsha] if commits else ["--no-history"]
+    return ["--since-commit", commits[-1].hexsha] if commits else ["--no-history"]
 
 
 if __name__ == "__main__":
