@@ -60,11 +60,10 @@ def main():
                 "To review truffleHog findings locally run the following command from the root of your project"
             )
             logging.error(msg)
-            sys.exit(1)
         else:
             logging.error(f"Return code: {e.returncode}")
             logging.error("truffleHog scan failed")
-            sys.exit(1)
+        sys.exit(1)
     logging.info("truffleHog found no secrets")
 
 
