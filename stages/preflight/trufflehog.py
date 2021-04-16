@@ -75,9 +75,9 @@ def get_history_cmd(repo_dir, diff_branch):
         if list is empty [--no-history]
     """
     # fetch origin before performing a git log
-    origin = git.Repo(repo_dir).remotes.origin.fetch()
-    assert "origin/development" in [x.name for x in origin]
     repo = git.Repo(repo_dir)
+    origin = repo.remotes.origin.fetch()
+    assert "origin/development" in [x.name for x in origin]
     commits = list(repo.iter_commits(f"origin/{diff_branch}.."))
     formatted_commits = "\n".join([x.hexsha for x in commits])
     logging.info(f"git log origin/development..\n{formatted_commits}")
