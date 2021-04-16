@@ -94,9 +94,6 @@ done <"$tags_file"
 IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" --format '{{.Id}}')
 echo "IMAGE_ID=${IMAGE_ID}" >>build.env
 
-IMAGE_TAR_SHA=$(sha256sum "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" | grep -E '^[a-zA-Z0-9]+' -o)
-echo "IMAGE_TAR_SHA=${IMAGE_TAR_SHA}" >>build.env
-
 IMAGE_PODMAN_SHA=$(<"${ARTIFACT_DIR}/digest")
 echo "IMAGE_PODMAN_SHA=${IMAGE_PODMAN_SHA}" >>build.env
 
