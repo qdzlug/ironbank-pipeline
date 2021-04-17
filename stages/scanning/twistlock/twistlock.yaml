@@ -5,7 +5,6 @@ twistlock scan:
   # Load in the IMG_VERSION variable from load scripts env
   dependencies:
     - load scripts
-    - hardening_manifest
     - build
   variables:
     # put all scan outputs in the scan-results folder
