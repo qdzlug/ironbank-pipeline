@@ -137,14 +137,14 @@ def twistlock_scan(
     twist.print_version(version_file)
 
     # Scan the image
-    print(f"Starting Prisma scan for {imageid}")
+    logging.info(f"Starting Prisma scan for {imageid}")
     twist.add_image(name, tag)
 
     sleep_time = 10
     retries = int(timeout / sleep_time)
 
     for n in range(retries):
-        print(f"Waiting {sleep_time} seconds on Prisma scan [{n}/{retries}]...")
+        logging.info(f"Waiting {sleep_time} seconds on Prisma scan [{n}/{retries}]...")
         report = twist.query_scan_results(imageid)
 
         if report is None:
@@ -152,7 +152,7 @@ def twistlock_scan(
         else:
             with open(filename, "w") as f:
                 json.dump(report, f)
-            print("Prisma Report completed")
+            logging.info("Prisma Report completed")
             break
     else:
         raise TwistlockTimeout(
