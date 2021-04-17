@@ -100,15 +100,17 @@ class Twist:
     # and the version is just printed to console if available and will not cause errors in
     # the pipeline if not.
     def print_version(self, version_file):
-        print(f"Fetching twistlock version from {self.base_url}/version")
+        logging.info(f"Fetching twistlock version from {self.base_url}/version")
         r = requests.get(
             f"{self.base_url}/version", auth=HTTPBasicAuth(self.username, self.password)
         )
 
         if r.status_code != 200:
-            print(f"Skipping twistlock version, query responded with {r.status_code}")
+            logging.error(
+                f"Skipping twistlock version, query responded with {r.status_code}"
+            )
         else:
-            print(f"Twistlock version {r.text}")
+            logging.info(f"Twistlock version {r.text}")
             with open(version_file, "w") as f:
                 f.write(r.text)
         print("\n")
