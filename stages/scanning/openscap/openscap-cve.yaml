@@ -1,5 +1,8 @@
 openscap cve:
   extends: .scanning
+  except:
+    variables:
+      - $DISTROLESS
   dependencies:
     - load scripts
     - build
