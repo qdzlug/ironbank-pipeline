@@ -451,7 +451,7 @@ def find_all_versions(cursor, container_id):
     any containers since that did not inherit the approval
     : return dict of approved and unapproved container ids
     """
-    valid_states = ["Approved", "Conditionally Approved"]
+    valid_states = ["Approved", "Conditionally Approved", "Rejected"]
     approved_versions_query = """
         SELECT c.id, cl.type FROM containers c
         LEFT JOIN (SELECT id, imageid, type from container_log
@@ -1092,18 +1092,11 @@ def find_bumped_id(cursor, row, finding_id, versions, scan_source):
         bumped_findings = None
         for v in versions["approved"]:
             bumped_findings = find_parent_findings(cursor, row, [v], scan_source)
-            if bumped_findings:
+            if bumped_findings and bumped_findings[0][2] != "needs_justification":
                 break
         logs.debug(f"Bumped Findings {bumped_findings}")
         if bumped_findings is None:
             return None
-        check_status_query = """
-        SELECT state from finding_logs where finding_id = %s and active = 1
-        """
-        cursor.execute(check_status_query, (bumped_findings[0][0],))
-        status = cursor.fetchone()
-        if status[0] != "needs_justification":
-            return bumped_findings[0][0]
     except Error as error:
         logs.error(error)
     return None
@@ -1203,7 +1196,7 @@ def find_parent_findings(cursor, finding, lineage, scan_source):
     logs.debug(f"find_parent_findings for {finding}")
     logs.debug(f"lineage: {lineage}")
 
-    find_parent_finding_query = f"""SELECT f.id, f.container_id FROM findings f
+    find_parent_finding_query = f"""SELECT f.id, f.container_id, fl.state FROM findings f
         INNER JOIN finding_logs fl on f.id = fl.finding_id and fl.active = 1
         WHERE f.finding = %s AND f.scan_source = %s AND f.package {package_query_string} %s
         AND f.package_path {package_path_query_string} %s AND f.container_id = %s
@@ -1652,6 +1645,7 @@ def set_approval_state(container_id, version):
         logs.debug(last_log_query % last_log_tuple)
         cursor.execute(last_log_query, last_log_tuple)
         container_logs = cursor.fetchall()
+        # Perhaps different text if type(log[1]) is Rejected
         auto_approval_text = "Auto Approval derived from previous version {}:{}".format(
             container_name, container_version
         )
