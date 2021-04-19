@@ -22,13 +22,7 @@ This will point the project towards the default pipeline in ironbank-pipeline.
 
 The `default` template will allow images based on UBI to run through the required pipeline steps (whether the image directly uses an UBI base image for its base image, or by using an approved Iron Bank container with a base UBI image for its base image).
 
-Containers which utilize the distroless base image should instead use the `distroless` template instead of the `default` pipeline template. Please reach out to the Iron Bank Pipelines team or the Container Hardening team for assistance in getting this changed.
-
-The `Custom CI configuration path` for distroless-based container projects will be the following:
-
-`templates/distroless.yaml@ironbank-tools/ironbank-pipeline`
-
-The distroless template omits the OpenSCAP scan jobs from the pipeline. OSCAP scanning is not compatible with containers built on distroless base images.
+Please review templates/README.md for more information on which template your project needs.
 
 ## Pipeline artifacts
 

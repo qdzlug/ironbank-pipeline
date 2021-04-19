@@ -12,10 +12,11 @@ write json documentation:
     - load scripts
     - wl compare lint
     - openscap compliance
+    - openscap cve
     - anchore scan
     - twistlock scan
     - build
-    - openscap compliance
+
   script:
     - '"${PIPELINE_REPO_DIR}/stages/documentation/write-json-docs-run.sh"'
   artifacts:
