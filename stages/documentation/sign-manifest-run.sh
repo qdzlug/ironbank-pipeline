@@ -29,9 +29,5 @@ jq -n '
 cat "${ARTIFACT_DIR}/manifest.json"
 
 # Sign manifest.json
-gpg --import --batch --passphrase "${IB_CONTAINER_SIG_KEY_PASSPHRASE}" key
-echo "pinentry-mode loopback" >>"${HOME}"/.gnupg/gpg.conf
-gpg --detach-sign -o "${SIG_FILE}.sig" --armor --yes --batch --passphrase "${IB_CONTAINER_SIG_KEY_PASSPHRASE}" manifest.json
-
-# Stage manifest for upload
-mv manifest.json "${SIG_FILE}.sig" "${ARTIFACT_DIR}"
+gpg --import --batch --pinentry-mode loopback --passphrase "${IB_CONTAINER_SIG_KEY_PASSPHRASE}" key
+gpg --detach-sign -o "${ARTIFACT_DIR}/${SIG_FILE}.sig" --armor --yes --batch --pinentry-mode loopback --passphrase "${IB_CONTAINER_SIG_KEY_PASSPHRASE}" "${ARTIFACT_DIR}/manifest.json"
