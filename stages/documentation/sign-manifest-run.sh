@@ -1,7 +1,6 @@
 #!/bin/bash
 set -Eeuo pipefail
 
-dnf install jq -y
 echo "${IB_CONTAINER_GPG_KEY}" | base64 -d >key
 mkdir -p "${ARTIFACT_DIR}"
 
@@ -26,8 +25,8 @@ jq -n '
   "optional": {
     "creator": env.GPG_VERSION
   }
-}' >manifest.json
-cat manifest.json
+}' >"${ARTIFACT_DIR}/manifest.json"
+cat "${ARTIFACT_DIR}/manifest.json"
 
 # Sign manifest.json
 gpg --import --batch --passphrase "${IB_CONTAINER_SIG_KEY_PASSPHRASE}" key
