@@ -5,7 +5,18 @@
   only:
     - development
     - master
-include:
-  - local: /stages/documentation/sign_image.yaml
-  - local: /stages/documentation/sign_manifest.yaml
-  - local: /stages/documentation/write_json_documentation.yaml
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/documentation"
+
+documentation:
+  extends: .documentation
+# include:
+#   - local: /stages/documentation/sign_image.yaml
+#   - local: /stages/documentation/sign_manifest.yaml
+#   - local: /stages/documentation/write_json_documentation.yaml
+  script:
+    - '"${PIPELINE_REPO_DIR}/stages/documentation/documentation.sh"'
+  artifacts:
+    paths:
+      - $ARTIFACT_DIR
+    expire_in: 1 week
