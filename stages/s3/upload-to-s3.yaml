@@ -20,9 +20,7 @@ upload to s3:
   dependencies:
     - load scripts
     - build
-    - sign image
-    - sign manifest
-    - write json documentation
+    - documentation
     - anchore scan
     - twistlock scan
     - openscap cve
