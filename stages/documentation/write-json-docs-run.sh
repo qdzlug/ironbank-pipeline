@@ -90,5 +90,5 @@ jq -n '
       "version": env.OPENSCAP_VERSION
     }
   }
-}' >"${ARTIFACT_DIR}/documentation.json"
-cat "${ARTIFACT_DIR}/documentation.json"
+}' >"${ARTIFACT_DIR}/reports/documentation.json"
+cat "${ARTIFACT_DIR}/reports/documentation.json"
