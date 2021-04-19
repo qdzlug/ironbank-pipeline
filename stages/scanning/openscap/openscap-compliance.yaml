@@ -1,5 +1,8 @@
 openscap compliance:
   extends: .scanning
+  except:
+    variables:
+      - $DISTROLESS
   variables:
     OSCAP_SCANS: "${ARTIFACT_STORAGE}/scan-results/openscap"
     OSCAP_FILENAME: "${OSCAP_HTML_FILENAME}"
