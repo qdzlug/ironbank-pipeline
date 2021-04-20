@@ -43,8 +43,8 @@ jq -n '
   "buildNumber": env.CI_PIPELINE_ID,
   "approval": env.IMAGE_APPROVAL_STATUS,
   "image": {
-    "digest": env.IMAGE_TAR_SHA,
-    "sha256": env.IMAGE_PODMAN_SHA
+    "digest": env.IMAGE_PODMAN_SHA,
+    "sha256": env.IMAGE_TAR_SHA
   },
   "pgp": {
     "publicKey": env.GPG_PUB_KEY,
