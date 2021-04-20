@@ -1093,10 +1093,8 @@ def find_bumped_id(cursor, row, finding_id, versions, scan_source):
         for v in versions["approved"]:
             bumped_findings = find_parent_findings(cursor, row, [v], scan_source)
             if bumped_findings and bumped_findings[0][2] != "needs_justification":
-                break
+                return bumped_findings[0][0]
         logs.debug(f"Bumped Findings {bumped_findings}")
-        if bumped_findings is None:
-            return None
     except Error as error:
         logs.error(error)
     return None
