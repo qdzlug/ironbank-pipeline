@@ -102,14 +102,17 @@ def _colorize_anchore(wb):
         cell_justification = sheet.cell(row=r, column=justification_column)
         # Apply appropriate highlighting to justification cell
         if cell_justification.value is None:
+            # Fill cell in yellow
             cell_justification.fill = PatternFill(
                 start_color="00ffff00", end_color="00ffff00", fill_type="solid"
             )
         elif cell_justification.value == "Inherited from base image.":
+            # Fill cell in green
             cell_justification.fill = PatternFill(
                 start_color="0000b050", end_color="0000b050", fill_type="solid"
             )
         else:
+            # Fill cell in blue
             cell_justification.fill = PatternFill(
                 start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
             )
@@ -125,20 +128,25 @@ def _colorize_anchore_comp(wb):
         cell_justification = sheet.cell(row=r, column=justification_column)
         # Apply appropriate highlighting to justification cell
         if cell_justification.value is None:
+            # Fill cell in yellow
             cell_justification.fill = PatternFill(
                 start_color="00ffff00", end_color="00ffff00", fill_type="solid"
             )
         elif cell_justification.value == "Inherited from base image.":
+            # Fill cell in green
             cell_justification.fill = PatternFill(
                 start_color="0000b050", end_color="0000b050", fill_type="solid"
             )
         elif cell_justification.value == "See Anchore CVE Results sheet":
+            # Fill cell in gray
             cell_justification.fill = PatternFill(
                 start_color="96969696", end_color="96969696", fill_type="solid"
             )
         else:
+            # Fill cell in blue
             cell_justification.fill = PatternFill(
                 start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
+
             )
 
 
@@ -154,14 +162,17 @@ def _colorize_twistlock(wb):
             cell_justification = sheet.cell(row=r, column=10)
             # Apply appropriate highlighting to justification cell
             if cell_justification.value is None:
+                # Fill cell in yellow
                 cell_justification.fill = PatternFill(
                     start_color="00ffff00", end_color="00ffff00", fill_type="solid"
                 )
             elif cell_justification.value == "Inherited from base image.":
+                # Fill cell in green
                 cell_justification.fill = PatternFill(
                     start_color="0000b050", end_color="0000b050", fill_type="solid"
                 )
             else:
+                # Fill cell in blue
                 cell_justification.fill = PatternFill(
                     start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
                 )
@@ -181,10 +192,12 @@ def _colorize_openscap(wb):
             if cell_justification.value is None:
                 cell_justification.fill = PatternFill(fill_type=None)
             elif cell_justification.value == "Inherited from base image.":
+                # Fill cell in green
                 cell_justification.fill = PatternFill(
                     start_color="0000b050", end_color="0000b050", fill_type="solid"
                 )
             else:
+                # Fill cell in blue
                 cell_justification.fill = PatternFill(
                     start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
                 )
