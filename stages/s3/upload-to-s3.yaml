@@ -19,14 +19,14 @@ upload to s3:
     REPORT_TAR_NAME: ${CI_PROJECT_NAME}-${IMAGE_VERSION}-reports-signature.tar.gz
   dependencies:
     - load scripts
+    - hardening_manifest
+    - wl compare lint
     - build
-    - documentation
     - anchore scan
     - twistlock scan
     - openscap cve
     - openscap compliance
     - csv output
-    - hardening_manifest
-    - wl compare lint
+    - documentation
   script:
     - '"${PIPELINE_REPO_DIR}/stages/s3/upload-to-s3-run.sh"'
