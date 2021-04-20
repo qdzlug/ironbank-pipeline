@@ -30,4 +30,4 @@ cat "${ARTIFACT_DIR}/reports/manifest.json"
 
 # Sign manifest.json
 gpg --import --batch --pinentry-mode loopback --passphrase "${IB_CONTAINER_SIG_KEY_PASSPHRASE}" key
-gpg --detach-sign -o "${ARTIFACT_DIR}/reports/${SIG_FILE}.sig" --armor --yes --batch --pinentry-mode loopback --passphrase "${IB_CONTAINER_SIG_KEY_PASSPHRASE}" "${ARTIFACT_DIR}/manifest.json"
+gpg --detach-sign -o "${ARTIFACT_DIR}/reports/${SIG_FILE}.sig" --armor --yes --batch --pinentry-mode loopback --passphrase "${IB_CONTAINER_SIG_KEY_PASSPHRASE}" "${ARTIFACT_DIR}/reports/manifest.json"
