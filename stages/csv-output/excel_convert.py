@@ -146,7 +146,6 @@ def _colorize_anchore_comp(wb):
             # Fill cell in blue
             justification_cell.fill = PatternFill(
                 start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
-
             )
 
 
