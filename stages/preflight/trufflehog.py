@@ -104,9 +104,10 @@ def get_config_command(repo_dir):
     """
     config_variable = os.environ.get("TRUFFLEHOG_CONFIG")
     config_file = Path(repo_dir, "trufflehog-config.yaml")
+    config_file_exists = config_file.is_file()
     return (
         ["--config", "trufflehog-config.yaml"]
-        if config_variable and config_file
+        if config_variable and config_file_exists
         else []
     )
 
