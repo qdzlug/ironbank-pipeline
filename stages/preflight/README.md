@@ -26,6 +26,7 @@ An example config file looks like the following
 
 ```yaml
 skip_strings:
+  # These are the false positives we want to ignore
   # will only be skipped in corresponding files
   rootfs/opt/bitnami/scripts/libairflow.sh:
     - 'airflow_conf_set "celery" "broker_url" "redis://${redis_user}:${redis_password}@${REDIS_HOST}:${REDIS_PORT_NUMBER}/1"'
