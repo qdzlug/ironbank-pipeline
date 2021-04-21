@@ -553,6 +553,7 @@ def generate_oscap_report(oscap, justifications, csv_dir):
 # Get full OSCAP report with justifications for csv export
 def get_oscap_full(oscap_file, justifications):
     import xml.etree.ElementTree as etree
+    print(oscap_file)
     root = etree.parse(oscap_file)
     defs = []
     ns = {
@@ -616,6 +617,7 @@ def generate_oval_report(oval, csv_dir):
 
 # Get OVAL report for csv export
 def get_oval_full(oval_file):
+    print(oval_file)
     cves = []
     import xml.etree.ElementTree as etree
     root = etree.parse(oval_file)
