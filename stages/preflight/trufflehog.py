@@ -97,7 +97,6 @@ def get_history_cmd(repo_dir, diff_branch):
 
 def get_config_command(repo_dir):
     """
-    If TRUFFLEHOG_CONFIG env var and trufflehog-config.yaml file exist
     Returns a list with config command for trufflehog
         If config_variable and config_file are truthy, config flag with config filename
         empty list to NOT use a config file
