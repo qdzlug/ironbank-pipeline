@@ -24,8 +24,8 @@ else
   echo "OSCAP_COMPLIANCE_URL=${OSCAP_COMPLIANCE_URL}${report_artifact_path}" >>"${env_filename}"
   cat "${env_filename}"
   python3 "${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py" \
-    --oscap "${ARTIFACT_STORAGE}/scan-results/openscap/report.html" \
-    --oval "${ARTIFACT_STORAGE}/scan-results/openscap/report-cve.html" \
+    --oscap "${ARTIFACT_STORAGE}/scan-results/openscap/compliance_output_report.xml" \
+    --oval "${ARTIFACT_STORAGE}/scan-results/openscap/report-cve.xml" \
     --twistlock "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json" \
     --anchore-sec "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json" \
     --anchore-gates "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json" \

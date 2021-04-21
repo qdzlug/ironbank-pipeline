@@ -550,63 +550,49 @@ def generate_oscap_report(oscap, justifications, csv_dir):
     oscap_data.close()
     return fail_count, nc_count, scanned
 
-
 # Get full OSCAP report with justifications for csv export
 def get_oscap_full(oscap_file, justifications):
-    with open(oscap_file, mode="r", encoding="utf-8") as of:
-        soup = BeautifulSoup(of, "html.parser")
-        divs = soup.find("div", id="result-details")
-
-        scan_date = soup.find("th", text="Finished at")
-        finished_at = scan_date.find_next_sibling("td").text
-        id_regex = re.compile(".*rule-detail-.*")
-        all = divs.find_all("div", {"class": id_regex})
-
-        cces = []
-        for x in all:
-            # Assign identifiers to null value otherwise it fails when parsing non-RHEL scan results
-            identifiers = None
-
-            title = x.find("h3", {"class": "panel-title"}).text
-            table = x.find("table", {"class": "table table-striped table-bordered"})
-
-            ruleid = table.find("td", text="Rule ID").find_next_sibling("td").text
-            result = table.find("td", text="Result").find_next_sibling("td").text
-            severity = table.find("td", text="Severity").find_next_sibling("td").text
-            ident = table.find(
-                "td", text="Identifiers and References"
-            ).find_next_sibling("td")
-            if ident.find("abbr"):
-                identifiers = ident.find("abbr").text
-
-            references = ident.find_all("a", href=True)
-            refs = []
-            for j in references:
-                refs.append(j.text)
-
-            desc = table.find("td", text="Description").find_next_sibling("td").text
-            rationale = table.find("td", text="Rationale").find_next_sibling("td").text
-
-            cve_justification = ""
-            id = identifiers
-            if id in justifications.keys():
-                cve_justification = justifications[id]
-
-            ret = {
-                "title": title,
-                # 'table': table,
-                "ruleid": ruleid,
-                "result": result,
-                "severity": severity,
-                "identifiers": identifiers,
-                "refs": refs,
-                "desc": desc,
-                "rationale": rationale,
-                "scanned_date": finished_at,
-                "Justification": cve_justification,
-            }
-            cces.append(ret)
-        return cces
+    import xml.etree.ElementTree as etree
+    root = etree.parse(oscap_file)
+    defs = []
+    ns = {
+        "xccdf": "http://checklists.nist.gov/xccdf/1.2",
+        "xhtml": "http://www.w3.org/1999/xhtml", # not actually needed
+    }
+    cces = []
+    for rule_result in root.findall("xccdf:TestResult/xccdf:rule-result", ns):
+        # Current CSV values
+        # title,ruleid,result,severity,identifiers,refs,desc,rationale,scanned_date,Justification
+        rule_id = rule_result.attrib['idref']
+        severity = rule_result.attrib['severity']
+        date_scanned = rule_result.attrib['time']
+        result = rule_result.find("xccdf:result", ns).text
+        identifiers = [i.text for i in rule_result.findall("xccdf:ident", ns)]
+        rule = root.find(f"//xccdf:Rule[@id='{rule_id}']", ns)
+        title = rule.find("xccdf:title", ns).text
+        references = [r.text for r in rule.findall("xccdf:reference", ns)]
+        rationale = rule.find("xccdf:rationale", ns).text
+        #TODO: how to best convert this html to text? text_content()/tostring method=text mostly works
+        description = etree.tostring(rule.find("xccdf:description", ns), method="text").strip()
+    #    print(title, idref, result, severity, identifiers, references, description)
+        cve_justification = ""
+        id = identifiers
+        if id in justifications.keys():
+            cve_justification = justifications[id]
+        ret = {
+            "title": title,
+            "ruleid": rule_id,
+            "result": result,
+            "severity": severity,
+            "identifiers": identifiers,
+            "refs": references,
+            "desc": description,
+            "rationale": rationale,
+            "scanned_date": date_scanned,
+            "Justification": cve_justification,
+        }
+        cces.append(ret)
+    return cces
 
 
 # Generate oval csv
@@ -630,33 +616,31 @@ def generate_oval_report(oval, csv_dir):
 
 # Get OVAL report for csv export
 def get_oval_full(oval_file):
-    oscap = open(oval_file, "r", encoding="utf-8")
-    soup = BeautifulSoup(oscap, "html.parser")
-    results_bad = soup.find_all("tr", class_=["resultbadA", "resultbadB"])
-    results_good = soup.find_all("tr", class_=["resultgoodA", "resultgoodB"])
-
     cves = []
-    for x in results_bad + results_good:
-        id = x.find("td")
-        result = id.find_next_sibling("td")
-        cls = result.find_next_sibling("td")
-        y = x.find_all(target="_blank")
-        references = set()
-        for t in y:
-            references.add(t.text)
-        title = cls.find_next_sibling("td").find_next_sibling("td")
+    import xml.etree.ElementTree as etree
+    root = etree.parse(oval_file)
+    tags = {elem.tag for elem in root.iter()}
+    ns = {
+        "r": "http://oval.mitre.org/XMLSchema/oval-results-5",
+        "d": "http://oval.mitre.org/XMLSchema/oval-definitions-5",
+    }
+    for e in root.findall("r:results/r:system/r:definitions/r:definition", ns):
+        definition_id = e.attrib.get('definition_id')
+        result_text = e.attrib.get('result')
+        definition = root.find(f"d:oval_definitions/d:definitions/d:definition[@id='{definition_id}']", ns)
+        name = definition.find("d:metadata/d:title", ns).text
+        references = [r.attrib.get('ref_id') for r in definition.findall("d:metadata/d:reference", ns)]
 
         for ref in references:
             ret = {
-                "id": id.text,
-                "result": result.text,
-                "cls": cls.text,
+                "id": definition_id,
+                "result": result_text,
+                "cls": definition,
                 "ref": ref,
-                "title": title.text,
+                "title": name,
             }
             cves.append(ret)
     return cves
-
 
 # Get results from Twistlock report for csv export
 def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
