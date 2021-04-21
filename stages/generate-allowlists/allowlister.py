@@ -62,9 +62,8 @@ def fetch_anchore_findings():
     )
     logging.debug(anchore_compliance)
 
-    results = anchore_compliance[0][digest][image][0]["detail"]["result"]["result"]
-    header = results[imageid]["result"]["header"]
-    rows = results[imageid]["result"]["rows"]
+    header = anchore_compliance[imageid]["result"]["header"]
+    rows = anchore_compliance[imageid]["result"]["rows"]
     return [dict(zip(header, row)) for row in rows]
 
 
