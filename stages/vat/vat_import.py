@@ -805,6 +805,7 @@ def update_finding_logs(
             else None
         )
         active = [x for x in active_records if x[3] == 1] if active_records else None
+        logs.debug(f"Active: {active} \n Bumped id: {bumped_id}")
         if active and active[0][6] == "needs_justification" and bumped_id:
             # Adds in logs if any version previous to this had approvals
             add_approved_logs_for_prev_version(
@@ -1095,7 +1096,7 @@ def find_bumped_id(cursor, row, finding_id, versions, scan_source):
             if bumped_findings and bumped_findings[0][2] != "needs_justification":
                 logs.debug(f"Bumped Findings {bumped_findings}")
                 return bumped_findings[0][0]
-        logs.debug(f"Bumped Findings {bumped_findings}")
+        logs.debug("No Bumped Findings found")
     except Error as error:
         logs.error(error)
     return None
