@@ -10,7 +10,7 @@ The following files are checked in the `folder structure` job of the `preflight`
 - `Dockerfile` - the build stage will fail if a `Dockerfile` is not found in the project repository. It is checked for here in the `preflight` stage in order to reduce resources for a project which would not have a passing pipeline. Please refer to the Container Hardening Contributor Onboarding guide for guidance on the content to include in the `README.md` file.
 - `LICENSE` files - acceptable extensions include `.md`, `.txt`, and `.adoc`.
 - `clamav-whitelist` file and `CLAMAV_WHITELIST` CI variable existence. If either exists without the other, we fail the job.
-- `trufflehog.yaml` file and `TRUFFLEHOG_CONFIG` CI variable existence. Again, if either exists without the other, we fail the job.
+- `trufflehog-config.yaml` file and `TRUFFLEHOG_CONFIG` CI variable existence. Again, if either exists without the other, we fail the job.
 
 ## hardening_manifest
 
