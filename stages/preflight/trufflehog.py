@@ -31,7 +31,7 @@ def main():
 
     # Check if trufflehog.yaml file exists and exit(1) if it does
     if Path(repo_dir, "trufflehog.yaml").is_file():
-        logging.error("trufflehog.yaml file cannot exit in project")
+        logging.error("trufflehog.yaml file is not permitted to exist in repo")
         sys.exit(1)
 
     history_cmd = get_history_cmd(repo_dir, diff_branch)
