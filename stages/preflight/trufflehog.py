@@ -5,6 +5,7 @@ import os
 import sys
 import subprocess
 import git
+from pathlib import Path
 
 
 def main():
@@ -90,6 +91,16 @@ def get_history_cmd(repo_dir, diff_branch):
     formatted_commits = "\n".join([x.hexsha for x in commits])
     logging.info(f"git log {diff_branch}..\n{formatted_commits}")
     return ["--since-commit", commits[-1].hexsha] if commits else ["--no-history"]
+
+
+def get_config_command(repo_dir):
+    config_variable = os.environ.get("TRUFFLEHOG_CONFIG")
+    config_file = Path(repo_dir, "trufflehog-config.yaml")
+    return (
+        ["--config", "trufflehog-config.yaml"]
+        if config_variable and config_file
+        else []
+    )
 
 
 if __name__ == "__main__":
