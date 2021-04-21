@@ -18,7 +18,7 @@ The `hardening_manifest` job will run the `metadata.py` script which validates t
 
 ## trufflehog
 
-The `trufflehog` job runs the `trufflehog.py` script which uses `subprocess` to run `trufflehog3` against a project's code to search for secrets that may have been committed.
+The [`trufflehog`](https://github.com/feeltheajf/trufflehog3) job runs the `trufflehog.py` script which uses `subprocess` to run `trufflehog3` against a project's code to search for secrets that may have been committed.
 
 The job can accept a config file as long as it is named `trufflehog-config.yaml` and it is in the root of a project and a project or group level CI variable named `TRUFFLEHOG_CONFIG` exists. The value of the variable can be anything, as long as it is not blank/empty in the UI.
 
