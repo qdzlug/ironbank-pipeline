@@ -23,10 +23,15 @@ def main():
 
     repo_dir = os.environ["CI_PROJECT_DIR"]
     branch_name = os.environ["CI_COMMIT_BRANCH"]
+    job_image = os.environ["CI_JOB_IMAGE"]
+
     diff_branch = (
         "origin/development" if branch_name != "development" else "origin/master"
     )
-    job_image = os.environ["CI_JOB_IMAGE"]
+
+    if Path(repo_dir, "trufflehog.yaml").is_file():
+        logging.error("trufflehog.yaml file cannot exit in project")
+        sys.exit(1)
 
     history_cmd = get_history_cmd(repo_dir, diff_branch)
     config_cmd = get_config_command(repo_dir)
