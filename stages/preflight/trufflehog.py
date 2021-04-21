@@ -29,6 +29,7 @@ def main():
         "origin/development" if branch_name != "development" else "origin/master"
     )
 
+    # Check if trufflehog.yaml file exists and exit(1) if it does
     if Path(repo_dir, "trufflehog.yaml").is_file():
         logging.error("trufflehog.yaml file cannot exit in project")
         sys.exit(1)
