@@ -29,17 +29,22 @@ if [[ -f "clamav-whitelist" ]] && [[ -z "${CLAMAV_WHITELIST:-}" ]]; then
   exit 1
 fi
 
-# test for TRUFFLEHOG_CONFIG CI variable existence and trufflehog.yaml config file existence
-# exits if the CI varible TRUFFLEHOG_CONFIG exists but a whitelist file named trufflehog.yaml is not found
-if [[ "${TRUFFLEHOG_CONFIG:-}" ]] && ! [[ -f "trufflehog.yaml" ]]; then
-  echo "TRUFFLEHOG_CONFIG CI variable exists but trufflehog.yaml file not found"
+# test for TRUFFLEHOG_CONFIG CI variable existence and trufflehog-config.yaml config file existence
+# exits if the CI varible TRUFFLEHOG_CONFIG exists but a whitelist file named trufflehog-config.yaml is not found
+if [[ "${TRUFFLEHOG_CONFIG:-}" ]] && ! [[ -f "trufflehog-config.yaml" ]]; then
+  echo "TRUFFLEHOG_CONFIG CI variable exists but trufflehog-config.yaml file not found"
   exit 1
 fi
 
-# test for trufflehog.yaml and no TRUFFLEHOG_CONFIG CI varaible
-# exits if a `trufflehog.yaml` file is found, but there is no TRUFFLEHOG_CONFIG CI variable
-if [[ -f "trufflehog.yaml" ]] && [[ -z "${TRUFFLEHOG_CONFIG:-}" ]]; then
-  echo "trufflehog.yaml file found but TRUFFLEHOG_CONFIG CI variable does not exist"
+# test for trufflehog-config.yaml and no TRUFFLEHOG_CONFIG CI varaible
+# exits if a `trufflehog-config.yaml` file is found, but there is no TRUFFLEHOG_CONFIG CI variable
+if [[ -f "trufflehog-config.yaml" ]] && [[ -z "${TRUFFLEHOG_CONFIG:-}" ]]; then
+  echo "trufflehog-config.yaml file found but TRUFFLEHOG_CONFIG CI variable does not exist"
+  exit 1
+fi
+
+if [[ -f "trufflehog.yaml" ]]; then
+  echo "ERROR: trufflehog.yaml file is not permitted to exist in repo"
   exit 1
 fi
 
