@@ -29,7 +29,7 @@ skip_strings:
   # These are the false positives we want to ignore
   # will only be skipped in corresponding files
   rootfs/opt/bitnami/scripts/libairflow.sh:
-    - 'airflow_conf_set "celery" "broker_url" "redis://${redis_user}:${redis_password}@${REDIS_HOST}:${REDIS_PORT_NUMBER}/1"'
+    - "<string of secret>"
 # The config file must be skipped by truffleHog
 skip_paths:
   - trufflehog-config.yaml
