@@ -6,8 +6,11 @@ generate allowlists:
   tags:
     - ironbank
   dependencies:
+    - load scripts
     - anchore scan
     - wl compare lint
+    - hardening_manifest
+    - build
   variables:
     ALLOWLISTS: "${ARTIFACT_STORAGE}/generate-allowlists"
   script:

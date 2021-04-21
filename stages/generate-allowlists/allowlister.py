@@ -44,10 +44,13 @@ _empty_whitelist = {
 
 
 def fetch_anchore_findings():
-    # TODO: change
-    digest = "sha256:6a00460a9c34cf0ebee5e3ba4e5ac79e015a827c7bce7644b7aad58ab8ef6497"
-    # TODO: change
-    image = "registry1.dso.mil/ironbank-staging/opensource/wordpress/wordpress:228056"
+    """
+    Grab the raw anchore compliance json and extract the compliance findings.
+
+    """
+    digest = os.environ["IMAGE_PODMAN_SHA"]
+    image = os.environ["IMAGE_FULLTAG"]
+    imageid = os.environ["IMAGE_ID"].split(":")[-1]
 
     anchore_compliance = json.loads(
         pathlib.Path(
@@ -59,7 +62,6 @@ def fetch_anchore_findings():
     )
     logging.debug(anchore_compliance)
 
-    imageid = list(anchore_compliance[0][digest][image][0]["detail"]["result"]["result"].keys())[0]
     results = anchore_compliance[0][digest][image][0]["detail"]["result"]["result"]
     header = results[imageid]["result"]["header"]
     rows = results[imageid]["result"]["rows"]
@@ -67,11 +69,14 @@ def fetch_anchore_findings():
 
 
 def generate_anchore_allowlist(vat_findings):
+    """
+    Generate the Anchore allowlist for this specific image. Uses the findings from the VAT API response
+    to comb through the Anchore response and build the allowlist.
 
+    """
     anchore_compliance = fetch_anchore_findings()
 
-    # TODO change
-    name = "wordpress"
+    name = os.environ["IMAGE_NAME"].split("/")[-1]
     allowlist_id = f"{name}Allowlist"
 
     mapping = {
