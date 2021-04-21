@@ -7,6 +7,146 @@ import os
 import logging
 
 
+# CVE gate is `vulnerabilities`
+# comment is justification
+
+_empty_mapping = {
+    "comment": "Anchore mapping that matches Wordpress images",
+    "id": "wordpress_mapping",
+    "image": {"type": "tag", "value": "*"},
+    "name": "Wordpress",
+    "policy_ids": [
+        "DoDDockerfileChecks",
+        "DoDEffectiveUserChecks",
+        "DoDFileChecks",
+        "DoDIstioChecks",
+        "DoDSoftwareChecks",
+        "DoDTransferProtocolChecks",
+    ],
+    "registry": "*",
+    "repository": "wordpress/*",
+    "whitelist_ids": [
+        "AnchoreEngineWhitelist",
+        "AnchoreEnterpriseWhitelist",
+        "CommonSUIDFilesWhitelist",
+        "RHELSUIDFilesWhitelist",
+    ],
+}
+
+
+_empty_whitelist = {
+    "comment": "",
+    "id": "empty",
+    "items": [{"comment": "", "gate": "", "id": "", "trigger_id": ""}],
+    "name": "",
+    "version": "1_0",
+}
+
+
+def fetch_anchore_findings():
+    # TODO: change
+    digest = "sha256:6a00460a9c34cf0ebee5e3ba4e5ac79e015a827c7bce7644b7aad58ab8ef6497"
+    # TODO: change
+    image = "registry1.dso.mil/ironbank-staging/opensource/wordpress/wordpress:228056"
+
+    anchore_compliance = json.loads(
+        pathlib.Path(
+            os.environ["ARTIFACT_STORAGE"],
+            "scan-results",
+            "anchore",
+            "anchore_gates.json",
+        ).read_text()
+    )
+    logging.debug(anchore_compliance)
+
+    imageid = list(anchore_compliance[0][digest][image][0]["detail"]["result"]["result"].keys())[0]
+    results = anchore_compliance[0][digest][image][0]["detail"]["result"]["result"]
+    header = results[imageid]["result"]["header"]
+    rows = results[imageid]["result"]["rows"]
+    return [dict(zip(header, row)) for row in rows]
+
+
+def generate_anchore_allowlist(vat_findings):
+
+    anchore_compliance = fetch_anchore_findings()
+
+    # TODO change
+    name = "wordpress"
+    allowlist_id = f"{name}Allowlist"
+
+    mapping = {
+        "comment": f"Anchore mapping for the {name} images",
+        "id": f"{name}_mapping",
+        "image": {"type": "tag", "value": "*"},
+        "name": name,
+        "policy_ids": [
+            "DoDDockerfileChecks",
+            "DoDEffectiveUserChecks",
+            "DoDFileChecks",
+            "DoDIstioChecks",
+            "DoDSoftwareChecks",
+            "DoDTransferProtocolChecks",
+        ],
+        "registry": None,
+        "repository": None,
+        "whitelist_ids": [
+            "CommonSUIDFilesWhitelist",
+            "RHELSUIDFilesWhitelist",
+            allowlist_id,
+        ],
+    }
+
+
+    allowlist = {
+        "comment": f"allowlist for {name}",
+        "id": allowlist_id,
+        "name": f"allowlist for {name}",
+        "version": "1_0",
+        "items": list(),
+    }
+
+    stuff = set()
+
+    approved_findings = [v for v in vat_findings["findings"] if v["findingsState"] == "approved"]
+
+    for finding in approved_findings:
+        if finding["source"] in ["anchore_comp"]:
+            for ac in anchore_compliance:
+                if finding["identifier"] == ac["Trigger_Id"]:
+                    stuff.add(
+                        (
+                            finding["contributor"]["justification"],
+                            ac["Gate"],
+                            ac["Trigger_Id"],
+                            ac["Trigger_Id"],
+                        )
+                    )
+
+        elif finding["source"] in ["anchore_cve"]:
+            for ac in anchore_compliance:
+                trigger_id = f"{finding['identifier']}+{finding['package']}"
+                if ac["Trigger_Id"] in trigger_id:
+                    stuff.add(
+                        (
+                            finding["contributor"]["justification"],
+                            ac["Gate"],
+                            ac["Trigger_Id"],
+                            ac["Trigger_Id"],
+                        )
+                    )
+
+    allowlist["items"] = [
+        {
+            "comment": s[0],
+            "gate": s[1],
+            "id": s[2],
+            "trigger_id": s[3],
+        } for s in stuff
+    ]
+    logging.info(json.dumps(allowlist))
+    logging.info(json.dumps(mapping))
+
+
 def main() -> None:
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
@@ -21,31 +161,15 @@ def main() -> None:
         logging.info("Log level set to info")
 
     logging.info("Generating whitelist for Anchore")
-    anchore_compliance = json.loads(
-        pathlib.Path(
-            os.environ["ARTIFACT_STORAGE"],
-            "scan-results",
-            "anchore",
-            "anchore_gates.json",
-        ).read_text()
-    )
-    anchore_security = json.loads(
-        pathlib.Path(
-            os.environ["ARTIFACT_STORAGE"],
-            "scan-results",
-            "anchore",
-            "anchore_security.json",
-        ).read_text()
-    )
     vat_findings = json.loads(
         pathlib.Path(
             os.environ["ARTIFACT_STORAGE"], "lint", "vat_api_findings.json"
         ).read_text()
     )
 
-    logging.info(anchore_compliance)
-    logging.info(anchore_security)
-    logging.info(vat_findings)
+    logging.debug(vat_findings)
+
+    generate_anchore_allowlist(vat_findings=vat_findings)
 
 
 if __name__ == "__main__":
