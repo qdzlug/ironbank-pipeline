@@ -24,7 +24,6 @@ def main():
     repo_dir = os.environ["CI_PROJECT_DIR"]
     branch_name = os.environ["CI_COMMIT_BRANCH"]
     job_image = os.environ["CI_JOB_IMAGE"]
-    pipeline_repo_dir = os.environ["PIPELINE_REPO_DIR"]
 
     diff_branch = (
         "origin/development" if branch_name != "development" else "origin/master"
@@ -42,8 +41,6 @@ def main():
         "trufflehog3",
         "--no-entropy",
         "--branch",
-        "--skip-paths",
-        f"{pipeline_repo_dir}/*",
         branch_name,
         *history_cmd,
         *config_cmd,
