@@ -1,46 +1,45 @@
 #!/usr/bin/env python3
 
-import pathlib
 import json
-import sys
-import os
 import logging
+import os
+import pathlib
+import uuid
 
 
 # CVE gate is `vulnerabilities`
 # comment is justification
-
-_empty_mapping = {
-    "comment": "Anchore mapping that matches Wordpress images",
-    "id": "wordpress_mapping",
-    "image": {"type": "tag", "value": "*"},
-    "name": "Wordpress",
-    "policy_ids": [
-        "DoDDockerfileChecks",
-        "DoDEffectiveUserChecks",
-        "DoDFileChecks",
-        "DoDIstioChecks",
-        "DoDSoftwareChecks",
-        "DoDTransferProtocolChecks",
-    ],
-    "registry": "*",
-    "repository": "wordpress/*",
-    "whitelist_ids": [
-        "AnchoreEngineWhitelist",
-        "AnchoreEnterpriseWhitelist",
-        "CommonSUIDFilesWhitelist",
-        "RHELSUIDFilesWhitelist",
-    ],
-}
-
-
-_empty_whitelist = {
-    "comment": "",
-    "id": "empty",
-    "items": [{"comment": "", "gate": "", "id": "", "trigger_id": ""}],
-    "name": "",
-    "version": "1_0",
-}
+# _empty_mapping = {
+#     "comment": "Anchore mapping that matches Wordpress images",
+#     "id": "wordpress_mapping",
+#     "image": {"type": "tag", "value": "*"},
+#     "name": "Wordpress",
+#     "policy_ids": [
+#         "DoDDockerfileChecks",
+#         "DoDEffectiveUserChecks",
+#         "DoDFileChecks",
+#         "DoDIstioChecks",
+#         "DoDSoftwareChecks",
+#         "DoDTransferProtocolChecks",
+#     ],
+#     "registry": "*",
+#     "repository": "wordpress/*",
+#     "whitelist_ids": [
+#         "AnchoreEngineWhitelist",
+#         "AnchoreEnterpriseWhitelist",
+#         "CommonSUIDFilesWhitelist",
+#         "RHELSUIDFilesWhitelist",
+#     ],
+# }
+#
+#
+# _empty_whitelist = {
+#     "comment": "",
+#     "id": "empty",
+#     "items": [{"comment": "", "gate": "", "id": "", "trigger_id": ""}],
+#     "name": "",
+#     "version": "1_0",
+# }
 
 
 def fetch_anchore_findings():
@@ -48,8 +47,6 @@ def fetch_anchore_findings():
     Grab the raw anchore compliance json and extract the compliance findings.
 
     """
-    digest = os.environ["IMAGE_PODMAN_SHA"]
-    image = os.environ["IMAGE_FULLTAG"]
     imageid = os.environ["IMAGE_ID"].split(":")[-1]
 
     anchore_compliance = json.loads(
@@ -76,53 +73,46 @@ def generate_anchore_allowlist(vat_findings):
     anchore_compliance = fetch_anchore_findings()
 
     name = os.environ["IMAGE_NAME"].split("/")[-1]
-    allowlist_id = f"{name}Allowlist"
+    fullname = os.environ["IMAGE_NAME"].replace("/", "_")
+    allowlist_id = f"{fullname}Allowlist"
 
     mapping = {
-        "comment": f"Anchore mapping for the {name} images",
-        "id": f"{name}_mapping",
+        "comment": f"Anchore mapping for the {name} image",
+        "id": f"{fullname}_mapping",
         "image": {"type": "tag", "value": "*"},
         "name": name,
         "policy_ids": [
-            "DoDDockerfileChecks",
-            "DoDEffectiveUserChecks",
-            "DoDFileChecks",
-            "DoDIstioChecks",
-            "DoDSoftwareChecks",
-            "DoDTransferProtocolChecks",
+            "default_policy_placeholder",
         ],
         "registry": None,
         "repository": None,
-        "whitelist_ids": [
-            "CommonSUIDFilesWhitelist",
-            "RHELSUIDFilesWhitelist",
-            allowlist_id,
-        ],
+        "whitelist_ids": [allowlist_id],
     }
-
 
     allowlist = {
         "comment": f"allowlist for {name}",
         "id": allowlist_id,
         "name": f"allowlist for {name}",
         "version": "1_0",
-        "items": list(),
+        "items": [],
     }
 
-    stuff = set()
+    allow = set()
 
-    approved_findings = [v for v in vat_findings["findings"] if v["findingsState"] == "approved"]
+    approved_findings = [
+        v for v in vat_findings["findings"] if v["findingsState"] == "approved"
+    ]
 
     for finding in approved_findings:
         if finding["source"] in ["anchore_comp"]:
             for ac in anchore_compliance:
                 if finding["identifier"] == ac["Trigger_Id"]:
-                    stuff.add(
+                    allow.add(
                         (
-                            finding["contributor"]["justification"],
-                            ac["Gate"],
-                            ac["Trigger_Id"],
-                            ac["Trigger_Id"],
+                            finding["contributor"]["justification"],  # comment
+                            ac["Gate"],  # gate
+                            str(uuid.uuid4()),  # id
+                            ac["Trigger_Id"],  # trigger_id
                         )
                     )
 
@@ -130,25 +120,50 @@ def generate_anchore_allowlist(vat_findings):
             for ac in anchore_compliance:
                 trigger_id = f"{finding['identifier']}+{finding['package']}"
                 if ac["Trigger_Id"] in trigger_id:
-                    stuff.add(
+                    allow.add(
                         (
-                            finding["contributor"]["justification"],
-                            ac["Gate"],
-                            ac["Trigger_Id"],
-                            ac["Trigger_Id"],
+                            finding["contributor"]["justification"],  # comment
+                            ac["Gate"],  # gate
+                            str(uuid.uuid4()),  # id
+                            ac["Trigger_Id"],  # trigger_id
                         )
                     )
 
     allowlist["items"] = [
         {
-            "comment": s[0],
-            "gate": s[1],
-            "id": s[2],
-            "trigger_id": s[3],
-        } for s in stuff
+            "comment": a[0],
+            "gate": a[1],
+            "id": a[2],
+            "trigger_id": a[3],
+        }
+        for a in allow
     ]
-    logging.info(json.dumps(allowlist))
-    logging.info(json.dumps(mapping))
+
+    policy = {
+        "blacklisted_images": [],
+        "description": f"IronBank Anchore allowlist for the {os.environ['IMAGE_NAME']} image.",
+        "id": str(uuid.uuid4()),
+        "mappings": [mapping],
+        "name": f"{name}_ironbank_allowlist",
+        "policies": [
+            {
+                "comment": "Default Policy Placeholder",
+                "id": "default_policy_placeholder",
+                "name": "DefaultPolicy",
+                "rules": [],
+                "version": "1_0",
+            }
+        ],
+        "version": "1_0",
+        "whitelisted_images": [],
+        "whitelists": [allowlist],
+    }
+
+    logging.debug(json.dumps(policy))
+    pathlib.Path(os.environ["ALLOWLISTS"]).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(os.environ["ALLOWLISTS"], f"{name}_anchore_allowlist.json").write_text(
+        json.dumps(policy)
+    )
 
 
 def main() -> None:
