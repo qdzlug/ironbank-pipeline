@@ -29,6 +29,19 @@ if [[ -f "clamav-whitelist" ]] && [[ -z "${CLAMAV_WHITELIST:-}" ]]; then
   exit 1
 fi
 
+# Fails the pipeline if a trufflehog.yaml file is in the root of the project
+if [[ -f "trufflehog.yaml" ]]; then
+  echo "ERROR: trufflehog.yaml file is not permitted to exist in repo"
+  exit 1
+fi
+
+# test for trufflehog-config.yaml and no TRUFFLEHOG_CONFIG CI varaible
+# exits if a `trufflehog-config.yaml` file is found, but there is no TRUFFLEHOG_CONFIG CI variable
+if [[ -f "trufflehog-config.yaml" ]] && [[ -z "${TRUFFLEHOG_CONFIG:-}" ]]; then
+  echo "trufflehog-config.yaml file found but TRUFFLEHOG_CONFIG CI variable does not exist"
+  exit 1
+fi
+
 # Check if hardening_manifest.yaml exists
 if [[ -f hardening_manifest.yaml ]]; then
   echo "hardening_manifest.yaml found!"
