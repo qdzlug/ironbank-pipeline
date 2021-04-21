@@ -1,0 +1,19 @@
+generate allowlists:
+  rules:
+  - if: '$CI_COMMIT_BRANCH == "master"'
+    when: "on_success"
+  stage: generate allowlists
+  tags:
+    - ironbank
+  dependencies:
+    - anchore scan
+    - wl compare lint
+  variables:
+    ALLOWLISTS: "${ARTIFACT_STORAGE}/generate-allowlists"
+  script:
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/generate-allowlists/allowlister.py"'
+  artifacts:
+    when: always
+    paths:
+      - "${ALLOWLISTS}"
+    expire_in: 1 week
