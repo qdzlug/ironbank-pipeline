@@ -19,3 +19,17 @@ The `hardening_manifest` job will run the `metadata.py` script which validates t
 ## trufflehog
 
 The `trufflehog` job runs the `trufflehog.py` script which uses `subprocess` to run `trufflehog3` against a project's code to search for secrets that may have been committed.
+
+The job can accept a config file as long as it is named `trufflehog-config.yaml` and it is in the root of a project and a project or group level CI variable named `TRUFFLEHOG_CONFIG` exists. The value of the variable can be anything, as long as it is not blank/empty in the UI.
+
+An example config file looks like the following
+
+```yaml
+skip_strings:
+  # will only be skipped in corresponding files
+  rootfs/opt/bitnami/scripts/libairflow.sh:
+    - 'airflow_conf_set "celery" "broker_url" "redis://${redis_user}:${redis_password}@${REDIS_HOST}:${REDIS_PORT_NUMBER}/1"'
+# The config file must be skipped by truffleHog
+skip_paths:
+  - trufflehog-config.yaml
+```
