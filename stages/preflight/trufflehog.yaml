@@ -2,5 +2,4 @@ trufflehog:
   extends: .preflight
   image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:2.0.4
   script:
-    - if [ -f "trufflehog-config.yaml" ]; then cat "trufflehog-config.yaml"; fi
     - 'python3 "${PIPELINE_REPO_DIR}/stages/preflight/trufflehog.py"'
