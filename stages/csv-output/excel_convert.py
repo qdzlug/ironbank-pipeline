@@ -111,7 +111,7 @@ def _colorize_anchore(wb):
             justification_cell.fill = PatternFill(
                 start_color="0000b050", end_color="0000b050", fill_type="solid"
             )
-        elif justification_cell.value is not "Justification":
+        elif justification_cell.value != "Justification":
             # Fill cell in blue
             justification_cell.fill = PatternFill(
                 start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
@@ -142,7 +142,7 @@ def _colorize_anchore_comp(wb):
             justification_cell.fill = PatternFill(
                 start_color="96969696", end_color="96969696", fill_type="solid"
             )
-        elif justification_cell.value is not "Justification":
+        elif justification_cell.value != "Justification":
             # Fill cell in blue
             justification_cell.fill = PatternFill(
                 start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
@@ -166,7 +166,7 @@ def _colorize_twistlock(wb):
             justification_cell.fill = PatternFill(
                 start_color="0000b050", end_color="0000b050", fill_type="solid"
             )
-        elif justification_cell.value is not "Justification":
+        elif justification_cell.value != "Justification":
             # Fill cell in blue
             justification_cell.fill = PatternFill(
                 start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
@@ -187,7 +187,7 @@ def _colorize_openscap(wb):
             justification_cell.fill = PatternFill(
                 start_color="0000b050", end_color="0000b050", fill_type="solid"
             )
-        elif justification_cell.value is not "Justification":
+        elif justification_cell.value != "Justification":
             # Fill cell in blue
             justification_cell.fill = PatternFill(
                 start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
