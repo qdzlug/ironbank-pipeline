@@ -108,7 +108,7 @@ The `build` stage will push the built image to the Registry1 staging registry.
 
 Job artifacts:
 
-- tar file of the image which was built. Contributors can download this artifact and use it on their machine with `docker load -i <image>.tar`.
+- image id as IMAGE_ID, image digest as IMAGE_PODMAN_SHA, staging image name (`<staging registry URL>/<image name>:<CI_PIPELINE_ID>`) as IMAGE_FULLTAG, image name as IMAGE_NAME
 
 For more information on this stage, please refer to the `README.md` file [located here](https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/-/blob/master/stages/build/README.md).
 
