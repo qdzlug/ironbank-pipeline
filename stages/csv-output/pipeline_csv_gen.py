@@ -582,19 +582,19 @@ def get_oscap_full(oscap_file, justifications):
                 cve_justification = justifications[str(id)]
                 break # use the first match
 #        if cve_justification != '' and result != 'notselected':
-        ret = {
-            "title": title,
-            "ruleid": rule_id,
-            "result": result,
-            "severity": severity,
-            "identifiers": identifiers,
-            "refs": references,
-            "desc": description,
-            "rationale": rationale,
-            "scanned_date": date_scanned,
-            "Justification": cve_justification,
-        }
-        cces.append(ret)
+            ret = {
+                "title": title,
+                "ruleid": rule_id,
+                "result": result,
+                "severity": severity,
+                "identifiers": identifiers,
+                "refs": references,
+                "desc": description,
+                "rationale": rationale,
+                "scanned_date": date_scanned,
+                "Justification": cve_justification,
+            }
+            cces.append(ret)
     print(cces)
     return cces
 
