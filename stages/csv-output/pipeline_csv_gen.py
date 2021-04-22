@@ -572,7 +572,7 @@ def get_oscap_full(oscap_file, justifications):
         rule = root.find(f"//xccdf:Rule[@id='{rule_id}']", ns)
         title = rule.find("xccdf:title", ns).text
         references = [r.text for r in rule.findall("xccdf:reference", ns)]
-        rationale = rule.find("xccdf:rationale", ns).text
+        rationale = rule.find("xccdf:rationale", ns).text if rule.find("xccdf:rationale", ns) else ''
         #TODO: how to best convert this html to text? text_content()/tostring method=text mostly works
         description = etree.tostring(rule.find("xccdf:description", ns), method="text").strip()
     #    print(title, idref, result, severity, identifiers, references, description)
