@@ -1,7 +1,6 @@
 #!/bin/bash
 set -Eeuo pipefail
 
-dnf install jq -y
 echo "${IB_CONTAINER_GPG_KEY}" | base64 -d >key
 mkdir -p tmp_gpg "${ARTIFACT_DIR}/reports"
 
