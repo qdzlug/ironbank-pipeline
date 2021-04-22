@@ -74,6 +74,7 @@ stages:
 
 include:
   - local: stages/preprocess/load-scripts.yaml
+  - local: stages/scanning/base.yaml
 
 workflow:
   rules:
