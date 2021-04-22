@@ -12,10 +12,10 @@ check cves:
     - hardening_manifest
     - load scripts
     - wl compare lint
-    - twistlock scan
-    - openscap cve
-    - openscap compliance
-    - anchore scan
+    # - twistlock scan
+    # - openscap cve
+    # - openscap compliance
+    # - anchore scan
   script:
     - |
       pip3 install jsonschema

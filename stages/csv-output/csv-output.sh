@@ -20,8 +20,8 @@ if [[ "${DISTROLESS:-}" ]]; then
 else
   # output OSCAP link variables for the VAT stage to use
   report_artifact_path='/artifacts/browse/ci-artifacts/scan-results/openscap/'
-  echo "OSCAP_CVE_URL=${OSCAP_CVE_URL}${report_artifact_path}" >>"${env_filename}"
-  echo "OSCAP_COMPLIANCE_URL=${OSCAP_COMPLIANCE_URL}${report_artifact_path}" >>"${env_filename}"
+  # echo "OSCAP_CVE_URL=${OSCAP_CVE_URL}${report_artifact_path}" >>"${env_filename}"
+  # echo "OSCAP_COMPLIANCE_URL=${OSCAP_COMPLIANCE_URL}${report_artifact_path}" >>"${env_filename}"
   cat "${env_filename}"
   python3 "${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py" \
     --oscap "${ARTIFACT_STORAGE}/scan-results/openscap/report.html" \
