@@ -876,6 +876,10 @@ def insert_logs_with_logs(
     if parent_finding:
         match = check_parent_child_match(cursor, finding_id, parent_finding)
         if log_inherited_id == parent_finding and not is_finding_inheritable:
+            """
+            This keeps an approval for a finding that is not iheritable, but updates its inherited fields.
+            This should not be necessary, since parent_finding is None when not is_finding_inheritable
+            """
             logs.debug(f"No Inheritance change/log update for {finding_id}")
             insert_logs_with_inheritance(
                 cursor,
