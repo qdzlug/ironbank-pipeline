@@ -93,14 +93,14 @@ done <"$tags_file"
 
 IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" --format '{{.Id}}')
 {
-echo "IMAGE_ID=${IMAGE_ID}"
+  echo "IMAGE_ID=${IMAGE_ID}"
 
-IMAGE_PODMAN_SHA=$(<"${ARTIFACT_DIR}/digest")
-echo "IMAGE_PODMAN_SHA=${IMAGE_PODMAN_SHA}"
+  IMAGE_PODMAN_SHA=$(<"${ARTIFACT_DIR}/digest")
+  echo "IMAGE_PODMAN_SHA=${IMAGE_PODMAN_SHA}"
 
-echo "IMAGE_FILE=${IMAGE_FILE}"
+  echo "IMAGE_FILE=${IMAGE_FILE}"
 
-echo "IMAGE_FULLTAG=${IMAGE_FULLTAG}"
+  echo "IMAGE_FULLTAG=${IMAGE_FULLTAG}"
 
-echo "IMAGE_NAME=${IMAGE_NAME}"
+  echo "IMAGE_NAME=${IMAGE_NAME}"
 } >>build.env
