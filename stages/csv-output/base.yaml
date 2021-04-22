@@ -3,14 +3,14 @@ csv output:
   tags:
     - ironbank
   dependencies:
-    - twistlock scan
-    - openscap cve
-    - openscap compliance
-    - anchore scan
+    # - twistlock scan
+    # - openscap cve
+    # - openscap compliance
+    # - anchore scan
     - load scripts
     - hardening_manifest
     - wl compare lint
-    - build
+    # - build
   variables:
     # Put generated csv report in the scan-results folder
     CSV_REPORT: "${ARTIFACT_STORAGE}/scan-results/csvs"
