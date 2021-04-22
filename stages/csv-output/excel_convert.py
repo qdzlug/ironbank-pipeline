@@ -72,12 +72,8 @@ def _colorize_full(wb):
     _colorize_sheet(wb["Anchore Compliance Results"])
     _colorize_sheet(wb["Twistlock Vulnerability Results"])
 
-    # _colorize_anchore(wb)
-    # _colorize_anchore_comp(wb)
-    # _colorize_twistlock(wb)
     if not os.environ.get("DISTROLESS"):
         _colorize_sheet(wb["OpenSCAP - DISA Compliance"])
-        # _colorize_openscap(wb)
 
 
 def _get_column_index(sheet, value):
@@ -120,112 +116,6 @@ def _colorize_sheet(sheet):
             justification_cell.fill = PatternFill(
                 start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
             )
-
-
-# def _colorize_anchore(wb):
-#     """
-#     Colorize anchore cve justifications column
-
-#     """
-#     sheet = wb["Anchore CVE Results"]
-
-#     justification_column = _get_column_index(sheet=sheet, value="Justification")
-
-#     for r in range(1, sheet.max_row + 1):
-#         justification_cell = sheet.cell(row=r, column=justification_column)
-#         # Apply appropriate highlighting to justification cell
-#         if justification_cell.value is None:
-#             # Fill cell in yellow
-#             justification_cell.fill = PatternFill(
-#                 start_color="00ffff00", end_color="00ffff00", fill_type="solid"
-#             )
-#         elif justification_cell.value == "Inherited from base image.":
-#             # Fill cell in green
-#             justification_cell.fill = PatternFill(
-#                 start_color="0000b050", end_color="0000b050", fill_type="solid"
-#             )
-#         elif justification_cell.value != "Justification":
-#             # Fill cell in blue
-#             justification_cell.fill = PatternFill(
-#                 start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
-#             )
-
-
-# def _colorize_anchore_comp(wb):
-#     # colorize anchore comp justifications column
-#     sheet = wb["Anchore Compliance Results"]
-
-#     justification_column = _get_column_index(sheet=sheet, value="Justification")
-
-#     for r in range(1, sheet.max_row + 1):
-#         justification_cell = sheet.cell(row=r, column=justification_column)
-#         # Apply appropriate highlighting to justification cell
-#         if justification_cell.value is None:
-#             # Fill cell in yellow
-#             justification_cell.fill = PatternFill(
-#                 start_color="00ffff00", end_color="00ffff00", fill_type="solid"
-#             )
-#         elif justification_cell.value == "Inherited from base image.":
-#             # Fill cell in green
-#             justification_cell.fill = PatternFill(
-#                 start_color="0000b050", end_color="0000b050", fill_type="solid"
-#             )
-#         elif justification_cell.value == "See Anchore CVE Results sheet":
-#             # Fill cell in gray
-#             justification_cell.fill = PatternFill(
-#                 start_color="96969696", end_color="96969696", fill_type="solid"
-#             )
-#         elif justification_cell.value != "Justification":
-#             # Fill cell in blue
-#             justification_cell.fill = PatternFill(
-#                 start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
-#             )
-
-
-# def _colorize_twistlock(wb):
-#     # colorize twistlock justifications column
-#     sheet = wb["Twistlock Vulnerability Results"]
-#     justification_column = _get_column_index(sheet=sheet, value="Justification")
-#     for r in range(1, sheet.max_row + 1):
-#         justification_cell = sheet.cell(row=r, column=justification_column)
-#         # Apply appropriate highlighting to justification cell
-#         if justification_cell.value is None:
-#             # Fill cell in yellow
-#             justification_cell.fill = PatternFill(
-#                 start_color="00ffff00", end_color="00ffff00", fill_type="solid"
-#             )
-#         elif justification_cell.value == "Inherited from base image.":
-#             # Fill cell in green
-#             justification_cell.fill = PatternFill(
-#                 start_color="0000b050", end_color="0000b050", fill_type="solid"
-#             )
-#         elif justification_cell.value != "Justification":
-#             # Fill cell in blue
-#             justification_cell.fill = PatternFill(
-#                 start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
-#             )
-
-
-# def _colorize_openscap(wb):
-#     # colorize oscap justifications column
-#     sheet = wb["OpenSCAP - DISA Compliance"]
-#     justification_column = _get_column_index(sheet=sheet, value="Justification")
-#     for r in range(1, sheet.max_row + 1):
-#         justification_cell = sheet.cell(row=r, column=10)
-#         # Apply appropriate highlighting to justification cell
-#         if justification_cell.value is None:
-#             justification_cell.fill = PatternFill(fill_type=None)
-#         elif justification_cell.value == "Inherited from base image.":
-#             # Fill cell in green
-#             justification_cell.fill = PatternFill(
-#                 start_color="0000b050", end_color="0000b050", fill_type="solid"
-#             )
-#         elif justification_cell.value != "Justification":
-#             # Fill cell in blue
-#             justification_cell.fill = PatternFill(
-#                 start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
-#             )
-
 
 def _write_sbom_to_excel(csv_dir, writer):
     for report in os.listdir(f"{csv_dir}/sbom"):
