@@ -161,7 +161,7 @@ def generate_anchore_allowlist(vat_findings):
 
     logging.debug(json.dumps(policy))
     pathlib.Path(os.environ["ALLOWLISTS"]).mkdir(parents=True, exist_ok=True)
-    pathlib.Path(os.environ["ALLOWLISTS"], f"{name}_anchore_allowlist.json").write_text(
+    pathlib.Path(os.environ["ALLOWLISTS"], "anchore_allowlist.json").write_text(
         json.dumps(policy)
     )
 
