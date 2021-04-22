@@ -8,7 +8,7 @@ distroless upload to s3:
     - development
   variables:
     #TODO: Put these in globals
-    IMAGE_FILE: "${CI_PROJECT_NAME}-${IMG_VERSION}"
+    IMAGE_FILE: "${CI_PROJECT_NAME}-${IMAGE_VERSION}"
     SCAN_DIRECTORY: "${ARTIFACT_STORAGE}/scan-results"
     DOCUMENTATION_DIRECTORY: "${ARTIFACT_STORAGE}/documentation"
     BUILD_DIRECTORY: "${ARTIFACT_STORAGE}/build"
@@ -16,7 +16,7 @@ distroless upload to s3:
     BASE_BUCKET_DIRECTORY: testing/container-scan-reports
     DOCUMENTATION_FILENAME: documentation
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
-    REPORT_TAR_NAME: ${CI_PROJECT_NAME}-${IMG_VERSION}-reports-signature.tar.gz
+    REPORT_TAR_NAME: ${CI_PROJECT_NAME}-${IMAGE_VERSION}-reports-signature.tar.gz
   dependencies:
     - load scripts
     - hardening_manifest

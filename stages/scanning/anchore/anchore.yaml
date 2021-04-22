@@ -13,7 +13,7 @@
 #   ANCHORE_SERVER_ADDRESS=https://anchore-api.admin.dsop.io \
 #   ANCHORE_USERNAME=<user> \
 #   IMAGE_NAME=redhat/ubi/ubi8 \
-#   IMG_VERSION=8.3 \
+#   IMAGE_VERSION=8.3 \
 #   CI_PIPELINE_ID=87168 \
 #   ANCHORE_SCANS=/tmp/anchore/ \
 #   python3 anchore_scan.py
@@ -22,7 +22,7 @@ anchore scan:
   extends: .scanning
   image: "registry1.dso.mil/ironbank/anchore/cli/cli:0.9.1"
   stage: scanning
-  # Load in the IMG_VERSION variable from load scripts env
+  # Load in the IMAGE_VERSION variable from load scripts env
   dependencies:
     - load scripts
     - build

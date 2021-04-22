@@ -9,7 +9,7 @@ vat:
   stage: vat
   tags:
     - ironbank
-  # Load in the IMG_VERSION variable from load scripts env
+  # Load in the IMAGE_VERSION variable from load scripts env
   dependencies:
     - load scripts
     - csv output
