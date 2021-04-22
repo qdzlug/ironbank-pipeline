@@ -105,7 +105,6 @@ def _colorize_sheet(sheet):
             justification_cell.fill = PatternFill(
                 start_color="00ffff00", end_color="00ffff00", fill_type="solid"
             )
-
         elif justification_cell.value == "Inherited from base image.":
             # Fill cell in green
             justification_cell.fill = PatternFill(
@@ -116,7 +115,7 @@ def _colorize_sheet(sheet):
             justification_cell.fill = PatternFill(
                 start_color="96969696", end_color="96969696", fill_type="solid"
             )
-        elif justification_cell.value != "Justification":
+        elif justification_cell.value and justification_cell.value != "Justification":
             # Fill cell in blue
             justification_cell.fill = PatternFill(
                 start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
