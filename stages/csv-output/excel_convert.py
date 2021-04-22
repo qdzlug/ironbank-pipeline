@@ -89,6 +89,7 @@ def _get_column_index(sheet, value):
 
     return justification_column
 
+
 def _colorize_sheet(sheet):
 
     justification_column = _get_column_index(sheet=sheet, value="Justification")
@@ -96,7 +97,10 @@ def _colorize_sheet(sheet):
     for r in range(1, sheet.max_row + 1):
         justification_cell = sheet.cell(row=r, column=justification_column)
         # Apply appropriate highlighting to justification cell
-        if sheet.title != "OpenSCAP - DISA Compliance" and justification_cell.value is None:
+        if (
+            sheet.title != "OpenSCAP - DISA Compliance"
+            and justification_cell.value is None
+        ):
             # Fill cell in yellow
             justification_cell.fill = PatternFill(
                 start_color="00ffff00", end_color="00ffff00", fill_type="solid"
@@ -116,6 +120,7 @@ def _colorize_sheet(sheet):
             justification_cell.fill = PatternFill(
                 start_color="0000b0f0", end_color="0000b0f0", fill_type="solid"
             )
+
 
 def _write_sbom_to_excel(csv_dir, writer):
     for report in os.listdir(f"{csv_dir}/sbom"):
