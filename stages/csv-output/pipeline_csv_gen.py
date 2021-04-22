@@ -577,9 +577,10 @@ def get_oscap_full(oscap_file, justifications):
         description = etree.tostring(rule.find("xccdf:description", ns), method="text").strip()
     #    print(title, idref, result, severity, identifiers, references, description)
         cve_justification = ""
-        id = identifiers
-        if id in justifications.keys():
-            cve_justification = justifications[id]
+        for id in identifiers:
+            if id in justifications:
+                cve_justification = justifications[id]
+                break # use the first match
         ret = {
             "title": title,
             "ruleid": rule_id,
