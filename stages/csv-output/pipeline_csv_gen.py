@@ -554,7 +554,7 @@ def generate_oscap_report(oscap, justifications, csv_dir):
 def get_oscap_full(oscap_file, justifications):
     import xml.etree.ElementTree as etree
     print(oscap_file)
-    root = etree.parse(oscap_file)
+    root = etree.parse('report.xml')
     defs = []
     ns = {
         "xccdf": "http://checklists.nist.gov/xccdf/1.2",
