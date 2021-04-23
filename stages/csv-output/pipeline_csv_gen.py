@@ -687,7 +687,7 @@ def get_oval_full(oval_file):
         result = e.attrib['result']
 
         definition = root.find(f".//d:definition[@id='{definition_id}']", ns)
-        description = definition.find("d:description", ns).text
+        description = definition.find("d:metadata/d:description", ns).text
         title = definition.find("d:metadata/d:title", ns).text
         severity = definition.find("d:metadata/d:advisory/d:severity", ns).text
         references = [r.attrib.get('ref_id') for r in definition.findall("d:metadata/d:reference", ns)]
