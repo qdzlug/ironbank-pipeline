@@ -588,8 +588,9 @@ def get_oscap_full(oscap_file, justifications):
             if title:
                 assert ref_identifier
                 return f"{ref_title.text}: {ref_identifier}"
-            else if href:
+            elif href:
                 return f"{href} {ref.text}"
+
             return ref.text
 
         # This is now informational only, vat_import no longer uses this field
