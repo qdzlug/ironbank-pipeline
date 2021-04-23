@@ -657,22 +657,33 @@ def generate_oval_report(oval, csv_dir):
 
 # Get OVAL report for csv export
 def get_oval_full(oval_file):
-    def get_packages(definition, ns):
-        root = definition.getroot()
-
-        criterions = definition.findall("//d:criterion[@test_ref]", ns)
-        assert criterions
-        for criterion in criterions:
-            criterion_id = criterion.attrib['test_ref']
-            tests = root.findall(f"//red-def:rpmverifyfile_test[@id='{criterion_id}']")
-            assert tests
-            for test in tests:
-                object_ref = test.find("red-def:object").attrib["object_ref"]
-                
-                # This only matches <red-def:rpminfo_object>, other objects like <red-def:rpmverifyfile_object> aren't matched
-                rpminfo = root.find(f"//red-def:rpminfo_object[@id='{object_ref}']")
-                if rpminfo is not None:
-                    yield rpminfo.find("red-def:name").text
+    # def get_packages(definition, root, ns):
+    #     criterions = definition.findall(".//d:criterion[@test_ref]", ns)
+    #     assert criterions
+    #     for criterion in criterions:
+    #         criterion_id = criterion.attrib['test_ref']
+    #         lin_test = root.findall(f".//lin-def:rpmverifyfile_test[@id='{criterion_id}']", ns)
+    #         lin_test += root.findall(f".//lin-def:dpkginfo_test[@id='{criterion_id}']", ns)
+    #         assert len(lin_test) == 1
+    #
+    #         object_ref = lin_test[0].find("lin-def:object", ns).attrib["object_ref"]
+    #
+    #         # This only matches <lin-def:rpminfo_object>, other objects like <lin-def:rpmverifyfile_object> aren't matched
+    #         lin_objects = root.findall(f".//lin-def:rpminfo_object[@id='{object_ref}']", ns)
+    #         lin_objects = root.findall(f".//lin-def:dpkginfo_object[@id='{object_ref}']", ns)
+    #         assert len(lin_objects) == 1
+    #         lin_object = lin_objects[0]
+    #
+    #         lin_name = lin_object.find("lin-def:name", ns)
+    #         if lin_name.text:
+    #             yield lin_name.text
+    #         else:
+    #             var_ref = lin_name.attrib["var_ref"]
+    #             constant_variable = root.find(f".//d:constant_variable[@id='{var_ref}']", ns)
+    #             values = constant_variable.findall('d:value', ns)
+    #             assert values
+    #             for value in values:
+    #                 yield value.text
 
     cves = []
     root = etree.parse(oval_file)
@@ -680,20 +691,23 @@ def get_oval_full(oval_file):
     ns = {
         "r": "http://oval.mitre.org/XMLSchema/oval-results-5",
         "d": "http://oval.mitre.org/XMLSchema/oval-definitions-5",
-        "red-def": "http://oval.mitre.org/XMLSchema/oval-definitions-5#linux",
+        "lin-def": "http://oval.mitre.org/XMLSchema/oval-definitions-5#linux",
     }
     for e in root.findall("r:results/r:system/r:definitions/r:definition", ns):
         definition_id = e.attrib['definition_id']
         result = e.attrib['result']
 
         definition = root.find(f".//d:definition[@id='{definition_id}']", ns)
+        if definition.attrib["class"] != "vulnerability":
+            return
+
         description = definition.find("d:metadata/d:description", ns).text
         title = definition.find("d:metadata/d:title", ns).text
         severity = definition.find("d:metadata/d:advisory/d:severity", ns).text
         references = [r.attrib.get('ref_id') for r in definition.findall("d:metadata/d:reference", ns)]
         assert references
-        packages = list(get_packages(definition))
-        assert packages
+        # packages = list(get_packages(definition, root, ns))
+        # assert packages
 
         for ref in references:
             ret = {
@@ -704,7 +718,7 @@ def get_oval_full(oval_file):
                 "title": title,
                 # TODO: will adding columns break the XLSX generation?
                 "severity": severity,
-                "packages": packages,
+                # "packages": packages,
             }
             cves.append(ret)
     return cves
