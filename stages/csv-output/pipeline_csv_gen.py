@@ -13,6 +13,7 @@ import logging
 import mysql.connector
 from mysql.connector import Error
 from bs4 import BeautifulSoup
+import xml.etree.ElementTree as etree
 
 from scanners import anchore
 from scanners.helper import write_csv_from_dict_list
@@ -552,13 +553,11 @@ def generate_oscap_report(oscap, justifications, csv_dir):
 
 # Get full OSCAP report with justifications for csv export
 def get_oscap_full(oscap_file, justifications):
-    import xml.etree.ElementTree as etree
-    print(oscap_file)
     root = etree.parse(oscap_file)
-    defs = []
     ns = {
         "xccdf": "http://checklists.nist.gov/xccdf/1.2",
         "xhtml": "http://www.w3.org/1999/xhtml", # not actually needed
+        "dc": "http://purl.org/dc/elements/1.1/",
     }
     cces = []
     for rule_result in root.findall("xccdf:TestResult/xccdf:rule-result", ns):
@@ -568,33 +567,66 @@ def get_oscap_full(oscap_file, justifications):
         severity = rule_result.attrib['severity']
         date_scanned = rule_result.attrib['time']
         result = rule_result.find("xccdf:result", ns).text
-        identifiers = [i.text for i in rule_result.findall("xccdf:ident", ns)]
-        rule = root.find(f"//xccdf:Rule[@id='{rule_id}']", ns)
+
+        # This is the identifier that VAT will use. It will never be unset.
+        # Values will be of the format CCE-12345-1 (UBI) or CCI-001234 (Ubuntu)
+        identifiers = [i.text for i in rule.findall("xccdf:ident[@system='http://cyber.mil/cci' or @system='https://nvd.nist.gov/cce/index.cfm']", ns)]
+        # We never expect to get more than one identifier
+        assert len(identifiers) == 1
+        identifier = identifiers[0]
+        # Revisit this if we ever switch UBI from ComplianceAsCode to DISA content
+
+        # Get the <rule> that corresponds to the <rule-result>
+        # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
+        rule = root.find(f".//xccdf:Rule[@id='{rule_id}']", ns)
         title = rule.find("xccdf:title", ns).text
-        references = [r.text for r in rule.findall("xccdf:reference", ns)]
-        rationale = rule.find("xccdf:rationale", ns).text if rule.find("xccdf:rationale", ns) else ''
-        #TODO: how to best convert this html to text? text_content()/tostring method=text mostly works
+
+        def format_reference(ref):
+            ref_title = ref.find(f"dc:title']", ns)
+            ref_identifier = ref.find(f"dc:identifier']", ns)
+            href = ref.attrs.get("href")
+            if title:
+                assert ref_identifier
+                return f"{ref_title.text}: {ref_identifier}"
+            else if href:
+                return f"{href} {ref.text}"
+            return ref.text
+
+        # This is now informational only, vat_import no longer uses this field
+        references = "\n".join(format_reference(r) for r in rule.findall("xccdf:reference", ns))
+        assert references
+
+        rationale = ""
+        rationale_element = rule.find("xccdf:rationale", ns)
+        # Ubuntu XCCDF has no <rationale>
+        if rationale_element:
+            rationale = etree.tostring(rationale_element, method="text").strip()
+
+        # Convert description to text, seems to work well:
         description = etree.tostring(rule.find("xccdf:description", ns), method="text").strip()
-    #    print(title, idref, result, severity, identifiers, references, description)
+        # Cleanup Ubuntu descriptions
+        match = re.match(r'&lt;VulnDiscussion&gt;(.*)&lt;/VulnDiscussion&gt;', description)
+        if match:
+            description = match.group(1)
+ 
         cve_justification = ""
-        for id in identifiers:
-            if id in justifications:
-                cve_justification = justifications[id]
-                break # use the first match
-            if cve_justification != '' or result != 'notselected':
-                ret = {
-                    "title": title,
-                    "ruleid": rule_id,
-                    "result": result,
-                    "severity": severity,
-                    "identifiers": str(identifiers[0]),
-                    "refs": references,
-                    "desc": description,
-                    "rationale": rationale,
-                    "scanned_date": date_scanned,
-                    "Justification": cve_justification,
-                }
-                cces.append(ret)
+        if identifier in justifications:
+            cve_justification = justifications[identifier]
+
+        if cve_justification != '' or result != 'notselected':
+            ret = {
+                "title": title,
+                "ruleid": rule_id,
+                "result": result,
+                "severity": severity,
+                "identifiers": identifier,
+                "refs": references,
+                "desc": description,
+                "rationale": rationale,
+                "scanned_date": date_scanned,
+                "Justification": cve_justification,
+            }
+            cces.append(ret)
     print(cces)
     return cces
 
@@ -620,32 +652,54 @@ def generate_oval_report(oval, csv_dir):
 
 # Get OVAL report for csv export
 def get_oval_full(oval_file):
-    print(oval_file)
+    def get_packages(definition, ns):
+        root = definition.getroot()
+
+        criterions = definition.findall("//d:criterion[@test_ref]", ns)
+        assert criterions
+        for criterion in criterions:
+            criterion_id = criterion.attrib['test_ref']
+            tests = root.findall(f"//red-def:rpmverifyfile_test[@id='{criterion_id}']")
+            assert tests
+            for test in tests:
+                object_ref = test.find("red-def:object").attrib["object_ref"]
+                
+                # This only matches <red-def:rpminfo_object>, other objects like <red-def:rpmverifyfile_object> aren't matched
+                rpminfo = root.find(f"//red-def:rpminfo_object[@id='{object_ref}']")
+                if rpminfo:
+                    yield rpminfo.find("red-def:name").text
+
     cves = []
-    import xml.etree.ElementTree as etree
     root = etree.parse(oval_file)
     tags = {elem.tag for elem in root.iter()}
     ns = {
         "r": "http://oval.mitre.org/XMLSchema/oval-results-5",
         "d": "http://oval.mitre.org/XMLSchema/oval-definitions-5",
+        "red-def": "http://oval.mitre.org/XMLSchema/oval-definitions-5#linux",
     }
     for e in root.findall("r:results/r:system/r:definitions/r:definition", ns):
-        definition_id = e.attrib.get('definition_id')
-        result_text = e.attrib.get('result')
-        definition = root.find(f"d:oval_definitions/d:definitions/d:definition[@id='{definition_id}']", ns)
-        def_text = root.find(f"d:oval_definitions/d:definitions/d:definition[@id='{definition_id}']", ns).text
-        print(definition)
-        print(def_text)
-        name = definition.find("d:metadata/d:title", ns).text
+        definition_id = e.attrib['definition_id']
+        result = e.attrib['result']
+
+        definition = root.find(f".//d:definition[@id='{definition_id}']", ns)
+        description = definition.find("d:description", ns).text
+        title = definition.find("d:metadata/d:title", ns).text
+        severity = definition.find("d:metadata/d:advisory/d:severity", ns).text
         references = [r.attrib.get('ref_id') for r in definition.findall("d:metadata/d:reference", ns)]
+        assert references
+        packages = list(get_packages(definition))
+        assert packages
 
         for ref in references:
             ret = {
                 "id": definition_id,
-                "result": result_text,
-                "cls": def_text,
+                "result": result,
+                "cls": description,
                 "ref": ref,
-                "title": name,
+                "title": title,
+                # TODO: will adding columns break the XLSX generation?
+                "severity": severity,
+                "packages": packages,
             }
             cves.append(ret)
     return cves

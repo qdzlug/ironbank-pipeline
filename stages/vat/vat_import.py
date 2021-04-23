@@ -321,10 +321,12 @@ def parse_oscap_security(ov_path):
     # grab the relevant columns we are homogenizing
     d_f = oscap_security[["ref", "title"]]
 
+    # TODO: use severity column generated during OVAL XML parsing
     df_new = oscap_security.title.str.extract(r"\((\w+)\)$", expand=True)
     df_new[0] = df_new[0].apply(lambda x: severity_dict[x])
     d_f["severity"] = df_new[0]
 
+    # TODO: use packages column generated during OVAL XML parsing
     # Assign the column to a dataframe.
     # Apply the function to the dataframe (single column).
     # Assign the new dataframe as the package column in the dataframe.`
@@ -370,18 +372,10 @@ def parse_oscap_compliance(os_path):
     ]
 
     # grab the relevant columns we are homogenizing
-    d_f = oscap_compliance[["severity", "identifiers", "refs", "title"]]
+    d_f = oscap_compliance[["severity", "identifiers", "title"]]
 
-    # This is used where the identifier has not been set in the column (NaN)
-    # It will replace these rows with data from the refs column.
-    d_f["identifiers"] = d_f.apply(
-        lambda x: get_oscap_comp_finding(x["refs"])
-        if pandas.isnull(x["identifiers"])
-        else x["identifiers"],
-        axis=1,
-    )
-
-    d_f.drop(columns=["refs"], inplace=True)
+    # The XCCDF parsing will return exactly one identifier in d_f["identifiers"]
+    # Values will be of the format CCE-12345-1 (UBI) or CCI-001234 (Ubuntu)
 
     d_f.rename(columns={"identifiers": "finding", "title": "description"}, inplace=True)
     d_f = d_f.assign(link=report_link)
@@ -397,20 +391,6 @@ def parse_oscap_compliance(os_path):
     d_f_clean = d_f.where(pandas.notnull(d_f), None)
     logs.debug(f"oscap compliance dataframe: \n {d_f_clean}")
     return d_f_clean
-
-
-def get_oscap_comp_finding(references):
-    """
-    Returns a finding from references that matches a regex
-
-    :param references: stringified array of strings
-    :return: str
-    """
-    oscap_finding_regex = re.compile("^OL.*$|^CCE-.*$")
-    ref_list = eval(references)
-    findings = list(filter(lambda x: oscap_finding_regex.match(x), ref_list))
-    finding = findings[0] if findings else ref_list[0]
-    return finding
 
 
 def get_system_user_id(static_user_id=[None]):
