@@ -5,6 +5,7 @@ import os
 import sys
 import subprocess
 import git
+from pathlib import Path
 
 
 def main():
@@ -22,12 +23,19 @@ def main():
 
     repo_dir = os.environ["CI_PROJECT_DIR"]
     branch_name = os.environ["CI_COMMIT_BRANCH"]
+    job_image = os.environ["CI_JOB_IMAGE"]
+
     diff_branch = (
         "origin/development" if branch_name != "development" else "origin/master"
     )
-    job_image = os.environ["CI_JOB_IMAGE"]
+
+    # Check if trufflehog.yaml file exists and exit(1) if it does
+    if Path(repo_dir, "trufflehog.yaml").is_file():
+        logging.error("trufflehog.yaml file is not permitted to exist in repo")
+        sys.exit(1)
 
     history_cmd = get_history_cmd(repo_dir, diff_branch)
+    config_cmd = get_config_command(repo_dir)
 
     cmd = [
         "trufflehog3",
@@ -35,6 +43,7 @@ def main():
         "--branch",
         branch_name,
         *history_cmd,
+        *config_cmd,
         ".",
     ]
 
@@ -90,6 +99,22 @@ def get_history_cmd(repo_dir, diff_branch):
     formatted_commits = "\n".join([x.hexsha for x in commits])
     logging.info(f"git log {diff_branch}..\n{formatted_commits}")
     return ["--since-commit", commits[-1].hexsha] if commits else ["--no-history"]
+
+
+def get_config_command(repo_dir):
+    """
+    Returns a list with config command for trufflehog
+        If config_variable and config_file are truthy, config flag with config filename
+        empty list to NOT use a config file
+    """
+    config_variable = os.environ.get("TRUFFLEHOG_CONFIG")
+    config_file = Path(repo_dir, "trufflehog-config.yaml")
+    config_file_exists = config_file.is_file()
+    return (
+        ["--config", "trufflehog-config.yaml"]
+        if config_variable and config_file_exists
+        else []
+    )
 
 
 if __name__ == "__main__":

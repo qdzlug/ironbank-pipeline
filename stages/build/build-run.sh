@@ -91,20 +91,14 @@ while IFS= read -r tag; do
   buildah push --storage-driver=vfs --authfile staging_auth.json "${IMAGE_REGISTRY_REPO}:${tag}"
 done <"$tags_file"
 
-# Provide tar for use in later stages, matching existing tar naming convention
-skopeo copy --src-authfile staging_auth.json "docker://${IMAGE_FULLTAG}" "docker-archive:${ARTIFACT_DIR}/${IMAGE_FILE}.tar"
-
 IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" --format '{{.Id}}')
-echo "IMAGE_ID=${IMAGE_ID}" >>build.env
+{
+  echo "IMAGE_ID=${IMAGE_ID}"
 
-IMAGE_TAR_SHA=$(sha256sum "${ARTIFACT_STORAGE}/build/${IMAGE_FILE}.tar" | grep -E '^[a-zA-Z0-9]+' -o)
-echo "IMAGE_TAR_SHA=${IMAGE_TAR_SHA}" >>build.env
+  IMAGE_PODMAN_SHA=$(<"${ARTIFACT_DIR}/digest")
+  echo "IMAGE_PODMAN_SHA=${IMAGE_PODMAN_SHA}"
 
-IMAGE_PODMAN_SHA=$(<"${ARTIFACT_DIR}/digest")
-echo "IMAGE_PODMAN_SHA=${IMAGE_PODMAN_SHA}" >>build.env
+  echo "IMAGE_FULLTAG=${IMAGE_FULLTAG}"
 
-echo "IMAGE_FILE=${IMAGE_FILE}" >>build.env
-
-echo "IMAGE_FULLTAG=${IMAGE_FULLTAG}" >>build.env
-
-echo "IM_NAME=${IMAGE_NAME}" >>build.env
+  echo "IMAGE_NAME=${IMAGE_NAME}"
+} >>build.env

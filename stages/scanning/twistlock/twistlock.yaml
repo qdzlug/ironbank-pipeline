@@ -2,7 +2,7 @@ twistlock scan:
   extends: .scanning
   stage: scanning
 
-  # Load in the IMG_VERSION variable from load scripts env
+  # Load in the IMAGE_VERSION variable from load scripts env
   dependencies:
     - load scripts
     - build
@@ -16,7 +16,7 @@ twistlock scan:
       python3 "${PIPELINE_REPO_DIR}/stages/scanning/twistlock/twistlock.py" \
         --registry="${REGISTRY1_URL}" \
         --api_url="${twistlock_server_address}/api/v1" \
-        --name="ironbank-staging/${IM_NAME}" \
+        --name="ironbank-staging/${IMAGE_NAME}" \
         --tag="${CI_PIPELINE_ID}" \
         --username="${twistlock_user}" \
         --password="${twistlock_password}" \
