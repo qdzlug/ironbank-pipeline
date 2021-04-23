@@ -568,6 +568,11 @@ def get_oscap_full(oscap_file, justifications):
         date_scanned = rule_result.attrib['time']
         result = rule_result.find("xccdf:result", ns).text
 
+        # Get the <rule> that corresponds to the <rule-result>
+        # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
+        rule = root.find(f".//xccdf:Rule[@id='{rule_id}']", ns)
+        title = rule.find("xccdf:title", ns).text
+
         # This is the identifier that VAT will use. It will never be unset.
         # Values will be of the format CCE-12345-1 (UBI) or CCI-001234 (Ubuntu)
         identifiers = [i.text for i in rule.findall("xccdf:ident[@system='http://cyber.mil/cci' or @system='https://nvd.nist.gov/cce/index.cfm']", ns)]
@@ -575,11 +580,6 @@ def get_oscap_full(oscap_file, justifications):
         assert len(identifiers) == 1
         identifier = identifiers[0]
         # Revisit this if we ever switch UBI from ComplianceAsCode to DISA content
-
-        # Get the <rule> that corresponds to the <rule-result>
-        # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
-        rule = root.find(f".//xccdf:Rule[@id='{rule_id}']", ns)
-        title = rule.find("xccdf:title", ns).text
 
         def format_reference(ref):
             ref_title = ref.find(f"dc:title']", ns)
