@@ -15,6 +15,7 @@ generate allowlists:
     ALLOWLISTS: "${ARTIFACT_STORAGE}/allowlists"
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/generate-allowlists/allowlister.py"'
+  allow_failure: true
   artifacts:
     when: always
     paths:
