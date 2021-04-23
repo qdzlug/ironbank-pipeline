@@ -574,19 +574,23 @@ def get_oscap_full(oscap_file, justifications):
         title = rule.find("xccdf:title", ns).text
 
         # This is the identifier that VAT will use. It will never be unset.
-        # Values will be of the format CCE-12345-1 (UBI) or CCI-001234 (Ubuntu)
-        identifiers = [i.text for i in rule.findall("xccdf:ident[@system='http://cyber.mil/cci' or @system='https://nvd.nist.gov/cce/index.cfm']", ns)]
+        # Values will be of the format UBTU-18-010100 (UBI) or CCI-001234 (Ubuntu)
+        # Ubuntu/DISA:
+        identifiers = [v.text for v in rule.findall("xccdf:version", ns)]
+        if not identifiers:
+            # UBI/ComplianceAsCode:
+            identifiers = [i.text for i in rule.findall("xccdf:ident", ns)]
         # We never expect to get more than one identifier
         assert len(identifiers) == 1
         identifier = identifiers[0]
         # Revisit this if we ever switch UBI from ComplianceAsCode to DISA content
 
         def format_reference(ref):
-            ref_title = ref.find(f"dc:title']", ns)
-            ref_identifier = ref.find(f"dc:identifier']", ns)
-            href = ref.attrs.get("href")
-            if title:
-                assert ref_identifier
+            ref_title = ref.find(f"dc:title", ns)
+            ref_identifier = ref.find(f"dc:identifier", ns)
+            href = ref.attrib.get("href")
+            if ref_title is not None:
+                assert ref_identifier is not None
                 return f"{ref_title.text}: {ref_identifier}"
             elif href:
                 return f"{href} {ref.text}"
@@ -604,9 +608,9 @@ def get_oscap_full(oscap_file, justifications):
             rationale = etree.tostring(rationale_element, method="text").strip()
 
         # Convert description to text, seems to work well:
-        description = etree.tostring(rule.find("xccdf:description", ns), method="text").strip()
+        description = etree.tostring(rule.find("xccdf:description", ns), method="text").decode('utf8').strip()
         # Cleanup Ubuntu descriptions
-        match = re.match(r'&lt;VulnDiscussion&gt;(.*)&lt;/VulnDiscussion&gt;', description)
+        match = re.match(r'<VulnDiscussion>(.*)</VulnDiscussion>', description, re.DOTALL)
         if match:
             description = match.group(1)
  
@@ -667,7 +671,7 @@ def get_oval_full(oval_file):
                 
                 # This only matches <red-def:rpminfo_object>, other objects like <red-def:rpmverifyfile_object> aren't matched
                 rpminfo = root.find(f"//red-def:rpminfo_object[@id='{object_ref}']")
-                if rpminfo:
+                if rpminfo is not None:
                     yield rpminfo.find("red-def:name").text
 
     cves = []
