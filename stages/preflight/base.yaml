@@ -2,7 +2,7 @@
   stage: preflight
   tags:
     - ironbank
-  # Load in the IMG_VERSION variable from the load scripts env
+  # Load in the IMAGE_VERSION variable from the load scripts env
   dependencies:
     - load scripts
 
