@@ -83,7 +83,7 @@ jq -n '
       "version": env.ANCHORE_VERSION
     },
     "twistlock": {
-      "version": env.ANCHORE_VERSION
+      "version": env.TWISTLOCK_VERSION
     },
     "openSCAP": {
       "version": env.OPENSCAP_VERSION
