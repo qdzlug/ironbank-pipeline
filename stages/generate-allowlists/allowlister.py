@@ -16,6 +16,7 @@ class AnchoreAllowlister:
     returned in a typical Anchore Policy json.
 
     """
+
     def __init__(self):
         self.name = os.environ["IMAGE_NAME"].split("/")[-1]
         self.fullname = os.environ["IMAGE_NAME"].replace("/", "_")
