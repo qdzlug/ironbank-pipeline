@@ -640,7 +640,7 @@ def get_oval_full(oval_file):
             ret = {
                 "id": definition_id,
                 "result": result_text,
-                "cls": definition,
+                "cls": definition.text,
                 "ref": ref,
                 "title": name,
             }
