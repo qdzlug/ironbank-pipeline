@@ -1,7 +1,6 @@
 #!/bin/bash
 set -Eeuo pipefail
 
-dnf install jq -y
 echo "${IB_CONTAINER_GPG_KEY}" | base64 -d >key
 mkdir -p tmp_gpg "${ARTIFACT_DIR}/reports"
 
@@ -43,8 +42,8 @@ jq -n '
   "buildNumber": env.CI_PIPELINE_ID,
   "approval": env.IMAGE_APPROVAL_STATUS,
   "image": {
-    "digest": env.IMAGE_TAR_SHA,
-    "sha256": env.IMAGE_PODMAN_SHA
+    "digest": env.IMAGE_PODMAN_SHA,
+    "sha256": env.IMAGE_TAR_SHA
   },
   "pgp": {
     "publicKey": env.GPG_PUB_KEY,
@@ -65,9 +64,8 @@ jq -n '
       "version": env.ANCHORE_VERSION
     }
   }
-}' >scan-metadata.json
-cat scan-metadata.json
-mv scan-metadata.json "${ARTIFACT_DIR}"
+}' >"${ARTIFACT_DIR}/scan-metadata.json"
+cat "${ARTIFACT_DIR}/scan-metadata.json"
 # Create manifest.json
 
 export DOCKER_REFERENCE="${REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_VERSION}@${IMAGE_PODMAN_SHA}"
@@ -85,12 +83,11 @@ jq -n '
       "version": env.ANCHORE_VERSION
     },
     "twistlock": {
-      "version": env.ANCHORE_VERSION
+      "version": env.TWISTLOCK_VERSION
     },
     "openSCAP": {
       "version": env.OPENSCAP_VERSION
     }
   }
-}' >documentation.json
-cat documentation.json
-mv documentation.json "${ARTIFACT_DIR}/reports"
+}' >"${ARTIFACT_DIR}/reports/documentation.json"
+cat "${ARTIFACT_DIR}/reports/documentation.json"

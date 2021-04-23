@@ -5,7 +5,28 @@
   only:
     - development
     - master
-include:
-  - local: /stages/documentation/sign_image.yaml
-  - local: /stages/documentation/sign_manifest.yaml
-  - local: /stages/documentation/write_json_documentation.yaml
+  dependencies:
+    - load scripts
+    - hardening_manifest
+    - wl compare lint
+    - build
+    - anchore scan
+    - twistlock scan
+    - openscap compliance
+    - openscap cve
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/documentation"
+    SIG_FILE: signature
+    OPENSCAP_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/openscap/oscap-version.txt"
+    TWISTLOCK_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock-version.txt"
+    ANCHORE_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/anchore/anchore-version.txt"
+    IMAGE_FILE: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
+
+documentation:
+  extends: .documentation
+  script:
+    - '"${PIPELINE_REPO_DIR}/stages/documentation/documentation.sh"'
+  artifacts:
+    paths:
+      - $ARTIFACT_DIR
+    expire_in: 1 week
