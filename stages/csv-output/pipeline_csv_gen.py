@@ -587,7 +587,7 @@ def get_oscap_full(oscap_file, justifications):
                     "ruleid": rule_id,
                     "result": result,
                     "severity": severity,
-                    "identifiers": str(identifiers[1:-1]),
+                    "identifiers": str(identifiers[0]),
                     "refs": references,
                     "desc": description,
                     "rationale": rationale,
