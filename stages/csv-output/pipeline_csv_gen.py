@@ -579,8 +579,7 @@ def get_oscap_full(oscap_file, justifications):
         cve_justification = ""
         for id in identifiers:
             if id in justifications:
-                print(justifications[str(id)])
-                cve_justification = justifications[str(id)]
+                cve_justification = justifications[id]
                 break # use the first match
             if cve_justification != '' or result != 'notselected':
                 ret = {
@@ -588,7 +587,7 @@ def get_oscap_full(oscap_file, justifications):
                     "ruleid": rule_id,
                     "result": result,
                     "severity": severity,
-                    "identifiers": identifiers,
+                    "identifiers": str(identifiers[1:-1]),
                     "refs": references,
                     "desc": description,
                     "rationale": rationale,
