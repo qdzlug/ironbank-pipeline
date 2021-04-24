@@ -591,7 +591,7 @@ def get_oscap_full(oscap_file, justifications):
             href = ref.attrib.get("href")
             if ref_title is not None:
                 assert ref_identifier is not None
-                return f"{ref_title.text}: {ref_identifier}"
+                return f"{ref_title.text}: {ref_identifier.text}"
             elif href:
                 return f"{href} {ref.text}"
 
@@ -699,7 +699,7 @@ def get_oval_full(oval_file):
 
         definition = root.find(f".//d:definition[@id='{definition_id}']", ns)
         if definition.attrib["class"] != "vulnerability":
-            return
+            break
 
         description = definition.find("d:metadata/d:description", ns).text
         title = definition.find("d:metadata/d:title", ns).text
