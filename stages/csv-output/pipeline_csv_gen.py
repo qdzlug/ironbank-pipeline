@@ -581,9 +581,10 @@ def get_oscap_full(oscap_file, justifications):
             # UBI/ComplianceAsCode:
             identifiers = [i.text for i in rule.findall("xccdf:ident", ns)]
         # We never expect to get more than one identifier
-        if len(identifiers) == 1:
+#        if len(identifiers) == 1:
             # DEBUG
-            print("%s identifiers: %s" % (rule_id, identifiers))
+        print("%s identifiers: %s" % (rule_id, identifiers))
+        print(len(identifiers))
         assert len(identifiers) == 1
         identifier = identifiers[0]
         # Revisit this if we ever switch UBI from ComplianceAsCode to DISA content
