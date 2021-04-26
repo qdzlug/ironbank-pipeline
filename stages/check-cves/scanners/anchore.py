@@ -20,7 +20,6 @@ def _get_full_cve():
     )
     with anchore_file.open("r", encoding="utf-8") as af:
         json_data = json.load(af)
-        image_tag = json_data["imageFullTag"]
         anchore_data = json_data["vulnerabilities"]
         findings = [
             {
