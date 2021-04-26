@@ -703,7 +703,8 @@ def get_oval_full(oval_file):
         result = e.attrib['result']
 
         definition = root.find(f".//d:definition[@id='{definition_id}']", ns)
-        if definition.attrib["class"] != "vulnerability":
+        if definition.attrib["class"] == "inventory":
+            # Skip "Check that Ubuntu 18.04 LTS (bionic) is installed." OVAL check
             continue
 
         description = definition.find("d:metadata/d:description", ns).text
