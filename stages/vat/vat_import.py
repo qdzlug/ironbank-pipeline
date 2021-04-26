@@ -304,13 +304,6 @@ def parse_oscap_security(ov_path):
     """
 
     report_link = os.path.join(args.sec_link, "report-cve.html")
-    severity_dict = {
-        "Critical": "critical",
-        "Important": "important",
-        "Moderate": "moderate",
-        "Low": "low",
-        "Unknown": "unknown",
-    }
 
     logs.debug("parse oscap security")
     d_f = pandas.read_csv(ov_path)
@@ -319,14 +312,10 @@ def parse_oscap_security(ov_path):
     oscap_security = d_f[d_f["result"]]
 
     # grab the relevant columns we are homogenizing
-    d_f = oscap_security[["ref", "title"]]
+    d_f = oscap_security[["ref", "title", "severity"]]
 
-    # TODO: use severity column generated during OVAL XML parsing
-    df_new = oscap_security.title.str.extract(r"\((\w+)\)$", expand=True)
-    df_new[0] = df_new[0].apply(lambda x: severity_dict[x])
-    d_f["severity"] = df_new[0]
+    # severity column generated and validated during OVAL XML parsing
 
-    # TODO: use packages column generated during OVAL XML parsing
     # Assign the column to a dataframe.
     # Apply the function to the dataframe (single column).
     # Assign the new dataframe as the package column in the dataframe.`

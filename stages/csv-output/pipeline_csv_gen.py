@@ -708,12 +708,16 @@ def get_oval_full(oval_file):
 
         description = definition.find("d:metadata/d:description", ns).text
         title = definition.find("d:metadata/d:title", ns).text
-        severity = definition.find("d:metadata/d:advisory/d:severity", ns).text
+        severity = definition.find("d:metadata/d:advisory/d:severity", ns).text.lower()
+        assert severity in ["critical", "important", "moderate", "low", "unknown"]
         references = [r.attrib.get('ref_id') for r in definition.findall("d:metadata/d:reference", ns)]
         assert references
+
+        # This is too slow. We're currently parsing the title for the package name in vat_import instead.
         # packages = list(get_packages(definition, root, ns))
         # assert packages
 
+        # ref is the identifier used by VAT, create one CSV line per ref:
         for ref in references:
             ret = {
                 "id": definition_id,
