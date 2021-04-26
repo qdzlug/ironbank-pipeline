@@ -698,9 +698,26 @@ def get_oval_full(oval_file):
         "d": "http://oval.mitre.org/XMLSchema/oval-definitions-5",
         "lin-def": "http://oval.mitre.org/XMLSchema/oval-definitions-5#linux",
     }
+    severity_dict = {
+        # UBI
+        "Critical": "critical",
+        "Important": "important",
+        "Moderate": "moderate",
+        "Low": "low",
+        "Unknown": "unknown",
+        # Ubuntu
+        # "Critical": "critical",
+        "High": "important",
+        "Medium": "moderate",
+        # "Low": "low",
+        "Negligible": "low",
+        "Untriaged": "unknown",
+    }
+
     for e in root.findall("r:results/r:system/r:definitions/r:definition", ns):
         definition_id = e.attrib['definition_id']
         result = e.attrib['result']
+        logging.debug(definition_id)
 
         definition = root.find(f".//d:definition[@id='{definition_id}']", ns)
         if definition.attrib["class"] == "inventory":
@@ -709,8 +726,8 @@ def get_oval_full(oval_file):
 
         description = definition.find("d:metadata/d:description", ns).text
         title = definition.find("d:metadata/d:title", ns).text
-        severity = definition.find("d:metadata/d:advisory/d:severity", ns).text.lower()
-        assert severity in ["critical", "important", "moderate", "low", "unknown"]
+        severity = definition.find("d:metadata/d:advisory/d:severity", ns).text
+        severity = severity_dict[severity]
         references = [r.attrib.get('ref_id') for r in definition.findall("d:metadata/d:reference", ns)]
         assert references
 
