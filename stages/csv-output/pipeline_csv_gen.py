@@ -637,6 +637,7 @@ def get_oscap_full(oscap_file, justifications):
             }
             cces.append(ret)
     print(cces)
+    assert len(set(i for i in cces["identifiers"])) == len(cces)
     return cces
 
 
