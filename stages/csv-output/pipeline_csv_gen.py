@@ -583,7 +583,7 @@ def get_oscap_full(oscap_file, justifications):
         # We never expect to get more than one identifier
         if len(identifiers) == 1:
             # DEBUG
-            print(identifiers)
+            print("%s identifiers: %s" % (rule_id, identifiers))
         assert len(identifiers) == 1
         identifier = identifiers[0]
         # Revisit this if we ever switch UBI from ComplianceAsCode to DISA content
