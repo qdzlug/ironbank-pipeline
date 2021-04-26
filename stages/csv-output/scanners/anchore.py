@@ -75,6 +75,8 @@ def _vulnerability_record(fulltag, justifications, vuln):
         vuln["package"],
         vuln["package_path"] if vuln["package_path"] != "pkgdb" else None,
     )
+    # keep only non-null values
+    id = tuple(val for val in id if val)
     logging.debug(f"Anchore vuln record CVE ID: {id}")
     if id in justifications.keys():
         vuln_record["Justification"] = justifications[id]
@@ -174,7 +176,8 @@ def compliance_report(csv_dir, anchore_gates_json, justifications):
 
         cve_justification = ""
         # ad[2] is trigger_id -- e.g. CVE-2020-####
-        id = ad[2]
+        # need to use tuple to match formatting for other scanner id's
+        id = (ad[2],)
         if ad[4] == "package":
             cve_justification = "See Anchore CVE Results sheet"
 

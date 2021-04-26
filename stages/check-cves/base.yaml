@@ -4,8 +4,11 @@ check cves:
     - if: '$CI_COMMIT_BRANCH != "master"'
       allow_failure: true
 
-    - if: '$CI_COMMIT_BRANCH == "master"'
-      allow_failure: false
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PROJECT_PATH =~ /pipeline-test-project/'
+      allow_failure: true
+
+    - allow_failure: false
+
   tags:
     - ironbank
   dependencies:
@@ -17,7 +20,5 @@ check cves:
     - openscap compliance
     - anchore scan
   script:
-    - |
-      pip3 install jsonschema
-      python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py"
-      exit $?
+    - pip3 install jsonschema
+    - python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py"
