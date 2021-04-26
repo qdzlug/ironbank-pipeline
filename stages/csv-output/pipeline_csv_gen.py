@@ -567,6 +567,10 @@ def get_oscap_full(oscap_file, justifications):
         severity = rule_result.attrib['severity']
         date_scanned = rule_result.attrib['time']
         result = rule_result.find("xccdf:result", ns).text
+        logging.debug(f"{rule_id}")
+        if result == 'notselected':
+            logging.info(f"SKIPPING, \'notselected\' rule {rule_id} ")
+            continue
 
         # Get the <rule> that corresponds to the <rule-result>
         # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
@@ -581,11 +585,8 @@ def get_oscap_full(oscap_file, justifications):
             # UBI/ComplianceAsCode:
             identifiers = [i.text for i in rule.findall("xccdf:ident", ns)]
         # We never expect to get more than one identifier
-#        if len(identifiers) == 1:
-            # DEBUG
-        print("%s identifiers: %s" % (rule_id, identifiers))
-        print(len(identifiers))
         assert len(identifiers) == 1
+        logging.debug(f"{identifiers}")
         identifier = identifiers[0]
         # Revisit this if we ever switch UBI from ComplianceAsCode to DISA content
 
@@ -622,7 +623,6 @@ def get_oscap_full(oscap_file, justifications):
         if identifier in justifications:
             cve_justification = justifications[identifier]
 
-        if cve_justification != '' or result != 'notselected':
             ret = {
                 "title": title,
                 "ruleid": rule_id,
