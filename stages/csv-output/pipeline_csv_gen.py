@@ -704,7 +704,7 @@ def get_oval_full(oval_file):
 
         definition = root.find(f".//d:definition[@id='{definition_id}']", ns)
         if definition.attrib["class"] != "vulnerability":
-            break
+            continue
 
         description = definition.find("d:metadata/d:description", ns).text
         title = definition.find("d:metadata/d:title", ns).text
