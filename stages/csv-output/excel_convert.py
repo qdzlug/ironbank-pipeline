@@ -93,14 +93,14 @@ def _get_column_index(sheet, value):
 def _colorize_sheet(sheet):
 
     justification_column = _get_column_index(sheet=sheet, value="Justification")
-
+    results_column = None
+    if sheet.title == "OpenSCAP - DISA Compliance":
+        results_column = _get_column_index(sheet=sheet, value="result")
     for r in range(1, sheet.max_row + 1):
         justification_cell = sheet.cell(row=r, column=justification_column)
         # Apply appropriate highlighting to justification cell
-        if (
-            sheet.title != "OpenSCAP - DISA Compliance"
-            and justification_cell.value is None
-        ):
+        result = sheet.cell(row=r, column=results_column) if results_column else None
+        if (not result or result.value == "fail") and justification_cell.value is None:
             # Fill cell in yellow
             justification_cell.fill = PatternFill(
                 start_color="00ffff00", end_color="00ffff00", fill_type="solid"
