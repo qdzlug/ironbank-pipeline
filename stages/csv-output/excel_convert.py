@@ -91,7 +91,10 @@ def _get_column_index(sheet, value):
 
 
 def _colorize_sheet(sheet):
+    """
+    Colorize justifications column
 
+    """
     justification_column = _get_column_index(sheet=sheet, value="Justification")
     results_column = None
     if sheet.title == "OpenSCAP - DISA Compliance":
