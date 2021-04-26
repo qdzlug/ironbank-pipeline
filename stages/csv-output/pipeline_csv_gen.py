@@ -623,19 +623,19 @@ def get_oscap_full(oscap_file, justifications):
         if identifier in justifications:
             cve_justification = justifications[identifier]
 
-            ret = {
-                "title": title,
-                "ruleid": rule_id,
-                "result": result,
-                "severity": severity,
-                "identifiers": identifier,
-                "refs": references,
-                "desc": description,
-                "rationale": rationale,
-                "scanned_date": date_scanned,
-                "Justification": cve_justification,
-            }
-            cces.append(ret)
+        ret = {
+            "title": title,
+            "ruleid": rule_id,
+            "result": result,
+            "severity": severity,
+            "identifiers": identifier,
+            "refs": references,
+            "desc": description,
+            "rationale": rationale,
+            "scanned_date": date_scanned,
+            "Justification": cve_justification,
+        }
+        cces.append(ret)
     print(cces)
     assert len(set(cce['identifiers'] for cce in cces)) == len(cces)
     return cces
