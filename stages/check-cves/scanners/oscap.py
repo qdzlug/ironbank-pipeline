@@ -3,36 +3,6 @@ import logging
 from bs4 import BeautifulSoup
 
 
-def get_oval(oval_file):
-    cves = list()
-    with oval_file.open(mode="r", encoding="utf-8") as of:
-        soup = BeautifulSoup(of, "html.parser")
-        results_bad = soup.find_all("tr", class_=["resultbadA", "resultbadB"])
-
-        for x in results_bad:
-            id = x.find("td")
-            result = id.find_next_sibling("td")
-            cls = result.find_next_sibling("td")
-            title = cls.find_next_sibling("td").find_next_sibling("td")
-            y = x.find_all(target="_blank")
-            references = set()
-            for t in y:
-                references.add(t.text)
-
-            for ref in references:
-                pkgs = get_packages(title.text)
-                ret = {
-                    "id": id.text,
-                    "result": result.text,
-                    "cls": cls.text,
-                    "ref": ref,
-                    "title": title.text,
-                    "pkg": pkgs[0],
-                }
-                cves.append(ret)
-    return cves
-
-
 def get_packages(package_string):
     """
     Return a list of packages from the input string.

@@ -117,9 +117,6 @@ def _generate_vuln_set(artifacts_path, Finding):
         oscap_file = pathlib.Path(
             artifacts_path, "scan-results", "openscap", "report.html"
         )
-        oval_file = pathlib.Path(
-            artifacts_path, "scan-results", "openscap", "report-cve.html"
-        )
 
         oscap_disa_comp = oscap.get_fails(oscap_file)
         oscap_notchecked = oscap.get_notchecked(oscap_file)
@@ -128,10 +125,6 @@ def _generate_vuln_set(artifacts_path, Finding):
 
         for o in oscap_disa_comp:
             vuln_set.add(Finding("oscap_comp", o["identifiers"], None, None))
-
-        oval_cves = oscap.get_oval(oval_file)
-        for oval in oval_cves:
-            vuln_set.add(Finding("oscap_cve", oval["ref"], oval["pkg"], None))
 
     twistlock_cves = twistlock.get_full()
     for tl in twistlock_cves:
