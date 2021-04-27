@@ -34,6 +34,7 @@ class VATApi:
         self.__status_code = None
         # list of finding statuses that denote a finding is approved within VAT
         self.approved_status_list = ["approved", "conditional"]
+        self.container_approved_status_list = ["approved", "conditionally_approved"]
         self.vat_container_data = {}
         self.Finding = namedtuple(
             "Finding", ["scan_source", "cve_id", "package", "package_path"]
