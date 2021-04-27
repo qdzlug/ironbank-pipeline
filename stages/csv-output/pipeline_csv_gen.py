@@ -47,9 +47,7 @@ def generate_blank_oscap_report(csv_dir):
 
 
 # SUMMARY REPORT
-def generate_summary_report(
-    csv_dir, osc, tlf, anchore_num_cves, anchore_compliance
-):
+def generate_summary_report(csv_dir, osc, tlf, anchore_num_cves, anchore_compliance):
     sum_data = open(csv_dir + "summary.csv", "w", encoding="utf-8")
     csv_writer = csv.writer(sum_data)
 
