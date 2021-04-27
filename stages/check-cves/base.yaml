@@ -16,7 +16,6 @@ check cves:
     - load scripts
     - wl compare lint
     - twistlock scan
-    - openscap cve
     - openscap compliance
     - anchore scan
   script:
