@@ -141,7 +141,6 @@ def _write_sbom_to_excel(csv_dir, writer):
 def convert_to_excel(csv_dir, justification_sheet):
     read_sum = pd.read_csv(csv_dir + "summary.csv")
     read_oscap = pd.read_csv(csv_dir + "oscap.csv")
-    read_oval = pd.read_csv(csv_dir + "oval.csv")
     read_tl = pd.read_csv(csv_dir + "tl.csv")
     read_security = pd.read_csv(csv_dir + "anchore_security.csv")
     read_gates = pd.read_csv(csv_dir + "anchore_gates.csv")
@@ -157,9 +156,6 @@ def convert_to_excel(csv_dir, justification_sheet):
         read_sum.to_excel(writer, sheet_name="Summary", header=True, index=False)
         read_oscap_no_justifications.to_excel(
             writer, sheet_name="OpenSCAP - DISA Compliance", header=True, index=False
-        )
-        read_oval.to_excel(
-            writer, sheet_name="OpenSCAP - OVAL Results", header=True, index=False
         )
         read_tl_no_justifications.to_excel(
             writer,
@@ -181,9 +177,6 @@ def convert_to_excel(csv_dir, justification_sheet):
         read_sum.to_excel(writer, sheet_name="Summary", header=True, index=False)
         read_oscap.to_excel(
             writer, sheet_name="OpenSCAP - DISA Compliance", header=True, index=False
-        )
-        read_oval.to_excel(
-            writer, sheet_name="OpenSCAP - OVAL Results", header=True, index=False
         )
         read_tl.to_excel(
             writer,

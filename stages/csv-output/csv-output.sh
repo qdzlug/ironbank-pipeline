@@ -23,7 +23,6 @@ else
   cat "${env_filename}"
   python3 "${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py" \
     --oscap "${ARTIFACT_STORAGE}/scan-results/openscap/report.html" \
-    --oval "${ARTIFACT_STORAGE}/scan-results/openscap/report-cve.html" \
     --twistlock "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json" \
     --anchore-sec "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json" \
     --anchore-gates "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json" \

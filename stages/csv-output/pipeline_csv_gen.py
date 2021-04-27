@@ -46,19 +46,9 @@ def generate_blank_oscap_report(csv_dir):
     oscap_report.close()
 
 
-# Blank oval Report
-def generate_blank_oval_report(csv_dir):
-    oval_report = open(csv_dir + "oval.csv", "w", encoding="utf-8")
-    csv_writer = csv.writer(oval_report)
-    csv_writer.writerow(
-        ["OpenSCAP Scan Skipped Due to Base Image Used", "", "", "", ""]
-    )
-    oval_report.close()
-
-
 # SUMMARY REPORT
 def generate_summary_report(
-    csv_dir, osc, ovf, tlf, anchore_num_cves, anchore_compliance
+    csv_dir, osc, tlf, anchore_num_cves, anchore_compliance
 ):
     sum_data = open(csv_dir + "summary.csv", "w", encoding="utf-8")
     csv_writer = csv.writer(sum_data)
@@ -68,11 +58,10 @@ def generate_summary_report(
     # if the osc arg type is an int, the scan was skipped so output zero values
     if type(osc) == int:
         osl = ["OpenSCAP - DISA Compliance", 0, 0, 0]
-    # osc arg is a tuple, meaning the generate_oscap_report and generate_oval_report functions were run
+    # osc arg is a tuple, meaning the generate_oscap_report function was run
     else:
         osl = ["OpenSCAP - DISA Compliance", osc[0], osc[1], osc[0] + osc[1]]
 
-    ovf = ["OpenSCAP - OVAL Results", int(ovf or 0), 0, int(ovf or 0)]
     anchore_vulns = ["Anchore CVE Results", anchore_num_cves, 0, anchore_num_cves]
     anchore_comps = [
         "Anchore Compliance Results",
@@ -84,16 +73,15 @@ def generate_summary_report(
 
     csv_writer.writerow(header)
     csv_writer.writerow(osl)
-    csv_writer.writerow(ovf)
     csv_writer.writerow(twl)
     csv_writer.writerow(anchore_vulns)
     csv_writer.writerow(anchore_comps)
     csv_writer.writerow(
         [
             "Totals",
-            osl[1] + ovf[1] + anchore_vulns[1] + anchore_comps[1] + twl[1],
-            osl[2] + ovf[2] + anchore_vulns[2] + anchore_comps[2] + twl[2],
-            osl[3] + ovf[3] + anchore_vulns[3] + anchore_comps[3] + twl[3],
+            osl[1] + anchore_vulns[1] + anchore_comps[1] + twl[1],
+            osl[2] + anchore_vulns[2] + anchore_comps[2] + twl[2],
+            osl[3] + anchore_vulns[3] + anchore_comps[3] + twl[3],
         ]
     )
 
@@ -190,55 +178,6 @@ def get_oscap_full(oscap_file, justifications):
             }
             cces.append(ret)
         return cces
-
-
-# Generate oval csv
-def generate_oval_report(oval, csv_dir):
-    oval_cves = get_oval_full(oval)
-    oval_data = open(csv_dir + "oval.csv", "w", encoding="utf-8")
-    csv_writer = csv.writer(oval_data)
-    count = 0
-    fail_count = 0
-    for line in oval_cves:
-        if count == 0:
-            header = line.keys()
-            csv_writer.writerow(header)
-            count += 1
-        if line["result"] == "true":
-            fail_count += 1
-        csv_writer.writerow(line.values())
-    oval_data.close()
-    return fail_count
-
-
-# Get OVAL report for csv export
-def get_oval_full(oval_file):
-    oscap = open(oval_file, "r", encoding="utf-8")
-    soup = BeautifulSoup(oscap, "html.parser")
-    results_bad = soup.find_all("tr", class_=["resultbadA", "resultbadB"])
-    results_good = soup.find_all("tr", class_=["resultgoodA", "resultgoodB"])
-
-    cves = []
-    for x in results_bad + results_good:
-        id = x.find("td")
-        result = id.find_next_sibling("td")
-        cls = result.find_next_sibling("td")
-        y = x.find_all(target="_blank")
-        references = set()
-        for t in y:
-            references.add(t.text)
-        title = cls.find_next_sibling("td").find_next_sibling("td")
-
-        for ref in references:
-            ret = {
-                "id": id.text,
-                "result": result.text,
-                "cls": cls.text,
-                "ref": ref,
-                "title": title.text,
-            }
-            cves.append(ret)
-    return cves
 
 
 # Get results from Twistlock report for csv export
@@ -344,7 +283,6 @@ def main():
     )
     parser.add_argument("--twistlock", help="location of the twistlock JSON scan file")
     parser.add_argument("--oscap", help="location of the oscap scan HTML file")
-    parser.add_argument("--oval", help="location of the oval scan HTML file")
     parser.add_argument(
         "--anchore-sec", help="location of the anchore_security.json scan file"
     )
@@ -382,7 +320,6 @@ def main():
     # fmt: on
 
     oscap_fail_count = 0
-    oval_fail_count = 0
     twist_fail_count = 0
     anchore_num_cves = 0
     anchore_compliance = 0
@@ -392,10 +329,7 @@ def main():
         )
     else:
         generate_blank_oscap_report(csv_dir=args.output_dir)
-    if args.oval:
-        oval_fail_count = generate_oval_report(args.oval, csv_dir=args.output_dir)
-    else:
-        generate_blank_oval_report(csv_dir=args.output_dir)
+
     if args.twistlock:
         twist_fail_count = generate_twistlock_report(
             args.twistlock, j_twistlock, csv_dir=args.output_dir
@@ -418,7 +352,6 @@ def main():
     generate_summary_report(
         csv_dir=args.output_dir,
         osc=oscap_fail_count,
-        ovf=oval_fail_count,
         tlf=twist_fail_count,
         anchore_num_cves=anchore_num_cves,
         anchore_compliance=anchore_compliance,
