@@ -33,7 +33,7 @@ class VATApi:
         self.__server_address = server_address
         self.__status_code = None
         # list of finding statuses that denote a finding is approved within VAT
-        self.approved_status_list = ["approved", "conditional"]
+        self.finding_approved_status_list = ["approved", "conditional"]
         self.container_approved_status_list = ["approved", "conditionally_approved"]
         self.vat_container_data = {}
         self.Finding = namedtuple(
@@ -185,7 +185,7 @@ class VATApi:
         whitelist = []
         for finding in self.vat_container_data["findings"]:
             # if a findings status is in the status list the finding is considered approved in VAT and is added to the whitelist
-            if finding["findingsState"].lower() in self.approved_status_list:
+            if finding["findingsState"].lower() in self.finding_approved_status_list:
                 whitelist.append(finding)
         return whitelist
 
@@ -196,7 +196,7 @@ class VATApi:
         """
         wl_set = set()
         for finding in self.get_container_findings():
-            if finding["findingsState"].lower() in self.approved_status_list:
+            if finding["findingsState"].lower() in self.finding_approved_status_list:
                 wl_set.add(
                     self.Finding(
                         finding["source"],
@@ -214,7 +214,7 @@ class VATApi:
         """
         wl_justifications = []
         for finding in self.get_container_findings():
-            if finding["findingsState"].lower() in self.approved_status_list:
+            if finding["findingsState"].lower() in self.finding_approved_status_list:
                 try:
                     wl_justifications.append(
                         {
