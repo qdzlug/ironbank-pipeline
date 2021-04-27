@@ -72,7 +72,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         vat_api.generate_container_data_file()
         approval_status, approval_text = vat_api.get_container_status()
         _check_container_approval_status(
-            approval_status, approval_text, vat_api.container_approved_status_list
+            approval_status, approval_text, vat_api.approved_status_list
         )
         export_hm_variables(hardening_manifest)
         sys.exit(0)
