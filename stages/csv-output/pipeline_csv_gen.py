@@ -106,10 +106,6 @@ def main():
         )
     else:
         generate_blank_oscap_report(csv_dir=args.output_dir)
-    if args.oval:
-        oval_fail_count = generate_oval_report(args.oval, csv_dir=args.output_dir)
-    else:
-        generate_blank_oval_report(csv_dir=args.output_dir)
     if args.twistlock:
         twist_fail_count = generate_twistlock_report(
             args.twistlock, j_twistlock, csv_dir=args.output_dir
