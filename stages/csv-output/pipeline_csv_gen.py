@@ -96,7 +96,6 @@ def main():
         total_whitelist, image_name
     )
     oscap_fail_count = 0
-    oval_fail_count = 0
     twist_fail_count = 0
     anchore_num_cves = 0
     anchore_compliance = 0
@@ -128,7 +127,6 @@ def main():
     generate_summary_report(
         csv_dir=args.output_dir,
         osc=oscap_fail_count,
-        ovf=oval_fail_count,
         tlf=twist_fail_count,
         anchore_num_cves=anchore_num_cves,
         anchore_compliance=anchore_compliance,
