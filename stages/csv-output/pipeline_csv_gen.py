@@ -636,7 +636,8 @@ def get_oscap_full(oscap_file, justifications):
             "Justification": cve_justification,
         }
         cces.append(ret)
-    print(cces)
+    for cce in cces:
+        print(cce["ruleid"], cce["identifiers"])        
     assert len(set(cce['identifiers'] for cce in cces)) == len(cces)
     return cces
 
