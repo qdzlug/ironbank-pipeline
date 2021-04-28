@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import csv
+import yaml
+import gitlab
 import sys
 import re
 import json
@@ -8,13 +10,12 @@ import os
 import argparse
 import pathlib
 import logging
+import mysql.connector
+from mysql.connector import Error
 from bs4 import BeautifulSoup
+
 from scanners import anchore
 from scanners.helper import write_csv_from_dict_list
-
-sys.path.append(os.path.join(os.path.dirname(__file__), "../../modules/"))
-from vat_api import VATApi  # noqa
-
 
 # The InheritableTriggerIds variable contains a list of Anchore compliance trigger_ids
 # that are inheritable by child images.
@@ -34,6 +35,423 @@ _inheritable_trigger_ids = [
     "34de21e516c0ca50a96e5386f163f8bf",
     "c4ad80832b361f81df2a31e5b6b09864",
 ]
+
+
+def main():
+    # Get logging level, set manually when running pipeline
+    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
+    if loglevel == "DEBUG":
+        logging.basicConfig(
+            level=loglevel,
+            format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
+        )
+        logging.debug("Log level set to debug")
+    else:
+        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
+        logging.info("Log level set to info")
+
+    parser = argparse.ArgumentParser(
+        description="DCCSCR processing of CVE reports from various sources"
+    )
+    parser.add_argument("--twistlock", help="location of the twistlock JSON scan file")
+    parser.add_argument("--oscap", help="location of the oscap scan HTML file")
+    parser.add_argument("--oval", help="location of the oval scan HTML file")
+    parser.add_argument(
+        "--anchore-sec", help="location of the anchore_security.json scan file"
+    )
+    parser.add_argument(
+        "--anchore-gates", help="location of the anchore_gates.json scan file"
+    )
+    parser.add_argument(
+        "-o",
+        "--output-dir",
+        dest="output_dir",
+        help="directory in which to write CSV output",
+        default="./",
+    )
+    parser.add_argument("--sbom-dir", help="location of the anchore content directory")
+    args = parser.parse_args()
+
+    # Create the csv directory if not present
+    pathlib.Path(args.output_dir).mkdir(parents=True, exist_ok=True)
+
+    # Get the hardening manifest and additional parameters for _get_complete_whitelist_for_image
+    hardening_manifest = _load_local_hardening_manifest()
+    if hardening_manifest is None:
+        logging.error("Please update your project to contain a hardening_manifest.yaml")
+        sys.exit(1)
+
+    image_name = hardening_manifest["name"]
+    wl_branch = os.environ.get("WL_TARGET_BRANCH", default="master")
+
+    # get cves and justifications from VAT
+    total_whitelist = _get_complete_whitelist_for_image(
+        image_name, wl_branch, hardening_manifest
+    )
+
+    # Get all justifications
+    logging.info("Gathering list of all justifications...")
+
+    j_openscap, j_twistlock, j_anchore_cve, j_anchore_comp = _get_justifications(
+        total_whitelist, image_name
+    )
+    oscap_fail_count = 0
+    oval_fail_count = 0
+    twist_fail_count = 0
+    anchore_num_cves = 0
+    anchore_compliance = 0
+    if args.oscap:
+        oscap_fail_count = generate_oscap_report(
+            args.oscap, j_openscap, csv_dir=args.output_dir
+        )
+    else:
+        generate_blank_oscap_report(csv_dir=args.output_dir)
+    if args.oval:
+        oval_fail_count = generate_oval_report(args.oval, csv_dir=args.output_dir)
+    else:
+        generate_blank_oval_report(csv_dir=args.output_dir)
+    if args.twistlock:
+        twist_fail_count = generate_twistlock_report(
+            args.twistlock, j_twistlock, csv_dir=args.output_dir
+        )
+    if args.anchore_sec:
+        anchore_num_cves = anchore.vulnerability_report(
+            csv_dir=args.output_dir,
+            anchore_security_json=args.anchore_sec,
+            justifications=j_anchore_cve,
+        )
+    if args.anchore_gates:
+        anchore_compliance = anchore.compliance_report(
+            csv_dir=args.output_dir,
+            anchore_gates_json=args.anchore_gates,
+            justifications=j_anchore_comp,
+        )
+    if args.sbom_dir:
+        anchore.sbom_report(csv_dir=args.output_dir, sbom_dir=args.sbom_dir)
+
+    generate_summary_report(
+        csv_dir=args.output_dir,
+        osc=oscap_fail_count,
+        ovf=oval_fail_count,
+        tlf=twist_fail_count,
+        anchore_num_cves=anchore_num_cves,
+        anchore_compliance=anchore_compliance,
+    )
+
+
+def _load_local_hardening_manifest():
+    """
+    Load up the hardening_manifest.yaml file as a dictionary. Search for the file in
+    the immediate repo first, if that is not found then search for the generated file.
+
+    If neither are found then return None and let the calling function handle the error.
+
+    """
+    artifacts_path = os.environ["ARTIFACT_STORAGE"]
+    paths = [
+        pathlib.Path("hardening_manifest.yaml"),
+        # Check for the generated hardening manifest. This method will be deprecated.
+        pathlib.Path(artifacts_path, "preflight", "hardening_manifest.yaml"),
+    ]
+
+    for path in paths:
+        logging.debug(f"Looking for {path}")
+        if path.is_file():
+            logging.debug(f"Using {path}")
+            with path.open("r") as f:
+                return yaml.safe_load(f)
+        else:
+            logging.debug(f"Couldn't find {path}")
+    return None
+
+
+def _load_remote_hardening_manifest(project, branch="master"):
+    """
+    Load up a hardening_manifest.yaml from a remote repository.
+
+    If the manifest file is not found then None is returned. A warning will print
+    to console to communicate which repository does not have a hardening manifest.
+
+    """
+    if project == "":
+        return None
+
+    logging.debug(f"Attempting to load hardening_manifest from {project}")
+
+    try:
+        gl = gitlab.Gitlab(os.environ["REPO1_URL"])
+        proj = gl.projects.get(f"dsop/{project}", lazy=True)
+        logging.debug(f"Connecting to dsop/{project}")
+
+        hardening_manifest = proj.files.get(
+            file_path="hardening_manifest.yaml", ref=branch
+        )
+        return yaml.safe_load(hardening_manifest.decode())
+
+    except gitlab.exceptions.GitlabError:
+        logging.error("Could not load hardening_manifest.")
+        sys.exit(1)
+
+    except yaml.YAMLError as e:
+        logging.error("Could not load the hardening_manifest.yaml")
+        logging.error(e)
+        sys.exit(1)
+
+    return None
+
+
+def _next_ancestor(image_path, whitelist_branch, hardening_manifest=None):
+    """
+    Grabs the parent image path from the current context. Will initially attempt to load
+    a new hardening manifest and then pull the parent image from there.
+
+    If the hardening_manifest.yaml can't be found then there
+    is a weird mismatch during migration that needs further inspection.
+
+    """
+
+    # Try to get the parent image out of the local hardening_manifest.
+    if hardening_manifest:
+        return (
+            hardening_manifest["args"]["BASE_IMAGE"],
+            hardening_manifest["args"]["BASE_TAG"],
+        )
+
+    # Try to load the hardening manifest from a remote repo.
+    hm = _load_remote_hardening_manifest(project=image_path)
+    if hm is not None:
+        return (hm["args"]["BASE_IMAGE"], hm["args"]["BASE_TAG"])
+    else:
+        logging.error(
+            "hardening_manifest.yaml does not exist for "
+            + image_path
+            + ". Please add a hardening_manifest.yaml file to this project"
+        )
+        logging.error("Exiting.")
+        sys.exit(1)
+
+
+def _connect_to_db():
+    """
+    @return mariadb connection for the VAT
+    """
+    conn = None
+    try:
+        conn = mysql.connector.connect(
+            host=os.environ["vat_db_host"],
+            database=os.environ["vat_db_database_name"],
+            user=os.environ["vat_db_connection_user"],
+            passwd=os.environ["vat_db_connection_pass"],
+        )
+        if conn.is_connected():
+            # there are many connections to db so this should be uncommented
+            # for troubleshooting
+            logging.debug(
+                "Connected to the host %s with user %s",
+                os.environ["vat_db_host"],
+                os.environ["vat_db_connection_user"],
+            )
+        else:
+            logging.critical("Failed to connect to DB")
+            sys.exit(1)
+    except Error as err:
+        logging.critical(err)
+        if conn is not None and conn.is_connected():
+            conn.close()
+        sys.exit(1)
+
+    return conn
+
+
+def _vat_vuln_query(im_name, im_version):
+    """
+    Returns non inherited vulnerabilities for a specific container
+    """
+    conn = None
+    result = None
+    try:
+        conn = _connect_to_db()
+        cursor = conn.cursor(buffered=True)
+        # TODO: add new scan logic
+        query = """SELECT c.name as container
+                , c.version
+                , CASE WHEN cl.type is NULL THEN "Pending" ELSE cl.type END as container_approval_status
+                , f.finding
+                , f.scan_source
+                , fl1.in_current_scan
+                , fl1.state as finding_status
+                , fl1.record_text as approval_comments
+                , fl2.record_text as justification
+                , sr.description
+                , f.package
+                , f.package_path
+                FROM findings f
+                INNER JOIN containers c on f.container_id = c.id
+                INNER JOIN finding_logs fl on active = 1 and in_current_scan = 1 and inherited = 0 and f.id = fl.finding_id
+                LEFT JOIN container_log cl on c.id = cl.imageid AND cl.id in (SELECT max(id) from container_log group by imageid)
+                LEFT JOIN finding_logs fl1 ON fl1.record_type_active = 1 and fl1.record_type = 'state_change' and f.id = fl1.finding_id
+                LEFT JOIN finding_logs fl2 ON fl2.record_type_active = 1 and fl2.record_type = 'justification' and f.id = fl2.finding_id
+                LEFT JOIN finding_scan_results sr on f.id = sr.finding_id and sr.active = 1
+                WHERE c.name = %s and c.version = %s;"""
+        cursor.execute(query, (im_name, im_version))
+        result = cursor.fetchall()
+    except Error as error:
+        logging.info(error)
+        sys.exit(1)
+    finally:
+        if conn is not None and conn.is_connected():
+            conn.close()
+    return result
+
+
+def _get_vulns_from_query(row):
+    """
+    For each row in result (returned from VAT db query), create a dictionary gathering
+    the necessary items to be compared for each entry in the twistlock, anchore and openscap scans.
+
+    Each row should have 12 items in the form:
+    (image_name, image_version, container_status, vuln, source (e.g. anchore_cve), in_current_scan (bool)
+    vuln_status (e.g. Approved), approval_comments, justification, description, package, package_path)
+
+    For anchore_comp and anchore_cve, the vuln_description is the package instead of the description.
+
+    example: ('redhat/ubi/ubi8', '8.3', 'Approved', 'CCE-82360-9', 'oscap_comp', 1, 'approved', 'Approved, imported from spreadsheet.',
+    'Not applicable. This performs automatic updates to installed packages which does not apply to immutable containers.',
+    'Enable dnf-automatic Timer', 'N/A', 'N/A')
+
+    """
+    vuln_dict = {}
+    vuln_dict["whitelist_source"] = row[0]
+    vuln_dict["vulnerability"] = row[3]
+    vuln_dict["vuln_source"] = row[4]
+    vuln_dict["status"] = row[6]
+    vuln_dict["justification"] = row[8]
+    vuln_dict["package"] = row[10]
+    vuln_dict["package_path"] = row[11]
+    return vuln_dict
+
+
+def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_manifest):
+    """
+    Pull all whitelisted CVEs for an image. Walk through the ancestry of a given
+    image and grab all of the approved vulnerabilities in VAT associated with w layer.
+
+    """
+    total_whitelist = []
+    inheritance_list = []
+
+    # add source image to inheritance list
+    inheritance_list.append((os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]))
+
+    # add parent images to inheritance list
+    parent_image_name, parent_image_version = _next_ancestor(
+        image_path=image_name,
+        whitelist_branch=whitelist_branch,
+        hardening_manifest=hardening_manifest,
+    )
+
+    while parent_image_name:
+        inheritance_list.append((parent_image_name, parent_image_version))
+        parent_image_name, parent_image_version = _next_ancestor(
+            image_path=parent_image_name,
+            whitelist_branch=whitelist_branch,
+        )
+
+    logging.debug(inheritance_list)
+
+    inheritance_list.reverse()
+    # grabbing cves from vat in reverse order to prevent issues with findings that shouldn't be inherited
+    for image in inheritance_list:
+        logging.info(f"Grabbing CVEs for: {image[0]}:{image[1]}")
+        result = _vat_vuln_query(image[0], image[1])
+        if result is None:
+            logging.error("No results from vat. Fatal error.")
+            sys.exit(1)
+        # parse CVEs from VAT query
+        # empty list is returned if no entry or no cves. NoneType only returned if error.
+        for row in result:
+            logging.debug(row)
+            vuln_dict = _get_vulns_from_query(row)
+            if vuln_dict["status"] and vuln_dict["status"].lower() in [
+                "approved",
+                "conditional",
+            ]:
+                total_whitelist.append(vuln_dict)
+                logging.debug(vuln_dict)
+            else:
+                logging.debug(
+                    "There is no approval status present in result or cve not approved"
+                )
+    logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
+    return total_whitelist
+
+
+def _get_justifications(total_whitelist, sourceImageName):
+    """
+    Gather all justifications for any approved CVE for anchore, twistlock and openscap.
+    Keys are in the form vuln-packagename (anchore_cve), vuln-description (twistlock), or vuln (anchore_comp, openscap).
+
+    Examples:
+        CVE-2020-13434-sqlite-libs-3.26.0-11.el8 (anchore key)
+        CVE-2020-8285-A malicious server can use... (twistlock key, truncated)
+        CCE-82315-3 (openscap key)
+
+    """
+    cveOpenscap = {}
+    cveTwistlock = {}
+    cveAnchore = {}
+    compAnchore = {}
+
+    # Getting results from VAT, just loop all findings, check if finding is related to base_images or source image
+    # Loop through the findings and create the corresponding dict object based on the vuln_source
+    for finding in total_whitelist:
+        if "vulnerability" in finding.keys():
+            trigger_id = finding["vulnerability"]
+            # Twistlock finding
+            if finding["vuln_source"] == "twistlock_cve":
+                cveID = (finding["vulnerability"], finding["package"])
+                if finding["whitelist_source"] == sourceImageName:
+                    cveTwistlock[cveID] = finding["justification"]
+                else:
+                    cveTwistlock[cveID] = "Inherited from base image."
+                    logging.debug("Twistlock inherited cve")
+
+            # Anchore finding
+            elif finding["vuln_source"] == "anchore_cve":
+                cveID = (
+                    finding["vulnerability"],
+                    finding["package"],
+                    finding["package_path"],
+                )
+                if finding["whitelist_source"] == sourceImageName:
+                    cveAnchore[cveID] = finding["justification"]
+                    cveAnchore[trigger_id] = finding["justification"]
+                else:
+                    logging.debug("Anchore inherited cve")
+                    cveAnchore[cveID] = "Inherited from base image."
+                    if trigger_id in _inheritable_trigger_ids:
+                        cveAnchore[trigger_id] = "Inherited from base image."
+            elif finding["vuln_source"] == "anchore_comp":
+                cveID = finding["vulnerability"]
+                if finding["whitelist_source"] == sourceImageName:
+                    compAnchore[cveID] = finding["justification"]
+                    compAnchore[trigger_id] = finding["justification"]
+                else:
+                    logging.debug("Anchore Comp inherited finding")
+                    compAnchore[cveID] = "Inherited from base image."
+                    if trigger_id in _inheritable_trigger_ids:
+                        compAnchore[trigger_id] = "Inherited from base image."
+
+            # OpenSCAP finding
+            elif finding["vuln_source"] == "oscap_comp":
+                cveID = finding["vulnerability"]
+                if finding["whitelist_source"] == sourceImageName:
+                    cveOpenscap[cveID] = finding["justification"]
+                else:
+                    cveOpenscap[cveID] = "Inherited from base image."
+                    logging.debug("Oscap inherited cve")
+            logging.debug(f"VAT CVE ID: {cveID}")
+    return cveOpenscap, cveTwistlock, cveAnchore, compAnchore
 
 
 # Blank OSCAP Report
@@ -156,8 +574,7 @@ def get_oscap_full(oscap_file, justifications):
             rationale = table.find("td", text="Rationale").find_next_sibling("td").text
 
             cve_justification = ""
-            # use tuple to match other scan justification comparisons
-            id = (identifiers,)
+            id = identifiers
             if id in justifications.keys():
                 cve_justification = justifications[id]
 
@@ -230,130 +647,6 @@ def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
     )
 
     return len(cves)
-
-
-def split_wl_by_scan_source(wl_justifications):
-    cve_openscap = {}
-    cve_twistlock = {}
-    cve_anchore = {}
-    comp_anchore = {}
-
-    for finding in wl_justifications:
-        if "cve_id" in finding.keys():
-            cve_id = (
-                finding["cve_id"],
-                finding["package"],
-                finding["package_path"],
-            )
-
-            cve_id = tuple(v for v in cve_id if v)
-            logging.debug(cve_id)
-            if finding["scan_source"] == "oscap_comp":
-                cve_openscap[cve_id] = finding["justification"]
-            elif finding["scan_source"] == "twistlock_cve":
-                cve_twistlock[cve_id] = finding["justification"]
-            elif finding["scan_source"] == "anchore_cve":
-                cve_anchore[cve_id] = finding["justification"]
-            elif finding["scan_source"] == "anchore_comp":
-                comp_anchore[cve_id] = finding["justification"]
-            logging.debug(f"Scan source: {finding['scan_source']}")
-            logging.debug(f"CVE ID: {cve_id}")
-            logging.debug(f"Justification: {finding['justification']}")
-
-    return (cve_openscap, cve_twistlock, cve_anchore, comp_anchore)
-
-
-def main():
-    # Get logging level, set manually when running pipeline
-    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
-    if loglevel == "DEBUG":
-        logging.basicConfig(
-            level=loglevel,
-            format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
-        )
-        logging.debug("Log level set to debug")
-    else:
-        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
-        logging.info("Log level set to info")
-
-    parser = argparse.ArgumentParser(
-        description="DCCSCR processing of CVE reports from various sources"
-    )
-    parser.add_argument("--twistlock", help="location of the twistlock JSON scan file")
-    parser.add_argument("--oscap", help="location of the oscap scan HTML file")
-    parser.add_argument(
-        "--anchore-sec", help="location of the anchore_security.json scan file"
-    )
-    parser.add_argument(
-        "--anchore-gates", help="location of the anchore_gates.json scan file"
-    )
-    parser.add_argument(
-        "-o",
-        "--output-dir",
-        dest="output_dir",
-        help="directory in which to write CSV output",
-        default="./",
-    )
-    parser.add_argument("--sbom-dir", help="location of the anchore content directory")
-    args = parser.parse_args()
-
-    # Create the csv directory if not present
-    pathlib.Path(args.output_dir).mkdir(parents=True, exist_ok=True)
-
-    vat_api = VATApi(
-        os.environ["IMAGE_NAME"],
-        os.environ["IMAGE_VERSION"],
-        os.environ["ARTIFACT_STORAGE"],
-        os.environ["VAT_BACKEND_SERVER_ADDRESS"],
-    )
-    # get cves and justifications from VAT
-    vat_api.get_container_data_from_file()
-    wl_justifications = vat_api.generate_whitelist_justifications()
-    logging.debug("Whitelist with justifications")
-    logging.debug(wl_justifications)
-
-    # turn off black formatting for the following line
-    # fmt:off
-    (j_openscap,j_twistlock,j_anchore_cve,j_anchore_comp,) = split_wl_by_scan_source(wl_justifications)
-    # fmt: on
-
-    oscap_fail_count = 0
-    twist_fail_count = 0
-    anchore_num_cves = 0
-    anchore_compliance = 0
-    if args.oscap:
-        oscap_fail_count = generate_oscap_report(
-            args.oscap, j_openscap, csv_dir=args.output_dir
-        )
-    else:
-        generate_blank_oscap_report(csv_dir=args.output_dir)
-
-    if args.twistlock:
-        twist_fail_count = generate_twistlock_report(
-            args.twistlock, j_twistlock, csv_dir=args.output_dir
-        )
-    if args.anchore_sec:
-        anchore_num_cves = anchore.vulnerability_report(
-            csv_dir=args.output_dir,
-            anchore_security_json=args.anchore_sec,
-            justifications=j_anchore_cve,
-        )
-    if args.anchore_gates:
-        anchore_compliance = anchore.compliance_report(
-            csv_dir=args.output_dir,
-            anchore_gates_json=args.anchore_gates,
-            justifications=j_anchore_comp,
-        )
-    if args.sbom_dir:
-        anchore.sbom_report(csv_dir=args.output_dir, sbom_dir=args.sbom_dir)
-
-    generate_summary_report(
-        csv_dir=args.output_dir,
-        osc=oscap_fail_count,
-        tlf=twist_fail_count,
-        anchore_num_cves=anchore_num_cves,
-        anchore_compliance=anchore_compliance,
-    )
 
 
 if __name__ == "__main__":
