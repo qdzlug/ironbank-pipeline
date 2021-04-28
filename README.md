@@ -162,7 +162,6 @@ Job artifacts:
 - `anchore_gates.csv` - Anchore gates in CSV results.
 - `anchore_security.csv` - Anchore security results in CSV format.
 - `oscap.csv` - OpenSCAP results in CSV format.
-- `oval.csv` - OpenSCAP OVAL results in CSV format.
 - `<image-and-pipeline-id>-justifications.xlsx` - see description in previous paragraph.
 - `summary.csv` - compilation of all scan results in CSV format.
 - `tl.csv` - Twistlock results in CSV format.
