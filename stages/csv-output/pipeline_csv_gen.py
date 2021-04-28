@@ -569,9 +569,12 @@ def get_oscap_full(oscap_file, justifications):
         result = rule_result.find("xccdf:result", ns).text
         logging.debug(f"{rule_id}")
         if result == 'notselected':
-            logging.info(f"SKIPPING, \'notselected\' rule {rule_id} ")
+            logging.info(f"SKIPPING: \'notselected\' rule {rule_id} ")
             continue
 
+        if rule_id == "xccdf_org.ssgproject.content_rule_security_patches_up_to_date":
+            logging.info(f"SKIPPING: rule {rule_id} - OVAL check repeats and this finding is checked elsewhere")
+            continue
         # Get the <rule> that corresponds to the <rule-result>
         # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
         rule = root.find(f".//xccdf:Rule[@id='{rule_id}']", ns)
