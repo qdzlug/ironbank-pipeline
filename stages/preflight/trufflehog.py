@@ -95,10 +95,12 @@ def get_history_cmd(repo_dir, diff_branch):
     repo = git.Repo(repo_dir)
     origin = repo.remotes.origin.fetch()
     assert diff_branch in [x.name for x in origin]
-    commits = list(repo.iter_commits(f"{diff_branch}..", "--no-merges"))
-    formatted_commits = "\n".join([x.hexsha for x in commits])
-    logging.info(f"git log {diff_branch}..\n{formatted_commits}")
-    return ["--since-commit", commits[-1].hexsha] if commits else ["--no-history"]
+    last_commit = repo.git.rev_list(f"{diff_branch}..", "--no-merges",).split(
+        "\n"
+    )[-1]
+    formatted_commits = "\n".join([x for x in last_commit])
+    logging.info(f"git rev-list {diff_branch}.. --no-merges\n{formatted_commits}")
+    return ["--since-commit", last_commit] if last_commit else ["--no-history"]
 
 
 def get_config_command(repo_dir):
