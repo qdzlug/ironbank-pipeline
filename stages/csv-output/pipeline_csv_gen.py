@@ -12,7 +12,6 @@ import pathlib
 import logging
 import mysql.connector
 from mysql.connector import Error
-from bs4 import BeautifulSoup
 import xml.etree.ElementTree as etree
 
 from scanners import anchore
