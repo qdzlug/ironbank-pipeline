@@ -24,10 +24,12 @@ profile=$(echo "${oscap_container}" | grep -o '"profile": "[^"]*' | grep -o '[^"
 securityGuide=$(echo "${oscap_container}" | grep -o '"securityGuide": "[^"]*' | grep -o '[^"]*$')
 echo "profile: ${profile}"
 echo "securityGuide: ${securityGuide}"
-oscap-podman "${DOCKER_IMAGE_PATH}" xccdf eval --verbose ERROR --fetch-remote-resources --profile "${profile}" --results compliance_output_report.xml --report compliance_output_report_report.xml "${SCAP_CONTENT}/${securityGuide}" || true
+oscap-podman "${DOCKER_IMAGE_PATH}" xccdf eval --verbose ERROR --fetch-remote-resources --profile "${profile}" --results compliance_output_report.xml --report report.html "${SCAP_CONTENT}/${securityGuide}" || true
 ls compliance_output_report.xml
+ls results.html
 rm -rf "${SCAP_CONTENT}"
 echo "${OSCAP_VERSION}" >>"${OSCAP_SCANS}/oscap-version.txt"
+cp report.html "${OSCAP_SCANS}/report.html"
 cp compliance_output_report.xml "${OSCAP_SCANS}/compliance_output_report.xml"
 
 echo "OSCAP_COMPLIANCE_URL=${CI_JOB_URL}" >oscap-compliance.env
