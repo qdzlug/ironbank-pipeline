@@ -107,10 +107,10 @@ def main():
         )
     else:
         generate_blank_oscap_report(csv_dir=args.output_dir)
-    if args.oval:
-        oval_fail_count = generate_oval_report(args.oval, csv_dir=args.output_dir)
-    else:
-        generate_blank_oval_report(csv_dir=args.output_dir)
+#    if args.oval:
+#        oval_fail_count = generate_oval_report(args.oval, csv_dir=args.output_dir)
+#    else:
+#        generate_blank_oval_report(csv_dir=args.output_dir)
     if args.twistlock:
         twist_fail_count = generate_twistlock_report(
             args.twistlock, j_twistlock, csv_dir=args.output_dir
@@ -639,29 +639,33 @@ def get_oscap_full(oscap_file, justifications):
             "Justification": cve_justification,
         }
         cces.append(ret)
-    for cce in cces:
-        print(cce["ruleid"], cce["identifiers"])        
-    assert len(set(cce['identifiers'] for cce in cces)) == len(cces)
+    try:
+        assert len(set(cce['identifiers'] for cce in cces)) == len(cces)
+    except Exception as duplicate_idents:
+        for cce in cces:
+            print(cce["ruleid"], cce["identifiers"])    
+        raise duplicate_idents
+
     return cces
 
 
 # Generate oval csv
-def generate_oval_report(oval, csv_dir):
-    oval_cves = get_oval_full(oval)
-    oval_data = open(csv_dir + "oval.csv", "w", encoding="utf-8")
-    csv_writer = csv.writer(oval_data)
-    count = 0
-    fail_count = 0
-    for line in oval_cves:
-        if count == 0:
-            header = line.keys()
-            csv_writer.writerow(header)
-            count += 1
-        if line["result"] == "true":
-            fail_count += 1
-        csv_writer.writerow(line.values())
-    oval_data.close()
-    return fail_count
+#def generate_oval_report(oval, csv_dir):
+#    oval_cves = get_oval_full(oval)
+#    oval_data = open(csv_dir + "oval.csv", "w", encoding="utf-8")
+#    csv_writer = csv.writer(oval_data)
+#    count = 0
+#    fail_count = 0
+#    for line in oval_cves:
+#        if count == 0:
+#            header = line.keys()
+#            csv_writer.writerow(header)
+#            count += 1
+#        if line["result"] == "true":
+#            fail_count += 1
+#        csv_writer.writerow(line.values())
+#    oval_data.close()
+#    return fail_count
 
 
 # Get OVAL report for csv export
