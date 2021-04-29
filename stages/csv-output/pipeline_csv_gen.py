@@ -12,7 +12,7 @@ import pathlib
 import logging
 import mysql.connector
 from mysql.connector import Error
-from bs4 import BeautifulSoup
+import xml.etree.ElementTree as etree
 
 from scanners import anchore
 from scanners.helper import write_csv_from_dict_list
@@ -533,61 +533,201 @@ def generate_oscap_report(oscap, justifications, csv_dir):
 
 # Get full OSCAP report with justifications for csv export
 def get_oscap_full(oscap_file, justifications):
-    with open(oscap_file, mode="r", encoding="utf-8") as of:
-        soup = BeautifulSoup(of, "html.parser")
-        divs = soup.find("div", id="result-details")
+    root = etree.parse(oscap_file)
+    ns = {
+        "xccdf": "http://checklists.nist.gov/xccdf/1.2",
+        "xhtml": "http://www.w3.org/1999/xhtml",  # not actually needed
+        "dc": "http://purl.org/dc/elements/1.1/",
+    }
+    cces = []
+    for rule_result in root.findall("xccdf:TestResult/xccdf:rule-result", ns):
+        # Current CSV values
+        # title,ruleid,result,severity,identifiers,refs,desc,rationale,scanned_date,Justification
+        rule_id = rule_result.attrib["idref"]
+        severity = rule_result.attrib["severity"]
+        date_scanned = rule_result.attrib["time"]
+        result = rule_result.find("xccdf:result", ns).text
+        logging.debug(f"{rule_id}")
+        if result == "notselected":
+            logging.info(f"SKIPPING: 'notselected' rule {rule_id} ")
+            continue
 
-        scan_date = soup.find("th", text="Finished at")
-        finished_at = scan_date.find_next_sibling("td").text
-        id_regex = re.compile(".*rule-detail-.*")
-        all = divs.find_all("div", {"class": id_regex})
+        if rule_id == "xccdf_org.ssgproject.content_rule_security_patches_up_to_date":
+            logging.info(
+                f"SKIPPING: rule {rule_id} - OVAL check repeats and this finding is checked elsewhere"
+            )
+            continue
+        # Get the <rule> that corresponds to the <rule-result>
+        # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
+        rule = root.find(f".//xccdf:Rule[@id='{rule_id}']", ns)
+        title = rule.find("xccdf:title", ns).text
 
-        cces = []
-        for x in all:
-            # Assign identifiers to null value otherwise it fails when parsing non-RHEL scan results
-            identifiers = None
+        # This is the identifier that VAT will use. It will never be unset.
+        # Values will be of the format UBTU-18-010100 (UBI) or CCI-001234 (Ubuntu)
+        # Ubuntu/DISA:
+        identifiers = [v.text for v in rule.findall("xccdf:version", ns)]
+        if not identifiers:
+            # UBI/ComplianceAsCode:
+            identifiers = [i.text for i in rule.findall("xccdf:ident", ns)]
+        # We never expect to get more than one identifier
+        assert len(identifiers) == 1
+        logging.debug(f"{identifiers}")
+        identifier = identifiers[0]
+        # Revisit this if we ever switch UBI from ComplianceAsCode to DISA content
 
-            title = x.find("h3", {"class": "panel-title"}).text
-            table = x.find("table", {"class": "table table-striped table-bordered"})
+        def format_reference(ref):
+            ref_title = ref.find(f"dc:title", ns)
+            ref_identifier = ref.find(f"dc:identifier", ns)
+            href = ref.attrib.get("href")
+            if ref_title is not None:
+                assert ref_identifier is not None
+                return f"{ref_title.text}: {ref_identifier.text}"
+            elif href:
+                return f"{href} {ref.text}"
 
-            ruleid = table.find("td", text="Rule ID").find_next_sibling("td").text
-            result = table.find("td", text="Result").find_next_sibling("td").text
-            severity = table.find("td", text="Severity").find_next_sibling("td").text
-            ident = table.find(
-                "td", text="Identifiers and References"
-            ).find_next_sibling("td")
-            if ident.find("abbr"):
-                identifiers = ident.find("abbr").text
+            return ref.text
 
-            references = ident.find_all("a", href=True)
-            refs = []
-            for j in references:
-                refs.append(j.text)
+        # This is now informational only, vat_import no longer uses this field
+        references = "\n".join(
+            format_reference(r) for r in rule.findall("xccdf:reference", ns)
+        )
+        assert references
 
-            desc = table.find("td", text="Description").find_next_sibling("td").text
-            rationale = table.find("td", text="Rationale").find_next_sibling("td").text
+        rationale = ""
+        rationale_element = rule.find("xccdf:rationale", ns)
+        # Ubuntu XCCDF has no <rationale>
+        if rationale_element:
+            rationale = etree.tostring(rationale_element, method="text").strip()
 
-            cve_justification = ""
-            id = identifiers
-            if id in justifications.keys():
-                cve_justification = justifications[id]
+        # Convert description to text, seems to work well:
+        description = (
+            etree.tostring(rule.find("xccdf:description", ns), method="text")
+            .decode("utf8")
+            .strip()
+        )
+        # Cleanup Ubuntu descriptions
+        match = re.match(
+            r"<VulnDiscussion>(.*)</VulnDiscussion>", description, re.DOTALL
+        )
+        if match:
+            description = match.group(1)
 
-            ret = {
-                "title": title,
-                # 'table': table,
-                "ruleid": ruleid,
-                "result": result,
-                "severity": severity,
-                "identifiers": identifiers,
-                "refs": refs,
-                "desc": desc,
-                "rationale": rationale,
-                "scanned_date": finished_at,
-                "Justification": cve_justification,
-            }
-            cces.append(ret)
-        return cces
+        cve_justification = ""
+        if identifier in justifications:
+            cve_justification = justifications[identifier]
 
+        ret = {
+            "title": title,
+            "ruleid": rule_id,
+            "result": result,
+            "severity": severity,
+            "identifiers": identifier,
+            "refs": references,
+            "desc": description,
+            "rationale": rationale,
+            "scanned_date": date_scanned,
+            "Justification": cve_justification,
+        }
+        cces.append(ret)
+    try:
+        assert len(set(cce["identifiers"] for cce in cces)) == len(cces)
+    except Exception as duplicate_idents:
+        for cce in cces:
+            print(cce["ruleid"], cce["identifiers"])
+        raise duplicate_idents
+
+    return cces
+
+
+# Get OVAL report for csv export
+# def get_oval_full(oval_file):
+# def get_packages(definition, root, ns):
+#     criterions = definition.findall(".//d:criterion[@test_ref]", ns)
+#     assert criterions
+#     for criterion in criterions:
+#         criterion_id = criterion.attrib['test_ref']
+#         lin_test = root.findall(f".//lin-def:rpmverifyfile_test[@id='{criterion_id}']", ns)
+#         lin_test += root.findall(f".//lin-def:dpkginfo_test[@id='{criterion_id}']", ns)
+#         assert len(lin_test) == 1
+#
+#         object_ref = lin_test[0].find("lin-def:object", ns).attrib["object_ref"]
+#
+#         # This only matches <lin-def:rpminfo_object>, other objects like <lin-def:rpmverifyfile_object> aren't matched
+#         lin_objects = root.findall(f".//lin-def:rpminfo_object[@id='{object_ref}']", ns)
+#         lin_objects = root.findall(f".//lin-def:dpkginfo_object[@id='{object_ref}']", ns)
+#         assert len(lin_objects) == 1
+#         lin_object = lin_objects[0]
+#
+#         lin_name = lin_object.find("lin-def:name", ns)
+#         if lin_name.text:
+#             yield lin_name.text
+#         else:
+#             var_ref = lin_name.attrib["var_ref"]
+#             constant_variable = root.find(f".//d:constant_variable[@id='{var_ref}']", ns)
+#             values = constant_variable.findall('d:value', ns)
+#             assert values
+#             for value in values:
+#                 yield value.text
+
+# cves = []
+# root = etree.parse(oval_file)
+# tags = {elem.tag for elem in root.iter()}
+# ns = {
+#     "r": "http://oval.mitre.org/XMLSchema/oval-results-5",
+#     "d": "http://oval.mitre.org/XMLSchema/oval-definitions-5",
+#     "lin-def": "http://oval.mitre.org/XMLSchema/oval-definitions-5#linux",
+# }
+# severity_dict = {
+#     # UBI
+#     "Critical": "critical",
+#     "Important": "important",
+#     "Moderate": "moderate",
+#     "Low": "low",
+#     "Unknown": "unknown",
+#     # Ubuntu
+#     # "Critical": "critical",
+#     "High": "important",
+#     "Medium": "moderate",
+#     # "Low": "low",
+#     "Negligible": "low",
+#     "Untriaged": "unknown",
+# }
+
+# for e in root.findall("r:results/r:system/r:definitions/r:definition", ns):
+#     definition_id = e.attrib['definition_id']
+#     result = e.attrib['result']
+#     logging.debug(definition_id)
+
+#     definition = root.find(f".//d:definition[@id='{definition_id}']", ns)
+#     if definition.attrib["class"] == "inventory":
+#         # Skip "Check that Ubuntu 18.04 LTS (bionic) is installed." OVAL check
+#         continue
+
+#     description = definition.find("d:metadata/d:description", ns).text
+#     title = definition.find("d:metadata/d:title", ns).text
+#     severity = definition.find("d:metadata/d:advisory/d:severity", ns).text
+#     severity = severity_dict[severity]
+#     references = [r.attrib.get('ref_id') for r in definition.findall("d:metadata/d:reference", ns)]
+#     assert references
+
+#     # This is too slow. We're currently parsing the title for the package name in vat_import instead.
+#     # packages = list(get_packages(definition, root, ns))
+#     # assert packages
+
+#     # ref is the identifier used by VAT, create one CSV line per ref:
+#     for ref in references:
+#         ret = {
+#             "id": definition_id,
+#             "result": result,
+#             "cls": description,
+#             "ref": ref,
+#             "title": title,
+#             # TODO: will adding columns break the XLSX generation?
+#             "severity": severity,
+#             # "packages": packages,
+#         }
+#         cves.append(ret)
+# return cves
 
 # Get results from Twistlock report for csv export
 def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
