@@ -47,12 +47,12 @@ ls reports
 tar -zcvf "${REPORT_TAR_NAME}" reports
 
 python3 "${PIPELINE_REPO_DIR}/stages/s3/s3_upload.py" --file repo_map.json --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/repo_map.json"
-for file in $(find "${DOCUMENTATION_DIRECTORY}" -name "*" -type f); do
+find "${DOCUMENTATION_DIRECTORY}" ! -name "$(printf "*\n*")" -name "*" -type f | while IFS= read -r file; do
   object_path="${file#"$ARTIFACT_STORAGE/documentation/"}"
   python3 "${PIPELINE_REPO_DIR}/stages/s3/s3_upload.py" --file "$file" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_DOCUMENTATION_DIRECTORY}/$object_path"
 done
 
-for file in $(find "${SCAN_DIRECTORY}" -name "*" -type f); do
+find "${SCAN_DIRECTORY}" ! -name "$(printf "*\n*")" -name "*" -type f | while IFS= read -r file; do
   report_name=$(echo "$file" | rev | cut -d/ -f1-2 | rev)
   echo "$file"
   python3 "${PIPELINE_REPO_DIR}/stages/s3/s3_upload.py" --file "$file" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/$report_name"
