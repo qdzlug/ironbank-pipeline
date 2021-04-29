@@ -18,6 +18,7 @@ PROJECT_README="README.md"
 PROJECT_LICENSE="LICENSE"
 VAT_FINDINGS="${ARTIFACT_STORAGE}/lint/vat_api_findings.json"
 
+# shellcheck source=./stages/s3/repo_map_vars.sh
 source "${PIPELINE_REPO_DIR}/stages/s3/repo_map_vars.sh"
 
 if [[ "${DISTROLESS:-}" ]]; then
