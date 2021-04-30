@@ -2,8 +2,6 @@
 import sys
 import json
 import os
-import shlex
-import subprocess
 import boto3
 import logging
 from botocore.exceptions import ClientError
