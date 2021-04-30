@@ -25,6 +25,7 @@ shellcheck:
         shellcheck --exclude=SC2153 --format=gcc -- "${files[@]}"
         ret=$?
       fi
+
       echo "# Scanning embedded scripts..."
       ret=0
       IFS=$'\n' # Minor bug: newlines in filenames will still be processed incorrectly
