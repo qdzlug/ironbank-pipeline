@@ -172,7 +172,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     #
     if not bool(os.environ.get("DISTROLESS")):
         oscap_file = pathlib.Path(
-            artifacts_path, "scan-results", "openscap", "report.html"
+            artifacts_path, "scan-results", "openscap", "compliance_output_report.xml"
         )
         # oval_file = pathlib.Path(
         #     artifacts_path, "scan-results", "openscap", "report-cve.html"
