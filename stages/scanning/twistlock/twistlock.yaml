@@ -15,15 +15,15 @@ twistlock scan:
     - |
       python3 "${PIPELINE_REPO_DIR}/stages/scanning/twistlock/twistlock.py" \
         --registry="${REGISTRY1_URL}" \
-        --api_url="${twistlock_server_address}/api/v1" \
+        --api_url="${TWISTLOCK_SERVER_ADDRESS}/api/v1" \
         --name="ironbank-staging/${IMAGE_NAME}" \
         --tag="${CI_PIPELINE_ID}" \
-        --username="${twistlock_user}" \
-        --password="${twistlock_password}" \
+        --username="${TWISTLOCK_USER}" \
+        --password="${TWISTLOCK_PASSWORD}" \
         --version_file="${TWISTLOCK_SCANS}/twistlock-version.txt" \
         --filename="${TWISTLOCK_SCANS}/twistlock_cve.json" \
         --imageid="${IMAGE_ID}" \
-        --timeout "${twistlock_timeout}"
+        --timeout "${TWISTLOCK_TIMEOUT}"
   artifacts:
     when: always
     paths:
