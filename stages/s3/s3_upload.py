@@ -33,19 +33,10 @@ def upload_file(file_name, bucket, object_name=None):
         mimetype = filetype[0]
 
     # TODO: Add signature
-    # If there is not an encoding-type value we don't add it to the extra args
-    if not filetype[1]:
-        extra_args = {
-            "ContentType": mimetype,
-            "ACL": "private",
-        }
-    else:
-        encoding = filetype[1]
-        extra_args = {
-            "ContentType": mimetype,
-            "ACL": "private",
-            "ContentEncoding": encoding,
-        }
+    extra_args = {
+        "ContentType": mimetype,
+        "ACL": "private",
+    }
 
     logging.debug(f"extra_args for {file_name}: {extra_args}")
     # If S3 object_name was not specified, use file_name

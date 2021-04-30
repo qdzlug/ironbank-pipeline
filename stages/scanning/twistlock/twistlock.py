@@ -100,15 +100,17 @@ class Twist:
     # and the version is just printed to console if available and will not cause errors in
     # the pipeline if not.
     def print_version(self, version_file):
-        print(f"Fetching twistlock version from {self.base_url}/version")
+        logging.info(f"Fetching twistlock version from {self.base_url}/version")
         r = requests.get(
             f"{self.base_url}/version", auth=HTTPBasicAuth(self.username, self.password)
         )
 
         if r.status_code != 200:
-            print(f"Skipping twistlock version, query responded with {r.status_code}")
+            logging.error(
+                f"Skipping twistlock version, query responded with {r.status_code}"
+            )
         else:
-            print(f"Twistlock version {r.text}")
+            logging.info(f"Twistlock version {r.text}")
             with open(version_file, "w") as f:
                 f.write(r.text)
         print("\n")
@@ -135,14 +137,14 @@ def twistlock_scan(
     twist.print_version(version_file)
 
     # Scan the image
-    print(f"Starting Prisma scan for {imageid}")
+    logging.info(f"Starting Prisma scan for {imageid}")
     twist.add_image(name, tag)
 
     sleep_time = 10
     retries = int(timeout / sleep_time)
 
     for n in range(retries):
-        print(f"Waiting {sleep_time} seconds on Prisma scan [{n}/{retries}]...")
+        logging.info(f"Waiting {sleep_time} seconds on Prisma scan [{n}/{retries}]...")
         report = twist.query_scan_results(imageid)
 
         if report is None:
@@ -150,7 +152,7 @@ def twistlock_scan(
         else:
             with open(filename, "w") as f:
                 json.dump(report, f)
-            print("Prisma Report completed")
+            logging.info("Prisma Report completed")
             break
     else:
         raise TwistlockTimeout(
