@@ -56,7 +56,6 @@ def _get_source_keys_values(source_file):
     Ignore keywords since IBFE already has an implementation for gathering keywords
 
     """
-    num_vals = 0
     hm_labels = {}
     if os.path.exists(source_file):
         with open(source_file, mode="r", encoding="utf-8") as sf:
