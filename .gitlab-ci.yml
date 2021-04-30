@@ -21,7 +21,7 @@ shellcheck:
       files=$(echo stages/*/*.sh)
       if [ -n "$files" ]
       then
-        shellcheck --exclude=SC2153 --format=gcc -- $files
+        shellcheck --exclude=SC2153 --format=gcc -- "$files"
         ret=$?
       fi
       echo "# Scanning embedded scripts..."
