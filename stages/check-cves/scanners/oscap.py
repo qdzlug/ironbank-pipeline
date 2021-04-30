@@ -63,7 +63,8 @@ def get_packages(package_string):
 
     return pkglist
 
-def get_fails(oscap_file):
+
+def get_oscap_compliance_findings(oscap_file):
     root = etree.parse(oscap_file)
     ns = {
         "xccdf": "http://checklists.nist.gov/xccdf/1.2",
