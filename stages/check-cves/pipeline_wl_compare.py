@@ -174,9 +174,9 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         oscap_file = pathlib.Path(
             artifacts_path, "scan-results", "openscap", "report.html"
         )
-        oval_file = pathlib.Path(
-            artifacts_path, "scan-results", "openscap", "report-cve.html"
-        )
+        # oval_file = pathlib.Path(
+        #     artifacts_path, "scan-results", "openscap", "report-cve.html"
+        # )
 
         oscap_disa_comp = oscap.get_oscap_compliance_findings(oscap_file)
 
