@@ -178,10 +178,7 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
             artifacts_path, "scan-results", "openscap", "report-cve.html"
         )
 
-        oscap_disa_comp = oscap.get_fails(oscap_file)
-        oscap_notchecked = oscap.get_notchecked(oscap_file)
-        for o in oscap_notchecked:
-            oscap_disa_comp.append(o)
+        oscap_disa_comp = oscap.get_oscap_compliance_findings(oscap_file)
 
         for o in oscap_disa_comp:
             vuln_set.add(Finding("oscap_comp", o["identifiers"], None, None))
