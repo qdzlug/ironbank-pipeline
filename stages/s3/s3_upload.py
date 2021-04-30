@@ -3,7 +3,6 @@ import boto3
 import os
 import argparse
 from botocore.exceptions import ClientError
-import logging
 import mimetypes
 
 
