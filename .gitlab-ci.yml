@@ -27,7 +27,7 @@ shellcheck:
       echo "# Scanning embedded scripts..."
       ret=0
       IFS=$'\n' # Minor bug: newlines in filenames will still be processed incorrectly
-      for file in $(find . -name '*.yaml' -o  -name '*.yml')
+      while IFS= read -r -d '' file
       do
           echo "# $file"
           yq -r '.[] | objects | .before_script, .script, .after_script | select(. != null) | join("\n")' "$file" | shellcheck --exclude=SC2153 --format=gcc -s bash -
@@ -36,7 +36,7 @@ shellcheck:
           then
               ret=$yq_ret
           fi
-      done
+      done <   <(find . -name '*.yaml' -o  -name '*.yml')
       exit "$ret"
 
 black:
