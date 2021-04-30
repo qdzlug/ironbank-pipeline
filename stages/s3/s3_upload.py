@@ -2,7 +2,6 @@ import logging
 import boto3
 import os
 import argparse
-import datetime
 from botocore.exceptions import ClientError
 import logging
 import mimetypes
