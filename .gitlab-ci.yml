@@ -18,10 +18,11 @@ shellcheck:
       set -o pipefail
       set +e # remove gitlab ci setting
       shopt -s nullglob
-      files=$(echo stages/*/*.sh)
-      if [ -n "$files" ]
+      files=()
+      while IFS='' read -r line; do files+=("$line"); done < <(find ./stages -name '*.sh')
+      if [ -n "${files[0]}" ]
       then
-        shellcheck --exclude=SC2153 --format=gcc -- "$files"
+        shellcheck --exclude=SC2153 --format=gcc -- "${files[@]}"
         ret=$?
       fi
       echo "# Scanning embedded scripts..."
