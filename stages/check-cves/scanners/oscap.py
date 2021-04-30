@@ -91,14 +91,14 @@ def get_oscap_compliance_findings(oscap_file):
             if (
                 rule_id
                 == "xccdf_org.ssgproject.content_rule_security_patches_up_to_date"
-                and patches_up_to_date_dupe
             ):
-                logging.info(
-                    f"SKIPPING: rule {rule_id} - OVAL check repeats and this deprecated for our findings"
-                )
-                continue
-            else:
-                patches_up_to_date_dupe = True
+                if patches_up_to_date_dupe:
+                    logging.info(
+                        f"SKIPPING: rule {rule_id} - OVAL check repeats and this deprecated for our findings"
+                    )
+                    continue
+                else:
+                    patches_up_to_date_dupe = True
             # Get the <rule> that corresponds to the <rule-result>
             # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
             rule = root.find(f".//xccdf:Rule[@id='{rule_id}']", ns)
