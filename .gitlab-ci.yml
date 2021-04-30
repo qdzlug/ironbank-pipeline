@@ -18,6 +18,7 @@ shellcheck:
       set -o pipefail
       set +e # remove gitlab ci setting
       shopt -s nullglob
+      echo " Scanning shell scripts..."
       files=()
       while IFS='' read -r line; do files+=("$line"); done < <(find ./stages -name '*.sh')
       if [ -n "${files[0]}" ]
@@ -27,17 +28,14 @@ shellcheck:
       fi
 
       echo "# Scanning embedded scripts..."
-      ret=0
-      IFS=$'\n' # Minor bug: newlines in filenames will still be processed incorrectly
-      while IFS= read -r -d '' file
-      do
-          echo "# $file"
-          yq -r '.[] | objects | .before_script, .script, .after_script | select(. != null) | join("\n")' "$file" | shellcheck --exclude=SC2153 --format=gcc -s bash -
-          yq_ret=$?
-          if [ $yq_ret -ne 0 ]
-          then
-              ret=$yq_ret
-          fi
+      while IFS= read -r -d $'\n' file; do
+        echo "# $file"
+        yq -r '.[] | objects | .before_script, .script, .after_script | select(. != null) | join("\n")' "$file" | shellcheck --exclude=SC2153 --format=gcc -s bash -
+        yq_ret=$?
+        if [ $yq_ret -ne 0 ]
+        then
+            ret=$yq_ret
+        fi
       done <   <(find . -name '*.yaml' -o  -name '*.yml')
       exit "$ret"
 
