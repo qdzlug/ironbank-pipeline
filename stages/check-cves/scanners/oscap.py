@@ -82,6 +82,12 @@ def get_oscap_compliance_findings(oscap_file):
         patches_up_to_date_dupe = False
         logging.debug(f"{rule_id}")
         if result in ["notchecked", "fail"]:
+            """
+            ubi7-minimal has multiples of the following rule_id
+            xccdf_org.ssgproject.content_rule_security_patches_up_to_date
+            This ensures that if there are multiple failures of this rule,
+            we only add one to cces list
+            """
             if (
                 rule_id
                 == "xccdf_org.ssgproject.content_rule_security_patches_up_to_date"
