@@ -1,6 +1,6 @@
 #!/bin/bash
 set -Eeuo pipefail
-# shellcheck source=./base_image_type.sh
+# shellcheck source=./stages/scanning/openscap/base_image_type.sh
 source "${PIPELINE_REPO_DIR}/stages/scanning/openscap/base_image_type.sh"
 echo "Imported Base Image Type: ${BASE_IMAGE_TYPE}"
 mkdir -p "${OSCAP_SCANS}"
