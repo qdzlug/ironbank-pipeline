@@ -34,7 +34,7 @@ shellcheck:
         yq_ret=$?
         if [ $yq_ret -ne 0 ]
         then
-            ret=$yq_ret
+          ret=$yq_ret
         fi
       done <   <(find . -name '*.yaml' -o  -name '*.yml' | grep -v /scripts/analysis)
       exit "$ret"
