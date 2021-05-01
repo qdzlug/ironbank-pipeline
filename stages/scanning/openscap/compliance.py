@@ -88,7 +88,7 @@ def get_oscap_guide(oscap_version, base_image_type):
     try:
         oscap_container = oscap_guides[base_image_type]
         print(oscap_container)
-    except: # noqa
+    except:  # noqa
         print("base_image_type does not exist")
         sys.exit(1)
 
