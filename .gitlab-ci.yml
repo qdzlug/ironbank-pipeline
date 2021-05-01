@@ -11,8 +11,6 @@ shellcheck:
     - ironbank-tools
   stage: lint
   image: registry.dsop.io/ironbank-tools/ironbank-pipeline/shellcheck
-  # TODO: remove allow_failure
-  allow_failure: true
   script:
     - |
       set -o pipefail
@@ -44,7 +42,6 @@ black:
     - ironbank-tools
   stage: format
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml"
-  # TODO: remove allow_failure
   script:
     - pip install git+git://github.com/psf/black
     - black --check --diff --color -t py36 .
@@ -54,8 +51,6 @@ pylama:
     - ironbank-tools
   stage: lint
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml"
-  # TODO: remove allow_failure
-  allow_failure: true
   dependencies:
     - black
   script:
