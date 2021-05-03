@@ -323,6 +323,10 @@ def _vat_findings_query(im_name, im_version):
         logging.warning(f"Bad request: {url}")
         logging.warning(r.text)
 
+    elif r.status_code == 500:
+        logging.warning(f"Internal Server Error; please rerun pipeline")
+        logging.warning(r.text)
+
     else:
         logging.warning(f"Unknown response from VAT {r.status_code}")
         logging.warning(r.text)
