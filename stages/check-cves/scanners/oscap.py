@@ -116,10 +116,21 @@ def get_oscap_compliance_findings(oscap_file):
             logging.debug(f"{identifiers}")
             identifier = identifiers[0]
             # Revisit this if we ever switch UBI from ComplianceAsCode to DISA content
+            def format_reference(ref):
+                ref_title = ref.find(f"dc:title", ns)
+                ref_identifier = ref.find(f"dc:identifier", ns)
+                href = ref.attrib.get("href")
+                if ref_title is not None:
+                    assert ref_identifier is not None
+                    return f"{ref_title.text}: {ref_identifier.text}"
+                elif href:
+                    return f"{href} {ref.text}"
+
+                return ref.text
 
             # This is now informational only, vat_import no longer uses this field
             references = "\n".join(
-                format_reference(r, ns) for r in rule.findall("xccdf:reference", ns)
+                format_reference(r) for r in rule.findall("xccdf:reference", ns)
             )
             assert references
 
@@ -157,16 +168,3 @@ def get_oscap_compliance_findings(oscap_file):
             }
             cces.append(ret)
     return cces
-
-
-def format_reference(ref, ns):
-    ref_title = ref.find(f"dc:title", ns)
-    ref_identifier = ref.find(f"dc:identifier", ns)
-    href = ref.attrib.get("href")
-    if ref_title is not None:
-        assert ref_identifier is not None
-        return f"{ref_title.text}: {ref_identifier.text}"
-    elif href:
-        return f"{href} {ref.text}"
-
-    return ref.text
