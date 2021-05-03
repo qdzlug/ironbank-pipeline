@@ -595,8 +595,8 @@ def get_oscap_full(oscap_file, justifications):
         # Revisit this if we ever switch UBI from ComplianceAsCode to DISA content
 
         def format_reference(ref):
-            ref_title = ref.find(f"dc:title", ns)
-            ref_identifier = ref.find(f"dc:identifier", ns)
+            ref_title = ref.find("dc:title", ns)
+            ref_identifier = ref.find("dc:identifier", ns)
             href = ref.attrib.get("href")
             if ref_title is not None:
                 assert ref_identifier is not None
@@ -711,7 +711,7 @@ def get_oval_full(oval_file):
 
     cves = []
     root = etree.parse(oval_file)
-    tags = {elem.tag for elem in root.iter()}
+    # tags = {elem.tag for elem in root.iter()}
     ns = {
         "r": "http://oval.mitre.org/XMLSchema/oval-results-5",
         "d": "http://oval.mitre.org/XMLSchema/oval-definitions-5",
