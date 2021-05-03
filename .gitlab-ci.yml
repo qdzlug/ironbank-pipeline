@@ -34,7 +34,7 @@ shellcheck:
         then
           ret=$yq_ret
         fi
-      done <   <(find . -name '*.yaml' -o  -name '*.yml' | grep -v /scripts/analysis)
+      done < <(find . -name '*.yaml' -o  -name '*.yml' | grep -v /scripts/analysis)
       exit "$ret"
 
 black:
