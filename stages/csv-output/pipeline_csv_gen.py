@@ -612,11 +612,13 @@ def get_oscap_full(oscap_file, justifications):
         )
         assert references
 
-        rationale = ""
         rationale_element = rule.find("xccdf:rationale", ns)
         # Ubuntu XCCDF has no <rationale>
-        if rationale_element:
-            rationale = etree.tostring(rationale_element, method="text").strip()
+        rationale = (
+            etree.tostring(rationale_element, method="text").strip()
+            if rationale_element
+            else ""
+        )
 
         # Convert description to text, seems to work well:
         description = (
