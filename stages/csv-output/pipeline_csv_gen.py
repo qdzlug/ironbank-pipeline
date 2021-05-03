@@ -106,8 +106,8 @@ def main():
         )
     else:
         generate_blank_oscap_report(csv_dir=args.output_dir)
-#    if args.oval:
-#        oval_fail_count = generate_oval_report(args.oval, csv_dir=args.output_dir)
+    #    if args.oval:
+    #        oval_fail_count = generate_oval_report(args.oval, csv_dir=args.output_dir)
     generate_blank_oval_report(csv_dir=args.output_dir)
     if args.twistlock:
         twist_fail_count = generate_twistlock_report(
@@ -549,29 +549,32 @@ def generate_oscap_report(oscap, justifications, csv_dir):
     oscap_data.close()
     return fail_count, nc_count, scanned
 
+
 # Get full OSCAP report with justifications for csv export
 def get_oscap_full(oscap_file, justifications):
     root = etree.parse(oscap_file)
     ns = {
         "xccdf": "http://checklists.nist.gov/xccdf/1.2",
-        "xhtml": "http://www.w3.org/1999/xhtml", # not actually needed
+        "xhtml": "http://www.w3.org/1999/xhtml",  # not actually needed
         "dc": "http://purl.org/dc/elements/1.1/",
     }
     cces = []
     for rule_result in root.findall("xccdf:TestResult/xccdf:rule-result", ns):
         # Current CSV values
         # title,ruleid,result,severity,identifiers,refs,desc,rationale,scanned_date,Justification
-        rule_id = rule_result.attrib['idref']
-        severity = rule_result.attrib['severity']
-        date_scanned = rule_result.attrib['time']
+        rule_id = rule_result.attrib["idref"]
+        severity = rule_result.attrib["severity"]
+        date_scanned = rule_result.attrib["time"]
         result = rule_result.find("xccdf:result", ns).text
         logging.debug(f"{rule_id}")
-        if result == 'notselected':
-            logging.info(f"SKIPPING: \'notselected\' rule {rule_id} ")
+        if result == "notselected":
+            logging.info(f"SKIPPING: 'notselected' rule {rule_id} ")
             continue
 
         if rule_id == "xccdf_org.ssgproject.content_rule_security_patches_up_to_date":
-            logging.info(f"SKIPPING: rule {rule_id} - OVAL check repeats and this finding is checked elsewhere")
+            logging.info(
+                f"SKIPPING: rule {rule_id} - OVAL check repeats and this finding is checked elsewhere"
+            )
             continue
         # Get the <rule> that corresponds to the <rule-result>
         # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
@@ -604,7 +607,9 @@ def get_oscap_full(oscap_file, justifications):
             return ref.text
 
         # This is now informational only, vat_import no longer uses this field
-        references = "\n".join(format_reference(r) for r in rule.findall("xccdf:reference", ns))
+        references = "\n".join(
+            format_reference(r) for r in rule.findall("xccdf:reference", ns)
+        )
         assert references
 
         rationale = ""
@@ -614,12 +619,18 @@ def get_oscap_full(oscap_file, justifications):
             rationale = etree.tostring(rationale_element, method="text").strip()
 
         # Convert description to text, seems to work well:
-        description = etree.tostring(rule.find("xccdf:description", ns), method="text").decode('utf8').strip()
+        description = (
+            etree.tostring(rule.find("xccdf:description", ns), method="text")
+            .decode("utf8")
+            .strip()
+        )
         # Cleanup Ubuntu descriptions
-        match = re.match(r'<VulnDiscussion>(.*)</VulnDiscussion>', description, re.DOTALL)
+        match = re.match(
+            r"<VulnDiscussion>(.*)</VulnDiscussion>", description, re.DOTALL
+        )
         if match:
             description = match.group(1)
- 
+
         cve_justification = ""
         if identifier in justifications:
             cve_justification = justifications[identifier]
@@ -638,17 +649,17 @@ def get_oscap_full(oscap_file, justifications):
         }
         cces.append(ret)
     try:
-        assert len(set(cce['identifiers'] for cce in cces)) == len(cces)
+        assert len(set(cce["identifiers"] for cce in cces)) == len(cces)
     except Exception as duplicate_idents:
         for cce in cces:
-            print(cce["ruleid"], cce["identifiers"])    
+            print(cce["ruleid"], cce["identifiers"])
         raise duplicate_idents
 
     return cces
 
 
 # Generate oval csv
-#def generate_oval_report(oval, csv_dir):
+# def generate_oval_report(oval, csv_dir):
 #    oval_cves = get_oval_full(oval)
 #    oval_data = open(csv_dir + "oval.csv", "w", encoding="utf-8")
 #    csv_writer = csv.writer(oval_data)
@@ -721,8 +732,8 @@ def get_oval_full(oval_file):
     }
 
     for e in root.findall("r:results/r:system/r:definitions/r:definition", ns):
-        definition_id = e.attrib['definition_id']
-        result = e.attrib['result']
+        definition_id = e.attrib["definition_id"]
+        result = e.attrib["result"]
         logging.debug(definition_id)
 
         definition = root.find(f".//d:definition[@id='{definition_id}']", ns)
@@ -734,7 +745,10 @@ def get_oval_full(oval_file):
         title = definition.find("d:metadata/d:title", ns).text
         severity = definition.find("d:metadata/d:advisory/d:severity", ns).text
         severity = severity_dict[severity]
-        references = [r.attrib.get('ref_id') for r in definition.findall("d:metadata/d:reference", ns)]
+        references = [
+            r.attrib.get("ref_id")
+            for r in definition.findall("d:metadata/d:reference", ns)
+        ]
         assert references
 
         # This is too slow. We're currently parsing the title for the package name in vat_import instead.
@@ -755,6 +769,7 @@ def get_oval_full(oval_file):
             }
             cves.append(ret)
     return cves
+
 
 # Get results from Twistlock report for csv export
 def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):

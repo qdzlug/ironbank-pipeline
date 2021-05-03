@@ -420,7 +420,7 @@ def find_all_versions(cursor, container_id):
     any containers since that did not inherit the approval
     : return dict of approved and unapproved container ids
     """
-    valid_states = ["Approved", "Conditionally Approved"]
+    valid_states = ["Approved", "Conditionally Approved", "Rejected"]
     approved_versions_query = """
         SELECT c.id, cl.type FROM containers c
         LEFT JOIN (SELECT id, imageid, type from container_log
@@ -774,6 +774,7 @@ def update_finding_logs(
             else None
         )
         active = [x for x in active_records if x[3] == 1] if active_records else None
+        logs.debug(f"Active: {active} \n Bumped id: {bumped_id}")
         if active and active[0][6] == "needs_justification" and bumped_id:
             # Adds in logs if any version previous to this had approvals
             add_approved_logs_for_prev_version(
@@ -844,6 +845,10 @@ def insert_logs_with_logs(
     if parent_finding:
         match = check_parent_child_match(cursor, finding_id, parent_finding)
         if log_inherited_id == parent_finding and not is_finding_inheritable:
+            """
+            This keeps an approval for a finding that is not iheritable, but updates its inherited fields.
+            This should not be necessary, since parent_finding is None when not is_finding_inheritable
+            """
             logs.debug(f"No Inheritance change/log update for {finding_id}")
             insert_logs_with_inheritance(
                 cursor,
@@ -1061,18 +1066,10 @@ def find_bumped_id(cursor, row, finding_id, versions, scan_source):
         bumped_findings = None
         for v in versions["approved"]:
             bumped_findings = find_parent_findings(cursor, row, [v], scan_source)
-            if bumped_findings:
-                break
-        logs.debug(f"Bumped Findings {bumped_findings}")
-        if bumped_findings is None:
-            return None
-        check_status_query = """
-        SELECT state from finding_logs where finding_id = %s and active = 1
-        """
-        cursor.execute(check_status_query, (bumped_findings[0][0],))
-        status = cursor.fetchone()
-        if status[0] != "needs_justification":
-            return bumped_findings[0][0]
+            if bumped_findings and bumped_findings[0][2] != "needs_justification":
+                logs.debug(f"Bumped Findings {bumped_findings}")
+                return bumped_findings[0][0]
+        logs.debug("No Bumped Findings found")
     except Error as error:
         logs.error(error)
     return None
@@ -1172,7 +1169,7 @@ def find_parent_findings(cursor, finding, lineage, scan_source):
     logs.debug(f"find_parent_findings for {finding}")
     logs.debug(f"lineage: {lineage}")
 
-    find_parent_finding_query = f"""SELECT f.id, f.container_id FROM findings f
+    find_parent_finding_query = f"""SELECT f.id, f.container_id, fl.state FROM findings f
         INNER JOIN finding_logs fl on f.id = fl.finding_id and fl.active = 1
         WHERE f.finding = %s AND f.scan_source = %s AND f.package {package_query_string} %s
         AND f.package_path {package_path_query_string} %s AND f.container_id = %s
@@ -1621,6 +1618,7 @@ def set_approval_state(container_id, version):
         logs.debug(last_log_query % last_log_tuple)
         cursor.execute(last_log_query, last_log_tuple)
         container_logs = cursor.fetchall()
+        # Perhaps different text if type(log[1]) is Rejected
         auto_approval_text = "Auto Approval derived from previous version {}:{}".format(
             container_name, container_version
         )
