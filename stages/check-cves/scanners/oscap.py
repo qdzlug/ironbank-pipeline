@@ -138,7 +138,7 @@ def get_oscap_compliance_findings(oscap_file):
             # Ubuntu XCCDF has no <rationale>
             rationale = (
                 etree.tostring(rationale_element, method="text").decode("utf-8").strip()
-                if rationale_element
+                if rationale_element is not None
                 else ""
             )
 
