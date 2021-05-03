@@ -238,18 +238,18 @@ def _connect_to_db():
     conn = None
     try:
         conn = mysql.connector.connect(
-            host=os.environ["vat_db_host"],
-            database=os.environ["vat_db_database_name"],
-            user=os.environ["vat_db_connection_user"],
-            passwd=os.environ["vat_db_connection_pass"],
+            host=os.environ["VAT_DB_HOST"],
+            database=os.environ["VAT_DB_DATABASE_NAME"],
+            user=os.environ["VAT_DB_CONNECTION_USER"],
+            passwd=os.environ["VAT_DB_CONNECTION_PASS"],
         )
         if conn.is_connected():
             # there are many connections to db so this should be uncommented
             # for troubleshooting
             logging.debug(
                 "Connected to the host %s with user %s",
-                os.environ["vat_db_host"],
-                os.environ["vat_db_connection_user"],
+                os.environ["VAT_DB_HOST"],
+                os.environ["VAT_DB_CONNECTION_USER"],
             )
         else:
             logging.critical("Failed to connect to DB")
