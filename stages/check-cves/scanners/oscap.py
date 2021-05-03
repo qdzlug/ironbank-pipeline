@@ -71,6 +71,7 @@ def get_oscap_compliance_findings(oscap_file):
         "xhtml": "http://www.w3.org/1999/xhtml",  # not actually needed
         "dc": "http://purl.org/dc/elements/1.1/",
     }
+    patches_up_to_date_dupe = False
     cces = []
     for rule_result in root.findall("xccdf:TestResult/xccdf:rule-result", ns):
         # Current CSV values
@@ -79,7 +80,6 @@ def get_oscap_compliance_findings(oscap_file):
         severity = rule_result.attrib["severity"]
         date_scanned = rule_result.attrib["time"]
         result = rule_result.find("xccdf:result", ns).text
-        patches_up_to_date_dupe = False
         logging.debug(f"{rule_id}")
         if result in ["notchecked", "fail"]:
             """
