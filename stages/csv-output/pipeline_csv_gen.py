@@ -172,6 +172,8 @@ def _load_remote_hardening_manifest(project, branch="master"):
     to console to communicate which repository does not have a hardening manifest.
 
     """
+    assert branch in ["master", "development"]
+
     if project == "":
         return None
 
@@ -199,7 +201,7 @@ def _load_remote_hardening_manifest(project, branch="master"):
     return None
 
 
-def _next_ancestor(image_path, whitelist_branch, hardening_manifest=None):
+def _next_ancestor(parent_image_path, whitelist_branch, hardening_manifest=None):
     """
     Grabs the parent image path from the current context. Will initially attempt to load
     a new hardening manifest and then pull the parent image from there.
@@ -216,14 +218,25 @@ def _next_ancestor(image_path, whitelist_branch, hardening_manifest=None):
             hardening_manifest["args"]["BASE_TAG"],
         )
 
+    # never allow STAGING_BASE_IMAGE to be set when running a master branch pipeline
+    if (
+        os.environ.get("STAGING_BASE_IMAGE")
+        and os.environ["CI_COMMIT_BRANCH"] == "master"
+    ):
+        logging.error("Cannot use STAGING_BASE_IMAGE on master branch")
+        sys.exit(1)
+
+    # pull from development if using staging base image
+    branch = "development" if os.environ.get("STAGING_BASE_IMAGE") else "master"
+    logging.info(f"Getting {parent_image_path} hardening_manifest.yaml from {branch}")
     # Try to load the hardening manifest from a remote repo.
-    hm = _load_remote_hardening_manifest(project=image_path)
+    hm = _load_remote_hardening_manifest(project=parent_image_path, branch=branch)
     if hm is not None:
         return (hm["args"]["BASE_IMAGE"], hm["args"]["BASE_TAG"])
     else:
         logging.error(
             "hardening_manifest.yaml does not exist for "
-            + image_path
+            + parent_image_path
             + ". Please add a hardening_manifest.yaml file to this project"
         )
         logging.error("Exiting.")
@@ -344,7 +357,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
     # add parent images to inheritance list
     parent_image_name, parent_image_version = _next_ancestor(
-        image_path=image_name,
+        parent_image_path=image_name,
         whitelist_branch=whitelist_branch,
         hardening_manifest=hardening_manifest,
     )
@@ -352,7 +365,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     while parent_image_name:
         inheritance_list.append((parent_image_name, parent_image_version))
         parent_image_name, parent_image_version = _next_ancestor(
-            image_path=parent_image_name,
+            parent_image_path=parent_image_name,
             whitelist_branch=whitelist_branch,
         )
 

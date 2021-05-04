@@ -103,6 +103,8 @@ def _load_remote_hardening_manifest(project, branch="master"):
     to console to communicate which repository does not have a hardening manifest.
 
     """
+    assert branch in ["master", "development"]
+
     if project == "":
         return None
 
@@ -446,8 +448,19 @@ def _next_ancestor(parent_image_path, whitelist_branch):
 
     """
 
+    # never allow STAGING_BASE_IMAGE to be set when running a master branch pipeline
+    if (
+        os.environ.get("STAGING_BASE_IMAGE")
+        and os.environ["CI_COMMIT_BRANCH"] == "master"
+    ):
+        logging.error("Cannot use STAGING_BASE_IMAGE on master branch")
+        sys.exit(1)
+
+    # load from development if staging base image is used
+    branch = "development" if os.environ.get("STAGING_BASE_IMAGE") else "master"
+    logging.info(f"Getting {parent_image_path} hardening_manifest.yaml from {branch}")
     # Try to load the hardening manifest from a remote repo.
-    hm = _load_remote_hardening_manifest(project=parent_image_path)
+    hm = _load_remote_hardening_manifest(project=parent_image_path, branch=branch)
     # REMOVE if statement when we are no longer using greylists
     if hm is not None:
         return (hm["name"], hm["tags"][0], hm["args"]["BASE_IMAGE"])
