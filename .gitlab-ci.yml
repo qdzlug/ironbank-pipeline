@@ -28,7 +28,7 @@ shellcheck:
       fi
 
       echo "# Scanning embedded scripts..."
-      while IFS= read -r -d $'\n' file; do
+      while IFS= read -r -d '' file; do
         echo "# $file"
         yq -r '.[] | objects | .before_script, .script, .after_script | select(. != null) | join("\n")' "$file" | shellcheck --exclude=SC2153 --format=gcc -s bash -
         yq_ret=$?
@@ -36,7 +36,7 @@ shellcheck:
         then
           ret=$yq_ret
         fi
-      done < <(find . -name '*.yaml' -o  -name '*.yml' | grep -v /scripts/analysis)
+      done < <( find . \( -name '*.yaml' -o  -name '*.yml' ! -path './scripts/analysis/*' \) -print0)
       exit "$ret"
 
 black:
