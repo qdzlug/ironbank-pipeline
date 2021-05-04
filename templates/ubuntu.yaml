@@ -22,8 +22,6 @@ include:
 
 openscap compliance:
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/ubupodscap1804:1.3.2"
-openscap cve:
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/ubupodscap1804:1.3.2"
 
   # - local: stages/check-cves/base.yaml
 

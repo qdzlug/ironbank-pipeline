@@ -185,10 +185,6 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
         for o in oscap_disa_comp:
             vuln_set.add(Finding("oscap_comp", o["identifiers"], None, None))
 
-        # oval_cves = oscap.get_oval(oval_file)
-        # for oval in oval_cves:
-        #     vuln_set.add(Finding("oscap_cve", oval["ref"], oval["pkg"], None))
-
     twistlock_cves = twistlock.get_full()
     for tl in twistlock_cves:
         vuln_set.add(
