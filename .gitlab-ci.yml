@@ -20,7 +20,6 @@ shellcheck:
       while IFS='' read -r -d '' line; do
           files+=("$line")
       done < <(find ./stages -name '*.sh' -print0)
-
       if [ -n "${files[0]}" ]
       then
         echo " Scanning shell scripts..."
