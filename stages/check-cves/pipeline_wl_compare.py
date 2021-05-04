@@ -103,6 +103,8 @@ def _load_remote_hardening_manifest(project, branch="master"):
     to console to communicate which repository does not have a hardening manifest.
 
     """
+    assert branch in ["master", "development"]
+
     if project == "":
         return None
 
@@ -172,23 +174,16 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     #
     if not bool(os.environ.get("DISTROLESS")):
         oscap_file = pathlib.Path(
-            artifacts_path, "scan-results", "openscap", "report.html"
+            artifacts_path, "scan-results", "openscap", "compliance_output_report.xml"
         )
-        oval_file = pathlib.Path(
-            artifacts_path, "scan-results", "openscap", "report-cve.html"
-        )
+        # oval_file = pathlib.Path(
+        #     artifacts_path, "scan-results", "openscap", "report-cve.html"
+        # )
 
-        oscap_disa_comp = oscap.get_fails(oscap_file)
-        oscap_notchecked = oscap.get_notchecked(oscap_file)
-        for o in oscap_notchecked:
-            oscap_disa_comp.append(o)
+        oscap_disa_comp = oscap.get_oscap_compliance_findings(oscap_file)
 
         for o in oscap_disa_comp:
             vuln_set.add(Finding("oscap_comp", o["identifiers"], None, None))
-
-        oval_cves = oscap.get_oval(oval_file)
-        for oval in oval_cves:
-            vuln_set.add(Finding("oscap_cve", oval["ref"], oval["pkg"], None))
 
     twistlock_cves = twistlock.get_full()
     for tl in twistlock_cves:
@@ -449,8 +444,19 @@ def _next_ancestor(parent_image_path, whitelist_branch):
 
     """
 
+    # never allow STAGING_BASE_IMAGE to be set when running a master branch pipeline
+    if (
+        os.environ.get("STAGING_BASE_IMAGE")
+        and os.environ["CI_COMMIT_BRANCH"] == "master"
+    ):
+        logging.error("Cannot use STAGING_BASE_IMAGE on master branch")
+        sys.exit(1)
+
+    # load from development if staging base image is used
+    branch = "development" if os.environ.get("STAGING_BASE_IMAGE") else "master"
+    logging.info(f"Getting {parent_image_path} hardening_manifest.yaml from {branch}")
     # Try to load the hardening manifest from a remote repo.
-    hm = _load_remote_hardening_manifest(project=parent_image_path)
+    hm = _load_remote_hardening_manifest(project=parent_image_path, branch=branch)
     # REMOVE if statement when we are no longer using greylists
     if hm is not None:
         return (hm["name"], hm["tags"][0], hm["args"]["BASE_IMAGE"])
