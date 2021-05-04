@@ -54,8 +54,7 @@ def main():
         description="DCCSCR processing of CVE reports from various sources"
     )
     parser.add_argument("--twistlock", help="location of the twistlock JSON scan file")
-    parser.add_argument("--oscap", help="location of the oscap scan HTML file")
-    parser.add_argument("--oval", help="location of the oval scan HTML file")
+    parser.add_argument("--oscap", help="location of the oscap scan XML file")
     parser.add_argument(
         "--anchore-sec", help="location of the anchore_security.json scan file"
     )
@@ -96,7 +95,6 @@ def main():
         total_whitelist, image_name
     )
     oscap_fail_count = 0
-    oval_fail_count = 0
     twist_fail_count = 0
     anchore_num_cves = 0
     anchore_compliance = 0
@@ -106,9 +104,6 @@ def main():
         )
     else:
         generate_blank_oscap_report(csv_dir=args.output_dir)
-    #    if args.oval:
-    #        oval_fail_count = generate_oval_report(args.oval, csv_dir=args.output_dir)
-    generate_blank_oval_report(csv_dir=args.output_dir)
     if args.twistlock:
         twist_fail_count = generate_twistlock_report(
             args.twistlock, j_twistlock, csv_dir=args.output_dir
@@ -131,7 +126,6 @@ def main():
     generate_summary_report(
         csv_dir=args.output_dir,
         osc=oscap_fail_count,
-        ovf=oval_fail_count,
         tlf=twist_fail_count,
         anchore_num_cves=anchore_num_cves,
         anchore_compliance=anchore_compliance,
@@ -476,20 +470,8 @@ def generate_blank_oscap_report(csv_dir):
     oscap_report.close()
 
 
-# Blank oval Report
-def generate_blank_oval_report(csv_dir):
-    oval_report = open(csv_dir + "oval.csv", "w", encoding="utf-8")
-    csv_writer = csv.writer(oval_report)
-    csv_writer.writerow(
-        ["OpenSCAP Scan Skipped Due to Base Image Used", "", "", "", ""]
-    )
-    oval_report.close()
-
-
 # SUMMARY REPORT
-def generate_summary_report(
-    csv_dir, osc, ovf, tlf, anchore_num_cves, anchore_compliance
-):
+def generate_summary_report(csv_dir, osc, tlf, anchore_num_cves, anchore_compliance):
     sum_data = open(csv_dir + "summary.csv", "w", encoding="utf-8")
     csv_writer = csv.writer(sum_data)
 
@@ -498,11 +480,10 @@ def generate_summary_report(
     # if the osc arg type is an int, the scan was skipped so output zero values
     if type(osc) == int:
         osl = ["OpenSCAP - DISA Compliance", 0, 0, 0]
-    # osc arg is a tuple, meaning the generate_oscap_report and generate_oval_report functions were run
+    # osc arg is a tuple, meaning the generate_oscap_report function was run
     else:
         osl = ["OpenSCAP - DISA Compliance", osc[0], osc[1], osc[0] + osc[1]]
 
-    ovf = ["OpenSCAP - OVAL Results", int(ovf or 0), 0, int(ovf or 0)]
     anchore_vulns = ["Anchore CVE Results", anchore_num_cves, 0, anchore_num_cves]
     anchore_comps = [
         "Anchore Compliance Results",
@@ -514,16 +495,15 @@ def generate_summary_report(
 
     csv_writer.writerow(header)
     csv_writer.writerow(osl)
-    csv_writer.writerow(ovf)
     csv_writer.writerow(twl)
     csv_writer.writerow(anchore_vulns)
     csv_writer.writerow(anchore_comps)
     csv_writer.writerow(
         [
             "Totals",
-            osl[1] + ovf[1] + anchore_vulns[1] + anchore_comps[1] + twl[1],
-            osl[2] + ovf[2] + anchore_vulns[2] + anchore_comps[2] + twl[2],
-            osl[3] + ovf[3] + anchore_vulns[3] + anchore_comps[3] + twl[3],
+            osl[1] + anchore_vulns[1] + anchore_comps[1] + twl[1],
+            osl[2] + anchore_vulns[2] + anchore_comps[2] + twl[2],
+            osl[3] + anchore_vulns[3] + anchore_comps[3] + twl[3],
         ]
     )
 
@@ -693,97 +673,97 @@ def get_oscap_full(oscap_file, justifications):
 
 
 # Get OVAL report for csv export
-def get_oval_full(oval_file):
-    # def get_packages(definition, root, ns):
-    #     criterions = definition.findall(".//d:criterion[@test_ref]", ns)
-    #     assert criterions
-    #     for criterion in criterions:
-    #         criterion_id = criterion.attrib['test_ref']
-    #         lin_test = root.findall(f".//lin-def:rpmverifyfile_test[@id='{criterion_id}']", ns)
-    #         lin_test += root.findall(f".//lin-def:dpkginfo_test[@id='{criterion_id}']", ns)
-    #         assert len(lin_test) == 1
-    #
-    #         object_ref = lin_test[0].find("lin-def:object", ns).attrib["object_ref"]
-    #
-    #         # This only matches <lin-def:rpminfo_object>, other objects like <lin-def:rpmverifyfile_object> aren't matched
-    #         lin_objects = root.findall(f".//lin-def:rpminfo_object[@id='{object_ref}']", ns)
-    #         lin_objects = root.findall(f".//lin-def:dpkginfo_object[@id='{object_ref}']", ns)
-    #         assert len(lin_objects) == 1
-    #         lin_object = lin_objects[0]
-    #
-    #         lin_name = lin_object.find("lin-def:name", ns)
-    #         if lin_name.text:
-    #             yield lin_name.text
-    #         else:
-    #             var_ref = lin_name.attrib["var_ref"]
-    #             constant_variable = root.find(f".//d:constant_variable[@id='{var_ref}']", ns)
-    #             values = constant_variable.findall('d:value', ns)
-    #             assert values
-    #             for value in values:
-    #                 yield value.text
+# def get_oval_full(oval_file):
+# def get_packages(definition, root, ns):
+#     criterions = definition.findall(".//d:criterion[@test_ref]", ns)
+#     assert criterions
+#     for criterion in criterions:
+#         criterion_id = criterion.attrib['test_ref']
+#         lin_test = root.findall(f".//lin-def:rpmverifyfile_test[@id='{criterion_id}']", ns)
+#         lin_test += root.findall(f".//lin-def:dpkginfo_test[@id='{criterion_id}']", ns)
+#         assert len(lin_test) == 1
+#
+#         object_ref = lin_test[0].find("lin-def:object", ns).attrib["object_ref"]
+#
+#         # This only matches <lin-def:rpminfo_object>, other objects like <lin-def:rpmverifyfile_object> aren't matched
+#         lin_objects = root.findall(f".//lin-def:rpminfo_object[@id='{object_ref}']", ns)
+#         lin_objects = root.findall(f".//lin-def:dpkginfo_object[@id='{object_ref}']", ns)
+#         assert len(lin_objects) == 1
+#         lin_object = lin_objects[0]
+#
+#         lin_name = lin_object.find("lin-def:name", ns)
+#         if lin_name.text:
+#             yield lin_name.text
+#         else:
+#             var_ref = lin_name.attrib["var_ref"]
+#             constant_variable = root.find(f".//d:constant_variable[@id='{var_ref}']", ns)
+#             values = constant_variable.findall('d:value', ns)
+#             assert values
+#             for value in values:
+#                 yield value.text
 
-    cves = []
-    root = etree.parse(oval_file)
-    tags = {elem.tag for elem in root.iter()}
-    ns = {
-        "r": "http://oval.mitre.org/XMLSchema/oval-results-5",
-        "d": "http://oval.mitre.org/XMLSchema/oval-definitions-5",
-        "lin-def": "http://oval.mitre.org/XMLSchema/oval-definitions-5#linux",
-    }
-    severity_dict = {
-        # UBI
-        "Critical": "critical",
-        "Important": "important",
-        "Moderate": "moderate",
-        "Low": "low",
-        "Unknown": "unknown",
-        # Ubuntu
-        # "Critical": "critical",
-        "High": "important",
-        "Medium": "moderate",
-        # "Low": "low",
-        "Negligible": "low",
-        "Untriaged": "unknown",
-    }
+# cves = []
+# root = etree.parse(oval_file)
+# tags = {elem.tag for elem in root.iter()}
+# ns = {
+#     "r": "http://oval.mitre.org/XMLSchema/oval-results-5",
+#     "d": "http://oval.mitre.org/XMLSchema/oval-definitions-5",
+#     "lin-def": "http://oval.mitre.org/XMLSchema/oval-definitions-5#linux",
+# }
+# severity_dict = {
+#     # UBI
+#     "Critical": "critical",
+#     "Important": "important",
+#     "Moderate": "moderate",
+#     "Low": "low",
+#     "Unknown": "unknown",
+#     # Ubuntu
+#     # "Critical": "critical",
+#     "High": "important",
+#     "Medium": "moderate",
+#     # "Low": "low",
+#     "Negligible": "low",
+#     "Untriaged": "unknown",
+# }
 
-    for e in root.findall("r:results/r:system/r:definitions/r:definition", ns):
-        definition_id = e.attrib["definition_id"]
-        result = e.attrib["result"]
-        logging.debug(definition_id)
+# for e in root.findall("r:results/r:system/r:definitions/r:definition", ns):
+#     definition_id = e.attrib["definition_id"]
+#     result = e.attrib["result"]
+#     logging.debug(definition_id)
 
-        definition = root.find(f".//d:definition[@id='{definition_id}']", ns)
-        if definition.attrib["class"] == "inventory":
-            # Skip "Check that Ubuntu 18.04 LTS (bionic) is installed." OVAL check
-            continue
+#     definition = root.find(f".//d:definition[@id='{definition_id}']", ns)
+#     if definition.attrib["class"] == "inventory":
+#         # Skip "Check that Ubuntu 18.04 LTS (bionic) is installed." OVAL check
+#         continue
 
-        description = definition.find("d:metadata/d:description", ns).text
-        title = definition.find("d:metadata/d:title", ns).text
-        severity = definition.find("d:metadata/d:advisory/d:severity", ns).text
-        severity = severity_dict[severity]
-        references = [
-            r.attrib.get("ref_id")
-            for r in definition.findall("d:metadata/d:reference", ns)
-        ]
-        assert references
+#     description = definition.find("d:metadata/d:description", ns).text
+#     title = definition.find("d:metadata/d:title", ns).text
+#     severity = definition.find("d:metadata/d:advisory/d:severity", ns).text
+#     severity = severity_dict[severity]
+#     references = [
+#         r.attrib.get("ref_id")
+#         for r in definition.findall("d:metadata/d:reference", ns)
+#     ]
+#     assert references
 
-        # This is too slow. We're currently parsing the title for the package name in vat_import instead.
-        # packages = list(get_packages(definition, root, ns))
-        # assert packages
+#     # This is too slow. We're currently parsing the title for the package name in vat_import instead.
+#     # packages = list(get_packages(definition, root, ns))
+#     # assert packages
 
-        # ref is the identifier used by VAT, create one CSV line per ref:
-        for ref in references:
-            ret = {
-                "id": definition_id,
-                "result": result,
-                "cls": description,
-                "ref": ref,
-                "title": title,
-                # TODO: will adding columns break the XLSX generation?
-                "severity": severity,
-                # "packages": packages,
-            }
-            cves.append(ret)
-    return cves
+#     # ref is the identifier used by VAT, create one CSV line per ref:
+#     for ref in references:
+#         ret = {
+#             "id": definition_id,
+#             "result": result,
+#             "cls": description,
+#             "ref": ref,
+#             "title": title,
+#             # TODO: will adding columns break the XLSX generation?
+#             "severity": severity,
+#             # "packages": packages,
+#         }
+#         cves.append(ret)
+# return cves
 
 
 # Get results from Twistlock report for csv export
