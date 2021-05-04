@@ -54,7 +54,7 @@ def main():
         description="DCCSCR processing of CVE reports from various sources"
     )
     parser.add_argument("--twistlock", help="location of the twistlock JSON scan file")
-    parser.add_argument("--oscap", help="location of the oscap scan HTML file")
+    parser.add_argument("--oscap", help="location of the oscap scan XML file")
     parser.add_argument(
         "--anchore-sec", help="location of the anchore_security.json scan file"
     )
