@@ -54,9 +54,9 @@ done <"${ARTIFACT_STORAGE}/preflight/args.env")
 
 old_ifs=$IFS
 IFS=$'\n'
+echo "Build the image"
 # Intentional wordsplitting:
 # shellcheck disable=SC2086
-echo "Build the image"
 buildah bud \
   $args_parameters \
   --build-arg=BASE_REGISTRY="${BASE_REGISTRY}" \

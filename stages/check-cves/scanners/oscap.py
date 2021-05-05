@@ -116,9 +116,10 @@ def get_oscap_compliance_findings(oscap_file):
             logging.debug(f"{identifiers}")
             identifier = identifiers[0]
             # Revisit this if we ever switch UBI from ComplianceAsCode to DISA content
+
             def format_reference(ref):
-                ref_title = ref.find(f"dc:title", ns)
-                ref_identifier = ref.find(f"dc:identifier", ns)
+                ref_title = ref.find("dc:title", ns)
+                ref_identifier = ref.find("dc:identifier", ns)
                 href = ref.attrib.get("href")
                 if ref_title is not None:
                     assert ref_identifier is not None

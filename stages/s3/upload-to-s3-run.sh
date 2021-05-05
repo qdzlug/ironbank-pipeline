@@ -18,6 +18,7 @@ PROJECT_README="README.md"
 PROJECT_LICENSE="LICENSE"
 VAT_FINDINGS="${ARTIFACT_STORAGE}/lint/vat_api_findings.json"
 
+# shellcheck source=./stages/s3/repo_map_vars.sh
 source "${PIPELINE_REPO_DIR}/stages/s3/repo_map_vars.sh"
 
 if [[ "${DISTROLESS:-}" ]]; then
@@ -46,16 +47,16 @@ ls reports
 tar -zcvf "${REPORT_TAR_NAME}" reports
 
 python3 "${PIPELINE_REPO_DIR}/stages/s3/s3_upload.py" --file repo_map.json --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/repo_map.json"
-for file in $(find "${DOCUMENTATION_DIRECTORY}" -name "*" -type f); do
+while IFS= read -r -d '' file; do
   object_path="${file#"$ARTIFACT_STORAGE/documentation/"}"
   python3 "${PIPELINE_REPO_DIR}/stages/s3/s3_upload.py" --file "$file" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_DOCUMENTATION_DIRECTORY}/$object_path"
-done
+done < <(find "${DOCUMENTATION_DIRECTORY}" -type f -print0)
 
-for file in $(find "${SCAN_DIRECTORY}" -name "*" -type f); do
+while IFS= read -r -d '' file; do
   report_name=$(echo "$file" | rev | cut -d/ -f1-2 | rev)
   echo "$file"
   python3 "${PIPELINE_REPO_DIR}/stages/s3/s3_upload.py" --file "$file" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/$report_name"
-done
+done < <(find "${SCAN_DIRECTORY}" -type f -print0)
 
 python3 "${PIPELINE_REPO_DIR}/stages/s3/s3_upload.py" --file "${PROJECT_README}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_README}"
 python3 "${PIPELINE_REPO_DIR}/stages/s3/s3_upload.py" --file "${PROJECT_LICENSE}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_LICENSE}"

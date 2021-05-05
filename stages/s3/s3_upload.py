@@ -2,9 +2,7 @@ import logging
 import boto3
 import os
 import argparse
-import datetime
 from botocore.exceptions import ClientError
-import logging
 import mimetypes
 
 
@@ -51,8 +49,8 @@ def upload_file(file_name, bucket, object_name=None):
         region_name="us-gov-west-1",
     )
     try:
-        response = s3_client.upload_file(file_name, bucket, object_name, extra_args)
-    except ClientError as e:
+        s3_client.upload_file(file_name, bucket, object_name, extra_args)
+    except ClientError:
         logging.error("S3 client error occured")
         return False
     return True
