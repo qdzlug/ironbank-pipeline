@@ -41,6 +41,7 @@ _uninheritable_trigger_ids = [
     "cbff271f45d32e78dcc1979dbca9c14d",
 ]
 
+
 def main():
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
