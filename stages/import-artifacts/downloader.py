@@ -285,7 +285,7 @@ def s3_download(
         s3_client.download_file(
             bucket, object_name, artifacts_path + "/external-resources/" + resource_name
         )
-    except ClientError as e:
+    except ClientError:
         logging.error("S3 client error occured")
         sys.exit(1)
 
