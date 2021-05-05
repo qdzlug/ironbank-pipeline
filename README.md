@@ -136,15 +136,6 @@ Job artifacts:
 - `oscap-version.txt` - displays the version of OpenSCAP used.
 - `report.html` - OSCAP Evaluation Report, which contains a list of the rules and any findings.
 
-#### openscap cve
-
-The OpenSCAP CVE scan will check for CVE findings in the image.
-
-Job artifacts:
-
-- `report-cve.html` - OVAL Results, which contains a list of the results from the OpenSCAP CVE scan.
-- `report-cve.xml` - OVAL Results in `.xml` format.
-
 #### twistlock scan
 
 The Twistlock scan will check for CVE findings in the image.
@@ -171,7 +162,6 @@ Job artifacts:
 - `anchore_gates.csv` - Anchore gates in CSV results.
 - `anchore_security.csv` - Anchore security results in CSV format.
 - `oscap.csv` - OpenSCAP results in CSV format.
-- `oval.csv` - OpenSCAP OVAL results in CSV format.
 - `<image-and-pipeline-id>-justifications.xlsx` - see description in previous paragraph.
 - `summary.csv` - compilation of all scan results in CSV format.
 - `tl.csv` - Twistlock results in CSV format.
