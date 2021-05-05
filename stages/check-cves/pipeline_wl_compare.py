@@ -255,12 +255,19 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
 
 def _finding_approval_status_check(finding_dictionary, status_list):
     whitelist = set()
+    _uninheritable_trigger_ids = [
+        "41cb7cdf04850e33a11f80c42bf660b3",
+        "cbff271f45d32e78dcc1979dbca9c14d"
+    ]
     for image in finding_dictionary:
         # loop through all findings for each image listed in the vat-findings.json file
         for finding in finding_dictionary[image]:
             finding_status = finding["finding_status"].lower()
             # if a findings status is in the status list the finding is considered approved in VAT and is added to the whitelist
             if finding_status in status_list:
+                # if the finding is coming from a base layer and the finding isn't actually inherited, don't include it in the whitelist
+                if image != os.environ["IMAGE_NAME"] and finding["finding"] in _uninheritable_trigger_ids:
+                    continue
                 whitelist.add(
                     Finding(
                         finding["scan_source"],
