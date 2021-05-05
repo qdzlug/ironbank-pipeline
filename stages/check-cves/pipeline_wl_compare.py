@@ -258,6 +258,7 @@ def _finding_approval_status_check(finding_dictionary, status_list):
     _uninheritable_trigger_ids = [
         "41cb7cdf04850e33a11f80c42bf660b3",
         "cbff271f45d32e78dcc1979dbca9c14d",
+        "db0e0618d692b953341be18b99a2865a",
     ]
     for image in finding_dictionary:
         # loop through all findings for each image listed in the vat-findings.json file
