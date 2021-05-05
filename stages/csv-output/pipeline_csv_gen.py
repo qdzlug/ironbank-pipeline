@@ -36,6 +36,10 @@ _inheritable_trigger_ids = [
     "c4ad80832b361f81df2a31e5b6b09864",
 ]
 
+_uninheritable_trigger_ids = [
+    "41cb7cdf04850e33a11f80c42bf660b3",
+    "cbff271f45d32e78dcc1979dbca9c14d",
+]
 
 def main():
     # Get logging level, set manually when running pipeline
