@@ -54,7 +54,7 @@ wl compare lint:
     # TODO: output the error for unsuccessful runs
     - |
       if [[ "${CI_COMMIT_BRANCH}" == "master" || "${CI_COMMIT_BRANCH}" == "development" ]] && [[ "${CI_COMMIT_REF_PROTECTED}" != true ]]; then
-        echo "This pipeline is running on an unprotected "${CI_COMMIT_BRANCH}" branch. Please protect "${CI_COMMIT_BRANCH}" before running the pipeline on this branch"
+        echo "This pipeline is running on an unprotected '${CI_COMMIT_BRANCH}' branch. Please protect '${CI_COMMIT_BRANCH}' before running the pipeline on this branch"
         echo "Exiting"
         exit 1
       fi

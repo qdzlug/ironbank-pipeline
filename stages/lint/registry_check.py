@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import sys
+import os
 import argparse
 import logging
 
@@ -20,7 +20,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument("--dockerfile-path", help="path to Dockerfile to parse")
 args = parser.parse_args()
 
-filepath = args.dockerfile - path
+filepath = args.dockerfile_path
 registry_string = "ARG BASE_REGISTRY=registry1.dsop.io/ironbank"
 print(
     "\nSearching for "

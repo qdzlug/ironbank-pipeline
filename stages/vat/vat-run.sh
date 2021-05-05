@@ -10,15 +10,15 @@ export REMOTE_REPORT_DIRECTORY
 export S3_HTML_LINK="${S3_REPORT_BUCKET}/${BASE_BUCKET_DIRECTORY}/${CI_PROJECT_NAME}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}"
 
 python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
-  --db "${vat_db_database_name}" \
-  --user "${vat_db_connection_user}" \
-  --host "${vat_db_host}" \
+  --db "${VAT_DB_DATABASE_NAME}" \
+  --user "${VAT_DB_CONNECTION_USER}" \
+  --host "${VAT_DB_HOST}" \
   --csv_dir "${ARTIFACT_DIR}" \
   --job_id "${CI_PIPELINE_ID}" \
   --container "${IMAGE_NAME}" \
   --version "${IMAGE_VERSION}" \
   --parent "${BASE_IMAGE:-}" \
-  --password "${vat_db_connection_pass}" \
+  --password "${VAT_DB_CONNECTION_PASS}" \
   --parent_version "${BASE_TAG:-}" \
   --scan_date "$(date +%FT%T)" \
   --sec_link "${OSCAP_CVE_URL}" \

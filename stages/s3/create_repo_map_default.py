@@ -2,13 +2,10 @@
 import sys
 import json
 import os
-import shlex
-import subprocess
 import boto3
 import logging
 from botocore.exceptions import ClientError
 import argparse
-import logging
 
 
 def get_repomap(object_name, bucket="ironbank-pipeline-artifacts"):
@@ -25,7 +22,7 @@ def get_repomap(object_name, bucket="ironbank-pipeline-artifacts"):
 
     print(object_name)
     try:
-        response = s3_client.download_file(bucket, object_name, "repo_map.json")
+        s3_client.download_file(bucket, object_name, "repo_map.json")
     except ClientError as e:
         logging.error(e)
         print("Existing repo_map.json not found, creating new repo_map.json")
@@ -59,7 +56,6 @@ def _get_source_keys_values(source_file):
     Ignore keywords since IBFE already has an implementation for gathering keywords
 
     """
-    num_vals = 0
     hm_labels = {}
     if os.path.exists(source_file):
         with open(source_file, mode="r", encoding="utf-8") as sf:
