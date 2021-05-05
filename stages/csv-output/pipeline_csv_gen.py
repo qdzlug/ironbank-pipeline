@@ -447,6 +447,11 @@ def _get_justifications(total_whitelist, sourceImageName):
                 if finding["whitelist_source"] == sourceImageName:
                     compAnchore[cveID] = finding["justification"]
                     compAnchore[trigger_id] = finding["justification"]
+                elif trigger_id in _uninheritable_trigger_ids:
+                    logging.debug(
+                        f"{trigger_id} cannot be inherited. Skipping addition of justification"
+                    )
+                    continue
                 else:
                     logging.debug("Anchore Comp inherited finding")
                     compAnchore[cveID] = "Inherited from base image."
