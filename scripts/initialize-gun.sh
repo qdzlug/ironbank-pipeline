@@ -4,6 +4,7 @@
 #
 # Usage:
 # export NOTARY_AUTH=$(echo -n "exampleuser:examplepassword" | base64)
+# export NUM_RETRIES=<INT>, default is 5
 # ./initialize-gun.sh registry1.dso.mil/ironbank/project/image
 #
 # Where exampleuser:examplepassword are your harbor credentials
@@ -76,8 +77,9 @@ import_root_key() {
     echo ""
     sleep 5
   done
+  # Retrieve root key, retry on failure
   for i in $(seq 1 $NUM_RETRIES); do
-    # Retrieve root key, retry on failure
+
     if [ -z "${ROOT_KEY}" ]; then
       ROOT_KEY=$(vault kv get -field=rootkey "/kv/il2/notary/admin/$rootkeyloc")
       echo "Warning: Error retrieving root key, retrying"
@@ -167,6 +169,7 @@ if [ -z "${NOTARY_AUTH:-}" ]; then
   export NOTARY_AUTH
 fi
 
+# set number of retries if not set
 if [ -z "${NUM_RETRIES:-}" ]; then
   echo
   echo "Number of retries set to 5 by default"
