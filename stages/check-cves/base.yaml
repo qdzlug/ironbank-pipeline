@@ -15,8 +15,6 @@ check cves:
     - twistlock scan
     - openscap compliance
     - anchore scan
-  variables:
-    LOGLEVEL: "DEBUG"
   script:
     - |
       pip3 install jsonschema
