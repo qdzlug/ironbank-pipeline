@@ -326,7 +326,7 @@ def _vat_findings_query(im_name, im_version):
     else:
         logging.warning(f"Unknown response from VAT {r.status_code}")
         logging.warning(r.text)
-        logging.error("Please contact VAT to ensure we are able to receive a response or rerun the pipeline")
+        logging.error("Please contact POPs to ensure we are able to receive a response or rerun the pipeline")
         global api_exit_code
         api_exit_code = 3
 
