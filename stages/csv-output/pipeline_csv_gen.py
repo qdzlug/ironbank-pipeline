@@ -12,7 +12,7 @@ import pathlib
 import logging
 import mysql.connector
 from mysql.connector import Error
-from bs4 import BeautifulSoup
+import xml.etree.ElementTree as etree
 
 from scanners import anchore
 from scanners.helper import write_csv_from_dict_list
@@ -36,6 +36,12 @@ _inheritable_trigger_ids = [
     "c4ad80832b361f81df2a31e5b6b09864",
 ]
 
+_uninheritable_trigger_ids = [
+    "41cb7cdf04850e33a11f80c42bf660b3",
+    "cbff271f45d32e78dcc1979dbca9c14d",
+    "db0e0618d692b953341be18b99a2865a",
+]
+
 
 def main():
     # Get logging level, set manually when running pipeline
@@ -54,8 +60,7 @@ def main():
         description="DCCSCR processing of CVE reports from various sources"
     )
     parser.add_argument("--twistlock", help="location of the twistlock JSON scan file")
-    parser.add_argument("--oscap", help="location of the oscap scan HTML file")
-    parser.add_argument("--oval", help="location of the oval scan HTML file")
+    parser.add_argument("--oscap", help="location of the oscap scan XML file")
     parser.add_argument(
         "--anchore-sec", help="location of the anchore_security.json scan file"
     )
@@ -96,7 +101,6 @@ def main():
         total_whitelist, image_name
     )
     oscap_fail_count = 0
-    oval_fail_count = 0
     twist_fail_count = 0
     anchore_num_cves = 0
     anchore_compliance = 0
@@ -106,10 +110,6 @@ def main():
         )
     else:
         generate_blank_oscap_report(csv_dir=args.output_dir)
-    if args.oval:
-        oval_fail_count = generate_oval_report(args.oval, csv_dir=args.output_dir)
-    else:
-        generate_blank_oval_report(csv_dir=args.output_dir)
     if args.twistlock:
         twist_fail_count = generate_twistlock_report(
             args.twistlock, j_twistlock, csv_dir=args.output_dir
@@ -132,7 +132,6 @@ def main():
     generate_summary_report(
         csv_dir=args.output_dir,
         osc=oscap_fail_count,
-        ovf=oval_fail_count,
         tlf=twist_fail_count,
         anchore_num_cves=anchore_num_cves,
         anchore_compliance=anchore_compliance,
@@ -173,6 +172,8 @@ def _load_remote_hardening_manifest(project, branch="master"):
     to console to communicate which repository does not have a hardening manifest.
 
     """
+    assert branch in ["master", "development"]
+
     if project == "":
         return None
 
@@ -200,7 +201,7 @@ def _load_remote_hardening_manifest(project, branch="master"):
     return None
 
 
-def _next_ancestor(image_path, whitelist_branch, hardening_manifest=None):
+def _next_ancestor(parent_image_path, whitelist_branch, hardening_manifest=None):
     """
     Grabs the parent image path from the current context. Will initially attempt to load
     a new hardening manifest and then pull the parent image from there.
@@ -217,14 +218,25 @@ def _next_ancestor(image_path, whitelist_branch, hardening_manifest=None):
             hardening_manifest["args"]["BASE_TAG"],
         )
 
+    # never allow STAGING_BASE_IMAGE to be set when running a master branch pipeline
+    if (
+        os.environ.get("STAGING_BASE_IMAGE")
+        and os.environ["CI_COMMIT_BRANCH"] == "master"
+    ):
+        logging.error("Cannot use STAGING_BASE_IMAGE on master branch")
+        sys.exit(1)
+
+    # pull from development if using staging base image
+    branch = "development" if os.environ.get("STAGING_BASE_IMAGE") else "master"
+    logging.info(f"Getting {parent_image_path} hardening_manifest.yaml from {branch}")
     # Try to load the hardening manifest from a remote repo.
-    hm = _load_remote_hardening_manifest(project=image_path)
+    hm = _load_remote_hardening_manifest(project=parent_image_path, branch=branch)
     if hm is not None:
         return (hm["args"]["BASE_IMAGE"], hm["args"]["BASE_TAG"])
     else:
         logging.error(
             "hardening_manifest.yaml does not exist for "
-            + image_path
+            + parent_image_path
             + ". Please add a hardening_manifest.yaml file to this project"
         )
         logging.error("Exiting.")
@@ -238,18 +250,18 @@ def _connect_to_db():
     conn = None
     try:
         conn = mysql.connector.connect(
-            host=os.environ["vat_db_host"],
-            database=os.environ["vat_db_database_name"],
-            user=os.environ["vat_db_connection_user"],
-            passwd=os.environ["vat_db_connection_pass"],
+            host=os.environ["VAT_DB_HOST"],
+            database=os.environ["VAT_DB_DATABASE_NAME"],
+            user=os.environ["VAT_DB_CONNECTION_USER"],
+            passwd=os.environ["VAT_DB_CONNECTION_PASS"],
         )
         if conn.is_connected():
             # there are many connections to db so this should be uncommented
             # for troubleshooting
             logging.debug(
                 "Connected to the host %s with user %s",
-                os.environ["vat_db_host"],
-                os.environ["vat_db_connection_user"],
+                os.environ["VAT_DB_HOST"],
+                os.environ["VAT_DB_CONNECTION_USER"],
             )
         else:
             logging.critical("Failed to connect to DB")
@@ -345,7 +357,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
     # add parent images to inheritance list
     parent_image_name, parent_image_version = _next_ancestor(
-        image_path=image_name,
+        parent_image_path=image_name,
         whitelist_branch=whitelist_branch,
         hardening_manifest=hardening_manifest,
     )
@@ -353,7 +365,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     while parent_image_name:
         inheritance_list.append((parent_image_name, parent_image_version))
         parent_image_name, parent_image_version = _next_ancestor(
-            image_path=parent_image_name,
+            parent_image_path=parent_image_name,
             whitelist_branch=whitelist_branch,
         )
 
@@ -436,6 +448,11 @@ def _get_justifications(total_whitelist, sourceImageName):
                 if finding["whitelist_source"] == sourceImageName:
                     compAnchore[cveID] = finding["justification"]
                     compAnchore[trigger_id] = finding["justification"]
+                elif trigger_id in _uninheritable_trigger_ids:
+                    logging.debug(
+                        f"{trigger_id} cannot be inherited. Skipping addition of justification"
+                    )
+                    continue
                 else:
                     logging.debug("Anchore Comp inherited finding")
                     compAnchore[cveID] = "Inherited from base image."
@@ -464,20 +481,8 @@ def generate_blank_oscap_report(csv_dir):
     oscap_report.close()
 
 
-# Blank oval Report
-def generate_blank_oval_report(csv_dir):
-    oval_report = open(csv_dir + "oval.csv", "w", encoding="utf-8")
-    csv_writer = csv.writer(oval_report)
-    csv_writer.writerow(
-        ["OpenSCAP Scan Skipped Due to Base Image Used", "", "", "", ""]
-    )
-    oval_report.close()
-
-
 # SUMMARY REPORT
-def generate_summary_report(
-    csv_dir, osc, ovf, tlf, anchore_num_cves, anchore_compliance
-):
+def generate_summary_report(csv_dir, osc, tlf, anchore_num_cves, anchore_compliance):
     sum_data = open(csv_dir + "summary.csv", "w", encoding="utf-8")
     csv_writer = csv.writer(sum_data)
 
@@ -486,11 +491,10 @@ def generate_summary_report(
     # if the osc arg type is an int, the scan was skipped so output zero values
     if type(osc) == int:
         osl = ["OpenSCAP - DISA Compliance", 0, 0, 0]
-    # osc arg is a tuple, meaning the generate_oscap_report and generate_oval_report functions were run
+    # osc arg is a tuple, meaning the generate_oscap_report function was run
     else:
         osl = ["OpenSCAP - DISA Compliance", osc[0], osc[1], osc[0] + osc[1]]
 
-    ovf = ["OpenSCAP - OVAL Results", int(ovf or 0), 0, int(ovf or 0)]
     anchore_vulns = ["Anchore CVE Results", anchore_num_cves, 0, anchore_num_cves]
     anchore_comps = [
         "Anchore Compliance Results",
@@ -502,16 +506,15 @@ def generate_summary_report(
 
     csv_writer.writerow(header)
     csv_writer.writerow(osl)
-    csv_writer.writerow(ovf)
     csv_writer.writerow(twl)
     csv_writer.writerow(anchore_vulns)
     csv_writer.writerow(anchore_comps)
     csv_writer.writerow(
         [
             "Totals",
-            osl[1] + ovf[1] + anchore_vulns[1] + anchore_comps[1] + twl[1],
-            osl[2] + ovf[2] + anchore_vulns[2] + anchore_comps[2] + twl[2],
-            osl[3] + ovf[3] + anchore_vulns[3] + anchore_comps[3] + twl[3],
+            osl[1] + anchore_vulns[1] + anchore_comps[1] + twl[1],
+            osl[2] + anchore_vulns[2] + anchore_comps[2] + twl[2],
+            osl[3] + anchore_vulns[3] + anchore_comps[3] + twl[3],
         ]
     )
 
@@ -553,109 +556,229 @@ def generate_oscap_report(oscap, justifications, csv_dir):
 
 # Get full OSCAP report with justifications for csv export
 def get_oscap_full(oscap_file, justifications):
-    with open(oscap_file, mode="r", encoding="utf-8") as of:
-        soup = BeautifulSoup(of, "html.parser")
-        divs = soup.find("div", id="result-details")
+    root = etree.parse(oscap_file)
+    ns = {
+        "xccdf": "http://checklists.nist.gov/xccdf/1.2",
+        "xhtml": "http://www.w3.org/1999/xhtml",  # not actually needed
+        "dc": "http://purl.org/dc/elements/1.1/",
+    }
+    patches_up_to_date_dupe = False
+    cces = []
+    for rule_result in root.findall("xccdf:TestResult/xccdf:rule-result", ns):
+        # Current CSV values
+        # title,ruleid,result,severity,identifiers,refs,desc,rationale,scanned_date,Justification
+        rule_id = rule_result.attrib["idref"]
+        severity = rule_result.attrib["severity"]
+        date_scanned = rule_result.attrib["time"]
+        result = rule_result.find("xccdf:result", ns).text
+        logging.debug(f"{rule_id}")
+        if result == "notselected":
+            logging.debug(f"SKIPPING: 'notselected' rule {rule_id} ")
+            continue
 
-        scan_date = soup.find("th", text="Finished at")
-        finished_at = scan_date.find_next_sibling("td").text
-        id_regex = re.compile(".*rule-detail-.*")
-        all = divs.find_all("div", {"class": id_regex})
+        if rule_id == "xccdf_org.ssgproject.content_rule_security_patches_up_to_date":
+            if patches_up_to_date_dupe:
+                logging.debug(
+                    f"SKIPPING: rule {rule_id} - OVAL check repeats and this finding is checked elsewhere"
+                )
+                continue
+            else:
+                patches_up_to_date_dupe = True
+        # Get the <rule> that corresponds to the <rule-result>
+        # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
+        rule = root.find(f".//xccdf:Rule[@id='{rule_id}']", ns)
+        title = rule.find("xccdf:title", ns).text
 
-        cces = []
-        for x in all:
-            # Assign identifiers to null value otherwise it fails when parsing non-RHEL scan results
-            identifiers = None
+        # This is the identifier that VAT will use. It will never be unset.
+        # Values will be of the format UBTU-18-010100 (UBI) or CCI-001234 (Ubuntu)
+        # Ubuntu/DISA:
+        identifiers = [v.text for v in rule.findall("xccdf:version", ns)]
+        if not identifiers:
+            # UBI/ComplianceAsCode:
+            identifiers = [i.text for i in rule.findall("xccdf:ident", ns)]
+        # We never expect to get more than one identifier
+        assert len(identifiers) == 1
+        logging.debug(f"{identifiers}")
+        identifier = identifiers[0]
+        # Revisit this if we ever switch UBI from ComplianceAsCode to DISA content
 
-            title = x.find("h3", {"class": "panel-title"}).text
-            table = x.find("table", {"class": "table table-striped table-bordered"})
+        def format_reference(ref):
+            ref_title = ref.find("dc:title", ns)
+            ref_identifier = ref.find("dc:identifier", ns)
+            href = ref.attrib.get("href")
+            if ref_title is not None:
+                assert ref_identifier is not None
+                return f"{ref_title.text}: {ref_identifier.text}"
+            elif href:
+                return f"{href} {ref.text}"
 
-            ruleid = table.find("td", text="Rule ID").find_next_sibling("td").text
-            result = table.find("td", text="Result").find_next_sibling("td").text
-            severity = table.find("td", text="Severity").find_next_sibling("td").text
-            ident = table.find(
-                "td", text="Identifiers and References"
-            ).find_next_sibling("td")
-            if ident.find("abbr"):
-                identifiers = ident.find("abbr").text
+            return ref.text
 
-            references = ident.find_all("a", href=True)
-            refs = []
-            for j in references:
-                refs.append(j.text)
+        # This is now informational only, vat_import no longer uses this field
+        references = "\n".join(
+            format_reference(r) for r in rule.findall("xccdf:reference", ns)
+        )
+        assert references
 
-            desc = table.find("td", text="Description").find_next_sibling("td").text
-            rationale = table.find("td", text="Rationale").find_next_sibling("td").text
+        rationale_element = rule.find("xccdf:rationale", ns)
+        # Ubuntu XCCDF has no <rationale>
+        rationale = (
+            etree.tostring(rationale_element, method="text").decode("utf-8").strip()
+            if rationale_element is not None
+            else ""
+        )
 
-            cve_justification = ""
-            id = identifiers
-            if id in justifications.keys():
-                cve_justification = justifications[id]
+        # Convert description to text, seems to work well:
+        description = (
+            etree.tostring(rule.find("xccdf:description", ns), method="text")
+            .decode("utf8")
+            .strip()
+        )
+        # Cleanup Ubuntu descriptions
+        match = re.match(
+            r"<VulnDiscussion>(.*)</VulnDiscussion>", description, re.DOTALL
+        )
+        if match:
+            description = match.group(1)
 
-            ret = {
-                "title": title,
-                # 'table': table,
-                "ruleid": ruleid,
-                "result": result,
-                "severity": severity,
-                "identifiers": identifiers,
-                "refs": refs,
-                "desc": desc,
-                "rationale": rationale,
-                "scanned_date": finished_at,
-                "Justification": cve_justification,
-            }
-            cces.append(ret)
-        return cces
+        cve_justification = ""
+        if identifier in justifications:
+            cve_justification = justifications[identifier]
+
+        ret = {
+            "title": title,
+            "ruleid": rule_id,
+            "result": result,
+            "severity": severity,
+            "identifiers": identifier,
+            "refs": references,
+            "desc": description,
+            "rationale": rationale,
+            "scanned_date": date_scanned,
+            "Justification": cve_justification,
+        }
+        cces.append(ret)
+    try:
+        assert len(set(cce["identifiers"] for cce in cces)) == len(cces)
+    except Exception as duplicate_idents:
+        for cce in cces:
+            print(cce["ruleid"], cce["identifiers"])
+        raise duplicate_idents
+
+    return cces
 
 
 # Generate oval csv
-def generate_oval_report(oval, csv_dir):
-    oval_cves = get_oval_full(oval)
-    oval_data = open(csv_dir + "oval.csv", "w", encoding="utf-8")
-    csv_writer = csv.writer(oval_data)
-    count = 0
-    fail_count = 0
-    for line in oval_cves:
-        if count == 0:
-            header = line.keys()
-            csv_writer.writerow(header)
-            count += 1
-        if line["result"] == "true":
-            fail_count += 1
-        csv_writer.writerow(line.values())
-    oval_data.close()
-    return fail_count
+# def generate_oval_report(oval, csv_dir):
+#    oval_cves = get_oval_full(oval)
+#    oval_data = open(csv_dir + "oval.csv", "w", encoding="utf-8")
+#    csv_writer = csv.writer(oval_data)
+#    count = 0
+#    fail_count = 0
+#    for line in oval_cves:
+#        if count == 0:
+#            header = line.keys()
+#            csv_writer.writerow(header)
+#            count += 1
+#        if line["result"] == "true":
+#            fail_count += 1
+#        csv_writer.writerow(line.values())
+#    oval_data.close()
+#    return fail_count
 
 
 # Get OVAL report for csv export
-def get_oval_full(oval_file):
-    oscap = open(oval_file, "r", encoding="utf-8")
-    soup = BeautifulSoup(oscap, "html.parser")
-    results_bad = soup.find_all("tr", class_=["resultbadA", "resultbadB"])
-    results_good = soup.find_all("tr", class_=["resultgoodA", "resultgoodB"])
+# def get_oval_full(oval_file):
+# def get_packages(definition, root, ns):
+#     criterions = definition.findall(".//d:criterion[@test_ref]", ns)
+#     assert criterions
+#     for criterion in criterions:
+#         criterion_id = criterion.attrib['test_ref']
+#         lin_test = root.findall(f".//lin-def:rpmverifyfile_test[@id='{criterion_id}']", ns)
+#         lin_test += root.findall(f".//lin-def:dpkginfo_test[@id='{criterion_id}']", ns)
+#         assert len(lin_test) == 1
+#
+#         object_ref = lin_test[0].find("lin-def:object", ns).attrib["object_ref"]
+#
+#         # This only matches <lin-def:rpminfo_object>, other objects like <lin-def:rpmverifyfile_object> aren't matched
+#         lin_objects = root.findall(f".//lin-def:rpminfo_object[@id='{object_ref}']", ns)
+#         lin_objects = root.findall(f".//lin-def:dpkginfo_object[@id='{object_ref}']", ns)
+#         assert len(lin_objects) == 1
+#         lin_object = lin_objects[0]
+#
+#         lin_name = lin_object.find("lin-def:name", ns)
+#         if lin_name.text:
+#             yield lin_name.text
+#         else:
+#             var_ref = lin_name.attrib["var_ref"]
+#             constant_variable = root.find(f".//d:constant_variable[@id='{var_ref}']", ns)
+#             values = constant_variable.findall('d:value', ns)
+#             assert values
+#             for value in values:
+#                 yield value.text
 
-    cves = []
-    for x in results_bad + results_good:
-        id = x.find("td")
-        result = id.find_next_sibling("td")
-        cls = result.find_next_sibling("td")
-        y = x.find_all(target="_blank")
-        references = set()
-        for t in y:
-            references.add(t.text)
-        title = cls.find_next_sibling("td").find_next_sibling("td")
+# cves = []
+# root = etree.parse(oval_file)
+# tags = {elem.tag for elem in root.iter()}
+# ns = {
+#     "r": "http://oval.mitre.org/XMLSchema/oval-results-5",
+#     "d": "http://oval.mitre.org/XMLSchema/oval-definitions-5",
+#     "lin-def": "http://oval.mitre.org/XMLSchema/oval-definitions-5#linux",
+# }
+# severity_dict = {
+#     # UBI
+#     "Critical": "critical",
+#     "Important": "important",
+#     "Moderate": "moderate",
+#     "Low": "low",
+#     "Unknown": "unknown",
+#     # Ubuntu
+#     # "Critical": "critical",
+#     "High": "important",
+#     "Medium": "moderate",
+#     # "Low": "low",
+#     "Negligible": "low",
+#     "Untriaged": "unknown",
+# }
 
-        for ref in references:
-            ret = {
-                "id": id.text,
-                "result": result.text,
-                "cls": cls.text,
-                "ref": ref,
-                "title": title.text,
-            }
-            cves.append(ret)
-    return cves
+# for e in root.findall("r:results/r:system/r:definitions/r:definition", ns):
+#     definition_id = e.attrib["definition_id"]
+#     result = e.attrib["result"]
+#     logging.debug(definition_id)
+
+#     definition = root.find(f".//d:definition[@id='{definition_id}']", ns)
+#     if definition.attrib["class"] == "inventory":
+#         # Skip "Check that Ubuntu 18.04 LTS (bionic) is installed." OVAL check
+#         continue
+
+#     description = definition.find("d:metadata/d:description", ns).text
+#     title = definition.find("d:metadata/d:title", ns).text
+#     severity = definition.find("d:metadata/d:advisory/d:severity", ns).text
+#     severity = severity_dict[severity]
+#     references = [
+#         r.attrib.get("ref_id")
+#         for r in definition.findall("d:metadata/d:reference", ns)
+#     ]
+#     assert references
+
+#     # This is too slow. We're currently parsing the title for the package name in vat_import instead.
+#     # packages = list(get_packages(definition, root, ns))
+#     # assert packages
+
+#     # ref is the identifier used by VAT, create one CSV line per ref:
+#     for ref in references:
+#         ret = {
+#             "id": definition_id,
+#             "result": result,
+#             "cls": description,
+#             "ref": ref,
+#             "title": title,
+#             # TODO: will adding columns break the XLSX generation?
+#             "severity": severity,
+#             # "packages": packages,
+#         }
+#         cves.append(ret)
+# return cves
 
 
 # Get results from Twistlock report for csv export

@@ -24,7 +24,6 @@ upload to s3:
     - build
     - anchore scan
     - twistlock scan
-    - openscap cve
     - openscap compliance
     - csv output
     - documentation

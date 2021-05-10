@@ -2,13 +2,10 @@
 import sys
 import json
 import os
-import shlex
-import subprocess
 import boto3
 import logging
 from botocore.exceptions import ClientError
 import argparse
-import logging
 
 
 def get_repomap(object_name, bucket="ironbank-pipeline-artifacts"):
@@ -25,7 +22,7 @@ def get_repomap(object_name, bucket="ironbank-pipeline-artifacts"):
 
     print(object_name)
     try:
-        response = s3_client.download_file(bucket, object_name, "repo_map.json")
+        s3_client.download_file(bucket, object_name, "repo_map.json")
     except ClientError as e:
         logging.error(e)
         print("Existing repo_map.json not found, creating new repo_map.json")
@@ -59,7 +56,6 @@ def _get_source_keys_values(source_file):
     Ignore keywords since IBFE already has an implementation for gathering keywords
 
     """
-    num_vals = 0
     hm_labels = {}
     if os.path.exists(source_file):
         with open(source_file, mode="r", encoding="utf-8") as sf:
@@ -128,7 +124,6 @@ def main():
             "Image_Sha": os.environ["image_sha"],
             "OpenSCAP_Compliance_Results": os.environ["openscap_compliance_results"],
             "Tar_Name": os.environ["tar_name"],
-            "OpenSCAP_OVAL_Results": os.environ["openscap_oval_results"],
             "OpenSCAP_Report": os.environ["openscap_report"],
             "Image_Tag": os.environ["image_tag"],
             "Manifest_Name": os.environ["manifest_name"],
@@ -136,7 +131,6 @@ def main():
             "Approval_Text": approval_text,
             "Image_Name": os.environ["image_name"],
             "Version_Documentation": os.environ["version_documentation"],
-            "OVAL_Report": os.environ["oval_report"],
             "PROJECT_FILE": os.environ["project_license"],
             "PROJECT_README": os.environ["project_readme"],
             "Tar_Location": os.environ["tar_location"],

@@ -44,18 +44,18 @@ def _connect_to_db():
     conn = None
     try:
         conn = mysql.connector.connect(
-            host=os.environ["vat_db_host"],
-            database=os.environ["vat_db_database_name"],
-            user=os.environ["vat_db_connection_user"],
-            passwd=os.environ["vat_db_connection_pass"],
+            host=os.environ["VAT_DB_HOST"],
+            database=os.environ["VAT_DB_DATABASE_NAME"],
+            user=os.environ["VAT_DB_CONNECTION_USER"],
+            passwd=os.environ["VAT_DB_CONNECTION_PASS"],
         )
         if conn.is_connected():
             # there are many connections to db so this should be uncommented
             # for troubleshooting
             logging.debug(
                 "Connected to the host %s with user %s",
-                os.environ["vat_db_host"],
-                os.environ["vat_db_connection_user"],
+                os.environ["VAT_DB_HOST"],
+                os.environ["VAT_DB_CONNECTION_USER"],
             )
         else:
             logging.critical("Failed to connect to DB")
@@ -103,6 +103,8 @@ def _load_remote_hardening_manifest(project, branch="master"):
     to console to communicate which repository does not have a hardening manifest.
 
     """
+    assert branch in ["master", "development"]
+
     if project == "":
         return None
 
@@ -172,23 +174,16 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
     #
     if not bool(os.environ.get("DISTROLESS")):
         oscap_file = pathlib.Path(
-            artifacts_path, "scan-results", "openscap", "report.html"
+            artifacts_path, "scan-results", "openscap", "compliance_output_report.xml"
         )
-        oval_file = pathlib.Path(
-            artifacts_path, "scan-results", "openscap", "report-cve.html"
-        )
+        # oval_file = pathlib.Path(
+        #     artifacts_path, "scan-results", "openscap", "report-cve.html"
+        # )
 
-        oscap_disa_comp = oscap.get_fails(oscap_file)
-        oscap_notchecked = oscap.get_notchecked(oscap_file)
-        for o in oscap_notchecked:
-            oscap_disa_comp.append(o)
+        oscap_disa_comp = oscap.get_oscap_compliance_findings(oscap_file)
 
         for o in oscap_disa_comp:
             vuln_set.add(Finding("oscap_comp", o["identifiers"], None, None))
-
-        oval_cves = oscap.get_oval(oval_file)
-        for oval in oval_cves:
-            vuln_set.add(Finding("oscap_cve", oval["ref"], oval["pkg"], None))
 
     twistlock_cves = twistlock.get_full()
     for tl in twistlock_cves:
@@ -260,12 +255,24 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
 
 def _finding_approval_status_check(finding_dictionary, status_list):
     whitelist = set()
+    _uninheritable_trigger_ids = [
+        "41cb7cdf04850e33a11f80c42bf660b3",
+        "cbff271f45d32e78dcc1979dbca9c14d",
+        "db0e0618d692b953341be18b99a2865a",
+    ]
     for image in finding_dictionary:
         # loop through all findings for each image listed in the vat-findings.json file
         for finding in finding_dictionary[image]:
             finding_status = finding["finding_status"].lower()
             # if a findings status is in the status list the finding is considered approved in VAT and is added to the whitelist
             if finding_status in status_list:
+                # if the finding is coming from a base layer and the finding isn't actually inherited, don't include it in the whitelist
+                if (
+                    image != os.environ["IMAGE_NAME"]
+                    and finding["finding"] in _uninheritable_trigger_ids
+                ):
+                    logging.debug(f"Excluding finding {finding['finding']} for {image}")
+                    continue
                 whitelist.add(
                     Finding(
                         finding["scan_source"],
@@ -449,8 +456,19 @@ def _next_ancestor(parent_image_path, whitelist_branch):
 
     """
 
+    # never allow STAGING_BASE_IMAGE to be set when running a master branch pipeline
+    if (
+        os.environ.get("STAGING_BASE_IMAGE")
+        and os.environ["CI_COMMIT_BRANCH"] == "master"
+    ):
+        logging.error("Cannot use STAGING_BASE_IMAGE on master branch")
+        sys.exit(1)
+
+    # load from development if staging base image is used
+    branch = "development" if os.environ.get("STAGING_BASE_IMAGE") else "master"
+    logging.info(f"Getting {parent_image_path} hardening_manifest.yaml from {branch}")
     # Try to load the hardening manifest from a remote repo.
-    hm = _load_remote_hardening_manifest(project=parent_image_path)
+    hm = _load_remote_hardening_manifest(project=parent_image_path, branch=branch)
     # REMOVE if statement when we are no longer using greylists
     if hm is not None:
         return (hm["name"], hm["tags"][0], hm["args"]["BASE_IMAGE"])
