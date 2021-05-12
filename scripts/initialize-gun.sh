@@ -82,7 +82,10 @@ import_root_key() {
 
     if [ -z "${ROOT_KEY}" ]; then
       ROOT_KEY=$(vault kv get -field=rootkey "/kv/il2/notary/admin/$rootkeyloc")
-      echo "Warning: Error retrieving root key, retrying"
+if [ -z "${ROOT_KEY}" ] || [ $? -ne 0 ]; then
+  echo "Warning: Error retrieving root key, retrying"
+  echo ""
+  sleep 5
       echo ""
       sleep 5
     else
