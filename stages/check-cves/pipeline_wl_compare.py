@@ -333,8 +333,8 @@ def _vat_findings_query(im_name, im_version):
     else:
         logging.warning(f"Unknown response from VAT {r.status_code}")
         logging.warning(r.text)
-        logging.error(
-            "Please contact POPs to ensure we are able to receive a response or rerun the pipeline"
+        logging.warning(
+            "This pipeline has been allowed to fail. However, this issue still needs to be addressed. Please investigate, and if Iron Bank assistance is needed, please open an issue in this project using the `Pipeline Failure` template to ensure that we assist you. If you need further assistance, please visit the `Team - Iron Bank Pipelines and Operations` Mattermost channel."
         )
         global api_exit_code
         api_exit_code = 3
