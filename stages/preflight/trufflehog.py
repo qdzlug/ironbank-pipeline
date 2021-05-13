@@ -35,7 +35,6 @@ def main():
         sys.exit(1)
 
     history_cmd = get_history_cmd(repo_dir, diff_branch)
-    config_cmd = get_config_command(repo_dir)
 
     cmd = [
         "trufflehog3",
@@ -43,7 +42,8 @@ def main():
         "--branch",
         branch_name,
         *history_cmd,
-        *config_cmd,
+        "--config",
+        "trufflehog-config.yaml",
         ".",
     ]
 
