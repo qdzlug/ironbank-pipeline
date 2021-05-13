@@ -5,7 +5,8 @@ import os
 import sys
 import subprocess
 import git
-from pathlib import Path
+import yaml
+from pathlib import Path, PosixPath
 
 
 def main():
@@ -103,6 +104,19 @@ def get_history_cmd(repo_dir, diff_branch):
     logging.info(f"git rev-list {diff_branch}.. --no-merges\n{formatted_commits}")
     # if no data is returned to commits, it will be an list with one element that is an empty string
     return ["--since-commit", commits[-1]] if commits[-1] else ["--no-history"]
+
+
+def get_config(config_file: PosixPath = None) -> tuple[list, list]:
+    skip_strings = []
+    skip_paths = []
+    with config_file.open(mode="r") as f:
+        data = yaml.safe_load(f)
+    keys = [key for key in data]
+    if "skip_strings" in keys:
+        skip_strings = data["skip_strings"]
+    if "skip_paths" in keys:
+        skip_paths = data["skip_paths"]
+    return skip_strings, skip_paths
 
 
 if __name__ == "__main__":
