@@ -366,6 +366,17 @@ def _get_complete_whitelist_for_image(vat_findings, status_list):
                 ):
                     logging.debug(f"Excluding finding {finding['finding']} for {image}")
                     continue
+                total_whitelist.append(
+                    {
+                        "scan_source": finding["source"],
+                        "cve_id": finding["finding"],
+                        "package": finding["package"],
+                        "package_path": finding["package_path"],
+                        "justification": finding["justification"]
+                        if image == os.environ["IMAGE_NAME"]
+                        else "Inherited from base image.",
+                    }
+                )
 
     # add source image to inheritance list
     inheritance_list.append((os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]))
