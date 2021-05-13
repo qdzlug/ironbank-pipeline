@@ -86,8 +86,7 @@ def main():
         logging.error("Please update your project to contain a hardening_manifest.yaml")
         sys.exit(1)
 
-    image_name = hardening_manifest["name"]
-
+    artifacts_path = os.environ["ARTIFACT_STORAGE"]
     # get cves and justifications from VAT
     vat_findings_file = pathlib.Path(artifacts_path, "lint", "vat_findings.json")
     try:
@@ -98,11 +97,15 @@ def main():
         sys.exit(1)
 
     approval_status_list = ["approved", "conditional"]
-    total_whitelist = _get_complete_whitelist_for_image(vat_findings, approval_status_list)
+    total_whitelist = _get_complete_whitelist_for_image(
+        vat_findings, approval_status_list
+    )
     # Get all justifications
     logging.info("Gathering list of all justifications...")
 
-    j_openscap, j_twistlock, j_anchore_cve, j_anchore_comp = _split_by_scan_source(total_whitelist)
+    j_openscap, j_twistlock, j_anchore_cve, j_anchore_comp = _split_by_scan_source(
+        total_whitelist
+    )
 
     oscap_fail_count = 0
     twist_fail_count = 0
