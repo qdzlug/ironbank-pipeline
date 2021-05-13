@@ -164,7 +164,7 @@ def _get_complete_whitelist_for_image(vat_findings, status_list):
                 # if finding is inherited, set justification as 'Inherited from base image.'
                 total_whitelist.append(
                     {
-                        "scan_source": finding["source"],
+                        "scan_source": finding["scan_source"],
                         "cve_id": finding["finding"],
                         "package": finding["package"],
                         "package_path": finding["package_path"],
