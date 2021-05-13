@@ -1,6 +1,6 @@
 build:
   stage: build
-  image: "registry1.dso.mil/ironbank/ironbank-pipelines/rootless-podman:0.1"
+  image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner@sha256:f7f327f7827f58ecb66ca47fb27e655e19ee1d53151fb256e162acee84cadf8b"
   tags:
     - ironbank-isolated
   dependencies:
