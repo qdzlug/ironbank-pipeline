@@ -105,21 +105,5 @@ def get_history_cmd(repo_dir, diff_branch):
     return ["--since-commit", commits[-1]] if commits[-1] else ["--no-history"]
 
 
-def get_config_command(repo_dir):
-    """
-    Returns a list with config command for trufflehog
-        If config_variable and config_file are truthy, config flag with config filename
-        empty list to NOT use a config file
-    """
-    config_variable = os.environ.get("TRUFFLEHOG_CONFIG")
-    config_file = Path(repo_dir, "trufflehog-config.yaml")
-    config_file_exists = config_file.is_file()
-    return (
-        ["--config", "trufflehog-config.yaml"]
-        if config_variable and config_file_exists
-        else []
-    )
-
-
 if __name__ == "__main__":
     main()
