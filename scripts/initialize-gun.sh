@@ -84,9 +84,9 @@ import_root_key() {
   # Retrieve root key, retry on failure
   for i in $(seq 1 $NUM_RETRIES); do
     if ! ROOT_KEY=$(vault kv get -field=rootkey "/kv/il2/notary/admin/$rootkeyloc"); then
-        echo "Warning: Error retrieving root key, retrying"
-        echo ""
-        sleep 5
+      echo "Warning: Error retrieving root key, retrying"
+      echo ""
+      sleep 5
     else
       if echo $ROOT_KEY | notary -v -s "$notary_url" -d "$trustdir" key import /dev/stdin --role=root; then
         break
@@ -139,9 +139,15 @@ init_gun() {
       continue
     fi
 
-    # Place target key inVault at a location determined by the GUN
-    decryptedkey=$(notary key export -d "$trustdir/" --gun "$gun" | sed '/:/d' | openssl ec -passin env:NOTARY_TARGETS_PASSPHRASE)
-    # if not set continue
+    # attempt to get decrypted target key
+    if ! decryptedkey=$(notary key export -d "$trustdir/" --gun "$gun" | sed '/:/d' | openssl ec -passin env:NOTARY_TARGETS_PASSPHRASE); then
+      echo "WARNING: error getting target key, retrying"
+      echo ""
+      sleep 5
+      continue
+    fi
+
+    # attempt to put target key in vault
     if ! echo -n "$decryptedkey" | vault kv put "/kv/il2/notary/admin/targets/$targetrev/$gun" key=-; then
       echo "WARNING: error adding target key to vault, retrying"
       echo ""
