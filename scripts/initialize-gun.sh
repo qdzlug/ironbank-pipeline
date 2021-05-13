@@ -68,8 +68,7 @@ import_root_key() {
 
   # Login to Vault, retry on failure
   for i in $(seq 1 $NUM_RETRIES); do
-    VAULT_TOKEN=$(vault login -token-only -method=userpass username=notary-admin)
-    if [ -n ${VAULT_TOKEN:-} ]; then
+    if VAULT_TOKEN=$(vault login -token-only -method=userpass username=notary-admin); then
       export VAULT_TOKEN
       break
     fi
@@ -77,16 +76,17 @@ import_root_key() {
     echo ""
     sleep 5
   done
+  # Fail completely if unable to login into vault after retrying
+  if [ -z "${VAULT_TOKEN:-}" ]; then
+    echo "Unable to login to vault. Failing"
+    exit
+  fi
   # Retrieve root key, retry on failure
   for i in $(seq 1 $NUM_RETRIES); do
-
-    if [ -z "${ROOT_KEY}" ]; then
-      ROOT_KEY=$(vault kv get -field=rootkey "/kv/il2/notary/admin/$rootkeyloc")
-      if [ -z "${ROOT_KEY}" ] || [ $? -ne 0 ]; then
+    if ! ROOT_KEY=$(vault kv get -field=rootkey "/kv/il2/notary/admin/$rootkeyloc"); then
         echo "Warning: Error retrieving root key, retrying"
         echo ""
         sleep 5
-      fi
     else
       if echo $ROOT_KEY | notary -v -s "$notary_url" -d "$trustdir" key import /dev/stdin --role=root; then
         break
