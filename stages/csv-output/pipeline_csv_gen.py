@@ -90,10 +90,15 @@ def main():
     wl_branch = os.environ.get("WL_TARGET_BRANCH", default="master")
 
     # get cves and justifications from VAT
-    total_whitelist = _get_complete_whitelist_for_image(
-        image_name, wl_branch, hardening_manifest
-    )
+    vat_findings_file = pathlib.Path(artifacts_path, "lint", "vat_findings.json")
+    try:
+        with vat_findings_file.open(mode="r") as f:
+            vat_findings = json.load(f)
+    except Exception:
+        logging.exception("Error reading findings file.")
+        sys.exit(1)
 
+    total_whitelist = _get_complete_whitelist_for_image(vat_findings)
     # Get all justifications
     logging.info("Gathering list of all justifications...")
 
@@ -343,14 +348,24 @@ def _get_vulns_from_query(row):
     return vuln_dict
 
 
-def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_manifest):
+def _get_complete_whitelist_for_image(vat_findings, status_list):
     """
     Pull all whitelisted CVEs for an image. Walk through the ancestry of a given
     image and grab all of the approved vulnerabilities in VAT associated with w layer.
 
     """
     total_whitelist = []
-    inheritance_list = []
+
+    for image in vat_findings:
+        # loop through each image, starting from child through each parent, grandparent, etc.
+        for finding in vat_findings[image]:
+            if finding["finding_status"].lower() in status_list:
+                if (
+                    image != os.environ["IMAGE_NAME"]
+                    and finding["finding"] in _uninheritable_trigger_ids
+                ):
+                    logging.debug(f"Excluding finding {finding['finding']} for {image}")
+                    continue
 
     # add source image to inheritance list
     inheritance_list.append((os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]))
