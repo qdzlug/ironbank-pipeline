@@ -354,18 +354,23 @@ def _get_complete_whitelist_for_image(vat_findings, status_list):
     image and grab all of the approved vulnerabilities in VAT associated with w layer.
 
     """
+    logging.info(f"Generating whitelist for {os.environ['IMAGE_NAME']}:{os.environ['IMAGE_VERSION']}")
     total_whitelist = []
-
+    # loop through each image, starting from child through each parent, grandparent, etc.
     for image in vat_findings:
-        # loop through each image, starting from child through each parent, grandparent, etc.
+        # loop through each finding
         for finding in vat_findings[image]:
+            # if finding is approved
+            logging.debug(finding)
             if finding["finding_status"].lower() in status_list:
+                # if finding is uninheritable (i.e. Dockerfile findings), exclude from whitelist
                 if (
                     image != os.environ["IMAGE_NAME"]
                     and finding["finding"] in _uninheritable_trigger_ids
                 ):
                     logging.debug(f"Excluding finding {finding['finding']} for {image}")
                     continue
+                # add finding as dictionary object in list
                 total_whitelist.append(
                     {
                         "scan_source": finding["source"],
@@ -376,49 +381,6 @@ def _get_complete_whitelist_for_image(vat_findings, status_list):
                         if image == os.environ["IMAGE_NAME"]
                         else "Inherited from base image.",
                     }
-                )
-
-    # add source image to inheritance list
-    inheritance_list.append((os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]))
-
-    # add parent images to inheritance list
-    parent_image_name, parent_image_version = _next_ancestor(
-        parent_image_path=image_name,
-        whitelist_branch=whitelist_branch,
-        hardening_manifest=hardening_manifest,
-    )
-
-    while parent_image_name:
-        inheritance_list.append((parent_image_name, parent_image_version))
-        parent_image_name, parent_image_version = _next_ancestor(
-            parent_image_path=parent_image_name,
-            whitelist_branch=whitelist_branch,
-        )
-
-    logging.debug(inheritance_list)
-
-    inheritance_list.reverse()
-    # grabbing cves from vat in reverse order to prevent issues with findings that shouldn't be inherited
-    for image in inheritance_list:
-        logging.info(f"Grabbing CVEs for: {image[0]}:{image[1]}")
-        result = _vat_vuln_query(image[0], image[1])
-        if result is None:
-            logging.error("No results from vat. Fatal error.")
-            sys.exit(1)
-        # parse CVEs from VAT query
-        # empty list is returned if no entry or no cves. NoneType only returned if error.
-        for row in result:
-            logging.debug(row)
-            vuln_dict = _get_vulns_from_query(row)
-            if vuln_dict["status"] and vuln_dict["status"].lower() in [
-                "approved",
-                "conditional",
-            ]:
-                total_whitelist.append(vuln_dict)
-                logging.debug(vuln_dict)
-            else:
-                logging.debug(
-                    "There is no approval status present in result or cve not approved"
                 )
     logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
     return total_whitelist
