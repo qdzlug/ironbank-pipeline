@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 import csv
-import yaml
-import gitlab
 import sys
 import re
 import json
@@ -10,8 +8,6 @@ import os
 import argparse
 import pathlib
 import logging
-import mysql.connector
-from mysql.connector import Error
 import xml.etree.ElementTree as etree
 
 from scanners import anchore
@@ -80,15 +76,10 @@ def main():
     # Create the csv directory if not present
     pathlib.Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 
-    # Get the hardening manifest and additional parameters for _get_complete_whitelist_for_image
-    hardening_manifest = _load_local_hardening_manifest()
-    if hardening_manifest is None:
-        logging.error("Please update your project to contain a hardening_manifest.yaml")
-        sys.exit(1)
-
     artifacts_path = os.environ["ARTIFACT_STORAGE"]
     # get cves and justifications from VAT
     vat_findings_file = pathlib.Path(artifacts_path, "lint", "vat_findings.json")
+    # load vat_findings.json file
     try:
         with vat_findings_file.open(mode="r") as f:
             vat_findings = json.load(f)
@@ -143,211 +134,6 @@ def main():
         anchore_num_cves=anchore_num_cves,
         anchore_compliance=anchore_compliance,
     )
-
-
-def _load_local_hardening_manifest():
-    """
-    Load up the hardening_manifest.yaml file as a dictionary. Search for the file in
-    the immediate repo first, if that is not found then search for the generated file.
-
-    If neither are found then return None and let the calling function handle the error.
-
-    """
-    artifacts_path = os.environ["ARTIFACT_STORAGE"]
-    paths = [
-        pathlib.Path("hardening_manifest.yaml"),
-        # Check for the generated hardening manifest. This method will be deprecated.
-        pathlib.Path(artifacts_path, "preflight", "hardening_manifest.yaml"),
-    ]
-
-    for path in paths:
-        logging.debug(f"Looking for {path}")
-        if path.is_file():
-            logging.debug(f"Using {path}")
-            with path.open("r") as f:
-                return yaml.safe_load(f)
-        else:
-            logging.debug(f"Couldn't find {path}")
-    return None
-
-
-def _load_remote_hardening_manifest(project, branch="master"):
-    """
-    Load up a hardening_manifest.yaml from a remote repository.
-
-    If the manifest file is not found then None is returned. A warning will print
-    to console to communicate which repository does not have a hardening manifest.
-
-    """
-    assert branch in ["master", "development"]
-
-    if project == "":
-        return None
-
-    logging.debug(f"Attempting to load hardening_manifest from {project}")
-
-    try:
-        gl = gitlab.Gitlab(os.environ["REPO1_URL"])
-        proj = gl.projects.get(f"dsop/{project}", lazy=True)
-        logging.debug(f"Connecting to dsop/{project}")
-
-        hardening_manifest = proj.files.get(
-            file_path="hardening_manifest.yaml", ref=branch
-        )
-        return yaml.safe_load(hardening_manifest.decode())
-
-    except gitlab.exceptions.GitlabError:
-        logging.error("Could not load hardening_manifest.")
-        sys.exit(1)
-
-    except yaml.YAMLError as e:
-        logging.error("Could not load the hardening_manifest.yaml")
-        logging.error(e)
-        sys.exit(1)
-
-    return None
-
-
-def _next_ancestor(parent_image_path, whitelist_branch, hardening_manifest=None):
-    """
-    Grabs the parent image path from the current context. Will initially attempt to load
-    a new hardening manifest and then pull the parent image from there.
-
-    If the hardening_manifest.yaml can't be found then there
-    is a weird mismatch during migration that needs further inspection.
-
-    """
-
-    # Try to get the parent image out of the local hardening_manifest.
-    if hardening_manifest:
-        return (
-            hardening_manifest["args"]["BASE_IMAGE"],
-            hardening_manifest["args"]["BASE_TAG"],
-        )
-
-    # never allow STAGING_BASE_IMAGE to be set when running a master branch pipeline
-    if (
-        os.environ.get("STAGING_BASE_IMAGE")
-        and os.environ["CI_COMMIT_BRANCH"] == "master"
-    ):
-        logging.error("Cannot use STAGING_BASE_IMAGE on master branch")
-        sys.exit(1)
-
-    # pull from development if using staging base image
-    branch = "development" if os.environ.get("STAGING_BASE_IMAGE") else "master"
-    logging.info(f"Getting {parent_image_path} hardening_manifest.yaml from {branch}")
-    # Try to load the hardening manifest from a remote repo.
-    hm = _load_remote_hardening_manifest(project=parent_image_path, branch=branch)
-    if hm is not None:
-        return (hm["args"]["BASE_IMAGE"], hm["args"]["BASE_TAG"])
-    else:
-        logging.error(
-            "hardening_manifest.yaml does not exist for "
-            + parent_image_path
-            + ". Please add a hardening_manifest.yaml file to this project"
-        )
-        logging.error("Exiting.")
-        sys.exit(1)
-
-
-def _connect_to_db():
-    """
-    @return mariadb connection for the VAT
-    """
-    conn = None
-    try:
-        conn = mysql.connector.connect(
-            host=os.environ["VAT_DB_HOST"],
-            database=os.environ["VAT_DB_DATABASE_NAME"],
-            user=os.environ["VAT_DB_CONNECTION_USER"],
-            passwd=os.environ["VAT_DB_CONNECTION_PASS"],
-        )
-        if conn.is_connected():
-            # there are many connections to db so this should be uncommented
-            # for troubleshooting
-            logging.debug(
-                "Connected to the host %s with user %s",
-                os.environ["VAT_DB_HOST"],
-                os.environ["VAT_DB_CONNECTION_USER"],
-            )
-        else:
-            logging.critical("Failed to connect to DB")
-            sys.exit(1)
-    except Error as err:
-        logging.critical(err)
-        if conn is not None and conn.is_connected():
-            conn.close()
-        sys.exit(1)
-
-    return conn
-
-
-def _vat_vuln_query(im_name, im_version):
-    """
-    Returns non inherited vulnerabilities for a specific container
-    """
-    conn = None
-    result = None
-    try:
-        conn = _connect_to_db()
-        cursor = conn.cursor(buffered=True)
-        # TODO: add new scan logic
-        query = """SELECT c.name as container
-                , c.version
-                , CASE WHEN cl.type is NULL THEN "Pending" ELSE cl.type END as container_approval_status
-                , f.finding
-                , f.scan_source
-                , fl1.in_current_scan
-                , fl1.state as finding_status
-                , fl1.record_text as approval_comments
-                , fl2.record_text as justification
-                , sr.description
-                , f.package
-                , f.package_path
-                FROM findings f
-                INNER JOIN containers c on f.container_id = c.id
-                INNER JOIN finding_logs fl on active = 1 and in_current_scan = 1 and inherited = 0 and f.id = fl.finding_id
-                LEFT JOIN container_log cl on c.id = cl.imageid AND cl.id in (SELECT max(id) from container_log group by imageid)
-                LEFT JOIN finding_logs fl1 ON fl1.record_type_active = 1 and fl1.record_type = 'state_change' and f.id = fl1.finding_id
-                LEFT JOIN finding_logs fl2 ON fl2.record_type_active = 1 and fl2.record_type = 'justification' and f.id = fl2.finding_id
-                LEFT JOIN finding_scan_results sr on f.id = sr.finding_id and sr.active = 1
-                WHERE c.name = %s and c.version = %s;"""
-        cursor.execute(query, (im_name, im_version))
-        result = cursor.fetchall()
-    except Error as error:
-        logging.info(error)
-        sys.exit(1)
-    finally:
-        if conn is not None and conn.is_connected():
-            conn.close()
-    return result
-
-
-def _get_vulns_from_query(row):
-    """
-    For each row in result (returned from VAT db query), create a dictionary gathering
-    the necessary items to be compared for each entry in the twistlock, anchore and openscap scans.
-
-    Each row should have 12 items in the form:
-    (image_name, image_version, container_status, vuln, source (e.g. anchore_cve), in_current_scan (bool)
-    vuln_status (e.g. Approved), approval_comments, justification, description, package, package_path)
-
-    For anchore_comp and anchore_cve, the vuln_description is the package instead of the description.
-
-    example: ('redhat/ubi/ubi8', '8.3', 'Approved', 'CCE-82360-9', 'oscap_comp', 1, 'approved', 'Approved, imported from spreadsheet.',
-    'Not applicable. This performs automatic updates to installed packages which does not apply to immutable containers.',
-    'Enable dnf-automatic Timer', 'N/A', 'N/A')
-
-    """
-    vuln_dict = {}
-    vuln_dict["whitelist_source"] = row[0]
-    vuln_dict["vulnerability"] = row[3]
-    vuln_dict["vuln_source"] = row[4]
-    vuln_dict["status"] = row[6]
-    vuln_dict["justification"] = row[8]
-    vuln_dict["package"] = row[10]
-    vuln_dict["package_path"] = row[11]
-    return vuln_dict
 
 
 def _get_complete_whitelist_for_image(vat_findings, status_list):
