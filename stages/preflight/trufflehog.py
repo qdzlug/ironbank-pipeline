@@ -115,9 +115,14 @@ def get_history_cmd(repo_dir, diff_branch) -> list[str]:
     return ["--since-commit", commits[-1]] if commits[-1] else ["--no-history"]
 
 
-def get_config(config_file: PosixPath = None) -> tuple[list, list]:
-    skip_strings = []
-    skip_paths = []
+def get_config(config_file: Path, expand_vars: bool = False) -> tuple[dict, list]:
+    """
+    Loads a trufflehog config yaml file and pulls out the skip_strings and skip_paths values
+    """
+    skip_strings: dict = {}
+    skip_paths: list = []
+    if config_file.is_file():
+        logging.debug("Config file found")
     with config_file.open(mode="r") as f:
         data = yaml.safe_load(f)
     keys = [key for key in data]
