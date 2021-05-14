@@ -24,8 +24,15 @@ def main() -> None:
         logging.info("Log level set to info")
 
     repo_dir = os.environ["CI_PROJECT_DIR"]
+    pipeline_repo_dir = os.environ["PIPELINE_REPO_DIR"]
     branch_name = os.environ["CI_COMMIT_BRANCH"]
     job_image = os.environ["CI_JOB_IMAGE"]
+
+    project_truffle_config = Path(repo_dir, "trufflehog-config.yaml")
+    default_truffle_config = Path(
+        pipeline_repo_dir,
+        "stages/preflight/default-trufflehog-config.yaml",
+    )
 
     diff_branch = (
         "origin/development" if branch_name != "development" else "origin/master"
