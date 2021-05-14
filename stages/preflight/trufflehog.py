@@ -6,7 +6,7 @@ import sys
 import subprocess
 import git
 import yaml
-from typing import Optional, Tuple
+from typing import Optional
 from pathlib import Path
 
 
