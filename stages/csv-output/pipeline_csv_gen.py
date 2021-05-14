@@ -36,6 +36,12 @@ _inheritable_trigger_ids = [
     "c4ad80832b361f81df2a31e5b6b09864",
 ]
 
+_uninheritable_trigger_ids = [
+    "41cb7cdf04850e33a11f80c42bf660b3",
+    "cbff271f45d32e78dcc1979dbca9c14d",
+    "db0e0618d692b953341be18b99a2865a",
+]
+
 
 def main():
     # Get logging level, set manually when running pipeline
@@ -442,6 +448,11 @@ def _get_justifications(total_whitelist, sourceImageName):
                 if finding["whitelist_source"] == sourceImageName:
                     compAnchore[cveID] = finding["justification"]
                     compAnchore[trigger_id] = finding["justification"]
+                elif trigger_id in _uninheritable_trigger_ids:
+                    logging.debug(
+                        f"{trigger_id} cannot be inherited. Skipping addition of justification"
+                    )
+                    continue
                 else:
                     logging.debug("Anchore Comp inherited finding")
                     compAnchore[cveID] = "Inherited from base image."
@@ -551,6 +562,7 @@ def get_oscap_full(oscap_file, justifications):
         "xhtml": "http://www.w3.org/1999/xhtml",  # not actually needed
         "dc": "http://purl.org/dc/elements/1.1/",
     }
+    patches_up_to_date_dupe = False
     cces = []
     for rule_result in root.findall("xccdf:TestResult/xccdf:rule-result", ns):
         # Current CSV values
@@ -561,14 +573,17 @@ def get_oscap_full(oscap_file, justifications):
         result = rule_result.find("xccdf:result", ns).text
         logging.debug(f"{rule_id}")
         if result == "notselected":
-            logging.info(f"SKIPPING: 'notselected' rule {rule_id} ")
+            logging.debug(f"SKIPPING: 'notselected' rule {rule_id} ")
             continue
 
         if rule_id == "xccdf_org.ssgproject.content_rule_security_patches_up_to_date":
-            logging.info(
-                f"SKIPPING: rule {rule_id} - OVAL check repeats and this finding is checked elsewhere"
-            )
-            continue
+            if patches_up_to_date_dupe:
+                logging.debug(
+                    f"SKIPPING: rule {rule_id} - OVAL check repeats and this finding is checked elsewhere"
+                )
+                continue
+            else:
+                patches_up_to_date_dupe = True
         # Get the <rule> that corresponds to the <rule-result>
         # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
         rule = root.find(f".//xccdf:Rule[@id='{rule_id}']", ns)

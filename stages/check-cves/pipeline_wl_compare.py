@@ -255,12 +255,24 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
 
 def _finding_approval_status_check(finding_dictionary, status_list):
     whitelist = set()
+    _uninheritable_trigger_ids = [
+        "41cb7cdf04850e33a11f80c42bf660b3",
+        "cbff271f45d32e78dcc1979dbca9c14d",
+        "db0e0618d692b953341be18b99a2865a",
+    ]
     for image in finding_dictionary:
         # loop through all findings for each image listed in the vat-findings.json file
         for finding in finding_dictionary[image]:
             finding_status = finding["finding_status"].lower()
             # if a findings status is in the status list the finding is considered approved in VAT and is added to the whitelist
             if finding_status in status_list:
+                # if the finding is coming from a base layer and the finding isn't actually inherited, don't include it in the whitelist
+                if (
+                    image != os.environ["IMAGE_NAME"]
+                    and finding["finding"] in _uninheritable_trigger_ids
+                ):
+                    logging.debug(f"Excluding finding {finding['finding']} for {image}")
+                    continue
                 whitelist.add(
                     Finding(
                         finding["scan_source"],
@@ -321,7 +333,9 @@ def _vat_findings_query(im_name, im_version):
     else:
         logging.warning(f"Unknown response from VAT {r.status_code}")
         logging.warning(r.text)
-        logging.error("Failing the pipeline, please contact the administrators")
+        logging.warning(
+            "This pipeline has been allowed to fail. However, this issue still needs to be addressed. Please investigate, and if Iron Bank assistance is needed, please open an issue in this project using the `Pipeline Failure` template to ensure that we assist you. If you need further assistance, please visit the `Team - Iron Bank Pipelines and Operations` Mattermost channel."
+        )
         global api_exit_code
         api_exit_code = 3
 
