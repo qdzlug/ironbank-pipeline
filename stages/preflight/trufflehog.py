@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import logging
 import os
@@ -6,7 +6,8 @@ import sys
 import subprocess
 import git
 import yaml
-from pathlib import Path, PosixPath
+from typing import Optional, Tuple
+from pathlib import Path
 
 
 def main():
