@@ -44,6 +44,7 @@ def main() -> None:
         sys.exit(1)
 
     history_cmd = get_history_cmd(repo_dir, diff_branch)
+    create_trufflehog_config(project_truffle_config, default_truffle_config, repo_dir)
 
     cmd = [
         "trufflehog3",
