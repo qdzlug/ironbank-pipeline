@@ -124,13 +124,56 @@ def get_config(config_file: Path, expand_vars: bool = False) -> tuple[dict, list
     if config_file.is_file():
         logging.debug("Config file found")
     with config_file.open(mode="r") as f:
-        data = yaml.safe_load(f)
-    keys = [key for key in data]
-    if "skip_strings" in keys:
-        skip_strings = data["skip_strings"]
-    if "skip_paths" in keys:
-        skip_paths = data["skip_paths"]
+        data: dict = yaml.safe_load(f)
+        if "skip_strings" in data:
+            skip_strings = data["skip_strings"]
+    if "skip_paths" in data:
+        skip_paths = (
+            [os.path.expandvars(x) for x in data["skip_paths"]]
+            if expand_vars
+            else data["skip_paths"]
+        )
+    else:
+        logging.debug("Config file not found")
     return skip_strings, skip_paths
+
+
+def create_trufflehog_config(
+    project_config_path: Path,
+    default_config_path: Path,
+    repo_dir: str,
+    config_variable: Optional[str] = None,
+) -> None:
+    """
+    Loads the default trufflehog config and if a project config exists loads that as well.
+    Then concatonates the default and project configs and writes these to a file.
+    """
+    default_config_skip_strings, default_config_skip_paths = get_config(
+        default_config_path, True
+    )
+    project_config_skip_strings, project_config_skip_paths = (
+        get_config(project_config_path) if config_variable else ({}, [])
+    )
+    skip_strings = project_config_skip_strings
+    skip_strings.update(
+        {
+            k: v
+            for (k, v) in default_config_skip_strings.items()
+            if k not in skip_strings
+        }
+    )
+    skip_paths = project_config_skip_paths + [
+        x for x in default_config_skip_paths if x not in project_config_skip_paths
+    ]
+    if "trufflehog-config.yaml" not in skip_paths:
+        skip_paths.append("trufflehog-config.yaml")
+    config: dict = {
+        "skip_strings": skip_strings,
+        "skip_paths": skip_paths,
+    }
+    outfile: Path = Path(repo_dir, "trufflehog-config.yaml")
+    with outfile.open(mode="w") as of:
+        yaml.safe_dump(config, of, indent=2, sort_keys=False)
 
 
 if __name__ == "__main__":
