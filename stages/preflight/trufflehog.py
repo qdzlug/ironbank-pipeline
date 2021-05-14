@@ -10,7 +10,7 @@ from typing import Optional, Tuple
 from pathlib import Path
 
 
-def main():
+def main() -> None:
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
     if loglevel == "DEBUG":
