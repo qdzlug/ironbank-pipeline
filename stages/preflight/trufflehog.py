@@ -94,7 +94,7 @@ def main() -> None:
     logging.info("truffleHog found no secrets")
 
 
-def get_history_cmd(repo_dir, diff_branch):
+def get_history_cmd(repo_dir, diff_branch) -> list[str]:
     """
     Uses gitpython to get a list of commit shasums of feature branch commits that don't exist in development
     Returns a list of truffleHog3 flags
