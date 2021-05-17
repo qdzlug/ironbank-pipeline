@@ -170,7 +170,7 @@ def convert_to_excel(csv_dir, justification_sheet):
             writer, sheet_name="Anchore Compliance Results", header=True, index=False
         )
         _write_sbom_to_excel(csv_dir=csv_dir, writer=writer)
-    writer.save()
+        writer.save()
     with pd.ExcelWriter(
         justification_sheet
     ) as writer:  # pylint: disable=abstract-class-instantiated
@@ -191,7 +191,7 @@ def convert_to_excel(csv_dir, justification_sheet):
             writer, sheet_name="Anchore Compliance Results", header=True, index=False
         )
         _write_sbom_to_excel(csv_dir=csv_dir, writer=writer)
-    writer.save()
+        writer.save()
 
 
 def _set_column_width(sheet, column_value, width, wrap=False):

@@ -1,4 +1,4 @@
-image: ${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/ib-pipeline-image:0.1
+image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:0.3
 stages:
   ### preprocess stage
   # clone down the templates directory for use in later stages

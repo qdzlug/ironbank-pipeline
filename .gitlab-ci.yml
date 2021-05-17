@@ -47,7 +47,7 @@ black:
   image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml"
   script:
     - pip install git+git://github.com/psf/black
-    - black --check --diff --color -t py36 .
+    - black --check --diff --color -t py39 .
 
 pylama:
   tags:
