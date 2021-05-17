@@ -27,6 +27,7 @@ def main() -> None:
     pipeline_repo_dir = os.environ["PIPELINE_REPO_DIR"]
     branch_name = os.environ["CI_COMMIT_BRANCH"]
     job_image = os.environ["CI_JOB_IMAGE"]
+    config_variable = os.environ.get("TRUFFLEHOG_CONFIG")
 
     project_truffle_config = Path(repo_dir, "trufflehog-config.yaml")
     default_truffle_config = Path(
@@ -44,7 +45,9 @@ def main() -> None:
         sys.exit(1)
 
     history_cmd = get_history_cmd(repo_dir, diff_branch)
-    create_trufflehog_config(project_truffle_config, default_truffle_config, repo_dir)
+    create_trufflehog_config(
+        project_truffle_config, default_truffle_config, repo_dir, config_variable
+    )
 
     cmd = [
         "trufflehog3",
