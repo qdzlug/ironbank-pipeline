@@ -4,6 +4,7 @@
 #
 # Usage:
 # export NOTARY_AUTH=$(echo -n "exampleuser:examplepassword" | base64)
+# export NUM_RETRIES=<INT>, default is 5
 # ./initialize-gun.sh registry1.dso.mil/ironbank/project/image
 #
 # Where exampleuser:examplepassword are your harbor credentials
@@ -65,12 +66,36 @@ import_root_key() {
   echo "==============================="
   echo
 
-  # Login to Vault
-  VAULT_TOKEN=$(vault login -token-only -method=userpass username=notary-admin)
-  export VAULT_TOKEN
-
-  # Retrieve root key
-  vault kv get -field=rootkey "/kv/il2/notary/admin/$rootkeyloc" | notary -v -s "$notary_url" -d "$trustdir" key import /dev/stdin --role=root
+  # Login to Vault, retry on failure
+  for i in $(seq 1 $NUM_RETRIES); do
+    if VAULT_TOKEN=$(vault login -token-only -method=userpass username=notary-admin); then
+      export VAULT_TOKEN
+      break
+    fi
+    echo "Warning: Failed to login to vault, retrying"
+    echo ""
+    sleep 5
+  done
+  # Fail completely if unable to login into vault after retrying
+  if [ -z "${VAULT_TOKEN:-}" ]; then
+    echo "Unable to login to vault. Failing"
+    exit
+  fi
+  # Retrieve root key, retry on failure
+  for i in $(seq 1 $NUM_RETRIES); do
+    if ! ROOT_KEY=$(vault kv get -field=rootkey "/kv/il2/notary/admin/$rootkeyloc"); then
+      echo "Warning: Error retrieving root key, retrying"
+      echo ""
+      sleep 5
+    else
+      if echo $ROOT_KEY | notary -v -s "$notary_url" -d "$trustdir" key import /dev/stdin --role=root; then
+        break
+      fi
+      echo "Warning: Failed notary root key import, retrying"
+      echo ""
+      sleep 5
+    fi
+  done
 }
 
 init_gun() {
@@ -83,7 +108,7 @@ init_gun() {
 
   init_done=0
   delegation_done=0
-  for i in $(seq 1 5); do
+  for i in $(seq 1 $NUM_RETRIES); do
     # Initialize GUN with root key
     if [ "$init_done" -eq 0 ]; then
       if ! notary init "$gun" -p -d "$trustdir" -s "$notary_url"; then
@@ -98,7 +123,7 @@ init_gun() {
     # Add delegation key. `delegation.crt` is already on-disk
     if [ "$delegation_done" -eq 0 ]; then
       if ! notary delegation add -s "$notary_url" -p -d "$trustdir" "$gun" targets/releases delegation.crt --all-paths; then
-        echo "WARNING: notary error, retrying"
+        echo "WARNING: error adding delegation key, retrying"
         echo ""
         sleep 5
         continue
@@ -108,16 +133,27 @@ init_gun() {
 
     # Rotate snapshot keys to be managed by notary server
     if ! notary key rotate "$gun" snapshot -r -d "$trustdir" -s "$notary_url"; then
-      echo "WARNING: notary error, retrying"
+      echo "WARNING: error rotating snapshot keys, retrying"
       echo ""
       sleep 5
       continue
     fi
 
-    # Place target key inVault at a location determined by the GUN
-    decryptedkey=$(notary key export -d "$trustdir/" --gun "$gun" | sed '/:/d' | openssl ec -passin env:NOTARY_TARGETS_PASSPHRASE)
+    # attempt to get decrypted target key
+    if ! decryptedkey=$(notary key export -d "$trustdir/" --gun "$gun" | sed '/:/d' | openssl ec -passin env:NOTARY_TARGETS_PASSPHRASE); then
+      echo "WARNING: error getting target key, retrying"
+      echo ""
+      sleep 5
+      continue
+    fi
 
-    echo -n "$decryptedkey" | vault kv put "/kv/il2/notary/admin/targets/$targetrev/$gun" key=-
+    # attempt to put target key in vault
+    if ! echo -n "$decryptedkey" | vault kv put "/kv/il2/notary/admin/targets/$targetrev/$gun" key=-; then
+      echo "WARNING: error adding target key to vault, retrying"
+      echo ""
+      sleep 5
+      continue
+    fi
 
     # Success, break from loop
     return 0
@@ -139,6 +175,15 @@ if [ -z "${NOTARY_AUTH:-}" ]; then
   read -r -s password
   NOTARY_AUTH=$(echo -n "$username:$password" | base64)
   export NOTARY_AUTH
+fi
+
+# set number of retries if not set
+if [ -z "${NUM_RETRIES:-}" ]; then
+  echo
+  echo "Number of retries set to 5 by default"
+  echo "This can be changed by setting NUM_RETRIES to a different value"
+  NUM_RETRIES=5
+  export NUM_RETRIES
 fi
 
 import_root_key
