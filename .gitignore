@@ -10,3 +10,4 @@ htmlcov/
 *.swp
 *.old
 .DS_Store
+.mypy_cache/
