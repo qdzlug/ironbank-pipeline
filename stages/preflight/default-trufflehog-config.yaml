@@ -1,3 +1,4 @@
 # skipping this path to not scan the pipeline code in CHT pipeline runs
 skip_paths:
   - "${ARTIFACT_STORAGE}/"
+  - trufflehog-config.yaml
