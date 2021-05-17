@@ -120,8 +120,8 @@ def get_config(config_file: Path, expand_vars: bool = False) -> tuple[dict, list
     """
     Loads a trufflehog config yaml file and pulls out the skip_strings and skip_paths values
     """
-    skip_strings: dict = {}
-    skip_paths: list = []
+    skip_strings = {}
+    skip_paths = []
     if config_file.is_file():
         logging.debug("Config file found")
     with config_file.open(mode="r") as f:
@@ -168,11 +168,11 @@ def create_trufflehog_config(
     ]
     if "trufflehog-config.yaml" not in skip_paths:
         skip_paths.append("trufflehog-config.yaml")
-    config: dict = {
+    config = {
         "skip_strings": skip_strings,
         "skip_paths": skip_paths,
     }
-    outfile: Path = Path(repo_dir, "trufflehog-config.yaml")
+    outfile = Path(repo_dir, "trufflehog-config.yaml")
     with outfile.open(mode="w") as of:
         yaml.safe_dump(config, of, indent=2, sort_keys=False)
 
