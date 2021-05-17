@@ -1,14 +1,16 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import logging
 import os
 import sys
 import subprocess
 import git
+import yaml
+from typing import Optional
 from pathlib import Path
 
 
-def main():
+def main() -> None:
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
     if loglevel == "DEBUG":
@@ -22,8 +24,16 @@ def main():
         logging.info("Log level set to info")
 
     repo_dir = os.environ["CI_PROJECT_DIR"]
+    pipeline_repo_dir = os.environ["PIPELINE_REPO_DIR"]
     branch_name = os.environ["CI_COMMIT_BRANCH"]
     job_image = os.environ["CI_JOB_IMAGE"]
+    config_variable = os.environ.get("TRUFFLEHOG_CONFIG")
+
+    project_truffle_config = Path(repo_dir, "trufflehog-config.yaml")
+    default_truffle_config = Path(
+        pipeline_repo_dir,
+        "stages/preflight/default-trufflehog-config.yaml",
+    )
 
     diff_branch = (
         "origin/development" if branch_name != "development" else "origin/master"
@@ -35,7 +45,9 @@ def main():
         sys.exit(1)
 
     history_cmd = get_history_cmd(repo_dir, diff_branch)
-    config_cmd = get_config_command(repo_dir)
+    create_trufflehog_config(
+        project_truffle_config, default_truffle_config, repo_dir, config_variable
+    )
 
     cmd = [
         "trufflehog3",
@@ -43,7 +55,8 @@ def main():
         "--branch",
         branch_name,
         *history_cmd,
-        *config_cmd,
+        "--config",
+        "trufflehog-config.yaml",
         ".",
     ]
 
@@ -84,9 +97,10 @@ def main():
     logging.info("truffleHog found no secrets")
 
 
-def get_history_cmd(repo_dir, diff_branch):
+def get_history_cmd(repo_dir: str, diff_branch: str) -> list[str]:
     """
-    Uses gitpython to get a list of commit shasums of feature branch commits that don't exist in development
+    Uses gitpython to get a list of commit shasums of feature branch commits that don't exist in development,
+    or for commits in development that aren't in master when CI_COMMIT_BRANCH is development
     Returns a list of truffleHog3 flags
         [--since-commit, the oldest sha in the commits list]
         if list is empty [--no-history]
@@ -105,20 +119,63 @@ def get_history_cmd(repo_dir, diff_branch):
     return ["--since-commit", commits[-1]] if commits[-1] else ["--no-history"]
 
 
-def get_config_command(repo_dir):
+def get_config(config_file: Path, expand_vars: bool = False) -> tuple[dict, list]:
     """
-    Returns a list with config command for trufflehog
-        If config_variable and config_file are truthy, config flag with config filename
-        empty list to NOT use a config file
+    Loads a trufflehog config yaml file and pulls out the skip_strings and skip_paths values
     """
-    config_variable = os.environ.get("TRUFFLEHOG_CONFIG")
-    config_file = Path(repo_dir, "trufflehog-config.yaml")
-    config_file_exists = config_file.is_file()
-    return (
-        ["--config", "trufflehog-config.yaml"]
-        if config_variable and config_file_exists
-        else []
+    skip_strings = {}
+    skip_paths = []
+    if config_file.is_file():
+        logging.debug("Config file found")
+    with config_file.open(mode="r") as f:
+        data: dict = yaml.safe_load(f)
+        if "skip_strings" in data:
+            skip_strings = data["skip_strings"]
+    if "skip_paths" in data:
+        skip_paths = (
+            [os.path.expandvars(x) for x in data["skip_paths"]]
+            if expand_vars
+            else data["skip_paths"]
+        )
+    else:
+        logging.debug("Config file not found")
+    return skip_strings, skip_paths
+
+
+def create_trufflehog_config(
+    project_config_path: Path,
+    default_config_path: Path,
+    repo_dir: str,
+    config_variable: Optional[str] = None,
+) -> None:
+    """
+    Loads the default trufflehog config and if a project config exists loads that as well.
+    Then concatonates the default and project configs and writes these to a file.
+    """
+    default_config_skip_strings, default_config_skip_paths = get_config(
+        default_config_path, True
     )
+    project_config_skip_strings, project_config_skip_paths = (
+        get_config(project_config_path) if config_variable else ({}, [])
+    )
+    skip_strings = project_config_skip_strings
+    skip_strings.update(
+        {
+            k: v
+            for (k, v) in default_config_skip_strings.items()
+            if k not in skip_strings
+        }
+    )
+    skip_paths = project_config_skip_paths + [
+        x for x in default_config_skip_paths if x not in project_config_skip_paths
+    ]
+    config = {
+        "skip_strings": skip_strings,
+        "skip_paths": skip_paths,
+    }
+    outfile = Path(repo_dir, "trufflehog-config.yaml")
+    with outfile.open(mode="w") as of:
+        yaml.safe_dump(config, of, indent=2, sort_keys=False)
 
 
 if __name__ == "__main__":
