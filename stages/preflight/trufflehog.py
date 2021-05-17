@@ -166,8 +166,6 @@ def create_trufflehog_config(
     skip_paths = project_config_skip_paths + [
         x for x in default_config_skip_paths if x not in project_config_skip_paths
     ]
-    if "trufflehog-config.yaml" not in skip_paths:
-        skip_paths.append("trufflehog-config.yaml")
     config = {
         "skip_strings": skip_strings,
         "skip_paths": skip_paths,
