@@ -45,7 +45,7 @@ def main() -> None:
         sys.exit(1)
 
     history_cmd = get_history_cmd(repo_dir, diff_branch)
-    create_trufflehog_config(
+    project_config = create_trufflehog_config(
         project_truffle_config, default_truffle_config, repo_dir, config_variable
     )
 
@@ -60,8 +60,16 @@ def main() -> None:
         ".",
     ]
 
+    # if project has a config file and the config variable is set,
+    #   use cmd value to print debug command for pipeline users
+    # if either is false, remove the "--config" flag from the printed command
+    if project_config:
+        printed_cmd = cmd
+    else:
+        printed_cmd = cmd[:-3] + cmd[-1:]
+
     logging.info(f'truffleHog command: {" ".join(cmd)}')
-    th_flags = " ".join(cmd[1:-1])
+    th_flags = " ".join(printed_cmd[1:-1])
 
     try:
         logging.info("Scanning with truffleHog")
@@ -127,16 +135,16 @@ def get_config(config_file: Path, expand_vars: bool = False) -> tuple[dict, list
     skip_paths = []
     if config_file.is_file():
         logging.debug("Config file found")
-    with config_file.open(mode="r") as f:
-        data: dict = yaml.safe_load(f)
-        if "skip_strings" in data:
-            skip_strings = data["skip_strings"]
-    if "skip_paths" in data:
-        skip_paths = (
-            [os.path.expandvars(x) for x in data["skip_paths"]]
-            if expand_vars
-            else data["skip_paths"]
-        )
+        with config_file.open(mode="r") as f:
+            data: dict = yaml.safe_load(f)
+            if "skip_strings" in data:
+                skip_strings = data["skip_strings"]
+        if "skip_paths" in data:
+            skip_paths = (
+                [os.path.expandvars(x) for x in data["skip_paths"]]
+                if expand_vars
+                else data["skip_paths"]
+            )
     else:
         logging.debug("Config file not found")
     return skip_strings, skip_paths
@@ -147,10 +155,12 @@ def create_trufflehog_config(
     default_config_path: Path,
     repo_dir: str,
     config_variable: Optional[str] = None,
-) -> None:
+) -> bool:
     """
     Loads the default trufflehog config and if a project config exists loads that as well.
     Then concatonates the default and project configs and writes these to a file.
+    Returns a boolean.
+        True if the config variable exists and a config file is found
     """
     default_config_skip_strings, default_config_skip_paths = get_config(
         default_config_path, True
@@ -176,6 +186,7 @@ def create_trufflehog_config(
     outfile = Path(repo_dir, "trufflehog-config.yaml")
     with outfile.open(mode="w") as of:
         yaml.safe_dump(config, of, indent=2, sort_keys=False)
+    return True if config_variable and project_config_path.is_file() else False
 
 
 if __name__ == "__main__":
