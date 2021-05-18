@@ -68,7 +68,7 @@ def main() -> None:
     else:
         printed_cmd = cmd[:-3] + cmd[-1:]
 
-    logging.info(f'truffleHog command: {" ".join(printed_cmd)}')
+    logging.info(f'truffleHog command: {" ".join(cmd)}')
     th_flags = " ".join(printed_cmd[1:-1])
 
     try:
