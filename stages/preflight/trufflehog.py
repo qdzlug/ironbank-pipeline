@@ -45,7 +45,7 @@ def main() -> None:
         sys.exit(1)
 
     history_cmd = get_history_cmd(repo_dir, diff_branch)
-    create_trufflehog_config(
+    project_config = create_trufflehog_config(
         project_truffle_config, default_truffle_config, repo_dir, config_variable
     )
 
@@ -60,8 +60,16 @@ def main() -> None:
         ".",
     ]
 
-    logging.info(f'truffleHog command: {" ".join(cmd)}')
-    th_flags = " ".join(cmd[1:-1])
+    # if project has a config file and the config variable is set,
+    #   use cmd value to print debug command for pipeline users
+    # if either is false, remove the "--config" flag from the printed command
+    if project_config:
+        printed_cmd = cmd
+    else:
+        printed_cmd = cmd[:-3] + cmd[-1:]
+
+    logging.info(f'truffleHog command: {" ".join(printed_cmd)}')
+    th_flags = " ".join(printed_cmd[1:-1])
 
     try:
         logging.info("Scanning with truffleHog")
@@ -147,10 +155,12 @@ def create_trufflehog_config(
     default_config_path: Path,
     repo_dir: str,
     config_variable: Optional[str] = None,
-) -> None:
+) -> bool:
     """
     Loads the default trufflehog config and if a project config exists loads that as well.
     Then concatonates the default and project configs and writes these to a file.
+    Returns a boolean.
+        True if the config variable exists and a config file is found
     """
     default_config_skip_strings, default_config_skip_paths = get_config(
         default_config_path, True
@@ -176,6 +186,7 @@ def create_trufflehog_config(
     outfile = Path(repo_dir, "trufflehog-config.yaml")
     with outfile.open(mode="w") as of:
         yaml.safe_dump(config, of, indent=2, sort_keys=False)
+    return True if config_variable and project_config_path.is_file() else False
 
 
 if __name__ == "__main__":
