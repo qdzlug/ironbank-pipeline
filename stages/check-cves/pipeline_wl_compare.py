@@ -395,6 +395,7 @@ def _vat_vuln_query(im_name, im_version):
     """
     Returns non inherited vulnerabilities for a specific container
     """
+    logging.info(f"Retrieving findings for {im_name}:{im_version}")
     conn = None
     result = None
     try:
@@ -493,10 +494,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     vat_findings = {}
 
     vat_findings[image_name] = []
-
-    logging.info(f"Grabbing CVEs for: {image_name}")
-    # get cves from vat
-    logging.info(f"Retrieving findings for {os.environ['IMAGE_NAME']}")
 
     result = _vat_vuln_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
     # parse CVEs from VAT query
