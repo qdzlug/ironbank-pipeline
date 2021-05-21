@@ -133,6 +133,7 @@ def _load_remote_hardening_manifest(project, branch="master"):
 
 
 def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
+
     wl_branch = os.environ.get("WL_TARGET_BRANCH", default="master")
 
     # Don't go any further if just linting
