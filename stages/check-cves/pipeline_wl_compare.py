@@ -470,7 +470,7 @@ def _next_ancestor(parent_image_path):
     hm = _load_remote_hardening_manifest(project=parent_image_path, branch=branch)
     # REMOVE if statement when we are no longer using greylists
     if hm is not None:
-        return (hm["name"], hm["tags"][0], hm["args"]["BASE_IMAGE"])
+        return (hm["name"], hm["args"]["BASE_TAG"], hm["args"]["BASE_IMAGE"])
     else:
         logging.error(
             "hardening_manifest.yaml does not exist for "
@@ -559,16 +559,18 @@ def _get_complete_whitelist_for_image(image_name, hardening_manifest):
     # the master branch should be used for the ancestry.
     #
     parent_image_path = hardening_manifest["args"]["BASE_IMAGE"]
+    base_tag = hardening_manifest["args"]["BASE_TAG"]
 
     # get parent cves from VAT
     while parent_image_path:
         parent_image_name, parent_image_version, parent_image_path = _next_ancestor(
-            parent_image_path=parent_image_path,
+            parent_image_path=parent_image_path
         )
         logging.info(f"Grabbing CVEs for: {parent_image_name}")
         # TODO: remove this after 30 day hardening_manifest merge cutof
         # TODO: swap this for hardening manifest after 30 day merge cutoff
-        result = _vat_vuln_query(parent_image_name, parent_image_version)
+        result = _vat_vuln_query(parent_image_name, base_tag)
+        base_tag = parent_image_version
         vat_findings[parent_image_name] = []
 
         for row in result:
