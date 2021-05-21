@@ -395,7 +395,6 @@ def _vat_vuln_query(im_name, im_version):
     """
     Returns non inherited vulnerabilities for a specific container
     """
-    logging.info(f"Retrieving findings for {im_name}:{im_version}")
     conn = None
     result = None
     try:
@@ -568,8 +567,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             whitelist_branch=whitelist_branch,
         )
         logging.info(f"Grabbing CVEs for: {parent_image_name}:{base_tag}")
-        # TODO: remove this after 30 day hardening_manifest merge cutof
-        # TODO: swap this for hardening manifest after 30 day merge cutoff
         result = _vat_vuln_query(parent_image_name, base_tag)
         base_tag = parent_image_version
         vat_findings[parent_image_name] = []
