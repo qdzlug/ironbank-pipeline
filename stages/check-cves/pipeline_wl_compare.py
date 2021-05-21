@@ -133,11 +133,13 @@ def _load_remote_hardening_manifest(project, branch="master"):
 
 
 def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
+    wl_branch = os.environ.get("WL_TARGET_BRANCH", default="master")
 
     # Don't go any further if just linting
     if lint:
         _get_complete_whitelist_for_image(
             image_name=image_name,
+            whitelist_branch=wl_branch,
             hardening_manifest=hardening_manifest,
         )
         logging.info(api_exit_code)
@@ -445,7 +447,7 @@ def _get_findings_from_query(row):
     return finding_dict
 
 
-def _next_ancestor(parent_image_path):
+def _next_ancestor(parent_image_path, whitelist_branch):
     """
     Grabs the parent image path from the current context. Will initially attempt to load
     a new hardening manifest and then pull the parent image from there.
@@ -481,7 +483,7 @@ def _next_ancestor(parent_image_path):
         sys.exit(1)
 
 
-def _get_complete_whitelist_for_image(image_name, hardening_manifest):
+def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_manifest):
     """
     Pull all whitelisted CVEs for an image. Walk through the ancestry of a given
     image and grab all of vulnerabilities in the hardening manifest associated with w layer.
@@ -564,7 +566,8 @@ def _get_complete_whitelist_for_image(image_name, hardening_manifest):
     # get parent cves from VAT
     while parent_image_path:
         parent_image_name, parent_image_version, parent_image_path = _next_ancestor(
-            parent_image_path=parent_image_path
+            parent_image_path=parent_image_path,
+            whitelist_branch=whitelist_branch,
         )
         logging.info(f"Grabbing CVEs for: {parent_image_name}")
         # TODO: remove this after 30 day hardening_manifest merge cutof
