@@ -24,12 +24,18 @@ def main() -> None:
         logging.info("Log level set to info")
 
     repo_dir = os.environ["CI_PROJECT_DIR"]
-    pipeline_repo_dir = os.environ["PIPELINE_REPO_DIR"]
+    pipeline_repo_dir = os.environ.get(
+        "PIPELINE_REPO_DIR",
+        os.environ["CI_PROJECT_DIR"],
+    )
     branch_name = os.environ["CI_COMMIT_BRANCH"]
     job_image = os.environ["CI_JOB_IMAGE"]
     config_variable = os.environ.get("TRUFFLEHOG_CONFIG")
 
-    project_truffle_config = Path(repo_dir, "trufflehog-config.yaml")
+    project_truffle_config = Path(
+        repo_dir,
+        "trufflehog-config.yaml",
+    )
     default_truffle_config = Path(
         pipeline_repo_dir,
         "stages/preflight/default-trufflehog-config.yaml",
@@ -115,16 +121,16 @@ def get_history_cmd(repo_dir: str, diff_branch: str) -> list[str]:
     """
     # fetch origin before performing a git log
     repo = git.Repo(repo_dir)
-    origin = repo.remotes.origin.fetch()
-    assert diff_branch in [x.name for x in origin]
     commits = repo.git.rev_list(
         f"{diff_branch}..",
         "--no-merges",
     ).split("\n")
-    formatted_commits = "\n".join([x for x in commits])
-    logging.info(f"git rev-list {diff_branch}.. --no-merges\n{formatted_commits}")
-    # if no data is returned to commits, it will be an list with one element that is an empty string
-    return ["--since-commit", commits[-1]] if commits[-1] else ["--no-history"]
+    logging.info(f"git rev-list {diff_branch}.. --no-merges")
+    for commit in (commit for commit in commits):
+        logging.info(commit)
+    # if no data is returned to commits, since_commit will be an empty string
+    since_commit: str = commits[-1]
+    return ["--since-commit", since_commit] if since_commit else ["--no-history"]
 
 
 def get_config(config_file: Path, expand_vars: bool = False) -> tuple[dict, list]:
@@ -137,8 +143,8 @@ def get_config(config_file: Path, expand_vars: bool = False) -> tuple[dict, list
         logging.debug("Config file found")
         with config_file.open(mode="r") as f:
             data: dict = yaml.safe_load(f)
-            if "skip_strings" in data:
-                skip_strings = data["skip_strings"]
+        if "skip_strings" in data:
+            skip_strings = data["skip_strings"]
         if "skip_paths" in data:
             skip_paths = (
                 [os.path.expandvars(x) for x in data["skip_paths"]]
