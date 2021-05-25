@@ -1,10 +1,8 @@
-import artifacts:
-  stage: import artifacts
-  tags:
-    - ironbank
+import-artifacts:
+  stage: import-artifacts
   dependencies:
-    - load scripts
-    - hardening_manifest
+    - load-scripts
+    - hardening-manifest
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/import-artifacts"
   script:

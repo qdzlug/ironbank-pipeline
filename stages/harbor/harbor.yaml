@@ -1,12 +1,10 @@
 harbor:
   stage: harbor
-  tags:
-    - ironbank
   only:
     - master
   dependencies:
     - build
-    - load scripts
-    - hardening_manifest
+    - load-scripts
+    - hardening-manifest
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/harbor/upload_to_harbor.py"'

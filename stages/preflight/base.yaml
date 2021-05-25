@@ -1,10 +1,8 @@
 .preflight:
   stage: preflight
-  tags:
-    - ironbank
-  # Load in the IMAGE_VERSION variable from the load scripts env
+  # Load in the IMAGE_VERSION variable from the load-scripts env
   dependencies:
-    - load scripts
+    - load-scripts
 
 include:
   - local: stages/preflight/trufflehog.yaml

@@ -1,14 +1,12 @@
-csv output:
-  stage: csv output
-  tags:
-    - ironbank
+csv-output:
+  stage: csv-output
   dependencies:
-    - twistlock scan
-    - openscap compliance
-    - anchore scan
-    - load scripts
-    - hardening_manifest
-    - wl compare lint
+    - twistlock-scan
+    - openscap-compliance
+    - anchore-scan
+    - load-scripts
+    - hardening-manifest
+    - wl-compare-lint
     - build
   variables:
     # Put generated csv report in the scan-results folder

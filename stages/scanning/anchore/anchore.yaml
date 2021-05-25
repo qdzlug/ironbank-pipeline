@@ -18,13 +18,13 @@
 #   ANCHORE_SCANS=/tmp/anchore/ \
 #   python3 anchore_scan.py
 #
-anchore scan:
+anchore-scan:
   extends: .scanning
   image: "registry1.dso.mil/ironbank/anchore/cli/cli:0.9.1"
   stage: scanning
-  # Load in the IMAGE_VERSION variable from load scripts env
+  # Load in the IMAGE_VERSION variable from load-scripts env
   dependencies:
-    - load scripts
+    - load-scripts
     - build
   variables:
     # put all scan outputs in the scan-results folder

@@ -1,10 +1,10 @@
-twistlock scan:
+twistlock-scan:
   extends: .scanning
   stage: scanning
 
-  # Load in the IMAGE_VERSION variable from load scripts env
+  # Load in the IMAGE_VERSION variable from load-scripts env
   dependencies:
-    - load scripts
+    - load-scripts
     - build
   variables:
     # put all scan outputs in the scan-results folder
