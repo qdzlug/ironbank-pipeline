@@ -1,7 +1,6 @@
 openscap-compliance:
   extends: .scanning
   tags:
-    - ironbank
     - ironbank-dsop-privileged
   except:
     variables:
