@@ -1,4 +1,4 @@
-hardening_manifest:
+hardening-manifest:
   extends: .preflight
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/preflight"

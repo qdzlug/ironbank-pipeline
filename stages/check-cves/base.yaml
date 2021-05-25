@@ -1,20 +1,18 @@
-check cves:
-  stage: check cves
+check-cves:
+  stage: check-cves
   rules:
     - if: '$CI_COMMIT_BRANCH != "master"'
       allow_failure: true
 
     - if: '$CI_COMMIT_BRANCH == "master"'
       allow_failure: false
-  tags:
-    - ironbank
   dependencies:
-    - hardening_manifest
-    - load scripts
-    - wl compare lint
-    - twistlock scan
-    - openscap compliance
-    - anchore scan
+    - hardening-manifest
+    - load-scripts
+    - wl-compare-lint
+    - twistlock-scan
+    - openscap-compliance
+    - anchore-scan
   script:
     - |
       pip3 install jsonschema

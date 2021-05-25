@@ -1,18 +1,16 @@
 .documentation:
   stage: documentation
-  tags:
-    - ironbank
   only:
     - development
     - master
   dependencies:
-    - load scripts
-    - hardening_manifest
-    - wl compare lint
+    - load-scripts
+    - hardening-manifest
+    - wl-compare-lint
     - build
-    - anchore scan
-    - twistlock scan
-    - openscap compliance
+    - anchore-scan
+    - twistlock-scan
+    - openscap-compliance
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/documentation"
     SIG_FILE: signature

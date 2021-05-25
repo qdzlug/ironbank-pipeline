@@ -1,5 +1,8 @@
-openscap compliance:
+openscap-compliance:
   extends: .scanning
+  tags:
+    - ironbank
+    - ironbank-dsop-privileged
   except:
     variables:
       - $DISTROLESS
@@ -7,7 +10,7 @@ openscap compliance:
     OSCAP_SCANS: "${ARTIFACT_STORAGE}/scan-results/openscap"
     OSCAP_FILENAME: "${OSCAP_HTML_FILENAME}"
   dependencies:
-    - load scripts
+    - load-scripts
     - build
   script:
     - '"${PIPELINE_REPO_DIR}/stages/scanning/openscap/oscap-compliance-run.sh"'

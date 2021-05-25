@@ -22,13 +22,13 @@ stages:
   # download artifacts/clamav scan
   # Requirements:
   # - executor image with Python 3.x installed
-  - import artifacts
+  - import-artifacts
 
   ### artifact scan stage
   # use clamav to scan download artifacts
   # Requirements:
   # - executor image with docker (or podman) installed
-  - scan artifacts
+  - scan-artifacts
 
   ### build stage
   # build image w version tag and create tar file
@@ -47,13 +47,13 @@ stages:
   - scanning
 
   ### create csv output
-  - csv output
+  - csv-output
 
   ### check cve stage
-  - check cves
+  - check-cves
 
   ### generate allowlists for Anchore (runs on master)
-  - generate allowlists
+  - generate-allowlists
 
   ### Sign image and manifest and write documentation
   - documentation
@@ -64,7 +64,7 @@ stages:
 
   ### s3 stage
   # publish artifacts to S3 (runs on development and master)
-  - s3 publish
+  - s3-publish
 
   ### VAT stage (runs on dev)
   - vat

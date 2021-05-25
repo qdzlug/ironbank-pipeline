@@ -1,13 +1,11 @@
 build:
   stage: build
   image: "registry1.dso.mil/ironbank/ironbank-pipelines/rootless-podman:0.1"
-  tags:
-    - ironbank-isolated
   dependencies:
-    - import artifacts
-    - load scripts
-    - wl compare lint
-    - hardening_manifest
+    - import-artifacts
+    - load-scripts
+    - wl-compare-lint
+    - hardening-manifest
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
   script:
