@@ -9,12 +9,12 @@ vat:
   stage: vat
   tags:
     - ironbank
-  # Load in the IMAGE_VERSION variable from load scripts env
+  # Load in the IMAGE_VERSION variable from load-scripts env
   dependencies:
-    - load scripts
-    - csv output
-    - wl compare lint
-    - hardening_manifest
+    - load-scripts
+    - csv-output
+    - wl-compare-lint
+    - hardening-manifest
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/csvs/"
     OPENSCAP: "${ARTIFACT_STORAGE}/scan-results/openscap"

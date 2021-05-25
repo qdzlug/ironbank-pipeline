@@ -1,11 +1,9 @@
-clamav scan:
-  stage: scan artifacts
-  tags:
-    - ironbank
+clamav-scan:
+  stage: scan-artifacts
   image: registry1.dso.mil/ironbank/opensource/clamav/clamav:0.103.0
   dependencies:
-    - import artifacts
-    - load scripts
+    - import-artifacts
+    - load-scripts
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-artifacts/clamav-scan"
   before_script:

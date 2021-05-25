@@ -2,7 +2,7 @@ include:
   - local: stages/preprocess/base.yaml
 
 # clone templates repo as an artifact so it can be used with other jobs
-load scripts:
+load-scripts:
   extends: .preprocess
   cache: {}
   script:
