@@ -1,4 +1,4 @@
-generate allowlists:
+generate-allowlists:
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: "on_success"
