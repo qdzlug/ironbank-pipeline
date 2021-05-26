@@ -1,8 +1,8 @@
-clamav image scan:
+clamav-image-scan:
   stage: post-build
 
   dependencies:
-    - load scripts
+    - load-scripts
     - build
   variables:
     CLAMAV_SCANS: ${ARTIFACT_STORAGE}/post-build/clamav-image-scan

@@ -1,15 +1,13 @@
-generate allowlists:
+generate-allowlists:
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: "on_success"
-  stage: generate allowlists
-  tags:
-    - ironbank
+  stage: generate-allowlists
   dependencies:
-    - load scripts
-    - anchore scan
-    - wl compare lint
-    - hardening_manifest
+    - load-scripts
+    - anchore-scan
+    - wl-compare-lint
+    - hardening-manifest
     - build
   variables:
     ALLOWLISTS: "${ARTIFACT_STORAGE}/allowlists"
