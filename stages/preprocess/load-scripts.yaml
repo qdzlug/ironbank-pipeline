@@ -7,7 +7,7 @@ load-scripts:
   cache: {}
   script:
     - 'mkdir -p "${PIPELINE_REPO_DIR}"'
-    - 'git clone -q --depth 1 --branch "${TARGET_BRANCH}" "https://repo1.dsop.io/ironbank-tools/ironbank-pipeline.git" "${PIPELINE_REPO_DIR}"'
+    - 'git clone -q --depth 1 --branch "${TARGET_BRANCH}" "${CI_SERVER_URL}/ironbank-tools/ironbank-pipeline.git" "${PIPELINE_REPO_DIR}"'
     - 'rm -rf "${PIPELINE_REPO_DIR}/.git"'
   artifacts:
     when: always
