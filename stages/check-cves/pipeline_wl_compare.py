@@ -288,6 +288,8 @@ def _finding_approval_status_check(finding_dictionary, status_list):
 def _vat_findings_query(im_name, im_version):
     logging.info("Running query to vat api")
     url = f"{os.environ['VAT_BACKEND_SERVER_ADDRESS']}/p1/container"
+    container_approval = "notapproved"
+    container_approval_text = None
     try:
         r = requests.get(
             url,
@@ -296,10 +298,9 @@ def _vat_findings_query(im_name, im_version):
                 "tag": im_version,
             },
         )
-    except requests.exceptions.RequestException as e:
-        logging.warning(f"Could not access VAT API: {url}")
-        logging.warning(e)
-        return None
+    except requests.exceptions.RequestException:
+        logging.exception(f"Could not access VAT API: {url}")
+        sys.exit(1)
 
     if r.status_code == 200:
         logging.info("Fetched data from vat successfully")
@@ -318,9 +319,12 @@ def _vat_findings_query(im_name, im_version):
             jsonschema.validate(r.json(), schema)
         except Exception as e:
             logging.warning(f"Error validating the VAT schema {e}")
-            return None
 
-        return r.json()
+        data = r.json()
+        container_approval = data["containerState"]
+        if "approver" in data:
+            container_approval_text = data["approver"]["comment"]
+        # return r.json()
 
     elif r.status_code == 404:
         logging.warning(f"{im_name}:{im_version} not found in VAT")
@@ -338,57 +342,58 @@ def _vat_findings_query(im_name, im_version):
         )
         global api_exit_code
         api_exit_code = 3
+    return container_approval, container_approval_text
 
 
-def _vat_approval_query(im_name, im_version):
-    """
-    Returns the container approval status which is returned by the query as:
-    [(image_name, image_version, container_status)]
-    """
-    conn = None
-    result = None
-    try:
-        conn = _connect_to_db()
-        cursor = conn.cursor(buffered=True)
-        # TODO: add new scan logic
-        query = """SELECT c.name as container
-                , c.version
-                , CASE
-                WHEN cl.type is NULL THEN 'Pending'
-                WHEN cl.type = 'Approved' and UA.unapproved > 0 THEN 'Pending'
-                WHEN cl.type = 'Conditionally Approved' and UA.unapproved > 0 THEN 'Pending'
-                ELSE cl.type END as container_approval_status,
-                cl.text as approval_text
-                FROM containers c
-                LEFT JOIN container_log cl on c.id = cl.imageid  AND cl.id in (
-                        SELECT max(id) from container_log GROUP BY imageid)
-                LEFT JOIN (SELECT c.id, FC.count as unapproved from containers c
-                LEFT JOIN (SELECT f.container_id as c_id, count(*) as count FROM findings f
-                INNER JOIN (SELECT * from finding_logs WHERE record_type_active = 1 and record_type = 'state_change'
-                        and in_current_scan = 1 and state not in ('approved', 'conditional') and inherited = 0) fl on f.id = fl.finding_id
-                        group by f.container_id) FC on c.id = FC.c_id) UA on c.id = UA.id
-            WHERE c.name = %s and c.version = %s;"""
-        cursor.execute(
-            query,
-            (
-                im_name,
-                im_version,
-            ),
-        )
-        result = cursor.fetchall()
-    except Error as error:
-        logging.info(error)
-        sys.exit(1)
-    finally:
-        if conn is not None and conn.is_connected():
-            conn.close()
-    if result and result[0][2]:
-        approval_status = result[0][2]
-        approval_text = result[0][3]
-    else:
-        approval_status = "notapproved"
-        approval_text = None
-    return approval_status, approval_text
+# def _vat_approval_query(im_name, im_version):
+#     """
+#     Returns the container approval status which is returned by the query as:
+#     [(image_name, image_version, container_status)]
+#     """
+#     conn = None
+#     result = None
+#     try:
+#         conn = _connect_to_db()
+#         cursor = conn.cursor(buffered=True)
+#         # TODO: add new scan logic
+#         query = """SELECT c.name as container
+#                 , c.version
+#                 , CASE
+#                 WHEN cl.type is NULL THEN 'Pending'
+#                 WHEN cl.type = 'Approved' and UA.unapproved > 0 THEN 'Pending'
+#                 WHEN cl.type = 'Conditionally Approved' and UA.unapproved > 0 THEN 'Pending'
+#                 ELSE cl.type END as container_approval_status,
+#                 cl.text as approval_text
+#                 FROM containers c
+#                 LEFT JOIN container_log cl on c.id = cl.imageid  AND cl.id in (
+#                         SELECT max(id) from container_log GROUP BY imageid)
+#                 LEFT JOIN (SELECT c.id, FC.count as unapproved from containers c
+#                 LEFT JOIN (SELECT f.container_id as c_id, count(*) as count FROM findings f
+#                 INNER JOIN (SELECT * from finding_logs WHERE record_type_active = 1 and record_type = 'state_change'
+#                         and in_current_scan = 1 and state not in ('approved', 'conditional') and inherited = 0) fl on f.id = fl.finding_id
+#                         group by f.container_id) FC on c.id = FC.c_id) UA on c.id = UA.id
+#             WHERE c.name = %s and c.version = %s;"""
+#         cursor.execute(
+#             query,
+#             (
+#                 im_name,
+#                 im_version,
+#             ),
+#         )
+#         result = cursor.fetchall()
+#     except Error as error:
+#         logging.info(error)
+#         sys.exit(1)
+#     finally:
+#         if conn is not None and conn.is_connected():
+#             conn.close()
+#     if result and result[0][2]:
+#         approval_status = result[0][2]
+#         approval_text = result[0][3]
+#     else:
+#         approval_status = "notapproved"
+#         approval_text = None
+#     return approval_status, approval_text
 
 
 def _vat_vuln_query(im_name, im_version):
@@ -507,11 +512,13 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             vat_findings[image_name].append(finding_dict)
 
     # get container approval from separate query
-    _vat_findings_query(os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"])
-
-    approval_status, approval_text = _vat_approval_query(
+    approval_status, approval_text = _vat_findings_query(
         os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
     )
+
+    # approval_status, approval_text = _vat_approval_query(
+    #     os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
+    # )
 
     logging.info("CONTAINER APPROVAL STATUS")
     logging.info(approval_status)
