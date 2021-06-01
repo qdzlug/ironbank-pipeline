@@ -328,13 +328,15 @@ def _vat_findings_query(im_name, im_version):
     elif r.status_code == 400:
         logging.warning(f"Bad request: {url}")
         logging.warning(r.text)
+        sys.exit(1)
 
     else:
         logging.warning(f"Unknown response from VAT {r.status_code}")
         logging.warning(r.text)
         logging.warning(
-            "This pipeline has been allowed to fail. However, this issue still needs to be addressed. Please investigate, and if Iron Bank assistance is needed, please open an issue in this project using the `Pipeline Failure` template to ensure that we assist you. If you need further assistance, please visit the `Team - Iron Bank Pipelines and Operations` Mattermost channel."
+            "Failing the pipeline due to an unexpected response from the vat findings api. Please open an issue in this project using the `Pipeline Failure` template to ensure that we assist you. If you need further assistance, please visit the `Team - Iron Bank Pipelines and Operations` Mattermost channel."
         )
+        sys.exit(1)
     return container_approval, container_approval_text
 
 
