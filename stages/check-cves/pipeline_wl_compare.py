@@ -282,7 +282,7 @@ def _finding_approval_status_check(finding_dictionary, status_list):
     return whitelist
 
 
-def _vat_findings_query(im_name, im_version):
+def _get_vat_findings_api(im_name, im_version):
     logging.info("Running query to vat api")
     url = f"{os.environ['VAT_BACKEND_SERVER_ADDRESS']}/p1/container"
     container_approval = "notapproved"
@@ -457,7 +457,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             vat_findings[image_name].append(finding_dict)
 
     # get container approval from separate query
-    approval_status, approval_text = _vat_findings_query(
+    approval_status, approval_text = _get_vat_findings_api(
         os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
     )
 
