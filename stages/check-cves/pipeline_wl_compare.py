@@ -30,9 +30,6 @@ from scanners import anchore
 from scanners import twistlock
 import swagger_to_jsonschema
 
-# add global var for api failures.
-# TODO: Remove api_exit_code when converting to using the api instead of the query
-api_exit_code = 0
 
 Finding = namedtuple("Finding", ["scan_source", "cve_id", "package", "package_path"])
 
@@ -143,8 +140,6 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
             whitelist_branch=wl_branch,
             hardening_manifest=hardening_manifest,
         )
-        logging.info(f"Exit code: {api_exit_code}")
-        sys.exit(api_exit_code)
 
     artifacts_path = os.environ["ARTIFACT_STORAGE"]
 
@@ -340,8 +335,6 @@ def _vat_findings_query(im_name, im_version):
         logging.warning(
             "This pipeline has been allowed to fail. However, this issue still needs to be addressed. Please investigate, and if Iron Bank assistance is needed, please open an issue in this project using the `Pipeline Failure` template to ensure that we assist you. If you need further assistance, please visit the `Team - Iron Bank Pipelines and Operations` Mattermost channel."
         )
-        global api_exit_code
-        api_exit_code = 3
     return container_approval, container_approval_text
 
 
