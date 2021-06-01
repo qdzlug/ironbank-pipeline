@@ -30,9 +30,6 @@ from scanners import anchore
 from scanners import twistlock
 import swagger_to_jsonschema
 
-# add global var for api failures.
-# TODO: Remove api_exit_code when converting to using the api instead of the query
-api_exit_code = 0
 
 Finding = namedtuple("Finding", ["scan_source", "cve_id", "package", "package_path"])
 
@@ -143,8 +140,8 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
             whitelist_branch=wl_branch,
             hardening_manifest=hardening_manifest,
         )
-        logging.info(f"Exit code: {api_exit_code}")
-        sys.exit(api_exit_code)
+        # exit lint successfully
+        sys.exit(0)
 
     artifacts_path = os.environ["ARTIFACT_STORAGE"]
 
@@ -285,7 +282,7 @@ def _finding_approval_status_check(finding_dictionary, status_list):
     return whitelist
 
 
-def _vat_findings_query(im_name, im_version):
+def _get_vat_findings_api(im_name, im_version):
     logging.info("Running query to vat api")
     url = f"{os.environ['VAT_BACKEND_SERVER_ADDRESS']}/p1/container"
     container_approval = "notapproved"
@@ -324,7 +321,6 @@ def _vat_findings_query(im_name, im_version):
         container_approval = data["containerState"]
         if "approver" in data:
             container_approval_text = data["approver"]["comment"]
-        # return r.json()
 
     elif r.status_code == 404:
         logging.warning(f"{im_name}:{im_version} not found in VAT")
@@ -333,67 +329,16 @@ def _vat_findings_query(im_name, im_version):
     elif r.status_code == 400:
         logging.warning(f"Bad request: {url}")
         logging.warning(r.text)
+        sys.exit(1)
 
     else:
         logging.warning(f"Unknown response from VAT {r.status_code}")
         logging.warning(r.text)
         logging.warning(
-            "This pipeline has been allowed to fail. However, this issue still needs to be addressed. Please investigate, and if Iron Bank assistance is needed, please open an issue in this project using the `Pipeline Failure` template to ensure that we assist you. If you need further assistance, please visit the `Team - Iron Bank Pipelines and Operations` Mattermost channel."
+            "Failing the pipeline due to an unexpected response from the vat findings api. Please open an issue in this project using the `Pipeline Failure` template to ensure that we assist you. If you need further assistance, please visit the `Team - Iron Bank Pipelines and Operations` Mattermost channel."
         )
-        global api_exit_code
-        api_exit_code = 3
+        sys.exit(1)
     return container_approval, container_approval_text
-
-
-# def _vat_approval_query(im_name, im_version):
-#     """
-#     Returns the container approval status which is returned by the query as:
-#     [(image_name, image_version, container_status)]
-#     """
-#     conn = None
-#     result = None
-#     try:
-#         conn = _connect_to_db()
-#         cursor = conn.cursor(buffered=True)
-#         # TODO: add new scan logic
-#         query = """SELECT c.name as container
-#                 , c.version
-#                 , CASE
-#                 WHEN cl.type is NULL THEN 'Pending'
-#                 WHEN cl.type = 'Approved' and UA.unapproved > 0 THEN 'Pending'
-#                 WHEN cl.type = 'Conditionally Approved' and UA.unapproved > 0 THEN 'Pending'
-#                 ELSE cl.type END as container_approval_status,
-#                 cl.text as approval_text
-#                 FROM containers c
-#                 LEFT JOIN container_log cl on c.id = cl.imageid  AND cl.id in (
-#                         SELECT max(id) from container_log GROUP BY imageid)
-#                 LEFT JOIN (SELECT c.id, FC.count as unapproved from containers c
-#                 LEFT JOIN (SELECT f.container_id as c_id, count(*) as count FROM findings f
-#                 INNER JOIN (SELECT * from finding_logs WHERE record_type_active = 1 and record_type = 'state_change'
-#                         and in_current_scan = 1 and state not in ('approved', 'conditional') and inherited = 0) fl on f.id = fl.finding_id
-#                         group by f.container_id) FC on c.id = FC.c_id) UA on c.id = UA.id
-#             WHERE c.name = %s and c.version = %s;"""
-#         cursor.execute(
-#             query,
-#             (
-#                 im_name,
-#                 im_version,
-#             ),
-#         )
-#         result = cursor.fetchall()
-#     except Error as error:
-#         logging.info(error)
-#         sys.exit(1)
-#     finally:
-#         if conn is not None and conn.is_connected():
-#             conn.close()
-#     if result and result[0][2]:
-#         approval_status = result[0][2]
-#         approval_text = result[0][3]
-#     else:
-#         approval_status = "notapproved"
-#         approval_text = None
-#     return approval_status, approval_text
 
 
 def _vat_vuln_query(im_name, im_version):
@@ -512,13 +457,9 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             vat_findings[image_name].append(finding_dict)
 
     # get container approval from separate query
-    approval_status, approval_text = _vat_findings_query(
+    approval_status, approval_text = _get_vat_findings_api(
         os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
     )
-
-    # approval_status, approval_text = _vat_approval_query(
-    #     os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
-    # )
 
     logging.info("CONTAINER APPROVAL STATUS")
     logging.info(approval_status)
