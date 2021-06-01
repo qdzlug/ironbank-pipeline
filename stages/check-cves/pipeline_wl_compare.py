@@ -140,6 +140,8 @@ def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
             whitelist_branch=wl_branch,
             hardening_manifest=hardening_manifest,
         )
+        # exit lint successfully
+        sys.exit(0)
 
     artifacts_path = os.environ["ARTIFACT_STORAGE"]
 
