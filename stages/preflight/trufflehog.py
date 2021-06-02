@@ -124,8 +124,13 @@ def get_history_cmd(repo_dir: str, diff_branch: str) -> list[str]:
     commits = repo.git.rev_list(
         f"{diff_branch}..",
         "--no-merges",
-    ).split("\n")
+    )
     logging.info(f"git rev-list {diff_branch}.. --no-merges")
+    return create_history_msg(commits)
+
+
+def create_history_msg(commits):
+    commits = commits.split("\n")
     for commit in (commit for commit in commits):
         logging.info(commit)
     # if no data is returned to commits, since_commit will be an empty string
