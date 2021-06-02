@@ -8,9 +8,10 @@ import pytest
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from trufflehog import get_history_cmd, create_history_msg
+from trufflehog import get_history_cmd, create_history_msg  # noqa E402
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
+
 
 # list of test projects to be cloned and used for testing
 @pytest.fixture
@@ -30,11 +31,9 @@ def test_projects(projects):
             pathlib.Path("test_projects", project.split("/")[-1]).absolute().as_posix()
         )
         # don't clone if already cloned
-        repo = (
-            git.Repo.clone_from(project, repo_dir)
-            if not pathlib.Path(repo_dir).is_dir()
-            else None
-        )
+        git.Repo.clone_from(project, repo_dir) if not pathlib.Path(
+            repo_dir
+        ).is_dir() else None
         repo_dirs.append(repo_dir)
     return repo_dirs
 
