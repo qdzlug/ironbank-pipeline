@@ -87,9 +87,8 @@ unit-testing:
   tags:
     - ironbank-tools
   stage: test
-  image: "registry1.dso.mil/ironbank/opensource/python/python39"
+  image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:0.3"
   script:
-    - dnf install git -y
-    - python3 -m pip install gitpython pytest
+    - python3 -m pip install pytest
     - python3 -m pytest --log-cli-level="INFO" --ignore=stages/vat
     - python3 -m pytest -m "not slow" --log-cli-level="INFO" --ignore=stages/vat
