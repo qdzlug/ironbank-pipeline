@@ -1,13 +1,5 @@
 .documentation:
   stage: documentation
-  dependencies:
-    - load-scripts
-    - hardening-manifest
-    - wl-compare-lint
-    - build
-    - anchore-scan
-    - twistlock-scan
-    - openscap-compliance
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/documentation"
     SIG_FILE: signature
@@ -18,6 +10,14 @@
 
 documentation:
   extends: .documentation
+  dependencies:
+    - load-scripts
+    - hardening-manifest
+    - wl-compare-lint
+    - build
+    - anchore-scan
+    - twistlock-scan
+    - openscap-compliance
   only:
     - development
     - master
@@ -29,7 +29,7 @@ documentation:
     expire_in: 1 week
 
 create-tar:
-  stage: documentation
+  extends: .documentation
   needs:
     - load-scripts
     - hardening-manifest
@@ -37,9 +37,6 @@ create-tar:
   except:
     - development
     - master
-  variables:
-    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/documentation"
-    IMAGE_FILE: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
   script:
     - '"${PIPELINE_REPO_DIR}/stages/documentation/create-tar.sh"'
   artifacts:
