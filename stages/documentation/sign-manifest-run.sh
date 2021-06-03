@@ -2,7 +2,6 @@
 set -Eeuo pipefail
 
 echo "${IB_CONTAINER_GPG_KEY}" | base64 -d >key
-mkdir -p "${ARTIFACT_DIR}"
 
 GPG_VERSION=$(gpg --version | grep '(?<=gpg .GnuPG.)([^0-9]+)([0-9]+[.][0-9]+[.][0-9]+)' -oP | sed -E 's/ //g')
 
