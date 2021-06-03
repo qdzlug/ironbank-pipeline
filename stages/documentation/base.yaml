@@ -1,8 +1,5 @@
 .documentation:
   stage: documentation
-  only:
-    - development
-    - master
   dependencies:
     - load-scripts
     - hardening-manifest
