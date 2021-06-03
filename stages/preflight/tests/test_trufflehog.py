@@ -40,6 +40,7 @@ def test_projects(projects):
 
 
 # test the trufflehog get_history module
+# runs by default when running pytest but is excluded from pipeline ci with "not slow"
 @pytest.mark.slow
 def test_get_history(test_projects):
     for repo_dir in test_projects:
@@ -52,16 +53,19 @@ def test_get_history(test_projects):
         ) or history_cmd[0] == "--no-history"
 
 
+# mock output for get_commit_diff, string of commits separated by \n
 @pytest.fixture
 def commits_string():
     return "e72223cd59700b6dc45bf30d039fa8dd2055d1ec\na587dcd3acbf4de15d04da232afa63e3ef310e5d\n1da1a44a7d300ca2d569b124e8cbd8577e8edf35\n89555678fe7fe5c60835bf8ceed940368161d06f\nada42ed8b621044534e9e7f81faec74c8bcbadd8\na6e55bae9d4047c484452c09d849b5dfb44d154e\neeb256e29791f840432eeef7ba6c239406fa1c28"
 
 
+# mock output for get_commit_diff, single commit string
 @pytest.fixture
 def single_commit():
     return "e72223cd59700b6dc45bf30d039fa8dd2055d1ec"
 
 
+# mock output for get_commit_diff, empty string (no commit diff)
 @pytest.fixture
 def empty_string():
     return ""
