@@ -7,6 +7,10 @@
     TWISTLOCK_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock-version.txt"
     ANCHORE_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/anchore/anchore-version.txt"
     IMAGE_FILE: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
+  artifacts:
+    paths:
+      - $ARTIFACT_DIR
+    expire_in: 1 week
 
 documentation:
   extends: .documentation
@@ -23,10 +27,6 @@ documentation:
     - master
   script:
     - '"${PIPELINE_REPO_DIR}/stages/documentation/documentation.sh"'
-  artifacts:
-    paths:
-      - $ARTIFACT_DIR
-    expire_in: 1 week
 
 create-tar:
   extends: .documentation
@@ -39,7 +39,3 @@ create-tar:
     - master
   script:
     - '"${PIPELINE_REPO_DIR}/stages/documentation/create-tar.sh"'
-  artifacts:
-    paths:
-      - $ARTIFACT_DIR
-    expire_in: 1 week
