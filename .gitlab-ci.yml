@@ -8,6 +8,7 @@ stages:
   - test
 
 shellcheck:
+  needs: []
   tags:
     - ironbank-tools
   stage: lint
@@ -42,6 +43,7 @@ shellcheck:
       exit "$ret"
 
 black:
+  needs: []
   tags:
     - ironbank-tools
   stage: format
@@ -51,6 +53,7 @@ black:
     - black --check --diff --color -t py39 .
 
 pylama:
+  needs: []
   tags:
     - ironbank-tools
   stage: lint
@@ -63,6 +66,7 @@ pylama:
 ## ignore line errors as blacks has been ran against code.
 
 prettier:
+  needs: []
   tags:
     - ironbank-tools
   stage: format
@@ -73,6 +77,7 @@ prettier:
     - npx prettier -c .
 
 shfmt:
+  needs: []
   tags:
     - ironbank-tools
   stage: format
@@ -84,6 +89,7 @@ shfmt:
     - "./shfmt_v3.1.2_linux_amd64 -d ."
 
 unit-testing:
+  needs: []
   tags:
     - ironbank-tools
   stage: test
