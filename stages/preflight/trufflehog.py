@@ -50,7 +50,8 @@ def main() -> None:
         logging.error("trufflehog.yaml file is not permitted to exist in repo")
         sys.exit(1)
 
-    history_cmd = get_history_cmd(repo_dir, diff_branch)
+    commit_diff = get_commit_diff(repo_dir, diff_branch)
+    history_cmd = get_history_cmd(commit_diff)
     project_config = create_trufflehog_config(
         project_truffle_config, default_truffle_config, repo_dir, config_variable
     )
@@ -111,7 +112,7 @@ def main() -> None:
     logging.info("truffleHog found no secrets")
 
 
-def get_history_cmd(repo_dir: str, diff_branch: str) -> list[str]:
+def get_commit_diff(repo_dir: str, diff_branch: str) -> str:
     """
     Uses gitpython to get a list of commit shasums of feature branch commits that don't exist in development,
     or for commits in development that aren't in master when CI_COMMIT_BRANCH is development
@@ -126,10 +127,10 @@ def get_history_cmd(repo_dir: str, diff_branch: str) -> list[str]:
         "--no-merges",
     )
     logging.info(f"git rev-list {diff_branch}.. --no-merges")
-    return create_history_msg(commits)
+    return commits
 
 
-def create_history_msg(commits):
+def get_history_cmd(commits: str) -> list[str]:
     commits = commits.split("\n")
     for commit in (commit for commit in commits):
         logging.info(commit)

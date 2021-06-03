@@ -6,9 +6,10 @@ import logging
 import pathlib
 import pytest
 
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from trufflehog import get_history_cmd, create_history_msg  # noqa E402
+from trufflehog import get_commit_diff, get_history_cmd  # noqa E402
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
 
@@ -43,7 +44,8 @@ def test_projects(projects):
 def test_get_history(test_projects):
     for repo_dir in test_projects:
         diff_branch = "origin/master"
-        history_cmd = get_history_cmd(repo_dir, diff_branch)
+        commit_diff = get_commit_diff(repo_dir, diff_branch)
+        history_cmd = get_history_cmd(commit_diff)
         logging.info(history_cmd)
         assert (
             history_cmd[0] == "--since-commit" and history_cmd[1] != ""
@@ -66,12 +68,12 @@ def empty_string():
 
 
 def test_create_history_message(commits_string, single_commit, empty_string):
-    assert create_history_msg(commits_string) == [
+    assert get_history_cmd(commits_string) == [
         "--since-commit",
         "eeb256e29791f840432eeef7ba6c239406fa1c28",
     ]
-    assert create_history_msg(single_commit) == [
+    assert get_history_cmd(single_commit) == [
         "--since-commit",
         "e72223cd59700b6dc45bf30d039fa8dd2055d1ec",
     ]
-    assert create_history_msg(empty_string) == ["--no-history"]
+    assert get_history_cmd(empty_string) == ["--no-history"]
