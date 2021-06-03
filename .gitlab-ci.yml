@@ -94,6 +94,7 @@ unit-testing:
     - ironbank-tools
   stage: test
   image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:0.3"
+  # TODO: remove pip install for pytest when pytest is added to pipeline-runner image
   script:
     - python3 -m pip install pytest
     - python3 -m pytest --log-cli-level="INFO" --ignore=stages/vat
