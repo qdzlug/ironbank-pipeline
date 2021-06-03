@@ -31,6 +31,7 @@ documentation:
 create-tar:
   stage: documentation
   needs:
+    - load-scripts
     - hardening-manifest
     - build
   except:
