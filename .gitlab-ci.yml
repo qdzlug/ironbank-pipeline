@@ -97,5 +97,4 @@ unit-testing:
   # TODO: remove pip install for pytest when pytest is added to pipeline-runner image
   script:
     - python3 -m pip install pytest
-    - python3 -m pytest --log-cli-level="INFO" --ignore=stages/vat
     - python3 -m pytest -m "not slow" --log-cli-level="INFO" --ignore=stages/vat

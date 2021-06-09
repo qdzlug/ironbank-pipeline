@@ -116,9 +116,7 @@ def get_commit_diff(repo_dir: str, diff_branch: str) -> str:
     """
     Uses gitpython to get a list of commit shasums of feature branch commits that don't exist in development,
     or for commits in development that aren't in master when CI_COMMIT_BRANCH is development
-    Returns a list of truffleHog3 flags
-        [--since-commit, the oldest sha in the commits list]
-        if list is empty [--no-history]
+    Returns a string of commit SHAs separated by newline characters
     """
     # fetch origin before performing a git log
     repo = git.Repo(repo_dir)
@@ -131,8 +129,14 @@ def get_commit_diff(repo_dir: str, diff_branch: str) -> str:
 
 
 def get_history_cmd(commits: str) -> list[str]:
+    """
+    Splits a string of newline separated commit SHAs
+    Returns a list of truffleHog3 flags
+        [--since-commit, the oldest sha in the commits list]
+        if list is empty [--no-history]
+    """
     commits = commits.split("\n")
-    for commit in (commit for commit in commits):
+    for commit in commits:
         logging.info(commit)
     # if no data is returned to commits, since_commit will be an empty string
     since_commit: str = commits[-1]
