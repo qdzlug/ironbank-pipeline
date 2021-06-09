@@ -2,7 +2,6 @@
 set -Eeuo pipefail
 
 echo "${IB_CONTAINER_GPG_KEY}" | base64 -d >key
-mkdir -p tmp_gpg "${ARTIFACT_DIR}/reports"
 
 # Gather info for scan-metadata.json
 GPG_VERSION_INFO=$(gpg --version | grep "gpg")
