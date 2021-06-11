@@ -7,20 +7,19 @@ fi
 export BASE_BUCKET_DIRECTORY="container-scan-reports"
 REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}"
 export REMOTE_REPORT_DIRECTORY
-export S3_HTML_LINK="${S3_REPORT_BUCKET}/${BASE_BUCKET_DIRECTORY}/${CI_PROJECT_NAME}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}"
+export VAT_API_URL="${VAT_BACKEND_SERVER_ADDRESS}/internal/import/scan"
 
-python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
-  --db "${VAT_DB_DATABASE_NAME}" \
-  --user "${VAT_DB_CONNECTION_USER}" \
-  --host "${VAT_DB_HOST}" \
+python3 "${PIPELINE_REPO_DIR}/stages/vat/new_vat_import.py" \
+  --api_url "${VAT_API_URL}" \
   --csv_dir "${ARTIFACT_DIR}" \
   --job_id "${CI_PIPELINE_ID}" \
+  --scan_date "$(date +%FT%T)" \
+  --commit_hash "${CI_COMMIT_SHA}" \
   --container "${IMAGE_NAME}" \
   --version "${IMAGE_VERSION}" \
+  --digest "${IMAGE_PODMAN_SHA}" \
   --parent "${BASE_IMAGE:-}" \
-  --password "${VAT_DB_CONNECTION_PASS}" \
   --parent_version "${BASE_TAG:-}" \
-  --scan_date "$(date +%FT%T)" \
   --sec_link "${OSCAP_CVE_URL}" \
   --comp_link "${OSCAP_COMPLIANCE_URL}" \
   --repo_link "${CI_PROJECT_URL}"
