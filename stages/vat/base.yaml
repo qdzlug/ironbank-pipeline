@@ -15,7 +15,7 @@ vat:
     - wl-compare-lint
     - hardening-manifest
   variables:
-    KUBERNETES_NAMESPACE_OVERWRITE: vat
+    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: vat
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/csvs/"
     OPENSCAP: "${ARTIFACT_STORAGE}/scan-results/openscap"
   script:
