@@ -10,6 +10,7 @@ vat:
   # Load in the IMAGE_VERSION variable from load-scripts env
   dependencies:
     - load-scripts
+    - build
     - csv-output
     - wl-compare-lint
     - hardening-manifest
