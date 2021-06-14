@@ -82,6 +82,8 @@ import_root_key() {
     exit 1
   fi
 
+  ROOT_KEY=""
+
   # Retrieve root key, retry on failure
   success=0
   for i in $(seq 1 $NUM_RETRIES); do
