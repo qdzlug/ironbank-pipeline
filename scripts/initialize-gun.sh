@@ -101,11 +101,12 @@ import_root_key() {
       echo ""
       sleep 5
     fi
-    if [ "$imported" -eq 0 ]; then
-      echo "Error: Unable to retrieve and import root key"
-      exit 1
-    fi
   done
+  if [ "$imported" -eq 0 ]; then
+    echo "Error: Unable to retrieve and import root key"
+    exit 1
+  fi
+  notary -s "$notary_url" -d "$trustdir" key list
 }
 
 init_gun() {
