@@ -50,7 +50,8 @@ def main() -> None:
         logging.error("trufflehog.yaml file is not permitted to exist in repo")
         sys.exit(1)
 
-    history_cmd = get_history_cmd(repo_dir, diff_branch)
+    commit_diff = get_commit_diff(repo_dir, diff_branch)
+    history_cmd = get_history_cmd(commit_diff)
     project_config = create_trufflehog_config(
         project_truffle_config, default_truffle_config, repo_dir, config_variable
     )
@@ -111,22 +112,31 @@ def main() -> None:
     logging.info("truffleHog found no secrets")
 
 
-def get_history_cmd(repo_dir: str, diff_branch: str) -> list[str]:
+def get_commit_diff(repo_dir: str, diff_branch: str) -> str:
     """
     Uses gitpython to get a list of commit shasums of feature branch commits that don't exist in development,
     or for commits in development that aren't in master when CI_COMMIT_BRANCH is development
-    Returns a list of truffleHog3 flags
-        [--since-commit, the oldest sha in the commits list]
-        if list is empty [--no-history]
+    Returns a string of commit SHAs separated by newline characters
     """
     # fetch origin before performing a git log
     repo = git.Repo(repo_dir)
     commits = repo.git.rev_list(
         f"{diff_branch}..",
         "--no-merges",
-    ).split("\n")
+    )
     logging.info(f"git rev-list {diff_branch}.. --no-merges")
-    for commit in (commit for commit in commits):
+    return commits
+
+
+def get_history_cmd(commits: str) -> list[str]:
+    """
+    Splits a string of newline separated commit SHAs
+    Returns a list of truffleHog3 flags
+        [--since-commit, the oldest sha in the commits list]
+        if list is empty [--no-history]
+    """
+    commits = commits.split("\n")
+    for commit in commits:
         logging.info(commit)
     # if no data is returned to commits, since_commit will be an empty string
     since_commit: str = commits[-1]

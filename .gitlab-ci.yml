@@ -5,8 +5,10 @@
 stages:
   - format
   - lint
+  - test
 
 shellcheck:
+  needs: []
   tags:
     - ironbank-tools
   stage: lint
@@ -41,6 +43,7 @@ shellcheck:
       exit "$ret"
 
 black:
+  needs: []
   tags:
     - ironbank-tools
   stage: format
@@ -50,6 +53,7 @@ black:
     - black --check --diff --color -t py39 .
 
 pylama:
+  needs: []
   tags:
     - ironbank-tools
   stage: lint
@@ -62,6 +66,7 @@ pylama:
 ## ignore line errors as blacks has been ran against code.
 
 prettier:
+  needs: []
   tags:
     - ironbank-tools
   stage: format
@@ -72,6 +77,7 @@ prettier:
     - npx prettier -c .
 
 shfmt:
+  needs: []
   tags:
     - ironbank-tools
   stage: format
@@ -81,3 +87,14 @@ shfmt:
     - wget https://github.com/mvdan/sh/releases/download/v3.1.2/shfmt_v3.1.2_linux_amd64
     - chmod a+x shfmt_v3.1.2_linux_amd64
     - "./shfmt_v3.1.2_linux_amd64 -d ."
+
+unit-testing:
+  needs: []
+  tags:
+    - ironbank-tools
+  stage: test
+  image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:0.3"
+  # TODO: remove pip install for pytest when pytest is added to pipeline-runner image
+  script:
+    - python3 -m pip install pytest
+    - python3 -m pytest -m "not slow" --log-cli-level="INFO" --ignore=stages/vat
