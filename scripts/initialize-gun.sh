@@ -66,7 +66,6 @@ import_root_key() {
   echo "==============================="
   echo
 
-  imported=0
   # Login to Vault, retry on failure
   for i in $(seq 1 $NUM_RETRIES); do
     if VAULT_TOKEN=$(vault login -token-only -method=userpass username=notary-admin); then
@@ -82,30 +81,47 @@ import_root_key() {
     echo "Error: Unable to login to vault. Failing"
     exit 1
   fi
+
   # Retrieve root key, retry on failure
+  success=0
   for i in $(seq 1 $NUM_RETRIES); do
-    if ! ROOT_KEY=$(vault kv get -field=rootkey "/kv/il2/notary/admin/$rootkeyloc"); then
-      echo "Warning: Error retrieving root key, retrying"
-      echo ""
-      sleep 5
-    else
-      if [ ! -z $ROOT_KEY ]; then
-        if echo $ROOT_KEY | notary -v -s "$notary_url" -d "$trustdir" key import /dev/stdin --role=root; then
-          imported=1
-          break
-        fi
-      else
-        echo "Warning: Root key is empty"
+
+    # Attempt to load the root key
+    if [ -z "${ROOT_KEY}" ]; then
+      if ROOT_KEY=$(vault kv get -field=rootkey "/kv/il2/notary/admin/$rootkeyloc"); then
+        success=1
+        break
       fi
-      echo "Warning: Failed notary root key import, retrying"
-      echo ""
-      sleep 5
     fi
+    echo "Warning: Error retrieving root key, retrying"
+    echo ""
+    sleep 5
   done
-  if [ "$imported" -eq 0 ]; then
-    echo "Error: Unable to retrieve and import root key"
+
+  if [ "$success" -eq 0 ]; then
+    echo "Error: Unable to retrieve root key"
     exit 1
   fi
+
+  success=0
+  # Import the root key, retry on failure
+  for i in $(seq 1 $NUM_RETRIES); do
+
+    # Attempt to import the root key
+    if echo "$ROOT_KEY" | notary -v -s "$notary_url" -d "$trustdir" key import /dev/stdin --role=root; then
+      success=1
+      break
+    fi
+    echo "Warning: Failed notary root key import, retrying"
+    echo ""
+    sleep 5
+  done
+
+  if [ "$success" -eq 0 ]; then
+    echo "Error: Unable to import root key"
+    exit 1
+  fi
+
   notary -s "$notary_url" -d "$trustdir" key list
 }
 
