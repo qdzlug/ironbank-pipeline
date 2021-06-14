@@ -10,11 +10,13 @@ vat:
   # Load in the IMAGE_VERSION variable from load-scripts env
   dependencies:
     - load-scripts
+    - build
     - csv-output
     - wl-compare-lint
     - hardening-manifest
   variables:
+    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: vat
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/csvs/"
     OPENSCAP: "${ARTIFACT_STORAGE}/scan-results/openscap"
   script:
-    - '"${PIPELINE_REPO_DIR}/stages/vat/vat-run.sh"'
+    - '"${PIPELINE_REPO_DIR}/stages/vat/vat-run-api.sh"'
