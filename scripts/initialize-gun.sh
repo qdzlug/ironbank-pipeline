@@ -89,8 +89,8 @@ import_root_key() {
   for i in $(seq 1 $NUM_RETRIES); do
 
     # Attempt to load the root key
-    if [ -z "${ROOT_KEY}" ]; then
-      if ROOT_KEY=$(vault kv get -field=rootkey "/kv/il2/notary/admin/$rootkeyloc"); then
+    if ROOT_KEY=$(vault kv get -field=rootkey "/kv/il2/notary/admin/$rootkeyloc"); then
+      if [ -n "${ROOT_KEY}" ]; then
         success=1
         break
       fi
