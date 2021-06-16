@@ -81,9 +81,6 @@ import_root_key() {
     echo "Error: Unable to login to vault. Failing"
     exit 1
   fi
-
-  ROOT_KEY=""
-
   # Retrieve root key, retry on failure
   success=0
   for i in $(seq 1 $NUM_RETRIES); do
