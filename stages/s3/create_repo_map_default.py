@@ -170,8 +170,10 @@ def main():
             json_data = json.loads(j.read())
     except FileNotFoundError as f_not_found_err:
         logging.error(f"repo_map.json file not found!\n{f_not_found_err}")
+        exit(1)
     except Exception as e:
         logging.error(f"repo_map.json file was found, but an unhandled error occured\n{e}")
+        exit(1)
     try:
         requests.post(os.environ["IBFE_API_ENDPOINT"], data = os.environ["IBFE_API_KEY"], json=data[os.environ["build_number"]])
         logging.info("Uploaded container data to IBFE API")
