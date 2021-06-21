@@ -6,6 +6,7 @@ import boto3
 import logging
 from botocore.exceptions import ClientError
 import argparse
+import requests
 
 
 def get_repomap(object_name, bucket="ironbank-pipeline-artifacts"):
@@ -90,9 +91,11 @@ def main():
 
     parser = argparse.ArgumentParser(description="Downloads target from s3")
     parser.add_argument("--target", help="File to upload")
+    parser.add_argument("--container_type", help="type of container OS (UBI, distroless, ubuntu, etc")
     args = parser.parse_args()
 
     object_name = args.target
+    container_type = args.containter_type
 
     existing_repomap = get_repomap(object_name)
     artifact_storage = os.environ["ARTIFACT_STORAGE"]
@@ -122,9 +125,9 @@ def main():
             "Image_URL": os.environ["image_url"],
             "Anchore_Security_Results": os.environ["anchore_security_results"],
             "Image_Sha": os.environ["image_sha"],
-            "OpenSCAP_Compliance_Results": os.environ["openscap_compliance_results"],
+#            "OpenSCAP_Compliance_Results": os.environ["openscap_compliance_results"],
             "Tar_Name": os.environ["tar_name"],
-            "OpenSCAP_Report": os.environ["openscap_report"],
+#            "OpenSCAP_Report": os.environ["openscap_report"],
             "Image_Tag": os.environ["image_tag"],
             "Manifest_Name": os.environ["manifest_name"],
             "Approval_Status": approval_status,
@@ -142,6 +145,10 @@ def main():
         }
     }
 
+    if container_type != "distroless":
+        new_data["build_number"]["OpenSCAP_Report"]=os.environ["openscap_report"],
+        new_data["build_number"]["OpenSCAP_Compliance_Results"]=os.environ["openscap_compliance_results"]
+
     logging.debug(f"repo_map data:\n{new_data}")
 
     if existing_repomap:
@@ -151,10 +158,41 @@ def main():
             f.seek(0, 0)
             f.truncate()
             json.dump(data, f, indent=4)
-
     else:
         with open("repo_map.json", "w") as outfile:
             json.dump(new_data, outfile, indent=4, sort_keys=True)
+
+##CV: Unsure if we can remove the above upload to S3 or if anything else relies on the file, re-reading and posting to IBFE 
+#to prevent breaking anything. This can be changed if we are confident nothing downstream consumes or expects 
+#repo_map.json. UNIX style processing -- dirty but works
+    try:
+        with open('repo_map.json', 'r') as j:
+            json_data = json.loads(j.read())
+    except FileNotFoundError as f_not_found_err:
+        logging.error(f"repo_map.json file not found!\n{f_not_found_err}")
+    except Exception as e:
+        logging.error(f"repo_map.json file was found, but an unhandled error occured\n{e}")
+    try:
+        requests.post(os.environ["IBFE_API_ENDPOINT"], data = os.environ["IBFE_API_KEY"], json=data[os.environ["build_number"]])
+        logging.info("Uploaded container data to IBFE API")
+    except requests.exceptions.RequestException as request_e:
+        logging.error(f"Error submitting container data to IBFE API\n{request_e}")
+
+##CV: I don't like this and would prefer not to test if variable exists, except to do a thing, else do a different thing. 
+# that feels pretty unclean. UNIX style processing above is hacky but not as bad as below
+#    try: data
+#    except NameError: 
+#        try:
+#            r = requests.post(os.environ["IBFE_API_ENDPOINT"], data = os.environ["IBFE_API_KEY"], json=new_data)
+#            logging.debug(r)
+#        except Exception as post_e:
+#            logging.error(f"Error sending data to IBFE:\n{post_e}")        
+#    else:
+#        try:
+#            r = requests.post(os.environ["IBFE_API_ENDPOINT"], data = os.environ["IBFE_API_KEY"], json=data)
+#            logging.debug(r)
+#        except Exception as post_e:
+#            logging.error(f"Error sending data to IBFE:\n{post_e}")
 
 
 if __name__ == "__main__":

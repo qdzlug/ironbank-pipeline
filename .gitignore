@@ -11,3 +11,5 @@ htmlcov/
 *.old
 .DS_Store
 .mypy_cache/
+libs/*
+.gitignore
