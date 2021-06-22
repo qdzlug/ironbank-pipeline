@@ -91,11 +91,9 @@ def main():
 
     parser = argparse.ArgumentParser(description="Downloads target from s3")
     parser.add_argument("--target", help="File to upload")
-    parser.add_argument("--container_type", help="type of container OS (UBI, distroless, ubuntu, etc")
     args = parser.parse_args()
 
     object_name = args.target
-    container_type = args.containter_type
 
     existing_repomap = get_repomap(object_name)
     artifact_storage = os.environ["ARTIFACT_STORAGE"]
