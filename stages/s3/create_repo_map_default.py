@@ -123,9 +123,13 @@ def main():
             "Image_URL": os.environ["image_url"],
             "Anchore_Security_Results": os.environ["anchore_security_results"],
             "Image_Sha": os.environ["image_sha"],
-            "OpenSCAP_Compliance_Results": os.environ.get("openscap_compliance_results") if not os.environ.get("DISTROLESS") else None,
+            "OpenSCAP_Compliance_Results": os.environ.get("openscap_compliance_results")
+            if not os.environ.get("DISTROLESS")
+            else None,
             "Tar_Name": os.environ["tar_name"],
-            "OpenSCAP_Report": os.environ.get("openscap_report") if not os.environ.get("DISTROLESS") else None,
+            "OpenSCAP_Report": os.environ.get("openscap_report")
+            if not os.environ.get("DISTROLESS")
+            else None,
             "Image_Tag": os.environ["image_tag"],
             "Manifest_Name": os.environ["manifest_name"],
             "Approval_Status": approval_status,
@@ -138,7 +142,7 @@ def main():
             "Full_Report": os.environ["full_report"],
             "Repo_Name": os.environ["repo_name"],
             "Keywords": keyword_list,
-            "Digest": os.environ['image_podman_sha'],
+            "Digest": os.environ["image_podman_sha"],
             "Tags": tag_list,
             "Labels": label_dict,
         }
@@ -158,11 +162,16 @@ def main():
             json.dump(new_data, outfile, indent=4, sort_keys=True)
 
     try:
-        requests.post(os.environ["IBFE_API_ENDPOINT"], auth=os.environ["IBFE_API_KEY"], json=new_data[os.environ["build_number"]])
+        requests.post(
+            os.environ["IBFE_API_ENDPOINT"],
+            auth=os.environ["IBFE_API_KEY"],
+            json=new_data[os.environ["build_number"]],
+        )
         logging.info("Uploaded container data to IBFE API")
     except requests.exceptions.RequestException as request_e:
         logging.error(f"Error submitting container data to IBFE API\n{request_e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     sys.exit(main())
