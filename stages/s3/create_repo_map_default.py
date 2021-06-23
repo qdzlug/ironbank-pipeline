@@ -164,7 +164,7 @@ def main():
     try:
         requests.post(
             os.environ["IBFE_API_ENDPOINT"],
-            auth=os.environ["IBFE_API_KEY"],
+            # auth=os.environ["IBFE_API_KEY"],
             json=new_data[os.environ["build_number"]],
         )
         logging.info("Uploaded container data to IBFE API")
