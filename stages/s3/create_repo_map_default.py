@@ -161,17 +161,19 @@ def main():
         with open("repo_map.json", "w") as outfile:
             json.dump(new_data, outfile, indent=4, sort_keys=True)
 
-    try:
-        requests.post(
-            f"{os.environ['IBFE_API_ENDPOINT']}/{os.environ['image_podman_sha']}",
-            # auth=os.environ["IBFE_API_KEY"],
-            json=new_data[os.environ["build_number"]],
-        )
-        logging.info("Uploaded container data to IBFE API")
-    except requests.exceptions.RequestException as request_e:
-        logging.error(f"Error submitting container data to IBFE API\n{request_e}")
-        sys.exit(1)
-
+    if os.environ["CI_COMMIT_BRANCH"] == "master":
+        try:
+            requests.post(
+                f"{os.environ['IBFE_API_ENDPOINT']}/{os.environ['image_podman_sha']}",
+                # auth=os.environ["IBFE_API_KEY"],
+                json=new_data[os.environ["build_number"]],
+            )
+            logging.info("Uploaded container data to IBFE API")
+        except requests.exceptions.RequestException as request_e:
+            logging.error(f"Error submitting container data to IBFE API\n{request_e}")
+            sys.exit(1)
+    else:
+        logging.debug("Skipping use of ibfe api build endpoint")
 
 if __name__ == "__main__":
     sys.exit(main())
