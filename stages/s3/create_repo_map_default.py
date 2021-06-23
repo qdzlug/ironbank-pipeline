@@ -163,7 +163,7 @@ def main():
 
     try:
         requests.post(
-            os.environ["IBFE_API_ENDPOINT"],
+            f"{os.environ['IBFE_API_ENDPOINT']}/{os.environ['image_podman_sha']}",
             # auth=os.environ["IBFE_API_KEY"],
             json=new_data[os.environ["build_number"]],
         )
