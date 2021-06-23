@@ -17,7 +17,7 @@ include:
   # - local: stages/scanning/openscap/openscap-compliance.yaml
   # - local: stages/scanning/twistlock/twistlock.yaml
 
-  - local: stages/csv-output/base.yaml
+  # - local: stages/csv-output/base.yaml
 
   - local: stages/check-cves/base.yaml
 
