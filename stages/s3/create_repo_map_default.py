@@ -163,12 +163,13 @@ def main():
 
     if os.environ["CI_COMMIT_BRANCH"] == "master":
         try:
-            requests.post(
+            req = requests.post(
                 f"{os.environ['IBFE_API_ENDPOINT']}/{os.environ['image_podman_sha']}",
                 # auth=os.environ["IBFE_API_KEY"],
                 json=new_data[os.environ["build_number"]],
             )
             logging.info("Uploaded container data to IBFE API")
+            req.raise_for_status()
         except requests.exceptions.RequestException as request_e:
             logging.error(f"Error submitting container data to IBFE API\n{request_e}")
             sys.exit(1)
