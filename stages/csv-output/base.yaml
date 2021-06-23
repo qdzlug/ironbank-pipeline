@@ -1,9 +1,9 @@
 csv-output:
   stage: csv-output
   dependencies:
-    - twistlock-scan
-    - openscap-compliance
-    - anchore-scan
+    # - twistlock-scan
+    # - openscap-compliance
+    # - anchore-scan
     - load-scripts
     - hardening-manifest
     - wl-compare-lint

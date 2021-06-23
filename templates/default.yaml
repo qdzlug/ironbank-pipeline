@@ -21,7 +21,7 @@ include:
 
   - local: stages/check-cves/base.yaml
 
-  - local: stages/generate-allowlists/base.yaml
+  # - local: stages/generate-allowlists/base.yaml
 
   - local: stages/documentation/base.yaml
 
