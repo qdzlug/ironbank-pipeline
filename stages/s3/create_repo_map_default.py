@@ -164,7 +164,7 @@ def main():
     logging.info(os.environ["CI_COMMIT_BRANCH"])
     if os.environ["CI_COMMIT_BRANCH"] == "master":
         try:
-            post_resp = requests.post(
+            post_resp = requests.put(
                 f"{os.environ['IBFE_API_ENDPOINT']}/{os.environ['IMAGE_PODMAN_SHA'].replace('sha256:', '')}",
                 # auth=os.environ["IBFE_API_KEY"],
                 json=new_data[os.environ["build_number"]],
