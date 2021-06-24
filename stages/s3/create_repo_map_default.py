@@ -161,6 +161,7 @@ def main():
         with open("repo_map.json", "w") as outfile:
             json.dump(new_data, outfile, indent=4, sort_keys=True)
 
+    logging.info(os.environ["CI_COMMIT_BRANCH"])
     if os.environ["CI_COMMIT_BRANCH"] == "master":
         try:
             post_resp = requests.post(
@@ -184,9 +185,11 @@ def main():
             sys.exit(1)
         except Exception as e:
             logging.error(f"Unhandled exception\n{e}")
-            sys.exit(1)            
+            sys.exit(1)
     else:
         logging.debug("Skipping use of ibfe api build endpoint")
+
+    logging.info("made it past POST")
 
 
 if __name__ == "__main__":
