@@ -166,8 +166,8 @@ def main():
     if os.environ["CI_COMMIT_BRANCH"] == "master":
         try:
             new_data = new_data[os.environ["build_number"]]
-            new_data.pop("OpenSCAP_Compliance_Results")
-            new_data.pop("OpenSCAP_Report")
+            # new_data.pop("OpenSCAP_Compliance_Results")
+            # new_data.pop("OpenSCAP_Report")
             post_resp = requests.post(
                 f"{os.environ['IBFE_API_ENDPOINT']}",
                 headers={"Authorization": os.environ["IBFE_API_KEY"]},
