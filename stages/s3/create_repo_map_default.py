@@ -108,6 +108,7 @@ def main():
         f"{artifact_storage}/lint/image_approval.json"
     )
 
+    digest = os.environ["IMAGE_PODMAN_SHA"].replace("sha256:", "")
     # all environment vars used for adding new data to the repo map must have a value set or they will throw a KeyError
     new_data = {
         os.environ["build_number"]: {
@@ -142,7 +143,7 @@ def main():
             "Full_Report": os.environ["full_report"],
             "Repo_Name": os.environ["repo_name"],
             "Keywords": keyword_list,
-            "Digest": os.environ["IMAGE_PODMAN_SHA"],
+            "Digest": digest,
             "Tags": tag_list,
             "Labels": label_dict,
         }
@@ -168,7 +169,7 @@ def main():
             new_data.pop("OpenSCAP_Compliance_Results")
             new_data.pop("OpenSCAP_Report")
             post_resp = requests.put(
-                f"{os.environ['IBFE_API_ENDPOINT']}/{os.environ['IMAGE_PODMAN_SHA'].replace('sha256:', '')}",
+                f"{os.environ['IBFE_API_ENDPOINT']}/{digest}",
                 headers={"Authorization": os.environ["IBFE_API_KEY"]},
                 json=new_data[os.environ["build_number"]],
             )
