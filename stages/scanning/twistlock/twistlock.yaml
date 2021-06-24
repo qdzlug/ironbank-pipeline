@@ -17,7 +17,7 @@ twistlock-scan:
         --registry="${REGISTRY1_URL}" \
         --api_url="${TWISTLOCK_SERVER_ADDRESS}/api/v1" \
         --name="ironbank-staging/${IMAGE_NAME}" \
-        --tag="${CI_PIPELINE_ID}" \
+        --tag="ci-${CI_PIPELINE_ID}" \
         --username="${TWISTLOCK_USER}" \
         --password="${TWISTLOCK_PASSWORD}" \
         --version_file="${TWISTLOCK_SCANS}/twistlock-version.txt" \
