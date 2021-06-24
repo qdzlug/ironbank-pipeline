@@ -143,7 +143,7 @@ def main():
             "Full_Report": os.environ["full_report"],
             "Repo_Name": os.environ["repo_name"],
             "Keywords": keyword_list,
-            "Digest": digest,
+            "digest": digest,
             "Tags": tag_list,
             "Labels": label_dict,
         }
