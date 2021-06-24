@@ -171,7 +171,7 @@ def main():
             post_resp = requests.put(
                 f"{os.environ['IBFE_API_ENDPOINT']}/{digest}",
                 headers={"Authorization": os.environ["IBFE_API_KEY"]},
-                json=new_data[os.environ["build_number"]],
+                json=new_data,
             )
             logging.info("Uploaded container data to IBFE API")
             post_resp.raise_for_status()
