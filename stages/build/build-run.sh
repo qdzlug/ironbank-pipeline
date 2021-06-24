@@ -9,7 +9,7 @@ set -Eeuo pipefail
 
 # Set up the image reference variables
 export IMAGE_REGISTRY_REPO="${STAGING_REGISTRY_URL}/${IMAGE_NAME}"
-export IMAGE_FULLTAG="${IMAGE_REGISTRY_REPO}:ci-${CI_PIPELINE_ID}"
+export IMAGE_FULLTAG="${IMAGE_REGISTRY_REPO}:ibci-${CI_PIPELINE_ID}"
 
 mkdir -p "${ARTIFACT_DIR}"
 
