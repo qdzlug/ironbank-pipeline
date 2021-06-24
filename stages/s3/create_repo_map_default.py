@@ -166,7 +166,7 @@ def main():
         try:
             post_resp = requests.put(
                 f"{os.environ['IBFE_API_ENDPOINT']}/{os.environ['IMAGE_PODMAN_SHA'].replace('sha256:', '')}",
-                headers={"Authorization": f"TOK:{os.environ['IBFE_API_KEY']}"},
+                headers={"Authorization": os.environ['IBFE_API_KEY']},
                 json=new_data[os.environ["build_number"]],
             )
             logging.info("Uploaded container data to IBFE API")
