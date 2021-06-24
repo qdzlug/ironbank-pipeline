@@ -142,7 +142,7 @@ def main():
             "Full_Report": os.environ["full_report"],
             "Repo_Name": os.environ["repo_name"],
             "Keywords": keyword_list,
-            "Digest": os.environ["image_podman_sha"],
+            "Digest": os.environ["IMAGE_PODMAN_SHA"],
             "Tags": tag_list,
             "Labels": label_dict,
         }
