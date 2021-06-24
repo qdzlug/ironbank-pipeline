@@ -57,7 +57,7 @@ IFS=$'\n'
 echo "Build the image"
 # Intentional wordsplitting:
 # shellcheck disable=SC2086
-buildah bud \
+env -i BUILDAH_ISOLATION=chroot PATH="$PATH" buildah bud \
   $args_parameters \
   --build-arg=BASE_REGISTRY="${BASE_REGISTRY}" \
   $label_parameters \
