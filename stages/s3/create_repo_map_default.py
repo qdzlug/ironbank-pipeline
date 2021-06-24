@@ -168,8 +168,8 @@ def main():
             new_data = new_data[os.environ["build_number"]]
             new_data.pop("OpenSCAP_Compliance_Results")
             new_data.pop("OpenSCAP_Report")
-            post_resp = requests.put(
-                f"{os.environ['IBFE_API_ENDPOINT']}/{digest}",
+            post_resp = requests.post(
+                f"{os.environ['IBFE_API_ENDPOINT']}",
                 headers={"Authorization": os.environ["IBFE_API_KEY"]},
                 json=new_data,
             )
