@@ -19,9 +19,9 @@ documentation:
     - hardening-manifest
     - wl-compare-lint
     - build
-    # - anchore-scan
-    # - twistlock-scan
-    # - openscap-compliance
+    - anchore-scan
+    - twistlock-scan
+    - openscap-compliance
   only:
     - development
     - master

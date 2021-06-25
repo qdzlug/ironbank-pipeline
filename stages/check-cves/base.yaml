@@ -10,9 +10,9 @@ check-cves:
     - hardening-manifest
     - load-scripts
     - wl-compare-lint
-    # - twistlock-scan
-    # - openscap-compliance
-    # - anchore-scan
+    - twistlock-scan
+    - openscap-compliance
+    - anchore-scan
   script:
     - |
       pip3 install jsonschema
