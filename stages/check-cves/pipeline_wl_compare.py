@@ -540,8 +540,8 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             "--authfile",
             "prod_auth.json",
             f"docker://registry1.dso.mil/ironbank/{parent_image_path}:{base_tag}",
-            "--format",
-            '{{ index .Labels "org.opencontainers.image.source" }}',
+            # "--format",
+            # '{{ index .Labels "org.opencontainers.image.source" }}',
         ]
         logging.info(" ".join(cmd))
         try:
@@ -551,13 +551,17 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
                 stderr=subprocess.PIPE,
                 check=True,
             )
-            parent_image_path = (
-                response.stdout.decode("UTF-8")
-                .strip("\n'")
-                .replace("https://repo1.dso.mil/dsop/", "")
-            )
+            # parent_image_path = (
+            #     response.stdout.decode("UTF-8")
+            #     .strip("\n'")
+            #     .replace("https://repo1.dso.mil/dsop/", "")
+            # )
+            logging.info(f"stdout: {response.stdout}")
+            logging.info(f"stderr: {response.stderr}")
         except subprocess.CalledProcessError as e:
             logging.error(e.returncode)
+            logging.info(f"stdout: {response.stdout}")
+            logging.info(f"stderr: {response.stderr}")
 
             if e.returncode == 1 and e.stdout:
                 logging.error(f"skopeo inspect failed: Return code {e.returncode}")
