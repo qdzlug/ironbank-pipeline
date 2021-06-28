@@ -531,7 +531,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         # )
 
         # Grab staging docker auth
-        prod_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("utf-8")
+        prod_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("UTF-8")
         pathlib.Path("prod_auth.json").write_text(prod_auth)
 
         cmd = [
@@ -541,7 +541,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             "prod_auth.json",
             f"docker://registry1.dso.mil/ironbank/{parent_image_path}:{base_tag}",
             "--format",
-            "'{{ index .Labels \"org.opencontainers.image.source\" }}'",
+            '{{ index .Labels "org.opencontainers.image.source" }}',
         ]
         logging.info(" ".join(cmd))
         try:
