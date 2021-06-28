@@ -511,6 +511,50 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
     # get parent cves from VAT
     while parent_image_path:
+        # skopeo inspect to get parent's hardening manifest
+        # the parent HM is needed to check if there are additional parent images
+        # The chain of inheritance is needed to retrieve findings from the VAT via SQL query
+
+        # Cases
+        # 1. BASE_IMAGE (GitLab project path) == Registry1 container name. BASE_IMAGE name matches the GitLab (GL) project path of the parent image.
+        #    That means the current code works as expected, requiring no changes
+        # 2. BASE_IMAGE (GitLab project path) != Registry1 container name. This causes the build stage to fail as the parent image cannot be pulled from Registry1
+        #     with the provided BASE_IMAGE name. This means they need to update the BASE_IMAGE value to be the image name in Registry1, so we can get the next parent's image name via `skopeo inspect`
+
+        # Concern is with Case 2, as this requires a hotfix due to the following GL issue: https://repo1.dso.mil/dsop/via/tac-node/vm_tam/-/issues/2#note_342187,
+        #     and because we don't want to break pipelines of existing projects, we could fail back to using the existing method of using the `name` value in the remote hardening manifest
+
+        # registry = (
+        #     "registry1.dso.mil/ironbank-staging/"
+        #     if os.environ.get("STAGING_BASE_IMAGE")
+        # )
+
+        cmd = [
+            "skopeo",
+            "inspect",
+            f"docker://registry1.dso.mil/ironbank/{parent_image_path}:{base_tag}",
+            "--format",
+            '{{ index .Labels "org.opencontainers.image.source" }}',
+        ]
+        try:
+            response = subprocess.run(
+                args=cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding="utf-8",
+                check=True,
+            )
+            parent_image_path = (
+                response.stdout.decode("UTF-8")
+                .strip()
+                .replace("https://repo1.dso.mil/dsop/", "")
+            )
+        except subprocess.CalledProcessError as e:
+            if e.returncode == 1 and e.stdout:
+                logging.error(f"skopeo inspect failed: Return code {e.returncode}")
+            else:
+                logging.error("Unknown error. Failing")
+
         parent_image_name, parent_image_version, parent_image_path = _next_ancestor(
             parent_image_path=parent_image_path,
             whitelist_branch=whitelist_branch,
