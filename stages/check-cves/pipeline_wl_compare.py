@@ -545,6 +545,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             "--format",
             '{{ index .Labels "org.opencontainers.image.source" }}',
         ]
+        logging.info(" ".join(cmd))
         try:
             response = subprocess.run(
                 args=cmd,
