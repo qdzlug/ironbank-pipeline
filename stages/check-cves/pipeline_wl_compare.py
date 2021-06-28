@@ -551,12 +551,11 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
                 args=cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                encoding="utf-8",
                 check=True,
             )
             parent_image_path = (
                 response.stdout.decode("UTF-8")
-                .strip()
+                .strip("\n'")
                 .replace("https://repo1.dso.mil/dsop/", "")
             )
         except subprocess.CalledProcessError as e:
