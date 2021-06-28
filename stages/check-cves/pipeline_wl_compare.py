@@ -11,6 +11,7 @@
 ##
 
 import argparse
+from base64 import b64decode
 import json
 import logging
 import os
@@ -529,9 +530,17 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         #     if os.environ.get("STAGING_BASE_IMAGE")
         # )
 
+        # Grab staging docker auth
+        staging_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_STAGING"]).decode(
+            "utf-8"
+        )
+        pathlib.Path("staging_auth.json").write_text(staging_auth)
+
         cmd = [
             "skopeo",
             "inspect",
+            "--authfile",
+            "staging_auth.json",
             f"docker://registry1.dso.mil/ironbank/{parent_image_path}:{base_tag}",
             "--format",
             '{{ index .Labels "org.opencontainers.image.source" }}',
