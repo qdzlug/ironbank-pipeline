@@ -556,8 +556,9 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
                 .strip("\n'")
                 .replace("https://repo1.dso.mil/dsop/", "")
             )
-            logging.info(f"stdout: {response.stdout}")
-            logging.info(f"stderr: {response.stderr}")
+            # logging.info(f"stdout: {response.stdout}")
+            # logging.info(f"stderr: {response.stderr}")
+            logging.info(f"Parent image path: {parent_image_path}")
         except subprocess.CalledProcessError as e:
             logging.error(e.returncode)
             logging.info(f"stdout: {response.stdout}")
