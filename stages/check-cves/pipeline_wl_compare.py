@@ -531,16 +531,14 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
         # )
 
         # Grab staging docker auth
-        staging_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_STAGING"]).decode(
-            "utf-8"
-        )
-        pathlib.Path("staging_auth.json").write_text(staging_auth)
+        prod_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("utf-8")
+        pathlib.Path("prod_auth.json").write_text(prod_auth)
 
         cmd = [
             "skopeo",
             "inspect",
             "--authfile",
-            "staging_auth.json",
+            "prod_auth.json",
             f"docker://registry1.dso.mil/ironbank/{parent_image_path}:{base_tag}",
             "--format",
             "'{{ index .Labels \"org.opencontainers.image.source\" }}'",
@@ -559,6 +557,8 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
                 .replace("https://repo1.dso.mil/dsop/", "")
             )
         except subprocess.CalledProcessError as e:
+            logging.error(e.returncode)
+
             if e.returncode == 1 and e.stdout:
                 logging.error(f"skopeo inspect failed: Return code {e.returncode}")
             else:
