@@ -540,8 +540,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             "--authfile",
             "prod_auth.json",
             f"docker://registry1.dso.mil/ironbank/{parent_image_path}:{base_tag}",
-            "--format",
-            '{{ index .Labels "org.opencontainers.image.source" }}',
         ]
         logging.info(" ".join(cmd))
         try:
