@@ -512,23 +512,6 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
 
     # get parent cves from VAT
     while parent_image_path:
-        # skopeo inspect to get parent's hardening manifest
-        # the parent HM is needed to check if there are additional parent images
-        # The chain of inheritance is needed to retrieve findings from the VAT via SQL query
-
-        # Cases
-        # 1. BASE_IMAGE (GitLab project path) == Registry1 container name. BASE_IMAGE name matches the GitLab (GL) project path of the parent image.
-        #    That means the current code works as expected, requiring no changes
-        # 2. BASE_IMAGE (GitLab project path) != Registry1 container name. This causes the build stage to fail as the parent image cannot be pulled from Registry1
-        #     with the provided BASE_IMAGE name. This means they need to update the BASE_IMAGE value to be the image name in Registry1, so we can get the next parent's image name via `skopeo inspect`
-
-        # Concern is with Case 2, as this requires a hotfix due to the following GL issue: https://repo1.dso.mil/dsop/via/tac-node/vm_tam/-/issues/2#note_342187,
-        #     and because we don't want to break pipelines of existing projects, we could fail back to using the existing method of using the `name` value in the remote hardening manifest
-
-        # registry = (
-        #     "registry1.dso.mil/ironbank-staging/"
-        #     if os.environ.get("STAGING_BASE_IMAGE")
-        # )
 
         # Grab staging docker auth
         prod_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("UTF-8")
@@ -549,13 +532,9 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
                 stderr=subprocess.PIPE,
                 check=True,
             )
-            parent_image_path = (
-                response.stdout.decode("UTF-8")
-                .strip("\n'")
-                .replace("https://repo1.dso.mil/dsop/", "")
-            )
-            # logging.info(f"stdout: {response.stdout}")
-            # logging.info(f"stderr: {response.stderr}")
+            parent_image_path = json.loads(response.stdout)["Labels"][
+                "org.opencontainers.image.source"
+            ]
             logging.info(f"Parent image path: {parent_image_path}")
         except subprocess.CalledProcessError as e:
             logging.error(e.returncode)
