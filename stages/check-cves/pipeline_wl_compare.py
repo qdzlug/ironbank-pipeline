@@ -534,7 +534,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             )
             parent_image_path = json.loads(response.stdout)["Labels"][
                 "org.opencontainers.image.source"
-            ]
+            ].replace("https://repo1.dso.mil/dsop/", "")
             logging.info(f"Parent image path: {parent_image_path}")
         except subprocess.CalledProcessError as e:
             logging.error(e.returncode)
