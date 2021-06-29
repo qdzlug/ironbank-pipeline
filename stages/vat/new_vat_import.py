@@ -155,19 +155,17 @@ def parse_twistlock_security(tl_path):
     d_f = d_f.assign(package_path=None)
 
     d_f_clean = d_f.where(pandas.notnull(d_f), None)
-    mylist = []
-    for j in enumerate(d_f_clean.values):
-        mylist.append(j[1])
+
     retset = []
-    for l_item in mylist:
+    for l_item in d_f_clean.itertuples():
         temp = {
-            "finding": l_item[0],
-            "severity": l_item[1].lower(),
-            "description": l_item[2],
-            "link": l_item[3],
-            "score": l_item[4],
-            "package": l_item[5],
-            "packagePath": l_item[6],
+            "finding": l_item.finding,
+            "severity": l_item.severity.lower(),
+            "description": l_item.description,
+            "link": l_item.link,
+            "score": l_item.score,
+            "package": l_item.package,
+            "packagePath": l_item.package_path,
             "scanSource": "twistlock_cve",
         }
         retset.append(temp)
@@ -206,32 +204,22 @@ def parse_anchore_security(as_path):
 
     d_f.rename(columns={"cve": "finding", "url": "link"}, inplace=True)
     d_f["link"] = d_f["link"].apply(parse_anchore_json)
-    d_f["description"] = d_f["description"] + "\n" + "Link:\n" + d_f["link"]
-
-    # Temporarily Removing imported link and replacing with None
-    d_f.drop(columns=["link"], inplace=True)
-    d_f = d_f.assign(link=None)
-
-    # REMOVE THIS ONCE PACKAGE PATH FIELD IS ADDED TO DB
-    # d_f.drop(columns=["package_path"], inplace=True)
 
     # needed to add empty row to match twistlock
     d_f = d_f.assign(score="")
 
     d_f_clean = d_f.where(pandas.notnull(d_f), None)
-    mylist = []
-    for j in enumerate(d_f_clean.values):
-        mylist.append(j[1])
+
     retset = []
-    for l_item in mylist:
+    for l_item in d_f_clean.itertuples():
         temp = {
-            "finding": l_item[0],
-            "severity": l_item[1].lower(),
-            "description": l_item[4],
-            "link": l_item[5],
-            "score": l_item[6],
-            "package": l_item[2],
-            "packagePath": l_item[3],
+            "finding": l_item.finding,
+            "severity": l_item.severity.lower(),
+            "description": l_item.description,
+            "link": l_item.link,
+            "score": l_item.score,
+            "package": l_item.package,
+            "packagePath": l_item.package_path,
             "scanSource": "anchore_cve",
         }
         retset.append(temp)
@@ -285,19 +273,16 @@ def parse_anchore_compliance(ac_path):
     d_f_clean = d_f.where(pandas.notnull(d_f), None)
     logs.debug(f"anchore compliance dataframe: \n {d_f_clean}")
 
-    mylist = []
-    for j in enumerate(d_f_clean.values):
-        mylist.append(j[1])
     retset = []
-    for l_item in mylist:
+    for l_item in d_f_clean.itertuples():
         temp = {
-            "finding": l_item[0],
-            "severity": l_item[2].lower(),
-            "description": l_item[1],
-            "link": l_item[3],
-            "score": l_item[4],
-            "package": l_item[5],
-            "packagePath": l_item[6],
+            "finding": l_item.finding,
+            "severity": l_item.severity.lower(),
+            "description": l_item.description,
+            "link": l_item.link,
+            "score": l_item.score,
+            "package": l_item.package,
+            "packagePath": l_item.package_path,
             "scanSource": "anchore_comp",
         }
         retset.append(temp)
@@ -432,19 +417,17 @@ def parse_oscap_compliance(os_path):
     d_f = d_f.assign(package_path=None)
 
     d_f_clean = d_f.where(pandas.notnull(d_f), None)
-    mylist = []
-    for j in enumerate(d_f_clean.values):
-        mylist.append(j[1])
+
     retset = []
-    for l_item in mylist:
+    for l_item in d_f_clean.itertuples():
         temp = {
-            "finding": l_item[1],
-            "severity": l_item[0].lower(),
-            "description": l_item[2],
-            "link": l_item[3],
-            "score": l_item[4],
-            "package": l_item[5],
-            "packagePath": l_item[6],
+            "finding": l_item.finding,
+            "severity": l_item.severity.lower(),
+            "description": l_item.description,
+            "link": l_item.link,
+            "score": l_item.score,
+            "package": l_item.package,
+            "packagePath": l_item.package_path,
             "scanSource": "oscap_comp",
         }
         retset.append(temp)
