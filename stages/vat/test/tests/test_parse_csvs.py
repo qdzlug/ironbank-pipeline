@@ -111,12 +111,6 @@ class ParseCsvsTestCase(unittest.TestCase):
             default="./test/test_data",
         )
         parser.add_argument(
-            "--sec_link",
-            nargs="?",
-            const="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs",
-            default="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs",
-        )
-        parser.add_argument(
             "--comp_link",
             nargs="?",
             const="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs",
@@ -145,10 +139,11 @@ class ParseCsvsTestCase(unittest.TestCase):
             print(notKnownArgs)
 
         new_vat_import.args = test_args
+        assert new_vat_import.args == test_args
         rslt = new_vat_import.parse_csvs()
         assert type(rslt), dict
 
-        # twistlock
+        # ------------------ twistlock ------------------
         all_findings = rslt["findings"]
         tlc = list(
             filter(
@@ -156,7 +151,6 @@ class ParseCsvsTestCase(unittest.TestCase):
                 [f if f["scanSource"] == "twistlock_cve" else {} for f in all_findings],
             )
         )
-        # tlc = rslt["twistlock_cve"]
         assert len(tlc) == 6, "finding count = 6"
         assert type(tlc[0]["score"]) is float, "score type"
         assert tlc[0]["finding"] == "CVE-2016-1000031", "finding = CVE-2016-1000031"
@@ -175,27 +169,25 @@ class ParseCsvsTestCase(unittest.TestCase):
         ), "package"
         assert tlc[0]["packagePath"] is None, "packagePath = "
 
+        # ------------------ anchore_cve ------------------
         asc = list(
             filter(
                 lambda c: c != {},
                 [f if f["scanSource"] == "anchore_cve" else {} for f in all_findings],
             )
         )
-        assert asc[0]["finding"] == "CVE-2019-9948", "finding"
+        assert asc[0]["finding"] == "CVE-2021-3468", "finding"
+        assert asc[0]["description"] == "none", "description"
         assert (
-            asc[0]["description"]
-            == "Python-2.7.5\nhttps://nvd.nist.gov/vuln/detail/CVE-2019-9948"
-        ), "description"
-        assert asc[0]["link"] is None, "link"
-        assert asc[0]["package"] == "Python-2.7.5", "package"
-        assert (
-            asc[0]["packagePath"] == "/opt/app-root/lib/python3.6/site-packages/pip"
-        ), "package"
+            asc[0]["link"] == "https://access.redhat.com/security/cve/CVE-2021-3468"
+        ), "link"
+        assert asc[0]["package"] == "avahi-libs-0.7-19.el8", "package"
+        assert asc[0]["packagePath"] is None, "package"
 
-        assert asc[0]["severity"] == "critical", "severity"
-        assert asc[1]["severity"] == "medium", "severity"
-        assert asc[3]["severity"] == "high", "severity"
+        assert asc[0]["severity"] == "medium", "severity"
+        assert asc[3]["severity"] == "low", "severity"
 
+        # ------------------ anchore_comp ------------------
         acc = list(
             filter(
                 lambda c: c != {},
@@ -209,13 +201,13 @@ class ParseCsvsTestCase(unittest.TestCase):
         assert acc[4]["severity"] == "ga_warn", "severity: warn"
         assert acc[5]["severity"] == "ga_stop", "severity: go"
 
+        # ------------------ oscap_comp ------------------
         occ = list(
             filter(
                 lambda c: c != {},
                 [f if f["scanSource"] == "oscap_comp" else {} for f in all_findings],
             )
         )
-        print(occ)
         assert occ[len(occ) - 1]["finding"] == "CCE-82168-6", "finding"
         assert (
             occ[len(occ) - 1]["description"]

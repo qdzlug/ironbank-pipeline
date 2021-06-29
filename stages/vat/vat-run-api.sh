@@ -20,6 +20,5 @@ python3 "${PIPELINE_REPO_DIR}/stages/vat/new_vat_import.py" \
   --digest "${IMAGE_PODMAN_SHA}" \
   --parent "${BASE_IMAGE:-}" \
   --parent_version "${BASE_TAG:-}" \
-  --sec_link "${OSCAP_CVE_URL}" \
   --comp_link "${OSCAP_COMPLIANCE_URL}" \
   --repo_link "${CI_PROJECT_URL}"

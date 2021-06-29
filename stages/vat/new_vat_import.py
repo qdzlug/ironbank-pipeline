@@ -8,7 +8,6 @@ import argparse
 import logging
 import logging.handlers
 import os
-import re
 import sys
 import ast
 import json
@@ -18,6 +17,13 @@ from requests.structures import CaseInsensitiveDict
 
 parser = argparse.ArgumentParser(description="API Agent")
 
+parser.add_argument(
+    "-a",
+    "--api_url",
+    help="Url for API POST",
+    default="http://localhost:4000/internal/import/scan",
+    required=False,
+)
 parser.add_argument(
     "-f",
     "--csv_dir",
@@ -73,12 +79,6 @@ parser.add_argument(
     required=False,
 )
 parser.add_argument(
-    "-sl",
-    "--sec_link",
-    help="Link to openscap security reports directory",
-    required=True,
-)
-parser.add_argument(
     "-cl",
     "--comp_link",
     help="Link to openscap compliance reports directory",
@@ -89,13 +89,6 @@ parser.add_argument(
     "--repo_link",
     help="Link to container repository",
     default="",
-    required=False,
-)
-parser.add_argument(
-    "-a",
-    "--api_url",
-    help="Url for API POST",
-    default="http://localhost:4000/internal/import/scan",
     required=False,
 )
 parser.add_argument(
@@ -117,19 +110,25 @@ parser.add_argument(
 pandas.options.mode.chained_assignment = None
 
 
-def remove_lame_header_row(mod_me):
+def construct_job_parts(finding_tuples, source):
     """
-    @params string file name to be modified
-    Remove the header row if found in csv that contains a bunch of quotes
+    Construct a list of JSON objects for API Call
     """
-    with open(mod_me, "r+") as input_file:
-        temp = input_file.readline()
-        if ",,,," in temp:
-            logs.debug("*****************REMOVING HEADER LINE***********************")
-            data = input_file.read()  # read the rest
-            input_file.seek(0)  # set the cursor to the top of the file
-            input_file.write(data)  # write the data back
-            input_file.truncate()  # set the file size to the current size
+    retset = []
+    for l_item in finding_tuples:
+        temp = {
+            "finding": l_item.finding,
+            "severity": l_item.severity.lower(),
+            "description": l_item.description,
+            "link": l_item.link,
+            "score": l_item.score,
+            "package": l_item.package,
+            "packagePath": l_item.package_path,
+            "scanSource": source,
+        }
+        retset.append(temp)
+    logs.debug(f"dataframe: \n {finding_tuples}")
+    return retset
 
 
 def parse_twistlock_security(tl_path):
@@ -156,21 +155,7 @@ def parse_twistlock_security(tl_path):
 
     d_f_clean = d_f.where(pandas.notnull(d_f), None)
 
-    retset = []
-    for l_item in d_f_clean.itertuples():
-        temp = {
-            "finding": l_item.finding,
-            "severity": l_item.severity.lower(),
-            "description": l_item.description,
-            "link": l_item.link,
-            "score": l_item.score,
-            "package": l_item.package,
-            "packagePath": l_item.package_path,
-            "scanSource": "twistlock_cve",
-        }
-        retset.append(temp)
-    logs.debug(f"twistlock dataframe: \n {d_f_clean}")
-    return retset
+    return construct_job_parts(d_f_clean.itertuples(), "twistlock_cve")
 
 
 def parse_anchore_json(links):
@@ -195,6 +180,7 @@ def parse_anchore_security(as_path):
     """
     anchore_security = pandas.read_csv(as_path)
     # grab the relevant columns we are homogenizing
+
     d_f = anchore_security[
         ["cve", "severity", "package", "url", "package_path", "description"]
     ]
@@ -210,21 +196,7 @@ def parse_anchore_security(as_path):
 
     d_f_clean = d_f.where(pandas.notnull(d_f), None)
 
-    retset = []
-    for l_item in d_f_clean.itertuples():
-        temp = {
-            "finding": l_item.finding,
-            "severity": l_item.severity.lower(),
-            "description": l_item.description,
-            "link": l_item.link,
-            "score": l_item.score,
-            "package": l_item.package,
-            "packagePath": l_item.package_path,
-            "scanSource": "anchore_cve",
-        }
-        retset.append(temp)
-    logs.debug(f"anchore security dataframe: \n {d_f_clean}")
-    return retset
+    return construct_job_parts(d_f_clean.itertuples(), "anchore_cve")
 
 
 def parse_anchore_compliance(ac_path):
@@ -273,115 +245,7 @@ def parse_anchore_compliance(ac_path):
     d_f_clean = d_f.where(pandas.notnull(d_f), None)
     logs.debug(f"anchore compliance dataframe: \n {d_f_clean}")
 
-    retset = []
-    for l_item in d_f_clean.itertuples():
-        temp = {
-            "finding": l_item.finding,
-            "severity": l_item.severity.lower(),
-            "description": l_item.description,
-            "link": l_item.link,
-            "score": l_item.score,
-            "package": l_item.package,
-            "packagePath": l_item.package_path,
-            "scanSource": "anchore_comp",
-        }
-        retset.append(temp)
-    return retset
-
-
-def get_packages(package_string):
-    """
-    Return a list of packages from the input string.
-    """
-
-    logs.debug("In packages: %s", package_string)
-
-    # This will basically remove Updated from an "Updated kernel" package.
-    # Capture the package
-    # Remove any security, enhancement, bug fix or any combination of those.
-    # Match and throw away anything after this up to the severity ().
-    initial_re = ".*: (?:Updated )?(.*?)(?:security|enhancement|bug fix).*\\("
-    logs.debug("packages - perform pattern match %s", initial_re)
-    match = re.match(initial_re, package_string)
-
-    pkgs = match.group(1) if match else None
-    logs.debug("After pattern match, pkgs: %s", pkgs)
-
-    # Catch all if no packages are found
-    if pkgs is None or pkgs.strip(" ") == "":
-        pkgs = "Unknown"
-
-    # This will break up multiple packages as a list.
-    #   Note: that single packages will be returned as a list.
-    pkglist = re.split(", and |, | and ", pkgs.strip(" ").replace(":", "-"))
-
-    logs.debug("packages list: %s", pkglist)
-
-    return pkglist
-
-
-def parse_oscap_security(ov_path):
-    """
-    @return dataframe with standarized columns for OSCAP security scan
-    """
-
-    report_link = os.path.join(args.sec_link, "report-cve.html")
-
-    logs.debug("parse oscap security")
-    d_f = pandas.read_csv(ov_path)
-
-    # This keeps the rows where the result is "true" - pandas loads it as a boolean
-    oscap_security = d_f[d_f["result"]]
-
-    # grab the relevant columns we are homogenizing
-    d_f = oscap_security[["ref", "title", "severity"]]
-
-    # severity column generated and validated during OVAL XML parsing
-
-    # Assign the column to a dataframe.
-    # Apply the function to the dataframe (single column).
-    # Assign the new dataframe as the package column in the dataframe.`
-    logs.debug("oscap security - determine package info")
-    df_pkg = d_f["title"]
-    df_pkg = df_pkg.apply(get_packages)
-    d_f["package"] = df_pkg
-
-    d_f.drop(columns=["title"], inplace=True)
-
-    d_f.rename(columns={"ref": "finding"}, inplace=True)
-
-    d_f = d_f.assign(link=report_link)
-    d_f = d_f.assign(description="")
-
-    # needed to add empty row to match twistlock
-    d_f = d_f.assign(score="")
-
-    d_f = d_f.assign(package_path=None)
-
-    # The following will split into rows by each package in the list.
-    # Each row is duplicated with a package in each list.
-    df_split = d_f.explode("package").reset_index(drop=True)
-
-    d_f_clean = df_split.where(pandas.notnull(df_split), None)
-
-    mylist = []
-    for j in enumerate(d_f_clean.values):
-        mylist.append(j[1])
-    retset = []
-    for l_item in mylist:
-        temp = {
-            "finding": l_item[0],
-            "severity": l_item[1].lower(),
-            "description": l_item[4],
-            "link": l_item[3],
-            "score": l_item[5],
-            "package": l_item[2],
-            "packagePath": l_item[6],
-            "scanSource": "oscap_cve",
-        }
-        retset.append(temp)
-    logs.debug(f"oscap security dataframe: \n {d_f_clean}")
-    return retset
+    return construct_job_parts(d_f_clean.itertuples(), "anchore_comp")
 
 
 def parse_oscap_compliance(os_path):
@@ -418,21 +282,7 @@ def parse_oscap_compliance(os_path):
 
     d_f_clean = d_f.where(pandas.notnull(d_f), None)
 
-    retset = []
-    for l_item in d_f_clean.itertuples():
-        temp = {
-            "finding": l_item.finding,
-            "severity": l_item.severity.lower(),
-            "description": l_item.description,
-            "link": l_item.link,
-            "score": l_item.score,
-            "package": l_item.package,
-            "packagePath": l_item.package_path,
-            "scanSource": "oscap_comp",
-        }
-        retset.append(temp)
-    logs.debug(f"oscap compliance dataframe: \n {d_f_clean}")
-    return retset
+    return construct_job_parts(d_f_clean.itertuples(), "oscap_comp")
 
 
 def parse_csvs():
@@ -446,7 +296,6 @@ def parse_csvs():
     twistlock_cve = []
     anchore_cve = []
     anchore_comp = []
-    oscap_cve = []
     oscap_comp = []
     data_json = []
 
@@ -455,45 +304,33 @@ def parse_csvs():
         tl_path = csv_dir.joinpath("tl.csv")
         if tl_path.exists():
             logs.debug("Parsing Twistlock CSV\n")
-            remove_lame_header_row(tl_path)
             try:
                 twistlock_cve = parse_twistlock_security(tl_path)
-            except Exception as error:
+            except ValueError as error:
                 logs.error(f"Failed to parse twistlock \n{error}")
         as_path = csv_dir.joinpath("anchore_security.csv")
         if as_path.exists():
             logs.debug("Parsing Anchore Security CSV\n")
-            remove_lame_header_row(as_path)
             try:
                 anchore_cve = parse_anchore_security(as_path)
-            except Exception as error:
+            except ValueError as error:
                 logs.error(f"Failed to parse anchore cve \n{error}")
         ac_path = csv_dir.joinpath("anchore_gates.csv")
         if ac_path.exists():
             logs.debug("Parsing Anchore Compliance CSV\n")
-            remove_lame_header_row(ac_path)
             try:
                 anchore_comp = parse_anchore_compliance(ac_path)
-            except Exception as error:
+            except ValueError as error:
                 logs.error(f"Failed to parse anchore compliance \n{error}")
-        ov_path = csv_dir.joinpath("oval.csv")
-        if ov_path.exists() and not distroless:
-            logs.debug("Parsing OSCAP Security CSV\n")
-            remove_lame_header_row(ov_path)
-            try:
-                oscap_cve = parse_oscap_security(ov_path)
-            except Exception as error:
-                logs.error(f"Failed to parse oscap cve \n{error}")
         os_path = csv_dir.joinpath("oscap.csv")
         if os_path.exists() and not distroless:
             logs.debug("Parsing OSCAP Compliance CSV\n")
-            remove_lame_header_row(os_path)
             try:
                 oscap_comp = parse_oscap_compliance(os_path)
-            except Exception as error:
+            except ValueError as error:
                 logs.error(f"Failed to parse oscap compliance \n{error}")
 
-        data_json = twistlock_cve + anchore_cve + anchore_comp + oscap_cve + oscap_comp
+        data_json = twistlock_cve + anchore_cve + anchore_comp + oscap_comp
 
         request_dict = {
             "imageName": args.container,
@@ -517,6 +354,9 @@ def parse_csvs():
 
 
 def main():
+    """
+    Construct API calls from CSVs
+    """
     large_data = parse_csvs()
 
     if args.dump_json:
@@ -526,11 +366,10 @@ def main():
     headers = CaseInsensitiveDict()
     headers["Content-Type"] = "application/json"
     try:
-        # TODO: Confirm the port prod hosts the API endpoint on.
         resp = None
         resp = requests.post(args.api_url, headers=headers, json=large_data)
         resp.raise_for_status()
-    except Exception as error:
+    except RuntimeError as error:
         logs.error(f"API Call Failed: {error}")
         sys.exit(1)
     finally:

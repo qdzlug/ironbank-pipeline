@@ -41,12 +41,10 @@ def test_parse_oscap_compliance():
     test_args, notKnownArgs = parser.parse_known_args()
     new_vat_import.args = test_args
 
-    new_vat_import.remove_lame_header_row(os_path)
     rslt = new_vat_import.parse_oscap_compliance(os_path)
 
     assert len(rslt) == 22, "Row count = 22"
 
-    print("*********************", rslt)
     assert rslt[0]["finding"] == "CCE-82880-6", "finding"
     assert (
         rslt[0]["description"] == "Configure session renegotiation for SSH client"

@@ -35,7 +35,6 @@ def test_parse_twistlock_security():
 
     csv_dir = Path("./test/test_data")
     tl_path = csv_dir.joinpath("tl.csv")
-    new_vat_import.remove_lame_header_row(tl_path)
     rslt = new_vat_import.parse_twistlock_security(tl_path)
 
     assert len(rslt) == 6, "Row count = 6"

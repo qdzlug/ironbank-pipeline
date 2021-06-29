@@ -37,7 +37,6 @@ def test_parse_anchore_compliance():
 
     csv_dir = Path("./test/test_data")
     ac_path = csv_dir.joinpath("anchore_gates.csv")
-    new_vat_import.remove_lame_header_row(ac_path)
     rslt = new_vat_import.parse_anchore_compliance(ac_path)
     assert len(rslt) == 6, "Row count = 6"
 

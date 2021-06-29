@@ -32,10 +32,6 @@ class TestParse:
             bad = open("no_such_file.txt", "r")
             bad.read()
 
-        def mock_parse_oscap_security(ov_path):
-            bad = open("no_such_file.txt", "r")
-            bad.read()
-
         def mock_parse_oscap_compliance(os_path):
             bad = open("no_such_file.txt", "r")
             bad.read()
@@ -68,9 +64,6 @@ class TestParse:
             new_vat_import,
             "parse_anchore_compliance",
             mock_parse_anchore_compliance,
-        )
-        monkeypatch.setattr(
-            new_vat_import, "parse_oscap_security", mock_parse_oscap_security
         )
         monkeypatch.setattr(
             new_vat_import,
