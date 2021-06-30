@@ -496,7 +496,7 @@ def _get_complete_whitelist_for_image(image_name, hardening_manifest):
     # Use the local hardening manifest to get the first parent. From here *only* the
     # the master branch should be used for the ancestry.
     #
-    parent_image_name = hardening_manifest["args"]["BASE_IMAGE"]
+    base_image = hardening_manifest["args"]["BASE_IMAGE"]
     base_tag = hardening_manifest["args"]["BASE_TAG"]
     # Grab prod pull docker auth
     prod_pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("UTF-8")
@@ -513,14 +513,14 @@ def _get_complete_whitelist_for_image(image_name, hardening_manifest):
     )
 
     # get parent cves from VAT
-    while parent_image_name:
+    while base_image:
 
         cmd = [
             "skopeo",
             "inspect",
             "--authfile",
             "prod_pull_auth.json",
-            f"docker://registry1.dso.mil/{registry}/{parent_image_name}:{base_tag}",
+            f"docker://registry1.dso.mil/{registry}/{base_image}:{base_tag}",
         ]
         logging.info(" ".join(cmd))
         # if skopeo inspect fails, because BASE_IMAGE value doesn't match a registry1 container name
@@ -540,17 +540,17 @@ def _get_complete_whitelist_for_image(image_name, hardening_manifest):
             logging.error(f"skopeo inspect failed: Return code {e.returncode}")
             sys.exit(1)
 
-        base_image_name, parent_image_version = _next_ancestor(
+        parent_image_name, parent_image_version = _next_ancestor(
             parent_image_path=base_image_repo,
         )
-        result = _vat_vuln_query(parent_image_name, base_tag)
-        parent_image_name = base_image_name
+        result = _vat_vuln_query(base_image, base_tag)
+        base_image = parent_image_name
         base_tag = parent_image_version
-        vat_findings[parent_image_name] = []
+        vat_findings[base_image] = []
 
         for row in result:
             finding_dict = _get_findings_from_query(row)
-            vat_findings[parent_image_name].append(finding_dict)
+            vat_findings[base_image].append(finding_dict)
 
     logging.info(f"Artifact Directory: {artifact_dir}")
     filename = pathlib.Path(f"{artifact_dir}/vat_findings.json")
