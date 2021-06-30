@@ -536,7 +536,6 @@ def _get_complete_whitelist_for_image(image_name, hardening_manifest):
             base_image_repo = json.loads(response.stdout)["Labels"][
                 "org.opencontainers.image.source"
             ].replace("https://repo1.dso.mil/dsop/", "")
-            logging.info(f"Parent image path: {base_image_repo}")
         except subprocess.CalledProcessError as e:
             logging.error(f"skopeo inspect failed: Return code {e.returncode}")
             sys.exit(1)
