@@ -132,13 +132,10 @@ def _load_remote_hardening_manifest(project, branch="master"):
 
 def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
 
-    wl_branch = os.environ.get("WL_TARGET_BRANCH", default="master")
-
     # Don't go any further if just linting
     if lint:
         _get_complete_whitelist_for_image(
             image_name=image_name,
-            whitelist_branch=wl_branch,
             hardening_manifest=hardening_manifest,
         )
         # exit lint successfully
@@ -400,7 +397,7 @@ def _get_findings_from_query(row):
     return finding_dict
 
 
-def _next_ancestor(parent_image_path, whitelist_branch):
+def _next_ancestor(parent_image_path):
     """
     Grabs the parent image path from the current context. Will initially attempt to load
     a new hardening manifest and then pull the parent image from there.
@@ -417,7 +414,7 @@ def _next_ancestor(parent_image_path, whitelist_branch):
     hm = _load_remote_hardening_manifest(project=parent_image_path, branch=branch)
     # REMOVE if statement when we are no longer using greylists
     if hm is not None:
-        return (hm["name"], hm["args"]["BASE_TAG"], hm["args"]["BASE_IMAGE"])
+        return (hm["args"]["BASE_IMAGE"], hm["args"]["BASE_TAG"])
     else:
         logging.error(
             "hardening_manifest.yaml does not exist for "
@@ -428,7 +425,7 @@ def _next_ancestor(parent_image_path, whitelist_branch):
         sys.exit(1)
 
 
-def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_manifest):
+def _get_complete_whitelist_for_image(image_name, hardening_manifest):
     """
     Pull all whitelisted CVEs for an image. Walk through the ancestry of a given
     image and grab all of vulnerabilities in the hardening manifest associated with w layer.
