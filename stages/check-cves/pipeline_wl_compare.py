@@ -525,6 +525,8 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             f"docker://registry1.dso.mil/ironbank/{parent_image_path}:{base_tag}",
         ]
         logging.info(" ".join(cmd))
+        # if skopeo inspect fails, because BASE_IMAGE value doesn't match a registry1 container name
+        #   fail back to using existing functionality
         try:
             response = subprocess.run(
                 args=cmd,
@@ -532,6 +534,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
                 stderr=subprocess.PIPE,
                 check=True,
             )
+            # parse parent image's repo name from skopeo response to be used in call to _next_ancestor
             parent_image_path = json.loads(response.stdout)["Labels"][
                 "org.opencontainers.image.source"
             ].replace("https://repo1.dso.mil/dsop/", "")
