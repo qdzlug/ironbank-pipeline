@@ -540,10 +540,11 @@ def _get_complete_whitelist_for_image(image_name, hardening_manifest):
             logging.error(f"skopeo inspect failed: Return code {e.returncode}")
             sys.exit(1)
 
-        parent_image_name, parent_image_version = _next_ancestor(
+        base_image_name, parent_image_version = _next_ancestor(
             parent_image_path=base_image_repo,
         )
         result = _vat_vuln_query(parent_image_name, base_tag)
+        parent_image_name = base_image_name
         base_tag = parent_image_version
         vat_findings[parent_image_name] = []
 
