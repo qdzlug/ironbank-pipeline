@@ -507,21 +507,24 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     # Use the local hardening manifest to get the first parent. From here *only* the
     # the master branch should be used for the ancestry.
     #
-    parent_image_path = hardening_manifest["args"]["BASE_IMAGE"]
+    parent_image_name = hardening_manifest["args"]["BASE_IMAGE"]
     base_tag = hardening_manifest["args"]["BASE_TAG"]
     # Grab prod pull docker auth
     prod_pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("UTF-8")
     pathlib.Path("prod_pull_auth.json").write_text(prod_pull_auth)
+    registry = (
+        "ironbank" if os.environ.get("STAGING_BASE_IMAGE") else "ironbank/staging"
+    )
 
     # get parent cves from VAT
-    while parent_image_path:
+    while parent_image_name:
 
         cmd = [
             "skopeo",
             "inspect",
             "--authfile",
             "prod_pull_auth.json",
-            f"docker://registry1.dso.mil/ironbank/{parent_image_path}:{base_tag}",
+            f"docker://registry1.dso.mil/{registry}/{parent_image_name}:{base_tag}",
         ]
         logging.info(" ".join(cmd))
         # if skopeo inspect fails, because BASE_IMAGE value doesn't match a registry1 container name
@@ -534,16 +537,16 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
                 check=True,
             )
             # parse parent image's repo name from skopeo response to be used in call to _next_ancestor
-            parent_image_path = json.loads(response.stdout)["Labels"][
+            base_image_repo = json.loads(response.stdout)["Labels"][
                 "org.opencontainers.image.source"
             ].replace("https://repo1.dso.mil/dsop/", "")
-            logging.info(f"Parent image path: {parent_image_path}")
+            logging.info(f"Parent image path: {base_image_repo}")
         except subprocess.CalledProcessError as e:
             logging.error(f"skopeo inspect failed: Return code {e.returncode}")
+            sys.exit(1)
 
-        parent_image_name, parent_image_version, parent_image_path = _next_ancestor(
-            parent_image_path=parent_image_path,
-            whitelist_branch=whitelist_branch,
+        parent_image_name, parent_image_version = _next_ancestor(
+            parent_image_path=base_image_repo,
         )
         result = _vat_vuln_query(parent_image_name, base_tag)
         base_tag = parent_image_version
