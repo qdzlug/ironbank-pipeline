@@ -540,10 +540,7 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
             ].replace("https://repo1.dso.mil/dsop/", "")
             logging.info(f"Parent image path: {parent_image_path}")
         except subprocess.CalledProcessError as e:
-            if e.returncode == 1 and e.stdout:
-                logging.error(f"skopeo inspect failed: Return code {e.returncode}")
-            else:
-                logging.error("Unknown error when trying 'skopeo inspect'")
+            logging.error(f"skopeo inspect failed: Return code {e.returncode}")
 
         parent_image_name, parent_image_version, parent_image_path = _next_ancestor(
             parent_image_path=parent_image_path,
