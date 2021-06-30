@@ -537,7 +537,10 @@ def _get_complete_whitelist_for_image(image_name, hardening_manifest):
                 "org.opencontainers.image.source"
             ].replace("https://repo1.dso.mil/dsop/", "")
         except subprocess.CalledProcessError as e:
-            logging.error(f"skopeo inspect failed: Return code {e.returncode}")
+            logging.error(
+                f"Failed 'skopeo inspect' of image: registry1.dso.mil/{registry}/{base_image}:{base_tag} "
+            )
+            logging.error(f"Return code: {e.returncode}")
             sys.exit(1)
 
         parent_image_name, parent_image_version = _next_ancestor(
