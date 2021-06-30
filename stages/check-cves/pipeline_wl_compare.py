@@ -509,7 +509,7 @@ def _get_complete_whitelist_for_image(image_name, hardening_manifest):
         logging.error("Cannot use STAGING_BASE_IMAGE on master branch")
         sys.exit(1)
     registry = (
-        "ironbank" if os.environ.get("STAGING_BASE_IMAGE") else "ironbank/staging"
+        "ironbank-staging" if os.environ.get("STAGING_BASE_IMAGE") else "ironbank"
     )
 
     # get parent cves from VAT
