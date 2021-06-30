@@ -514,14 +514,16 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     while parent_image_path:
 
         # Grab staging docker auth
-        prod_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("UTF-8")
-        pathlib.Path("prod_auth.json").write_text(prod_auth)
+        prod_pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode(
+            "UTF-8"
+        )
+        pathlib.Path("prod_pull_auth.json").write_text(prod_pull_auth)
 
         cmd = [
             "skopeo",
             "inspect",
             "--authfile",
-            "prod_auth.json",
+            "prod_pull_auth.json",
             f"docker://registry1.dso.mil/ironbank/{parent_image_path}:{base_tag}",
         ]
         logging.info(" ".join(cmd))
