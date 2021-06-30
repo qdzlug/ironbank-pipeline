@@ -410,14 +410,6 @@ def _next_ancestor(parent_image_path, whitelist_branch):
 
     """
 
-    # never allow STAGING_BASE_IMAGE to be set when running a master branch pipeline
-    if (
-        os.environ.get("STAGING_BASE_IMAGE")
-        and os.environ["CI_COMMIT_BRANCH"] == "master"
-    ):
-        logging.error("Cannot use STAGING_BASE_IMAGE on master branch")
-        sys.exit(1)
-
     # load from development if staging base image is used
     branch = "development" if os.environ.get("STAGING_BASE_IMAGE") else "master"
     logging.info(f"Getting {parent_image_path} hardening_manifest.yaml from {branch}")
@@ -512,6 +504,13 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     # Grab prod pull docker auth
     prod_pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("UTF-8")
     pathlib.Path("prod_pull_auth.json").write_text(prod_pull_auth)
+    # never allow STAGING_BASE_IMAGE to be set when running a master branch pipeline
+    if (
+        os.environ.get("STAGING_BASE_IMAGE")
+        and os.environ["CI_COMMIT_BRANCH"] == "master"
+    ):
+        logging.error("Cannot use STAGING_BASE_IMAGE on master branch")
+        sys.exit(1)
     registry = (
         "ironbank" if os.environ.get("STAGING_BASE_IMAGE") else "ironbank/staging"
     )
