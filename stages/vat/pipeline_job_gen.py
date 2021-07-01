@@ -5,9 +5,11 @@ import re
 import json
 import os
 import argparse
-import pathlib
 import logging
 import xml.etree.ElementTree as etree
+import ast
+import requests
+from requests.structures import CaseInsensitiveDict
 
 # The InheritableTriggerIds variable contains a list of Anchore compliance trigger_ids
 # that are inheritable by child images.
@@ -45,12 +47,6 @@ parser.add_argument(
     required=False,
 )
 parser.add_argument(
-    "-f",
-    "--csv_dir",
-    help="Path to Directory to all CSV files to parse",
-    required=True,
-)
-parser.add_argument(
     "-j",
     "--job_id",
     help="Pipeline job ID",
@@ -84,6 +80,30 @@ parser.add_argument(
     "-dg",
     "--digest",
     help="Container Digest as SHA256 Hash",
+    required=True,
+)
+parser.add_argument(
+    "-tl",
+    "--twistlock",
+    help="location of the twistlock JSON scan file",
+    required=True,
+)
+parser.add_argument(
+    "-oc",
+    "--oscap",
+    help="location of the oscap scan XML file",
+    required=False,
+)
+parser.add_argument(
+    "-ac",
+    "--anchore-sec",
+    help="location of the anchore_security.json scan file",
+    required=True,
+)
+parser.add_argument(
+    "-ag",
+    "--anchore-gates",
+    help="location of the anchore_gates.json scan file",
     required=True,
 )
 parser.add_argument(
@@ -125,144 +145,34 @@ parser.add_argument(
     default="out.json",
     required=False,
 )
-parser.add_argument(
-    "-tl", "--twistlock", help="location of the twistlock JSON scan file"
-)
-parser.add_argument("-oc", "--oscap", help="location of the oscap scan XML file")
-parser.add_argument(
-    "-ac", "--anchore-sec", help="location of the anchore_security.json scan file"
-)
-parser.add_argument(
-    "-ag", "--anchore-gates", help="location of the anchore_gates.json scan file"
-)
 
 args = parser.parse_args()
 
 
-def _construct_job_parts(finding_dicts, source):
-    """
-    Construct a list of JSON objects for API Call
-    """
-    retset = []
-    for l_item in finding_tuples:
-        temp = {
-            "finding": l_item["finding"],
-            "severity": l_item["severity"].lower(),
-            "description": l_item["description"],
-            "link": l_item["link"],
-            "score": l_item["score"],
-            "package": l_item["package"],
-            "packagePath": l_item["package_path"],
-            "scanSource": source,
-        }
-        retset.append(temp)
-    logs.debug(f"dataframe: \n {finding_tuples}")
-    return retset
-
-
-def _get_complete_whitelist_for_image(vat_findings, status_list):
-    """
-    Pull all whitelisted CVEs for an image. Walk through the ancestry of a given
-    image and grab all of the approved vulnerabilities in VAT associated with w layer.
-
-    """
-    logging.info("Generating whitelist for %s:%s", args.container, args.version)
-    total_whitelist = []
-    # loop through each image, starting from child through each parent, grandparent, etc.
-    for image in vat_findings:
-        # loop through each finding
-        for finding in vat_findings[image]:
-            # if finding is approved
-            logging.debug(finding)
-            if finding["finding_status"].lower() in status_list:
-                # if finding is uninheritable (i.e. Dockerfile findings), exclude from whitelist
-                if (
-                    image != args.container
-                    and finding["finding"] in _uninheritable_trigger_ids
-                ):
-                    logging.debug(
-                        "Excluding finding %s for %s", finding["finding"], image
-                    )
-                    continue
-                # add finding as dictionary object in list
-                # if finding is inherited, set justification as 'Inherited from base image.'
-                total_whitelist.append(
-                    {
-                        "scan_source": finding["scan_source"],
-                        "cve_id": finding["finding"],
-                        "package": finding["package"],
-                        "package_path": finding["package_path"],
-                        "justification": finding["justification"]
-                        if image == args.container
-                        else "Inherited from base image.",
-                    }
-                )
-    logging.info("Found %d total whitelisted CVEs", len(total_whitelist))
-    return total_whitelist
-
-
-def _split_by_scan_source(total_whitelist):
-    """
-    Gather all justifications for any approved CVE for anchore, twistlock and openscap.
-    Keys are in the form (cve_id, package, package_name) for anchore_cve,
-    (cve_id, package) for twistlock,
-    or "cve_id" for anchore_comp and openscap.
-
-    Examples:
-        (CVE-2020-13434, sqlite-libs-3.26.0-11.el8, None) (anchore cve key)
-        (CVE-2020-8285, sqlite-libs-3.26.0-11.el8) (twistlock key, truncated)
-        CCE-82315-3 (openscap or anchore comp key)
-
-    """
-    cve_openscap = {}
-    cve_twistlock = {}
-    cve_anchore = {}
-    comp_anchore = {}
-
-    # Using results from VAT, loop all findings
-    # Loop through the findings and create the corresponding dict object based on the vuln_source
-    for finding in total_whitelist:
-        if "cve_id" in finding.keys():
-            # id used to search for justification when generating each scan's csv
-            search_id = (
-                finding["cve_id"],
-                finding["package"],
-                finding["package_path"],
-            )
-            logging.debug(search_id)
-            if finding["scan_source"] == "oscap_comp":
-                # only use cve_id
-                cve_openscap[search_id[0]] = finding["justification"]
-            elif finding["scan_source"] == "twistlock_cve":
-                # use cve_id and package
-                cve_twistlock[search_id[0:2]] = finding["justification"]
-            elif finding["scan_source"] == "anchore_cve":
-                # use full tuple
-                cve_anchore[search_id] = finding["justification"]
-            elif finding["scan_source"] == "anchore_comp":
-                # only use cve_id
-                comp_anchore[search_id[0]] = finding["justification"]
-
-    return cve_openscap, cve_twistlock, cve_anchore, comp_anchore
+def _format_reference(ref, n_set):
+    ref_title = ref.find("dc:title", n_set)
+    ref_identifier = ref.find("dc:identifier", n_set)
+    if ref_title is not None:
+        assert ref_identifier is not None
+        return f"{ref_title.text}: {ref_identifier.text}"
+    return ref.text
 
 
 # Get full OSCAP report with justifications for csv export
-def generate_oscap_jobs(oscap_file, justifications):
+def generate_oscap_jobs(oscap_file):
     root = etree.parse(oscap_file)
-    ns = {
+    n_set = {
         "xccdf": "http://checklists.nist.gov/xccdf/1.2",
         "xhtml": "http://www.w3.org/1999/xhtml",  # not actually needed
         "dc": "http://purl.org/dc/elements/1.1/",
     }
+
     patches_up_to_date_dupe = False
     cces = []
-    for rule_result in root.findall("xccdf:TestResult/xccdf:rule-result", ns):
-        # Current CSV values
-        # title,ruleid,result,severity,identifiers,refs,desc,rationale,scanned_date,Justification
+    for rule_result in root.findall("xccdf:TestResult/xccdf:rule-result", n_set):
         rule_id = rule_result.attrib["idref"]
         severity = rule_result.attrib["severity"]
-        date_scanned = rule_result.attrib["time"]
-        result = rule_result.find("xccdf:result", ns).text
+        result = rule_result.find("xccdf:result", n_set).text
         logging.debug(rule_id)
         if result == "notselected":
             logging.debug("SKIPPING: 'notselected' rule %s", rule_id)
@@ -275,65 +185,34 @@ def generate_oscap_jobs(oscap_file, justifications):
                     rule_id,
                 )
                 continue
-            else:
-                patches_up_to_date_dupe = True
+            patches_up_to_date_dupe = True
+
         # Get the <rule> that corresponds to the <rule-result>
         # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
         rule = root.find(".//xccdf:Rule[@id='%s']", rule_id)
-        title = rule.find("xccdf:title", ns).text
+        title = rule.find("xccdf:title", n_set).text
 
         # This is the identifier that VAT will use. It will never be unset.
         # Values will be of the format UBTU-18-010100 (UBI) or CCI-001234 (Ubuntu)
         # Ubuntu/DISA:
-        identifiers = [v.text for v in rule.findall("xccdf:version", ns)]
+        identifiers = [ver.text for ver in rule.findall("xccdf:version", n_set)]
         if not identifiers:
             # UBI/ComplianceAsCode:
-            identifiers = [i.text for i in rule.findall("xccdf:ident", ns)]
+            identifiers = [ident.text for ident in rule.findall("xccdf:ident", n_set)]
+
         # We never expect to get more than one identifier
         assert len(identifiers) == 1
-        logging.debug(identifiers)
+        logging.debug("Identifiers %s", identifiers)
         identifier = identifiers[0]
         # Revisit this if we ever switch UBI from ComplianceAsCode to DISA content
 
-        def format_reference(ref):
-            ref_title = ref.find("dc:title", ns)
-            ref_identifier = ref.find("dc:identifier", ns)
-            href = ref.attrib.get("href")
-            if ref_title is not None:
-                assert ref_identifier is not None
-                return f"{ref_title.text}: {ref_identifier.text}"
-            return ref.text
-
         # This is now informational only, vat_import no longer uses this field
         references = "\n".join(
-            format_reference(r) for r in rule.findall("xccdf:reference", ns)
+            _format_reference(r_l, n_set)
+            for r_l in rule.findall("xccdf:reference", n_set)
         )
         assert references
 
-        rationale_element = rule.find("xccdf:rationale", ns)
-        # Ubuntu XCCDF has no <rationale>
-        rationale = (
-            etree.tostring(rationale_element, method="text").decode("utf-8").strip()
-            if rationale_element is not None
-            else ""
-        )
-
-        # Convert description to text, seems to work well:
-        description = (
-            etree.tostring(rule.find("xccdf:description", ns), method="text")
-            .decode("utf8")
-            .strip()
-        )
-        # Cleanup Ubuntu descriptions
-        match = re.match(
-            r"<VulnDiscussion>(.*)</VulnDiscussion>", description, re.DOTALL
-        )
-        if match:
-            description = match.group(1)
-
-        cve_justification = ""
-        if identifier in justifications:
-            cve_justification = justifications[identifier]
         if (result == "fail") | (result == "notchecked") | (result == "error"):
             ret = {
                 "finding": identifier,
@@ -350,172 +229,148 @@ def generate_oscap_jobs(oscap_file, justifications):
         assert len(set(cce["identifiers"] for cce in cces)) == len(cces)
     except Exception as duplicate_idents:
         for cce in cces:
-            logger.info(cce["ruleid"], cce["identifiers"])
+            logging.info(cce["ruleid"], cce["identifiers"])
         raise duplicate_idents
 
     return cces
 
 
-def _vulnerability_record(fulltag, justifications, vuln):
+def _vulnerability_record(fulltag, vuln):
     """
     Create an individual vulnerability record
-    sorted_fix and fix_version_re needed for sorting fix string in case of duplicate cves with different sorts for the list of fix versions
+    sorted_fix and fix_version_re needed for sorting fix string
+    in case of duplicate cves with different sorts for the list of fix versions
     """
     fix_version_re = "([A-Za-z0-9][-.0-~]*)"
     sorted_fix = re.findall(fix_version_re, vuln["fix"])
     sorted_fix.sort()
 
-    vuln_record = dict()
-    vuln_record["tag"] = fulltag
-    vuln_record["cve"] = vuln["vuln"]
-    vuln_record["severity"] = vuln["severity"]
-    vuln_record["feed"] = vuln["feed"]
-    vuln_record["feed_group"] = vuln["feed_group"]
-    vuln_record["package"] = vuln["package"]
-    vuln_record["package_path"] = vuln["package_path"]
-    vuln_record["package_type"] = vuln["package_type"]
-    vuln_record["package_version"] = vuln["package_version"]
-    vuln_record["fix"] = ", ".join(sorted_fix)
-    vuln_record["url"] = vuln["url"]
-    vuln_record["inherited"] = vuln.get("inherited_from_base") or "no_data"
+    vuln_record = {
+        "tag": fulltag,
+        "cve": vuln["vuln"],
+        "severity": vuln["severity"],
+        "feed": vuln["feed"],
+        "feed_group": vuln["feed_group"],
+        "package": vuln["package"],
+        "package_path": vuln["package_path"],
+        "package_type": vuln["package_type"],
+        "package_version": vuln["package_version"],
+        "fix": ", ".join(sorted_fix),
+        "url": vuln["url"],
+        "inherited": vuln.get("inherited_from_base") or "no_data",
+    }
 
     try:
         vuln_record["description"] = vuln["extra"]["description"]
-    except Exception:
+    except RuntimeError:
         vuln_record["description"] = "none"
 
     key = "nvd_cvss_v2_vector"
     vuln_record[key] = ""
     try:
         vuln_record[key] = vuln["extra"]["nvd_data"][0]["cvss_v2"]["vector_string"]
-    except Exception:
+    except RuntimeError:
         logging.debug("no %s", key)
 
     key = "nvd_cvss_v3_vector"
     vuln_record[key] = ""
     try:
         vuln_record[key] = vuln["extra"]["nvd_data"][0]["cvss_v3"]["vector_string"]
-    except Exception:
+    except RuntimeError:
         logging.debug("no %s", key)
 
     key = "vendor_cvss_v2_vector"
     vuln_record[key] = ""
     try:
-        for d in vuln["extra"]["vendor_data"]:
-            if d["cvss_v2"] and d["cvss_v2"]["vector_string"]:
-                vuln_record[key] = d["cvss_v2"]["vector_string"]
-    except Exception:
+        for v_d in vuln["extra"]["vendor_data"]:
+            if v_d["cvss_v2"] and v_d["cvss_v2"]["vector_string"]:
+                vuln_record[key] = v_d["cvss_v2"]["vector_string"]
+    except RuntimeError:
         logging.debug("no %s", key)
 
     key = "vendor_cvss_v3_vector"
     vuln_record[key] = ""
     try:
-        for d in vuln["extra"]["vendor_data"]:
-            if d["cvss_v3"] and d["cvss_v3"]["vector_string"]:
-                vuln_record[key] = d["cvss_v3"]["vector_string"]
-    except Exception:
+        for v_d in vuln["extra"]["vendor_data"]:
+            if v_d["cvss_v3"] and v_d["cvss_v3"]["vector_string"]:
+                vuln_record[key] = v_d["cvss_v3"]["vector_string"]
+    except RuntimeError:
         logging.debug("no %s", key)
-
-    vuln_record["Justification"] = ""
-    f_id = (
-        vuln["vuln"],
-        vuln["package"],
-        vuln["package_path"] if vuln["package_path"] != "pkgdb" else None,
-    )
-    logging.debug("Anchore vuln record CVE ID: %s", f_id)
-    if f_id in justifications.keys():
-        vuln_record["Justification"] = justifications[f_id]
 
     source_list = ast.literal_eval(vuln_record["url"])
     link_string = "".join(
         (item["source"] + ": " + item["url"] + "\n") for item in source_list
     )
     vuln_rec = {
-            "finding": vuln_record["cve"],
-            "severity": vuln_record["severity"],
-            "description": vuln_record["description"],
-            "link": link_string,
-            "score": "",
-            "package": vuln_record["package"],
-            "packagePath": vuln_record["package_path"],
-            "scanSource": "anchore_cve",
-        }
+        "finding": vuln_record["cve"],
+        "severity": vuln_record["severity"],
+        "description": vuln_record["description"],
+        "link": link_string,
+        "score": "",
+        "package": vuln_record["package"],
+        "packagePath": vuln_record["package_path"],
+        "scanSource": "anchore_cve",
+    }
 
-    return vuln_record
+    return vuln_rec
 
 
-def generate_anchore_cve_jobs(anchore_security_json, justifications):
+def generate_anchore_cve_jobs(anchore_security_json):
     """
     Generate the anchore vulnerability report
 
     """
-    with open(anchore_security_json, mode="r", encoding="utf-8") as f:
-        json_data = json.load(f)
-        cves = []
-        for d in json_data["vulnerabilities"]:
-            cve = _vulnerability_record(
-                fulltag=json_data["imageFullTag"], justifications=justifications, vuln=d
-            )
-            if cve not in cves:
-                cves.append(cve)
+    with open(anchore_security_json, mode="r", encoding="utf-8") as f_ptr:
+        json_data = json.load(f_ptr)
+    cves = []
+    for v_d in json_data["vulnerabilities"]:
+        cve = _vulnerability_record(fulltag=json_data["imageFullTag"], vuln=v_d)
+        if cve not in cves:
+            cves.append(cve)
 
     return cves
 
 
-def generate_anchore_comp_jobs(anchore_gates_json, justifications):
+def generate_anchore_comp_jobs(anchore_gates_json):
     """
     Get results of Anchore gates for csv export, becomes anchore compliance spreadsheet
-
     """
-    with open(anchore_gates_json, encoding="utf-8") as f:
-        json_data = json.load(f)
+    with open(anchore_gates_json, encoding="utf-8") as f_ptr:
+        json_data = json.load(f_ptr)
         sha = list(json_data.keys())[0]
-        anchore_data = json_data[sha]["result"]["rows"]
+        anchore_data_set = json_data[sha]["result"]["rows"]
 
     gates = []
     acomps = []
-    image_id = "unable_to_determine"
-    for ad in anchore_data:
+    for anchore_data in anchore_data_set:
         gate = {
-            "image_id": ad[0],
-            "repo_tag": ad[1],
-            "trigger_id": ad[2],
-            "gate": ad[3],
-            "trigger": ad[4],
-            "check_output": ad[5],
-            "gate_action": ad[6],
-            "policy_id": ad[8],
+            "image_id": anchore_data[0],
+            "repo_tag": anchore_data[1],
+            "trigger_id": anchore_data[2],
+            "gate": anchore_data[3],
+            "trigger": anchore_data[4],
+            "check_output": anchore_data[5],
+            "gate_action": anchore_data[6],
+            "policy_id": anchore_data[8],
         }
 
-        if ad[7]:
-            gate["matched_rule_id"] = ad[7]["matched_rule_id"]
-            gate["whitelist_id"] = ad[7]["whitelist_id"]
-            gate["whitelist_name"] = ad[7]["whitelist_name"]
+        if anchore_data[7]:
+            gate["matched_rule_id"] = anchore_data[7]["matched_rule_id"]
+            gate["whitelist_id"] = anchore_data[7]["whitelist_id"]
+            gate["whitelist_name"] = anchore_data[7]["whitelist_name"]
         else:
             gate["matched_rule_id"] = ""
             gate["whitelist_id"] = ""
             gate["whitelist_name"] = ""
 
         try:
-            gate["inherited"] = ad[9]
+            gate["inherited"] = anchore_data[9]
             if gate["gate"] == "dockerfile":
                 gate["inherited"] = False
         except IndexError:
             gate["inherited"] = "no_data"
 
-        cve_justification = ""
-        # ad[2] is trigger_id -- e.g. CVE-2020-####
-        pkg_id = ad[2]
-        if ad[4] == "package":
-            cve_justification = "See Anchore CVE Results sheet"
-
-        if pkg_id in justifications.keys():
-            cve_justification = justifications[pkg_id]
-        gate["Justification"] = cve_justification
-
         gates.append(gate)
-
-        image_id = gate["image_id"]
 
         desc_string = gate["check_output"] + "\n Gate: " + gate["gate"]
         desc_string = desc_string + "\n Trigger: " + gate["trigger"]
@@ -537,92 +392,78 @@ def generate_anchore_comp_jobs(anchore_gates_json, justifications):
 
 
 # Get results from Twistlock report for finding generation
-def generate_twistlock_jobs(twistlock_cve_json, justifications):
-    with open(twistlock_cve_json, mode="r", encoding="utf-8") as f:
-        json_data = json.load(f)
-        cves = []
-    # twistlock = pandas.read_csv(tl_path)
-
-    # # grab the relevant columns we are homogenizing
-    # d_f = twistlock[
-    #     ["id", "severity", "desc", "link", "cvss", "packageName", "packageVersion"]
-    # ]
-    # d_f.rename(
-    #     columns={"id": "finding", "desc": "description", "cvss": "score"},
-    #     inplace=True,
-    # )
-
-    # d_f["package"] = d_f["packageName"] + "-" + d_f["packageVersion"]
-    # d_f.drop(columns=["packageName", "packageVersion"], inplace=True)
-
-    # d_f = d_f.assign(package_path=None)
-
-    # d_f_clean = d_f.where(pandas.notnull(d_f), None)
-
-    # return construct_job_parts(d_f_clean.itertuples(), "twistlock_cve")
-        if json_data[0]["vulnerabilities"]:
-            for d in json_data[0]["vulnerabilities"]:
-                # get associated justification if one exists
-                cve_justification = ""
-
-                pkg_id = (d["cve"], f"{d['packageName']}-{d['packageVersion']}")
-
-                if pkg_id in justifications.keys():
-                    cve_justification = justifications[pkg_id]
-                cves.append(
-                    {
-                        "finding": d["cve"],
-                        "score": d["cvss"],
-                        "description": d["description"],
-                        "link": d["link"],
-                        "package": d["packageName"] + "-" + d["packageVersion"],
-                        "packagePath": None,
-                        "severity": d["severity"],
-                    }
-                )
-        else:
-            cves = []
-
+def generate_twistlock_jobs(twistlock_cve_json):
+    with open(twistlock_cve_json, mode="r", encoding="utf-8") as f_ptr:
+        json_data = json.load(f_ptr)
+    cves = []
+    if json_data[0]["vulnerabilities"]:
+        for v_d in json_data[0]["vulnerabilities"]:
+            # get associated justification if one exists
+            cves.append(
+                {
+                    "finding": v_d["cve"],
+                    "score": v_d["cvss"],
+                    "description": v_d["description"],
+                    "link": v_d["link"],
+                    "package": v_d["packageName"] + "-" + v_d["packageVersion"],
+                    "packagePath": None,
+                    "severity": v_d["severity"],
+                }
+            )
     return cves
 
 
 def main():
-    artifacts_path = os.environ["ARTIFACT_STORAGE"]
     # get cves and justifications from VAT
-    vat_findings_file = pathlib.Path(artifacts_path, "lint", "vat_findings.json")
-    # load vat_findings.json file
-    try:
-        with vat_findings_file.open(mode="r") as f:
-            vat_findings = json.load(f)
-    except Exception:
-        logging.exception("Error reading findings file.")
-        sys.exit(1)
 
-    approval_status_list = ["approved", "conditional"]
-    total_whitelist = _get_complete_whitelist_for_image(
-        vat_findings, approval_status_list
-    )
     # Get all justifications
     logging.info("Gathering list of all justifications...")
 
-    j_openscap, j_twistlock, j_anchore_cve, j_anchore_comp = _split_by_scan_source(
-        total_whitelist
-    )
+    os_jobs = []
+    tl_jobs = []
+    asec_jobs = []
+    acomp_jobs = []
 
     if args.oscap:
-        generate_oscap_jobs(args.oscap, j_openscap)
-    if args.twistlock:
-        generate_twistlock_jobs(args.twistlock, j_twistlock)
+        os_jobs = generate_oscap_jobs(args.oscap)
     if args.anchore_sec:
-        generate_anchore_cve_jobs(
-            anchore_security_json=args.anchore_sec,
-            justifications=j_anchore_cve,
-        )
+        asec_jobs = generate_anchore_cve_jobs(anchore_security_json=args.anchore_sec)
     if args.anchore_gates:
-        generate_anchore_comp_jobs(
-            anchore_gates_json=args.anchore_gates,
-            justifications=j_anchore_comp,
-        )
+        acomp_jobs = generate_anchore_comp_jobs(anchore_gates_json=args.anchore_gates)
+    if args.twistlock:
+        tl_jobs = generate_twistlock_jobs(args.twistlock)
+    all_jobs = os_jobs + tl_jobs + asec_jobs + acomp_jobs
+    large_data = {
+        "imageName": args.container,
+        "imageTag": args.version,
+        "parentImageName": args.parent,
+        "parentImageTag": args.parent_version,
+        "jobId": args.job_id,
+        "digest": args.digest.replace("sha256:", ""),
+        "timestamp": args.scan_date,
+        "repo": {
+            "url": args.repo_link,
+            "commit": args.commit_hash,
+        },
+        "findings": all_jobs,
+    }
+    if args.dump_json:
+        with open(args.out_file, "w") as outfile:
+            json.dump(large_data, outfile)
+
+    headers = CaseInsensitiveDict()
+    headers["Content-Type"] = "application/json"
+    try:
+        resp = None
+        resp = requests.post(args.api_url, headers=headers, json=large_data)
+        resp.raise_for_status()
+    except RuntimeError as error:
+        logging.error("API Call Failed: %s", error)
+        sys.exit(1)
+    finally:
+        if resp:
+            logging.debug("API Response:\n %s", resp.text)
+            logging.debug("POST Response: %s", resp.status_code)
 
 
 if __name__ == "__main__":
@@ -631,6 +472,7 @@ if __name__ == "__main__":
     if loglevel == "DEBUG":
         logging.basicConfig(
             level=loglevel,
+            filename="pipeline_job_gen_logging.out",
             format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
         )
         logging.debug("Log level set to debug")
