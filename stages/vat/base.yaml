@@ -15,7 +15,7 @@ vat:
     - hardening-manifest
     - anchore-scan
     - openscap-compliance
-    - twistlock-scan 
+    - twistlock-scan
   variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: vat
     ANCHORE_ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/anchore/"

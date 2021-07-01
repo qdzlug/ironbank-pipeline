@@ -9,7 +9,6 @@ REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}"
 export REMOTE_REPORT_DIRECTORY
 export VAT_API_URL="${VAT_BACKEND_SERVER_ADDRESS}/internal/import/scan"
 
-
 if [[ "${DISTROLESS:-}" ]]; then
   python3 "${PIPELINE_REPO_DIR}/stages/vat/new_vat_import.py" \
     --api_url "${VAT_API_URL}" \
