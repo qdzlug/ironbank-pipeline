@@ -548,6 +548,10 @@ def _get_complete_whitelist_for_image(image_name, hardening_manifest):
         except Exception:
             logging.exception("Unknown failure when attemping to inspect BASE_IMAGE")
 
+        # parse parent image's repo name from skopeo response to be used in call to _next_ancestor
+        base_image_repo = json.loads(response.stdout)["Labels"][
+            "org.opencontainers.image.source"
+        ].replace("https://repo1.dso.mil/dsop/", "")
         parent_image_name, parent_image_version = _next_ancestor(
             parent_image_path=base_image_repo,
         )
