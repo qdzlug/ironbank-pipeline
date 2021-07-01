@@ -532,16 +532,13 @@ def _get_complete_whitelist_for_image(image_name, hardening_manifest):
         # if skopeo inspect fails, because BASE_IMAGE value doesn't match a registry1 container name
         #   fail back to using existing functionality
         try:
+            logging.info("Using skopeo to inspect BASE_IMAGE")
             response = subprocess.run(
                 args=cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 check=True,
             )
-            # parse parent image's repo name from skopeo response to be used in call to _next_ancestor
-            base_image_repo = json.loads(response.stdout)["Labels"][
-                "org.opencontainers.image.source"
-            ].replace("https://repo1.dso.mil/dsop/", "")
         except subprocess.CalledProcessError as e:
             logging.error(
                 f"Failed 'skopeo inspect' of image: registry1.dso.mil/{registry}/{base_image}:{base_tag} "
