@@ -545,6 +545,8 @@ def _get_complete_whitelist_for_image(image_name, hardening_manifest):
             )
             logging.error(f"Return code: {e.returncode}")
             sys.exit(1)
+        except Exception:
+            logging.exception("Unknown failure when attemping to inspect BASE_IMAGE")
 
         parent_image_name, parent_image_version = _next_ancestor(
             parent_image_path=base_image_repo,
