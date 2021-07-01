@@ -7,7 +7,6 @@ import os
 import argparse
 import logging
 import xml.etree.ElementTree as etree
-import ast
 import requests
 from requests.structures import CaseInsensitiveDict
 
@@ -160,7 +159,7 @@ def _format_reference(ref, n_set):
 
 # Get full OSCAP report with justifications for csv export
 def generate_oscap_jobs(oscap_file):
-    root = etree.parse(oscap_file)
+    root = etree.parse(oscap_file + "/compliance_output_report.xml")
     n_set = {
         "xccdf": "http://checklists.nist.gov/xccdf/1.2",
         "xhtml": "http://www.w3.org/1999/xhtml",  # not actually needed
@@ -189,7 +188,7 @@ def generate_oscap_jobs(oscap_file):
 
         # Get the <rule> that corresponds to the <rule-result>
         # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
-        rule = root.find(".//xccdf:Rule[@id='%s']", rule_id)
+        rule = root.find(f".//xccdf:Rule[@id='{rule_id}']", n_set)
         title = rule.find("xccdf:title", n_set).text
 
         # This is the identifier that VAT will use. It will never be unset.
@@ -226,10 +225,10 @@ def generate_oscap_jobs(oscap_file):
             }
             cces.append(ret)
     try:
-        assert len(set(cce["identifiers"] for cce in cces)) == len(cces)
+        assert len(set(cce["finding"] for cce in cces)) == len(cces)
     except Exception as duplicate_idents:
         for cce in cces:
-            logging.info(cce["ruleid"], cce["identifiers"])
+            logging.info(cce["finding"])
         raise duplicate_idents
 
     return cces
@@ -258,6 +257,11 @@ def _vulnerability_record(fulltag, vuln):
         "fix": ", ".join(sorted_fix),
         "url": vuln["url"],
         "inherited": vuln.get("inherited_from_base") or "no_data",
+        "description": None,
+        "nvd_cvss_v2_vector": "",
+        "nvd_cvss_v3_vector": "",
+        "vendor_cvss_v2_vector": "",
+        "vendor_cvss_v3_vector": "",
     }
 
     try:
@@ -265,41 +269,39 @@ def _vulnerability_record(fulltag, vuln):
     except RuntimeError:
         vuln_record["description"] = "none"
 
-    key = "nvd_cvss_v2_vector"
-    vuln_record[key] = ""
     try:
-        vuln_record[key] = vuln["extra"]["nvd_data"][0]["cvss_v2"]["vector_string"]
-    except RuntimeError:
-        logging.debug("no %s", key)
+        vuln_record["nvd_cvss_v2_vector"] = vuln["extra"]["nvd_data"][0]["cvss_v2"][
+            "vector_string"
+        ]
+    except IndexError:
+        logging.debug("no %s", "nvd_cvss_v2_vector")
 
-    key = "nvd_cvss_v3_vector"
-    vuln_record[key] = ""
     try:
-        vuln_record[key] = vuln["extra"]["nvd_data"][0]["cvss_v3"]["vector_string"]
-    except RuntimeError:
-        logging.debug("no %s", key)
+        vuln_record["nvd_cvss_v3_vector"] = vuln["extra"]["nvd_data"][0]["cvss_v3"][
+            "vector_string"
+        ]
+    except IndexError:
+        logging.debug("no %s", "nvd_cvss_v3_vector")
 
-    key = "vendor_cvss_v2_vector"
-    vuln_record[key] = ""
     try:
         for v_d in vuln["extra"]["vendor_data"]:
             if v_d["cvss_v2"] and v_d["cvss_v2"]["vector_string"]:
-                vuln_record[key] = v_d["cvss_v2"]["vector_string"]
-    except RuntimeError:
-        logging.debug("no %s", key)
+                vuln_record["vendor_cvss_v2_vector"] = v_d["cvss_v2"]["vector_string"]
+    except IndexError:
+        logging.debug("no %s", "vendor_cvss_v2_vector")
 
-    key = "vendor_cvss_v3_vector"
-    vuln_record[key] = ""
     try:
         for v_d in vuln["extra"]["vendor_data"]:
             if v_d["cvss_v3"] and v_d["cvss_v3"]["vector_string"]:
-                vuln_record[key] = v_d["cvss_v3"]["vector_string"]
-    except RuntimeError:
-        logging.debug("no %s", key)
+                vuln_record["vendor_cvss_v3_vector"] = v_d["cvss_v3"]["vector_string"]
+    except IndexError:
+        logging.debug("no %s", "vendor_cvss_v3_vector")
 
-    source_list = ast.literal_eval(vuln_record["url"])
-    link_string = "".join(
-        (item["source"] + ": " + item["url"] + "\n") for item in source_list
+    source_list = vuln_record["url"]
+    link_string = (
+        "".join((item["source"] + ": " + item["url"] + "\n") for item in source_list)
+        if isinstance(source_list, list)
+        else source_list
     )
     vuln_rec = {
         "finding": vuln_record["cve"],
@@ -320,7 +322,9 @@ def generate_anchore_cve_jobs(anchore_security_json):
     Generate the anchore vulnerability report
 
     """
-    with open(anchore_security_json, mode="r", encoding="utf-8") as f_ptr:
+    with open(
+        anchore_security_json + "/anchore_security.json", mode="r", encoding="utf-8"
+    ) as f_ptr:
         json_data = json.load(f_ptr)
     cves = []
     for v_d in json_data["vulnerabilities"]:
@@ -335,7 +339,7 @@ def generate_anchore_comp_jobs(anchore_gates_json):
     """
     Get results of Anchore gates for csv export, becomes anchore compliance spreadsheet
     """
-    with open(anchore_gates_json, encoding="utf-8") as f_ptr:
+    with open(anchore_gates_json + "/anchore_gates.json", encoding="utf-8") as f_ptr:
         json_data = json.load(f_ptr)
         sha = list(json_data.keys())[0]
         anchore_data_set = json_data[sha]["result"]["rows"]
@@ -378,7 +382,7 @@ def generate_anchore_comp_jobs(anchore_gates_json):
         if gate["gate"] != "vulnerabilities":
             vuln_rec = {
                 "finding": gate["trigger_id"],
-                "severity": "ga_" + gate["gate_action"].astype(str),
+                "severity": "ga_" + gate["gate_action"],
                 "description": desc_string,
                 "link": None,
                 "score": "",
@@ -393,7 +397,9 @@ def generate_anchore_comp_jobs(anchore_gates_json):
 
 # Get results from Twistlock report for finding generation
 def generate_twistlock_jobs(twistlock_cve_json):
-    with open(twistlock_cve_json, mode="r", encoding="utf-8") as f_ptr:
+    with open(
+        twistlock_cve_json + "/twistlock_cve.json", mode="r", encoding="utf-8"
+    ) as f_ptr:
         json_data = json.load(f_ptr)
     cves = []
     if json_data[0]["vulnerabilities"]:
@@ -408,6 +414,7 @@ def generate_twistlock_jobs(twistlock_cve_json):
                     "package": v_d["packageName"] + "-" + v_d["packageVersion"],
                     "packagePath": None,
                     "severity": v_d["severity"],
+                    "scanSource": "twistlock_cve",
                 }
             )
     return cves
