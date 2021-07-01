@@ -547,6 +547,7 @@ def _get_complete_whitelist_for_image(image_name, hardening_manifest):
             sys.exit(1)
         except Exception:
             logging.exception("Unknown failure when attemping to inspect BASE_IMAGE")
+            sys.exit(1)
 
         # parse parent image's repo name from skopeo response to be used in call to _next_ancestor
         base_image_repo = json.loads(response.stdout)["Labels"][
