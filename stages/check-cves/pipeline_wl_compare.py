@@ -498,9 +498,6 @@ def _get_complete_whitelist_for_image(image_name, hardening_manifest):
     #
     base_image = hardening_manifest["args"]["BASE_IMAGE"]
     base_tag = hardening_manifest["args"]["BASE_TAG"]
-    # Grab prod pull docker auth
-    prod_pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("UTF-8")
-    pathlib.Path("prod_pull_auth.json").write_text(prod_pull_auth)
     # never allow STAGING_BASE_IMAGE to be set when running a master branch pipeline
     if (
         os.environ.get("STAGING_BASE_IMAGE")
@@ -508,9 +505,18 @@ def _get_complete_whitelist_for_image(image_name, hardening_manifest):
     ):
         logging.error("Cannot use STAGING_BASE_IMAGE on master branch")
         sys.exit(1)
-    registry = (
-        "ironbank-staging" if os.environ.get("STAGING_BASE_IMAGE") else "ironbank"
-    )
+    if os.environ.get("STAGING_BASE_IMAGE"):
+        auth_file = "staging_pull_auth.json"
+        # Grab prod pull docker auth
+        pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_STAGING"]).decode("UTF-8")
+        pathlib.Path(auth_file).write_text(pull_auth)
+        registry = "ironbank-staging"
+    else:
+        auth_file = "prod_pull_auth.json"
+        # Grab staging docker auth
+        pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("UTF-8")
+        pathlib.Path(auth_file).write_text(pull_auth)
+        registry = "ironbank"
 
     # get parent cves from VAT
     while base_image:
@@ -519,7 +525,7 @@ def _get_complete_whitelist_for_image(image_name, hardening_manifest):
             "skopeo",
             "inspect",
             "--authfile",
-            "prod_pull_auth.json",
+            auth_file,
             f"docker://registry1.dso.mil/{registry}/{base_image}:{base_tag}",
         ]
         logging.info(" ".join(cmd))
