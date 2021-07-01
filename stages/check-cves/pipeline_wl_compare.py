@@ -549,10 +549,17 @@ def _get_complete_whitelist_for_image(image_name, hardening_manifest):
             logging.exception("Unknown failure when attemping to inspect BASE_IMAGE")
             sys.exit(1)
 
-        # parse parent image's repo name from skopeo response to be used in call to _next_ancestor
-        base_image_repo = json.loads(response.stdout)["Labels"][
-            "org.opencontainers.image.source"
-        ].replace("https://repo1.dso.mil/dsop/", "")
+        try:
+            # parse parent image's repo name from skopeo response to be used in call to _next_ancestor
+            base_image_repo = json.loads(response.stdout)["Labels"][
+                "org.opencontainers.image.source"
+            ].replace("https://repo1.dso.mil/dsop/", "")
+        except KeyError:
+            logging.error(
+                f"Label 'org.opencontainers.image.source' not found. Please try to rebuild {base_image}:{base_tag} before re-running this pipeline"
+            )
+            sys.exit(1)
+
         parent_image_name, parent_image_version = _next_ancestor(
             parent_image_path=base_image_repo,
         )
