@@ -564,6 +564,8 @@ def _get_complete_whitelist_for_image(image_name, hardening_manifest):
             parent_image_path=base_image_repo,
         )
         result = _vat_vuln_query(base_image, base_tag)
+        # base image and tag are set by hardening manifest before the while loop
+        # base image and tag are set here for next loop
         base_image = parent_image_name
         base_tag = parent_image_version
         vat_findings[base_image] = []
