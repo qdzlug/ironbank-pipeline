@@ -247,11 +247,13 @@ def _vulnerability_record(fulltag, vuln):
     vuln_record = {
         "tag": fulltag,
         "cve": vuln["vuln"],
-        "severity": vuln["severity"],
+        "severity": vuln["severity"].lower(),
         "feed": vuln["feed"],
         "feed_group": vuln["feed_group"],
         "package": vuln["package"],
-        "package_path": vuln["package_path"],
+        "package_path": vuln["package_path"]
+        if vuln["package_path"] != "pkgdb"
+        else None,
         "package_type": vuln["package_type"],
         "package_version": vuln["package_version"],
         "fix": ", ".join(sorted_fix),
@@ -305,7 +307,7 @@ def _vulnerability_record(fulltag, vuln):
     )
     vuln_rec = {
         "finding": vuln_record["cve"],
-        "severity": vuln_record["severity"],
+        "severity": vuln_record["severity"].lower(),
         "description": vuln_record["description"],
         "link": link_string,
         "score": "",
@@ -408,12 +410,12 @@ def generate_twistlock_jobs(twistlock_cve_json):
             cves.append(
                 {
                     "finding": v_d["cve"],
-                    "score": v_d["cvss"],
+                    "severity": v_d["severity"].lower(),
                     "description": v_d["description"],
                     "link": v_d["link"],
+                    "score": v_d["cvss"],
                     "package": v_d["packageName"] + "-" + v_d["packageVersion"],
                     "packagePath": None,
-                    "severity": v_d["severity"],
                     "scanSource": "twistlock_cve",
                 }
             )
@@ -439,7 +441,7 @@ def main():
         acomp_jobs = generate_anchore_comp_jobs(anchore_gates_json=args.anchore_gates)
     if args.twistlock:
         tl_jobs = generate_twistlock_jobs(args.twistlock)
-    all_jobs = os_jobs + tl_jobs + asec_jobs + acomp_jobs
+    all_jobs = tl_jobs + asec_jobs + acomp_jobs + os_jobs
     large_data = {
         "imageName": args.container,
         "imageTag": args.version,
