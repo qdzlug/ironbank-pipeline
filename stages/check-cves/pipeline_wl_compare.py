@@ -532,7 +532,6 @@ def _get_complete_whitelist_for_image(image_name, hardening_manifest):
         # if skopeo inspect fails, because BASE_IMAGE value doesn't match a registry1 container name
         #   fail back to using existing functionality
         try:
-            logging.info("Using skopeo to inspect BASE_IMAGE")
             response = subprocess.run(
                 args=cmd,
                 stdout=subprocess.PIPE,
