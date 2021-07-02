@@ -11,6 +11,7 @@
 ##
 
 import argparse
+from base64 import b64decode
 import json
 import logging
 import os
@@ -131,13 +132,10 @@ def _load_remote_hardening_manifest(project, branch="master"):
 
 def _pipeline_whitelist_compare(image_name, hardening_manifest, lint=False):
 
-    wl_branch = os.environ.get("WL_TARGET_BRANCH", default="master")
-
     # Don't go any further if just linting
     if lint:
         _get_complete_whitelist_for_image(
             image_name=image_name,
-            whitelist_branch=wl_branch,
             hardening_manifest=hardening_manifest,
         )
         # exit lint successfully
@@ -399,7 +397,7 @@ def _get_findings_from_query(row):
     return finding_dict
 
 
-def _next_ancestor(parent_image_path, whitelist_branch):
+def _next_ancestor(parent_image_path):
     """
     Grabs the parent image path from the current context. Will initially attempt to load
     a new hardening manifest and then pull the parent image from there.
@@ -409,14 +407,6 @@ def _next_ancestor(parent_image_path, whitelist_branch):
 
     """
 
-    # never allow STAGING_BASE_IMAGE to be set when running a master branch pipeline
-    if (
-        os.environ.get("STAGING_BASE_IMAGE")
-        and os.environ["CI_COMMIT_BRANCH"] == "master"
-    ):
-        logging.error("Cannot use STAGING_BASE_IMAGE on master branch")
-        sys.exit(1)
-
     # load from development if staging base image is used
     branch = "development" if os.environ.get("STAGING_BASE_IMAGE") else "master"
     logging.info(f"Getting {parent_image_path} hardening_manifest.yaml from {branch}")
@@ -424,7 +414,7 @@ def _next_ancestor(parent_image_path, whitelist_branch):
     hm = _load_remote_hardening_manifest(project=parent_image_path, branch=branch)
     # REMOVE if statement when we are no longer using greylists
     if hm is not None:
-        return (hm["name"], hm["args"]["BASE_TAG"], hm["args"]["BASE_IMAGE"])
+        return (hm["args"]["BASE_IMAGE"], hm["args"]["BASE_TAG"])
     else:
         logging.error(
             "hardening_manifest.yaml does not exist for "
@@ -435,7 +425,7 @@ def _next_ancestor(parent_image_path, whitelist_branch):
         sys.exit(1)
 
 
-def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_manifest):
+def _get_complete_whitelist_for_image(image_name, hardening_manifest):
     """
     Pull all whitelisted CVEs for an image. Walk through the ancestry of a given
     image and grab all of vulnerabilities in the hardening manifest associated with w layer.
@@ -506,22 +496,82 @@ def _get_complete_whitelist_for_image(image_name, whitelist_branch, hardening_ma
     # Use the local hardening manifest to get the first parent. From here *only* the
     # the master branch should be used for the ancestry.
     #
-    parent_image_path = hardening_manifest["args"]["BASE_IMAGE"]
+    base_image = hardening_manifest["args"]["BASE_IMAGE"]
     base_tag = hardening_manifest["args"]["BASE_TAG"]
+    # never allow STAGING_BASE_IMAGE to be set when running a master branch pipeline
+    if (
+        os.environ.get("STAGING_BASE_IMAGE")
+        and os.environ["CI_COMMIT_BRANCH"] == "master"
+    ):
+        logging.error("Cannot use STAGING_BASE_IMAGE on master branch")
+        sys.exit(1)
+    if os.environ.get("STAGING_BASE_IMAGE"):
+        auth_file = "staging_pull_auth.json"
+        # Grab prod pull docker auth
+        pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_STAGING"]).decode("UTF-8")
+        pathlib.Path(auth_file).write_text(pull_auth)
+        registry = "ironbank-staging"
+    else:
+        auth_file = "prod_pull_auth.json"
+        # Grab staging docker auth
+        pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("UTF-8")
+        pathlib.Path(auth_file).write_text(pull_auth)
+        registry = "ironbank"
 
     # get parent cves from VAT
-    while parent_image_path:
-        parent_image_name, parent_image_version, parent_image_path = _next_ancestor(
-            parent_image_path=parent_image_path,
-            whitelist_branch=whitelist_branch,
+    while base_image:
+
+        cmd = [
+            "skopeo",
+            "inspect",
+            "--authfile",
+            auth_file,
+            f"docker://registry1.dso.mil/{registry}/{base_image}:{base_tag}",
+        ]
+        logging.info(" ".join(cmd))
+        # if skopeo inspect fails, because BASE_IMAGE value doesn't match a registry1 container name
+        #   fail back to using existing functionality
+        try:
+            response = subprocess.run(
+                args=cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=True,
+            )
+        except subprocess.CalledProcessError as e:
+            logging.error(
+                f"Failed 'skopeo inspect' of image: registry1.dso.mil/{registry}/{base_image}:{base_tag} "
+            )
+            logging.error(f"Return code: {e.returncode}")
+            sys.exit(1)
+        except Exception:
+            logging.exception("Unknown failure when attemping to inspect BASE_IMAGE")
+            sys.exit(1)
+
+        try:
+            # parse parent image's repo name from skopeo response to be used in call to _next_ancestor
+            base_image_repo = json.loads(response.stdout)["Labels"][
+                "org.opencontainers.image.source"
+            ].replace("https://repo1.dso.mil/dsop/", "")
+        except KeyError:
+            logging.error(
+                f"Label 'org.opencontainers.image.source' not found. Please try to rebuild {base_image}:{base_tag} before re-running this pipeline"
+            )
+            sys.exit(1)
+
+        parent_image_name, parent_image_version = _next_ancestor(
+            parent_image_path=base_image_repo,
         )
-        result = _vat_vuln_query(parent_image_name, base_tag)
+        result = _vat_vuln_query(base_image, base_tag)
+        # base image and tag are set by hardening manifest before the while loop
+        # base image and tag are set here for next loop
+        base_image = parent_image_name
         base_tag = parent_image_version
-        vat_findings[parent_image_name] = []
+        vat_findings[base_image] = []
 
         for row in result:
             finding_dict = _get_findings_from_query(row)
-            vat_findings[parent_image_name].append(finding_dict)
+            vat_findings[base_image].append(finding_dict)
 
     logging.info(f"Artifact Directory: {artifact_dir}")
     filename = pathlib.Path(f"{artifact_dir}/vat_findings.json")
