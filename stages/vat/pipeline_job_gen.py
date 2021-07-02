@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import sys
-import re
 import json
 import os
 import argparse
@@ -10,30 +9,6 @@ import xml.etree.ElementTree as etree
 import requests
 from requests.structures import CaseInsensitiveDict
 
-# The InheritableTriggerIds variable contains a list of Anchore compliance trigger_ids
-# that are inheritable by child images.
-_inheritable_trigger_ids = [
-    "639f6f1177735759703e928c14714a59",
-    "c2e44319ae5b3b040044d8ae116d1c2f",
-    "698044205a9c4a6d48b7937e66a6bf4f",
-    "463a9a24225c26f7a5bf3f38908e5cb3",
-    "bcd159901fe47efddae5c095b4b0d7fd",
-    "320a97c6816565eedf3545833df99dd0",
-    "953dfbea1b1e9d5829fbed2e390bd3af",
-    "e7573262736ef52353cde3bae2617782",
-    "addbb93c22e9b0988b8b40392a4538cb",
-    "3456a263793066e9b5063ada6e47917d",
-    "3e5fad1c039f3ecfd1dcdc94d2f1f9a0",
-    "abb121e9621abdd452f65844954cf1c1",
-    "34de21e516c0ca50a96e5386f163f8bf",
-    "c4ad80832b361f81df2a31e5b6b09864",
-]
-
-_uninheritable_trigger_ids = [
-    "41cb7cdf04850e33a11f80c42bf660b3",
-    "cbff271f45d32e78dcc1979dbca9c14d",
-    "db0e0618d692b953341be18b99a2865a",
-]
 
 parser = argparse.ArgumentParser(
     description="DCCSCR processing of CVE reports from various sources"
@@ -159,7 +134,7 @@ def _format_reference(ref, n_set):
 
 # Get full OSCAP report with justifications for csv export
 def generate_oscap_jobs(oscap_file):
-    root = etree.parse(oscap_file + "/compliance_output_report.xml")
+    root = etree.parse(oscap_file + "compliance_output_report.xml")
     n_set = {
         "xccdf": "http://checklists.nist.gov/xccdf/1.2",
         "xhtml": "http://www.w3.org/1999/xhtml",  # not actually needed
@@ -228,109 +203,49 @@ def generate_oscap_jobs(oscap_file):
         assert len(set(cce["finding"] for cce in cces)) == len(cces)
     except Exception as duplicate_idents:
         for cce in cces:
-            logging.info(cce["finding"])
+            logging.info("Duplicate: ", cce["finding"])
         raise duplicate_idents
 
     return cces
-
-
-def _vulnerability_record(fulltag, vuln):
-    """
-    Create an individual vulnerability record
-    sorted_fix and fix_version_re needed for sorting fix string
-    in case of duplicate cves with different sorts for the list of fix versions
-    """
-    fix_version_re = "([A-Za-z0-9][-.0-~]*)"
-    sorted_fix = re.findall(fix_version_re, vuln["fix"])
-    sorted_fix.sort()
-
-    vuln_record = {
-        "tag": fulltag,
-        "cve": vuln["vuln"],
-        "severity": vuln["severity"].lower(),
-        "feed": vuln["feed"],
-        "feed_group": vuln["feed_group"],
-        "package": vuln["package"],
-        "package_path": vuln["package_path"]
-        if vuln["package_path"] != "pkgdb"
-        else None,
-        "package_type": vuln["package_type"],
-        "package_version": vuln["package_version"],
-        "fix": ", ".join(sorted_fix),
-        "url": vuln["url"],
-        "inherited": vuln.get("inherited_from_base") or "no_data",
-        "description": None,
-        "nvd_cvss_v2_vector": "",
-        "nvd_cvss_v3_vector": "",
-        "vendor_cvss_v2_vector": "",
-        "vendor_cvss_v3_vector": "",
-    }
-
-    try:
-        vuln_record["description"] = vuln["extra"]["description"]
-    except RuntimeError:
-        vuln_record["description"] = "none"
-
-    try:
-        vuln_record["nvd_cvss_v2_vector"] = vuln["extra"]["nvd_data"][0]["cvss_v2"][
-            "vector_string"
-        ]
-    except IndexError:
-        logging.debug("no %s", "nvd_cvss_v2_vector")
-
-    try:
-        vuln_record["nvd_cvss_v3_vector"] = vuln["extra"]["nvd_data"][0]["cvss_v3"][
-            "vector_string"
-        ]
-    except IndexError:
-        logging.debug("no %s", "nvd_cvss_v3_vector")
-
-    try:
-        for v_d in vuln["extra"]["vendor_data"]:
-            if v_d["cvss_v2"] and v_d["cvss_v2"]["vector_string"]:
-                vuln_record["vendor_cvss_v2_vector"] = v_d["cvss_v2"]["vector_string"]
-    except IndexError:
-        logging.debug("no %s", "vendor_cvss_v2_vector")
-
-    try:
-        for v_d in vuln["extra"]["vendor_data"]:
-            if v_d["cvss_v3"] and v_d["cvss_v3"]["vector_string"]:
-                vuln_record["vendor_cvss_v3_vector"] = v_d["cvss_v3"]["vector_string"]
-    except IndexError:
-        logging.debug("no %s", "vendor_cvss_v3_vector")
-
-    source_list = vuln_record["url"]
-    link_string = (
-        "".join((item["source"] + ": " + item["url"] + "\n") for item in source_list)
-        if isinstance(source_list, list)
-        else source_list
-    )
-    vuln_rec = {
-        "finding": vuln_record["cve"],
-        "severity": vuln_record["severity"].lower(),
-        "description": vuln_record["description"],
-        "link": link_string,
-        "score": "",
-        "package": vuln_record["package"],
-        "packagePath": vuln_record["package_path"],
-        "scanSource": "anchore_cve",
-    }
-
-    return vuln_rec
 
 
 def generate_anchore_cve_jobs(anchore_security_json):
     """
     Generate the anchore vulnerability report
 
+    sorted_fix and fix_version_re needed for sorting fix string
+    in case of duplicate cves with different sorts for the list of fix versions
     """
     with open(
-        anchore_security_json + "/anchore_security.json", mode="r", encoding="utf-8"
+        anchore_security_json + "anchore_security.json", mode="r", encoding="utf-8"
     ) as f_ptr:
         json_data = json.load(f_ptr)
+
     cves = []
     for v_d in json_data["vulnerabilities"]:
-        cve = _vulnerability_record(fulltag=json_data["imageFullTag"], vuln=v_d)
+        try:
+            description = v_d["extra"]["description"]
+        except RuntimeError:
+            logging.info("Vulnerability description does not exist")
+            description = "none"
+
+        link_string = (
+            "".join((item["source"] + ": " + item["url"] + "\n") for item in v_d["url"])
+            if isinstance(v_d["url"], list)
+            else v_d["url"]
+        )
+        cve = {
+            "finding": v_d["vuln"],
+            "severity": v_d["severity"].lower(),
+            "description": description,
+            "link": link_string,
+            "score": "",
+            "package": v_d["package"],
+            "packagePath": v_d["package_path"]
+            if v_d["package_path"] != "pkgdb"
+            else None,
+            "scanSource": "anchore_cve",
+        }
         if cve not in cves:
             cves.append(cve)
 
@@ -341,7 +256,7 @@ def generate_anchore_comp_jobs(anchore_gates_json):
     """
     Get results of Anchore gates for csv export, becomes anchore compliance spreadsheet
     """
-    with open(anchore_gates_json + "/anchore_gates.json", encoding="utf-8") as f_ptr:
+    with open(anchore_gates_json + "anchore_gates.json", encoding="utf-8") as f_ptr:
         json_data = json.load(f_ptr)
         sha = list(json_data.keys())[0]
         anchore_data_set = json_data[sha]["result"]["rows"]
@@ -400,7 +315,7 @@ def generate_anchore_comp_jobs(anchore_gates_json):
 # Get results from Twistlock report for finding generation
 def generate_twistlock_jobs(twistlock_cve_json):
     with open(
-        twistlock_cve_json + "/twistlock_cve.json", mode="r", encoding="utf-8"
+        twistlock_cve_json + "twistlock_cve.json", mode="r", encoding="utf-8"
     ) as f_ptr:
         json_data = json.load(f_ptr)
     cves = []
@@ -422,9 +337,8 @@ def generate_twistlock_jobs(twistlock_cve_json):
     return cves
 
 
-def main():
+def create_api_call():
     # get cves and justifications from VAT
-
     # Get all justifications
     logging.info("Gathering list of all justifications...")
 
@@ -456,6 +370,11 @@ def main():
         },
         "findings": all_jobs,
     }
+    return large_data
+
+
+def main():
+    large_data = create_api_call()
     if args.dump_json:
         with open(args.out_file, "w") as outfile:
             json.dump(large_data, outfile)
