@@ -5,6 +5,7 @@ import json
 import os
 import argparse
 import logging
+from pathlib import Path
 import xml.etree.ElementTree as etree
 import requests
 from requests.structures import CaseInsensitiveDict
@@ -29,7 +30,7 @@ parser.add_argument(
 parser.add_argument(
     "-sd",
     "--scan_date",
-    help="scan_date for Jenkins run",
+    help="Scan date for pipeline run",
     required=True,
 )
 parser.add_argument(
@@ -113,9 +114,16 @@ parser.add_argument(
     required=False,
 )
 parser.add_argument(
+    "-uj",
+    "--use_json",
+    help="Dump payload for API to out.json file",
+    action="store_true",
+    required=False,
+)
+parser.add_argument(
     "-of",
     "--out_file",
-    help="File path for API payload to write to file",
+    help="File path for API payload to read from/write to file",
     default="out.json",
     required=False,
 )
@@ -133,8 +141,10 @@ def _format_reference(ref, n_set):
 
 
 # Get full OSCAP report with justifications for csv export
-def generate_oscap_jobs(oscap_file):
-    root = etree.parse(oscap_file + "compliance_output_report.xml")
+def generate_oscap_jobs(oscap_path):
+    oc_path = Path(oscap_path)
+
+    root = etree.parse(oc_path.joinpath("compliance_output_report.xml"))
     n_set = {
         "xccdf": "http://checklists.nist.gov/xccdf/1.2",
         "xhtml": "http://www.w3.org/1999/xhtml",  # not actually needed
@@ -147,7 +157,7 @@ def generate_oscap_jobs(oscap_file):
         rule_id = rule_result.attrib["idref"]
         severity = rule_result.attrib["severity"]
         result = rule_result.find("xccdf:result", n_set).text
-        logging.debug(rule_id)
+        logging.debug("Rule ID: %s", rule_id)
         if result == "notselected":
             logging.debug("SKIPPING: 'notselected' rule %s", rule_id)
             continue
@@ -203,21 +213,22 @@ def generate_oscap_jobs(oscap_file):
         assert len(set(cce["finding"] for cce in cces)) == len(cces)
     except Exception as duplicate_idents:
         for cce in cces:
-            logging.info("Duplicate: ", cce["finding"])
+            logging.info("Duplicate: %s", cce["finding"])
         raise duplicate_idents
 
     return cces
 
 
-def generate_anchore_cve_jobs(anchore_security_json):
+def generate_anchore_cve_jobs(anchore_sec_path):
     """
     Generate the anchore vulnerability report
 
     sorted_fix and fix_version_re needed for sorting fix string
     in case of duplicate cves with different sorts for the list of fix versions
     """
+    as_path = Path(anchore_sec_path)
     with open(
-        anchore_security_json + "anchore_security.json", mode="r", encoding="utf-8"
+        as_path.joinpath("anchore_security.json"), mode="r", encoding="utf-8"
     ) as f_ptr:
         json_data = json.load(f_ptr)
 
@@ -252,11 +263,12 @@ def generate_anchore_cve_jobs(anchore_security_json):
     return cves
 
 
-def generate_anchore_comp_jobs(anchore_gates_json):
+def generate_anchore_comp_jobs(anchore_comp_path):
     """
     Get results of Anchore gates for csv export, becomes anchore compliance spreadsheet
     """
-    with open(anchore_gates_json + "anchore_gates.json", encoding="utf-8") as f_ptr:
+    ac_path = Path(anchore_comp_path)
+    with open(ac_path.joinpath("anchore_gates.json"), encoding="utf-8") as f_ptr:
         json_data = json.load(f_ptr)
         sha = list(json_data.keys())[0]
         anchore_data_set = json_data[sha]["result"]["rows"]
@@ -313,9 +325,10 @@ def generate_anchore_comp_jobs(anchore_gates_json):
 
 
 # Get results from Twistlock report for finding generation
-def generate_twistlock_jobs(twistlock_cve_json):
+def generate_twistlock_jobs(twistlock_cve_path):
+    tc_path = Path(twistlock_cve_path)
     with open(
-        twistlock_cve_json + "twistlock_cve.json", mode="r", encoding="utf-8"
+        tc_path.joinpath("twistlock_cve.json"), mode="r", encoding="utf-8"
     ) as f_ptr:
         json_data = json.load(f_ptr)
     cves = []
@@ -350,9 +363,9 @@ def create_api_call():
     if args.oscap:
         os_jobs = generate_oscap_jobs(args.oscap)
     if args.anchore_sec:
-        asec_jobs = generate_anchore_cve_jobs(anchore_security_json=args.anchore_sec)
+        asec_jobs = generate_anchore_cve_jobs(args.anchore_sec)
     if args.anchore_gates:
-        acomp_jobs = generate_anchore_comp_jobs(anchore_gates_json=args.anchore_gates)
+        acomp_jobs = generate_anchore_comp_jobs(args.anchore_gates)
     if args.twistlock:
         tl_jobs = generate_twistlock_jobs(args.twistlock)
     all_jobs = tl_jobs + asec_jobs + acomp_jobs + os_jobs
@@ -374,10 +387,14 @@ def create_api_call():
 
 
 def main():
-    large_data = create_api_call()
-    if args.dump_json:
-        with open(args.out_file, "w") as outfile:
-            json.dump(large_data, outfile)
+    if not args.use_json:
+        large_data = create_api_call()
+        if args.dump_json:
+            with open(args.out_file, "w") as outfile:
+                json.dump(large_data, outfile)
+    else:
+        with open(args.out_file, encoding="utf-8") as o_f:
+            large_data = json.loads(o_f.read())
 
     headers = CaseInsensitiveDict()
     headers["Content-Type"] = "application/json"

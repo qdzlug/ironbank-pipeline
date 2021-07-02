@@ -270,7 +270,7 @@ def parse_oscap_compliance(os_path):
     # Values will be of the format CCE-12345-1 (UBI) or CCI-001234 (Ubuntu)
 
     d_f.rename(columns={"identifiers": "finding", "title": "description"}, inplace=True)
-    d_f = d_f.assign(link=report_link)
+    d_f = d_f.assign(link=None)
 
     # needed to add empty row to match twistlock
     d_f = d_f.assign(score="")
