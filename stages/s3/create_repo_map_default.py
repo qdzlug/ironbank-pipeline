@@ -6,6 +6,7 @@ import boto3
 import logging
 from botocore.exceptions import ClientError
 import argparse
+import requests
 
 
 def get_repomap(object_name, bucket="ironbank-pipeline-artifacts"):
@@ -107,6 +108,7 @@ def main():
         f"{artifact_storage}/lint/image_approval.json"
     )
 
+    digest = os.environ["IMAGE_PODMAN_SHA"].replace("sha256:", "")
     # all environment vars used for adding new data to the repo map must have a value set or they will throw a KeyError
     new_data = {
         os.environ["build_number"]: {
@@ -122,9 +124,13 @@ def main():
             "Image_URL": os.environ["image_url"],
             "Anchore_Security_Results": os.environ["anchore_security_results"],
             "Image_Sha": os.environ["image_sha"],
-            "OpenSCAP_Compliance_Results": os.environ["openscap_compliance_results"],
+            "OpenSCAP_Compliance_Results": os.environ.get("openscap_compliance_results")
+            if not os.environ.get("DISTROLESS")
+            else None,
             "Tar_Name": os.environ["tar_name"],
-            "OpenSCAP_Report": os.environ["openscap_report"],
+            "OpenSCAP_Report": os.environ.get("openscap_report")
+            if not os.environ.get("DISTROLESS")
+            else None,
             "Image_Tag": os.environ["image_tag"],
             "Manifest_Name": os.environ["manifest_name"],
             "Approval_Status": approval_status,
@@ -137,6 +143,7 @@ def main():
             "Full_Report": os.environ["full_report"],
             "Repo_Name": os.environ["repo_name"],
             "Keywords": keyword_list,
+            "digest": digest,
             "Tags": tag_list,
             "Labels": label_dict,
         }
@@ -151,10 +158,37 @@ def main():
             f.seek(0, 0)
             f.truncate()
             json.dump(data, f, indent=4)
-
     else:
         with open("repo_map.json", "w") as outfile:
             json.dump(new_data, outfile, indent=4, sort_keys=True)
+
+    if os.environ["CI_COMMIT_BRANCH"] == "master":
+        try:
+            new_data = new_data[os.environ["build_number"]]
+            post_resp = requests.post(
+                os.environ["IBFE_API_ENDPOINT"],
+                headers={"Authorization": os.environ["IBFE_API_KEY"]},
+                json=new_data,
+            )
+            logging.info("Uploaded container data to IBFE API")
+            post_resp.raise_for_status()
+        except requests.exceptions.Timeout as req_timeout:
+            logging.error(
+                f"Unable to reach the IBFE API, TIMEOUT. stack trace\n{req_timeout}"
+            )
+            sys.exit(1)
+        except requests.exceptions.HTTPError as http_err:
+            logging.info(f"Got HTTP {post_resp.status_code}")
+            logging.error(f"HTTP error\n{http_err}")
+            sys.exit(1)
+        except requests.exceptions.RequestException as request_e:
+            logging.error(f"Error submitting container data to IBFE API\n{request_e}")
+            sys.exit(1)
+        except Exception as e:
+            logging.error(f"Unhandled exception\n{e}")
+            sys.exit(1)
+    else:
+        logging.debug("Skipping use of ibfe api build endpoint")
 
 
 if __name__ == "__main__":
