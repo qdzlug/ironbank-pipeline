@@ -253,7 +253,6 @@ def parse_oscap_compliance(os_path):
     @return dataframe with standarized columns for OpenSCAP compliance scan
     """
 
-    report_link = os.path.join(args.comp_link, "report.html")
     d_f = pandas.read_csv(os_path)
 
     # This keeps the rows where the result is fail or notchecked or error
