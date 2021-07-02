@@ -15,6 +15,7 @@ distroless-upload-to-s3:
     DOCUMENTATION_FILENAME: documentation
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
     REPORT_TAR_NAME: ${CI_PROJECT_NAME}-${IMAGE_VERSION}-reports-signature.tar.gz
+    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: ibfe
   dependencies:
     - load-scripts
     - hardening-manifest
