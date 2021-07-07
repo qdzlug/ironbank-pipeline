@@ -128,8 +128,6 @@ parser.add_argument(
     required=False,
 )
 
-args = parser.parse_args()
-
 
 def _format_reference(ref, n_set):
     ref_title = ref.find("dc:title", n_set)
@@ -412,6 +410,7 @@ def main():
 
 
 if __name__ == "__main__":
+    args = parser.parse_args()
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
     if loglevel == "DEBUG":
