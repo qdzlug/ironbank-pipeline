@@ -3,10 +3,10 @@ import argparse
 import logging
 import logging.handlers
 
-import pipeline_job_gen
+import new_vat_import
 import unittest
 
-pipeline_job_gen.logs = logging.getLogger("Tests")
+new_vat_import.logs = logging.getLogger("Tests")
 formatter = logging.Formatter("%(levelname)-8s %(message)s")
 console = logging.StreamHandler()
 console.setFormatter(formatter)
@@ -15,9 +15,9 @@ handler = logging.handlers.RotatingFileHandler(
     LOG_FILE, maxBytes=(1048576 * 5), backupCount=3
 )
 handler.setFormatter(formatter)
-pipeline_job_gen.logs.setLevel(logging.ERROR)
-pipeline_job_gen.logs.addHandler(console)
-pipeline_job_gen.logs.addHandler(handler)
+new_vat_import.logs.setLevel(logging.ERROR)
+new_vat_import.logs.addHandler(console)
+new_vat_import.logs.addHandler(handler)
 
 
 class ParseJobsTestCase(unittest.TestCase):
@@ -92,9 +92,9 @@ class ParseJobsTestCase(unittest.TestCase):
         if notKnownArgs:
             print(notKnownArgs)
 
-        pipeline_job_gen.args = test_args
+        new_vat_import.args = test_args
         with pytest.raises(Exception):
-            assert pipeline_job_gen.create_api_call()
+            assert new_vat_import.create_api_call()
 
     def test_parse_csvs(self):
         parser = argparse.ArgumentParser(
@@ -184,9 +184,9 @@ class ParseJobsTestCase(unittest.TestCase):
         if notKnownArgs:
             print(notKnownArgs)
 
-        pipeline_job_gen.args = test_args
-        assert pipeline_job_gen.args == test_args
-        rslt = pipeline_job_gen.create_api_call()
+        new_vat_import.args = test_args
+        assert new_vat_import.args == test_args
+        rslt = new_vat_import.create_api_call()
         assert type(rslt), dict
 
         # ------------------ twistlock ------------------

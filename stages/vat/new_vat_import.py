@@ -107,24 +107,10 @@ parser.add_argument(
     required=False,
 )
 parser.add_argument(
-    "-dj",
-    "--dump_json",
-    help="Dump payload for API to out.json file",
-    action="store_true",
-    required=False,
-)
-parser.add_argument(
     "-uj",
     "--use_json",
     help="Dump payload for API to out.json file",
     action="store_true",
-    required=False,
-)
-parser.add_argument(
-    "-of",
-    "--out_file",
-    help="File path for API payload to read from/write to file",
-    default="out.json",
     required=False,
 )
 
@@ -358,7 +344,7 @@ def create_api_call():
     asec_jobs = []
     acomp_jobs = []
 
-    if args.oscap:
+    if args.oscap and os.environ.get("DISTROLESS"):
         os_jobs = generate_oscap_jobs(args.oscap)
     if args.anchore_sec:
         asec_jobs = generate_anchore_cve_jobs(args.anchore_sec)
@@ -387,11 +373,12 @@ def create_api_call():
 def main():
     if not args.use_json:
         large_data = create_api_call()
-        if args.dump_json:
-            with open(args.out_file, "w") as outfile:
-                json.dump(large_data, outfile)
+        with open(f"{os.environ['ARTIFACT_STORAGE']}/vat_request.json", "w") as outfile:
+            json.dump(large_data, outfile)
     else:
-        with open(args.out_file, encoding="utf-8") as o_f:
+        with open(
+            f"{os.environ['ARTIFACT_STORAGE']}/vat_request.json", encoding="utf-8"
+        ) as o_f:
             large_data = json.loads(o_f.read())
 
     headers = CaseInsensitiveDict()
@@ -416,7 +403,7 @@ if __name__ == "__main__":
     if loglevel == "DEBUG":
         logging.basicConfig(
             level=loglevel,
-            filename="pipeline_job_gen_logging.out",
+            filename="new_vat_import_logging.out",
             format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
         )
         logging.debug("Log level set to debug")
