@@ -31,74 +31,56 @@ class ParseJobsTestCase(unittest.TestCase):
             "--api_url",
             nargs="?",
             const="http://localhost:4000/internal/import/scan",
-            default="http://localhost:4000/internal/import/scan"
+            default="http://localhost:4000/internal/import/scan",
         )
-        parser.add_argument(
-            "--job_id",
-            nargs="?",
-            const="0",
-            default="0"
-        )
+        parser.add_argument("--job_id", nargs="?", const="0", default="0")
         parser.add_argument(
             "--commit_hash",
             nargs="?",
             const="f65d19452198ac1d55045756f2fce6c6b91b1d15",
-            default="f65d19452198ac1d55045756f2fce6c6b91b1d15"
+            default="f65d19452198ac1d55045756f2fce6c6b91b1d15",
         )
         parser.add_argument(
             "--digest",
             nargs="?",
             const="abcdefghijklm1nopqstuvwxyz123456789123456789abcdefghijklmnopqrst",
-            default="abcdefghijklm1nopqstuvwxyz123456789123456789abcdefghijklmnopqrst"
+            default="abcdefghijklm1nopqstuvwxyz123456789123456789abcdefghijklmnopqrst",
         )
         parser.add_argument(
             "--twistlock",
             nargs="?",
             const="./test/test_data",
-            default="./test/test_data"
+            default="./test/test_data",
         )
         parser.add_argument(
-            "--oscap",
-            nargs="?",
-            const="./test/test_data",
-            default="./test/test_data"
+            "--oscap", nargs="?", const="./test/test_data", default="./test/test_data"
         )
         parser.add_argument(
             "--anchore-sec",
             nargs="?",
             const="./test/test_data",
-            default="./test/test_data"
+            default="./test/test_data",
         )
         parser.add_argument(
             "--anchore-gates",
             nargs="?",
             const="./test/test_data",
-            default="./test/test_data"
+            default="./test/test_data",
         )
         parser.add_argument(
             "--comp_link",
             nargs="?",
             const="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs",
-            default="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs"
+            default="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs",
         )
         parser.add_argument(
             "--repo_link",
             nargs="?",
             const="https://repo1.dso.mil/dsop/opensource/pipeline-test-project",
-            default="https://repo1.dso.mil/dsop/opensource/pipeline-test-project"
+            default="https://repo1.dso.mil/dsop/opensource/pipeline-test-project",
         )
-        parser.add_argument(
-            "--dump_json",
-            nargs="?",
-            const="",
-            default=""
-        )
-        parser.add_argument(
-            "--use_json",
-            nargs="?",
-            const="",
-            default=""
-        )
+        parser.add_argument("--dump_json", nargs="?", const="", default="")
+        parser.add_argument("--use_json", nargs="?", const="", default="")
         parser.add_argument(
             "--out_file",
             nargs="?",
@@ -122,104 +104,75 @@ class ParseJobsTestCase(unittest.TestCase):
             "--api_url",
             nargs="?",
             const="http://localhost:4000/internal/import/scan",
-            default="http://localhost:4000/internal/import/scan"
+            default="http://localhost:4000/internal/import/scan",
         )
+        parser.add_argument("--job_id", nargs="?", const="0", default="0")
         parser.add_argument(
-            "--job_id",
-            nargs="?",
-            const="0",
-            default="0"
-        )
-        parser.add_argument(
-            "--scan_date",
-            nargs="?",
-            const="2021-01-01",
-            default="2021-01-01"
+            "--scan_date", nargs="?", const="2021-01-01", default="2021-01-01"
         )
         parser.add_argument(
             "--commit_hash",
             nargs="?",
             const="f65d19452198ac1d55045756f2fce6c6b91b1d15",
-            default="f65d19452198ac1d55045756f2fce6c6b91b1d15"
+            default="f65d19452198ac1d55045756f2fce6c6b91b1d15",
         )
         parser.add_argument(
             "--container",
             nargs="?",
             const="VENDOR/PRODUCT/CONTAINER",
-            default="VENDOR/PRODUCT/CONTAINER"
+            default="VENDOR/PRODUCT/CONTAINER",
         )
-        parser.add_argument(
-            "--version",
-            nargs="?",
-            const="0.0.2",
-            default="0.0.2"
-        )
+        parser.add_argument("--version", nargs="?", const="0.0.2", default="0.0.2")
         parser.add_argument(
             "--digest",
             nargs="?",
             const="abcdefghijklm1nopqstuvwxyz123456789123456789abcdefghijklmnopqrst",
-            default="abcdefghijklm1nopqstuvwxyz123456789123456789abcdefghijklmnopqrst"
+            default="abcdefghijklm1nopqstuvwxyz123456789123456789abcdefghijklmnopqrst",
         )
         parser.add_argument(
             "--twistlock",
             nargs="?",
             const="./test/test_data",
-            default="./test/test_data"
+            default="./test/test_data",
         )
         parser.add_argument(
-            "--oscap",
-            nargs="?",
-            const="./test/test_data",
-            default="./test/test_data"
+            "--oscap", nargs="?", const="./test/test_data", default="./test/test_data"
         )
         parser.add_argument(
             "--anchore-sec",
             nargs="?",
             const="./test/test_data",
-            default="./test/test_data"
+            default="./test/test_data",
         )
         parser.add_argument(
             "--anchore-gates",
             nargs="?",
             const="./test/test_data",
-            default="./test/test_data"
+            default="./test/test_data",
         )
         parser.add_argument(
             "--parent",
             nargs="?",
             const="VENDOR/PRODUCT/CONTAINER",
-            default="VENDOR/PRODUCT/CONTAINER"
+            default="VENDOR/PRODUCT/CONTAINER",
         )
         parser.add_argument(
-            "--parent_version",
-            nargs="?",
-            const="0.0.1",
-            default="0.0.1"
+            "--parent_version", nargs="?", const="0.0.1", default="0.0.1"
         )
         parser.add_argument(
             "--comp_link",
             nargs="?",
             const="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs",
-            default="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs"
+            default="https://repo1.dso.mil/dsop/opensource/pipeline-test-project/csvs",
         )
         parser.add_argument(
             "--repo_link",
             nargs="?",
             const="https://repo1.dso.mil/dsop/opensource/pipeline-test-project",
-            default="https://repo1.dso.mil/dsop/opensource/pipeline-test-project"
+            default="https://repo1.dso.mil/dsop/opensource/pipeline-test-project",
         )
-        parser.add_argument(
-            "--dump_json",
-            nargs="?",
-            const="",
-            default=""
-        )
-        parser.add_argument(
-            "--use_json",
-            nargs="?",
-            const="",
-            default=""
-        )
+        parser.add_argument("--dump_json", nargs="?", const="", default="")
+        parser.add_argument("--use_json", nargs="?", const="", default="")
         parser.add_argument(
             "--out_file",
             nargs="?",
@@ -254,12 +207,9 @@ class ParseJobsTestCase(unittest.TestCase):
         ), "description"
         assert tlc[0]["severity"] == "moderate", "severity = moderate"
         assert (
-            tlc[0]["link"]
-            == "https://access.redhat.com/security/cve/CVE-2021-27218"
+            tlc[0]["link"] == "https://access.redhat.com/security/cve/CVE-2021-27218"
         ), "link"
-        assert (
-            tlc[0]["package"] == "glib2-2.56.4-10.el8_4"
-        ), "package"
+        assert tlc[0]["package"] == "glib2-2.56.4-10.el8_4", "package"
         assert tlc[0]["packagePath"] is None, "packagePath = "
 
         # ------------------ anchore_cve ------------------
@@ -270,7 +220,10 @@ class ParseJobsTestCase(unittest.TestCase):
             )
         )
         assert asc[0]["finding"] == "CVE-2021-22876", "finding"
-        assert asc[0]["description"] == 'curl 7.1.1 to and including 7.75.0 is vulnerable to an "Exposure of Private Personal Information to an Unauthorized Actor" by leaking credentials in the HTTP Referer: header. libcurl does not strip off user credentials from the URL when automatically populating the Referer: HTTP request header field in outgoing HTTP requests, and therefore risks leaking sensitive data to the server that is the target of the second HTTP request.', "description"
+        assert (
+            asc[0]["description"]
+            == 'curl 7.1.1 to and including 7.75.0 is vulnerable to an "Exposure of Private Personal Information to an Unauthorized Actor" by leaking credentials in the HTTP Referer: header. libcurl does not strip off user credentials from the URL when automatically populating the Referer: HTTP request header field in outgoing HTTP requests, and therefore risks leaking sensitive data to the server that is the target of the second HTTP request.'
+        ), "description"
         assert (
             asc[0]["link"] == "https://access.redhat.com/security/cve/CVE-2021-22876"
         ), "link"
