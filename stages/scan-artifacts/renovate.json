@@ -1,0 +1,25 @@
+{
+  "assignees": [
+    "@david.freeman",
+    "@kenneth.maguire",
+    "@cvernooy",
+    "@seagren.tim",
+    "@andymaks",
+    "@alfontaine"
+  ],
+  "baseBranches": ["development"],
+  "automerge": true,
+  "gitLabAutomerge": true,
+  "regexManagers": [
+    {
+      "fileMatch": [
+        "^clamav-scan.yaml$"
+      ],
+      "matchStrings": [
+        "^\\s+image:\\sregistry1.dso.mil/ironbank/opensource/clamav/clamav:(?<currentValue>.+?)"
+      ],
+      "depNameTemplate": "registry1.dso.mil/ironbank/opensource/clamav/clamav",
+      "datasourceTemplate": "docker"
+    }
+  ]
+}
