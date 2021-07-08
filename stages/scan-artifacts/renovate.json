@@ -3,13 +3,9 @@
     "@david.freeman",
     "@kenneth.maguire",
     "@cvernooy",
-    "@seagren.tim",
-    "@andymaks",
-    "@alfontaine"
+    "@seagren.tim"
   ],
   "baseBranches": ["development"],
-  "automerge": true,
-  "gitLabAutomerge": true,
   "regexManagers": [
     {
       "fileMatch": [
