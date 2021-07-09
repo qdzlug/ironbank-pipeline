@@ -8,9 +8,7 @@
   "baseBranches": ["development"],
   "regexManagers": [
     {
-      "fileMatch": [
-        "^clamav-scan.yaml$"
-      ],
+      "fileMatch": ["^clamav-scan.yaml$"],
       "matchStrings": [
         "^\\s+image:\\sregistry1.dso.mil/ironbank/opensource/clamav/clamav:(?<currentValue>.+?)"
       ],
