@@ -36,13 +36,13 @@ def main():
             sys.exit(1)
         except requests.exceptions.HTTPError:
             logging.error(f"Got HTTP {post_resp.status_code}")
-            logging.exception(f"HTTP error")
+            logging.exception("HTTP error")
             sys.exit(1)
         except requests.exceptions.RequestException:
-            logging.exception(f"Error submitting container data to IBFE API")
+            logging.exception("Error submitting container data to IBFE API")
             sys.exit(1)
         except Exception:
-            logging.exception(f"Unhandled exception")
+            logging.exception("Unhandled exception")
             sys.exit(1)
     else:
         logging.debug("Skipping use of ibfe api build endpoint")
