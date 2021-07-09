@@ -29,8 +29,8 @@ def main():
                 headers={"Authorization": os.environ["IBFE_API_KEY"]},
                 json=new_data,
             )
-            logging.info("Uploaded container data to IBFE API")
             post_resp.raise_for_status()
+            logging.info("Uploaded container data to IBFE API")
         except requests.exceptions.Timeout:
             logging.exception("Unable to reach the IBFE API, TIMEOUT.")
             sys.exit(1)
