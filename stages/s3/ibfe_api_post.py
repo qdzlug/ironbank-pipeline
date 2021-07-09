@@ -31,20 +31,18 @@ def main():
             )
             logging.info("Uploaded container data to IBFE API")
             post_resp.raise_for_status()
-        except requests.exceptions.Timeout as req_timeout:
-            logging.error(
-                f"Unable to reach the IBFE API, TIMEOUT. stack trace\n{req_timeout}"
-            )
+        except requests.exceptions.Timeout:
+            logging.exception("Unable to reach the IBFE API, TIMEOUT.")
             sys.exit(1)
-        except requests.exceptions.HTTPError as http_err:
-            logging.info(f"Got HTTP {post_resp.status_code}")
-            logging.error(f"HTTP error\n{http_err}")
+        except requests.exceptions.HTTPError:
+            logging.error(f"Got HTTP {post_resp.status_code}")
+            logging.exception(f"HTTP error")
             sys.exit(1)
-        except requests.exceptions.RequestException as request_e:
-            logging.error(f"Error submitting container data to IBFE API\n{request_e}")
+        except requests.exceptions.RequestException:
+            logging.exception(f"Error submitting container data to IBFE API")
             sys.exit(1)
-        except Exception as e:
-            logging.error(f"Unhandled exception\n{e}")
+        except Exception:
+            logging.exception(f"Unhandled exception")
             sys.exit(1)
     else:
         logging.debug("Skipping use of ibfe api build endpoint")
