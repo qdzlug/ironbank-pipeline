@@ -55,3 +55,5 @@ done < <(find "${SCAN_DIRECTORY}" -type f -print0)
 python3 "${PIPELINE_REPO_DIR}/stages/s3/s3_upload.py" --file "${PROJECT_README}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_README}"
 python3 "${PIPELINE_REPO_DIR}/stages/s3/s3_upload.py" --file "${PROJECT_LICENSE}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_LICENSE}"
 python3 "${PIPELINE_REPO_DIR}/stages/s3/s3_upload.py" --file "${REPORT_TAR_NAME}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/${REPORT_TAR_NAME}"
+
+python3 "${PIPELINE_REPO_DIR}/stages/s3/ibfe_api_post.py"
