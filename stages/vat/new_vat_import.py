@@ -340,14 +340,24 @@ def create_api_call():
     asec_jobs = []
     acomp_jobs = []
 
-    if args.oscap and os.environ.get("DISTROLESS"):
+    # if the DISTROLESS variable exists, the oscap job was not run.
+    # When not os.environ.get("DISTROLESS"), this means this is not a DISTROLESS project, and oscap findings should be imported
+    if args.oscap and not os.environ.get("DISTROLESS"):
+        logging.debug("Importing oscap findings")
         os_jobs = generate_oscap_jobs(args.oscap)
+        logging.debug(f"oscap finding count: {len(os_jobs)}")
     if args.anchore_sec:
+        logging.debug("Importing anchore security findings")
         asec_jobs = generate_anchore_cve_jobs(args.anchore_sec)
+        logging.debug(f"Anchore security finding count: {len(asec_jobs)}")
     if args.anchore_gates:
+        logging.debug("Importing importing anchore compliance findings")
         acomp_jobs = generate_anchore_comp_jobs(args.anchore_gates)
+        logging.debug(f"Anchore compliance finding count: {len(acomp_jobs)}")
     if args.twistlock:
+        logging.debug("Importing twistlock findings")
         tl_jobs = generate_twistlock_jobs(args.twistlock)
+        logging.debug(f"Twistlock finding count: {len(tl_jobs)}")
     all_jobs = tl_jobs + asec_jobs + acomp_jobs + os_jobs
     large_data = {
         "imageName": args.container,
@@ -363,6 +373,7 @@ def create_api_call():
         },
         "findings": all_jobs,
     }
+    logging.debug(large_data)
     return large_data
 
 
@@ -388,8 +399,8 @@ def main():
         sys.exit(1)
     finally:
         if resp:
-            logging.debug("API Response:\n %s", resp.text)
-            logging.debug("POST Response: %s", resp.status_code)
+            logging.info("API Response:\n %s", resp.text)
+            logging.info("POST Response: %s", resp.status_code)
 
 
 if __name__ == "__main__":
