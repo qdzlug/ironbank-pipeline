@@ -128,7 +128,7 @@ def _format_reference(ref, n_set):
 def generate_oscap_jobs(oscap_path):
     oc_path = Path(oscap_path)
 
-    root = etree.parse(oc_path.joinpath("compliance_output_report.xml"))
+    root = etree.parse(oc_path)
     n_set = {
         "xccdf": "http://checklists.nist.gov/xccdf/1.2",
         "xhtml": "http://www.w3.org/1999/xhtml",  # not actually needed
@@ -211,10 +211,8 @@ def generate_anchore_cve_jobs(anchore_sec_path):
     in case of duplicate cves with different sorts for the list of fix versions
     """
     as_path = Path(anchore_sec_path)
-    with open(
-        as_path.joinpath("anchore_security.json"), mode="r", encoding="utf-8"
-    ) as f_ptr:
-        json_data = json.load(f_ptr)
+    with as_path.open(mode="r", encoding="utf-8") as f:
+        json_data = json.load(f)
 
     cves = []
     for v_d in json_data["vulnerabilities"]:
@@ -252,10 +250,10 @@ def generate_anchore_comp_jobs(anchore_comp_path):
     Get results of Anchore gates for csv export, becomes anchore compliance spreadsheet
     """
     ac_path = Path(anchore_comp_path)
-    with open(ac_path.joinpath("anchore_gates.json"), encoding="utf-8") as f_ptr:
-        json_data = json.load(f_ptr)
-        sha = list(json_data.keys())[0]
-        anchore_data_set = json_data[sha]["result"]["rows"]
+    with ac_path.open(mode="r", encoding="utf-8") as f:
+        json_data = json.load(f)
+    sha = list(json_data.keys())[0]
+    anchore_data_set = json_data[sha]["result"]["rows"]
 
     gates = []
     acomps = []
@@ -311,10 +309,8 @@ def generate_anchore_comp_jobs(anchore_comp_path):
 # Get results from Twistlock report for finding generation
 def generate_twistlock_jobs(twistlock_cve_path):
     tc_path = Path(twistlock_cve_path)
-    with open(
-        tc_path.joinpath("twistlock_cve.json"), mode="r", encoding="utf-8"
-    ) as f_ptr:
-        json_data = json.load(f_ptr)
+    with tc_path.open(mode="r", encoding="utf-8") as f:
+        json_data = json.load(f)
     cves = []
     if json_data[0]["vulnerabilities"]:
         for v_d in json_data[0]["vulnerabilities"]:
