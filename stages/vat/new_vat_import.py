@@ -218,7 +218,7 @@ def generate_anchore_cve_jobs(anchore_sec_path):
     for v_d in json_data["vulnerabilities"]:
         try:
             description = v_d["extra"]["description"]
-        except RuntimeError:
+        except KeyError:
             logging.info("Vulnerability description does not exist")
             description = "none"
 
