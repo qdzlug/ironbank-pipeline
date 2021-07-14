@@ -564,14 +564,14 @@ def _get_complete_whitelist_for_image(image_name, hardening_manifest):
             parent_image_path=base_image_repo,
         )
         result = _vat_vuln_query(base_image, base_tag)
-        # base image and tag are set by hardening manifest before the while loop
-        # base image and tag are set here for next loop
-        base_image = parent_image_name
-        base_tag = parent_image_version
 
         for row in result:
             finding_dict = _get_findings_from_query(row)
             vat_findings[base_image].append(finding_dict)
+        # base image and tag are set by hardening manifest before the while loop
+        # base image and tag are set here for next loop
+        base_tag = parent_image_version
+        base_image = parent_image_name
 
     logging.info(f"Artifact Directory: {artifact_dir}")
     filename = pathlib.Path(f"{artifact_dir}/vat_findings.json")
