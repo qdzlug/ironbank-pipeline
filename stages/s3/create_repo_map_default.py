@@ -7,8 +7,6 @@ import logging
 from botocore.exceptions import ClientError
 import argparse
 
-# import requests
-
 
 def get_repomap(object_name, bucket="ironbank-pipeline-artifacts"):
 
