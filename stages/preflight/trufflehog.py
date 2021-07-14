@@ -135,11 +135,11 @@ def get_history_cmd(commits: str) -> list[str]:
         [--since-commit, the oldest sha in the commits list]
         if list is empty [--no-history]
     """
-    commits = commits.split("\n")
-    for commit in commits:
+    commit_lst = commits.split("\n")
+    for commit in commit_lst:
         logging.info(commit)
     # if no data is returned to commits, since_commit will be an empty string
-    since_commit: str = commits[-1]
+    since_commit: str = commit_lst[-1]
     return ["--since-commit", since_commit] if since_commit else ["--no-history"]
 
 
