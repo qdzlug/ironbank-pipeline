@@ -521,6 +521,7 @@ def _get_complete_whitelist_for_image(image_name, hardening_manifest):
     # get parent cves from VAT
     while base_image:
 
+        vat_findings[base_image] = []
         cmd = [
             "skopeo",
             "inspect",
@@ -567,7 +568,6 @@ def _get_complete_whitelist_for_image(image_name, hardening_manifest):
         # base image and tag are set here for next loop
         base_image = parent_image_name
         base_tag = parent_image_version
-        vat_findings[base_image] = []
 
         for row in result:
             finding_dict = _get_findings_from_query(row)
