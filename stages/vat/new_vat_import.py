@@ -393,6 +393,8 @@ def main():
     try:
         resp = requests.post(args.api_url, headers=headers, json=large_data)
         resp.raise_for_status()
+        logging.info(f"API Response:\n{resp.text}")
+        logging.info(f"POST Response: {resp.status_code}")
     except RuntimeError:
         logging.exception("RuntimeError: API Call Failed")
         sys.exit(1)
@@ -406,8 +408,6 @@ def main():
     except Exception:
         logging.exception("Exception: Unknown exception")
         sys.exit(1)
-    logging.info(f"API Response:\n {resp.text}")
-    logging.info(f"POST Response: {resp.status_code}")
 
 
 if __name__ == "__main__":
