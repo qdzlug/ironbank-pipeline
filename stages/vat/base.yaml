@@ -11,12 +11,20 @@ vat:
   dependencies:
     - load-scripts
     - build
-    - csv-output
     - wl-compare-lint
     - hardening-manifest
+    - anchore-scan
+    - openscap-compliance
+    - twistlock-scan
   variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: vat
-    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/csvs/"
-    OPENSCAP: "${ARTIFACT_STORAGE}/scan-results/openscap"
+    ANCHORE_ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/anchore/"
+    TWISTLOCK_ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/openscap/"
+    OPENSCAP_ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/twistlock/"
   script:
     - '"${PIPELINE_REPO_DIR}/stages/vat/vat-run-api.sh"'
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_STORAGE}/vat_request.json"
+    expire_in: 1 week
