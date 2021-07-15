@@ -11,4 +11,5 @@ htmlcov/
 *.old
 .DS_Store
 .mypy_cache/
+mypy.ini
 libs/*
