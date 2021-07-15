@@ -19,7 +19,7 @@ python3 "${PIPELINE_REPO_DIR}/stages/vat/new_vat_import.py" \
   --digest "${IMAGE_PODMAN_SHA}" \
   --parent "${BASE_IMAGE:-}" \
   --parent_version "${BASE_TAG:-}" \
-  --comp_link "${OSCAP_COMPLIANCE_URL}" \
+  --comp_link "${OSCAP_COMPLIANCE_URL:-}" \
   --repo_link "${CI_PROJECT_URL}" \
   --oscap "${ARTIFACT_STORAGE}/scan-results/openscap/compliance_output_report.xml" \
   --twistlock "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json" \
