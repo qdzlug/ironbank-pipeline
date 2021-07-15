@@ -32,9 +32,17 @@ def main() -> None:
     job_image = os.environ["CI_JOB_IMAGE"]
     config_variable = os.environ.get("TRUFFLEHOG_CONFIG")
 
+    if Path(repo_dir, "trufflehog-config.yaml").is_file():
+        config_file = 'trufflehog-config.yaml'
+    elif Path(repo_dir, "trufflehog-config.yml").is_file():
+        config_file = 'trufflehog-config.yml'
+    else:
+        logging.info(f"custom trufflehog configuration not detected")
+        config_file = 'trufflehog-config.yaml'
+
     project_truffle_config = Path(
         repo_dir,
-        "trufflehog-config.yaml",
+        config_file,
     )
     default_truffle_config = Path(
         pipeline_repo_dir,
@@ -63,7 +71,7 @@ def main() -> None:
         branch_name,
         *history_cmd,
         "--config",
-        "trufflehog-config.yaml",
+        config_file,
         ".",
     ]
 
@@ -199,7 +207,7 @@ def create_trufflehog_config(
         "skip_strings": skip_strings,
         "skip_paths": skip_paths,
     }
-    outfile = Path(repo_dir, "trufflehog-config.yaml")
+    outfile = Path(repo_dir, project_config_path)
     with outfile.open(mode="w") as of:
         yaml.safe_dump(config, of, indent=2, sort_keys=False)
     return True if config_variable and project_config_path.is_file() else False
