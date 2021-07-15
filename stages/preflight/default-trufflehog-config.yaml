@@ -2,3 +2,4 @@
 skip_paths:
   - "${ARTIFACT_STORAGE}/"
   - trufflehog-config.yaml
+  - trufflehog-config.yml
