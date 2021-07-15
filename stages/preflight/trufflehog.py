@@ -37,7 +37,7 @@ def main() -> None:
     elif Path(repo_dir, "trufflehog-config.yml").is_file():
         config_file = "trufflehog-config.yml"
     else:
-        logging.info(f"custom trufflehog configuration not detected")
+        logging.info("custom trufflehog configuration not detected")
         config_file = "trufflehog-config.yaml"
 
     project_truffle_config = Path(
