@@ -391,16 +391,23 @@ def main():
     headers = CaseInsensitiveDict()
     headers["Content-Type"] = "application/json"
     try:
-        resp = None
         resp = requests.post(args.api_url, headers=headers, json=large_data)
         resp.raise_for_status()
-    except RuntimeError as error:
-        logging.error("API Call Failed: %s", error)
+    except RuntimeError:
+        logging.exception("RuntimeError: API Call Failed")
         sys.exit(1)
-    finally:
-        if resp:
-            logging.info("API Response:\n %s", resp.text)
-            logging.info("POST Response: %s", resp.status_code)
+    except requests.exceptions.HTTPError:
+        logging.error(f"Got HTTP {resp.status_code}")
+        logging.exception("HTTP error")
+        sys.exit(1)
+    except requests.exceptions.RequestException:
+        logging.exception("Error submitting data to VAT scan import API")
+        sys.exit(1)
+    except Exception:
+        logging.exception("Exception: Unknown exception")
+        sys.exit(1)
+    logging.info(f"API Response:\n {resp.text}")
+    logging.info(f"POST Response: {resp.status_code}")
 
 
 if __name__ == "__main__":
