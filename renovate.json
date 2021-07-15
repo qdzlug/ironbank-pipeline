@@ -1,0 +1,60 @@
+{
+  "assignees": [
+    "@david.freeman",
+    "@kenneth.maguire",
+    "@cvernooy",
+    "@seagren.tim",
+    "@msimmons719"
+  ],
+  "baseBranches": ["add_renovate_scanartifacts"],
+  "ignorePaths": ["scripts/requirements.txt", ".gitlab-ci.yml"],
+  "packageRules": [
+    {
+      "matchPackageNames": [
+        "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner",
+        "registry1.dso.mil/ironbank/ironbank-pipelines/rootless-podman"
+      ],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)$"
+    }
+  ],
+  "regexManagers": [
+    {
+      "fileMatch": ["^stages/scanning/rhel-oscap-version.json$"],
+      "matchStrings": ["\"version\":\\s+\"(?<currentValue>.*?)\""],
+      "depNameTemplate": "ComplianceAsCode/content",
+      "datasourceTemplate": "github-releases"
+    },
+    {
+      "fileMatch": ["^templates/globals.yaml$"],
+      "matchStrings": [
+        "image:\\sregistry1\\.dso\\.mil/ironbank/ironbank-pipelines/pipeline-runner:(?<currentValue>.+)"
+      ],
+      "depNameTemplate": "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "fileMatch": ["^stages/build/base.yaml$"],
+      "matchStrings": [
+        "image:\\s\"registry1\\.dso\\.mil/ironbank/ironbank-pipelines/rootless-podman:(?<currentValue>.+?)\""
+      ],
+      "depNameTemplate": "registry1.dso.mil/ironbank/ironbank-pipelines/rootless-podman",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "fileMatch": ["^stages/scan-artifacts/clamav-scan.yaml$"],
+      "matchStrings": [
+        "image:\\sregistry1\\.dso\\.mil/ironbank/opensource/clamav/clamav:(?<currentValue>.+)"
+      ],
+      "depNameTemplate": "registry1.dso.mil/ironbank/opensource/clamav/clamav",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "fileMatch": ["^stages/scanning/anchore/anchore.yaml$"],
+      "matchStrings": [
+        "image:\\sregistry1\\.dso\\.mil/ironbank/anchore/cli/cli:(?<currentValue>.+)"
+      ],
+      "depNameTemplate": "registry1.dso.mil/ironbank/anchore/cli/cli",
+      "datasourceTemplate": "docker"
+    }
+  ]
+}
