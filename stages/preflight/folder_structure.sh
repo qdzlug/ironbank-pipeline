@@ -37,8 +37,8 @@ fi
 
 # test for trufflehog-config.yaml and no TRUFFLEHOG_CONFIG CI varaible
 # exits if a `trufflehog-config.yaml` file is found, but there is no TRUFFLEHOG_CONFIG CI variable
-if [[ -f "trufflehog-config.yaml" ]] && [[ -z "${TRUFFLEHOG_CONFIG:-}" ]]; then
-  echo "trufflehog-config.yaml file found but TRUFFLEHOG_CONFIG CI variable does not exist"
+if [[ -f "trufflehog-config.yaml" || -f "trufflehog-config.yml" ]] && [[ -z "${TRUFFLEHOG_CONFIG:-}" ]]; then
+  echo "trufflehog-config file found but TRUFFLEHOG_CONFIG CI variable does not exist"
   exit 1
 fi
 
