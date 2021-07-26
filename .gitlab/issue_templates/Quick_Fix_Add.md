@@ -9,11 +9,14 @@
 <!--- Who reported this or is looking for the fix? -->
 
 ## Acceptance Criteria
+
 <!--- What is the acceptance criteria for this quick fix/add? -->
+
 -
-- 
+-
 
 ### Unit and Integration Tests
+
 - [ ] Write or update any unit or integration tests
 
 /label ~"Project::Ironbank Pipeline"
