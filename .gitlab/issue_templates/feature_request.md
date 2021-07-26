@@ -1,4 +1,4 @@
-This template is **ONLY** used for feature requests. Bug reporting or pipeline enhancement issues should use the other template options for issue submission.
+<!-- This template is **ONLY** used for feature requests. Bug reporting or pipeline enhancement issues should use the other template options for issue submission. -->
 
 ## Description
 
@@ -25,3 +25,9 @@ This template is **ONLY** used for feature requests. Bug reporting or pipeline e
 
 -
 -
+
+### Unit and Integration Tests
+- [ ] Write or update any unit or integration tests
+
+/label ~"Project::Ironbank Pipeline"
+/label ~Feature
