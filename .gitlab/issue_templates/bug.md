@@ -17,6 +17,7 @@
 <!--- Not required, but suggest a fix/reason for the bug -->
 
 ## Acceptance Criteria
+<!--- What is the acceptance criteria for this bug to be considered resolved? -->
 -
 -
 
