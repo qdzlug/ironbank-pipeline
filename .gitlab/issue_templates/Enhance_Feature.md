@@ -16,10 +16,12 @@ This template is **ONLY** used for enhancement requests. Bug reporting or new fe
 -
 
 ## Acceptance Criteria
-
 <!--- What is the acceptance criteria for this new feature? -->
-
 -
 -
 
+### Unit and Integration Tests
+- [ ] Write or update any unit or integration tests
+
+/label ~"Project::Ironbank Pipeline"
 /label ~Enhancement
