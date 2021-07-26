@@ -16,7 +16,7 @@
 -
 
 ## Acceptance Criteria
-<!--- What is the acceptance criteria for this new feature? -->
+<!--- What is the acceptance criteria for this updated feature? -->
 -
 -
 
