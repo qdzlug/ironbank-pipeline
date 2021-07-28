@@ -171,7 +171,6 @@ def upload_file(file_name, bucket, object_name=None):
   - if an exception of type `ClientError` is raised, log it, return boolean `False` to the main function
   - If upload succeeds return boolean `True` to the main function
 
-
 ## Upload to S3 Run - Overview
 
 This script is run by Gitlab because it is in the yaml configuration file as the action when this stage launches
@@ -289,7 +288,6 @@ fi
 ```
 
 Post results to IBFE API, if running on master branch
-
 
 ## Create Repo Map - Overview
 
