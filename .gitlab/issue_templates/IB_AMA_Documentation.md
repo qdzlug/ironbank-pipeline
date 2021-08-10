@@ -12,7 +12,7 @@
 
 **Question**
 
-*Summary:* 
+_Summary:_
 
 <!-- Please provide a brief summary of the person's question -->
 
