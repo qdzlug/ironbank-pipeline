@@ -569,7 +569,6 @@ def _get_approval_status(source_file):
 
 This is created in the lint stage via an API call to VAT. If `source_file` exists, open and set JSON object to the data from `source_file`.
 
-
 ## Post to IBFE - Overview
 
 This module sends container data directly to the IBFE (Iron Bank Front End) API
