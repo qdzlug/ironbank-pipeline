@@ -440,7 +440,7 @@ logging.debug(f"repo_map data:\n{new_data}")
             json.dump(new_data, outfile, indent=4, sort_keys=True)
 ```
 
-if debug logging is active, log to file the data in the dictionary `new_data` created abobe. if there is an existing repo_map.json file downloaded form S3 in the `get_repo_map` function, update the data in the file with the contents of `new_data`, otherwise write `new_data` to repo_map.json
+if debug logging is active, log to file the data in the dictionary `new_data` created above. if there is an existing repo_map.json file downloaded form S3 in the `get_repo_map` function, update the data in the file with the contents of `new_data`, otherwise write `new_data` to repo_map.json
 
 #### Get Repo Map
 
@@ -520,7 +520,7 @@ Set a couple local variables; If the source file exists, open the file and parse
 
 ```
 
-Print some informatin about keywords or tags and return the dictionary `val_list` back to the main function
+Print some information about keywords or tags and return the dictionary `val_list` back to the main function
 
 #### Get Source Keys Values
 
@@ -532,15 +532,16 @@ source_file, <span style="color:aqua"><b>String</b></span>
 
 ```
 
-def \_get_source_keys_values(source_file):
-hm_labels = {}
-if os.path.exists(source_file):
-with open(source_file, mode="r", encoding="utf-8") as sf:
-for line in sf:
-key, value = line.rstrip().split("=", 1)
-if key != "mil.dso.ironbank.image.keywords":
-hm_labels[key] = value
-return hm_labels
+
+def _get_source_keys_values(source_file):
+    hm_labels = {}
+    if os.path.exists(source_file):
+        with open(source_file, mode="r", encoding="utf-8") as sf:
+            for line in sf:
+                key, value = line.rstrip().split("=", 1)
+                if key != "mil.dso.ironbank.image.keywords":
+                    hm_labels[key] = value
+    return hm_labels
 
 ```
 
@@ -556,21 +557,18 @@ source_file, <span style="color:aqua"><b>String</b></span>
 
 ```
 
-def \_get_approval_status(source_file):
-if os.path.exists(source_file):
-with open(source_file, mode="r", encoding="utf-8") as sf:
-approval_object = json.load(sf)
-approval_status = approval_object["IMAGE_APPROVAL_STATUS"]
-approval_text = approval_object["IMAGE_APPROVAL_TEXT"]
-return approval_status, approval_text
+def _get_approval_status(source_file):
+    if os.path.exists(source_file):
+        with open(source_file, mode="r", encoding="utf-8") as sf:
+            approval_object = json.load(sf)
+    approval_status = approval_object["IMAGE_APPROVAL_STATUS"]
+    approval_text = approval_object["IMAGE_APPROVAL_TEXT"]
+    return approval_status, approval_text
 
 ```
 
 This is created in the lint stage via an API call to VAT. If `source_file` exists, open and set JSON object to the data from `source_file`.
 
-```
-
-```
 
 ## Post to IBFE - Overview
 
