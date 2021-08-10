@@ -6,7 +6,7 @@
     "@seagren.tim",
     "@msimmons719"
   ],
-  "baseBranches": ["add_renovate_scanartifacts"],
+  "baseBranches": ["development"],
   "ignorePaths": ["scripts/requirements.txt", ".gitlab-ci.yml"],
   "packageRules": [
     {
