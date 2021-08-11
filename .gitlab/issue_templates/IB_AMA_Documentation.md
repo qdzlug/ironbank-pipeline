@@ -21,5 +21,5 @@ _Summary:_
 **Follow Up**
 
 - [ ] The person has been provided an answer
-  > <!-- Summary of answer -->
+<!-- Summary of answer -->
 - [ ] Any steps taken are documented in the linked issue(s) and that ticket is closed.
