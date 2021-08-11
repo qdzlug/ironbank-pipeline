@@ -38,9 +38,8 @@ stages:
   - build
 
   ### post-build stage
-  # clamav scan of the image
-  # REMOVING STAGE, NOT NEEDED FOR BETA
-  # - post-build
+  # container archive output
+  - post-build
 
   ### scanning stage
   # twistlock, oscap, and anchore scans
