@@ -1,4 +1,4 @@
-<!-- This template is to document any questions or concerns that arise from the weekly IronBank AMA sessions and are the responsibility of the POPs team -->
+<!-- This template is to document any questions or concerns that arise from the weekly IronBank AMA sessions relating to the POPs team and require extra follow-up or work from the POPs team -->
 
 ## AMA Notes - DD/MM/YYYY
 
@@ -14,12 +14,11 @@
 
 _Summary:_
 
-<!-- Please provide a brief summary of the person's question -->
+<!-- Please provide a summary of the person's question -->
 
-- [ ] This question was answered during the session.
-- [ ] This question requires investigation and will be addressed outside of the AMA session.
-  - [ ] The appropriate issues have been created and linked to this ticket.
+- [ ] The appropriate issues have been created and linked to this ticket.
 
 **Follow Up**
 
 - [ ] The person has been notified that their problem has been fixed or that it is being investigated.
+- [ ] Any steps taken are documented in the linked issue(s) and that ticket is closed.
