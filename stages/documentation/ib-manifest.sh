@@ -1,8 +1,6 @@
 #!/bin/bash
 set -Eeuo pipefail
 
-echo "${IB_CONTAINER_GPG_KEY}" | base64 -d >key
-
 GPG_VERSION=$(gpg --version | grep '(?<=gpg .GnuPG.)([^0-9]+)([0-9]+[.][0-9]+[.][0-9]+)' -oP | sed -E 's/ //g')
 
 # Create manifest.json
@@ -25,7 +23,3 @@ jq -n '
   }
 }' >"${ARTIFACT_DIR}/reports/manifest.json"
 cat "${ARTIFACT_DIR}/reports/manifest.json"
-
-# Sign manifest.json
-gpg --import --batch --pinentry-mode loopback --passphrase "${IB_CONTAINER_SIG_KEY_PASSPHRASE}" key
-gpg --detach-sign -o "${ARTIFACT_DIR}/reports/${SIG_FILE}.sig" --armor --yes --batch --pinentry-mode loopback --passphrase "${IB_CONTAINER_SIG_KEY_PASSPHRASE}" "${ARTIFACT_DIR}/reports/manifest.json"
