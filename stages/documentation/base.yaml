@@ -24,7 +24,8 @@ documentation:
     - development
     - master
   script:
-    - '"${PIPELINE_REPO_DIR}/stages/documentation/documentation.sh"'
+    - '"${PIPELINE_REPO_DIR}/stages/documentation/ib-manifest-run.sh"'
+    - '"${PIPELINE_REPO_DIR}/stages/documentation/write-json-docs-run.sh"'
 
 create-tar:
   extends: .documentation
