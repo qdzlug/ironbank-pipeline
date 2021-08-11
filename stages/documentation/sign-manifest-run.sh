@@ -14,8 +14,7 @@ jq -n '
   "critical": {
     "type": "atomic container signature",
     "image": {
-      "podman-manifest-digest": env.IMAGE_PODMAN_SHA,
-      "image-tar-sha256-checksum": env.IMAGE_TAR_SHA
+      "podman-manifest-digest": env.IMAGE_PODMAN_SHA
     },
     "identity": {
       "podman-reference": env.PODMAN_REFERENCE
