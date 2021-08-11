@@ -20,5 +20,6 @@ _Summary:_
 
 **Follow Up**
 
-- [ ] The person has been notified that their problem has been fixed or that it is being investigated.
+- [ ] The person has been provided an answer
+  > <!-- Summary of answer -->
 - [ ] Any steps taken are documented in the linked issue(s) and that ticket is closed.
