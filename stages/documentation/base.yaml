@@ -2,11 +2,9 @@
   stage: documentation
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/documentation"
-    SIG_FILE: signature
     OPENSCAP_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/openscap/oscap-version.txt"
     TWISTLOCK_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock-version.txt"
     ANCHORE_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/anchore/anchore-version.txt"
-    IMAGE_FILE: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
   artifacts:
     paths:
       - $ARTIFACT_DIR
