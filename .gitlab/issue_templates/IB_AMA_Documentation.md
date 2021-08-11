@@ -17,7 +17,7 @@ _Summary:_
 <!-- Please provide a brief summary of the person's question -->
 
 - [ ] This question was answered during the session.
-- [ ] This question requires investigation and will be addressed later.
+- [ ] This question requires investigation and will be addressed outside of the AMA session.
   - [ ] The appropriate issues have been created and linked to this ticket.
 
 **Follow Up**
