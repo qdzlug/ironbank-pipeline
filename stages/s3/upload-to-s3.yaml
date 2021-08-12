@@ -25,6 +25,7 @@ upload-to-s3:
     - twistlock-scan
     - openscap-compliance
     - csv-output
-    - documentation
+    - ib-manifest
+    - write-json-docs
   script:
     - '"${PIPELINE_REPO_DIR}/stages/s3/upload-to-s3-run.sh"'
