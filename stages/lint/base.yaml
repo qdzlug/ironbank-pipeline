@@ -1,9 +1,43 @@
 .lint:
   stage: lint
 
+  dependencies:
+    - load-scripts
   artifacts:
     when: always
     expire_in: 1 week
+    paths:
+      - "${CI_PROJECT_DIR}/pipeline-artifacts/"
+
+# OPTIONAL FOR BETA PIPELINE
+# yaml lint:
+#   extends: .lint
+#   # the hardened image we have access to comes with pip installed
+#   except:
+#     variables:
+#       - $YAML_LINT_DISABLED
+#   before_script:
+#     - pip3 install --upgrade pip
+#     - pip3 install yamllint
+#     - mkdir -p "${CI_PROJECT_DIR}/pipeline-artifacts/"
+#   # TODO: get more insight into following commands and intention
+#   script:
+#     - yamllint -c "${CI_PROJECT_DIR}/tests/yamllint.yaml" "${CI_PROJECT_DIR}/tests/hadolint.yaml" | tee "${CI_PROJECT_DIR}/pipeline-artifacts/lint-yaml.txt"
+#     - yamllint -c "${CI_PROJECT_DIR}/tests/yamllint.yaml" "${CI_PROJECT_DIR}/tests/container-structure-test.yaml" | tee "${CI_PROJECT_DIR}/pipeline-artifacts/lint-yaml.txt"
+
+# # OPTIONAL FOR BETA PIPELINE
+# dockerfile lint:
+#   extends: .lint
+#   except:
+#     variables:
+#       - $DOCKERFILE_LINT_DISABLED
+#   before_script:
+#     # https://hub.docker.com/r/hadolint/hadolint/dockerfile
+#     - docker pull hadolint/hadolint
+#     - chmod +x /bin/hadolint
+#     - mkdir -p "${CI_PROJECT_DIR}/pipeline-artifacts"
+#   script:
+#     - hadolint "${CI_PROJECT_DIR}/Dockerfile" | tee "${CI_PROJECT_DIR}/pipeline-artifacts/lint-dockerfile.txt"
 
 wl-compare-lint:
   extends: .lint
@@ -28,5 +62,6 @@ wl-compare-lint:
   artifacts:
     paths:
       - "${ARTIFACT_DIR}/"
+    expire_in: 1 week
     reports:
       dotenv: variables.env
