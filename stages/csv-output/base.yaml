@@ -1,6 +1,6 @@
 csv-output:
   stage: csv-output
-  dependencies:
+  needs:
     - twistlock-scan
     - openscap-compliance
     - anchore-scan
