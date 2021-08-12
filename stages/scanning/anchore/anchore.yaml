@@ -23,7 +23,7 @@ anchore-scan:
   image: "registry1.dso.mil/ironbank/anchore/cli/cli:0.9.1"
   stage: scanning
   # Load in the IMAGE_VERSION variable from load-scripts env
-  needs:
+  dependencies:
     - load-scripts
     - build
   variables:

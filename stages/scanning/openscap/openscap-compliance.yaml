@@ -8,7 +8,7 @@ openscap-compliance:
   variables:
     OSCAP_SCANS: "${ARTIFACT_STORAGE}/scan-results/openscap"
     OSCAP_FILENAME: "${OSCAP_HTML_FILENAME}"
-  needs:
+  dependencies:
     - load-scripts
     - build
   script:
