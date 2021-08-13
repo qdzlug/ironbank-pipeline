@@ -1,301 +1,449 @@
-swagger: "2.0"
-info:
-  description: This is the VAT container findings API
-  version: 0.0.1
-  title: VAT API Server
-  contact:
-    email: ironbank@dsop.io
-  license:
-    name: Apache 2.0
-    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
-tags:
-  - name: Container
-    description: Container findings with approval chain
 basePath: /api
-schemes:
-  - http
-  - https
 consumes:
-  - application/json
-produces:
-  - application/json
-paths:
-  /internal/container:
-    get:
-      tags:
-        - Container
-      description: Get the container approval information
-      parameters:
-        - name: name
-          in: query
-          required: true
-          type: string
-          description: Full path for the image
-        - name: tag
-          in: query
-          required: true
-          type: string
-          description: Specific tag for the image
-      responses:
-        "200":
-          description: Successfully return a container with findings
-          schema:
-            $ref: "#/definitions/Container"
-        "400":
-          description: Bad Request, missing either parameter
-          schema:
-            allOf:
-              - $ref: "#/definitions/ApiErrorResponse"
-              - properties:
-                  statusCode:
-                    enum:
-                      - 400
-        "404":
-          description: Container not found
-          schema:
-            allOf:
-              - $ref: "#/definitions/ApiErrorResponse"
-              - properties:
-                  statusCode:
-                    enum:
-                      - 404
+- application/json
 definitions:
+  AccreditationStatusEnum:
+    description: Last CA disposition on container. 'Onboarding' if no CA decision
+      has yet been made.
+    enum:
+    - Approved
+    - Conditionally Approved
+    - Rejected
+    - Onboarding
+    type: string
   ApiErrorResponse:
     description: Generic HTTP API error response
-    type: object
     properties:
-      statusCode:
-        type: integer
-        format: int32
-      message:
-        type: string
       error:
         type: string
+      message:
+        type: string
+      statusCode:
+        format: int32
+        type: integer
+    type: object
   Container:
     description: Container definition including all findings and approval logs
-    type: object
     properties:
-      imageName:
-        $ref: "#/definitions/DockerNameWithoutDomainRegex"
-      imageTag:
-        $ref: "#/definitions/DockerTagRegex"
-      containerState:
-        $ref: "#/definitions/ContainerStateEnum"
-      earliestExpiration:
-        description: "Only exists if either the container OR any of the findings have an expiration. Computed field of the earliest date that either the container or any of the findings expires. This may be a date in the past, if the container or the finding is expired"
-        $ref: "#/definitions/TimestampRegex"
+      accreditation:
+        $ref: '#/definitions/AccreditationStatusEnum'
       approver:
-        description: Only exists if the container is approved or conditionally approved
-        $ref: "#/definitions/ContainerApprover"
+        $ref: '#/definitions/ContainerApprover'
+      containerState:
+        $ref: '#/definitions/ContainerStateEnum'
+      earliestExpiration:
+        allOf:
+        - $ref: '#/definitions/TimestampRegex'
+        description: Timestamp in 'YYYY-MM-DDTHH:MM:SS.sssZ' format (RFC3389 Zulu).
+          Only exists if either the container OR any of the findings have an expiration.
+          Computed field of the earliest date that either the container or any of
+          the findings expires. This may be a date in the past, if the container or
+          the finding is expired
       findings:
-        $ref: "#/definitions/FindingsArray"
-  TimestampRegex:
-    description: "Timestamp in 'YYYY-MM-DDTHH:MM:SS.sssZ' format (RFC3389 Zulu)"
-    type: string
-    pattern: "^[2-9][0-9]{1,3}-[0-9]{1,2}-[0-9]{1,2}T[0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}.[0-9]{1,3}Z$"
-  DockerTagRegex:
-    description: "https://github.com/docker/distribution/blob/master/reference/regexp.go"
-    type: string
-    pattern: '^[\w][\w.-]{0,127}$'
-  DockerNameAndTagRegex:
-    description: "https://github.com/docker/distribution/blob/master/reference/regexp.go"
-    type: string
-    pattern: '^[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?:[\w][\w.-]{0,127}$'
-  DockerNameWithoutDomainRegex:
-    description: "https://github.com/docker/distribution/blob/master/reference/regexp.go"
-    type: string
-    pattern: "^[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?$"
-  PrintableCharactersWithoutNewlinesOrSlashes:
-    type: string
-    pattern: "^[A-Za-z0-9][ -.0-~]*$"
-    minLength: 1
-  ContainerStateEnum:
-    type: string
-    description: Any state other than 'Approved' or 'Conditionally Approved' are considered unapproved
-    enum:
-      - Approved
-      - Conditionally Approved
-      - Rejected
-      - Under Review
-      - Pending Approval
-  FindingStateEnum:
-    description: Any state other than 'approved' or 'conditional' are considered unapproved
-    type: string
-    enum:
-      - needs_justification
-      - has_justification
-      - justified
-      - needs_review
-      - needs_rework
-      - reviewed
-      - rejected
-      - conditional
-      - approved
-  ScanSourceEnum:
-    type: string
-    description: Enum of all available scanning tools
-    enum:
-      - oscap_comp
-      - oscap_cve
-      - anchore_comp
-      - anchore_cve
-      - twistlock_cve
-  UserRoleEnum:
-    type: string
-    description: The roles a user can hold
-    enum:
-      - container_contributor
-      - container_approver
-      - findings_approver
-  UserStrictContainerFindingsApprover:
-    type: object
-    properties:
-      name:
-        type: string
-      email:
-        type: string
-      role:
-        enum:
-          - findings_approver
-          - container_approver
+        $ref: '#/definitions/FindingsArray'
+      imageName:
+        $ref: '#/definitions/DockerNameWithoutDomainRegex'
+      imageTag:
+        $ref: '#/definitions/DockerTagRegex'
     required:
-      - name
-      - email
-      - role
-  UserStrictContainerApprover:
+    - imageName
+    - imageTag
+    - containerState
+    - findings
     type: object
-    properties:
-      name:
-        type: string
-      email:
-        type: string
-      role:
-        enum:
-          - container_approver
-    required:
-      - name
-      - email
-      - role
-  User:
-    type: object
-    properties:
-      name:
-        type: string
-      email:
-        type: string
-      role:
-        $ref: "#/definitions/UserRoleEnum"
-    required:
-      - name
-      - email
-      - role
   ContainerApprover:
-    description: The approver associated with the container (not findings). Only exists if the container is approved or conditionally approved
-    type: object
+    description: The approver associated with the container (not findings). Only exists
+      if the container is approved or conditionally approved
     properties:
-      expires:
-        $ref: "#/definitions/TimestampRegex"
-      date:
-        $ref: "#/definitions/TimestampRegex"
       comment:
         type: string
+      date:
+        $ref: '#/definitions/TimestampRegex'
+      expires:
+        $ref: '#/definitions/TimestampRegex'
       user:
-        $ref: "#/definitions/UserStrictContainerApprover"
+        $ref: '#/definitions/UserStrictContainerApprover'
     required:
-      - date
-      - comment
-      - user
-  FindingsArray:
-    description: FindingsArray description
-    type: array
-    items:
-      $ref: "#/definitions/Finding"
+    - date
+    - comment
+    - user
+    type: object
+  ContainerStateEnum:
+    description: Any state other than 'Approved' or 'Conditionally Approved' are considered
+      unapproved
+    enum:
+    - Approved
+    - Conditionally Approved
+    - Rejected
+    - Under Review
+    - Pending Approval
+    type: string
+  ContainersErrorResponse:
+    description: Error response with directions and examples on proper use.
+    properties:
+      error:
+        type: string
+      examples:
+        items:
+          type: string
+        type: array
+      validStates:
+        items:
+          type: string
+        type: array
+    type: object
+  ContainersResponse:
+    properties:
+      results:
+        items:
+          $ref: '#/definitions/ImageState'
+        type: array
+      summary:
+        $ref: '#/definitions/ContainersResponseSummary'
+    type: object
+  ContainersResponseSummary:
+    properties:
+      Approved:
+        description: Count of 'Approved' containers in results. Property will only
+          exist if count is greater than 0.
+        type: number
+      Conditionally Approved:
+        description: Count of 'Conditionally Approved' containers in results. Property
+          will only exist if count is greater than 0.
+        type: number
+      Pending Approval:
+        description: Count of 'Pending Approval' containers in results. Property will
+          only exist if count is greater than 0.
+        type: number
+      Rejected:
+        description: Count of 'Rejected' containers in results. Property will only
+          exist if count is greater than 0.
+        type: number
+      Under Review:
+        description: Count of 'Under Review' containers in results. Property will
+          only exist if count is greater than 0.
+        type: number
+      since:
+        allOf:
+        - $ref: '#/definitions/TimestampRegex'
+        description: Timestamp in ''YYYY-MM-DDTHH:MM:SS.sssZ'' format (RFC3389 Zulu).
+          This date will only exist if the since parameter was used.
+    type: object
+  DockerNameAndTagRegex:
+    description: https://github.com/docker/distribution/blob/master/reference/regexp.go
+    pattern: ^[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?:[\w][\w.-]{0,127}$
+    type: string
+  DockerNameWithoutDomainRegex:
+    description: https://github.com/docker/distribution/blob/master/reference/regexp.go
+    pattern: ^[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?$
+    type: string
+  DockerTagRegex:
+    description: https://github.com/docker/distribution/blob/master/reference/regexp.go
+    pattern: ^[\w][\w.-]{0,127}$
+    type: string
   Finding:
     description: Findings description
-    type: object
     properties:
-      identifier:
-        description: Finding identifier (vulnerability ID or policy violation ID)
-        $ref: "#/definitions/PrintableCharactersWithoutNewlinesOrSlashes"
-      source:
-        $ref: "#/definitions/ScanSourceEnum"
+      approver:
+        allOf:
+        - $ref: '#/definitions/FindingsApprover'
+        description: This object will only exist if there is a reviewer. May be missing
+          if there is no approval action.
+      contributor:
+        allOf:
+        - $ref: '#/definitions/FindingsContributor'
+        description: This object will be missing if there is no justification text
       description:
         type: string
+      findingsState:
+        $ref: '#/definitions/FindingStateEnum'
+      identifier:
+        allOf:
+        - $ref: '#/definitions/PrintableCharactersWithoutNewlinesOrSlashes'
+        description: Finding identifier (vulnerability ID or policy violation ID)
+      inheritsFrom:
+        description: undefined if not inherited.
+        pattern: ^[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?(?:(?:/[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?)+)?:[\w][\w.-]{0,127}$
       package:
         type: string
       packagePath:
         type: string
-      findingsState:
-        $ref: "#/definitions/FindingStateEnum"
-      inheritsFrom:
-        description: "A non-empty array implies the finding is inherited. Array of ubi/ubi8:8.2 etc ordered from oldest parent image (first) to immediate parent (last). Finding will be present in the first element of the array."
-        type: array
-        items:
-          $ref: "#/definitions/DockerNameAndTagRegex"
-      contributor:
-        description: This object will be missing if there is no justification text
-        $ref: "#/definitions/FindingsContributor"
       reviewer:
-        description: This object will only exist if there is a contributor. Will be missing until the reviewer has performed an action.
-        $ref: "#/definitions/FindingsReviewer"
-      approver:
-        description: This object will only exist if there is a reviewer. May be missing if there is no approval action.
-        $ref: "#/definitions/FindingsApprover"
+        allOf:
+        - $ref: '#/definitions/FindingsReviewer'
+        description: This object will only exist if there is a contributor. Will be
+          missing until the reviewer has performed an action.
+      source:
+        $ref: '#/definitions/ScanSourceEnum'
     required:
-      - identifier
-      - source
-      - description
-      - findingsState
-      - inheritsFrom
-  FindingsContributor:
+    - identifier
+    - source
+    - description
+    - findingsState
     type: object
+  FindingStateEnum:
+    description: Any state other than 'approved' or 'conditional' are considered unapproved
+    enum:
+    - needs_justification
+    - has_justification
+    - justified
+    - needs_review
+    - needs_rework
+    - reviewed
+    - rejected
+    - conditional
+    - approved
+    type: string
+  FindingsApprover:
     properties:
-      state:
-        $ref: "#/definitions/FindingStateEnum"
+      comment:
+        type: string
       date:
-        $ref: "#/definitions/TimestampRegex"
+        $ref: '#/definitions/TimestampRegex'
+      expires:
+        $ref: '#/definitions/TimestampRegex'
+      state:
+        $ref: '#/definitions/FindingStateEnum'
+      user:
+        $ref: '#/definitions/UserStrictContainerFindingsApprover'
+    required:
+    - state
+    - date
+    - comment
+    - user
+    type: object
+  FindingsArray:
+    description: FindingsArray description
+    items:
+      $ref: '#/definitions/Finding'
+    type: array
+  FindingsContributor:
+    properties:
+      date:
+        $ref: '#/definitions/TimestampRegex'
       justification:
         type: string
-      user:
-        $ref: "#/definitions/User"
-    required:
-      - state
-      - date
-      - justification
-      - user
-  FindingsReviewer:
-    type: object
-    properties:
       state:
-        $ref: "#/definitions/FindingStateEnum"
-      date:
-        $ref: "#/definitions/TimestampRegex"
+        $ref: '#/definitions/FindingStateEnum'
+      user:
+        $ref: '#/definitions/User'
+    required:
+    - state
+    - date
+    - justification
+    - user
+    type: object
+  FindingsReviewer:
+    properties:
       comment:
         type: string
+      date:
+        $ref: '#/definitions/TimestampRegex'
       falsePositive:
         type: boolean
-      user:
-        $ref: "#/definitions/User"
-    required:
-      - state
-      - date
-      - comment
-      - user
-  FindingsApprover:
-    type: object
-    properties:
       state:
-        $ref: "#/definitions/FindingStateEnum"
-      expires:
-        $ref: "#/definitions/TimestampRegex"
-      date:
-        $ref: "#/definitions/TimestampRegex"
-      comment:
-        type: string
+        $ref: '#/definitions/FindingStateEnum'
       user:
-        $ref: "#/definitions/UserStrictContainerFindingsApprover"
+        $ref: '#/definitions/User'
     required:
-      - state
-      - date
-      - comment
-      - user
+    - state
+    - date
+    - comment
+    - user
+    type: object
+  ImageState:
+    properties:
+      name:
+        $ref: '#/definitions/DockerNameWithoutDomainRegex'
+      tags:
+        items:
+          $ref: '#/definitions/TagAndState'
+        type: array
+    required:
+    - name
+    - tags
+    type: object
+  PrintableCharactersWithoutNewlinesOrSlashes:
+    minLength: 1
+    pattern: ^[A-Za-z0-9][ -.0-~]*$
+    type: string
+  ScanSourceEnum:
+    description: Source that determined the finding
+    enum:
+    - oscap_comp
+    - oscap_cve
+    - anchore_comp
+    - anchore_cve
+    - twistlock_cve
+    type: string
+  TagAndState:
+    properties:
+      containerState:
+        $ref: '#/definitions/ContainerStateEnum'
+      date:
+        allOf:
+        - $ref: '#/definitions/TimestampRegex'
+        description: Timestamp in 'YYYY-MM-DDTHH:MM:SS.sssZ' format (RFC3389 Zulu).
+          This date will only exist for containers that are Approved, Conditionally
+          Approved, or Rejected.
+      link:
+        description: Url of repository where container is located
+        type: string
+      tag:
+        $ref: '#/definitions/DockerTagRegex'
+    required:
+    - tag
+    - containerState
+    type: object
+  TimestampRegex:
+    description: Timestamp in 'YYYY-MM-DDTHH:MM:SS.sssZ' format (RFC3389 Zulu)
+    pattern: ^[2-9][0-9]{1,3}-[0-9]{1,2}-[0-9]{1,2}T[0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}.[0-9]{1,3}Z$
+    type: string
+  User:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      role:
+        $ref: '#/definitions/UserRoleEnum'
+    required:
+    - name
+    - email
+    - role
+    type: object
+  UserRoleEnum:
+    description: The roles a user can hold
+    enum:
+    - container_contributor
+    - container_approver
+    - findings_approver
+    - vendor_contributor
+    type: string
+  UserStrictContainerApprover:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      role:
+        enum:
+        - container_approver
+    required:
+    - name
+    - email
+    - role
+    type: object
+  UserStrictContainerFindingsApprover:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      role:
+        enum:
+        - findings_approver
+        - container_approver
+    required:
+    - name
+    - email
+    - role
+    type: object
+info:
+  contact:
+    email: ironbank@dsop.io
+  description: This is public API for VAT.
+  title: Public VAT API.
+  version: 0.0.2
+paths:
+  /p1/container:
+    get:
+      description: Get the container approval information
+      parameters:
+      - description: Full path for the image
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: Specific tag for the image
+        in: query
+        name: tag
+        required: true
+        type: string
+      responses:
+        '200':
+          description: Successfully return a container with findings
+          schema:
+            $ref: '#/definitions/Container'
+        '400':
+          description: Bad Request, missing either parameter
+          schema:
+            allOf:
+            - $ref: '#/definitions/ApiErrorResponse'
+            - properties:
+                statusCode:
+                  enum:
+                  - 400
+        '404':
+          description: Container not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/ApiErrorResponse'
+            - properties:
+                statusCode:
+                  enum:
+                  - 404
+      tags:
+      - Container
+  /p1/containers:
+    get:
+      description: Get all containers versions currently in specified states.
+      parameters:
+      - description: Allows results to be filtered by given container state.
+        in: query
+        items:
+          enum:
+          - All
+          - Under Review
+          - Pending Approval
+          - Approved
+          - Conditionally Approved
+          - Rejected
+          type: string
+        name: state
+        required: true
+        type: string
+      - description: Allows results to be filtered for containers where their resolution
+          is after given date. Only allowed when state param is Approved, Conditionally
+          Approved, or Rejected. Accepts any JavaScript parsable date format.
+        in: query
+        name: since
+        required: false
+        type: string
+      responses:
+        '200':
+          description: Successfully return a container with findings
+          schema:
+            $ref: '#/definitions/ContainersResponse'
+        '400':
+          description: Missing or invalid query parameter 'state'. Value should be
+            one or more 'validStates' separated by commas.
+          schema:
+            allOf:
+            - $ref: '#/definitions/ContainersErrorResponse'
+            - properties:
+                statusCode:
+                  enum:
+                  - 400
+      tags:
+      - Containers
+produces:
+- application/json
+schemes:
+- https
+swagger: '2.0'
+tags:
+- description: Container findings with approval chain.
+  name: Container
+- description: Containers for given states.
+  name: Containers
