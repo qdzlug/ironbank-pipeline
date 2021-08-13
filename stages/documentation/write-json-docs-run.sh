@@ -23,7 +23,6 @@ export IMAGE_VERSION
 export CI_COMMIT_SHA
 IMAGE_APPROVAL_STATUS=$(jq -r .IMAGE_APPROVAL_STATUS "${ARTIFACT_STORAGE}/lint/image_approval.json")
 export IMAGE_APPROVAL_STATUS
-export IMAGE_TAR_SHA
 export IMAGE_PODMAN_SHA
 export GPG_PUB_KEY
 export GPG_VERSION_INFO
@@ -41,8 +40,7 @@ jq -n '
   "buildNumber": env.CI_PIPELINE_ID,
   "approval": env.IMAGE_APPROVAL_STATUS,
   "image": {
-    "digest": env.IMAGE_PODMAN_SHA,
-    "sha256": env.IMAGE_TAR_SHA
+    "digest": env.IMAGE_PODMAN_SHA
   },
   "pgp": {
     "publicKey": env.GPG_PUB_KEY,

@@ -1,19 +1,13 @@
 .documentation:
   stage: documentation
+  only:
+    - development
+    - master
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/documentation"
-    SIG_FILE: signature
     OPENSCAP_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/openscap/oscap-version.txt"
     TWISTLOCK_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock-version.txt"
     ANCHORE_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/anchore/anchore-version.txt"
-    IMAGE_FILE: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
-  artifacts:
-    paths:
-      - $ARTIFACT_DIR
-    expire_in: 1 week
-
-documentation:
-  extends: .documentation
   dependencies:
     - load-scripts
     - hardening-manifest
@@ -22,20 +16,19 @@ documentation:
     - anchore-scan
     - twistlock-scan
     - openscap-compliance
-  only:
-    - development
-    - master
-  script:
-    - '"${PIPELINE_REPO_DIR}/stages/documentation/documentation.sh"'
+  before_script:
+    - 'mkdir -p "${ARTIFACT_DIR}/reports"'
+  artifacts:
+    paths:
+      - $ARTIFACT_DIR
+    expire_in: 1 week
 
-create-tar:
+ib-manifest:
   extends: .documentation
-  needs:
-    - load-scripts
-    - hardening-manifest
-    - build
-  except:
-    - development
-    - master
   script:
-    - '"${PIPELINE_REPO_DIR}/stages/documentation/create-tar.sh"'
+    - '"${PIPELINE_REPO_DIR}/stages/documentation/ib-manifest-run.sh"'
+
+write-json-docs:
+  extends: .documentation
+  script:
+    - '"${PIPELINE_REPO_DIR}/stages/documentation/write-json-docs-run.sh"'

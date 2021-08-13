@@ -1,27 +1,15 @@
-clamav-image-scan:
+create-tar:
   stage: post-build
 
-  dependencies:
+  needs:
     - load-scripts
     - build
   variables:
-    CLAMAV_SCANS: ${ARTIFACT_STORAGE}/post-build/clamav-image-scan
-  before_script:
-    - mkdir -p "${CLAMAV_SCANS}"
+    IMAGE_FILE: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
   script:
-    - '"${PIPELINE_REPO_DIR}/stages/post-build/post_build.sh"'
-  # - freshclam
-  # - clamscan -irv vol > output.txt
-  # - cat output.txt
-  # - INFECTED_CONTAINER_FILES=$(grep -e "^Infected files:" ${CI_PROJECT_DIR}/pipeline-artifacts/report-clamav-container.txt | cut -d ' ' -f3)
-  # - |
-  #   if [ ${INFECTED_CONTAINER_FILES} -gt 0 ]
-  #   then
-  #     echo Malware detected in container! Number of findings: ${INFECTED_CONTAINER_FILES}
-  #     exit 1
-  #   fi
+    - '"${PIPELINE_REPO_DIR}/stages/post-build/create-tar.sh"'
   artifacts:
     when: always
     paths:
-      - ${CLAMAV_SCANS}/
+      - ${IMAGE_FILE}.tar
     expire_in: 1 week
