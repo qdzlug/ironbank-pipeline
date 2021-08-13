@@ -117,10 +117,7 @@ def main():
             "Image_Path": os.environ["image_path"],
             "TwistLock_Results": os.environ["twistlock_results"],
             "Image_Manifest": os.environ["image_manifest"],
-            "PGP_Signature": os.environ["pgp_signature"],
-            "Signature_Name": os.environ["signature_name"],
             "Public_Key": os.environ["public_key"],
-            "Image_URL": os.environ["image_url"],
             "Anchore_Security_Results": os.environ["anchore_security_results"],
             "Image_Sha": os.environ["image_sha"],
             "OpenSCAP_Compliance_Results": os.environ.get("openscap_compliance_results")
