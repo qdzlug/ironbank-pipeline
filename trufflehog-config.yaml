@@ -1,8 +1,4 @@
 skip_strings:
   "stages/preflight/README.md":
     - airflow_conf_set
-skip_paths:
-  - stages/csv-output/test_data/
-  - stages/csv-output/ci-artifacts/
-  - stages/csv-output/v1.18.8.json
-  - stages/check-cves/test_data/
+skip_paths: []
