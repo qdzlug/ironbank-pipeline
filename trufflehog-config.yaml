@@ -1,0 +1,4 @@
+skip_strings:
+  "stages/preflight/README.md":
+    - airflow_conf_set
+skip_paths: []
