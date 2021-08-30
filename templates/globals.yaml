@@ -81,7 +81,7 @@ variables:
   ARTIFACT_STORAGE: "ci-artifacts"
   PIPELINE_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank_pipeline"
   GIT_SSL_NO_VERIFY: "1"
-  # TARGET_BRANCH: master
+  TARGET_BRANCH: master
   # WL_TARGET_BRANCH: master
 
   # Controls if ironbank-staging is the source registry for base images
