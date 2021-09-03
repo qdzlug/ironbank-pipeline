@@ -87,7 +87,7 @@ class Twist:
 
         response = r.json()
 
-        if response:
+        if not response:
             return None
 
         # Raise an error if the returned report has a value for the 'err' key
