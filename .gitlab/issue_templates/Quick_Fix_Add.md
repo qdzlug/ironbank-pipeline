@@ -10,14 +10,24 @@
 
 ## Acceptance Criteria
 
-<!--- What is the acceptance criteria for this quick fix/add? -->
+<!--- What is the acceptance criteria for this quick fix/add?
+    e.g.
+    - [ ] Log for lint job now prints VAT API version with INFO log level
+    or
+    - [ ] S3 upload no longer includes docker archive
+-->
 
 -
 -
 
-### Unit and Integration Tests
+## Definition of Done
+
+<!-- Add checkboxes for  -->
 
 - [ ] Write or update any unit or integration tests
+- [ ] Project pipeline runs successfully
+- [ ] Code review completed
+- [ ] **Add any applicable checkboxes for testing e.g. _Ran pipeline in staging env_ or _pipeline-test-project pipeline run_**
 
 /label ~"Project::Ironbank Pipeline"
 /label ~"Quick Fix/Add"
