@@ -22,7 +22,7 @@
 
 ## Definition of Done
 
-<!-- Add checkboxes for  -->
+<!-- Add/remove tasks to demonstrate completeness of issue -->
 
 - [ ] Write or update any unit or integration tests
 - [ ] Project pipeline runs successfully
