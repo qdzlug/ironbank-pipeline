@@ -25,7 +25,6 @@ def main():
     else:
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
-
     hardening_manifest_yaml_path = Path("hardening_manifest.yaml")
     if hardening_manifest_yaml_path.exists():
         # Use the project description.yaml file path if one exists
@@ -61,7 +60,9 @@ def main():
             logging.error(parent_conn.recv())
             sys.exit(1)
         else:
-            logging.error("JSON is validated")
+            # verify no labels have a value of fixme (case insensitive)
+            reject_invalid_labels(content)
+            logging.info("Hardening manifest is validated")
     else:
         logging.error(
             "hardening_manifest.yaml does not exist, please add a hardening_manifest.yaml file to your project"
@@ -74,12 +75,14 @@ def main():
 def reject_invalid_labels(content):
     logging.info("Checking label values")
     fixme_found = False
-    for key,value in content["labels"].items():
+    for key, value in content["labels"].items():
         if "fixme" in value.lower():
             logging.error(f"FIXME value found for {key}")
             fixme_found = True
     if fixme_found:
-        logging.error("Please update these labels to appropriately describe your container before rerunning this pipeline")
+        logging.error(
+            "Please update these labels to appropriately describe your container before rerunning this pipeline"
+        )
         sys.exit(1)
 
 
