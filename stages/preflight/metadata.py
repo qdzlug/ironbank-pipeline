@@ -71,6 +71,18 @@ def main():
     process_yaml(content)
 
 
+def reject_invalid_labels(content):
+    logging.info("Checking label values")
+    fixme_found = False
+    for key,value in content["labels"].items():
+        if "fixme" in value.lower():
+            logging.error(f"FIXME value found for {key}")
+            fixme_found = True
+    if fixme_found:
+        logging.error("Please update these labels to appropriately describe your container before rerunning this pipeline")
+        sys.exit(1)
+
+
 def validate_yaml(content, conn):
     logging.info("Validating schema")
     schema_path = Path(__file__).parent / "../../schema/hardening_manifest.schema.json"
