@@ -31,20 +31,25 @@ def check_type_label(hm_dict: dict) -> str:
     ):
         return hm_dict["labels"]["mil.dso.ironbank.image.type"]
 
+
 def check_labels(hm_dict: dict) -> str:
+
     bad_keys = []
     for k, v in hm_dict["labels"].items():
         if "fixme" in v.lower():
             bad_keys.append(k)
     return bad_keys
 
+
 def check_maintainers(hm_dict: dict) -> str:
+
     bad_keys = []
     for d in hm_dict["maintainers"]:
         for k, v in d.items():
             if type(v) != bool and "fixme" in v.lower():
                 bad_keys.append(f"{k}: {v}")
     return bad_keys
+
 
 def main():
 
@@ -90,7 +95,7 @@ def main():
                         "project_id": project.id,
                         "bad_type_labels": checked_type_labels,
                         "bad_labels": checked_labels,
-                        "bad_maintainers": checked_maintainers
+                        "bad_maintainers": checked_maintainers,
                     }
                 )
         except yaml.YAMLError as e:
