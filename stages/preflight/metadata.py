@@ -61,7 +61,15 @@ def main():
             sys.exit(1)
         else:
             # verify no labels have a value of fixme (case insensitive)
-            reject_invalid_labels(content)
+            if os.environ["CI_COMMIT_BRANCH"] in ["master", "development"]:
+                logging.debug("Checking for FIXME values in labels/maintainers")
+                invalid_labels = reject_invalid_labels(content)
+                invalid_maintainers = reject_invalid_maintainers(content)
+                if invalid_labels or invalid_maintainers:
+                    logging.error(
+                        "Please update these labels to appropriately describe your container before rerunning this pipeline"
+                    )
+                    sys.exit(1)
             logging.info("Hardening manifest is validated")
     else:
         logging.error(
@@ -72,18 +80,35 @@ def main():
     process_yaml(content)
 
 
-def reject_invalid_labels(content):
+def check_for_fixme(subcontent: dict) -> list:
+    """
+    Returns list of keys in dictionary whose value contains FIXME (case insensitve)
+    """
+    return [k for (k, v) in subcontent.items() if "fixme" in v.lower()]
+
+
+def reject_invalid_labels(content: dict) -> list[str]:
+    """
+    Returns list of keys in hardening manifest labels whose value contains FIXME (case insensitve)
+    """
     logging.info("Checking label values")
-    fixme_found = False
-    for key, value in content["labels"].items():
-        if "fixme" in value.lower():
-            logging.error(f"FIXME value found for {key}")
-            fixme_found = True
-    if fixme_found:
-        logging.error(
-            "Please update these labels to appropriately describe your container before rerunning this pipeline"
-        )
-        sys.exit(1)
+    invalid_labels = check_for_fixme(content["labels"])
+    for k in invalid_labels:
+        logging.error("FIXME found in {k}")
+    return invalid_labels
+
+
+def reject_invalid_maintainers(content: dict) -> list[str]:
+    """
+    Returns list of keys in hardening manifest maintainers whose value contains FIXME (case insensitve)
+    """
+    logging.info("Checking maintainer values")
+    invalid_maintainers = []
+    for maintainer in content["maintainers"]:
+        invalid_maintainers += check_for_fixme(maintainer)
+    for k in invalid_maintainers:
+        logging.error("FIXME found in {k}")
+    return invalid_maintainers
 
 
 def validate_yaml(content, conn):
