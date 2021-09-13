@@ -107,7 +107,7 @@ def reject_invalid_maintainers(content: dict) -> list[str]:
     for maintainer in content["maintainers"]:
         invalid_maintainers += check_for_fixme(maintainer)
     for k in invalid_maintainers:
-        logging.error("FIXME found in {k}")
+        logging.error(f"FIXME found in {k}")
     return invalid_maintainers
 
 
