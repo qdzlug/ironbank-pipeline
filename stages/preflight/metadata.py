@@ -94,7 +94,7 @@ def reject_invalid_labels(content: dict) -> list[str]:
     logging.info("Checking label values")
     invalid_labels = check_for_fixme(content["labels"])
     for k in invalid_labels:
-        logging.error("FIXME found in {k}")
+        logging.error(f"FIXME found in {k}")
     return invalid_labels
 
 
