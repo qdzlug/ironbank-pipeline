@@ -112,10 +112,7 @@
       "propertyNames": {
         "$ref": "#/definitions/environment-variable-name"
       },
-      "required": [
-        "BASE_IMAGE",
-        "BASE_TAG"
-      ]
+      "required": ["BASE_IMAGE", "BASE_TAG"]
     },
     "labels": {
       "description": "Labels added to Iron Bank containers",
@@ -145,16 +142,7 @@
           "$ref": "#/definitions/printable-characters-without-newlines"
         },
         "mil.dso.ironbank.image.type": {
-          "items": {
-            "type": "object",
-            "properties": {
-              "type": "string",
-              "enum": [
-                "opensource",
-                "commercial"
-              ]
-            }
-          }
+          "enum": ["opensource", "commercial"]
         },
         "mil.dso.ironbank.product.name": {
           "$ref": "#/definitions/printable-characters-without-newlines"
@@ -192,10 +180,7 @@
                 "properties": {
                   "type": {
                     "type": "string",
-                    "enum": [
-                      "sha256",
-                      "sha512"
-                    ]
+                    "enum": ["sha256", "sha512"]
                   },
                   "value": {
                     "type": "string",
@@ -203,10 +188,7 @@
                   }
                 },
                 "additionalProperties": false,
-                "required": [
-                  "type",
-                  "value"
-                ]
+                "required": ["type", "value"]
               },
               "auth": {
                 "type": "object",
@@ -220,16 +202,11 @@
                   }
                 },
                 "additionalProperties": false,
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             },
             "additionalProperties": false,
-            "required": [
-              "url",
-              "filename"
-            ]
+            "required": ["url", "filename"]
           },
           {
             "type": "object",
@@ -246,10 +223,7 @@
                 "properties": {
                   "type": {
                     "type": "string",
-                    "enum": [
-                      "sha256",
-                      "sha512"
-                    ]
+                    "enum": ["sha256", "sha512"]
                   },
                   "value": {
                     "type": "string",
@@ -257,10 +231,7 @@
                   }
                 },
                 "additionalProperties": false,
-                "required": [
-                  "type",
-                  "value"
-                ]
+                "required": ["type", "value"]
               },
               "auth": {
                 "type": "object",
@@ -274,23 +245,15 @@
                   "type": {
                     "$comment": "aws is left for backwards compatibility. Please use s3 moving forward",
                     "type": "string",
-                    "enum": [
-                      "aws",
-                      "s3"
-                    ]
+                    "enum": ["aws", "s3"]
                   }
                 },
                 "additionalProperties": false,
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             },
             "additionalProperties": false,
-            "required": [
-              "url",
-              "filename"
-            ]
+            "required": ["url", "filename"]
           },
           {
             "type": "object",
@@ -313,16 +276,11 @@
                   }
                 },
                 "additionalProperties": false,
-                "required": [
-                  "id"
-                ]
+                "required": ["id"]
               }
             },
             "additionalProperties": false,
-            "required": [
-              "url",
-              "tag"
-            ]
+            "required": ["url", "tag"]
           },
           {
             "type": "object",
@@ -335,9 +293,7 @@
               }
             },
             "additionalProperties": false,
-            "required": [
-              "url"
-            ]
+            "required": ["url"]
           }
         ]
       },
@@ -364,22 +320,12 @@
           }
         },
         "additionalProperties": false,
-        "required": [
-          "name",
-          "username"
-        ]
+        "required": ["name", "username"]
       },
       "minItems": 1,
       "uniqueItems": true
     }
   },
-  "required": [
-    "apiVersion",
-    "name",
-    "tags",
-    "args",
-    "labels",
-    "maintainers"
-  ],
+  "required": ["apiVersion", "name", "tags", "args", "labels", "maintainers"],
   "additionalProperties": false
 }
