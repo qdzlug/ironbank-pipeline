@@ -142,7 +142,7 @@
           "$ref": "#/definitions/printable-characters-without-newlines"
         },
         "mil.dso.ironbank.image.type": {
-          "enum": ["opensource", "commercial"]
+          "enum": ["opensource", "commercial", "Opensource", "Commercial"]
         },
         "mil.dso.ironbank.product.name": {
           "$ref": "#/definitions/printable-characters-without-newlines"
