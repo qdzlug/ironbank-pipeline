@@ -6,7 +6,7 @@ import pytest
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from metadata import check_for_fixme
+from metadata import check_for_fixme # noqa E402
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
 
