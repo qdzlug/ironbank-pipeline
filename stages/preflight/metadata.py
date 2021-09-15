@@ -87,7 +87,7 @@ def check_for_fixme(subcontent: dict) -> list:
     return [k for (k, v) in subcontent.items() if "fixme" in v.lower()]
 
 
-def reject_invalid_labels(content: dict) -> list[str]:
+def reject_invalid_labels(content: dict) -> list:
     """
     Returns list of keys in hardening manifest labels whose value contains FIXME (case insensitve)
     """
@@ -98,7 +98,7 @@ def reject_invalid_labels(content: dict) -> list[str]:
     return invalid_labels
 
 
-def reject_invalid_maintainers(content: dict) -> list[str]:
+def reject_invalid_maintainers(content: dict) -> list:
     """
     Returns list of keys in hardening manifest maintainers whose value contains FIXME (case insensitve)
     """
