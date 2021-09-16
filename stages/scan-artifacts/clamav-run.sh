@@ -4,7 +4,7 @@ shopt -s nullglob # Allow import-artifacts/*/* to match nothing
 
 # Install clamav definitions from av-updater using freshclam
 DEFPATH=/clamav/definitions
-curl -L --header "DEPLOY-TOKEN: ${IB_TOOLS_REPO_READ}" "https://repo1.dso.mil/ironbank-tools/av-updater/-/jobs/artifacts/master/raw/definitions.tar.gz?job=build" -o definitions.tar.gz
+curl -L --header "DEPLOY-TOKEN: ${IB_TOOLS_REPO_READ}" "${CI_SERVER_URL}/ironbank-tools/av-updater/-/jobs/artifacts/master/raw/definitions.tar.gz?job=build" -o definitions.tar.gz
 tar -C /clamav/definitions/ -xzvf definitions.tar.gz
 
 # Verify existence of expected files
