@@ -84,7 +84,11 @@ def check_for_fixme(subcontent: dict) -> list:
     """
     Returns list of keys in dictionary whose value contains FIXME (case insensitve)
     """
-    return [k for (k, v) in subcontent.items() if "fixme" in v.lower()]
+    return [
+        k
+        for (k, v) in subcontent.items()
+        if isinstance(v, (str)) and "fixme" in v.lower()
+    ]
 
 
 def reject_invalid_labels(content: dict) -> list:
