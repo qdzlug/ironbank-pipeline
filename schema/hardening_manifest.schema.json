@@ -322,12 +322,11 @@
                 },
                 "additionalProperties": false,
                 "required": ["type", "value"]
-              },
+              }
             },
             "additionalProperties": false,
             "required": ["url", "filename"]
-          },
-
+          }
         ]
       },
       "uniqueItems": true
