@@ -326,7 +326,7 @@
               }
             },
             "additionalProperties": false,
-            "required": ["url", "filename"]
+            "required": ["urls", "filename"]
           }
         ]
       },
