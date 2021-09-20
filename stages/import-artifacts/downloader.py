@@ -226,7 +226,7 @@ def resource_type(url):
 
 
 def http_download(
-    download_item,
+    urls,
     resource_name,
     validation_type,
     checksum_value,
@@ -234,7 +234,6 @@ def http_download(
     username=None,
     password=None,
 ):
-    logging.info(f"===== ARTIFACT: {download_item}")
     # Validate filename doesn't do anything nefarious
     match = re.search(r"^[A-Za-z0-9][^/\x00]*", resource_name)
     if match is None:
@@ -247,12 +246,29 @@ def http_download(
     if username and password:
         auth = HTTPBasicAuth(username, password)
 
-    logging.info(f"Downloading from {download_item}")
-    with requests.get(download_item, allow_redirects=True, stream=True, auth=auth) as r:
-        r.raw.decode_content = True
-        r.raise_for_status()
-        with open(artifacts_path + "/external-resources/" + resource_name, "wb") as f:
-            shutil.copyfileobj(r.raw, f, length=16 * 1024 * 1024)
+    for url in urls:
+        try:
+            with requests.get(url, allow_redirects=True, stream=True, auth=auth) as r:
+                r.raw.decode_content = True
+                r.raise_for_status()
+                with open(
+                    artifacts_path + "/external-resources/" + resource_name, "wb"
+                ) as f:
+                    shutil.copyfileobj(r.raw, f, length=16 * 1024 * 1024)
+            if r.status_code == 200:
+                logging.info(f"===== ARTIFACT: {url}")
+                break
+        except HTTPError as e:
+            logging.debug(
+                f"Error downloading {url}, Status code: {e.response.status_code}"
+            )
+
+    try:
+        assert pathlib.Path(
+            artifacts_path + "/external-resources/" + resource_name
+        ).is_file()
+    except AssertionError:
+        raise InvalidURLList("No valid urls provided for {resource_name}")
 
     # Calculate SHA256 checksum of downloaded file
     logging.info("Checking file verification type")
