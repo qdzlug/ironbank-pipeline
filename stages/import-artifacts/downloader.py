@@ -57,7 +57,8 @@ def download_all_resources(downloads, artifacts_path):
     for item in downloads["resources"]:
         if "urls" in item.keys():
             download_type = resource_type(item["urls"][0])
-            resource_url = _multi_download(item["urls"])
+            resource_filename = item["filename"]
+            resource_url = _multi_download(item["urls"], resource_filename)
         else:
             download_type = resource_type(item["url"])
             resource_url = item["url"]
@@ -261,7 +262,7 @@ def http_download(
         sys.exit(1)
 
 
-def _multi_download(url_list):
+def _multi_download(url_list, resource_filename):
     for url in url_list:
         response = requests.head(url, timeout=3, allow_redirects=True)
         logging.debug(f"{url} returned {response.status_code}")
@@ -269,7 +270,7 @@ def _multi_download(url_list):
             # Break out of function and return valid url after the first valid url is discovered
             return url
     # default of the function if the contributor doesn't provide any valid URLs
-    raise InvalidURLList("No valid URL provided.")
+    raise InvalidURLList(f"No valid URL provided for resource: {resource_filename}")
 
 
 def s3_download(
