@@ -15,6 +15,7 @@ from base64 import b64decode
 from requests.auth import HTTPBasicAuth
 from botocore.exceptions import ClientError
 
+
 class InvalidURLList(Exception):
     pass
 
