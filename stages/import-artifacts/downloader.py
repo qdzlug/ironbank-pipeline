@@ -262,7 +262,7 @@ def http_download(
 
 def _multi_download(url_list):
     for url in url_list:
-        response = requests.head(url, timeout=3, allow_redirects=False)
+        response = requests.head(url, timeout=3, allow_redirects=True)
         logging.debug(f"{url} returned {response.status_code}")
         if response.status_code == 200:
             # Break out of function and return valid url after the first valid url is discovered
