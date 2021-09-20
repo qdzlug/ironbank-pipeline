@@ -15,6 +15,9 @@ from base64 import b64decode
 from requests.auth import HTTPBasicAuth
 from botocore.exceptions import ClientError
 
+class InvalidURLList(Exception):
+    pass
+
 
 def main():
     # Get logging level, set manually when running pipeline
@@ -51,7 +54,12 @@ def main():
 
 def download_all_resources(downloads, artifacts_path):
     for item in downloads["resources"]:
-        download_type = resource_type(item["url"])
+        if "urls" in item.keys():
+            download_type = resource_type(item["urls"][0])
+            resource_url = _multi_download(item["urls"])
+        else:
+            download_type = resource_type(item["url"])
+            resource_url = item["url"]
         if download_type == "http":
             if "auth" in item:
                 if item["auth"]["type"] == "basic":
@@ -63,7 +71,7 @@ def download_all_resources(downloads, artifacts_path):
                         os.environ["CREDENTIAL_USERNAME_" + credential_id]
                     )
                     http_download(
-                        item["url"],
+                        resource_url,
                         item["filename"],
                         item["validation"]["type"],
                         item["validation"]["value"],
@@ -78,7 +86,7 @@ def download_all_resources(downloads, artifacts_path):
                     sys.exit(1)
             else:
                 http_download(
-                    item["url"],
+                    resource_url,
                     item["filename"],
                     item["validation"]["type"],
                     item["validation"]["value"],
@@ -95,7 +103,7 @@ def download_all_resources(downloads, artifacts_path):
                         os.environ["CREDENTIAL_USERNAME_" + credential_id]
                     ).decode("utf-8")
                     docker_download(
-                        item["url"],
+                        resource_url,
                         item["tag"],
                         item["tag"],
                         username,
@@ -107,7 +115,7 @@ def download_all_resources(downloads, artifacts_path):
                     )
                     sys.exit(1)
             else:
-                docker_download(item["url"], item["tag"], item["tag"])
+                docker_download(resource_url, item["tag"], item["tag"])
         if download_type == "s3":
             if "auth" in item:
                 credential_id = item["auth"]["id"].replace("-", "_")
@@ -119,7 +127,7 @@ def download_all_resources(downloads, artifacts_path):
                 ).decode("utf-8")
                 region = item["auth"]["region"]
                 s3_download(
-                    item["url"],
+                    resource_url,
                     item["filename"],
                     item["validation"]["type"],
                     item["validation"]["value"],
@@ -130,7 +138,7 @@ def download_all_resources(downloads, artifacts_path):
                 )
             else:
                 s3_download(
-                    item["url"],
+                    resource_url,
                     item["filename"],
                     item["validation"]["type"],
                     item["validation"]["value"],
@@ -141,7 +149,7 @@ def download_all_resources(downloads, artifacts_path):
             username = b64decode(os.environ["GITHUB_ROBOT_USER"]).decode("utf-8")
             password = b64decode(os.environ["GITHUB_ROBOT_TOKEN"]).decode("utf-8")
             github_download(
-                item["url"],
+                resource_url,
                 item["tag"],
                 item["tag"],
                 username,
@@ -250,6 +258,17 @@ def http_download(
         logging.error("Checksum failed")
         logging.error("File deleted")
         sys.exit(1)
+
+
+def _multi_download(url_list):
+    for url in url_list:
+        response = requests.head(url, timeout=3, allow_redirects=True)
+        logging.debug(f"{url} returned {response.status_code}")
+        if response.status_code == 200:
+            # Break out of function and return valid url after the first valid url is discovered
+            return url
+    # default of the function if the contributor doesn't provide any valid URLs
+    raise InvalidURLList("No valid URL provided.")
 
 
 def s3_download(
