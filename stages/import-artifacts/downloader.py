@@ -3,6 +3,7 @@
 import re
 import os
 import sys
+from requests.models import HTTPError
 import yaml
 import boto3
 import shutil
@@ -89,15 +90,21 @@ def download_all_resources(downloads, artifacts_path):
                     )
                     sys.exit(1)
             elif multi_url:
-                # succesful_url = false
+                failed_urls = 0
                 for url in item["urls"]:
-                    http_download(
-                    url,
-                    item["filename"],
-                    item["validation"]["type"],
-                    item["validation"]["value"],
-                    artifacts_path,
-                    )
+                    try:
+                        http_download(
+                        url,
+                        item["filename"],
+                        item["validation"]["type"],
+                        item["validation"]["value"],
+                        artifacts_path,
+                        )
+                    except HTTPError:
+                        failed_urls += 1
+                        pass
+                if failed_urls == len(item["urls"]):
+                    raise InvalidURLList(f"No valid URL provided for resource: {resource_filename}")
             else:
                 http_download(
                     resource_url,
