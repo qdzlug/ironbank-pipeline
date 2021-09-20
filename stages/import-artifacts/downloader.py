@@ -93,17 +93,19 @@ def download_all_resources(downloads, artifacts_path):
                 for url in item["urls"]:
                     try:
                         http_download(
-                        url,
-                        item["filename"],
-                        item["validation"]["type"],
-                        item["validation"]["value"],
-                        artifacts_path,
+                            url,
+                            item["filename"],
+                            item["validation"]["type"],
+                            item["validation"]["value"],
+                            artifacts_path,
                         )
                     except HTTPError:
                         failed_urls += 1
                         pass
                 if failed_urls == len(item["urls"]):
-                    raise InvalidURLList(f"No valid URL provided for resource: {resource_filename}")
+                    raise InvalidURLList(
+                        f"No valid URL provided for resource: {resource_filename}"
+                    )
             else:
                 http_download(
                     resource_url,
