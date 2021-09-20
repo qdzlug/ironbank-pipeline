@@ -295,7 +295,6 @@
             "additionalProperties": false,
             "required": ["url"]
           },
-
           {
             "type": "object",
             "properties": {
