@@ -55,10 +55,12 @@ def main():
 
 def download_all_resources(downloads, artifacts_path):
     for item in downloads["resources"]:
+        multi_url = False
         if "urls" in item.keys():
             download_type = resource_type(item["urls"][0])
             resource_filename = item["filename"]
-            resource_url = _multi_download(item["urls"], resource_filename)
+            multi_url = True
+            # resource_url = _multi_download(item["urls"], resource_filename)
         else:
             download_type = resource_type(item["url"])
             resource_url = item["url"]
@@ -86,6 +88,16 @@ def download_all_resources(downloads, artifacts_path):
                         "Non Basic auth type provided for HTTP resource, failing"
                     )
                     sys.exit(1)
+            elif multi_url:
+                # succesful_url = false
+                for url in item["urls"]:
+                    http_download(
+                    url,
+                    item["filename"],
+                    item["validation"]["type"],
+                    item["validation"]["value"],
+                    artifacts_path,
+                    )
             else:
                 http_download(
                     resource_url,
