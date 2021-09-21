@@ -311,7 +311,6 @@ def get_oscap_full(oscap_file, justifications):
         "xhtml": "http://www.w3.org/1999/xhtml",  # not actually needed
         "dc": "http://purl.org/dc/elements/1.1/",
     }
-    patches_up_to_date_dupe = False
     cces = []
     for rule_result in root.findall("xccdf:TestResult/xccdf:rule-result", ns):
         # Current CSV values
@@ -325,14 +324,6 @@ def get_oscap_full(oscap_file, justifications):
             logging.debug(f"SKIPPING: 'notselected' rule {rule_id} ")
             continue
 
-        if rule_id == "xccdf_org.ssgproject.content_rule_security_patches_up_to_date":
-            if patches_up_to_date_dupe:
-                logging.debug(
-                    f"SKIPPING: rule {rule_id} - OVAL check repeats and this finding is checked elsewhere"
-                )
-                continue
-            else:
-                patches_up_to_date_dupe = True
         # Get the <rule> that corresponds to the <rule-result>
         # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
         rule = root.find(f".//xccdf:Rule[@id='{rule_id}']", ns)
