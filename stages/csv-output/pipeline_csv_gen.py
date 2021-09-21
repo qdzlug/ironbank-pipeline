@@ -398,12 +398,12 @@ def get_oscap_full(oscap_file, justifications):
             "Justification": cve_justification,
         }
         cces.append(ret)
-    try:
-        assert len(set(cce["identifiers"] for cce in cces)) == len(cces)
-    except Exception as duplicate_idents:
-        for cce in cces:
-            print(cce["ruleid"], cce["identifiers"])
-        raise duplicate_idents
+    # try:
+    #     assert len(set(cce["identifiers"] for cce in cces)) == len(cces)
+    # except Exception as duplicate_idents:
+    #     for cce in cces:
+    #         print(cce["ruleid"], cce["identifiers"])
+    #     raise duplicate_idents
 
     return cces
 
