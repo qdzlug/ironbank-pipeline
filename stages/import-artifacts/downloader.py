@@ -57,6 +57,7 @@ def main():
 def download_all_resources(downloads, artifacts_path):
     for item in downloads["resources"]:
         if "urls" in item.keys():
+            # All URLs must be of the same type when using "urls"
             download_type = resource_type(item["urls"][0])
         else:
             download_type = resource_type(item["url"])
