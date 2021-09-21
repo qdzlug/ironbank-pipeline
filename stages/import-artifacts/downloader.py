@@ -62,9 +62,9 @@ def download_all_resources(downloads, artifacts_path):
         else:
             download_type = resource_type(item["url"])
         if download_type == "http":
-            urls = []
-            if "url" in item.keys():
-                urls.append(item["url"])
+            urls = None
+            if "url" in item:
+                urls = [item["url"]]
             else:
                 urls = item["urls"]
             if "auth" in item:
