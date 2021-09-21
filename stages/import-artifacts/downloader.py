@@ -234,6 +234,7 @@ def http_download(
 
     for url in urls:
         try:
+            logging.info(f"Downloading from {url}")
             with requests.get(url, allow_redirects=True, stream=True, auth=auth) as r:
                 r.raw.decode_content = True
                 r.raise_for_status()
