@@ -3,6 +3,7 @@
 import re
 import os
 import sys
+from requests.models import HTTPError
 import yaml
 import boto3
 import shutil
@@ -14,6 +15,10 @@ import subprocess
 from base64 import b64decode
 from requests.auth import HTTPBasicAuth
 from botocore.exceptions import ClientError
+
+
+class InvalidURLList(Exception):
+    pass
 
 
 def main():
@@ -51,8 +56,17 @@ def main():
 
 def download_all_resources(downloads, artifacts_path):
     for item in downloads["resources"]:
-        download_type = resource_type(item["url"])
+        if "urls" in item:
+            # All URLs must be of the same type when using "urls"
+            download_type = resource_type(item["urls"][0])
+        else:
+            download_type = resource_type(item["url"])
         if download_type == "http":
+            urls = None
+            if "url" in item:
+                urls = [item["url"]]
+            else:
+                urls = item["urls"]
             if "auth" in item:
                 if item["auth"]["type"] == "basic":
                     credential_id = item["auth"]["id"].replace("-", "_")
@@ -63,7 +77,7 @@ def download_all_resources(downloads, artifacts_path):
                         os.environ["CREDENTIAL_USERNAME_" + credential_id]
                     )
                     http_download(
-                        item["url"],
+                        urls,
                         item["filename"],
                         item["validation"]["type"],
                         item["validation"]["value"],
@@ -78,7 +92,7 @@ def download_all_resources(downloads, artifacts_path):
                     sys.exit(1)
             else:
                 http_download(
-                    item["url"],
+                    urls,
                     item["filename"],
                     item["validation"]["type"],
                     item["validation"]["value"],
@@ -198,7 +212,7 @@ def resource_type(url):
 
 
 def http_download(
-    download_item,
+    urls,
     resource_name,
     validation_type,
     checksum_value,
@@ -206,7 +220,7 @@ def http_download(
     username=None,
     password=None,
 ):
-    logging.info(f"===== ARTIFACT: {download_item}")
+    successful_download = False
     # Validate filename doesn't do anything nefarious
     match = re.search(r"^[A-Za-z0-9][^/\x00]*", resource_name)
     if match is None:
@@ -219,12 +233,29 @@ def http_download(
     if username and password:
         auth = HTTPBasicAuth(username, password)
 
-    logging.info(f"Downloading from {download_item}")
-    with requests.get(download_item, allow_redirects=True, stream=True, auth=auth) as r:
-        r.raw.decode_content = True
-        r.raise_for_status()
-        with open(artifacts_path + "/external-resources/" + resource_name, "wb") as f:
-            shutil.copyfileobj(r.raw, f, length=16 * 1024 * 1024)
+    for url in urls:
+        try:
+            logging.info(f"Downloading from {url}")
+            with requests.get(url, allow_redirects=True, stream=True, auth=auth) as r:
+                r.raw.decode_content = True
+                r.raise_for_status()
+                with open(
+                    artifacts_path + "/external-resources/" + resource_name, "wb"
+                ) as f:
+                    shutil.copyfileobj(r.raw, f, length=16 * 1024 * 1024)
+            if r.status_code == 200:
+                logging.info(f"===== ARTIFACT: {url}")
+                successful_download = True
+                break
+        except HTTPError as e:
+            logging.debug(
+                f"Error downloading {url}, Status code: {e.response.status_code}"
+            )
+
+    try:
+        assert successful_download
+    except AssertionError:
+        raise InvalidURLList(f"No valid urls provided for {resource_name}")
 
     # Calculate SHA256 checksum of downloaded file
     logging.info("Checking file verification type")
