@@ -255,7 +255,7 @@ def http_download(
     try:
         assert successful_download
     except AssertionError:
-        raise InvalidURLList("No valid urls provided for {resource_name}")
+        raise InvalidURLList(f"No valid urls provided for {resource_name}")
 
     # Calculate SHA256 checksum of downloaded file
     logging.info("Checking file verification type")
