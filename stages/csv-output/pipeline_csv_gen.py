@@ -303,6 +303,18 @@ def generate_oscap_report(oscap, justifications, csv_dir):
     return fail_count, nc_count, scanned
 
 
+def _format_reference(ref, ns):
+    ref_title = ref.find("dc:title", ns)
+    ref_identifier = ref.find("dc:identifier", ns)
+    href = ref.attrib.get("href")
+    if ref_title is not None:
+        assert ref_identifier is not None
+        return f"{ref_title.text}: {ref_identifier.text}"
+    elif href:
+        return f"{href} {ref.text}"
+    return ref.text
+
+
 # Get full OSCAP report with justifications for csv export
 def get_oscap_full(oscap_file, justifications):
     root = etree.parse(oscap_file)
