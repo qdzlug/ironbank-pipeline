@@ -220,6 +220,7 @@ def http_download(
     username=None,
     password=None,
 ):
+    successful_download = False
     # Validate filename doesn't do anything nefarious
     match = re.search(r"^[A-Za-z0-9][^/\x00]*", resource_name)
     if match is None:
@@ -244,6 +245,7 @@ def http_download(
                     shutil.copyfileobj(r.raw, f, length=16 * 1024 * 1024)
             if r.status_code == 200:
                 logging.info(f"===== ARTIFACT: {url}")
+                successful_download = True
                 break
         except HTTPError as e:
             logging.debug(
@@ -251,9 +253,7 @@ def http_download(
             )
 
     try:
-        assert pathlib.Path(
-            artifacts_path + "/external-resources/" + resource_name
-        ).is_file()
+        assert successful_download
     except AssertionError:
         raise InvalidURLList("No valid urls provided for {resource_name}")
 
