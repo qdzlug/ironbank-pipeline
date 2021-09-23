@@ -26,8 +26,10 @@
 
 - [ ] Write or update any unit or integration tests
 - [ ] Project pipeline runs successfully
-- [ ] Code review completed
 - [ ] **Add any applicable checkboxes for testing e.g. _Ran pipeline in staging env_ or _pipeline-test-project pipeline run_**
+- [ ] Solution is captured as code and/or documentation and merge requests have been submitted
+- [ ] Code review completed and merge request approved/merged
+- [ ] All Acceptance Criteria have been completed
 
 /label ~"Project::Ironbank Pipeline"
 /label ~"Quick Fix/Add"
