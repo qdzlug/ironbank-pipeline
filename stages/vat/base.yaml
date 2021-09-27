@@ -27,4 +27,5 @@ vat:
     when: always
     paths:
       - "${ARTIFACT_STORAGE}/vat_request.json"
+      - "${ARTIFACT_STORAGE}/vat_response.json"
     expire_in: 1 week
