@@ -141,47 +141,47 @@ def generate_oscap_jobs(oscap_path):
         rule_id = rule_result.attrib["idref"]
         severity = rule_result.attrib["severity"]
         result = rule_result.find("xccdf:result", n_set).text
-        logging.debug("Rule ID: %s", rule_id)
-        if result == "notselected":
-            logging.debug("SKIPPING: 'notselected' rule %s", rule_id)
-            continue
+        logging.debug(f"Rule ID: {rule_id}")
+        if result in ["notchecked", "fail", "error"]:
+            if (
+                rule_id
+                == "xccdf_org.ssgproject.content_rule_security_patches_up_to_date"
+            ):
+                if patches_up_to_date_dupe:
+                    logging.debug(
+                        f"SKIPPING: rule {rule_id} - OVAL check repeats and this finding is checked elsewhere",
+                    )
+                    continue
+                patches_up_to_date_dupe = True
 
-        if rule_id == "xccdf_org.ssgproject.content_rule_security_patches_up_to_date":
-            if patches_up_to_date_dupe:
-                logging.debug(
-                    "SKIPPING: rule %s - OVAL check repeats and this finding is checked elsewhere",
-                    rule_id,
-                )
-                continue
-            patches_up_to_date_dupe = True
+            # Get the <rule> that corresponds to the <rule-result>
+            # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
+            rule = root.find(f".//xccdf:Rule[@id='{rule_id}']", n_set)
+            title = rule.find("xccdf:title", n_set).text
 
-        # Get the <rule> that corresponds to the <rule-result>
-        # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
-        rule = root.find(f".//xccdf:Rule[@id='{rule_id}']", n_set)
-        title = rule.find("xccdf:title", n_set).text
+            # This is the identifier that VAT will use. It will never be unset.
+            # Values will be of the format UBTU-18-010100 (UBI) or CCI-001234 (Ubuntu)
+            # Ubuntu/DISA:
+            identifiers = [ver.text for ver in rule.findall("xccdf:version", n_set)]
+            if not identifiers:
+                # UBI/ComplianceAsCode:
+                identifiers = [
+                    ident.text for ident in rule.findall("xccdf:ident", n_set)
+                ]
 
-        # This is the identifier that VAT will use. It will never be unset.
-        # Values will be of the format UBTU-18-010100 (UBI) or CCI-001234 (Ubuntu)
-        # Ubuntu/DISA:
-        identifiers = [ver.text for ver in rule.findall("xccdf:version", n_set)]
-        if not identifiers:
-            # UBI/ComplianceAsCode:
-            identifiers = [ident.text for ident in rule.findall("xccdf:ident", n_set)]
+            # We never expect to get more than one identifier
+            assert len(identifiers) == 1
+            logging.debug(f"Identifiers {identifiers}")
+            identifier = identifiers[0]
+            # Revisit this if we ever switch UBI from ComplianceAsCode to DISA content
 
-        # We never expect to get more than one identifier
-        assert len(identifiers) == 1
-        logging.debug("Identifiers %s", identifiers)
-        identifier = identifiers[0]
-        # Revisit this if we ever switch UBI from ComplianceAsCode to DISA content
+            # This is now informational only, vat_import no longer uses this field
+            references = "\n".join(
+                _format_reference(r_l, n_set)
+                for r_l in rule.findall("xccdf:reference", n_set)
+            )
+            assert references
 
-        # This is now informational only, vat_import no longer uses this field
-        references = "\n".join(
-            _format_reference(r_l, n_set)
-            for r_l in rule.findall("xccdf:reference", n_set)
-        )
-        assert references
-
-        if (result == "fail") | (result == "notchecked") | (result == "error"):
             ret = {
                 "finding": identifier,
                 "severity": severity.lower(),
@@ -193,11 +193,13 @@ def generate_oscap_jobs(oscap_path):
                 "scanSource": "oscap_comp",
             }
             cces.append(ret)
+        if result == "notselected":
+            logging.debug(f"SKIPPING: 'notselected' rule {rule_id}")
     try:
         assert len(set(cce["finding"] for cce in cces)) == len(cces)
     except Exception as duplicate_idents:
         for cce in cces:
-            logging.info("Duplicate: %s", cce["finding"])
+            logging.info(f"Duplicate: {cce['finding']}")
         raise duplicate_idents
 
     return cces
