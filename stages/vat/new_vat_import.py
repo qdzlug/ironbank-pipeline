@@ -396,6 +396,10 @@ def main():
         resp.raise_for_status()
         logging.info(f"API Response:\n{resp.text}")
         logging.info(f"POST Response: {resp.status_code}")
+        with open(
+            f"{os.environ['ARTIFACT_STORAGE']}/vat_response.json", "w"
+        ) as outfile:
+            json.dump(resp.json(), outfile)
     except RuntimeError:
         logging.exception("RuntimeError: API Call Failed")
         sys.exit(1)
