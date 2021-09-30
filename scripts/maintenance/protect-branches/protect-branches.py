@@ -13,7 +13,7 @@ def getProjects(gl, token, id):
 
 def check(gl, token, pid, branch_name):
     project = gl.projects.get(pid)
-    logging.warning(f"Checking project {project.name}")
+    logging.info(f"Checking project {project.name}")
     __protectBranch(project, branch_name)
 
 
@@ -32,7 +32,7 @@ def __protectBranch(project, branch_name):
             }
         )
     else:
-        logging.warning(f"{project.name} Development branch is already protected")
+        logging.info(f"{project.name} Development branch is already protected")
 
 
 def main():
@@ -46,13 +46,13 @@ def main():
         logging.debug("Log level set to debug")
     else:
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
-        logging.warning("Log level set to info")
+        logging.info("Log level set to info")
     gitlab_url = "https://repo1.dso.mil"
     token = os.environ["GL_TOKEN"]
     gl = gitlab.Gitlab(gitlab_url, private_token=token)
     group_id = os.environ["PROJECT_ID"]
     project_lst = getProjects(gl, token, group_id)
-    logging.warning(f"Number of projects: {len(project_lst)}")
+    logging.info(f"Number of projects: {len(project_lst)}")
     branch_name = os.getenv("BRANCH_NAME", "development")
     for proj in project_lst:
         check(gl, token, proj.id, branch_name)
