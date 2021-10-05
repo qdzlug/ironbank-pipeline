@@ -72,10 +72,11 @@ def main():
         os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
     )
 
-    if is_approved(vat_response, False):
+    if is_approved(vat_response, True):
         logging.info("No new findings found in VAT")
     else:
         logging.error("New findings present in VAT.")
+        sys.exit(1)
 
     # artifact_dir = os.environ["ARTIFACT_DIR"]
 
