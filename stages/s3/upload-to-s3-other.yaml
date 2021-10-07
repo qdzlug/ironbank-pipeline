@@ -26,5 +26,6 @@ distroless-upload-to-s3:
     - csv-output
     - ib-manifest
     - write-json-docs
+    - vat
   script:
     - '"${PIPELINE_REPO_DIR}/stages/s3/upload-to-s3-run.sh"'
