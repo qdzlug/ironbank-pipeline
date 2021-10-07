@@ -303,18 +303,6 @@ def generate_oscap_report(oscap, justifications, csv_dir):
     return fail_count, nc_count, scanned
 
 
-def _format_reference(ref, ns):
-    ref_title = ref.find("dc:title", ns)
-    ref_identifier = ref.find("dc:identifier", ns)
-    href = ref.attrib.get("href")
-    if ref_title is not None:
-        assert ref_identifier is not None
-        return f"{ref_title.text}: {ref_identifier.text}"
-    elif href:
-        return f"{href} {ref.text}"
-    return ref.text
-
-
 # Get full OSCAP report with justifications for csv export
 def get_oscap_full(oscap_file, justifications):
     root = etree.parse(oscap_file)
@@ -333,82 +321,92 @@ def get_oscap_full(oscap_file, justifications):
         date_scanned = rule_result.attrib["time"]
         result = rule_result.find("xccdf:result", ns).text
         logging.debug(f"{rule_id}")
-        if result in ["notchecked", "fail", "error"]:
-            if (
-                rule_id
-                == "xccdf_org.ssgproject.content_rule_security_patches_up_to_date"
-            ):
-                if patches_up_to_date_dupe:
-                    logging.debug(
-                        f"SKIPPING: rule {rule_id} - OVAL check repeats and this finding is checked elsewhere",
-                    )
-                    continue
-                patches_up_to_date_dupe = True
-
-            # Get the <rule> that corresponds to the <rule-result>
-            # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
-            rule = root.find(f".//xccdf:Rule[@id='{rule_id}']", ns)
-            title = rule.find("xccdf:title", ns).text
-
-            # This is the identifier that VAT will use. It will never be unset.
-            # Values will be of the format UBTU-18-010100 (UBI) or CCI-001234 (Ubuntu)
-            # Ubuntu/DISA:
-            identifiers = [v.text for v in rule.findall("xccdf:version", ns)]
-            if not identifiers:
-                # UBI/ComplianceAsCode:
-                identifiers = [i.text for i in rule.findall("xccdf:ident", ns)]
-            # We never expect to get more than one identifier
-            assert len(identifiers) == 1
-            logging.debug(f"{identifiers}")
-            identifier = identifiers[0]
-            # Revisit this if we ever switch UBI from ComplianceAsCode to DISA content
-
-            # This is now informational only, vat_import no longer uses this field
-            references = "\n".join(
-                _format_reference(r, ns) for r in rule.findall("xccdf:reference", ns)
-            )
-            assert references
-
-            rationale_element = rule.find("xccdf:rationale", ns)
-            # Ubuntu XCCDF has no <rationale>
-            rationale = (
-                etree.tostring(rationale_element, method="text").decode("utf-8").strip()
-                if rationale_element is not None
-                else ""
-            )
-
-            # Convert description to text, seems to work well:
-            description = (
-                etree.tostring(rule.find("xccdf:description", ns), method="text")
-                .decode("utf8")
-                .strip()
-            )
-            # Cleanup Ubuntu descriptions
-            match = re.match(
-                r"<VulnDiscussion>(.*)</VulnDiscussion>", description, re.DOTALL
-            )
-            if match:
-                description = match.group(1)
-
-            cve_justification = ""
-            if identifier in justifications:
-                cve_justification = justifications[identifier]
-
-            ret = {
-                "title": title,
-                "ruleid": rule_id,
-                "result": result,
-                "severity": severity,
-                "identifiers": identifier,
-                "refs": references,
-                "desc": description,
-                "rationale": rationale,
-                "scanned_date": date_scanned,
-                "Justification": cve_justification,
-            }
-            cces.append(ret)
         if result == "notselected":
             logging.debug(f"SKIPPING: 'notselected' rule {rule_id} ")
+            continue
+
+        if rule_id == "xccdf_org.ssgproject.content_rule_security_patches_up_to_date":
+            if patches_up_to_date_dupe:
+                logging.debug(
+                    f"SKIPPING: rule {rule_id} - OVAL check repeats and this finding is checked elsewhere"
+                )
+                continue
+            else:
+                patches_up_to_date_dupe = True
+        # Get the <rule> that corresponds to the <rule-result>
+        # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
+        rule = root.find(f".//xccdf:Rule[@id='{rule_id}']", ns)
+        title = rule.find("xccdf:title", ns).text
+
+        # This is the identifier that VAT will use. It will never be unset.
+        # Values will be of the format UBTU-18-010100 (UBI) or CCI-001234 (Ubuntu)
+        # Ubuntu/DISA:
+        identifiers = [v.text for v in rule.findall("xccdf:version", ns)]
+        if not identifiers:
+            # UBI/ComplianceAsCode:
+            identifiers = [i.text for i in rule.findall("xccdf:ident", ns)]
+        # We never expect to get more than one identifier
+        assert len(identifiers) == 1
+        logging.debug(f"{identifiers}")
+        identifier = identifiers[0]
+        # Revisit this if we ever switch UBI from ComplianceAsCode to DISA content
+
+        def format_reference(ref):
+            ref_title = ref.find("dc:title", ns)
+            ref_identifier = ref.find("dc:identifier", ns)
+            href = ref.attrib.get("href")
+            if ref_title is not None:
+                assert ref_identifier is not None
+                return f"{ref_title.text}: {ref_identifier.text}"
+            elif href:
+                return f"{href} {ref.text}"
+
+            return ref.text
+
+        # This is now informational only, vat_import no longer uses this field
+        references = "\n".join(
+            format_reference(r) for r in rule.findall("xccdf:reference", ns)
+        )
+        assert references
+
+        rationale_element = rule.find("xccdf:rationale", ns)
+        # Ubuntu XCCDF has no <rationale>
+        rationale = (
+            etree.tostring(rationale_element, method="text").decode("utf-8").strip()
+            if rationale_element is not None
+            else ""
+        )
+
+        # Convert description to text, seems to work well:
+        description = (
+            etree.tostring(rule.find("xccdf:description", ns), method="text")
+            .decode("utf8")
+            .strip()
+        )
+        # Cleanup Ubuntu descriptions
+        match = re.match(
+            r"<VulnDiscussion>(.*)</VulnDiscussion>", description, re.DOTALL
+        )
+        if match:
+            description = match.group(1)
+
+        cve_justification = ""
+        if identifier in justifications:
+            cve_justification = justifications[identifier]
+
+        ret = {
+            "title": title,
+            "ruleid": rule_id,
+            "result": result,
+            "severity": severity,
+            "identifiers": identifier,
+            "refs": references,
+            "desc": description,
+            "rationale": rationale,
+            "scanned_date": date_scanned,
+            "Justification": cve_justification,
+        }
+        cces.append(ret)
     try:
         assert len(set(cce["identifiers"] for cce in cces)) == len(cces)
     except Exception as duplicate_idents:
