@@ -65,7 +65,11 @@ def main():
         json.dump(vat_response, f)
 
     approved, approval_status, approval_comment = is_approved(vat_response, False)
+    logging.info(f"Approved: {approved}")
+    logging.info(f"Approval Status: {approval_status}")
+    logging.info(f"Approval Comment: {approval_comment}")
     approval_status = approval_status.lower().replace(" ", "_")
+    logging.debug("updated Approval Status: {approval_status}")
     filename = Path(os.environ["ARTIFACT_DIR"], "image_approval.json")
     image_approval = {
         "IMAGE_APPROVAL_STATUS": approval_status,
@@ -75,8 +79,11 @@ def main():
         json.dump(image_approval, f)
     if approved:
         logging.info("This container is noted as an approved image in VAT")
+    elif os.environ["CI_COMMIT_BRANCH"] != "master":
+        logging.warning("This container is not noted as an approved image in VAT")
     else:
         logging.error("This container is not noted as an approved image in VAT")
+        logging.error("Failing pipeline")
         sys.exit(1)
 
 

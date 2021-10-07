@@ -69,6 +69,9 @@ def skopeo_inspect_base_image(base_image, base_tag):
             )
         except subprocess.CalledProcessError as e:
             logging.error(
+                "Failed to inspect BASE_IMAGE:BASE_TAG provided in hardening_manifest. Please validate this image exists in the registry1.dso.mil/ironbank project."
+            )
+            logging.error(
                 f"Failed 'skopeo inspect' of image: registry1.dso.mil/{registry}/{base_image}:{base_tag} "
             )
             logging.error(f"Return code: {e.returncode}")

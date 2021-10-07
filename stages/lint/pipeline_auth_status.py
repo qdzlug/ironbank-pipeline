@@ -22,7 +22,7 @@ def main() -> None:
         r.raise_for_status()
         logging.info("Retrieve Auth Status from VAT")
         logging.info(f"Response: {r.text}")
-        logging.info(f"JSON Response:\n{r.json}")
+        logging.debug(f"JSON Response:\n{r.json}")
     except HTTPError:
         logging.exception("HTTPError")
         sys.exit(1)

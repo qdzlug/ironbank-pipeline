@@ -6,22 +6,25 @@ from datetime import datetime, timezone
 
 
 def is_approved(vat_resp_dict, check_ft_findings):
-    logging.info(
-        f"VAT image {vat_resp_dict['imageName']}:{vat_resp_dict['imageTag']} {vat_resp_dict['vatUrl']}"
-    )
     accredited = False
     not_expired = False
     ft_ineligible_findings = False
-    # Check accredidation
-    accredited = _is_accredited(vat_resp_dict)
-    approval_comment = vat_resp_dict["accreditationComment"]
-    approval_status = vat_resp_dict["accreditation"]
-    # Check earliest expiration
-    not_expired = _check_expiration(vat_resp_dict)
+    approval_status = "notapproved"
+    approval_comment = None
+    # Check accreditation
+    if vat_resp_dict:
+        logging.info(
+            f"VAT image {vat_resp_dict['imageName']}:{vat_resp_dict['imageTag']} {vat_resp_dict['vatUrl']}"
+        )
+        accredited = _is_accredited(vat_resp_dict)
+        approval_comment = vat_resp_dict["accreditationComment"]
+        approval_status = vat_resp_dict["accreditation"]
+        # Check earliest expiration
+        not_expired = _check_expiration(vat_resp_dict)
 
-    # Check CVEs - print unapproved findings on Check CVEs stage
-    if check_ft_findings:
-        ft_ineligible_findings = _check_findings(vat_resp_dict)
+        # Check CVEs - print unapproved findings on Check CVEs stage
+        if check_ft_findings:
+            ft_ineligible_findings = _check_findings(vat_resp_dict)
 
     return (
         accredited and not_expired and not ft_ineligible_findings,
@@ -31,7 +34,7 @@ def is_approved(vat_resp_dict, check_ft_findings):
 
 
 def _is_accredited(vat_resp_dict):
-    # Check accredidation
+    # Check accreditation
     if vat_resp_dict["accreditation"] in ("Conditionally Approved", "Approved"):
         return True
 
@@ -42,7 +45,7 @@ def _check_expiration(vat_resp_dict):
         expiration_date = parser.parse(vat_resp_dict["earliestExpiration"])
         return datetime.now(timezone.utc) < expiration_date
     else:
-        return False
+        return True
 
 
 def _check_findings(vat_resp_dict):

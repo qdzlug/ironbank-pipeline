@@ -14,5 +14,6 @@ check-cves:
     - twistlock-scan
     - openscap-compliance
     # - anchore-scan
+    - vat
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/check-cves/vat-response-parse.py"'

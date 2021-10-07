@@ -17,6 +17,7 @@ IMAGE_PATH=$(echo "${CI_PROJECT_PATH}" | sed -e 's/.*dsop\/\(.*\)/\1/')
 PROJECT_README="README.md"
 PROJECT_LICENSE="LICENSE"
 VAT_FINDINGS="${ARTIFACT_STORAGE}/lint/vat_api_findings.json"
+VAT_RESPONSE="${ARTIFACT_STORAGE}/vat/vat_response.json"
 
 # shellcheck source=./stages/s3/repo_map_vars.sh
 source "${PIPELINE_REPO_DIR}/stages/s3/repo_map_vars.sh"
@@ -34,6 +35,8 @@ if [ -f "${VAT_FINDINGS}" ]; then
 else
   echo "WARNING: ${VAT_FINDINGS} does not exist, not copying into report"
 fi
+
+cp  "${VAT_RESPONSE}" reports/
 
 # Debug
 ls reports

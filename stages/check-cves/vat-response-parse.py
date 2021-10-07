@@ -31,11 +31,15 @@ def main():
     with open(f"{os.environ['ARTIFACT_STORAGE']}/vat/vat_response.json", "r") as f:
         vat_response = json.load(f)
 
-    approved, _, _ = is_approved(vat_response, False)
-    if approved(vat_response, True):
-        logging.info("No new findings found in VAT")
+    approved, approval_status, approval_comments = is_approved(vat_response, True)
+    if approved:
+        logging.info("This container is noted as an approved image in VAT")
+        logging.info(f"Container accreditation: {approval_status}")
+        logging.info(f"Container accreditation comments: {approval_comments}")
     else:
-        logging.error("New findings present in VAT.")
+        logging.error("This container is not noted as an approved image in VAT")
+        logging.error(f"Container accreditation: {approval_status}")
+        logging.error(f"Container accreditation comments: {approval_comments}")
         sys.exit(1)
 
 
