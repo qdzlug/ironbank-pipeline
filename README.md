@@ -181,8 +181,8 @@ This stage only runs on master branch pipeline runs. Loads the anchore scan resu
 #### Stage Dependencies
 
 - load-scripts
-- anchore-scan
-- wl-compare-lint
+# - anchore-scan
+- lint
 - hardening-manifest
 - build
 

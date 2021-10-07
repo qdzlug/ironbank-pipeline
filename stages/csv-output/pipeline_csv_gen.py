@@ -13,30 +13,13 @@ import xml.etree.ElementTree as etree
 from scanners import anchore
 from scanners.helper import write_csv_from_dict_list
 
-# The InheritableTriggerIds variable contains a list of Anchore compliance trigger_ids
-# that are inheritable by child images.
-_inheritable_trigger_ids = [
-    "639f6f1177735759703e928c14714a59",
-    "c2e44319ae5b3b040044d8ae116d1c2f",
-    "698044205a9c4a6d48b7937e66a6bf4f",
-    "463a9a24225c26f7a5bf3f38908e5cb3",
-    "bcd159901fe47efddae5c095b4b0d7fd",
-    "320a97c6816565eedf3545833df99dd0",
-    "953dfbea1b1e9d5829fbed2e390bd3af",
-    "e7573262736ef52353cde3bae2617782",
-    "addbb93c22e9b0988b8b40392a4538cb",
-    "3456a263793066e9b5063ada6e47917d",
-    "3e5fad1c039f3ecfd1dcdc94d2f1f9a0",
-    "abb121e9621abdd452f65844954cf1c1",
-    "34de21e516c0ca50a96e5386f163f8bf",
-    "c4ad80832b361f81df2a31e5b6b09864",
-]
+sys.path.append(
+    os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts/modules"
+    )
+)
 
-_uninheritable_trigger_ids = [
-    "41cb7cdf04850e33a11f80c42bf660b3",
-    "cbff271f45d32e78dcc1979dbca9c14d",
-    "db0e0618d692b953341be18b99a2865a",
-]
+from vat_container_status import sort_justifications
 
 
 def main():
@@ -78,7 +61,7 @@ def main():
 
     artifacts_path = os.environ["ARTIFACT_STORAGE"]
     # get cves and justifications from VAT
-    vat_findings_file = pathlib.Path(artifacts_path, "lint", "vat_findings.json")
+    vat_findings_file = pathlib.Path(artifacts_path, "vat", "vat_response.json")
     # load vat_findings.json file
     try:
         with vat_findings_file.open(mode="r") as f:
@@ -87,15 +70,10 @@ def main():
         logging.exception("Error reading findings file.")
         sys.exit(1)
 
-    approval_status_list = ["approved", "conditional"]
-    total_whitelist = _get_complete_whitelist_for_image(
-        vat_findings, approval_status_list
-    )
-    # Get all justifications
     logging.info("Gathering list of all justifications...")
 
-    j_openscap, j_twistlock, j_anchore_cve, j_anchore_comp = _split_by_scan_source(
-        total_whitelist
+    j_openscap, j_twistlock, j_anchore_cve, j_anchore_comp = sort_justifications(
+        vat_findings
     )
 
     oscap_fail_count = 0
@@ -136,88 +114,88 @@ def main():
     )
 
 
-def _get_complete_whitelist_for_image(vat_findings, status_list):
-    """
-    Pull all whitelisted CVEs for an image. Walk through the ancestry of a given
-    image and grab all of the approved vulnerabilities in VAT associated with w layer.
+# def _get_complete_whitelist_for_image(vat_findings, status_list):
+#     """
+#     Pull all whitelisted CVEs for an image. Walk through the ancestry of a given
+#     image and grab all of the approved vulnerabilities in VAT associated with w layer.
 
-    """
-    logging.info(
-        f"Generating whitelist for {os.environ['IMAGE_NAME']}:{os.environ['IMAGE_VERSION']}"
-    )
-    total_whitelist = []
-    # loop through each image, starting from child through each parent, grandparent, etc.
-    for image in vat_findings:
-        # loop through each finding
-        for finding in vat_findings[image]:
-            # if finding is approved
-            logging.debug(finding)
-            if finding["finding_status"].lower() in status_list:
-                # if finding is uninheritable (i.e. Dockerfile findings), exclude from whitelist
-                if (
-                    image != os.environ["IMAGE_NAME"]
-                    and finding["finding"] in _uninheritable_trigger_ids
-                ):
-                    logging.debug(f"Excluding finding {finding['finding']} for {image}")
-                    continue
-                # add finding as dictionary object in list
-                # if finding is inherited, set justification as 'Inherited from base image.'
-                total_whitelist.append(
-                    {
-                        "scan_source": finding["scan_source"],
-                        "cve_id": finding["finding"],
-                        "package": finding["package"],
-                        "package_path": finding["package_path"],
-                        "justification": finding["justification"]
-                        if image == os.environ["IMAGE_NAME"]
-                        else "Inherited from base image.",
-                    }
-                )
-    logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
-    return total_whitelist
+#     """
+#     logging.info(
+#         f"Generating whitelist for {os.environ['IMAGE_NAME']}:{os.environ['IMAGE_VERSION']}"
+#     )
+#     total_whitelist = []
+#     # loop through each image, starting from child through each parent, grandparent, etc.
+#     for image in vat_findings:
+#         # loop through each finding
+#         for finding in vat_findings[image]:
+#             # if finding is approved
+#             logging.debug(finding)
+#             if finding["finding_status"].lower() in status_list:
+#                 # if finding is uninheritable (i.e. Dockerfile findings), exclude from whitelist
+#                 if (
+#                     image != os.environ["IMAGE_NAME"]
+#                     and finding["finding"] in _uninheritable_trigger_ids
+#                 ):
+#                     logging.debug(f"Excluding finding {finding['finding']} for {image}")
+#                     continue
+#                 # add finding as dictionary object in list
+#                 # if finding is inherited, set justification as 'Inherited from base image.'
+#                 total_whitelist.append(
+#                     {
+#                         "scan_source": finding["scan_source"],
+#                         "cve_id": finding["finding"],
+#                         "package": finding["package"],
+#                         "package_path": finding["package_path"],
+#                         "justification": finding["justification"]
+#                         if image == os.environ["IMAGE_NAME"]
+#                         else "Inherited from base image.",
+#                     }
+#                 )
+#     logging.info(f"Found {len(total_whitelist)} total whitelisted CVEs")
+#     return total_whitelist
 
 
-def _split_by_scan_source(total_whitelist):
-    """
-    Gather all justifications for any approved CVE for anchore, twistlock and openscap.
-    Keys are in the form (cve_id, package, package_name) for anchore_cve, (cve_id, package) for twistlock, or "cve_id" for anchore_comp and openscap.
+# def _split_by_scan_source(total_whitelist):
+#     """
+#     Gather all justifications for any approved CVE for anchore, twistlock and openscap.
+#     Keys are in the form (cve_id, package, package_name) for anchore_cve, (cve_id, package) for twistlock, or "cve_id" for anchore_comp and openscap.
 
-    Examples:
-        (CVE-2020-13434, sqlite-libs-3.26.0-11.el8, None) (anchore cve key)
-        (CVE-2020-8285, sqlite-libs-3.26.0-11.el8) (twistlock key, truncated)
-        CCE-82315-3 (openscap or anchore comp key)
+#     Examples:
+#         (CVE-2020-13434, sqlite-libs-3.26.0-11.el8, None) (anchore cve key)
+#         (CVE-2020-8285, sqlite-libs-3.26.0-11.el8) (twistlock key, truncated)
+#         CCE-82315-3 (openscap or anchore comp key)
 
-    """
-    cve_openscap = {}
-    cve_twistlock = {}
-    cve_anchore = {}
-    comp_anchore = {}
+#     """
+#     cve_openscap = {}
+#     cve_twistlock = {}
+#     cve_anchore = {}
+#     comp_anchore = {}
 
-    # Using results from VAT, loop all findings
-    # Loop through the findings and create the corresponding dict object based on the vuln_source
-    for finding in total_whitelist:
-        if "cve_id" in finding.keys():
-            # id used to search for justification when generating each scan's csv
-            search_id = (
-                finding["cve_id"],
-                finding["package"],
-                finding["package_path"],
-            )
-            logging.debug(search_id)
-            if finding["scan_source"] == "oscap_comp":
-                # only use cve_id
-                cve_openscap[search_id[0]] = finding["justification"]
-            elif finding["scan_source"] == "twistlock_cve":
-                # use cve_id and package
-                cve_twistlock[search_id[0:2]] = finding["justification"]
-            elif finding["scan_source"] == "anchore_cve":
-                # use full tuple
-                cve_anchore[search_id] = finding["justification"]
-            elif finding["scan_source"] == "anchore_comp":
-                # only use cve_id
-                comp_anchore[search_id[0]] = finding["justification"]
+#     # Using results from VAT, loop all findings
+#     # Loop through the findings and create the corresponding dict object based on the vuln_source
+#     for finding in total_whitelist:
+#         if "cve_id" in finding.keys():
+#             # id used to search for justification when generating each scan's csv
+#             search_id = (
+#                 finding["cve_id"],
+#                 finding["package"],
+#                 finding["package_path"],
+#             )
+#             logging.debug(search_id)
+#             if finding["scan_source"] == "oscap_comp":
+#                 # only use cve_id
+#                 cve_openscap[search_id[0]] = finding["justification"]
+#             elif finding["scan_source"] == "twistlock_cve":
+#                 # use cve_id and package
+#                 cve_twistlock[search_id[0:2]] = finding["justification"]
+#             elif finding["scan_source"] == "anchore_cve":
+#                 # use full tuple
+#                 cve_anchore[search_id] = finding["justification"]
+#             elif finding["scan_source"] == "anchore_comp":
+#                 # only use cve_id
+#                 comp_anchore[search_id[0]] = finding["justification"]
 
-    return cve_openscap, cve_twistlock, cve_anchore, comp_anchore
+#     return cve_openscap, cve_twistlock, cve_anchore, comp_anchore
 
 
 # Blank OSCAP Report
@@ -391,8 +369,9 @@ def get_oscap_full(oscap_file, justifications):
             description = match.group(1)
 
         cve_justification = ""
-        if identifier in justifications:
-            cve_justification = justifications[identifier]
+        id = (identifier, None, None)
+        if id in justifications:
+            cve_justification = justifications[id]
 
         ret = {
             "title": title,
@@ -540,7 +519,7 @@ def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
                 # get associated justification if one exists
                 cve_justification = ""
                 # if d["description"]:
-                id = (d["cve"], f"{d['packageName']}-{d['packageVersion']}")
+                id = (d["cve"], f"{d['packageName']}-{d['packageVersion']}", None)
                 # id = d["cve"] + "-" + d["description"]
                 # else:
                 #     id = d["cve"]

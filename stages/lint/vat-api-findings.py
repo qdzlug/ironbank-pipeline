@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
+
+from pathlib import Path
 import sys
 import os
 import logging
 import requests
+import json
 
 sys.path.append(
     os.path.join(
@@ -53,6 +56,31 @@ def _get_vat_response(im_name, im_version):
 
 
 def main():
+    vat_response = _get_vat_response(
+        os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
+    )
+    logging.debug(f"VAT response\n{vat_response}")
+    filename = Path(os.environ["ARTIFACT_DIR"], "vat_api_findings.json")
+    with filename.open(mode="w") as f:
+        json.dump(vat_response, f)
+
+    approved, approval_status, approval_comment = is_approved(vat_response, False)
+    approval_status = approval_status.lower().replace(" ", "_")
+    filename = Path(os.environ["ARTIFACT_DIR"], "image_approval.json")
+    image_approval = {
+        "IMAGE_APPROVAL_STATUS": approval_status,
+        "IMAGE_APPROVAL_TEXT": approval_comment,
+    }
+    with filename.open(mode="w") as f:
+        json.dump(image_approval, f)
+    if approved:
+        logging.info("This container is noted as an approved image in VAT")
+    else:
+        logging.error("This container is not noted as an approved image in VAT")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
     if loglevel == "DEBUG":
@@ -64,22 +92,4 @@ def main():
     else:
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
-
-    # approval_status, approval_text = _get_vat_findings_api(
-    #     os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
-    # )
-    vat_response = _get_vat_response(
-        os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
-    )
-
-    if is_approved(vat_response, True):
-        logging.info("No new findings found in VAT")
-    else:
-        logging.error("New findings present in VAT.")
-        sys.exit(1)
-
-    # artifact_dir = os.environ["ARTIFACT_DIR"]
-
-
-if __name__ == "__main__":
     main()

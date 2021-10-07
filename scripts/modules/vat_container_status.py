@@ -14,6 +14,8 @@ def is_approved(vat_resp_dict, check_ft_findings):
     ft_ineligible_findings = False
     # Check accredidation
     accredited = _is_accredited(vat_resp_dict)
+    approval_comment = vat_resp_dict["accreditationComment"]
+    approval_status = vat_resp_dict["accreditation"]
     # Check earliest expiration
     not_expired = _check_expiration(vat_resp_dict)
 
@@ -21,7 +23,11 @@ def is_approved(vat_resp_dict, check_ft_findings):
     if check_ft_findings:
         ft_ineligible_findings = _check_findings(vat_resp_dict)
 
-    return accredited and not_expired and not ft_ineligible_findings
+    return (
+        accredited and not_expired and not ft_ineligible_findings,
+        approval_status,
+        approval_comment,
+    )
 
 
 def _is_accredited(vat_resp_dict):
@@ -42,7 +48,7 @@ def _check_expiration(vat_resp_dict):
 def _check_findings(vat_resp_dict):
     ft_ineligible_findings = False
     for finding in vat_resp_dict["findings"]:
-        if finding["findingState"] not in ("approved", "conditionally approved"):
+        if finding["findingsState"] not in ("approved", "conditionally approved"):
             if (
                 not "fastTrackEligibility" in finding
                 or not finding["fastTrackEligibility"]
@@ -52,3 +58,31 @@ def _check_findings(vat_resp_dict):
                     f"{finding['identifier']:<20} {finding['source']:20} {finding.get('serverity', ''):20} {finding.get('package', ''):30} {finding.get('packagePath', '')}"
                 )
     return ft_ineligible_findings
+
+
+def sort_justifications(vat_resp_dict):
+
+    sources = {
+        "anchore_cve": {},
+        "anchore_comp": {},
+        "oscap_comp": {},
+        "twistlock_cve": {},
+    }
+
+    for finding in vat_resp_dict["findings"]:
+        if finding["findingsState"] in ("approved", "conditionally approved"):
+            search_id = (
+                finding["identifier"],
+                finding["package"] if "package" in finding else None,
+                finding["packagePath"] if "packagePath" in finding else None,
+            )
+            sources[finding["source"]][search_id] = finding["contributor"][
+                "justification"
+            ]
+
+    return (
+        sources["oscap_comp"],
+        sources["twistlock_cve"],
+        sources["anchore_cve"],
+        sources["anchore_comp"],
+    )

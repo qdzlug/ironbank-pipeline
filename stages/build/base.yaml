@@ -5,6 +5,7 @@ build:
   dependencies:
     - import-artifacts
     - load-scripts
+    - base-image-validation
     - wl-compare-lint
     - hardening-manifest
   variables:

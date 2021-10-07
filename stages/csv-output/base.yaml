@@ -3,9 +3,11 @@ csv-output:
   dependencies:
     - twistlock-scan
     - openscap-compliance
-    - anchore-scan
+    - vat
+    # - anchore-scan
     - load-scripts
     - hardening-manifest
+    - base-image-validation
     - wl-compare-lint
     - build
   variables:

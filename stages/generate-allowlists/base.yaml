@@ -5,7 +5,8 @@ generate-allowlists:
   stage: generate-allowlists
   dependencies:
     - load-scripts
-    - anchore-scan
+    # - anchore-scan
+    - base-image-validation
     - wl-compare-lint
     - hardening-manifest
     - build

@@ -8,9 +8,9 @@ This stage relies on the following stages completing successfully
 
 - load-scripts
 - hardening-manifest
-- wl-compare-lint
+- lint
 - build
-- anchore-scan
+# - anchore-scan
 - twistlock-scan
 - csv-output
 - documentation
