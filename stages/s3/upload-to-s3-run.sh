@@ -36,7 +36,7 @@ else
   echo "WARNING: ${VAT_FINDINGS} does not exist, not copying into report"
 fi
 
-cp  "${VAT_RESPONSE}" reports/
+cp "${VAT_RESPONSE}" reports/
 
 # Debug
 ls reports
