@@ -1,67 +1,20 @@
 .lint:
   stage: lint
-
-  dependencies:
-    - load-scripts
-  artifacts:
-    when: always
-    expire_in: 1 week
-    paths:
-      - "${CI_PROJECT_DIR}/pipeline-artifacts/"
-
-# OPTIONAL FOR BETA PIPELINE
-# yaml lint:
-#   extends: .lint
-#   # the hardened image we have access to comes with pip installed
-#   except:
-#     variables:
-#       - $YAML_LINT_DISABLED
-#   before_script:
-#     - pip3 install --upgrade pip
-#     - pip3 install yamllint
-#     - mkdir -p "${CI_PROJECT_DIR}/pipeline-artifacts/"
-#   # TODO: get more insight into following commands and intention
-#   script:
-#     - yamllint -c "${CI_PROJECT_DIR}/tests/yamllint.yaml" "${CI_PROJECT_DIR}/tests/hadolint.yaml" | tee "${CI_PROJECT_DIR}/pipeline-artifacts/lint-yaml.txt"
-#     - yamllint -c "${CI_PROJECT_DIR}/tests/yamllint.yaml" "${CI_PROJECT_DIR}/tests/container-structure-test.yaml" | tee "${CI_PROJECT_DIR}/pipeline-artifacts/lint-yaml.txt"
-
-# # OPTIONAL FOR BETA PIPELINE
-# dockerfile lint:
-#   extends: .lint
-#   except:
-#     variables:
-#       - $DOCKERFILE_LINT_DISABLED
-#   before_script:
-#     # https://hub.docker.com/r/hadolint/hadolint/dockerfile
-#     - docker pull hadolint/hadolint
-#     - chmod +x /bin/hadolint
-#     - mkdir -p "${CI_PROJECT_DIR}/pipeline-artifacts"
-#   script:
-#     - hadolint "${CI_PROJECT_DIR}/Dockerfile" | tee "${CI_PROJECT_DIR}/pipeline-artifacts/lint-dockerfile.txt"
-
-wl-compare-lint:
-  extends: .lint
   dependencies:
     - load-scripts
     - hardening-manifest
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/lint"
-  script:
-    # The following step assumes contributor projects have an environment variable set for the image version
-    # in the gitlab-ci.yml file.
-    # TODO: output the error for unsuccessful runs
-    - |
-      if [[ "${CI_COMMIT_BRANCH}" == "master" || "${CI_COMMIT_BRANCH}" == "development" ]] && [[ "${CI_COMMIT_REF_PROTECTED}" != true ]]; then
-        echo "This pipeline is running on an unprotected '${CI_COMMIT_BRANCH}' branch. Please protect '${CI_COMMIT_BRANCH}' before running the pipeline on this branch"
-        echo "Exiting"
-        exit 1
-      fi
+  before_script:
     - 'mkdir -p "${ARTIFACT_DIR}"'
-    - set +e
-    - python3 "${PIPELINE_REPO_DIR}/stages/check-cves/pipeline_wl_compare.py" --lint
   artifacts:
     paths:
       - "${ARTIFACT_DIR}/"
     expire_in: 1 week
-    reports:
-      dotenv: variables.env
+    when: always
+
+include:
+  # - local: stages/lint/container-approval-status.yaml
+  - local: stages/lint/base-image-validation.yaml
+  - local: stages/lint/pipeline-auth-status.yaml
+  - local: stages/lint/wl-compare-lint.yaml
