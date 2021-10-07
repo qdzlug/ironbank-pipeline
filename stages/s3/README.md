@@ -11,7 +11,7 @@ This stage relies on the following stages completing successfully
 - lint
 - build
 - anchore-scan
-- twistlock-scan
+- anchore-scan
 - csv-output
 - documentation
 

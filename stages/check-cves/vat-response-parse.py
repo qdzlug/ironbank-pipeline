@@ -3,7 +3,6 @@ import json
 import sys
 import os
 import logging
-import requests
 
 sys.path.append(
     os.path.join(

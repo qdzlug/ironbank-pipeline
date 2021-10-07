@@ -61,7 +61,7 @@ def skopeo_inspect_base_image(base_image, base_tag):
         # if skopeo inspect fails, because BASE_IMAGE value doesn't match a registry1 container name
         #   fail back to using existing functionality
         try:
-            response = subprocess.run(
+            subprocess.run(
                 args=cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,

@@ -4,7 +4,7 @@ csv-output:
     - twistlock-scan
     - openscap-compliance
     - vat
-    # - anchore-scan
+    - anchore-scan
     - load-scripts
     - hardening-manifest
     - base-image-validation

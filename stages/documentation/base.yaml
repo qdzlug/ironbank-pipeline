@@ -13,7 +13,7 @@
     - base-image-validation
     - wl-compare-lint
     - build
-    # - anchore-scan
+    - anchore-scan
     - twistlock-scan
     - openscap-compliance
   before_script:

@@ -53,7 +53,7 @@ def _check_findings(vat_resp_dict):
     for finding in vat_resp_dict["findings"]:
         if finding["findingsState"] not in ("approved", "conditionally approved"):
             if (
-                not "fastTrackEligibility" in finding
+                "fastTrackEligibility" not in finding
                 or not finding["fastTrackEligibility"]
             ):
                 ft_ineligible_findings = True
