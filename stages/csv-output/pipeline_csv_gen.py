@@ -19,7 +19,7 @@ sys.path.append(
     )
 )
 
-from vat_container_status import sort_justifications
+from vat_container_status import sort_justifications  # noqa E402
 
 
 def main():

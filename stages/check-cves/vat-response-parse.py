@@ -10,7 +10,7 @@ sys.path.append(
     )
 )
 
-from vat_container_status import is_approved
+from vat_container_status import is_approved  # noqa E402
 
 
 def main():

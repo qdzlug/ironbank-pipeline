@@ -13,7 +13,7 @@ sys.path.append(
     )
 )
 
-from vat_container_status import is_approved
+from vat_container_status import is_approved  # noqa E402
 
 
 def _get_vat_response(im_name, im_version):
