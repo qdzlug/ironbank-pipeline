@@ -81,7 +81,7 @@ def get_oscap_compliance_findings(oscap_file):
         date_scanned = rule_result.attrib["time"]
         result = rule_result.find("xccdf:result", ns).text
         logging.debug(f"{rule_id}")
-        if result in ["notchecked", "fail", "error"]:
+        if result in ["notchecked", "fail"]:
             """
             ubi7-minimal has multiples of the following rule_id
             xccdf_org.ssgproject.content_rule_security_patches_up_to_date
