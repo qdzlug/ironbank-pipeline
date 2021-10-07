@@ -13,7 +13,7 @@ vat:
     - base-image-validation
     - wl-compare-lint
     - hardening-manifest
-    # - anchore-scan
+    - anchore-scan
     - openscap-compliance
     - twistlock-scan
   variables:

@@ -10,7 +10,7 @@ This stage relies on the following stages completing successfully
 - hardening-manifest
 - lint
 - build
-# - anchore-scan
+- anchore-scan
 - twistlock-scan
 - csv-output
 - documentation

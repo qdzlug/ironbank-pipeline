@@ -21,7 +21,7 @@ distroless-upload-to-s3:
     - base-image-validation
     - wl-compare-lint
     - build
-    # - anchore-scan
+    - anchore-scan
     - twistlock-scan
     - csv-output
     - ib-manifest
