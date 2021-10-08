@@ -67,7 +67,8 @@ def main():
     approved, approval_status, approval_comment = is_approved(vat_response, False)
     logging.info(f"Approved: {approved}")
     logging.info(f"Approval Status: {approval_status}")
-    logging.info(f"Approval Comment: {approval_comment}")
+    if approval_comment:
+        logging.info(f"Approval Comment: {approval_comment}")
     approval_status = approval_status.lower().replace(" ", "_")
     logging.debug("updated Approval Status: {approval_status}")
     filename = Path(os.environ["ARTIFACT_DIR"], "image_approval.json")

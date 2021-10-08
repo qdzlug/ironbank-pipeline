@@ -17,7 +17,8 @@ def is_approved(vat_resp_dict, check_ft_findings):
             f"VAT image {vat_resp_dict['imageName']}:{vat_resp_dict['imageTag']} {vat_resp_dict['vatUrl']}"
         )
         accredited = _is_accredited(vat_resp_dict)
-        approval_comment = vat_resp_dict["accreditationComment"]
+        if "accreditationComment" in vat_resp_dict:
+            approval_comment = vat_resp_dict["accreditationComment"]
         approval_status = vat_resp_dict["accreditation"]
         # Check earliest expiration
         not_expired = _check_expiration(vat_resp_dict)
