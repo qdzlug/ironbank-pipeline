@@ -3,7 +3,6 @@ upload-to-s3:
   resource_group: s3_phase
   only:
     - master
-    - development
   variables:
     #TODO: Put these in globals
     IMAGE_FILE: "${CI_PROJECT_NAME}-${IMAGE_VERSION}"
@@ -19,6 +18,7 @@ upload-to-s3:
   dependencies:
     - load-scripts
     - hardening-manifest
+    - base-image-validation
     - wl-compare-lint
     - build
     - anchore-scan
@@ -27,5 +27,6 @@ upload-to-s3:
     - csv-output
     - ib-manifest
     - write-json-docs
+    - vat
   script:
     - '"${PIPELINE_REPO_DIR}/stages/s3/upload-to-s3-run.sh"'

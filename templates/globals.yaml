@@ -45,6 +45,9 @@ stages:
   # twistlock, oscap, and anchore scans
   - scanning
 
+  ### VAT stage
+  - vat
+
   ### create csv output
   - csv-output
 
@@ -64,9 +67,6 @@ stages:
   ### s3 stage
   # publish artifacts to S3 (runs on development and master)
   - s3-publish
-
-  ### VAT stage (runs on dev)
-  - vat
 
 include:
   - local: stages/preprocess/load-scripts.yaml

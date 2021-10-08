@@ -102,13 +102,3 @@ IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" -
 
   echo "IMAGE_NAME=${IMAGE_NAME}"
 } >>build.env
-
-branches=("master" "development")
-
-if [[ "${branches[*]}" =~ $CI_COMMIT_BRANCH ]]; then
-  msg="A tarball of the built image can be retrieved from the documentation job artifacts."
-else
-  msg="A tarball of the built image can be retrieved from the create-tar job artifacts."
-fi
-
-echo "$msg"

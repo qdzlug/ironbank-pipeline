@@ -182,7 +182,7 @@ This stage only runs on master branch pipeline runs. Loads the anchore scan resu
 
 - load-scripts
 - anchore-scan
-- wl-compare-lint
+- anchore-scan
 - hardening-manifest
 - build
 
