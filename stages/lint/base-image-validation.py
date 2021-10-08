@@ -49,36 +49,35 @@ def skopeo_inspect_base_image(base_image, base_tag):
         registry = "ironbank"
 
     # get parent cves from VAT
-    while base_image:
-        cmd = [
-            "skopeo",
-            "inspect",
-            "--authfile",
-            auth_file,
-            f"docker://registry1.dso.mil/{registry}/{base_image}:{base_tag}",
-        ]
-        logging.info(" ".join(cmd))
-        # if skopeo inspect fails, because BASE_IMAGE value doesn't match a registry1 container name
-        #   fail back to using existing functionality
-        try:
-            subprocess.run(
-                args=cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                check=True,
-            )
-        except subprocess.CalledProcessError as e:
-            logging.error(
-                "Failed to inspect BASE_IMAGE:BASE_TAG provided in hardening_manifest. Please validate this image exists in the registry1.dso.mil/ironbank project."
-            )
-            logging.error(
-                f"Failed 'skopeo inspect' of image: registry1.dso.mil/{registry}/{base_image}:{base_tag} "
-            )
-            logging.error(f"Return code: {e.returncode}")
-            sys.exit(1)
-        except Exception:
-            logging.exception("Unknown failure when attemping to inspect BASE_IMAGE")
-            sys.exit(1)
+    cmd = [
+        "skopeo",
+        "inspect",
+        "--authfile",
+        auth_file,
+        f"docker://registry1.dso.mil/{registry}/{base_image}:{base_tag}",
+    ]
+    logging.info(" ".join(cmd))
+    # if skopeo inspect fails, because BASE_IMAGE value doesn't match a registry1 container name
+    #   fail back to using existing functionality
+    try:
+        subprocess.run(
+            args=cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+        )
+    except subprocess.CalledProcessError as e:
+        logging.error(
+            "Failed to inspect BASE_IMAGE:BASE_TAG provided in hardening_manifest. Please validate this image exists in the registry1.dso.mil/ironbank project."
+        )
+        logging.error(
+            f"Failed 'skopeo inspect' of image: registry1.dso.mil/{registry}/{base_image}:{base_tag} "
+        )
+        logging.error(f"Return code: {e.returncode}")
+        sys.exit(1)
+    except Exception:
+        logging.exception("Unknown failure when attemping to inspect BASE_IMAGE")
+        sys.exit(1)
 
 
 def main():
@@ -99,8 +98,8 @@ def main():
             f.write(f"BASE_IMAGE={base_image}\n")
             f.write(f"BASE_TAG={base_tag}")
             logging.debug(f"BASE_IMAGE={base_image}\nBASE_TAG={base_tag}")
-
-    skopeo_inspect_base_image(base_image, base_tag)
+    if base_image:
+        skopeo_inspect_base_image(base_image, base_tag)
 
 
 if __name__ == "__main__":
