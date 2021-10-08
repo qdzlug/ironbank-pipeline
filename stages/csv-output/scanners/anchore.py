@@ -174,11 +174,11 @@ def compliance_report(csv_dir, anchore_gates_json, justifications):
 
         cve_justification = ""
         # ad[2] is trigger_id -- e.g. CVE-2020-####
-        id = ad[2]
+        id = (ad[2], None, None)
         if ad[4] == "package":
             cve_justification = "See Anchore CVE Results sheet"
 
-        if id in justifications.keys():
+        if id in justifications:
             cve_justification = justifications[id]
         gate["Justification"] = cve_justification
 

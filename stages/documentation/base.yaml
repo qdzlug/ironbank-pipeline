@@ -1,7 +1,6 @@
 .documentation:
   stage: documentation
   only:
-    - development
     - master
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/documentation"
@@ -11,6 +10,7 @@
   dependencies:
     - load-scripts
     - hardening-manifest
+    - base-image-validation
     - wl-compare-lint
     - build
     - anchore-scan

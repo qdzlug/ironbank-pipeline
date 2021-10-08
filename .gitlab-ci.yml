@@ -25,7 +25,7 @@ shellcheck:
   tags:
     - ironbank-tools
   stage: lint
-  image: registry.dsop.io/ironbank-tools/ironbank-pipeline/shellcheck
+  image: registry.dso.mil/ironbank-tools/ironbank-pipeline/shellcheck
   script:
     - |
       set -o pipefail
