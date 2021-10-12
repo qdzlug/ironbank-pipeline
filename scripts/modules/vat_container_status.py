@@ -52,7 +52,7 @@ def _check_expiration(vat_resp_dict):
 def _check_findings(vat_resp_dict):
     ft_ineligible_findings = False
     for finding in vat_resp_dict["findings"]:
-        if finding["findingsState"] not in ("approved", "conditionally approved"):
+        if finding["findingsState"] not in ("approved", "conditional"):
             if (
                 "fastTrackEligibility" not in finding
                 or not finding["fastTrackEligibility"]
