@@ -317,7 +317,7 @@ def s3_download(
             bucket, object_name, artifacts_path + "/external-resources/" + resource_name
         )
     except ClientError:
-        logging.error("S3 client error occured")
+        logging.error("S3 client error occurred")
         sys.exit(1)
 
     # Calculate SHA256 checksum of downloaded file
