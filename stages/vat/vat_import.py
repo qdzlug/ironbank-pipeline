@@ -6,7 +6,6 @@ import os
 import argparse
 import logging
 from pathlib import Path
-import xml.etree.ElementTree as etree
 import requests
 from requests.structures import CaseInsensitiveDict
 
