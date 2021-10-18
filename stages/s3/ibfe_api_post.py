@@ -38,7 +38,10 @@ def main():
         try:
             post_resp = requests.post(
                 os.environ["IBFE_API_ENDPOINT"],
-                headers={"Authorization": os.environ["IBFE_API_KEY"]},
+                headers={
+                  "Authorization": os.environ["IBFE_API_KEY"],
+                  "x-gitlab-ci-jwt": f"Bearer {os.environ['CI_JOB_JWT']}",
+                },
                 json=new_data,
             )
             post_resp.raise_for_status()
