@@ -386,7 +386,12 @@ def docker_download(download_item, tag_value, tar_name, username=None, password=
     retry_count = 0
     while retry:
         try:
-            subprocess.run(pull_cmd, check=True)
+            subprocess.run(
+                args=pull_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=True,
+            )
             retry = False
         except subprocess.CalledProcessError:
             if retry_count == 2:
