@@ -412,40 +412,29 @@ def github_download(download_item, tag_value, tar_name, username=None, password=
     logging.info(f"Pulling {image}")
 
     pull_cmd = [
-        "podman",
-        "pull",
-        "--storage-driver=vfs",
+        "skopeo",
+        "copy",
         "--authfile=/tmp/prod_auth.json",
+        "--remove-signatures",
+        "--additional-tag",
+        tag_value,
     ]
     if username and password:
-        pull_cmd += ["--creds", f"{username}:{password}"]
-    pull_cmd += ["--", image]
+        pull_cmd += ["--src-creds", f"{username}:{password}"]
+    pull_cmd += [
+        f"docker://{image}",
+        f"docker-archive:{os.environ['ARTIFACT_STORAGE']}/import-artifacts/images/{tar_name}.tar",
+    ]
 
     retry = True
     retry_count = 0
     while retry:
         try:
-            subprocess.run(pull_cmd, check=True)
-            logging.info(f"Tagging image as {tag_value}")
             subprocess.run(
-                ["podman", "tag", image, tag_value, "--storage-driver=vfs"], check=True
-            )
-            logging.info(f"Saving {tag_value} as tar file")
-            subprocess.run(
-                [
-                    "podman",
-                    "save",
-                    "-o",
-                    tar_name + ".tar",
-                    tag_value,
-                    "--storage-driver=vfs",
-                ],
+                args=pull_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 check=True,
-            )
-            logging.info("Moving tar file into stage artifacts")
-            shutil.copy(
-                tar_name + ".tar",
-                os.environ["ARTIFACT_STORAGE"] + "/import-artifacts/images/",
             )
             retry = False
         except subprocess.CalledProcessError:
