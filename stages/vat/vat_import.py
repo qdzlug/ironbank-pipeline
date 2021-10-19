@@ -404,7 +404,9 @@ def main():
         logging.exception("RuntimeError: API Call Failed")
         sys.exit(1)
     except requests.exceptions.HTTPError:
-        logging.error(f"Got HTTP {resp.status_code}")
+        # only include errors provided by VAT endpoint
+        if resp.text and resp.status_code != 500:
+            logging.error(f"API Response:\n{resp.text}")
         logging.exception("HTTP error")
         sys.exit(1)
     except requests.exceptions.RequestException:
