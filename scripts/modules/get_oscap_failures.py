@@ -5,7 +5,6 @@ import os
 from pathlib import Path
 import xml.etree.ElementTree as etree
 import requests
-import gzip
 import re
 import bz2
 
@@ -146,9 +145,4 @@ def get_redhat_oval_definitions(url):
     open(artifact_path, "w").write(data_string)
     oval_definitions[url] = etree.parse(artifact_path)
     return oval_definitions[url]
-
-def main():
-    print(generate_oscap_jobs("./compliance_output_report.xml"))
-
-if __name__ == "__main__":
-    main()
+    
