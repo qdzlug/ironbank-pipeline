@@ -60,7 +60,7 @@ def _log_fast_eligible_findings(vat_resp_dict):
             if "fastTrackEligibility" in finding:
                 ft_eligible_findings = True
                 logging.warn(
-                    f"{colors['bright_yellow']}{finding['identifier']:<20} {finding['source']:20} {finding.get('serverity', ''):20} {finding.get('package', ''):30} {finding.get('packagePath', '')}"
+                    f"{colors['bright_yellow']}{finding['identifier']:<20} {finding['source']:20} {finding.get('severity', ''):20} {finding.get('package', ''):30} {finding.get('packagePath', '')}"
                 )
     if ft_eligible_findings:
         logging.info("None")
@@ -77,7 +77,7 @@ def _check_findings(vat_resp_dict):
             ):
                 ft_ineligible_findings = True
                 logging.error(
-                    f"{colors['bright_red']}{finding['identifier']:<20} {finding['source']:20} {finding.get('serverity', ''):20} {finding.get('package', ''):30} {finding.get('packagePath', '')}"
+                    f"{colors['bright_red']}{finding['identifier']:<20} {finding['source']:20} {finding.get('severity', ''):20} {finding.get('package', ''):30} {finding.get('packagePath', '')}"
                 )
     if ft_ineligible_findings:
         logging.info("None")
