@@ -145,4 +145,3 @@ def get_redhat_oval_definitions(url):
     open(artifact_path, "w").write(data_string)
     oval_definitions[url] = etree.parse(artifact_path)
     return oval_definitions[url]
-
