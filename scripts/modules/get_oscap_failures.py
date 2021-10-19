@@ -5,6 +5,9 @@ import os
 from pathlib import Path
 import xml.etree.ElementTree as etree
 import requests
+import gzip
+import re
+import bz2
 
 
 def _format_reference(ref, n_set):
@@ -106,11 +109,7 @@ def get_oval_findings(finding_name, finding_href, severity):
     else:
         version = 7
     url = f"https://www.redhat.com/security/data/oval/com.redhat.rhsa-RHEL{version}.xml"
-    get_redhat_oval_definitions(url)
-
-    rh_path = Path(f"{os.environ['ARTIFACT_DIR']}/oval_definitions.xml")
-
-    root = etree.parse(rh_path)
+    root = get_redhat_oval_definitions(url)
 
     n_set = {
         "oval": "http://oval.mitre.org/XMLSchema/oval-definitions-5",
@@ -136,6 +135,20 @@ def get_oval_findings(finding_name, finding_href, severity):
 
 
 def get_redhat_oval_definitions(url):
+    oval_definitions = {}
+    if url in oval_definitions:
+        return oval_definitions[url]
     r = requests.get(url)
-    artifact_path = f"{os.environ['ARTIFACT_DIR']}/oval_definitions.xml"
+    artifact_path = f"{os.environ['ARTIFACT_DIR']}/oval_definitions-{re.sub(r'[^a-z]', '-', url)}.xml"
     open(artifact_path, "wb").write(r.content)
+    data = bz2.BZ2File(artifact_path).read()
+    data_string = str(data, "utf-8")
+    open(artifact_path, "w").write(data_string)
+    oval_definitions[url] = etree.parse(artifact_path)
+    return oval_definitions[url]
+
+def main():
+    print(generate_oscap_jobs("./compliance_output_report.xml"))
+
+if __name__ == "__main__":
+    main()
