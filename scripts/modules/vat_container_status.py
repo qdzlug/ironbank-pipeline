@@ -7,7 +7,8 @@ from datetime import datetime, timezone
 colors = {
     "bright_yellow": "\x1b[38;5;226m",
     "bright_red": "\x1b[38;5;196m",
-    "white": "\x1b[38;5;231m",
+    # RGB ANSI code
+    "white": "\x1b[38;2;255;255;255mm",
 }
 
 
