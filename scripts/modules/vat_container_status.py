@@ -8,7 +8,7 @@ colors = {
     "bright_yellow": "\x1b[38;5;226m",
     "bright_red": "\x1b[38;5;196m",
     # RGB ANSI code
-    "white": "\x1b[38;2;255;255;255mm",
+    "white": "\x1b[38;2;255;255;255m",
 }
 
 
