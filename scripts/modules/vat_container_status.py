@@ -60,7 +60,7 @@ def _check_expiration(vat_resp_dict):
 def _log_ft_eligible_findings(vat_resp_dict):
     # log fast track eligible findings
     ft_eligible_findings = False
-    logging.info("Fast Track Eligible Findings:")
+    logging.debug("Fast Track Eligible Findings:")
     for finding in vat_resp_dict["findings"]:
         if finding["findingsState"] not in ("approved", "conditional"):
             if "fastTrackEligibility" in finding:
@@ -74,7 +74,7 @@ def _log_ft_eligible_findings(vat_resp_dict):
 
 def _check_findings(vat_resp_dict):
     ft_ineligible_findings = False
-    logging.info("Fast Track Ineligible Findings:")
+    logging.debug("Fast Track Ineligible Findings:")
     for finding in vat_resp_dict["findings"]:
         if finding["findingsState"] not in ("approved", "conditional"):
             if (
