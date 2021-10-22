@@ -4,6 +4,13 @@ import logging
 from dateutil import parser
 from datetime import datetime, timezone
 
+colors = {
+    "bright_yellow": "\x1b[38;5;226m",
+    "bright_red": "\x1b[38;5;196m",
+    # RGB ANSI code
+    "white": "\x1b[38;2;255;255;255m",
+}
+
 
 def is_approved(vat_resp_dict, check_ft_findings):
     accredited = False
@@ -25,6 +32,7 @@ def is_approved(vat_resp_dict, check_ft_findings):
 
         # Check CVEs - print unapproved findings on Check CVEs stage
         if check_ft_findings:
+            _log_ft_eligible_findings(vat_resp_dict)
             ft_ineligible_findings = _check_findings(vat_resp_dict)
 
     return (
@@ -49,8 +57,24 @@ def _check_expiration(vat_resp_dict):
         return True
 
 
+def _log_ft_eligible_findings(vat_resp_dict):
+    # log fast track eligible findings
+    ft_eligible_findings = False
+    logging.debug("Fast Track Eligible Findings:")
+    for finding in vat_resp_dict["findings"]:
+        if finding["findingsState"] not in ("approved", "conditional"):
+            if "fastTrackEligibility" in finding:
+                ft_eligible_findings = True
+                logging.warn(
+                    f"{colors['bright_yellow']}{finding['identifier']:<20} {finding['source']:20} {finding.get('severity', ''):20} {finding.get('package', ''):30} {finding.get('packagePath', '')}{colors['white']}"
+                )
+    if not ft_eligible_findings:
+        logging.info("None")
+
+
 def _check_findings(vat_resp_dict):
     ft_ineligible_findings = False
+    logging.debug("Fast Track Ineligible Findings:")
     for finding in vat_resp_dict["findings"]:
         if finding["findingsState"] not in ("approved", "conditional"):
             if (
@@ -59,8 +83,10 @@ def _check_findings(vat_resp_dict):
             ):
                 ft_ineligible_findings = True
                 logging.error(
-                    f"{finding['identifier']:<20} {finding['source']:20} {finding.get('serverity', ''):20} {finding.get('package', ''):30} {finding.get('packagePath', '')}"
+                    f"{colors['bright_red']}{finding['identifier']:<20} {finding['source']:20} {finding.get('severity', ''):20} {finding.get('package', ''):30} {finding.get('packagePath', '')}{colors['white']}"
                 )
+    if not ft_ineligible_findings:
+        logging.info("None")
     return ft_ineligible_findings
 
 
