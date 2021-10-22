@@ -17,13 +17,13 @@ include:
   - local: stages/scanning/openscap/openscap-compliance.yaml
   - local: stages/scanning/twistlock/twistlock.yaml
 
+  - local: stages/vat/base.yaml
+
   - local: stages/csv-output/base.yaml
 
   - local: stages/check-cves/base.yaml
 
   - local: stages/documentation/base.yaml
-
-  - local: stages/vat/base.yaml
 
   - local: stages/harbor/harbor.yaml
 
