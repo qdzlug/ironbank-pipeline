@@ -93,6 +93,7 @@ class Anchore:
         logging.info("Getting Anchore version")
         url = f"{self.url}/version"
         version_json = self.__get_anchore_api_json(url)
+        logging.info(f"Anchore Enterprise Version: {version_json['service']['version']}")
         filename = pathlib.Path(artifacts_path, "anchore-version.txt")
         logging.debug(f"Writing to {filename}")
         with filename.open(mode="w") as f:
