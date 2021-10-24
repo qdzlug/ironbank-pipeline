@@ -4,17 +4,32 @@ import logging
 from dateutil import parser
 from datetime import datetime, timezone
 
-colors = {
-    "bright_yellow": "\x1b[38;5;226m",
-    "bright_red": "\x1b[38;5;196m",
-    # RGB ANSI code
-    "white": "\x1b[38;2;255;255;255m",
-}
+
+class Findings:
+    def __init__(
+        self, finding_type, _failures=False, ft_eligible=False, _findings=[]
+    ) -> None:
+        self.finding_type = finding_type
+        self._failures: bool = _failures
+        self._findings: list = _findings
+        self.ft_eligible = ft_eligible
+
+    def add_finding(self, finding):
+        self._findings.append(finding)
+
+    def get_findings(self):
+        return self._findings
+
+    def check_failure(self):
+        if self._findings:
+            self._failures = True
+        return self._failures
 
 
 def is_approved(vat_resp_dict, check_ft_findings):
     accredited = False
     not_expired = False
+    ft_eligible_findings = False
     ft_ineligible_findings = False
     approval_status = "notapproved"
     approval_comment = None
@@ -32,11 +47,25 @@ def is_approved(vat_resp_dict, check_ft_findings):
 
         # Check CVEs - print unapproved findings on Check CVEs stage
         if check_ft_findings:
-            _log_ft_eligible_findings(vat_resp_dict)
-            ft_ineligible_findings = _check_findings(vat_resp_dict)
+            # _log_ft_eligible_findings(vat_resp_dict)
+            ft_eligible_findings, ft_ineligible_findings = _check_findings(
+                vat_resp_dict
+            )
+    # Exit codes for Check CVE parsing of VAT response
+    # 0   - Container is accredited, accreditation is not expired, and there are no unapproved findings
+    # 1   - Either Container is not accredited, or the accreditation has expired, or there is an unapproved finding not eligible to be fast tracked
+    # 100 - Container is accredited, accreditation is not expired, and there are unapproved findings but they are ALL eligible to be fast tracked. This exit code is permitted to fail the Check CVE job
+    exit_code: int
+    # The first case should be a hard fail, as either the container is not accredited, the accreditation is expired, or there are unapproved findings that cannot be fast tracked
+    if not accredited or not not_expired or ft_ineligible_findings:
+        exit_code = 1
+    elif ft_eligible_findings:
+        exit_code = 100
+    else:
+        exit_code = 0
 
     return (
-        accredited and not_expired and not ft_ineligible_findings,
+        exit_code,
         approval_status,
         approval_comment,
     )
@@ -57,37 +86,91 @@ def _check_expiration(vat_resp_dict):
         return True
 
 
-def _log_ft_eligible_findings(vat_resp_dict):
-    # log fast track eligible findings
-    ft_eligible_findings = False
-    logging.debug("Fast Track Eligible Findings:")
-    for finding in vat_resp_dict["findings"]:
-        if finding["findingsState"] not in ("approved", "conditional"):
-            if "fastTrackEligibility" in finding:
-                ft_eligible_findings = True
-                logging.warn(
-                    f"{colors['bright_yellow']}{finding['identifier']:<20} {finding['source']:20} {finding.get('severity', ''):20} {finding.get('package', ''):30} {finding.get('packagePath', '')}{colors['white']}"
-                )
-    if not ft_eligible_findings:
-        logging.info("None")
+# def _log_ft_eligible_findings(vat_resp_dict) -> bool:
+#     """
+#     Checks to see if any findings are fast track eligible
+#         if so, log them and return True
+#         else log no ft eligible findings and return False
+#     Return bool
+#     """
+#     # log fast track eligible findings
+#     ft_eligible_findings = False
+#     logging.debug("Fast Track Eligible Findings:")
+#     for finding in vat_resp_dict["findings"]:
+#         if finding["findingsState"] not in ("approved", "conditional"):
+#             if "fastTrackEligibility" in finding:
+#                 ft_eligible_findings = True
+#                 logging.warn(
+#                     f"{colors['bright_yellow']}{finding['identifier']:<20} {finding['source']:20} {finding.get('severity', ''):20} {finding.get('package', ''):30} {finding.get('packagePath', '')}{colors['white']}"
+#                 )
+#     if not ft_eligible_findings:
+#         logging.debug("No Fast Track Eligible Findings")
+#     return ft_eligible_findings
 
 
-def _check_findings(vat_resp_dict):
-    ft_ineligible_findings = False
-    logging.debug("Fast Track Ineligible Findings:")
-    for finding in vat_resp_dict["findings"]:
-        if finding["findingsState"] not in ("approved", "conditional"):
-            if (
-                "fastTrackEligibility" not in finding
-                or not finding["fastTrackEligibility"]
-            ):
-                ft_ineligible_findings = True
-                logging.error(
-                    f"{colors['bright_red']}{finding['identifier']:<20} {finding['source']:20} {finding.get('severity', ''):20} {finding.get('package', ''):30} {finding.get('packagePath', '')}{colors['white']}"
-                )
-    if not ft_ineligible_findings:
-        logging.info("None")
-    return ft_ineligible_findings
+def _check_findings(vat_resp_dict) -> tuple(bool, bool):
+    """
+    Checks to see if any findings are fast track eligible
+        if so, log them and return True
+        else log no ft eligible findings and return False
+    Return bool
+    """
+    ft_ineligible = False
+    # logging.debug("Fast Track Ineligible Findings:")
+    # for finding in vat_resp_dict["findings"]:
+    #     if finding["findingsState"] not in ("approved", "conditional"):
+    #         if (
+    #             "fastTrackEligibility" not in finding
+    #             or not finding["fastTrackEligibility"]
+    #         ):
+    #             ft_ineligible_findings = True
+    #             logging.error(
+    #                 f"{colors['bright_red']}{finding['identifier']:<20} {finding['source']:20} {finding.get('severity', ''):20} {finding.get('package', ''):30} {finding.get('packagePath', '')}{colors['white']}"
+    #             )
+    # if not ft_ineligible_findings:
+    #     logging.info("None")
+    # return ft_ineligible_findings
+    ft_eligible_findings = []
+    ft_ineligible_findings = []
+    findings = vat_resp_dict["findings"]
+    for unapproved in (
+        finding
+        for finding in findings
+        if finding["findingsState"] not in ("approved", "conditional")
+    ):
+        if "fastTrackEligibility" in unapproved:
+            ft_eligible_findings.append(unapproved)
+        else:
+            ft_ineligible_findings.append(unapproved)
+    log_finding(ft_eligible_findings, "WARN")
+    log_finding(ft_ineligible_findings, "ERR")
+    if ft_eligible_findings:
+        ft_eligible = True
+    if ft_ineligible_findings:
+        ft_ineligible = True
+    return ft_eligible, ft_ineligible
+
+
+def log_finding(findings: list, log_type: str):
+    colors = {
+        "bright_yellow": "\x1b[38;5;226m",
+        "bright_red": "\x1b[38;5;196m",
+        # RGB ANSI code
+        "white": "\x1b[38;2;255;255;255m",
+    }
+    finding_color: str
+    log_level: int
+    if log_type == "WARN":
+        finding_color = colors["bright_yellow"]
+        log_level = 30
+    elif log_type == "ERR":
+        finding_color = colors["bright_red"]
+        log_level = 40
+    for finding in findings:
+        logging.log(
+            log_level,
+            f"{finding_color}{finding['identifier']:<20} {finding['source']:20} {finding.get('severity', ''):20} {finding.get('package', ''):30} {finding.get('packagePath', '')}{colors['white']}",
+        )
 
 
 def sort_justifications(vat_resp_dict):
