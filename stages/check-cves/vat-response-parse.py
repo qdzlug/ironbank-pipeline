@@ -30,12 +30,12 @@ def main():
     with open(f"{os.environ['ARTIFACT_STORAGE']}/vat/vat_response.json", "r") as f:
         vat_response = json.load(f)
 
-    approved, approval_status, approval_comments = is_approved(vat_response, True)
-    if approved:
+    exit_code, _, _ = is_approved(vat_response, True)
+    if exit_code == 0:
         logging.info("This pipeline passed the Check CVEs job")
     else:
         logging.error("This pipeline failed the Check CVEs job")
-        sys.exit(1)
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":
