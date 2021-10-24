@@ -1,11 +1,16 @@
 check-cves:
   stage: check-cves
+  # allow_failure:
+  #   exit_codes:
+  #     - 100
+  #     - 101
   rules:
     - if: '$CI_COMMIT_BRANCH != "master"'
       allow_failure: true
 
     - if: '$CI_COMMIT_BRANCH == "master"'
-      allow_failure: false
+      allow_failure:
+        exit_codes: 100
   dependencies:
     - hardening-manifest
     - load-scripts
