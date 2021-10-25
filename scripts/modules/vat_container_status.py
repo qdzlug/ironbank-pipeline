@@ -6,27 +6,6 @@ from dateutil import parser
 from datetime import datetime, timezone
 
 
-class Findings:
-    def __init__(
-        self, finding_type, _failures=False, ft_eligible=False, _findings=[]
-    ) -> None:
-        self.finding_type = finding_type
-        self._failures: bool = _failures
-        self._findings: list = _findings
-        self.ft_eligible = ft_eligible
-
-    def add_finding(self, finding):
-        self._findings.append(finding)
-
-    def get_findings(self):
-        return self._findings
-
-    def check_failure(self):
-        if self._findings:
-            self._failures = True
-        return self._failures
-
-
 def is_approved(vat_resp_dict, check_ft_findings):
     accredited = False
     not_expired = False
@@ -88,28 +67,6 @@ def _check_expiration(vat_resp_dict):
         return datetime.now(timezone.utc) < expiration_date
     else:
         return True
-
-
-# def _log_ft_eligible_findings(vat_resp_dict) -> bool:
-#     """
-#     Checks to see if any findings are fast track eligible
-#         if so, log them and return True
-#         else log no ft eligible findings and return False
-#     Return bool
-#     """
-#     # log fast track eligible findings
-#     ft_eligible_findings = False
-#     logging.debug("Fast Track Eligible Findings:")
-#     for finding in vat_resp_dict["findings"]:
-#         if finding["findingsState"] not in ("approved", "conditional"):
-#             if "fastTrackEligibility" in finding:
-#                 ft_eligible_findings = True
-#                 logging.warn(
-#                     f"{colors['bright_yellow']}{finding['identifier']:<20} {finding['source']:20} {finding.get('severity', ''):20} {finding.get('package', ''):30} {finding.get('packagePath', '')}{colors['white']}"
-#                 )
-#     if not ft_eligible_findings:
-#         logging.debug("No Fast Track Eligible Findings")
-#     return ft_eligible_findings
 
 
 def _check_findings(vat_resp_dict) -> tuple[bool, bool]:
