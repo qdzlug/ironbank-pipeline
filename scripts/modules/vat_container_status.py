@@ -76,6 +76,7 @@ def _check_findings(vat_resp_dict) -> tuple[bool, bool]:
     Logs the lists out and returns booleans indicating if either ft or non-ft findings, that are not approved, exist
     Returns tuple of booleans. False indicates not found while True means at lease one finding is present
     """
+    ft_eligible = False
     ft_ineligible = False
     # logging.debug("Fast Track Ineligible Findings:")
     # for finding in vat_resp_dict["findings"]:
@@ -93,21 +94,29 @@ def _check_findings(vat_resp_dict) -> tuple[bool, bool]:
     # return ft_ineligible_findings
     ft_eligible_findings = []
     ft_ineligible_findings = []
-    findings = vat_resp_dict["findings"]
+    findings: list[dict] = vat_resp_dict["findings"]
+    # pull out findings that are not approved into a list to be used for finding ft eligible and ft ineligible findings
     for unapproved in (
         finding
         for finding in findings
         if finding["findingsState"] not in ("approved", "conditional")
     ):
-        if "fastTrackEligibility" in unapproved:
+        # if a finding can be fast tracked, the key of fastTrackEligibility will exist in the finding
+        # also confirm that list of ft codes is not empty. This should never be the case and this check may be able to be removed in the future.
+        # //TODO Review with VAT team if ONLY checking for "fastTrackEligibility" key is sufficient for this logic check
+        if "fastTrackEligibility" in unapproved and unapproved["fastTrackEligibility"]:
             ft_eligible_findings.append(unapproved)
         else:
             ft_ineligible_findings.append(unapproved)
-    log_finding(ft_eligible_findings, "WARN")
-    log_finding(ft_ineligible_findings, "ERR")
+    if findings:
+        log_findings_header()
+    #  if ft_eligible_findings is not an empty list, log findings and set boolean to True
     if ft_eligible_findings:
+        log_finding(ft_eligible_findings, "WARN")
         ft_eligible = True
+    #  if ft_ineligible_findings is not an empty list, log findings and set boolean to True
     if ft_ineligible_findings:
+        log_finding(ft_ineligible_findings, "ERR")
         ft_ineligible = True
     return ft_eligible, ft_ineligible
 
