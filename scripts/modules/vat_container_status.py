@@ -121,7 +121,10 @@ def _check_findings(vat_resp_dict) -> tuple[bool, bool]:
     return ft_eligible, ft_ineligible
 
 
-def log_finding(findings: list, log_type: str):
+def log_finding(findings: list, log_type: str) -> None:
+    """
+    Logs findings for the Check CVE stage of the pipeline
+    """
     colors = {
         "bright_yellow": "\x1b[38;5;226m",
         "bright_red": "\x1b[38;5;196m",
@@ -144,6 +147,7 @@ def log_finding(findings: list, log_type: str):
             log_level,
             f"{finding_color}{finding['identifier']:<20} {finding['source']:20} {finding.get('severity', ''):20} {finding.get('package', ''):35} {finding.get('packagePath', '')}{colors['white']}",
         )
+    return
 
 
 def log_findings_header(log_level: int) -> None:
