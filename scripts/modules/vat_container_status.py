@@ -110,8 +110,6 @@ def _check_findings(vat_resp_dict) -> tuple[bool, bool]:
             ft_eligible_findings.append(unapproved)
         else:
             ft_ineligible_findings.append(unapproved)
-    if findings:
-        log_findings_header()
     #  if ft_eligible_findings is not an empty list, log findings and set boolean to True
     if ft_eligible_findings:
         log_finding(ft_eligible_findings, "WARN")
