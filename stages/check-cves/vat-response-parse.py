@@ -31,6 +31,7 @@ def main():
         vat_response = json.load(f)
 
     exit_code, _, _ = is_approved(vat_response, True)
+    logging.debug(f"EXIT CODE returned from is_approved function: {exit_code}")
     if exit_code == 0:
         logging.info("This pipeline passed the Check CVEs job")
     else:
