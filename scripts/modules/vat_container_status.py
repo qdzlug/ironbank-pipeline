@@ -85,6 +85,13 @@ def _check_expiration(vat_resp_dict) -> bool:
         return True
 
 
+def _get_approval_status(accredited, not_expired, ft_ineligible_findings) -> bool:
+    """
+    Returns True is a container is noted as accredited, and the accreditation has no expiration or expiration is not prior to current date, and there are no unapproved fast track ineligible findings
+    """
+    return accredited and not_expired and not ft_ineligible_findings
+
+
 def _check_findings(vat_resp_dict) -> tuple[bool, bool]:
     """
     Pulls all non-approved findings into a list
