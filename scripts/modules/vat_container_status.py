@@ -29,13 +29,15 @@ def is_approved(vat_resp_dict, check_ft_findings) -> tuple[int, str, str]:
             ft_eligible_findings, ft_ineligible_findings = _check_findings(
                 vat_resp_dict
             )
+    approved = _get_approval_status(accredited, not_expired, ft_ineligible_findings)
+
     # Exit codes for Check CVE parsing of VAT response
     # 0   - Container is accredited, accreditation is not expired, and there are no unapproved findings
     # 1   - Either Container is not accredited, or the accreditation has expired, or there is an unapproved finding not eligible to be fast tracked
     # 100 - Container is accredited, accreditation is not expired, and there are unapproved findings but they are ALL eligible to be fast tracked. This exit code is permitted to fail the Check CVE job
     exit_code: int
     # The first case should be a hard fail, as either the container is not accredited, the accreditation is expired, or there are unapproved findings that cannot be fast tracked
-    if not accredited or not not_expired or ft_ineligible_findings:
+    if not approved:
         exit_code = 1
     elif ft_eligible_findings:
         exit_code = 100
@@ -43,6 +45,7 @@ def is_approved(vat_resp_dict, check_ft_findings) -> tuple[int, str, str]:
         exit_code = 0
 
     return (
+        approved,
         exit_code,
         approval_status,
         approval_comment,
@@ -61,6 +64,8 @@ def _is_accredited(vat_resp_dict) -> bool:
     # Check accreditation
     if vat_resp_dict["accreditation"] in ("Conditionally Approved", "Approved"):
         return True
+    else:
+        return False
 
 
 def _check_expiration(vat_resp_dict) -> bool:
