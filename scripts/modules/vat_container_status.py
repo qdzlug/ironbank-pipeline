@@ -71,10 +71,10 @@ def _check_expiration(vat_resp_dict):
 
 def _check_findings(vat_resp_dict) -> tuple[bool, bool]:
     """
-    Checks to see if any findings are fast track eligible
-        if so, log them and return True
-        else log no ft eligible findings and return False
-    Return bool
+    Pulls all non-approved findings into a list
+    Then separates these into two lists of fast-track (ft) eligible and ft-ineligible findings
+    Logs the lists out and returns booleans indicating if either ft or non-ft findings, that are not approved, exist
+    Returns tuple of booleans. False indicates not found while True means at lease one finding is present
     """
     ft_ineligible = False
     # logging.debug("Fast Track Ineligible Findings:")
