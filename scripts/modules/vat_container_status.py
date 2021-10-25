@@ -129,6 +129,13 @@ def log_finding(findings: list, log_type: str):
         )
 
 
+def log_findings_header() -> None:
+    logging.info(
+        f"Identifier{'':<20} Source{'':20} Severity{'':20} Package{'':30} Package Path"
+    )
+    return
+
+
 def sort_justifications(vat_resp_dict):
 
     sources = {
