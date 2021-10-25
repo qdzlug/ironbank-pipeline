@@ -26,7 +26,6 @@ def is_approved(vat_resp_dict, check_ft_findings) -> tuple[int, str, str]:
 
         # Check CVEs - print unapproved findings on Check CVEs stage
         if check_ft_findings:
-            # _log_ft_eligible_findings(vat_resp_dict)
             ft_eligible_findings, ft_ineligible_findings = _check_findings(
                 vat_resp_dict
             )
