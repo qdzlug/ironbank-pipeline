@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+import os
 from dateutil import parser
 from datetime import datetime, timezone
 
@@ -58,7 +59,10 @@ def is_approved(vat_resp_dict, check_ft_findings):
     exit_code: int
     # The first case should be a hard fail, as either the container is not accredited, the accreditation is expired, or there are unapproved findings that cannot be fast tracked
     if not accredited or not not_expired or ft_ineligible_findings:
-        exit_code = 1
+        if os.environ["CI_COMMIT_BRANCH"] == "master":
+            exit_code = 1
+        else:
+            exit_code = 100
     elif ft_eligible_findings:
         exit_code = 100
     else:
@@ -108,7 +112,7 @@ def _check_expiration(vat_resp_dict):
 #     return ft_eligible_findings
 
 
-def _check_findings(vat_resp_dict) -> tuple(bool, bool):
+def _check_findings(vat_resp_dict) -> tuple[bool, bool]:
     """
     Checks to see if any findings are fast track eligible
         if so, log them and return True
