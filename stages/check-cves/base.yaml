@@ -1,16 +1,7 @@
 check-cves:
   stage: check-cves
-  # allow_failure:
-  #   exit_codes:
-  #     - 100
-  #     - 101
-  rules:
-    - if: '$CI_COMMIT_BRANCH != "master"'
-      allow_failure: true
-
-    - if: '$CI_COMMIT_BRANCH == "master"'
-      allow_failure:
-        exit_codes: 100
+  allow_failure:
+    exit_codes: 100
   dependencies:
     - hardening-manifest
     - load-scripts
@@ -21,4 +12,5 @@ check-cves:
     - anchore-scan
     - vat
   script:
+    - set +e
     - 'python3 "${PIPELINE_REPO_DIR}/stages/check-cves/vat-response-parse.py"'
