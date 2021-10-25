@@ -78,20 +78,6 @@ def _check_findings(vat_resp_dict) -> tuple[bool, bool]:
     """
     ft_eligible = False
     ft_ineligible = False
-    # logging.debug("Fast Track Ineligible Findings:")
-    # for finding in vat_resp_dict["findings"]:
-    #     if finding["findingsState"] not in ("approved", "conditional"):
-    #         if (
-    #             "fastTrackEligibility" not in finding
-    #             or not finding["fastTrackEligibility"]
-    #         ):
-    #             ft_ineligible_findings = True
-    #             logging.error(
-    #                 f"{colors['bright_red']}{finding['identifier']:<20} {finding['source']:20} {finding.get('severity', ''):20} {finding.get('package', ''):30} {finding.get('packagePath', '')}{colors['white']}"
-    #             )
-    # if not ft_ineligible_findings:
-    #     logging.info("None")
-    # return ft_ineligible_findings
     ft_eligible_findings = []
     ft_ineligible_findings = []
     findings: list[dict] = vat_resp_dict["findings"]
