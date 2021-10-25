@@ -30,8 +30,12 @@ def main():
     with open(f"{os.environ['ARTIFACT_STORAGE']}/vat/vat_response.json", "r") as f:
         vat_response = json.load(f)
 
-    exit_code, _, _ = is_approved(vat_response, True)
+    exit_code, accreditation_status, accreditation_comments = is_approved(
+        vat_response, True
+    )
     logging.debug(f"EXIT CODE returned from is_approved function: {exit_code}")
+    logging.debug(f"Accreditation Status: {accreditation_status}")
+    logging.debug(f"Accreditation Comments: {accreditation_comments}")
     if exit_code == 0:
         logging.info("This pipeline passed the Check CVEs job")
     else:
