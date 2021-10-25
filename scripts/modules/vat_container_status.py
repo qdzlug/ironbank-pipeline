@@ -6,7 +6,7 @@ from dateutil import parser
 from datetime import datetime, timezone
 
 
-def is_approved(vat_resp_dict, check_ft_findings):
+def is_approved(vat_resp_dict, check_ft_findings) -> tuple[int, str, str]:
     accredited = False
     not_expired = False
     ft_eligible_findings = False
@@ -54,13 +54,29 @@ def is_approved(vat_resp_dict, check_ft_findings):
     )
 
 
-def _is_accredited(vat_resp_dict):
+def _is_accredited(vat_resp_dict) -> bool:
+    """
+    Checks if a container's 'accreditation' is Conditionally Approved, or Approved
+
+    Returns
+        boolean:
+        True indicates accredited.
+        False indicates not accredited.
+    """
     # Check accreditation
     if vat_resp_dict["accreditation"] in ("Conditionally Approved", "Approved"):
         return True
 
 
-def _check_expiration(vat_resp_dict):
+def _check_expiration(vat_resp_dict) -> bool:
+    """
+    Checks if a container's 'earliestExpiration'. If key is present, check if current date is previous to expiration date. If 'earliestExpiration' key is not found, return True
+
+    Returns
+        boolean:
+        True indicates container's accreditation is not expired.
+        False indicates container's accreditation has expired
+    """
     # Check earliest expiration
     if "earliestExpiration" in vat_resp_dict:
         expiration_date = parser.parse(vat_resp_dict["earliestExpiration"])
@@ -74,7 +90,7 @@ def _check_findings(vat_resp_dict) -> tuple[bool, bool]:
     Pulls all non-approved findings into a list
     Then separates these into two lists of fast-track (ft) eligible and ft-ineligible findings
     Logs the lists out and returns booleans indicating if either ft or non-ft findings, that are not approved, exist
-    Returns tuple of booleans. False indicates not found while True means at lease one finding is present
+    Returns tuple of booleans, Fast track eligible, and fast track ineligible. False indicates not found while True means at lease one finding is present
     """
     ft_eligible = False
     ft_ineligible = False
@@ -119,25 +135,43 @@ def log_finding(findings: list, log_type: str):
     if log_type == "WARN":
         finding_color = colors["bright_yellow"]
         log_level = 30
+        logging.debug("Fast Track eligible findings")
     elif log_type == "ERR":
         finding_color = colors["bright_red"]
         log_level = 40
+        logging.debug("Fast Track ineligible findings")
+    log_findings_header(log_level)
     for finding in findings:
         logging.log(
             log_level,
-            f"{finding_color}{finding['identifier']:<20} {finding['source']:20} {finding.get('severity', ''):20} {finding.get('package', ''):30} {finding.get('packagePath', '')}{colors['white']}",
+            f"{finding_color}{finding['identifier']:<20} {finding['source']:20} {finding.get('severity', ''):20} {finding.get('package', ''):35} {finding.get('packagePath', '')}{colors['white']}",
         )
 
 
-def log_findings_header() -> None:
-    logging.info(
-        f"Identifier{'':<20} Source{'':20} Severity{'':20} Package{'':30} Package Path"
+def log_findings_header(log_level: int) -> None:
+    values = {
+        "identifier": "Identifier",
+        "source": "Source",
+        "severity": "Severity",
+        "package": "Package",
+        "packagePath": "Package Path",
+    }
+    logging.log(
+        log_level,
+        f"{values['identifier']:<20} {values['source']:20} {values.get('severity', ''):20} {values.get('package', ''):35} {values.get('packagePath', '')}",
     )
     return
 
 
-def sort_justifications(vat_resp_dict):
+def sort_justifications(vat_resp_dict) -> tuple[dict, dict, dict, dict]:
+    """
+    Findings are sorted into dictionary who's key is the scan source of the given finding
 
+    Returns
+        tuple of dictionaries, one for each scan source
+
+        oscap, twistlock, anchore cve, anchore compliance
+    """
     sources = {
         "anchore_cve": {},
         "anchore_comp": {},
