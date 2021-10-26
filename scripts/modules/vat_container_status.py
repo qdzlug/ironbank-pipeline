@@ -5,7 +5,16 @@ from dateutil import parser
 from datetime import datetime, timezone
 
 
-def is_approved(vat_resp_dict, check_ft_findings) -> tuple[int, str, str]:
+def is_approved(vat_resp_dict, check_ft_findings) -> tuple[bool, int, str, str]:
+    """
+    This function is used by the wl-compare-lint and check-cve jobs. wl-compare only needs the approved return value, while check-cves needs this value and the exit code.
+
+    Returns
+        boolean - indicates if container is approved. If approved, master branch pipelines are permitted to run
+        int     - int is the exit code that check-cves should use
+        str     - this is the container's accreditation status
+        str     - this is the container's accreditation comments
+    """
     accredited = False
     not_expired = False
     ft_eligible_findings = False
