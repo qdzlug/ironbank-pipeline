@@ -174,7 +174,7 @@ def log_findings_header(log_level: int) -> None:
 
 def sort_justifications(vat_resp_dict) -> tuple[dict, dict, dict, dict]:
     """
-    Findings are sorted into dictionary who's key is the scan source of the given finding
+    Findings are sorted into dictionary whose key is the scan source of the given finding
 
     Returns
         tuple of dictionaries, one for each scan source
