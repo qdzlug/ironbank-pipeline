@@ -106,11 +106,9 @@ def sort_justifications(vat_resp_dict):
                 finding["package"] if "package" in finding else None,
                 finding["packagePath"] if "packagePath" in finding else None,
             )
-            sources[finding["source"]][search_id] = (
-                finding["contributor"]["justification"]
-                if not finding["inheritsFrom"]
-                else "Inherited from base image."
-            )
+            sources[finding["source"]][search_id] = finding["contributor"][
+                "justification"
+            ]
 
     return (
         sources["oscap_comp"],
