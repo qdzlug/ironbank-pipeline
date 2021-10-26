@@ -6,9 +6,16 @@ import os
 import argparse
 import logging
 from pathlib import Path
-import xml.etree.ElementTree as etree
 import requests
 from requests.structures import CaseInsensitiveDict
+
+sys.path.append(
+    os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts/modules"
+    )
+)
+
+from get_oscap_failures import generate_oscap_jobs  # noqa E402
 
 
 parser = argparse.ArgumentParser(
@@ -113,96 +120,6 @@ parser.add_argument(
     action="store_true",
     required=False,
 )
-
-
-def _format_reference(ref, n_set):
-    ref_title = ref.find("dc:title", n_set)
-    ref_identifier = ref.find("dc:identifier", n_set)
-    if ref_title is not None:
-        assert ref_identifier is not None
-        return f"{ref_title.text}: {ref_identifier.text}"
-    return ref.text
-
-
-# Get full OSCAP report with justifications for csv export
-def generate_oscap_jobs(oscap_path):
-    oc_path = Path(oscap_path)
-
-    root = etree.parse(oc_path)
-    n_set = {
-        "xccdf": "http://checklists.nist.gov/xccdf/1.2",
-        "xhtml": "http://www.w3.org/1999/xhtml",  # not actually needed
-        "dc": "http://purl.org/dc/elements/1.1/",
-    }
-
-    patches_up_to_date_dupe = False
-    cces = []
-    for rule_result in root.findall("xccdf:TestResult/xccdf:rule-result", n_set):
-        rule_id = rule_result.attrib["idref"]
-        severity = rule_result.attrib["severity"]
-        result = rule_result.find("xccdf:result", n_set).text
-        logging.debug(f"Rule ID: {rule_id}")
-        if result in ["notchecked", "fail", "error"]:
-            if (
-                rule_id
-                == "xccdf_org.ssgproject.content_rule_security_patches_up_to_date"
-            ):
-                if patches_up_to_date_dupe:
-                    logging.debug(
-                        f"SKIPPING: rule {rule_id} - OVAL check repeats and this finding is checked elsewhere",
-                    )
-                    continue
-                patches_up_to_date_dupe = True
-
-            # Get the <rule> that corresponds to the <rule-result>
-            # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
-            rule = root.find(f".//xccdf:Rule[@id='{rule_id}']", n_set)
-            title = rule.find("xccdf:title", n_set).text
-
-            # This is the identifier that VAT will use. It will never be unset.
-            # Values will be of the format UBTU-18-010100 (UBI) or CCI-001234 (Ubuntu)
-            # Ubuntu/DISA:
-            identifiers = [ver.text for ver in rule.findall("xccdf:version", n_set)]
-            if not identifiers:
-                # UBI/ComplianceAsCode:
-                identifiers = [
-                    ident.text for ident in rule.findall("xccdf:ident", n_set)
-                ]
-
-            # We never expect to get more than one identifier
-            assert len(identifiers) == 1
-            logging.debug(f"Identifiers {identifiers}")
-            identifier = identifiers[0]
-            # Revisit this if we ever switch UBI from ComplianceAsCode to DISA content
-
-            # This is now informational only, vat_import no longer uses this field
-            references = "\n".join(
-                _format_reference(r_l, n_set)
-                for r_l in rule.findall("xccdf:reference", n_set)
-            )
-            assert references
-
-            ret = {
-                "finding": identifier,
-                "severity": severity.lower(),
-                "description": title,
-                "link": None,
-                "score": "",
-                "package": None,
-                "packagePath": None,
-                "scanSource": "oscap_comp",
-            }
-            cces.append(ret)
-        if result == "notselected":
-            logging.debug(f"SKIPPING: 'notselected' rule {rule_id}")
-    try:
-        assert len(set(cce["finding"] for cce in cces)) == len(cces)
-    except Exception as duplicate_idents:
-        for cce in cces:
-            logging.info(f"Duplicate: {cce['finding']}")
-        raise duplicate_idents
-
-    return cces
 
 
 def generate_anchore_cve_jobs(anchore_sec_path):
