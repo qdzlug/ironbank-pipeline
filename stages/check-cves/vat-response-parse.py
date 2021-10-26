@@ -30,7 +30,7 @@ def main():
     with open(f"{os.environ['ARTIFACT_STORAGE']}/vat/vat_response.json", "r") as f:
         vat_response = json.load(f)
 
-    exit_code, accreditation_status, accreditation_comments = is_approved(
+    _, exit_code, accreditation_status, accreditation_comments = is_approved(
         vat_response, True
     )
     logging.debug(f"EXIT CODE returned from is_approved function: {exit_code}")
