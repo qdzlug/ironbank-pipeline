@@ -51,6 +51,6 @@ def test_check_findings(mock_vat_resp_findings):
     only_ft_findings = {"findings": mock_vat_resp_findings[0:1]}
     only_non_ft_findings = {"findings": mock_vat_resp_findings[-1:]}
     ft_and_non_ft_findings = {"findings": mock_vat_resp_findings}
-    assert _check_findings(only_ft_findings) is False
-    assert _check_findings(only_non_ft_findings) is True
-    assert _check_findings(ft_and_non_ft_findings) is True
+    assert _check_findings(only_ft_findings) == (True, False)
+    assert _check_findings(only_non_ft_findings) == (False, True)
+    assert _check_findings(ft_and_non_ft_findings) == (True, True)
