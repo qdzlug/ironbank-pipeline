@@ -52,8 +52,6 @@ def is_approved(vat_resp_dict, check_ft_findings) -> tuple[bool, int, str, str]:
     # The first case should be a hard fail on master branches, as either the container is not accredited, the accreditation is expired
     if not approved:
         exit_code = 1
-    elif ft_ineligible_findings:
-        exit_code = 1
     elif ft_eligible_findings:
         exit_code = 100
     else:
