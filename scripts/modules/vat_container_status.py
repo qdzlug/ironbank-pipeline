@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+import os
 from dateutil import parser
 from datetime import datetime, timezone
 
@@ -46,7 +47,10 @@ def is_approved(vat_resp_dict, check_ft_findings) -> tuple[bool, int, str, str]:
     # 100 - Container is accredited, accreditation is not expired, and there are unapproved findings but they are ALL eligible to be fast tracked. This exit code is permitted to fail the Check CVE job
     exit_code: int
     # The first case should be a hard fail, as either the container is not accredited, the accreditation is expired, or there are unapproved findings that cannot be fast tracked
-    if not approved:
+    branch = os.environ["CI_COMMIT_BRANCH"]
+    if not approved and branch == "master":
+        exit_code = 1
+    elif ft_ineligible_findings:
         exit_code = 1
     elif ft_eligible_findings:
         exit_code = 100
