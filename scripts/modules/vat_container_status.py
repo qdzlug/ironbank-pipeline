@@ -102,16 +102,18 @@ def _get_approval_status(
     accredited, not_expired, ft_ineligible_findings, branch
 ) -> bool:
     """
-    Returns True is a container is noted as accredited, and the accreditation has no expiration or expiration is not prior to current date, and there are no unapproved fast track ineligible findings
+    Returns True if
+        branch == 'master' container is noted as accredited, and the accreditation has no expiration or expiration is not prior to current date, and there are no unapproved fast track ineligible findings
+        branch != 'master' there are no unapproved fast track ineligible findings
     """
     if not accredited:
         logging.warning("Container is not accredited in VAT")
     if not not_expired:
         logging.warning("Container's earliest expiration is prior to current date")
     if branch == "master":
-        return accredited and not_expired and ft_ineligible_findings
+        return accredited and not_expired and not ft_ineligible_findings
     else:
-        return ft_ineligible_findings
+        return not ft_ineligible_findings
 
 
 def _check_findings(vat_resp_dict) -> tuple[bool, bool]:
