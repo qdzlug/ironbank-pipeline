@@ -26,7 +26,8 @@ def main() -> None:
     except HTTPError:
         if r.status_code == 403:
             logging.info(
-                f"{os.environ['CI_PROJECT_NAME']} is not authorized to use the image name of: {os.environ['IMAGE_NAME']}. Either the name has changed or the container has never been tracked in VAT. An authorization request has automatically been generated. Please reach out to the Container Hardening team for an authorization review."
+                f"{os.environ['CI_PROJECT_NAME']} is not authorized to use the image name of: {os.environ['IMAGE_NAME']}. Either the name has changed or the container has never been tracked in VAT. An authorization request has automatically been generated. Please create a ticket with the link below for VAT authorization review.",
+                f"https://repo1.dso.mil/dsop/dccscr/-/issues/new?issuable_template=VAT%20Pipeline%20Access%20Request&issue[title]=VAT+Pipeline+Access+Request+{urllib.parse.quote(os.environ['CI_PROJECT_URL'], safe='')}",
             )
         else:
             logging.exception("HTTPError")
