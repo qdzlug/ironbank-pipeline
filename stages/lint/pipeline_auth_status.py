@@ -28,10 +28,9 @@ def main() -> None:
             logging.info(
                 f"{os.environ['CI_PROJECT_NAME']} is not authorized to use the image name of: {os.environ['IMAGE_NAME']}. Either the name has changed or the container has never been tracked in VAT. An authorization request has automatically been generated. Please reach out to the Container Hardening team for an authorization review."
             )
-            sys.exit(1)
         else:
             logging.exception("HTTPError")
-            sys.exit(1)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
