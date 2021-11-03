@@ -83,7 +83,7 @@ prettier:
   tags:
     - ironbank-tools
   stage: format
-  image: "registry1.dso.mil/ironbank/opensource/nodejs/nodejs12:12.22."
+  image: "registry1.dso.mil/ironbank/opensource/nodejs/nodejs12:12.22.7"
   script:
     - npx prettier -c .
 
