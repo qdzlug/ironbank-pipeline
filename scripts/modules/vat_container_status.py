@@ -176,7 +176,7 @@ def log_finding(findings: list, log_type: str) -> None:
     for finding in findings:
         logging.log(
             log_level,
-            f"{finding_color}{finding['identifier']:<20} {finding['source']:20} {finding.get('severity', ''):20} {finding.get('package', ''):35} {finding.get('packagePath', '')}{colors['white']}",
+            f"{finding_color}{finding['identifier']:<20} {finding['source']:20} {finding.get('severity', ''):20} {finding.get('package', ''):35} {finding.get('packagePath', ''):45} {colors['white']}{finding['inheritsFrom'] if finding['inheritsFrom'] else 'Uninherited'}",
         )
     return
 
@@ -188,10 +188,11 @@ def log_findings_header(log_level: int) -> None:
         "severity": "Severity",
         "package": "Package",
         "packagePath": "Package Path",
+        "inheritsFrom": "Inherits From",
     }
     logging.log(
         log_level,
-        f"{values['identifier']:<20} {values['source']:20} {values.get('severity', ''):20} {values.get('package', ''):35} {values.get('packagePath', '')}",
+        f"{values['identifier']:<20} {values['source']:20} {values.get('severity', ''):20} {values.get('package', ''):35} {values.get('packagePath', ''):45} {values['inheritsFrom']}",
     )
     return
 
