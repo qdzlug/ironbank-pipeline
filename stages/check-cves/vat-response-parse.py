@@ -30,16 +30,17 @@ def main():
     with open(f"{os.environ['ARTIFACT_STORAGE']}/vat/vat_response.json", "r") as f:
         vat_response = json.load(f)
 
-    approved, approval_status, approval_comments = is_approved(vat_response, True)
-    if approved:
-        logging.info("This container is noted as an approved image in VAT")
-        logging.info(f"Container accreditation: {approval_status}")
-        logging.info(f"Container accreditation comments: {approval_comments}")
+    _, exit_code, accreditation_status, accreditation_comments = is_approved(
+        vat_response, True
+    )
+    logging.debug(f"EXIT CODE returned from is_approved function: {exit_code}")
+    logging.debug(f"Accreditation Status: {accreditation_status}")
+    logging.debug(f"Accreditation Comments: {accreditation_comments}")
+    if exit_code == 0:
+        logging.info("This pipeline passed the Check CVEs job")
     else:
-        logging.error("This container is not noted as an approved image in VAT")
-        logging.error(f"Container accreditation: {approval_status}")
-        logging.error(f"Container accreditation comments: {approval_comments}")
-        sys.exit(1)
+        logging.error("This pipeline failed the Check CVEs job")
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":

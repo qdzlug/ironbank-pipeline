@@ -64,7 +64,7 @@ def main():
     with filename.open(mode="w") as f:
         json.dump(vat_response, f)
 
-    approved, approval_status, approval_comment = is_approved(vat_response, False)
+    approved, _, approval_status, approval_comment = is_approved(vat_response, False)
     logging.info(f"Approved: {approved}")
     logging.info(f"Approval Status: {approval_status}")
     if approval_comment:
