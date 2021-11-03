@@ -17,6 +17,7 @@ def mock_vat_resp_findings():
             "package": "pcre-8.42-4.el8",
             "findingsState": "under review",
             "fastTrackEligibility": ["FT01"],
+            "inheritsFrom": "redhat/ubi/ubi8:8.4",
             "contributor": {
                 "state": "needs_review",
                 "justification": "Upstream patched in version 8.44 on 2/10/2020. RH has not patched.",
@@ -26,8 +27,21 @@ def mock_vat_resp_findings():
             "identifier": "CCE-13141516",
             "source": "oscap_comp",
             "severity": "Medium",
+            "findingsState": "notapproved",
+            "fastTrackEligibility": ["FT01"],
+            "inheritsFrom": "",
+            "contributor": {
+                "state": "needs_review",
+                "justification": "this is a compliance finding",
+            },
+        },
+        {
+            "identifier": "CCE-131516",
+            "source": "oscap_comp",
+            "severity": "Medium",
             "findingsState": "approved",
             "fastTrackEligibility": ["FT01"],
+            "inheritsFrom": "",
             "contributor": {
                 "state": "needs_review",
                 "justification": "this is a compliance finding",
@@ -39,6 +53,7 @@ def mock_vat_resp_findings():
             "severity": "Critical",
             "package": "libssh-0.9.4-2.el8",
             "findingsState": "notapproved",
+            "inheritsFrom": "opensource/jupyter/jupyterlab:3.1.13",
             "contributor": {
                 "state": "has_justification",
                 "justification": "this is an anchore finding",
