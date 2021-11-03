@@ -60,9 +60,9 @@ black:
   tags:
     - ironbank-tools
   stage: format
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml"
+  image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:0.4"
   script:
-    - pip install git+git://github.com/psf/black
+    - pip install --user git+git://github.com/psf/black
     - black --check --diff --color -t py39 .
 
 pylama:
@@ -70,11 +70,11 @@ pylama:
   tags:
     - ironbank-tools
   stage: lint
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/python:pyyaml"
+  image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:0.4"
   dependencies:
     - black
   script:
-    - pip install pylama
+    - pip install --user pylama
     - pylama
 ## ignore line errors as blacks has been ran against code.
 
@@ -83,10 +83,8 @@ prettier:
   tags:
     - ironbank-tools
   stage: format
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/all-in-one-fedora:1.0"
+  image: "registry1.dso.mil/ironbank/opensource/nodejs/nodejs12:12.22."
   script:
-    - curl -sL https://rpm.nodesource.com/setup_12.x | bash -
-    - dnf install -y nodejs
     - npx prettier -c .
 
 shfmt:
@@ -94,7 +92,7 @@ shfmt:
   tags:
     - ironbank-tools
   stage: format
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/all-in-one-fedora:1.0"
+  image: "registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.4"
   script:
     - dnf install wget -y
     - wget https://github.com/mvdan/sh/releases/download/v3.1.2/shfmt_v3.1.2_linux_amd64
@@ -106,8 +104,6 @@ unit-testing:
   tags:
     - ironbank-tools
   stage: test
-  image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:0.3"
-  # TODO: remove pip install for pytest when pytest is added to pipeline-runner image
+  image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:0.4"
   script:
-    - python3 -m pip install pytest
     - python3 -m pytest -m "not slow" --log-cli-level="INFO" --ignore=stages/vat
