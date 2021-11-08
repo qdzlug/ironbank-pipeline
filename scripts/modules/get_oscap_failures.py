@@ -54,7 +54,6 @@ def generate_oscap_jobs(oscap_path):
                 # Get the <rule> that corresponds to the <rule-result>
                 # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
                 rule = root.find(f".//xccdf:Rule[@id='{rule_id}']", n_set)
-                # title = rule.find("xccdf:title", n_set).text
 
                 # This is the identifier that VAT will use. It will never be unset.
                 # Values will be of the format UBTU-18-010100 (UBI) or CCI-001234 (Ubuntu)
