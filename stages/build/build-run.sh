@@ -82,14 +82,19 @@ buildah tag --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" "${IMAGE_FULLTAG}"
 
 buildah push --storage-driver=vfs --authfile staging_auth.json --digestfile="${ARTIFACT_DIR}/digest" "${IMAGE_FULLTAG}"
 
-echo "Read the tags"
-tags_file="${ARTIFACT_STORAGE}/preflight/tags.txt"
-test -f "$tags_file"
+function push_tags() {
+  echo "Read the tags"
+  tags_file="${ARTIFACT_STORAGE}/preflight/tags.txt"
+  test -f "$tags_file"
+  while IFS= read -r tag; do
+    buildah tag --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" "${IMAGE_REGISTRY_REPO}:${tag}"
+    buildah push --storage-driver=vfs --authfile staging_auth.json "${IMAGE_REGISTRY_REPO}:${tag}"
+  done <"$tags_file"
+}
 
-while IFS= read -r tag; do
-  buildah tag --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" "${IMAGE_REGISTRY_REPO}:${tag}"
-  buildah push --storage-driver=vfs --authfile staging_auth.json "${IMAGE_REGISTRY_REPO}:${tag}"
-done <"$tags_file"
+if [[ -n "${STAGING_BASE_IMAGE}" || "${CI_COMMIT_BRANCH}" == "development" ]]; then
+  push_tags
+fi
 
 IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" --format '{{.Id}}')
 {
