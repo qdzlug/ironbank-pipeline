@@ -27,6 +27,7 @@ shellcheck:
   stage: lint
   image: registry.dso.mil/ironbank-tools/ironbank-pipeline/shellcheck:v0.8.0
   script:
+    - python -v
     - pip install yq
     - |
       set -o pipefail
