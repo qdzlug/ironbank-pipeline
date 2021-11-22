@@ -243,7 +243,7 @@ class Anchore:
         if pathlib.Path("./Dockerfile").is_file():
             add_cmd += ["--dockerfile", "./Dockerfile"]
 
-        add_cmd += ["--force", image]
+        add_cmd.append(image)
 
         try:
             logging.info(f"{' '.join(add_cmd[0:3])} {' '.join(add_cmd[5:])}")
@@ -257,15 +257,22 @@ class Anchore:
             logging.exception("Could not add image to Anchore")
             sys.exit(1)
 
-        if image_add.returncode != 0:
+        logging.debug(f"Return Code: {image_add.returncode}")
+
+        if image_add.returncode == 0:
+            logging.info(f"{image} added to Anchore")
+            logging.info(image_add.stdout)
+
+            return json.loads(image_add.stdout)[0]["imageDigest"]
+        elif image_add.returncode == 1:
+            logging.info(
+                f"{image} already exists in Anchore. Pulling current scan data."
+            )
+            return json.loads(image_add.stdout)["detail"]["digest"]
+        else:
             logging.error(image_add.stdout)
             logging.error(image_add.stderr)
             sys.exit(image_add.returncode)
-
-        logging.info(f"{image} added to Anchore")
-        logging.info(image_add.stdout)
-
-        return json.loads(image_add.stdout)[0]["imageDigest"]
 
     def image_wait(self, digest):
         """
