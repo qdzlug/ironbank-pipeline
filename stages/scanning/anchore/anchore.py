@@ -257,21 +257,23 @@ class Anchore:
             logging.exception("Could not add image to Anchore")
             sys.exit(1)
 
-        logging.info(f"Return Code: {image_add.returncode}")
-        if image_add.returncode == 1:
-            logging.info(
-                f"{image} already exists in Anchore. Pulling current scan data."
-            )
-            return json.loads(image_add.stdout)["detail"]["digest"]
-        elif image_add.returncode != 0 and image_add.returncode != 1:
-            logging.error(image_add.stdout)
-            logging.error(image_add.stderr)
-            sys.exit(image_add.returncode)
-        else:
+        logging.debug(f"Return Code: {image_add.returncode}")
+
+        if image_add.returncode == 0:
             logging.info(f"{image} added to Anchore")
             logging.info(image_add.stdout)
 
             return json.loads(image_add.stdout)[0]["imageDigest"]
+        elif image_add.returncode == 1:
+            logging.info(
+                f"{image} already exists in Anchore. Pulling current scan data."
+            )
+            return json.loads(image_add.stdout)["detail"]["digest"]
+        else:
+            logging.error(image_add.stdout)
+            logging.error(image_add.stderr)
+            sys.exit(image_add.returncode)
+
 
     def image_wait(self, digest):
         """

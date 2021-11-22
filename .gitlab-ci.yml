@@ -27,8 +27,6 @@ shellcheck:
   stage: lint
   image: registry.dso.mil/ironbank-tools/ironbank-pipeline/shellcheck:ib-v1.0
   script:
-    - python -v
-    - pip install yq
     - |
       set -o pipefail
       set +e # remove gitlab ci setting
