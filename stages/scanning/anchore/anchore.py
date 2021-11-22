@@ -274,7 +274,6 @@ class Anchore:
             logging.error(image_add.stderr)
             sys.exit(image_add.returncode)
 
-
     def image_wait(self, digest):
         """
         Wait for Anchore to scan the image.
