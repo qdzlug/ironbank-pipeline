@@ -256,7 +256,9 @@ class Anchore:
 
         logging.info(f"Return Code: {image_add.returncode}")
         if image_add.returncode == 1:
-            logging.info(f"{image} already exists in Anchore. Pulling current scan data.")
+            logging.info(
+                f"{image} already exists in Anchore. Pulling current scan data."
+            )
             return json.loads(image_add.stdout)["detail"]["digest"]
         elif image_add.returncode != 0 and image_add.returncode != 1:
             logging.error(image_add.stdout)
