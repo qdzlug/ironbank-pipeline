@@ -1,0 +1,20 @@
+registry-validation:
+  extends: .preflight
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/preflight"
+  script:
+    - mkdir -p "${ARTIFACT_STORAGE}/preflight"
+    - python3 "${PIPELINE_REPO_DIR}/stages/preflight/registry-validation.py"
+    - echo "${CI_JOB_JWT}"
+    - echo "${CI_JOB_JWT}" >> show_me
+    - cat show_me
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_DIR}/"
+      - show_me
+    expire_in: 1 week
+    reports:
+      dotenv: "${ARTIFACT_DIR}/variables.env"
+  allow_failure:
+    exit_codes: 1
