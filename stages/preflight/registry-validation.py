@@ -8,9 +8,6 @@ from pathlib import Path
 import jsonschema
 import yaml
 
-sys.path.insert(1, os.path.join(os.path.dirname(__file__), "../../scripts/"))
-
-
 def main():
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
     if loglevel == "DEBUG":
