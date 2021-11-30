@@ -8,6 +8,7 @@ from pathlib import Path
 import jsonschema
 import yaml
 
+
 def main():
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
     if loglevel == "DEBUG":
