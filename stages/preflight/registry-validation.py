@@ -31,7 +31,7 @@ def main():
             invalid_tags = reject_invalid_tags(content)
             if invalid_tags:
                 logging.error(
-                    "Please update the tags to ensure they do not contain registry1.dso.mil. This failure will change from soft to hard in January 2022."
+                    "Please update the following tags to ensure they do not contain registry1.dso.mil. This failure will change from soft to hard in January 2022."
                 )
                 for tag in invalid_tags:
                     logging.error(
