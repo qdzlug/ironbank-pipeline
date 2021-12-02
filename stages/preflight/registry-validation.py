@@ -95,6 +95,7 @@ def validate_final_from(content: list):
     else:
         return False
 
+
 def parse_dockerfile(dockerfile_path: str):
     try:
         parsed_file = dockerfile.parse_file(dockerfile_path)
