@@ -90,7 +90,7 @@ def validate_final_from(content: list):
     """
     Returns whether the final FROM statement in the Dockerfile is valid, i.e. FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}
     """
-    if content[-1] != "from ${base_registry}/${base_image}:${base_tag}":
+    if content[-1].value[0] != "${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}":
         return True
     else:
         return False
