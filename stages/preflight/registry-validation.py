@@ -81,8 +81,8 @@ def reject_invalid_tags(content: list) -> list:
 def remove_non_from_statements(dockerfile_tuple: tuple) -> list:
     from_list = []
     for command in dockerfile_tuple:
-        if command.cmd == "FROM":
-            from_list.append(command.original.lower())
+        if command.cmd.lower() == "from":
+            from_list.append(command)
     return from_list
 
 
