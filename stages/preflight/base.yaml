@@ -8,4 +8,5 @@ include:
   - local: stages/preflight/trufflehog.yaml
   - local: stages/preflight/folder-structure.yaml
   - local: stages/preflight/hardening-manifest.yaml
+  - local: stages/preflight/registry-validation.yaml
 # TODO: Possibly check for deployment files?
