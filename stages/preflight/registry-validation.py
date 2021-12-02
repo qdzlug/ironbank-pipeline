@@ -38,22 +38,23 @@ def main():
                     )
                 sys.exit(1)
             logging.info("Hardening manifest is validated")
+            if content["args"]["BASE_IMAGE"] or content["args"]["BASE_TAG"]:
+                if dockerfile_file_path.exists():
+                    parsed_dockerfile = parse_dockerfile("Dockerfile")
+                    from_statement_list = remove_non_from_statements(parsed_dockerfile)
+                    invalid_from = validate_final_from(from_statement_list)
+                    if invalid_from:
+                        logging.error(
+                            "The final FROM statement in the Dockerfile must be FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}"
+                        )
+                        sys.exit(1)
+            logging.info("Dockerfile is validated.")
     else:
         logging.error(
             "hardening_manifest.yaml does not exist, please add a hardening_manifest.yaml file to your project"
         )
         logging.error("Exiting.")
         sys.exit(1)
-    if dockerfile_file_path.exists():
-        parsed_dockerfile = parse_dockerfile("Dockerfile")
-        from_statement_list = remove_non_from_statements(parsed_dockerfile)
-        invalid_from = validate_final_from(from_statement_list)
-        if invalid_from:
-            logging.error(
-                "The final FROM statement in the Dockerfile must be FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}"
-            )
-            sys.exit(1)
-        logging.info("Dockerfile is validated.")
 
 
 def check_for_invalid_tag(subcontent: dict):
@@ -93,7 +94,6 @@ def validate_final_from(content: list):
         return True
     else:
         return False
-
 
 def parse_dockerfile(dockerfile_path: str):
     try:
