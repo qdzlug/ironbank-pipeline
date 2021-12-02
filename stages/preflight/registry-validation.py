@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 from pathlib import Path
+import dockerfile
 
 import jsonschema
 import yaml
@@ -44,16 +45,15 @@ def main():
         logging.error("Exiting.")
         sys.exit(1)
     if dockerfile_file_path.exists():
-        with dockerfile_file_path.open("r") as f:
-            content = [line.rstrip() for line in f]
-            logging.debug("Checking for valid final FROM statement in Dockerfile.")
-            invalid_from = validate_final_from(content)
-            if invalid_from:
-                logging.error(
-                    "The final FROM statement in the Dockerfile must be FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}"
-                )
-                sys.exit(1)
-            logging.info("Dockerfile is validated.")
+        parsed_dockerfile = parse_dockerfile("Dockerfile")
+        from_statement_list = remove_non_from_statements(parsed_dockerfile)
+        invalid_from = validate_final_from(from_statement_list)
+        if invalid_from:
+            logging.error(
+                "The final FROM statement in the Dockerfile must be FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}"
+            )
+            sys.exit(1)
+        logging.info("Dockerfile is validated.")
 
 
 def check_for_invalid_tag(subcontent: dict):
@@ -69,7 +69,7 @@ def reject_invalid_tags(content: list) -> list:
     logging.info("Checking tags")
     invalid_tags = []
     for x in content["resources"]:
-        if "docker://" or "github://" in x["url"]:
+        if x["url"].startswith("docker://") or x["url"].startswith("github://"):
             invalid_tag = check_for_invalid_tag(x)
             if invalid_tag:
                 logging.info("Invalid tag found")
@@ -77,11 +77,11 @@ def reject_invalid_tags(content: list) -> list:
     return invalid_tags
 
 
-def remove_non_from_statements(content: list) -> list:
+def remove_non_from_statements(dockerfile_tuple: tuple) -> list:
     from_list = []
-    for line in content:
-        if "FROM" in line:
-            from_list.append(line)
+    for command in dockerfile_tuple:
+        if command.cmd == "FROM":
+            from_list.append(command.original.lower())
     return from_list
 
 
@@ -89,11 +89,22 @@ def validate_final_from(content: list):
     """
     Returns whether the final FROM statement in the Dockerfile is valid, i.e. FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}
     """
-    from_list = remove_non_from_statements(content)
-    if from_list[-1] != "FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}":
+    if content[-1] != "from ${base_registry}/${base_image}:${base_tag}":
         return True
     else:
         return False
+
+
+def parse_dockerfile(dockerfile_path: str):
+    try:
+        parsed_file = dockerfile.parse_file(dockerfile_path)
+        return parsed_file
+    except dockerfile.GoIOError:
+        logging.error("The Dockerfile could mot be opened.")
+        sys.exit(1)
+    except dockerfile.GoParseError:
+        logging.error("The Dockerfile is not pareseable.")
+        sys.exit(1)
 
 
 def validate_yaml(content, conn):

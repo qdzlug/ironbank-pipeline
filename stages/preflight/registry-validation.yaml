@@ -3,6 +3,7 @@ registry-validation:
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/preflight"
   script:
+    - pip3 install dockerfile
     - python3 "${PIPELINE_REPO_DIR}/stages/preflight/registry-validation.py"
   allow_failure:
     exit_codes: 1
