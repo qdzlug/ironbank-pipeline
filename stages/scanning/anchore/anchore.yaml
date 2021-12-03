@@ -36,3 +36,6 @@ anchore-scan:
     paths:
       - "${ANCHORE_SCANS}/"
     expire_in: 1 week
+  retry:
+    max: 2
+    when: always
