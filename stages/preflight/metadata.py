@@ -61,15 +61,14 @@ def main():
             sys.exit(1)
         else:
             # verify no labels have a value of fixme (case insensitive)
-            if os.environ["CI_COMMIT_BRANCH"] in ["master", "development"]:
-                logging.debug("Checking for FIXME values in labels/maintainers")
-                invalid_labels = reject_invalid_labels(content)
-                invalid_maintainers = reject_invalid_maintainers(content)
-                if invalid_labels or invalid_maintainers:
-                    logging.error(
-                        "Please update these labels to appropriately describe your container before rerunning this pipeline"
-                    )
-                    sys.exit(1)
+            logging.debug("Checking for FIXME values in labels/maintainers")
+            invalid_labels = reject_invalid_labels(content)
+            invalid_maintainers = reject_invalid_maintainers(content)
+            if invalid_labels or invalid_maintainers:
+                logging.error(
+                    "Please update these labels to appropriately describe your container before rerunning this pipeline"
+                )
+                sys.exit(1)
             logging.info("Hardening manifest is validated")
     else:
         logging.error(
