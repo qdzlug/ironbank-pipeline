@@ -5,7 +5,12 @@ source "${PIPELINE_REPO_DIR}/stages/scanning/openscap/base_image_type.sh"
 echo "Imported Base Image Type: ${BASE_IMAGE_TYPE}"
 mkdir -p "${OSCAP_SCANS}"
 echo "${DOCKER_IMAGE_PATH}"
-OSCAP_VERSION=$(jq .version "${PIPELINE_REPO_DIR}"/stages/scanning/rhel-oscap-version.json | sed -e 's/"//g' | sed 's/v//g')
+
+# If OSCAP_VERSION variable doesn't exist, create the variable
+if [[ -z ${OSCAP_VERSION} ]]; then
+  OSCAP_VERSION=$(jq -r .version "$PIPELINE_REPO_DIR/stages/scanning/rhel-oscap-version.json" | sed 's/v//g')
+fi
+
 oscap_container=$(python3 "${PIPELINE_REPO_DIR}/stages/scanning/openscap/compliance.py" --oscap-version "${OSCAP_VERSION}" --image-type "${BASE_IMAGE_TYPE}" | sed s/\'/\"/g)
 echo "${oscap_container}"
 SCAP_CONTENT="scap-content"
