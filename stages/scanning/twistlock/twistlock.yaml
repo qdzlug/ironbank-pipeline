@@ -29,3 +29,6 @@ twistlock-scan:
     paths:
       - "${TWISTLOCK_SCANS}/"
     expire_in: 1 week
+  retry:
+    max: 2
+    when: always
