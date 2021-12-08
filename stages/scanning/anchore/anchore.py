@@ -290,6 +290,8 @@ class Anchore:
             self.url,
             "image",
             "wait",
+            "--interval",
+            "30",
             "--timeout",
             os.environ.get("ANCHORE_TIMEOUT", default="2400"),
             digest,
