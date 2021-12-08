@@ -69,15 +69,15 @@ def download_all_resources(downloads, artifacts_path):
                 urls = item["urls"]
             if "auth" in item:
                 if item["auth"]["type"] == "basic":
-                    creds = get_auth(download_type, item)
+                    username, password = get_auth(download_type, item)
                     http_download(
                         urls,
                         item["filename"],
                         item["validation"]["type"],
                         item["validation"]["value"],
                         artifacts_path,
-                        creds.username,
-                        creds.password,
+                        username,
+                        password,
                     )
                 else:
                     logging.error(
@@ -95,14 +95,14 @@ def download_all_resources(downloads, artifacts_path):
         if download_type == "docker":
             if "auth" in item:
                 if item["auth"]["type"] == "basic":
-                    creds = get_auth(download_type, item)
+                    username, password = get_auth(download_type, item)
                     pull_image(
                         download_type,
                         item["url"],
                         item["tag"],
                         item["tag"],
-                        creds.username,
-                        creds.password,
+                        username,
+                        password,
                     )
                 else:
                     logging.error(
@@ -113,16 +113,16 @@ def download_all_resources(downloads, artifacts_path):
                 pull_image(download_type, item["url"], item["tag"], item["tag"])
         if download_type == "s3":
             if "auth" in item:
-                creds = get_auth(download_type, item)
+                username, password, region = get_auth(download_type, item)
                 s3_download(
                     item["url"],
                     item["filename"],
                     item["validation"]["type"],
                     item["validation"]["value"],
                     artifacts_path,
-                    creds.username,
-                    creds.password,
-                    creds.region,
+                    username,
+                    password,
+                    region,
                 )
             else:
                 s3_download(
