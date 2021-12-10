@@ -256,7 +256,7 @@ def http_download(
         assert successful_download
     except AssertionError:
         raise InvalidURLList(
-            f"No valid urls provided for {resource_name}. Please ensure the url(s) for this resource exists and is not password protected."
+            f"No valid urls provided for {resource_name}. Please ensure the url(s) for this resource exists and is not password protected. If you require basic authentication to download this resource, please open a ticket in this repository."
         )
 
     # Calculate SHA256 checksum of downloaded file
