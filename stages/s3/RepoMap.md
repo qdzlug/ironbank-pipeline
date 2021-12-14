@@ -15,7 +15,7 @@ directory date is the UTC datetime of when this script is run
 IMAGE_PATH=$(echo "${CI_PROJECT_PATH}" | sed -e 's/.*dsop\/\(.*\)/\1/')
 ```
 
-IMAGE_NAME and IMAGE_VERSION are created in the metadata.py scipt. The image name is the name value in the Hardening Manifest (HM) The image version is the first value provided in the array of tags in a project's HM
+IMAGE_NAME and IMAGE_VERSION are created in the metadata.py script. The image name is the name value in the Hardening Manifest (HM) The image version is the first value provided in the array of tags in a project's HM.
 
 ```py <!-- metadata.py -->
 with (artifact_dir / "variables.env").open("w") as f:
@@ -31,36 +31,50 @@ directory_date=$(date --utc '+%FT%T.%3N')
 public_key=$(<"${IB_CONTAINER_GPG_PUBKEY}")
 ```
 
-| Key                         | Source                                                              | Notes                                                                                         |
-| --------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| S3_HTML_LINK                | See above                                                           | This uses the IMAGE_PATH var from the upload-to-s3.sh script                                  |
-| Anchore_Gates_Results       | `${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/anchore_gates.csv` |
-| Summary_Report              |
-| Build_Number                |
-| Image_Path                  | `${REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_VERSION}`                    | This is a duplicate key. This value is not the same as the value used in the S3_HTML_LINK var |
-| TwistLock_Results           |
-| Image_Manifest              |
-| Public_Key                  |
-| Anchore_Security_Results    |
-| Image_Sha                   |
-| OpenSCAP_Compliance_Results |
-| Tar_Name                    |
-| OpenSCAP_Report             |
-| Image_Tag                   |
-| Manifest_Name               |
-| Approval_Status             |
-| Approval_Text               |
-| Image_Name                  |
-| Version_Documentation       |
-| PROJECT_FILE                |
-| PROJECT_README              |
-| Tar_Location                |
-| Full_Report                 |
-| Repo_Name                   |
-| Keywords                    |
-| digest                      |
-| Tags                        |
-| Labels                      |
+Variables set in upload-to-s3 yaml file
+
+```yaml <!-- upload-to-s3.yaml -->
+variables:
+  IMAGE_FILE: "${CI_PROJECT_NAME}-${IMAGE_VERSION}"
+  SCAN_DIRECTORY: "${ARTIFACT_STORAGE}/scan-results"
+  DOCUMENTATION_DIRECTORY: "${ARTIFACT_STORAGE}/documentation"
+  BUILD_DIRECTORY: "${ARTIFACT_STORAGE}/build"
+  BASE_BUCKET_DIRECTORY: testing/container-scan-reports
+  DOCUMENTATION_FILENAME: documentation
+  ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
+  REPORT_TAR_NAME: ${CI_PROJECT_NAME}-${IMAGE_VERSION}-reports-signature.tar.gz
+```
+
+| Key                         | Source                                                                                               | Notes                                                                                                    |
+| --------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| S3_HTML_LINK                | See above                                                                                            | This uses the IMAGE_PATH var from the upload-to-s3.sh script                                             |
+| Anchore_Gates_Results       | `${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/anchore_gates.csv`                                  | The gates CSV is the compliance scan results                                                             |
+| Summary_Report              | `${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/summary.csv`                                        | Contains the finding count totals for each scan type                                                     |
+| Build_Number                | `${CI_PIPELINE_ID}`                                                                                  | Built in GitLab CI variable. Pipeline IDs are unique across all Repo1 pipelines                          |
+| Image_Path                  | `${REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_VERSION}`                                                     | This is a duplicate key. This value is not the same as the value used in the S3_HTML_LINK var            |
+| TwistLock_Results           | `${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/tl.csv`                                             |                                                                                                          |
+| Image_Manifest              | `${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/manifest.json`                                           | GPG info no longer relevant                                                                              |
+| Public_Key                  | see above                                                                                            | No longer used                                                                                           |
+| Anchore_Security_Results    | `${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/anchore_security.csv`                               | Anchore CVE findings results                                                                             |
+| Image_Sha                   | `IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" --format '{{.Id}}')` | Created in the build stage of the pipeline. This is the image ID shasum                                  |
+| OpenSCAP_Compliance_Results | `${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/oscap.csv`                                          | Set in job yaml variables                                                                                |
+| Tar_Name                    | `${REPORT_TAR_NAME}`                                                                                 | Created in S3 job's yaml variables, see above. This is no longer relevant                                |
+| OpenSCAP_Report             | `${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/openscap/report.html`                                    | HTML report output from OpenSCAP job                                                                     |
+| Image_Tag                   | `${IMAGE_VERSION}`                                                                                   | Set in metadata.py script. See above                                                                     |
+| Manifest_Name               | `manifest.json`                                                                                      | This value is hard coded                                                                                 |
+| Approval_Status             | `lint/image_approval.json` and parsed by grabbing the `IMAGE_APPROVAL_STATUS` value                  | This is parsed in the `create_repo_map_default.py` script, in the `_get_approval_status` function        |
+| Approval_Text               | `lint/image_approval.json` and parsed by grabbing the `IMAGE_APPROVAL_TEXT` value                    | This is parsed in the `create_repo_map_default.py` script, in the `_get_approval_status` function        |
+| Image_Name                  | `${CI_PROJECT_NAME}`                                                                                 | This value may conflict with the `Repo_Name` value                                                       |
+| Version_Documentation       | `${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${DOCUMENTATION_FILENAME}.json`                          | `DOCUMENTATION_FILENAME` is hard coded to `documentation`                                                |
+| PROJECT_FILE                | `${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_LICENSE}`                                      | Hard coded to `LICENSE`                                                                                  |
+| PROJECT_README              | `${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_README}`                                       | Hard coded to `README.md`                                                                                |
+| Tar_Location                | `${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${REPORT_TAR_NAME}`                                      | See above for `REPORT_TAR_NAME` variable creation                                                        |
+| Full_Report                 | `${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/all_scans.xlsx`                                     | Excel sheet created by combining individual CSV files                                                    |
+| Repo_Name                   | `${IMAGE_NAME}`                                                                                      | `IMAGE_NAME` set in `metadata.py` script, see above. This value may conflict with the `Image_Name` value |
+| Keywords                    | `preflight/keywords.txt` and parsed by script in `create_repo_map_default.py`                        | uses `source_values` function to parse                                                                   |
+| digest                      | `os.environ["IMAGE_PODMAN_SHA"].replace("sha256:", "")`                                              | `IMAGE_PODMAN_SHA` variable is created in the build stage                                                |
+| Tags                        | `preflight/tags.txt` and parsed by script in `create_repo_map_default.py`                            | uses `source_values` function to parse                                                                   |
+| Labels                      | `preflight/labels.env` and parsed by script in `create_repo_map_default.py`                          | uses `_get_source_keys_values` function to parse                                                         |
 
 ### Data Structure
 
