@@ -8,3 +8,6 @@ harbor:
     - hardening-manifest
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/harbor/upload_to_harbor.py"'
+  retry:
+    max: 2
+    when: runner_system_failure

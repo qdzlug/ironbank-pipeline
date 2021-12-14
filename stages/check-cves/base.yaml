@@ -14,3 +14,6 @@ check-cves:
   script:
     - set +e
     - 'python3 "${PIPELINE_REPO_DIR}/stages/check-cves/vat-response-parse.py"'
+  retry:
+    max: 2
+    when: runner_system_failure

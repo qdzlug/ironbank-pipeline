@@ -10,6 +10,9 @@ clamav-scan:
     - mkdir -p "${ARTIFACT_DIR}"
   script:
     - '"${PIPELINE_REPO_DIR}/stages/scan-artifacts/clamav-run.sh"'
+  retry:
+    max: 2
+    when: runner_system_failure
 
   artifacts:
     when: always

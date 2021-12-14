@@ -30,3 +30,6 @@ upload-to-s3:
     - vat
   script:
     - '"${PIPELINE_REPO_DIR}/stages/s3/upload-to-s3-run.sh"'
+  retry:
+    max: 2
+    when: runner_system_failure
