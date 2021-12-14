@@ -22,6 +22,7 @@ def is_approved(vat_resp_dict, check_ft_findings) -> tuple[bool, int, str, str]:
     ft_ineligible_findings = False
     approval_status = "notapproved"
     approval_comment = None
+    force_approval = os.environ.get("FORCE_APPROVAL", "false") in ("True", "true", "1")
     # Check accreditation
     if vat_resp_dict:
         logging.info(
@@ -41,7 +42,7 @@ def is_approved(vat_resp_dict, check_ft_findings) -> tuple[bool, int, str, str]:
             )
     branch = os.environ["CI_COMMIT_BRANCH"]
     approved = _get_approval_status(
-        accredited, not_expired, ft_ineligible_findings, branch
+        accredited, not_expired, ft_ineligible_findings, branch, force_approval
     )
 
     # Exit codes for Check CVE parsing of VAT response
@@ -99,7 +100,7 @@ def _check_expiration(vat_resp_dict) -> bool:
 
 
 def _get_approval_status(
-    accredited, not_expired, ft_ineligible_findings, branch
+    accredited, not_expired, ft_ineligible_findings, branch, force_approval=False
 ) -> bool:
     """
     Returns True if
@@ -111,7 +112,11 @@ def _get_approval_status(
     if not not_expired:
         logging.warning("Container's earliest expiration is prior to current date")
     if branch == "master":
-        return accredited and not_expired and not ft_ineligible_findings
+        # Check if an approval has been forced and if so, return accreditation and not_expired
+        if force_approval:
+            return accredited and not_expired
+        else:
+            return accredited and not_expired and not ft_ineligible_findings
     else:
         return not ft_ineligible_findings
 
