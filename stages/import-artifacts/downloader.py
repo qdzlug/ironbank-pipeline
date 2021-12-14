@@ -69,13 +69,7 @@ def download_all_resources(downloads, artifacts_path):
                 urls = item["urls"]
             if "auth" in item:
                 if item["auth"]["type"] == "basic":
-                    credential_id = item["auth"]["id"].replace("-", "_")
-                    password = b64decode(
-                        os.environ["CREDENTIAL_PASSWORD_" + credential_id]
-                    )
-                    username = b64decode(
-                        os.environ["CREDENTIAL_USERNAME_" + credential_id]
-                    )
+                    username, password = get_auth(download_type, item)
                     http_download(
                         urls,
                         item["filename"],
@@ -101,14 +95,9 @@ def download_all_resources(downloads, artifacts_path):
         if download_type == "docker":
             if "auth" in item:
                 if item["auth"]["type"] == "basic":
-                    credential_id = item["auth"]["id"].replace("-", "_")
-                    password = b64decode(
-                        os.environ["CREDENTIAL_PASSWORD_" + credential_id]
-                    ).decode("utf-8")
-                    username = b64decode(
-                        os.environ["CREDENTIAL_USERNAME_" + credential_id]
-                    ).decode("utf-8")
-                    docker_download(
+                    username, password = get_auth(download_type, item)
+                    pull_image(
+                        download_type,
                         item["url"],
                         item["tag"],
                         item["tag"],
@@ -121,17 +110,10 @@ def download_all_resources(downloads, artifacts_path):
                     )
                     sys.exit(1)
             else:
-                docker_download(item["url"], item["tag"], item["tag"])
+                pull_image(download_type, item["url"], item["tag"], item["tag"])
         if download_type == "s3":
             if "auth" in item:
-                credential_id = item["auth"]["id"].replace("-", "_")
-                username = b64decode(
-                    os.environ["S3_ACCESS_KEY_" + credential_id]
-                ).decode("utf-8")
-                password = b64decode(
-                    os.environ["S3_SECRET_KEY_" + credential_id]
-                ).decode("utf-8")
-                region = item["auth"]["region"]
+                username, password, region = get_auth(download_type, item)
                 s3_download(
                     item["url"],
                     item["filename"],
@@ -154,7 +136,8 @@ def download_all_resources(downloads, artifacts_path):
             # credential_id = item["auth"]["id"].replace("-", "_")
             username = b64decode(os.environ["GITHUB_ROBOT_USER"]).decode("utf-8")
             password = b64decode(os.environ["GITHUB_ROBOT_TOKEN"]).decode("utf-8")
-            github_download(
+            pull_image(
+                download_type,
                 item["url"],
                 item["tag"],
                 item["tag"],
@@ -211,6 +194,24 @@ def resource_type(url):
         return "Error in parsing resource type."
 
 
+def get_auth(resource_type, item):
+    if resource_type != "s3":
+        credential_id = item["auth"]["id"].replace("-", "_")
+        password = b64decode(os.environ["CREDENTIAL_PASSWORD_" + credential_id])
+        username = b64decode(os.environ["CREDENTIAL_USERNAME_" + credential_id])
+        return username, password
+    else:
+        credential_id = item["auth"]["id"].replace("-", "_")
+        username = b64decode(os.environ["S3_ACCESS_KEY_" + credential_id]).decode(
+            "utf-8"
+        )
+        password = b64decode(os.environ["S3_SECRET_KEY_" + credential_id]).decode(
+            "utf-8"
+        )
+        region = item["auth"]["region"]
+        return username, password, region
+
+
 def http_download(
     urls,
     resource_name,
@@ -255,7 +256,9 @@ def http_download(
     try:
         assert successful_download
     except AssertionError:
-        raise InvalidURLList(f"No valid urls provided for {resource_name}")
+        raise InvalidURLList(
+            f"No valid urls provided for {resource_name}. Please ensure the url(s) for this resource exists and is not password protected. If you require basic authentication to download this resource, please open a ticket in this repository."
+        )
 
     # Calculate SHA256 checksum of downloaded file
     logging.info("Checking file verification type")
@@ -360,53 +363,14 @@ def generate_checksum(validation_type, checksum_value, artifacts_path, resource_
             return sha512_hash
 
 
-def docker_download(download_item, tag_value, tar_name, username=None, password=None):
+def pull_image(
+    image_source, download_item, tag_value, tar_name, username=None, password=None
+):
     logging.info(f"===== ARTIFACT: {download_item}")
-    image = download_item.split("//")[1]
-    tar_name = tar_name.replace("/", "-")
-    tar_name = tar_name.replace(":", "-")
-    logging.info(f"Pulling {image}")
-
-    pull_cmd = [
-        "skopeo",
-        "copy",
-        "--authfile=/tmp/prod_auth.json",
-        "--remove-signatures",
-        "--additional-tag",
-        tag_value,
-    ]
-    if username and password:
-        pull_cmd += ["--src-creds", f"{username}:{password}"]
-    pull_cmd += [
-        f"docker://{image}",
-        f"docker-archive:{os.environ['ARTIFACT_STORAGE']}/import-artifacts/images/{tar_name}.tar",
-    ]
-
-    retry = True
-    retry_count = 0
-    while retry:
-        try:
-            subprocess.run(
-                args=pull_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                check=True,
-            )
-            retry = False
-        except subprocess.CalledProcessError:
-            if retry_count == 2:
-                logging.error(
-                    "Resource failed to pull, please check hardening_manifest.yaml configuration"
-                )
-                sys.exit(1)
-            else:
-                retry_count += 1
-                logging.warning(f"Resource failed to pull, retrying: {retry_count}/2")
-
-
-def github_download(download_item, tag_value, tar_name, username=None, password=None):
-    logging.info(f"===== ARTIFACT: {download_item}")
-    image = download_item
+    if image_source == "github":
+        image = download_item
+    else:
+        image = download_item.split("//")[1]
     tar_name = tar_name.replace("/", "-")
     tar_name = tar_name.replace(":", "-")
     logging.info(f"Pulling {image}")
