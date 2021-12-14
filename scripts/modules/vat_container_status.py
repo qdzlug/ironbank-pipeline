@@ -107,7 +107,9 @@ def _get_approval_status(
 ) -> bool:
     """
     Returns True if
-        branch == 'master' container is noted as accredited, and the accreditation has no expiration or expiration is not prior to current date, and there are no unapproved fast track ineligible findings
+        branch == 'master'
+            if force_approval is True container is noted as accredited, and the accreditation has no expiration or expiration is not prior to current date
+            else container is noted as accredited, and the accreditation has no expiration or expiration is not prior to current date, and there are no unapproved fast track ineligible findings
         branch != 'master' there are no unapproved fast track ineligible findings
     """
     if not accredited:
