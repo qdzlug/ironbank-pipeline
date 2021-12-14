@@ -17,8 +17,13 @@ else
   exit 1
 fi
 
-echo "${CLAMAV_WHITELIST_DSOP:-}" >/usr/local/share/clamav/clamav_whitelist.ign2
-echo "${CLAMAV_WHITELIST_PROJECT:-}" >>/usr/local/share/clamav/clamav_whitelist.ign2
+if [[ "${CLAMAV_WHITELIST_DSOP:-}" ]]; then
+  echo "${CLAMAV_WHITELIST_DSOP}" >/usr/local/share/clamav/clamav_whitelist.ign2
+fi
+
+if [[ "${CLAMAV_WHITELIST_PROJECT:-}" ]]; then
+  echo "${CLAMAV_WHITELIST_PROJECT}" >>/usr/local/share/clamav/clamav_whitelist.ign2
+fi
 
 if [[ "${CLAMAV_WHITELIST:-}" ]]; then
   # Must be added to file last, the file from inside the repo may lack a trailing newline.
