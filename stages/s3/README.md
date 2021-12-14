@@ -1,4 +1,6 @@
-# Overview
+<!-- markdownlint-disable-file MD033 -->
+
+# S3 Publish
 
 This stage in the pipeline uploads the metadata and scan data for the container in the `repo_map.json` file to S3 and the IBFE API directly via HTTP POST.
 
@@ -15,12 +17,12 @@ This stage relies on the following stages completing successfully
 - csv-output
 - documentation
 
-This stage only runs on the follwing branches:
+This stage only runs on the following branches:
 
 - master
 - development
 
-## Variables required for this Stage:
+## Variables required for this Stage
 
 - IMAGE_FILE
 - SCAN_DIRECTORY
@@ -31,13 +33,13 @@ This stage only runs on the follwing branches:
 - DOCUMENTATION_FILENAME
 - ARTIFACT_FIR
 - REPORT_TAR_NAME
-- KIBERNETES_SERVICE_ACCOUNT_OVERWRITE
+- KUBERNETES_SERVICE_ACCOUNT_OVERWRITE
 
 ## Executed Scripts/Binaries
 
 - ${PIPELINE_REPO_DIR}/stages/s3/upload-to-s3-run.sh
 
-# Code Walkthroughs
+## Code Walkthroughs
 
 ## S3 Upload - Overview
 
@@ -49,7 +51,7 @@ High Level Overview of Actions
 
 ## Purpose
 
-Directly update IBFE so they don't have to read in the repo_map.json from S3 and remove that dependency. There is a (slight) delay in data entering S3 currently because we have to write the `repo_map.json` to S3 and then they have to read it at some point after that; the delta is the delay. This way, in the pipeline run, we add or update the information directly in IBFE which writes it to the IBFE DB. This is a much more efficent process.
+Directly update IBFE so they don't have to read in the repo_map.json from S3 and remove that dependency. There is a (slight) delay in data entering S3 currently because we have to write the `repo_map.json` to S3 and then they have to read it at some point after that; the delta is the delay. This way, in the pipeline run, we add or update the information directly in IBFE which writes it to the IBFE DB. This is a much more efficient process.
 
 ## Code - In Depth
 
@@ -69,7 +71,7 @@ Directly update IBFE so they don't have to read in the repo_map.json from S3 and
 
 ### Main
 
-```
+```py
 if __name__ == "__main__":
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
@@ -106,7 +108,7 @@ if __name__ == "__main__":
 
 ### upload_file
 
-```
+```py
 def upload_file(file_name, bucket, object_name=None):
     """Upload a file to an S3 bucket
 
@@ -138,7 +140,7 @@ def upload_file(file_name, bucket, object_name=None):
   - OR the second element is equal to `gzip` set equal to `application/x-tar`
   - OR set equal to the first element in variable `filetype`
 
-```
+```py
     # TODO: Add signature
     extra_args = {
         "ContentType": mimetype,
@@ -160,7 +162,7 @@ def upload_file(file_name, bucket, object_name=None):
     try:
         s3_client.upload_file(file_name, bucket, object_name, extra_args)
     except ClientError:
-        logging.error("S3 client error occured")
+        logging.error("S3 client error occurred")
         return False
     return True
 ```
@@ -202,7 +204,7 @@ None
 
 #### script
 
-```
+```bash
 #!/bin/bash
 set -Eeuo pipefail
 if echo "${CI_PROJECT_DIR}" | grep -q -F 'pipeline-test-project' && [ "${CI_COMMIT_BRANCH}" == "master" ]; then
@@ -213,7 +215,7 @@ fi
 
 Quit if project is `pipeline-test-project` and the running branch is `master`
 
-```
+```bash
 mkdir -p "${ARTIFACT_DIR}"
 
 # pip install boto3 ushlex
@@ -234,7 +236,7 @@ source "${PIPELINE_REPO_DIR}/stages/s3/repo_map_vars.sh"
 
 Make necessary directories, set variables, and install necessary python3 modules (boto3, ushlex)
 
-```
+```bash
 python3 "${PIPELINE_REPO_DIR}"/stages/s3/create_repo_map_default.py --target "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/repo_map.json"
 mkdir reports
 cp -r "${DOCUMENTATION_DIRECTORY}"/reports/* reports/
@@ -245,7 +247,7 @@ cp "${PROJECT_LICENSE}" "${PROJECT_README}" reports/
 
 Run `create_repo_map_default.py` script and copy reports to local `reports` directory from where this script is running
 
-```
+```bash
 if [ -f "${VAT_FINDINGS}" ]; then
 cp "${VAT_FINDINGS}" reports/
   python3 "${PIPELINE_REPO_DIR}/stages/s3/s3_upload.py" --file "${VAT_FINDINGS}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/${VAT_FINDINGS}"
@@ -278,7 +280,7 @@ python3 "${PIPELINE_REPO_DIR}/stages/s3/s3_upload.py" --file "${REPORT_TAR_NAME}
 
 Check that `reports` directory exists, create tarball of the directory. Upload files to S3 `$ARTIFACT_STORAGE/documentation`
 
-```
+```bash
 # Only call IBFE POST API if pipeline is running on "master" branch
 
 if [ "${CI_COMMIT_BRANCH}" == "master" ]; then
@@ -329,7 +331,7 @@ None
 
 ##### Code
 
-```
+```py
 def main():
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
@@ -346,7 +348,7 @@ def main():
 
 Set logging and output some information if set to DEBUG (most verbose) or INFO (high verbosity)
 
-```
+```py
     parser = argparse.ArgumentParser(description="Downloads target from s3")
     parser.add_argument("--target", help="File to upload")
     args = parser.parse_args()
@@ -355,14 +357,14 @@ Set logging and output some information if set to DEBUG (most verbose) or INFO (
 
 Add arguments to script to allow these to be passed on execution via CI/CD or command line execution
 
-```
+```py
     existing_repomap = get_repomap(object_name)
     artifact_storage = os.environ["ARTIFACT_STORAGE"]
 ```
 
 Set Boolean `existing_repomap` to the returned value from `get_repomap` function (Result can be `True` or `False`)
 
-```
+```py
     keyword_list = source_values(
         f"{artifact_storage}/preflight/keywords.txt", "Keywords"
     )
@@ -375,13 +377,12 @@ Set Boolean `existing_repomap` to the returned value from `get_repomap` function
     digest = os.environ["IMAGE_PODMAN_SHA"].replace("sha256:", "")
 ```
 
-Set List `keyword_list` to the returned values from function `source_values`, passing in the keywords.txt as the `source_file` from the preflight stage.  
-Set `tag_list` to the returned values from function `source_values`, passing in the tags.txt as the `source_file` from the preflight stage.  
-Set String variables `approval_status` and `approval_text` from `_get_approval_status`.
-Set String `digest`, which is the checksum of the built container, to the value in the pipeline value `IMAGE_PODMAN_SHA`, and replace the begining of tha value "sha256:" with nothing (remove that string from the beginning of the digest to only get the checksum)
+- Set List `keyword_list` to the returned values from function `source_values`, passing in the keywords.txt as the `source_file` from the preflight stage.
+- Set `tag_list` to the returned values from function `source_values`, passing in the tags.txt as the `source_file` from the preflight stage.
+- Set String variables `approval_status` and `approval_text` from `_get_approval_status`.
+- Set String `digest`, which is the checksum of the built container, to the value in the pipeline value `IMAGE_PODMAN_SHA`, and replace the beginning of tha value "sha256:" with nothing (remove that string from the beginning of the digest to only get the checksum)
 
-```
-
+```py
     # all environment vars used for adding new data to the repo map must have a value set or they will throw a KeyError
     new_data = {
         os.environ["build_number"]: {
@@ -425,7 +426,7 @@ Set String `digest`, which is the checksum of the built container, to the value 
 
 Fill dictionary `new_data` with a top level element equal to the pipeline build number. then fill out the rest of the structure with variables from the current build. Conditionally add openscap compliance results file link if it is not a distroless container build. the rest of these values should be self explanatory.
 
-```
+```py
 logging.debug(f"repo_map data:\n{new_data}")
 
     if existing_repomap:
@@ -451,8 +452,7 @@ bucket_name, <span style="color:aqua"><b>String</b></span> [pre-set]
 
 ##### Code
 
-```
-
+```py
 def get_repomap(object_name, bucket="ironbank-pipeline-artifacts"):
 
     access_key = os.environ["S3_ACCESS_KEY"]
@@ -467,10 +467,9 @@ def get_repomap(object_name, bucket="ironbank-pipeline-artifacts"):
 
 ```
 
-Get access and secret key from secrets held in Gitlab CI/CD variable pipleine. Instantiate s3 client.
+Get access and secret key from secrets held in Gitlab CI/CD variable pipeline. Instantiate s3 client.
 
-```
-
+```py
     print(object_name)
     try:
         s3_client.download_file(bucket, object_name, "repo_map.json")
@@ -493,8 +492,7 @@ key, <span style="color:aqua"><b>String</b></span>
 
 ##### Code
 
-```
-
+```py
     num_vals = 0
     val_list = []
     if os.path.exists(source_file):
@@ -508,8 +506,7 @@ key, <span style="color:aqua"><b>String</b></span>
 
 Set a couple local variables; If the source file exists, open the file and parse each line, append the results to dictionary name `val_list`
 
-```
-
+```py
         if key == "Keywords":
             print("Number of keywords detected: ", num_vals)
         elif key == "Tags":
@@ -530,9 +527,7 @@ source_file, <span style="color:aqua"><b>String</b></span>
 
 ##### Code
 
-```
-
-
+```py
 def _get_source_keys_values(source_file):
     hm_labels = {}
     if os.path.exists(source_file):
@@ -555,8 +550,7 @@ source_file, <span style="color:aqua"><b>String</b></span>
 
 ##### Code
 
-```
-
+```py
 def _get_approval_status(source_file):
     if os.path.exists(source_file):
         with open(source_file, mode="r", encoding="utf-8") as sf:
@@ -580,7 +574,7 @@ High Level Overview of Actions
 
 ## Purpose
 
-Directly update IBFE so they don't have to read in the repo_map.json from S3 and remove that dependency. There is a (slight) delay in data entering S3 currently because we have to write the `repo_map.json` to S3 and then they have to read it at some point after that; the delta is the delay. This way, in the pipeline run, we add or update the information directly in IBFE which writes it to the IBFE DB. This is a much more efficent process.
+Directly update IBFE so they don't have to read in the repo_map.json from S3 and remove that dependency. There is a (slight) delay in data entering S3 currently because we have to write the `repo_map.json` to S3 and then they have to read it at some point after that; the delta is the delay. This way, in the pipeline run, we add or update the information directly in IBFE which writes it to the IBFE DB. This is a much more efficient process.
 
 ## Code - In Depth
 
@@ -606,7 +600,7 @@ None
 
 #### Code
 
-```
+```py
 def main():
     if os.environ["CI_COMMIT_BRANCH"] == "master":
         # Get logging level, set manually when running pipeline
@@ -655,4 +649,4 @@ call the `load_data` function and set `new_data` equal to the returned values. U
 - any other exceptions raised by the requests module
 - ANY other exception
 
-Log a specific string to indicate the error that occurred. In the case of an HTTP errorcode, log the specific code received. If any error is raised, immediately exit with error code "1", after logging.
+Log a specific string to indicate the error that occurred. In the case of an HTTP error code, log the specific code received. If any error is raised, immediately exit with error code "1", after logging.
