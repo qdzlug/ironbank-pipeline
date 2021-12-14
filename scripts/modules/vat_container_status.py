@@ -2,11 +2,14 @@
 
 import logging
 import os
+from typing import Optional
 from dateutil import parser
 from datetime import datetime, timezone
 
 
-def is_approved(vat_resp_dict, check_ft_findings) -> tuple[bool, int, str, str]:
+def is_approved(
+    vat_resp_dict, check_ft_findings
+) -> tuple[bool, int, str, Optional[str]]:
     """
     This function is used by the wl-compare-lint and check-cve jobs. wl-compare only needs the approved return value, while check-cves needs this value and the exit code.
 
@@ -211,7 +214,7 @@ def sort_justifications(vat_resp_dict) -> tuple[dict, dict, dict, dict]:
 
         oscap, twistlock, anchore cve, anchore compliance
     """
-    sources = {
+    sources: dict[str, dict] = {
         "anchore_cve": {},
         "anchore_comp": {},
         "oscap_comp": {},
