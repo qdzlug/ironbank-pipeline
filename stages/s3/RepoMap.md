@@ -18,6 +18,7 @@ IMAGE_PATH=$(echo "${CI_PROJECT_PATH}" | sed -e 's/.*dsop\/\(.*\)/\1/')
 IMAGE_NAME and IMAGE_VERSION are created in the metadata.py script. The image name is the name value in the Hardening Manifest (HM) The image version is the first value provided in the array of tags in a project's HM.
 
 <!-- metadata.py -->
+
 ```py
 with (artifact_dir / "variables.env").open("w") as f:
     f.write(f"IMAGE_NAME={content['name']}\n")
@@ -27,6 +28,7 @@ with (artifact_dir / "variables.env").open("w") as f:
 Setup vars in the repo_map_vars.sh file
 
 <!-- repo_map_vars.sh -->
+
 ```sh
 S3_HTML_LINK="https://s3-us-gov-west-1.amazonaws.com/${S3_REPORT_BUCKET}/${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}"
 directory_date=$(date --utc '+%FT%T.%3N')
@@ -36,6 +38,7 @@ public_key=$(<"${IB_CONTAINER_GPG_PUBKEY}")
 Variables set in upload-to-s3 yaml file
 
 <!-- upload-to-s3.yaml -->
+
 ```yaml
 variables:
   IMAGE_FILE: "${CI_PROJECT_NAME}-${IMAGE_VERSION}"
@@ -82,6 +85,7 @@ variables:
 ### Data Structure
 
 <!-- create_repo_map_default.py -->
+
 ```py
 new_data = {
     os.environ["build_number"]: {
@@ -124,7 +128,8 @@ new_data = {
 
 Using Anchore Enterprise build info as an example
 
- <!-- repo_map.json extract -->
+<!-- repo_map.json extract -->
+
 ```json
 {
     "549779": {
