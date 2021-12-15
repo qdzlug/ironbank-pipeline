@@ -13,3 +13,6 @@ create-tar:
     paths:
       - ${IMAGE_FILE}.tar
     expire_in: 1 week
+  retry:
+    max: 2
+    when: runner_system_failure

@@ -6,3 +6,6 @@ pipeline-auth-status:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/pipeline_auth_status.py"'
   artifacts:
     paths: []
+  retry:
+    max: 2
+    when: runner_system_failure
