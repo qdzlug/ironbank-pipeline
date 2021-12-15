@@ -12,6 +12,9 @@
       - "${ARTIFACT_DIR}/"
     expire_in: 1 week
     when: always
+  retry:
+    max: 2
+    when: runner_system_failure
 
 include:
   # - local: stages/lint/container-approval-status.yaml

@@ -12,3 +12,6 @@ hardening-manifest:
     expire_in: 1 week
     reports:
       dotenv: "${ARTIFACT_DIR}/variables.env"
+  retry:
+    max: 2
+    when: runner_system_failure
