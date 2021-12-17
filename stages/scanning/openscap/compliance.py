@@ -86,9 +86,9 @@ def get_oscap_guide(oscap_version, base_image_type):
             "profile": "xccdf_mil.disa.stig_profile_MAC-3_Public",
             "securityGuide": "U_CAN_Ubuntu_18-04_V2R1_STIG_SCAP_1-2_Benchmark.xml",
         },
-        "ubuntu1604-container": {
+        "ubuntu2004-container": {
             "profile": "xccdf_mil.disa.stig_profile_MAC-3_Public",
-            "securityGuide": "U_CAN_Ubuntu_16-04_LTS_V2R2_STIG_SCAP_1-2_Benchmark.xml",
+            "securityGuide": "U_CAN_Ubuntu_20-04_LTS_STIG_V1R2_Manual-xccdf.xml",
         },
     }
     try:

@@ -20,7 +20,7 @@ mkdir -p "${SCAP_CONTENT}"
 if [[ -n ${SCAP_URL:-} ]]; then
   curl -L "${SCAP_URL}" -o "${SCAP_CONTENT}/scap-security-guide.zip"
 elif [[ "${BASE_IMAGE_TYPE}" == "ubuntu1804-container" ]]; then
-  curl -L "https://dl.dod.cyber.mil/wp-content/uploads/stigs/zip/U_CAN_Ubuntu_18-04_V2R1_STIG_SCAP_1-2_Benchmark.zip" -o "${SCAP_CONTENT}/scap-security-guide.zip"
+  curl -L "https://dl.dod.cyber.mil/wp-content/uploads/stigs/zip/U_CAN_Ubuntu_18-04_LTS_V2R5_STIG.zip" -o "${SCAP_CONTENT}/scap-security-guide.zip"
 elif [[ "${BASE_IMAGE_TYPE}" == "ubuntu2004-container" ]]; then
   curl -L "https://dl.dod.cyber.mil/wp-content/uploads/stigs/zip/U_CAN_Ubuntu_20-04_LTS_V1R2_STIG.zip" -o "${SCAP_CONTENT}/scap-security-guide.zip"
 else
