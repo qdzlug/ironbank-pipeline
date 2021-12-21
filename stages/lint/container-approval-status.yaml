@@ -8,3 +8,6 @@ container-approval-status:
 
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/container_status_check.py"'
+  retry:
+    max: 2
+    when: runner_system_failure

@@ -20,3 +20,6 @@ generate-allowlists:
     paths:
       - "${ALLOWLISTS}"
     expire_in: 1 week
+  retry:
+    max: 2
+    when: runner_system_failure

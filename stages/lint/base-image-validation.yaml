@@ -12,3 +12,6 @@ base-image-validation:
     paths: []
     reports:
       dotenv: variables.env
+  retry:
+    max: 2
+    when: runner_system_failure
