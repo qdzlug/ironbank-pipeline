@@ -23,12 +23,10 @@ anchore-scan:
 anchore-sbom-generation:
   image: "registry1.dso.mil/ironbank/anchore/engine/engine:1.0.0"
   stage: scanning
-  # Load in the IMAGE_VERSION variable from load-scripts env
   dependencies:
     - load-scripts
     - build
   variables:
-    # put all scan outputs in the scan-results folder
     ANCHORE_SCANS: "${ARTIFACT_STORAGE}/scan-results/anchore"
   script:
     - python3 "${PIPELINE_REPO_DIR}/stages/scanning/anchore/generate_sbom.py"
