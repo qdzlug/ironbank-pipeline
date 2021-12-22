@@ -406,7 +406,7 @@ class Anchore:
             logging.exception("Could not get sbom of image")
             sys.exit(1)
 
-        filename = pathlib.Path(artifacts_path, "sbom-cyclonedx", f"sbom.xml")
+        filename = pathlib.Path(artifacts_path, "sbom-cyclonedx", "sbom.xml")
         logging.debug(f"Writing to {filename}")
         with filename.open(mode="w") as f:
             json.dump(sbom_content.stdout, f)
