@@ -20,12 +20,12 @@ def get_repomap(object_name, bucket="ironbank-pipeline-artifacts"):
         region_name="us-gov-west-1",
     )
 
-    print(object_name)
+    logging.info(object_name)
     try:
         s3_client.download_file(bucket, object_name, "repo_map.json")
     except ClientError as e:
         logging.error(e)
-        print("Existing repo_map.json not found, creating new repo_map.json")
+        logging.info("Existing repo_map.json not found, creating new repo_map.json")
         return False
     return True
 
@@ -41,10 +41,7 @@ def source_values(source_file, key):
                 val_entry = line.strip()
                 val_list.append(val_entry)
                 num_vals += 1
-        if key == "Keywords":
-            print("Number of keywords detected: ", num_vals)
-        elif key == "Tags":
-            print("Number of tags detected: ", num_vals)
+        logging.info(f"Number of {key} detected: {num_vals}")
     else:
         logging.info(source_file + " does not exist")
     return val_list
@@ -98,9 +95,9 @@ def main():
     artifact_storage = os.environ["ARTIFACT_STORAGE"]
 
     keyword_list = source_values(
-        f"{artifact_storage}/preflight/keywords.txt", "Keywords"
+        f"{artifact_storage}/preflight/keywords.txt", "keywords"
     )
-    tag_list = source_values(f"{artifact_storage}/preflight/tags.txt", "Tags")
+    tag_list = source_values(f"{artifact_storage}/preflight/tags.txt", "tags")
     label_dict = _get_source_keys_values(f"{artifact_storage}/preflight/labels.env")
 
     approval_status, approval_text = _get_approval_status(
