@@ -138,7 +138,7 @@ def generate_anchore_cve_jobs(anchore_sec_path):
         try:
             description = v_d["extra"]["description"]
         except KeyError:
-            logging.info("Vulnerability description does not exist")
+            logging.info(f"Vulnerability description does not exist for {v_d['vuln']}")
             description = "none"
 
         link_string = ""
@@ -151,7 +151,10 @@ def generate_anchore_cve_jobs(anchore_sec_path):
                 if len(url_text) + len(link_string) < 65535:
                     link_string += url_text
                 else:
-                    logging.warning(f"Skipping adding finding url: {url_text}")
+                    logging.warning(
+                        "Unable to add all reference URLs to API POST. Please refer to anchore_security.json for more info."
+                    )
+                    break
         # vulnerability's url value is NOT a list. Just use the string value provided
         else:
             link_string = v_d["url"]
