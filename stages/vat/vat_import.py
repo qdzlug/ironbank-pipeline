@@ -16,7 +16,10 @@ sys.path.append(
 )
 
 from get_oscap_failures import generate_oscap_jobs  # noqa E402
-
+from hardening_manifest_parse import (
+    source_values,
+    get_source_keys_values,
+)  # noqa E402
 
 parser = argparse.ArgumentParser(
     description="DCCSCR processing of CVE reports from various sources"
@@ -250,6 +253,12 @@ def generate_twistlock_jobs(twistlock_cve_path):
 
 
 def create_api_call():
+    artifact_storage = os.environ["ARTIFACT_STORAGE"]
+    keyword_list = source_values(
+        f"{artifact_storage}/preflight/keywords.txt", "keywords"
+    )
+    tag_list = source_values(f"{artifact_storage}/preflight/tags.txt", "tags")
+    label_dict = get_source_keys_values(f"{artifact_storage}/preflight/labels.env")
     # get cves and justifications from VAT
     # Get all justifications
     logging.info("Gathering list of all justifications...")
@@ -291,6 +300,9 @@ def create_api_call():
             "commit": args.commit_hash,
         },
         "findings": all_jobs,
+        "Keywords": keyword_list,
+        "Tags": tag_list,
+        "Labels": label_dict,
     }
     logging.debug(large_data)
     return large_data
