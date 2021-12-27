@@ -34,7 +34,7 @@ class Anchore:
         ensure the response has valid json. Once everything has been validated
         it will return a dictionary of the json.
 
-         payload - request payload for anchore api
+        payload - request payload for anchore api
 
         """
         logging.info(f"Fetching {url}")
