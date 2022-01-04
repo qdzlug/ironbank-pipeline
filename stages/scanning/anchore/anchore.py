@@ -390,16 +390,11 @@ class Anchore:
         Grab the SBOM from Anchore
 
         """
-        cmd = [
-            "syft",
-            image,
-            "--scope",
-            "all-layers",
-            "-o",
-            "cyclonedx"
-        ]
+        cmd = ["syft", image, "--scope", "all-layers", "-o", "cyclonedx"]
 
-        pathlib.Path(artifacts_path, "sbom-cyclonedx").mkdir(parents=True, exist_ok=True)
+        pathlib.Path(artifacts_path, "sbom-cyclonedx").mkdir(
+            parents=True, exist_ok=True
+        )
         try:
             logging.info(f"{' '.join(cmd[0:3])} {' '.join(cmd[5:])}")
             sbom_content = subprocess.run(
@@ -408,12 +403,12 @@ class Anchore:
                 stderr=subprocess.PIPE,
                 encoding="utf-8",
             )
-            filename = pathlib.Path(artifacts_path, "sbom-cyclonedx", f"sbom.xml")
+            filename = pathlib.Path(artifacts_path, "sbom-cyclonedx", "sbom.xml")
             logging.debug(f"Writing to {filename}")
             element = ET.XML(sbom_content)
             ET.indent(element)
             with filename.open(mode="w") as f:
-                f.write(ET.tostring(element, encoding='unicode'))
+                f.write(ET.tostring(element, encoding="unicode"))
         except subprocess.SubprocessError:
             logging.exception("Could not get sbom of image")
             sys.exit(1)
