@@ -405,7 +405,7 @@ class Anchore:
             )
             filename = pathlib.Path(artifacts_path, "sbom-cyclonedx", "sbom.xml")
             logging.debug(f"Writing to {filename}")
-            element = ET.XML(sbom_content)
+            element = ET.XML(sbom_content.stdout)
             ET.indent(element)
             with filename.open(mode="w") as f:
                 f.write(ET.tostring(element, encoding="unicode"))
