@@ -396,7 +396,7 @@ class Anchore:
         with (sbom_cyclonedx / "sbom.xml").open("wb") as f:
             try:
                 logging.info(f"{' '.join(cmd[0:3])} {' '.join(cmd[5:])}")
-                sbom_content = subprocess.run(
+                subprocess.run(
                     cmd,
                     check=True,
                     encoding="utf-8",
@@ -404,6 +404,5 @@ class Anchore:
                     stdout=f,
                 )
             except subprocess.SubprocessError:
-                logging.exception("Could not get sbom of image")
+                logging.exception("Could not generate sbom of image")
                 sys.exit(1)
-
