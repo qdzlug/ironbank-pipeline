@@ -391,22 +391,19 @@ class Anchore:
         """
         cmd = ["syft", image, "--scope", "all-layers", "-o", "cyclonedx"]
 
-        pathlib.Path(artifacts_path, "sbom-cyclonedx").mkdir(
-            parents=True, exist_ok=True
-        )
-        try:
-            logging.info(f"{' '.join(cmd[0:3])} {' '.join(cmd[5:])}")
-            sbom_content = subprocess.run(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                encoding="utf-8",
-            )
-        except subprocess.SubprocessError:
-            logging.exception("Could not get sbom of image")
-            sys.exit(1)
+        sbom_cyclonedx = pathlib.Path(artifacts_path, "sbom-cyclonedx")
+        sbom_cyclonedx.mkdir(parents=True, exist_ok=True)
+        with (sbom_cyclonedx / "sbom.xml").open("wb") as f:
+            try:
+                logging.info(f"{' '.join(cmd[0:3])} {' '.join(cmd[5:])}")
+                sbom_content = subprocess.run(
+                    cmd,
+                    check=True,
+                    encoding="utf-8",
+                    stderr=sys.stderr,
+                    stdout=f,
+                )
+            except subprocess.SubprocessError:
+                logging.exception("Could not get sbom of image")
+                sys.exit(1)
 
-        filename = pathlib.Path(artifacts_path, "sbom-cyclonedx", "sbom.xml")
-        logging.debug(f"Writing to {filename}")
-        with filename.open(mode="w") as f:
-            json.dump(sbom_content.stdout, f)
