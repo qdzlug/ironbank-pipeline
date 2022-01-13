@@ -99,7 +99,7 @@ shfmt:
     - chmod a+x shfmt_v3.1.2_linux_amd64
     - "./shfmt_v3.1.2_linux_amd64 -d ."
 
-pytest:
+unit-testing:
   needs: []
   tags:
     - ironbank-tools
@@ -108,6 +108,7 @@ pytest:
   script:
     - python3 -m pip install --user pytest-cov
     - python3 -m pytest -m "not slow" --log-cli-level="INFO"
+  coverage: '/Code coverage: ^TOTAL.+?(\d+\%)$/'
   artifacts:
     reports:
       cobertura: coverage.xml
