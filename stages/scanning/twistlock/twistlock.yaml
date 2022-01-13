@@ -31,7 +31,7 @@ twistlock-scan:
         --output-file "${TWISTLOCK_SCANS}/twistlock_cve.json" \
         --details \
         --custom-labels \
-        "${IMAGE_FULLTAG}" || true
+        "${IMAGE_FULLTAG}" >twistlock_cve_details.txt || true
     - ls "${TWISTLOCK_SCANS}/twistlock_cve.json"
 
   artifacts:
