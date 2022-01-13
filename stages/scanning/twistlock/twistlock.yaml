@@ -13,12 +13,14 @@ twistlock-scan:
     - mkdir -p "${TWISTLOCK_SCANS}"
   script:
     - |
-      VERSION=$(curl -H "Content-Type: application/json" -H "Authorization: Basic ${TWISTLOCK_API_AUTH}" "${TWISTLOCK_SERVER_ADDRESS}/api/v1/version" | sed -e 's/"//g' | cut -d"." -f1-2)
+      curl -s -H "Content-Type: application/json" -H "Authorization: Basic ${TWISTLOCK_API_AUTH}" "${TWISTLOCK_SERVER_ADDRESS}/api/v1/version" >"${TWISTLOCK_SCANS}/twistlock-version.txt"
+    - VERSION=$(sed -e 's/"//g' "${TWISTLOCK_SCANS}/twistlock-version.txt" | cut -d"." -f1-2)
+    - echo "Downloading twistcli"
     - |
-      curl -H "Authorization: Basic ${TWISTLOCK_API_AUTH}" \
+      curl -s -H "Authorization: Basic ${TWISTLOCK_API_AUTH}" \
         -O "${TWISTLOCK_SERVER_ADDRESS}/api/v${VERSION}/util/twistcli"
     - chmod +x twistcli
-    - ./twistcli --version | cut -d" " -f3 >"${TWISTLOCK_SCANS}/twistlock-version.txt"
+    - ./twistcli --version
     - |
       ./twistcli images scan \
         --address "${TWISTLOCK_SERVER_ADDRESS}" \
