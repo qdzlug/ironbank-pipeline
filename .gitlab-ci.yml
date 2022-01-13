@@ -99,7 +99,7 @@ shfmt:
     - chmod a+x shfmt_v3.1.2_linux_amd64
     - "./shfmt_v3.1.2_linux_amd64 -d ."
 
-unit-testing:
+pytest:
   needs: []
   tags:
     - ironbank-tools
@@ -108,3 +108,7 @@ unit-testing:
   script:
     - python3 -m pip install --user pytest-cov
     - python3 -m pytest -m "not slow" --log-cli-level="INFO"
+  artifacts:
+    reports:
+      cobertura: coverage.xml
+      junit: report.xml
