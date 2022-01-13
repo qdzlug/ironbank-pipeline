@@ -108,7 +108,7 @@ unit-testing:
   script:
     - python3 -m pip install --user pytest-cov
     - python3 -m pytest -m "not slow" --log-cli-level="INFO"
-  coverage: '/Code coverage: ^TOTAL.+?(\d+\%)$/'
+  coverage: '/^TOTAL.+?(\d+\%)$/'
   artifacts:
     reports:
       cobertura: coverage.xml
