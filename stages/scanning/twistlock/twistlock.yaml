@@ -13,22 +13,24 @@ twistlock-scan:
     - mkdir -p "${TWISTLOCK_SCANS}"
   script:
     - |
-      curl -O "${TWISTLOCK_SERVER_ADDRESS}/api/v1/util/twistcli" && \
-        chmod +x twistcli
+      VERSION=$(curl -H "Content-Type: application/json" -H "Authorization: Basic ${TWISTLOCK_API_AUTH}" "${TWISTLOCK_SERVER_ADDRESS}/api/v1/version" | sed -e 's/"//g' | cut -d"." -f1-2)
+    - |
+      curl -H "Authorization: Basic ${TWISTLOCK_API_AUTH}" \
+        -O "${TWISTLOCK_SERVER_ADDRESS}/api/v${VERSION}/util/twistcli"
+    - chmod +x twistcli
     - ./twistcli --version | cut -d" " -f3 >"${TWISTLOCK_SCANS}/twistlock-version.txt"
-    - sleep 600
-    # - |
-    #   ./twistcli images scan \
-    #     --address "${TWISTLOCK_SERVER_ADDRESS}" \
-    #     --user="${TWISTLOCK_USER}" \
-    #     --password="${TWISTLOCK_PASSWORD}" \
-    #     --containerized \
-    #     --podman-path=podman \
-    #     --output-file "${TWISTLOCK_SCANS}/twistlock_cve.json" \
-    #     --details \
-    #     --custom-labels \
-    #     "${IMAGE_FULLTAG}" || true
-    # - ls "${TWISTLOCK_SCANS}/twistlock_cve.json"
+    - |
+      ./twistcli images scan \
+        --address "${TWISTLOCK_SERVER_ADDRESS}" \
+        --user="${TWISTLOCK_USER}" \
+        --password="${TWISTLOCK_PASSWORD}" \
+        --containerized \
+        --podman-path=podman \
+        --output-file "${TWISTLOCK_SCANS}/twistlock_cve.json" \
+        --details \
+        --custom-labels \
+        "${IMAGE_FULLTAG}" || true
+    - ls "${TWISTLOCK_SCANS}/twistlock_cve.json"
 
   artifacts:
     when: always
