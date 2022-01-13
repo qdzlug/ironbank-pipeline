@@ -16,18 +16,19 @@ twistlock-scan:
       curl -O "${TWISTLOCK_SERVER_ADDRESS}/api/v1/util/twistcli" && \
         chmod +x twistcli
     - ./twistcli --version | cut -d" " -f3 >"${TWISTLOCK_SCANS}/twistlock-version.txt"
-    - |
-      ./twistcli images scan \
-        --address "${TWISTLOCK_SERVER_ADDRESS}" \
-        --user="${TWISTLOCK_USER}" \
-        --password="${TWISTLOCK_PASSWORD}" \
-        --containerized \
-        --podman-path=podman \
-        --output-file "${TWISTLOCK_SCANS}/twistlock_cve.json" \
-        --details \
-        --custom-labels \
-        "${IMAGE_FULLTAG}" || true
-    - ls "${TWISTLOCK_SCANS}/twistlock_cve.json"
+    - sleep 600
+    # - |
+    #   ./twistcli images scan \
+    #     --address "${TWISTLOCK_SERVER_ADDRESS}" \
+    #     --user="${TWISTLOCK_USER}" \
+    #     --password="${TWISTLOCK_PASSWORD}" \
+    #     --containerized \
+    #     --podman-path=podman \
+    #     --output-file "${TWISTLOCK_SCANS}/twistlock_cve.json" \
+    #     --details \
+    #     --custom-labels \
+    #     "${IMAGE_FULLTAG}" || true
+    # - ls "${TWISTLOCK_SCANS}/twistlock_cve.json"
 
   artifacts:
     when: always
