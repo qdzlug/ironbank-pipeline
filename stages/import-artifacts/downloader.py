@@ -278,7 +278,7 @@ def http_download(
 
     # Compare checksums
     logging.info(
-        f"comparing checksum values: {str(checksum_value_from_calc.hexdigest())} vs {str(checksum_value)}"
+        f"checksum mismatch: actual {str(checksum_value_from_calc.hexdigest())}, expected {str(checksum_value)}"
     )
     if checksum_value_from_calc.hexdigest() == checksum_value:
         logging.info("Checksum verified")
@@ -340,7 +340,7 @@ def s3_download(
 
     # Compare checksums
     logging.info(
-        f"comparing checksum values: {str(checksum_value_from_calc.hexdigest())} vs {str(checksum_value)}"
+        f"checksum mismatch: actual {str(checksum_value_from_calc.hexdigest())}, expected {str(checksum_value)}"
     )
     if checksum_value_from_calc.hexdigest() == checksum_value:
         logging.info("Checksum verified")
