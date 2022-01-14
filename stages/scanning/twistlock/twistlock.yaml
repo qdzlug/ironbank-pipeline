@@ -33,12 +33,14 @@ twistlock-scan:
         --custom-labels \
         "${IMAGE_FULLTAG}" >twistlock_cve_details.txt || true
     - ls "${TWISTLOCK_SCANS}/twistlock_cve.json"
+    - ls -lah "${TWISTLOCK_SCANS}"
+    - jq '.' "${TWISTLOCK_SCANS}/twistlock_cve.json"
 
   artifacts:
     when: always
     paths:
       - "${TWISTLOCK_SCANS}/"
     expire_in: 1 week
-  retry:
-    max: 2
-    when: always
+  # retry:
+  #   max: 2
+  #   when: always
