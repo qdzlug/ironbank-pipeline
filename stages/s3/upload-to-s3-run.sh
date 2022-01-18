@@ -26,6 +26,7 @@ python3 "${PIPELINE_REPO_DIR}"/stages/s3/create_repo_map_default.py --target "${
 mkdir reports
 cp -r "${DOCUMENTATION_DIRECTORY}"/reports/* reports/
 cp -r "${SCAN_DIRECTORY}"/* reports/
+cp -r "${SBOM_DIRECTORY}"/* reports/
 
 cp "${PROJECT_LICENSE}" "${PROJECT_README}" reports/
 
