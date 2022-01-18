@@ -13,28 +13,36 @@ twistlock-scan:
     - mkdir -p "${TWISTLOCK_SCANS}"
   script:
     - |
-      curl -s -H "Content-Type: application/json" -H "Authorization: Basic ${TWISTLOCK_API_AUTH}" "${TWISTLOCK_SERVER_ADDRESS}/api/v1/version" >"${TWISTLOCK_SCANS}/twistlock-version.txt"
-    - VERSION=$(sed -e 's/"//g' "${TWISTLOCK_SCANS}/twistlock-version.txt" | cut -d"." -f1-2)
-    - echo "Downloading twistcli v${VERSION}"
-    - |
-      curl -s -H "Authorization: Basic ${TWISTLOCK_API_AUTH}" \
-        -O "${TWISTLOCK_SERVER_ADDRESS}/api/v${VERSION}/util/twistcli"
-    - chmod +x twistcli
-    - ./twistcli --version
-    - |
-      ./twistcli images scan \
-        --address "${TWISTLOCK_SERVER_ADDRESS}" \
-        --user="${TWISTLOCK_USER}" \
-        --password="${TWISTLOCK_PASSWORD}" \
-        --containerized \
-        --podman-path=podman \
-        --output-file "${TWISTLOCK_SCANS}/twistlock_cve.json" \
-        --details \
-        --custom-labels \
-        "${IMAGE_FULLTAG}" >twistlock_cve_details.txt || true
-    - ls "${TWISTLOCK_SCANS}/twistlock_cve.json"
-    - ls -lah "${TWISTLOCK_SCANS}"
-    - jq '.' "${TWISTLOCK_SCANS}/twistlock_cve.json"
+      python3 twistcli.py \
+        --image_name "${IMAGE_FULL_TAG}" \
+        --username "${TWISTLOCK_USERNAME}" \
+        --password "${TWISTLOCK_PASSWORD}" \
+        --version_file "${TWISTLOCK_SCANS}/twistlock-version.txt" \
+        --report_file "${TWISTLOCK_SCANS}/twistlock_cve.json" \
+        --api_url "${TWISTLOCK_SERVER_ADDRESS}"
+    # - |
+    #   curl -s -H "Content-Type: application/json" -H "Authorization: Basic ${TWISTLOCK_API_AUTH}" "${TWISTLOCK_SERVER_ADDRESS}/api/v1/version" >"${TWISTLOCK_SCANS}/twistlock-version.txt"
+    # - VERSION=$(sed -e 's/"//g' "${TWISTLOCK_SCANS}/twistlock-version.txt" | cut -d"." -f1-2)
+    # - echo "Downloading twistcli v${VERSION}"
+    # - |
+    #   curl -s -H "Authorization: Basic ${TWISTLOCK_API_AUTH}" \
+    #     -O "${TWISTLOCK_SERVER_ADDRESS}/api/v${VERSION}/util/twistcli"
+    # - chmod +x twistcli
+    # - ./twistcli --version
+    # - |
+    #   ./twistcli images scan \
+    #     --address "${TWISTLOCK_SERVER_ADDRESS}" \
+    #     --user="${TWISTLOCK_USER}" \
+    #     --password="${TWISTLOCK_PASSWORD}" \
+    #     --containerized \
+    #     --podman-path=podman \
+    #     --output-file "${TWISTLOCK_SCANS}/twistlock_cve.json" \
+    #     --details \
+    #     --custom-labels \
+    #     "${IMAGE_FULLTAG}" >twistlock_cve_details.txt || true
+    # - ls "${TWISTLOCK_SCANS}/twistlock_cve.json"
+    # - ls -lah "${TWISTLOCK_SCANS}"
+    # - jq '.' "${TWISTLOCK_SCANS}/twistlock_cve.json"
 
   artifacts:
     when: always
