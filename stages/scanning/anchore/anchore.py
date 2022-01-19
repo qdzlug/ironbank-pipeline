@@ -384,14 +384,14 @@ class Anchore:
             with filename.open(mode="w") as f:
                 json.dump(content, f)
 
-    def generate_sbom(self, image, artifacts_path):
+    def generate_sbom(self, image, artifacts_path, output_format, file_type):
         """
         Grab the SBOM from Anchore
 
         """
-        cmd = ["syft", image, "--scope", "all-layers", "-o", "cyclonedx"]
+        cmd = ["syft", image, "--scope", "all-layers", "-o", f"output_format"]
 
-        sbom_cyclonedx = pathlib.Path(artifacts_path, "sbom-cyclonedx")
+        sbom_cyclonedx = pathlib.Path(artifacts_path, f"sbom-{output_format}.{file_type}")
         sbom_cyclonedx.mkdir(parents=True, exist_ok=True)
         with (sbom_cyclonedx / "sbom.xml").open("wb") as f:
             try:

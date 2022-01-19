@@ -35,7 +35,9 @@ def main():
 
     image = os.environ["IMAGE_FULLTAG"]
 
-    anchore_scan.generate_sbom(image, artifacts_path)
+    anchore_scan.generate_sbom(image, artifacts_path, "cyclonedx", "xml")
+    anchore_scan.generate_sbom(image, artifacts_path, "spdx-tag-value", "txt")
+    anchore_scan.generate_sbom(image, artifacts_path, "spdx-json", "json")
 
 
 if __name__ == "__main__":
