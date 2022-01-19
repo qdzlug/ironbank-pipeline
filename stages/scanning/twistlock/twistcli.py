@@ -1,4 +1,5 @@
 import os
+import pathlib
 import sys
 import json
 import logging
@@ -23,7 +24,9 @@ from requests.auth import HTTPBasicAuth
 
 def get_console_version(base_url, username, password, version_file) -> str:
     logging.info(f"Fetching Twistlock Console version from {base_url}/v1/version")
-    r = requests.get(f"{base_url}/v1/version", auth=HTTPBasicAuth(username, password))
+    r = requests.get(
+        f"{base_url}/api/v1/version", auth=HTTPBasicAuth(username, password)
+    )
 
     version = ""
 
@@ -53,28 +56,30 @@ def scan_image(base_url, username, password, filename, image_name) -> None:
         username,
         "--password",
         password,
-        "--containerized",
         "--podman-path=podman",
         "--custom-labels",
         image_name,
     ]
 
     try:
-        logging.info(f"{' '.join(cmd[0:5])} {' '.join(cmd[9:])}")
+        logging.info(f"{' '.join(cmd)}")
         findings = subprocess.run(
             cmd,
             encoding="utf-8",
             stderr=subprocess.PIPE,
             stdout=subprocess.PIPE,
         )
-        logging.info("Scan successful")
-        with open(filename, mode="w") as f:
-            json.dump(findings.stdout, f, indent=4)
-    except subprocess.SubprocessError:
-        logging.error("Could not generate scan report")
-        sys.exit(1)
+        if findings.stdout:
+            with open(filename, mode="w") as f:
+                json.dump(findings.stdout, f, indent=4)
+            logging.info("Scan successful")
+        elif findings.stderr or not pathlib.Path(filename).is_file:
+            logging.error("Could not generate scan report")
+            logging.debug(f"Stderr:\n\t{findings.stderr}")
+            logging.debug(f"Return code:\n\t{findings.returncode}")
+            sys.exit(1)
     except Exception:
-        logging.exception("Unknown error when ")
+        logging.exception("Unknown error when attempting to scan image")
 
 
 # def twistlock_scan(
@@ -131,8 +136,6 @@ if __name__ == "__main__":
     version = get_console_version(
         args.api_url, args.username, args.password, args.version_file
     )
-
-    print(f"Twistlock Console version: {version}")
 
     scan_image(
         args.api_url, args.username, args.password, args.report_file, args.image_name

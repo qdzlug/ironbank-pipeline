@@ -13,9 +13,9 @@ twistlock-scan:
     - mkdir -p "${TWISTLOCK_SCANS}"
   script:
     - |
-      python3 twistcli.py \
+      python3 "${PIPELINE_REPO_DIR}/stages/scanning/twistlock/twistcli.py" \
         --image_name "${IMAGE_FULL_TAG}" \
-        --username "${TWISTLOCK_USERNAME}" \
+        --username "${TWISTLOCK_USER}" \
         --password "${TWISTLOCK_PASSWORD}" \
         --version_file "${TWISTLOCK_SCANS}/twistlock-version.txt" \
         --report_file "${TWISTLOCK_SCANS}/twistlock_cve.json" \
