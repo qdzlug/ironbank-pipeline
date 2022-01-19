@@ -389,11 +389,11 @@ class Anchore:
         Grab the SBOM from Anchore
 
         """
-        cmd = ["syft", image, "--scope", "all-layers", "-o", f"output_format"]
+        cmd = ["syft", image, "--scope", "all-layers", "-o", f"{output_format}"]
 
-        sbom_cyclonedx = pathlib.Path(artifacts_path, f"sbom-{output_format}.{file_type}")
-        sbom_cyclonedx.mkdir(parents=True, exist_ok=True)
-        with (sbom_cyclonedx / "sbom.xml").open("wb") as f:
+        sbom_type = pathlib.Path(artifacts_path, f"sbom-{output_format}.{file_type}")
+        sbom_type.mkdir(parents=True, exist_ok=True)
+        with (sbom_type / "sbom.xml").open("wb") as f:
             try:
                 logging.info(f"{' '.join(cmd[0:3])} {' '.join(cmd[5:])}")
                 subprocess.run(
