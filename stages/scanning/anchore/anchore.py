@@ -393,7 +393,7 @@ class Anchore:
 
         sbom_type = pathlib.Path(artifacts_path, f"sbom-{output_format}.{file_type}")
         sbom_type.mkdir(parents=True, exist_ok=True)
-        with (sbom_type / "sbom.xml").open("wb") as f:
+        with (sbom_type / f"sbom-{output_format}.{file_type}").open("wb") as f:
             try:
                 logging.info(f"{' '.join(cmd[0:3])} {' '.join(cmd[5:])}")
                 subprocess.run(
