@@ -14,7 +14,6 @@ upload-to-s3:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
     REPORT_TAR_NAME: ${CI_PROJECT_NAME}-${IMAGE_VERSION}-reports-signature.tar.gz
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: ibfe
-    SBOM_DIRECTORY: ${ANCHORE_SCANS}/sbom-cyclonedx
 
   dependencies:
     - load-scripts
@@ -23,6 +22,7 @@ upload-to-s3:
     - wl-compare-lint
     - build
     - anchore-scan
+    - anchore-sbom-generation
     - twistlock-scan
     - openscap-compliance
     - csv-output
