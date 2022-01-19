@@ -391,9 +391,9 @@ class Anchore:
         """
         cmd = ["syft", image, "--scope", "all-layers", "-o", f"{output_format}"]
 
-        sbom_type = pathlib.Path(artifacts_path, f"sbom-{output_format}.{file_type}")
-        sbom_type.mkdir(parents=True, exist_ok=True)
-        with (sbom_type / f"sbom-{output_format}.{file_type}").open("wb") as f:
+        sbom_dir = pathlib.Path(artifacts_path, "sbom")
+        sbom_dir.mkdir(parents=True, exist_ok=True)
+        with (sbom_dir / f"sbom-{output_format}.{file_type}").open("wb") as f:
             try:
                 logging.info(f"{' '.join(cmd[0:3])} {' '.join(cmd[5:])}")
                 subprocess.run(

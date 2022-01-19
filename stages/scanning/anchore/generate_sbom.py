@@ -30,9 +30,6 @@ def main():
 
     artifacts_path = os.environ.get("ANCHORE_SCANS", default="/tmp/anchore_scans")
 
-    # Create the directory if it does not exist
-    pathlib.Path(artifacts_path).mkdir(parents=True, exist_ok=True)
-
     image = os.environ["IMAGE_FULLTAG"]
 
     anchore_scan.generate_sbom(image, artifacts_path, "cyclonedx", "xml")
