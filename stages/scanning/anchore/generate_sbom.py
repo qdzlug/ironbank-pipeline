@@ -3,7 +3,6 @@
 import os
 import sys
 import logging
-import pathlib
 
 from anchore import Anchore
 
