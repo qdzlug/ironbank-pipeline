@@ -51,8 +51,10 @@ def main():
             sys.exit(1)
         except requests.exceptions.HTTPError:
             logging.error(f"Got HTTP {post_resp.status_code}")
-            if post_resp.status_code == 500 :
-                logging.error("HTTP error: 500 likely received due to duplicate org.opencontainers.image.title and version. Please investigate ironbank.dso.mil to see if something already exists.")
+            if post_resp.status_code == 500:
+                logging.error(
+                    "HTTP error: 500 likely received due to duplicate org.opencontainers.image.title and version. Please investigate ironbank.dso.mil to see if something already exists."
+                )
             logging.exception("HTTP error")
             sys.exit(1)
         except requests.exceptions.RequestException:
