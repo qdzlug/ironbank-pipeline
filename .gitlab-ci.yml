@@ -107,7 +107,7 @@ unit-testing:
   image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:0.4"
   script:
     - python3 -m pip install --user pytest-cov
-    - python3 -m pytest -m "not slow" --log-cli-level="INFO"
+    - python3 -m pytest -m "not slow"
   coverage: '/^TOTAL.+?(\d+\%)$/'
   artifacts:
     reports:
