@@ -62,7 +62,7 @@ black:
   stage: format
   image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:0.4"
   script:
-    - pip install --user git+git://github.com/psf/black
+    - pip install --user black
     - black --check --diff --color -t py39 .
 
 pylama:
