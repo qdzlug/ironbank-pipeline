@@ -263,6 +263,8 @@ def create_api_call():
     # Get all justifications
     logging.info("Gathering list of all justifications...")
 
+    renovate_enabled = Path("renovate.json").is_file()
+
     os_jobs = []
     tl_jobs = []
     asec_jobs = []
@@ -300,9 +302,10 @@ def create_api_call():
             "commit": args.commit_hash,
         },
         "findings": all_jobs,
-        "Keywords": keyword_list,
-        "Tags": tag_list,
-        "Labels": label_dict,
+        "keywords": keyword_list,
+        "tags": tag_list,
+        "labels": label_dict,
+        "renovateEnabled": renovate_enabled,
     }
     logging.debug(large_data)
     return large_data
