@@ -1,16 +1,10 @@
-anchore-scan:
-  extends: .scanning
-  image: "registry1.dso.mil/ironbank/anchore/cli/cli:0.9.1"
+.anchore:
   stage: scanning
-  # Load in the IMAGE_VERSION variable from load-scripts env
   dependencies:
     - load-scripts
     - build
   variables:
-    # put all scan outputs in the scan-results folder
     ANCHORE_SCANS: "${ARTIFACT_STORAGE}/scan-results/anchore"
-  script:
-    - python3 "${PIPELINE_REPO_DIR}/stages/scanning/anchore/anchore_scan.py"
   artifacts:
     when: always
     paths:
@@ -20,21 +14,14 @@ anchore-scan:
     max: 2
     when: always
 
+anchore-scan:
+  extends: .anchore
+  image: "registry1.dso.mil/ironbank/anchore/cli/cli:0.9.1"
+  script:
+    - python3 "${PIPELINE_REPO_DIR}/stages/scanning/anchore/anchore_scan.py"
+
 anchore-sbom-generation:
+  extends: .anchore
   image: "registry1.dso.mil/ironbank/anchore/engine/engine:1.0.0"
-  stage: scanning
-  dependencies:
-    - load-scripts
-    - build
-  variables:
-    ANCHORE_SCANS: "${ARTIFACT_STORAGE}/scan-results/anchore"
   script:
     - python3 "${PIPELINE_REPO_DIR}/stages/scanning/anchore/generate_sbom.py"
-  artifacts:
-    when: always
-    paths:
-      - "${ANCHORE_SCANS}/"
-    expire_in: 1 week
-  retry:
-    max: 2
-    when: always

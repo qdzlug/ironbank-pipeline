@@ -197,8 +197,12 @@ def resource_type(url):
 def get_auth(resource_type, item):
     if resource_type != "s3":
         credential_id = item["auth"]["id"].replace("-", "_")
-        password = b64decode(os.environ["CREDENTIAL_PASSWORD_" + credential_id])
-        username = b64decode(os.environ["CREDENTIAL_USERNAME_" + credential_id])
+        password = b64decode(os.environ["CREDENTIAL_PASSWORD_" + credential_id]).decode(
+            "utf-8"
+        )
+        username = b64decode(os.environ["CREDENTIAL_USERNAME_" + credential_id]).decode(
+            "utf-8"
+        )
         return username, password
     else:
         credential_id = item["auth"]["id"].replace("-", "_")

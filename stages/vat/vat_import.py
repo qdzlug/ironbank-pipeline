@@ -141,14 +141,26 @@ def generate_anchore_cve_jobs(anchore_sec_path):
         try:
             description = v_d["extra"]["description"]
         except KeyError:
-            logging.info("Vulnerability description does not exist")
+            logging.info(f"Vulnerability description does not exist for {v_d['vuln']}")
             description = "none"
 
-        link_string = (
-            "".join((item["source"] + ": " + item["url"] + "\n") for item in v_d["url"])
-            if isinstance(v_d["url"], list)
-            else v_d["url"]
-        )
+        link_string = ""
+        # check to make sure the vulnerability's url value is a list
+        if isinstance(v_d["url"], list):
+            for url in v_d["url"]:
+                url_text = f"{url['source']}:{url['url']}\n"
+                # Check to make sure that adding the current url to the link_string will not overflow the DB's column limit
+                # If this value isn't checked and it is too large, the VAT API post will fail with a 500 error
+                if len(url_text) + len(link_string) < 65535:
+                    link_string += url_text
+                else:
+                    logging.warning(
+                        "Unable to add all reference URLs to API POST. Please refer to anchore_security.json for more info."
+                    )
+                    break
+        # vulnerability's url value is NOT a list. Just use the string value provided
+        else:
+            link_string = v_d["url"]
         cve = {
             "finding": v_d["vuln"],
             "severity": v_d["severity"].lower(),

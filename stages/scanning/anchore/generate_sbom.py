@@ -3,7 +3,6 @@
 import os
 import sys
 import logging
-import pathlib
 
 from anchore import Anchore
 
@@ -30,12 +29,11 @@ def main():
 
     artifacts_path = os.environ.get("ANCHORE_SCANS", default="/tmp/anchore_scans")
 
-    # Create the directory if it does not exist
-    pathlib.Path(artifacts_path).mkdir(parents=True, exist_ok=True)
-
     image = os.environ["IMAGE_FULLTAG"]
 
-    anchore_scan.generate_sbom(image, artifacts_path)
+    anchore_scan.generate_sbom(image, artifacts_path, "cyclonedx", "xml")
+    anchore_scan.generate_sbom(image, artifacts_path, "spdx-tag-value", "txt")
+    anchore_scan.generate_sbom(image, artifacts_path, "spdx-json", "json")
 
 
 if __name__ == "__main__":
