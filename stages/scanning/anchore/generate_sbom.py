@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 
 import os
-import sys
 import logging
 
 from anchore import Anchore
 
 
-def main():
+def main() -> None:
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
     if loglevel == "DEBUG":
@@ -37,4 +36,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
