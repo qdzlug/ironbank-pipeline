@@ -13,3 +13,6 @@ htmlcov/
 .mypy_cache/
 mypy.ini
 libs/*
+test_projects/
+report.xml
+coverage.xml
