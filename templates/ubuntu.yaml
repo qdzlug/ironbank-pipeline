@@ -10,25 +10,31 @@ include:
   - local: stages/scan-artifacts/clamav-scan.yaml
 
   - local: stages/build/base.yaml
-  # # # Removing post-build stage, not needed for beta
-  # # # - local: stages/post-build/base.yaml
 
+  - local: stages/post-build/base.yaml
   # scanning stage jobs
   - local: stages/scanning/anchore/anchore.yaml
   - local: stages/scanning/openscap/openscap-compliance.yaml
   - local: stages/scanning/twistlock/twistlock.yaml
+
+  - local: stages/vat/base.yaml
+
   - local: stages/csv-output/base.yaml
 
+  - local: stages/check-cves/base.yaml
+
+  - local: stages/generate-allowlists/base.yaml
+
+  - local: stages/documentation/base.yaml
+
+  - local: stages/harbor/harbor.yaml
+
+  - local: stages/s3/upload-to-s3.yaml
+
 openscap-compliance:
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/ubupodscap1804:1.3.2"
-
-  # - local: stages/check-cves/base.yaml
-
-  # - local: stages/documentation/base.yaml
-
-  # - local: stages/vat/base.yaml
-
-  # - local: stages/publish/base.yaml
+  image: harbor-ib.staging.dso.mil/ironbank-staging/ironbank-pipelines/ubupodscap2004:1.3.2
 
 variables:
   UBUNTU: "1"
+  DISTRO_REPO_DIR: "apt-repos/ironbank.list"
+  DISTRO_REPO_MOUNT: "/etc/apt/sources.list"

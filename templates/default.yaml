@@ -30,3 +30,7 @@ include:
   - local: stages/harbor/harbor.yaml
 
   - local: stages/s3/upload-to-s3.yaml
+
+variables:
+  DISTRO_REPO_DIR: "ubi-repos"
+  DISTRO_REPO_MOUNT: "/etc/yum.repos.d"
