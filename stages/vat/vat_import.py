@@ -7,6 +7,7 @@ import argparse
 import logging
 from pathlib import Path
 import requests
+import time
 from requests.structures import CaseInsensitiveDict
 
 sys.path.append(
@@ -259,6 +260,9 @@ def generate_twistlock_jobs(twistlock_cve_path):
                     "package": v_d["packageName"] + "-" + v_d["packageVersion"],
                     "packagePath": None,
                     "scanSource": "twistlock_cve",
+                    "reportDate": time.strftime(
+                        "%FT%TZ", time.gmtime(v_d["published"])
+                    ),
                 }
             )
     return cves
