@@ -32,7 +32,7 @@ include:
   - local: stages/s3/upload-to-s3.yaml
 
 openscap-compliance:
-  image: harbor-ib.staging.dso.mil/ironbank-staging/ironbank-pipelines/ubupodscap2004:1.3.2
+  image: registry.dso.mil/ironbank-tools/ironbank-pipeline/ubupodscap2004:1.3.2
 
 variables:
   UBUNTU: "1"
