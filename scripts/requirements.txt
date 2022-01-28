@@ -1,7 +1,12 @@
 ### gitlab-project settings
-certifi==2020.6.20
-chardet==3.0.4
-idna==2.10
-python-gitlab==2.5.0
-requests==2.24.0
-urllib3==1.25.10
+python-gitlab
+urllib3
+pytest-cov
+python-dateutil
+jsonschema
+GitPython
+pyyaml
+requests
+boto3
+pytest
+coverage
