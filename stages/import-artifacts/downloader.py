@@ -153,7 +153,7 @@ def resource_type(url):
     http_string = "http"
     s3_string = "s3://"
     github_string_deprecated = "docker.pkg.github.com/"
-    github_string_current = "https://ghcr.io"
+    github_string_current = "ghcr.io"
     if docker_string in check:
         return "docker"
     elif s3_string in check:
