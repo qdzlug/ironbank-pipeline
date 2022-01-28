@@ -52,6 +52,11 @@ args_parameters=$(while IFS= read -r line; do
   echo "--build-arg=$line"
 done <"${ARTIFACT_STORAGE}/preflight/args.env")
 
+echo "Adding the ironbank.repo to the containter via mount.conf"
+if [ -n "${DISTRO_REPO_DIR}" ]; then
+  echo "${PWD}/${PIPELINE_REPO_DIR}/stages/build/${DISTRO_REPO_DIR}:${DISTRO_REPO_MOUNT}" >>"${HOME}"/.config/containers/mounts.conf
+fi
+
 old_ifs=$IFS
 IFS=$'\n'
 echo "Build the image"
@@ -65,10 +70,10 @@ env -i BUILDAH_ISOLATION=chroot PATH="$PATH" buildah bud \
   --label=org.opencontainers.image.created="$(date --rfc-3339=seconds)" \
   --label=org.opencontainers.image.source="${CI_PROJECT_URL}" \
   --label=org.opencontainers.image.revision="${CI_COMMIT_SHA}" \
-  --add-host="satellite:${SATELLITE_URL}" \
   --authfile /tmp/prod_auth.json \
   --format=docker \
-  --loglevel=3 \
+  --log-level=warn \
+  --default-mounts-file="${HOME}"/.config/containers/mounts.conf \
   --storage-driver=vfs \
   -t "${IMAGE_REGISTRY_REPO}" \
   .
