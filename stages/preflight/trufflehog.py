@@ -55,7 +55,9 @@ def main() -> None:
         project_origin = os.environ["TRUFFLEHOG_TARGET"]
 
     if project_origin == "pipeline":
-        diff_branch = "master"
+        diff_branch = (
+            "master"
+        )
     else:
         diff_branch = (
             "origin/development" if branch_name != "development" else "origin/master"
