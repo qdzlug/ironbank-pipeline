@@ -50,7 +50,7 @@ def main() -> None:
     )
 
     diff_branch = (
-        "origin/development" if branch_name != "development" else "origin/master"
+        "origin/master"
     )
 
     # Check if trufflehog.yaml file exists and exit(1) if it does
