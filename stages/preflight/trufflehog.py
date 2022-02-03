@@ -56,7 +56,7 @@ def main() -> None:
 
     if project_origin == "pipeline":
         diff_branch = (
-            "master"
+            "origin/master"
         )
     else:
         diff_branch = (
