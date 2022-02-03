@@ -49,11 +49,7 @@ def main() -> None:
         "stages/preflight/default-trufflehog-config.yaml",
     )
 
-    if "TRUFFLEHOG_TARGET" not in os.environ:
-        project_origin = "cht"
-    else:
-        project_origin = os.environ["TRUFFLEHOG_TARGET"]
-
+    project_origin = os.environ.get("TRUFFLEHOG_TARGET", "cht"):
     if project_origin == "pipeline":
         diff_branch = "origin/master"
     else:
