@@ -49,9 +49,14 @@ def main() -> None:
         "stages/preflight/default-trufflehog-config.yaml",
     )
 
-    diff_branch = (
-        "origin/development" if branch_name != "development" else "origin/master"
-    )
+    project_origin = os.environ.get("TRUFFLEHOG_TARGET", "cht")
+
+    if project_origin == "pipeline":
+        diff_branch = "origin/master"
+    else:
+        diff_branch = (
+            "origin/development" if branch_name != "development" else "origin/master"
+        )
 
     # Check if trufflehog.yaml file exists and exit(1) if it does
     if Path(repo_dir, "trufflehog.yaml").is_file():

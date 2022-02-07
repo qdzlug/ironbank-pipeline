@@ -36,3 +36,5 @@ openscap-compliance:
 
 variables:
   UBUNTU: "1"
+  DISTRO_REPO_DIR: "apt-repos/ironbank.list"
+  DISTRO_REPO_MOUNT: "/etc/apt/sources.list"
