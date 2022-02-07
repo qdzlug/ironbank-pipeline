@@ -38,7 +38,7 @@ def mock_github_resources():
             },
             {
                 "tag": "xyz",
-                "url": "https://ghcr.io/xyz",
+                "url": "ghcr.io/xyz",
             },
         ]
     }
@@ -77,7 +77,7 @@ def mock_urls():
         "http_string": "http",
         "s3_string": "s3://",
         "github_string_deprecated": "docker.pkg.github.com/",
-        "github_string_current": "https://ghcr.io",
+        "github_string_current": "ghcr.io",
     }
 
 
