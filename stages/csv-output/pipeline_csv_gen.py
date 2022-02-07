@@ -2,7 +2,6 @@
 
 import csv
 import sys
-import re
 import json
 import os
 import argparse
@@ -316,13 +315,11 @@ def get_oscap_full(oscap_file, justifications):
         rule = root.find(f".//xccdf:Rule[@id='{rule_id}']", ns)
         title = rule.find("xccdf:title", ns).text
 
-        # This is the identifier that VAT will use. It will never be unset.
-        # Values will be of the format UBTU-18-010100 (UBI) or CCI-001234 (Ubuntu)
-        # Ubuntu/DISA:
-        identifiers = [v.text for v in rule.findall("xccdf:version", ns)]
+        # UBI/ComplianceAsCode:
+        identifiers = [ident.text for ident in rule.findall("xccdf:ident", ns)]
         if not identifiers:
-            # UBI/ComplianceAsCode:
-            identifiers = [i.text for i in rule.findall("xccdf:ident", ns)]
+            # Ubuntu/ComplianceAsCode
+            identifiers = [rule_id]
         # We never expect to get more than one identifier
         assert len(identifiers) == 1
         logging.debug(f"{identifiers}")
@@ -361,12 +358,6 @@ def get_oscap_full(oscap_file, justifications):
             .decode("utf8")
             .strip()
         )
-        # Cleanup Ubuntu descriptions
-        match = re.match(
-            r"<VulnDiscussion>(.*)</VulnDiscussion>", description, re.DOTALL
-        )
-        if match:
-            description = match.group(1)
 
         cve_justification = ""
         id = (identifier, None, None)
