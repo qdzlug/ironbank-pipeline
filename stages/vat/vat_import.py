@@ -7,6 +7,7 @@ import argparse
 import logging
 from pathlib import Path
 import requests
+import time
 from requests.structures import CaseInsensitiveDict
 
 sys.path.append(
@@ -16,7 +17,10 @@ sys.path.append(
 )
 
 from get_oscap_failures import generate_oscap_jobs  # noqa E402
-
+from hardening_manifest_parse import (
+    source_values,
+    get_source_keys_values,
+)  # noqa E402
 
 parser = argparse.ArgumentParser(
     description="DCCSCR processing of CVE reports from various sources"
@@ -138,14 +142,26 @@ def generate_anchore_cve_jobs(anchore_sec_path):
         try:
             description = v_d["extra"]["description"]
         except KeyError:
-            logging.info("Vulnerability description does not exist")
+            logging.info(f"Vulnerability description does not exist for {v_d['vuln']}")
             description = "none"
 
-        link_string = (
-            "".join((item["source"] + ": " + item["url"] + "\n") for item in v_d["url"])
-            if isinstance(v_d["url"], list)
-            else v_d["url"]
-        )
+        link_string = ""
+        # check to make sure the vulnerability's url value is a list
+        if isinstance(v_d["url"], list):
+            for url in v_d["url"]:
+                url_text = f"{url['source']}:{url['url']}\n"
+                # Check to make sure that adding the current url to the link_string will not overflow the DB's column limit
+                # If this value isn't checked and it is too large, the VAT API post will fail with a 500 error
+                if len(url_text) + len(link_string) < 65535:
+                    link_string += url_text
+                else:
+                    logging.warning(
+                        "Unable to add all reference URLs to API POST. Please refer to anchore_security.json for more info."
+                    )
+                    break
+        # vulnerability's url value is NOT a list. Just use the string value provided
+        else:
+            link_string = v_d["url"]
         cve = {
             "finding": v_d["vuln"],
             "severity": v_d["severity"].lower(),
@@ -244,15 +260,26 @@ def generate_twistlock_jobs(twistlock_cve_path):
                     "package": v_d["packageName"] + "-" + v_d["packageVersion"],
                     "packagePath": None,
                     "scanSource": "twistlock_cve",
+                    "reportDate": time.strftime(
+                        "%FT%TZ", time.gmtime(v_d["published"])
+                    ),
                 }
             )
     return cves
 
 
 def create_api_call():
+    artifact_storage = os.environ["ARTIFACT_STORAGE"]
+    keyword_list = source_values(
+        f"{artifact_storage}/preflight/keywords.txt", "keywords"
+    )
+    tag_list = source_values(f"{artifact_storage}/preflight/tags.txt", "tags")
+    label_dict = get_source_keys_values(f"{artifact_storage}/preflight/labels.env")
     # get cves and justifications from VAT
     # Get all justifications
     logging.info("Gathering list of all justifications...")
+
+    renovate_enabled = Path("renovate.json").is_file()
 
     os_jobs = []
     tl_jobs = []
@@ -291,6 +318,10 @@ def create_api_call():
             "commit": args.commit_hash,
         },
         "findings": all_jobs,
+        "keywords": keyword_list,
+        "tags": tag_list,
+        "labels": label_dict,
+        "renovateEnabled": renovate_enabled,
     }
     logging.debug(large_data)
     return large_data

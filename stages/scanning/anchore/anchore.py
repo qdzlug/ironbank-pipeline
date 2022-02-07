@@ -34,7 +34,7 @@ class Anchore:
         ensure the response has valid json. Once everything has been validated
         it will return a dictionary of the json.
 
-         payload - request payload for anchore api
+        payload - request payload for anchore api
 
         """
         logging.info(f"Fetching {url}")
@@ -383,3 +383,26 @@ class Anchore:
             logging.debug(f"Writing to {filename}")
             with filename.open(mode="w") as f:
                 json.dump(content, f)
+
+    def generate_sbom(self, image, artifacts_path, output_format, file_type):
+        """
+        Grab the SBOM from Anchore
+
+        """
+        cmd = ["syft", image, "--scope", "all-layers", "-o", f"{output_format}"]
+
+        sbom_dir = pathlib.Path(artifacts_path, "sbom")
+        sbom_dir.mkdir(parents=True, exist_ok=True)
+        with (sbom_dir / f"sbom-{output_format}.{file_type}").open("wb") as f:
+            try:
+                logging.info(f"{' '.join(cmd[0:3])} {' '.join(cmd[5:])}")
+                subprocess.run(
+                    cmd,
+                    check=True,
+                    encoding="utf-8",
+                    stderr=sys.stderr,
+                    stdout=f,
+                )
+            except subprocess.SubprocessError:
+                logging.exception("Could not generate sbom of image")
+                sys.exit(1)

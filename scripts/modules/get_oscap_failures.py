@@ -7,6 +7,7 @@ import xml.etree.ElementTree as etree
 import requests
 import re
 import bz2
+import sys
 
 
 def _format_reference(ref, n_set):
@@ -54,22 +55,17 @@ def generate_oscap_jobs(oscap_path):
                 # Get the <rule> that corresponds to the <rule-result>
                 # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
                 rule = root.find(f".//xccdf:Rule[@id='{rule_id}']", n_set)
-
-                # This is the identifier that VAT will use. It will never be unset.
-                # Values will be of the format UBTU-18-010100 (UBI) or CCI-001234 (Ubuntu)
-                # Ubuntu/DISA:
-                identifiers = [ver.text for ver in rule.findall("xccdf:version", n_set)]
+                # UBI/ComplianceAsCode:
+                identifiers = [
+                    ident.text for ident in rule.findall("xccdf:ident", n_set)
+                ]
                 if not identifiers:
-                    # UBI/ComplianceAsCode:
-                    identifiers = [
-                        ident.text for ident in rule.findall("xccdf:ident", n_set)
-                    ]
-
+                    # Ubuntu/ComplianceAsCode
+                    identifiers = [rule_id]
                 # We never expect to get more than one identifier
                 assert len(identifiers) == 1
                 logging.debug(f"Identifiers {identifiers}")
                 identifier = identifiers[0]
-                # Revisit this if we ever switch UBI from ComplianceAsCode to DISA content
 
                 # This is now informational only, vat_import no longer uses this field
                 references = "\n".join(
@@ -78,18 +74,12 @@ def generate_oscap_jobs(oscap_path):
                 )
                 assert references
 
-                # Convert description to text, seems to work well:
+                # Convert description to text
                 description = (
                     etree.tostring(rule.find("xccdf:description", n_set), method="text")
                     .decode("utf8")
                     .strip()
                 )
-                # Cleanup Ubuntu descriptions
-                match = re.match(
-                    r"<VulnDiscussion>(.*)</VulnDiscussion>", description, re.DOTALL
-                )
-                if match:
-                    description = match.group(1)
 
                 ret = {
                     "finding": identifier,
@@ -117,8 +107,12 @@ def generate_oscap_jobs(oscap_path):
 def get_oval_findings(finding_name, finding_href, severity):
     if "RHEL8" in finding_href:
         version = 8
-    else:
+    elif "RHEL7" in finding_href:
         version = 7
+    else:
+        logging.error("OVAL findings found for non-ubi based image")
+        sys.exit(1)
+
     url = f"https://www.redhat.com/security/data/oval/com.redhat.rhsa-RHEL{version}.xml"
     root = get_redhat_oval_definitions(url)
 

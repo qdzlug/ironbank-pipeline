@@ -1,36 +1,10 @@
-#
-# Anchore Scanning stage
-#
-# The anchore_scan.py script makes use of the environment variables already
-# present in the pipeline.
-#
-# NOTE: The ANCHORE_TIMEOUT variable is set as an environment
-#       variable in the gitlab dsop group. This allows it to be modified
-#       without needing to submit code changes.
-#
-# Test command:
-#   ANCHORE_PASSWORD=<pass>\
-#   ANCHORE_SERVER_ADDRESS=https://anchore-api.admin.dsop.io \
-#   ANCHORE_USERNAME=<user> \
-#   IMAGE_NAME=redhat/ubi/ubi8 \
-#   IMAGE_VERSION=8.3 \
-#   CI_PIPELINE_ID=87168 \
-#   ANCHORE_SCANS=/tmp/anchore/ \
-#   python3 anchore_scan.py
-#
-anchore-scan:
-  extends: .scanning
-  image: "registry1.dso.mil/ironbank/anchore/cli/cli:0.9.1"
+.anchore:
   stage: scanning
-  # Load in the IMAGE_VERSION variable from load-scripts env
   dependencies:
     - load-scripts
     - build
   variables:
-    # put all scan outputs in the scan-results folder
     ANCHORE_SCANS: "${ARTIFACT_STORAGE}/scan-results/anchore"
-  script:
-    - python3 "${PIPELINE_REPO_DIR}/stages/scanning/anchore/anchore_scan.py"
   artifacts:
     when: always
     paths:
@@ -39,3 +13,15 @@ anchore-scan:
   retry:
     max: 2
     when: always
+
+anchore-scan:
+  extends: .anchore
+  image: "registry1.dso.mil/ironbank/anchore/cli/cli:0.9.4"
+  script:
+    - python3 "${PIPELINE_REPO_DIR}/stages/scanning/anchore/anchore_scan.py"
+
+anchore-sbom-generation:
+  extends: .anchore
+  image: "registry1.dso.mil/ironbank/anchore/engine/engine:1.0.0"
+  script:
+    - python3 "${PIPELINE_REPO_DIR}/stages/scanning/anchore/generate_sbom.py"

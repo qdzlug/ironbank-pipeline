@@ -17,22 +17,24 @@ include:
   - local: stages/scanning/openscap/openscap-compliance.yaml
   - local: stages/scanning/twistlock/twistlock.yaml
 
-  # - local: stages/vat/base.yaml
+  - local: stages/vat/base.yaml
 
-  # - local: stages/csv-output/base.yaml
+  - local: stages/csv-output/base.yaml
 
-  # - local: stages/check-cves/base.yaml
+  - local: stages/check-cves/base.yaml
 
-  # - local: stages/generate-allowlists/base.yaml
+  - local: stages/generate-allowlists/base.yaml
 
-  # - local: stages/documentation/base.yaml
+  - local: stages/documentation/base.yaml
 
-  # - local: stages/harbor/harbor.yaml
+  - local: stages/harbor/harbor.yaml
 
-  # - local: stages/s3/upload-to-s3.yaml
+  - local: stages/s3/upload-to-s3.yaml
 
 openscap-compliance:
-  image: "${GITLAB_INTERNAL_REGISTRY}/ironbank-tools/ironbank-pipeline/ubupodscap1804:1.3.2"
+  image: registry.dso.mil/ironbank-staging/ironbank-pipelines/ubupodscap2004:1.3.2
 
 variables:
   UBUNTU: "1"
+  DISTRO_REPO_DIR: "apt-repos/ironbank.list"
+  DISTRO_REPO_MOUNT: "/etc/apt/sources.list"

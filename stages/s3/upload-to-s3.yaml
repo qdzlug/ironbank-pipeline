@@ -22,6 +22,7 @@ upload-to-s3:
     - wl-compare-lint
     - build
     - anchore-scan
+    - anchore-sbom-generation
     - twistlock-scan
     - openscap-compliance
     - csv-output
