@@ -255,14 +255,14 @@ def http_download(
 
     # Compare checksums
     logging.info(
-        f"checksum mismatch: actual {str(checksum_value_from_calc.hexdigest())}, expected {str(checksum_value)}"
+        f"validating checksums: actual {str(checksum_value_from_calc.hexdigest())}, expected {str(checksum_value)}"
     )
     if checksum_value_from_calc.hexdigest() == checksum_value:
         logging.info("Checksum verified")
         logging.info(f"File saved as '{resource_name}'")
     else:
         os.remove(artifacts_path + "/external-resources/" + resource_name)
-        logging.error("Checksum failed")
+        logging.error("Checksum mismatch")
         logging.error("File deleted")
         sys.exit(1)
 
