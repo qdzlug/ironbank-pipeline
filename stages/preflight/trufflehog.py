@@ -76,8 +76,7 @@ def main() -> None:
         branch_name,
         *history_cmd,
         "--config",
-        # config_file,
-        "stages/preflight/default-trufflehog-config.yaml"
+        config_file,
         ".",
     ]
 
