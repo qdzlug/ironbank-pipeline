@@ -1,4 +1,8 @@
-skip_strings:
-  "stages/preflight/README.md":
-    - airflow_conf_set
-skip_paths: []
+# skip_strings:
+#   "stages/preflight/README.md":
+#     - airflow_conf_set
+# skip_paths: []
+exclude:
+  pattern: airflow_conf_set
+  paths:
+    - stages/preflight/README.md
