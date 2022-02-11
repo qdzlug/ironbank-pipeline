@@ -166,10 +166,11 @@ def get_config(config_file: Path, expand_vars: bool = False) -> list:
         logging.debug("Config file found")
         with config_file.open(mode="r") as f:
             data: dict = yaml.safe_load(f)
-        exclude_list = data["exclude"]
+        exclude_dict = data["exclude"]
         if expand_vars:
-            for item in exclude_list:
+            for item in exclude_dict:
                 [os.path.expandvars(x) for x in item["paths"]]
+                exclude_list.append(item)
         return exclude_list
 
     else:
