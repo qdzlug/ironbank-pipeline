@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+from math import exp
 import os
 import sys
 import subprocess
@@ -165,12 +166,14 @@ def get_config(config_file: Path, expand_vars: bool = False) -> list:
         logging.debug("Config file found")
         with config_file.open(mode="r") as f:
             data: dict = yaml.safe_load(f)
-            for item in data["exclude"]:
-                for path in item["paths"]:
-                    exclude_list.append(os.path.expandvars(path))
+        exclude_list = data["exclude"]
+        if expand_vars:
+            for item in exclude_list:
+                [os.path.expandvars(x) for x in item["paths"]]
+        return exclude_list
+
     else:
         logging.debug("Config file not found")
-    return exclude_list
 
 
 def create_trufflehog_config(
