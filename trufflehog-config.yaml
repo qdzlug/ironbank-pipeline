@@ -5,4 +5,4 @@
 exclude:
   - pattern: airflow_conf_set
     paths:
-    - stages/preflight/README.md
+      - stages/preflight/README.md
