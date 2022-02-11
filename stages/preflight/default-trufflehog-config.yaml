@@ -1,6 +1,12 @@
-exclude:
-  - message: Default exclude paths
-    paths:
-      - "${ARTIFACT_STORAGE}/"
-      - trufflehog-config.yaml
-      - trufflehog-config.yml
+# skipping this path to not scan the pipeline code in CHT pipeline runs
+skip_paths:
+  - "${ARTIFACT_STORAGE}/"
+  - trufflehog-config.yaml
+  - trufflehog-config.yml
+
+# exclude:
+#   - message: Default exclude paths
+#     paths:
+#       - "${ARTIFACT_STORAGE}/"
+#       - trufflehog-config.yaml
+#       - trufflehog-config.yml

@@ -166,14 +166,14 @@ def get_config(config_file: Path, expand_vars: bool = False) -> tuple[dict, list
         logging.debug("Config file found")
         with config_file.open(mode="r") as f:
             data: dict = yaml.safe_load(f)
-        if "skip_strings" in data:
-            skip_strings = data["skip_strings"]
-        if "skip_paths" in data:
-            skip_paths = (
-                [os.path.expandvars(x) for x in data["skip_paths"]]
-                if expand_vars
-                else data["skip_paths"]
-            )
+            if "skip_strings" in data:
+                skip_strings = data["skip_strings"]
+            if "skip_paths" in data:
+                skip_paths = (
+                    [os.path.expandvars(x) for x in data["skip_paths"]]
+                    if expand_vars
+                    else data["skip_paths"]
+                )
     else:
         logging.debug("Config file not found")
     return skip_strings, skip_paths
