@@ -146,7 +146,7 @@ def get_history_cmd(commits: str) -> list[str]:
     """
     Splits a string of newline separated commit SHAs
     Returns a list of truffleHog3 flags
-        [--since-commit, the oldest sha in the commits list]
+        [--since, the oldest sha in the commits list]
         if list is empty [--no-history]
     """
     commit_lst = commits.split("\n")
@@ -154,7 +154,7 @@ def get_history_cmd(commits: str) -> list[str]:
         logging.info(commit)
     # if no data is returned to commits, since_commit will be an empty string
     since_commit: str = commit_lst[-1]
-    return ["--since-commit", since_commit] if since_commit else ["--no-history"]
+    return ["--since", since_commit] if since_commit else ["--no-history"]
 
 
 def get_config(config_file: Path, expand_vars: bool = False) -> list:
