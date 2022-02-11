@@ -3,6 +3,6 @@
 #     - airflow_conf_set
 # skip_paths: []
 exclude:
-  pattern: airflow_conf_set
-  paths:
+  - pattern: airflow_conf_set
+    paths:
     - stages/preflight/README.md
