@@ -156,7 +156,7 @@ def get_history_cmd(commits: str) -> list[str]:
     return ["--since-commit", since_commit] if since_commit else ["--no-history"]
 
 
-def get_config(config_file: Path) -> list:
+def get_config(config_file: Path, expand_vars: bool = False) -> list:
     """
     Loads a trufflehog config yaml file and pulls out the skip_strings and skip_paths values
     """
@@ -165,7 +165,9 @@ def get_config(config_file: Path) -> list:
         logging.debug("Config file found")
         with config_file.open(mode="r") as f:
             data: dict = yaml.safe_load(f)
-            exclude_list = ([os.path.expandvars(x) for x in data["exclude"]])
+            for item in data["exclude"]:
+                for path in item["paths"]:
+                    exclude_list.append(os.path.expandvars(path))
     else:
         logging.debug("Config file not found")
     return exclude_list
