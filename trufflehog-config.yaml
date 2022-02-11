@@ -3,6 +3,7 @@
 #     - airflow_conf_set
 # skip_paths: []
 exclude:
-  - pattern: airflow_conf_set
+  - message: Standard pipeline config
+    pattern: airflow_conf_set
     paths:
       - stages/preflight/README.md
