@@ -156,7 +156,7 @@ def get_history_cmd(commits: str) -> list[str]:
     return ["--since-commit", since_commit] if since_commit else ["--no-history"]
 
 
-def get_config(config_file: Path, expand_vars: bool = False) -> list:
+def get_config(config_file: Path) -> list:
     """
     Loads a trufflehog config yaml file and pulls out the skip_strings and skip_paths values
     """
