@@ -38,7 +38,7 @@ def main() -> None:
         config_file = "trufflehog-config.yml"
     else:
         logging.info("custom trufflehog configuration not detected")
-        config_file = "trufflehog-config.yaml"
+        config_file = "default-trufflehog-config.yaml"
 
     project_truffle_config = Path(
         repo_dir,
