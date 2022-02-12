@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import subprocess
 import json
 import sys
 import os
@@ -40,6 +41,8 @@ def main():
         logging.info("This pipeline passed the Check CVEs job")
     else:
         logging.error("This pipeline failed the Check CVEs job")
+        if os.environ["CI_COMMIT_BRANCH"] == "master":
+            subprocess.run([f"{os.environ['PIPELINE_REPO_DIR']}/stages/check-cves/mattermost-failure-webhook.sh"])
     sys.exit(exit_code)
 
 
