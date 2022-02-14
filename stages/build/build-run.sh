@@ -53,6 +53,8 @@ args_parameters=$(while IFS= read -r line; do
 done <"${ARTIFACT_STORAGE}/preflight/args.env")
 
 echo "Adding the ironbank.repo to the containter via mount.conf"
+# Must be able to overrride DISTRO_REPO_DIR to equal '' and cannot simply check for vars existence
+# shellcheck disable=SC2236
 if [ ! -z "${DISTRO_REPO_DIR:-}" ]; then
   echo "${PWD}/${PIPELINE_REPO_DIR}/stages/build/${DISTRO_REPO_DIR}:${DISTRO_REPO_MOUNT}" >>"${HOME}"/.config/containers/mounts.conf
 fi
