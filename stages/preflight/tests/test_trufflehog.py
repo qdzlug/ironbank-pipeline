@@ -48,9 +48,9 @@ def test_get_history(test_projects):
         commit_diff = get_commit_diff(repo_dir, diff_branch)
         history_cmd = get_history_cmd(commit_diff)
         logging.info(history_cmd)
-        assert (
-            history_cmd[0] == "--since-commit" and history_cmd[1] != ""
-        ) or history_cmd[0] == "--no-history"
+        assert (history_cmd[0] == "--since" and history_cmd[1] != "") or history_cmd[
+            0
+        ] == "--no-history"
 
 
 # mock output for get_commit_diff, string of commits separated by \n
@@ -81,11 +81,11 @@ def empty_string():
 
 def test_create_history_message(commits_string, single_commit, empty_string):
     assert get_history_cmd(commits_string) == [
-        "--since-commit",
+        "--since",
         "eeb256e29791f840432eeef7ba6c239406fa1c28",
     ]
     assert get_history_cmd(single_commit) == [
-        "--since-commit",
+        "--since",
         "e72223cd59700b6dc45bf30d039fa8dd2055d1ec",
     ]
     assert get_history_cmd(empty_string) == ["--no-history"]
