@@ -1,5 +1,4 @@
-exclude:
-  - message: Standard pipeline config
-    pattern: airflow_conf_set
-    paths:
-      - stages/preflight/README.md
+skip_strings:
+  "stages/preflight/README.md":
+    - airflow_conf_set
+skip_paths: []
