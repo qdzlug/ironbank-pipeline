@@ -145,7 +145,7 @@ def get_history_cmd(commits: str) -> list[str]:
     """
     Splits a string of newline separated commit SHAs
     Returns a list of truffleHog3 flags
-        [--since-commit, the oldest sha in the commits list]
+        [--since, the oldest sha in the commits list]
         if list is empty [--no-history]
     """
     commit_lst = commits.split("\n")
@@ -153,30 +153,26 @@ def get_history_cmd(commits: str) -> list[str]:
         logging.info(commit)
     # if no data is returned to commits, since_commit will be an empty string
     since_commit: str = commit_lst[-1]
-    return ["--since-commit", since_commit] if since_commit else ["--no-history"]
+    return ["--since", since_commit] if since_commit else ["--no-history"]
 
 
-def get_config(config_file: Path, expand_vars: bool = False) -> tuple[dict, list]:
+def get_config(config_file: Path, expand_vars: bool = False) -> list:
     """
     Loads a trufflehog config yaml file and pulls out the skip_strings and skip_paths values
     """
-    skip_strings = {}
-    skip_paths = []
+    exclude_list = []
     if config_file.is_file():
         logging.debug("Config file found")
         with config_file.open(mode="r") as f:
             data: dict = yaml.safe_load(f)
-        if "skip_strings" in data:
-            skip_strings = data["skip_strings"]
-        if "skip_paths" in data:
-            skip_paths = (
-                [os.path.expandvars(x) for x in data["skip_paths"]]
-                if expand_vars
-                else data["skip_paths"]
-            )
+        exclude_list = data["exclude"]
+        if expand_vars:
+            for item in exclude_list:
+                item["paths"] = [os.path.expandvars(x) for x in item["paths"]]
+        return exclude_list
+
     else:
         logging.debug("Config file not found")
-    return skip_strings, skip_paths
 
 
 def create_trufflehog_config(
@@ -191,27 +187,9 @@ def create_trufflehog_config(
     Returns a boolean.
         True if the config variable exists and a config file is found
     """
-    default_config_skip_strings, default_config_skip_paths = get_config(
-        default_config_path, True
-    )
-    project_config_skip_strings, project_config_skip_paths = (
-        get_config(project_config_path) if config_variable else ({}, [])
-    )
-    skip_strings = project_config_skip_strings
-    skip_strings.update(
-        {
-            k: v
-            for (k, v) in default_config_skip_strings.items()
-            if k not in skip_strings
-        }
-    )
-    skip_paths = project_config_skip_paths + [
-        x for x in default_config_skip_paths if x not in project_config_skip_paths
-    ]
-    config = {
-        "skip_strings": skip_strings,
-        "skip_paths": skip_paths,
-    }
+    default_exclude_list = get_config(default_config_path, True)
+    project_exclude_list = get_config(project_config_path) if config_variable else []
+    config = {"exclude": default_exclude_list + project_exclude_list}
     outfile = Path(repo_dir, project_config_path)
     with outfile.open(mode="w") as of:
         yaml.safe_dump(config, of, indent=2, sort_keys=False)
