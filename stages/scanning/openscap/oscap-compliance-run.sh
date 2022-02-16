@@ -1,5 +1,5 @@
 #!/bin/bash
-set -Eeuo pipefail
+set -Eeuxo pipefail
 # shellcheck source=./stages/scanning/openscap/base_image_type.sh
 source "${PIPELINE_REPO_DIR}/stages/scanning/openscap/base_image_type.sh"
 echo "Imported Base Image Type: ${BASE_IMAGE_TYPE}"
@@ -19,10 +19,6 @@ mkdir -p "${SCAP_CONTENT}"
 # If SCAP_URL var exists, use this to download scap content, else retrieve it based on BASE_IMAGE_TYPE
 if [[ -n ${SCAP_URL:-} ]]; then
   curl -L "${SCAP_URL}" -o "${SCAP_CONTENT}/scap-security-guide.zip"
-elif [[ "${BASE_IMAGE_TYPE}" == "ubuntu1604-container" ]]; then
-  curl -L "https://dl.dod.cyber.mil/wp-content/uploads/stigs/zip/U_CAN_Ubuntu_16-04_LTS_V2R2_STIG_SCAP_1-2_Benchmark.zip" -o "${SCAP_CONTENT}/scap-security-guide.zip"
-elif [[ "${BASE_IMAGE_TYPE}" == "ubuntu1804-container" ]]; then
-  curl -L "https://dl.dod.cyber.mil/wp-content/uploads/stigs/zip/U_CAN_Ubuntu_18-04_V2R1_STIG_SCAP_1-2_Benchmark.zip" -o "${SCAP_CONTENT}/scap-security-guide.zip"
 else
   curl -L "https://github.com/ComplianceAsCode/content/releases/download/v${OSCAP_VERSION}/scap-security-guide-${OSCAP_VERSION}.zip" -o "${SCAP_CONTENT}/scap-security-guide.zip"
 fi

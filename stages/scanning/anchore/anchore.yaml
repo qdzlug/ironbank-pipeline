@@ -16,7 +16,7 @@
 
 anchore-scan:
   extends: .anchore
-  image: "registry1.dso.mil/ironbank/anchore/cli/cli:0.9.1"
+  image: "registry1.dso.mil/ironbank/anchore/cli/cli:0.9.4"
   script:
     - python3 "${PIPELINE_REPO_DIR}/stages/scanning/anchore/anchore_scan.py"
 

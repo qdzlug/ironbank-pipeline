@@ -62,6 +62,7 @@ def download_all_resources(downloads, artifacts_path):
         else:
             download_type = resource_type(item["url"])
         if download_type == "http":
+            username, password = None, None
             urls = None
             if "url" in item:
                 urls = [item["url"]]
@@ -70,79 +71,49 @@ def download_all_resources(downloads, artifacts_path):
             if "auth" in item:
                 if item["auth"]["type"] == "basic":
                     username, password = get_auth(download_type, item)
-                    http_download(
-                        urls,
-                        item["filename"],
-                        item["validation"]["type"],
-                        item["validation"]["value"],
-                        artifacts_path,
-                        username,
-                        password,
-                    )
                 else:
                     logging.error(
                         "Non Basic auth type provided for HTTP resource, failing"
                     )
                     sys.exit(1)
-            else:
-                http_download(
-                    urls,
-                    item["filename"],
-                    item["validation"]["type"],
-                    item["validation"]["value"],
-                    artifacts_path,
-                )
-        if download_type == "docker":
+            http_download(
+                urls,
+                item["filename"],
+                item["validation"]["type"],
+                item["validation"]["value"],
+                artifacts_path,
+                username,
+                password,
+            )
+        if download_type in ["docker", "github"]:
+            username, password = None, None
             if "auth" in item:
                 if item["auth"]["type"] == "basic":
                     username, password = get_auth(download_type, item)
-                    pull_image(
-                        download_type,
-                        item["url"],
-                        item["tag"],
-                        item["tag"],
-                        username,
-                        password,
-                    )
                 else:
                     logging.error(
                         "Non Basic auth type provided for Docker resource, failing"
                     )
                     sys.exit(1)
-            else:
-                pull_image(download_type, item["url"], item["tag"], item["tag"])
+            elif download_type == "github":
+                username = b64decode(os.environ["GITHUB_ROBOT_USER"]).decode("utf-8")
+                password = b64decode(os.environ["GITHUB_ROBOT_TOKEN"]).decode("utf-8")
+            pull_image(
+                download_type, item["url"], item["tag"], item["tag"], username, password
+            )
         if download_type == "s3":
+            username, password, region = None, None, None
             if "auth" in item:
                 username, password, region = get_auth(download_type, item)
-                s3_download(
-                    item["url"],
-                    item["filename"],
-                    item["validation"]["type"],
-                    item["validation"]["value"],
-                    artifacts_path,
-                    username,
-                    password,
-                    region,
-                )
-            else:
-                s3_download(
-                    item["url"],
-                    item["filename"],
-                    item["validation"]["type"],
-                    item["validation"]["value"],
-                    artifacts_path,
-                )
-        if download_type == "github":
-            # credential_id = item["auth"]["id"].replace("-", "_")
-            username = b64decode(os.environ["GITHUB_ROBOT_USER"]).decode("utf-8")
-            password = b64decode(os.environ["GITHUB_ROBOT_TOKEN"]).decode("utf-8")
-            pull_image(
-                download_type,
+            s3_download(
                 item["url"],
-                item["tag"],
-                item["tag"],
+                item["filename"],
+                item["validation"]["type"],
+                item["validation"]["value"],
+                artifacts_path,
                 username,
                 password,
+                region,
             )
 
 
@@ -181,15 +152,21 @@ def resource_type(url):
     docker_string = "docker://"
     http_string = "http"
     s3_string = "s3://"
-    github_string = "docker.pkg.github.com/"
+    github_string_deprecated = "docker.pkg.github.com/"
+    github_string_current = "ghcr.io"
     if docker_string in check:
         return "docker"
-    elif http_string in check:
-        return "http"
     elif s3_string in check:
         return "s3"
-    elif github_string in check:
+    elif github_string_current in check:
         return "github"
+    elif github_string_deprecated in check:
+        logging.warning(
+            f"{github_string_deprecated} has been deprecated. Please switch to {github_string_current} when possible."
+        )
+        return "github"
+    elif http_string in check:
+        return "http"
     else:
         return "Error in parsing resource type."
 
@@ -278,14 +255,14 @@ def http_download(
 
     # Compare checksums
     logging.info(
-        f"comparing checksum values: {str(checksum_value_from_calc.hexdigest())} vs {str(checksum_value)}"
+        f"validating checksums: actual {str(checksum_value_from_calc.hexdigest())}, expected {str(checksum_value)}"
     )
     if checksum_value_from_calc.hexdigest() == checksum_value:
         logging.info("Checksum verified")
         logging.info(f"File saved as '{resource_name}'")
     else:
         os.remove(artifacts_path + "/external-resources/" + resource_name)
-        logging.error("Checksum failed")
+        logging.error("Checksum mismatch")
         logging.error("File deleted")
         sys.exit(1)
 
@@ -340,7 +317,7 @@ def s3_download(
 
     # Compare checksums
     logging.info(
-        f"comparing checksum values: {str(checksum_value_from_calc.hexdigest())} vs {str(checksum_value)}"
+        f"checksum mismatch: actual {str(checksum_value_from_calc.hexdigest())}, expected {str(checksum_value)}"
     )
     if checksum_value_from_calc.hexdigest() == checksum_value:
         logging.info("Checksum verified")
