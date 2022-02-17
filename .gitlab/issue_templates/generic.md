@@ -4,7 +4,7 @@
 What is the ticket?
 Who reported this or is looking for the change?
 What other information is pertinent to this issue?
-Please add appropriate 
+Please add appropriate
 -->
 
 ## Acceptance Criteria
@@ -16,7 +16,7 @@ Please add appropriate
     - [ ] S3 upload no longer includes docker archive
 -->
 
-- [ ] 
+- [ ]
 - [ ]
 
 ## Definition of Done
@@ -31,7 +31,9 @@ Please add appropriate
 - [ ] All Acceptance Criteria have been completed
 
 <!-- Uncomment/add labels as needed -->
+
 /label ~"Project::Ironbank Pipeline"
+
 <!-- /label ~"Quick Fix/Add" -->
 <!-- /label ~"Bug" -->
 <!-- /label ~"High Priority" -->
