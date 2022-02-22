@@ -19,7 +19,7 @@ twistlock-scan:
   script:
     - 'podman pull --authfile "${DOCKER_AUTH_CONFIG}" "${TWISTCLI_SCAN_IMAGE}"'
     - 'twistcli --version >"${VERSION_FILE}"'
-    - 'twistcli images scan --address "${TWISTLOCK_SERVER_URL}" --podman-path podman --custom-labels --output-file CVE_FILE --details "${TWISTCLI_SCAN_IMAGE}" | tee "${DETAIL_FILE}"'
+    - 'twistcli images scan --address "${TWISTLOCK_SERVER_URL}" --podman-path podman --custom-labels --output-file "${CVE_FILE}" --details "${TWISTCLI_SCAN_IMAGE}" | tee "${DETAIL_FILE}"'
 
   artifacts:
     when: always
