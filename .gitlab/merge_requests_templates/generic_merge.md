@@ -20,13 +20,9 @@
   - [ ] Ironbank-Pipeline project pipeline passes
   - [ ] Reasonable effort to maintain Code Coverage for new code.
 
-### Testing Checklist: (Tester)
-
-1. [ ] Validate tests run
-2. [ ] All applicable variables tested (i.e. UBI, Ubuntu, and Distroless all build, or Whitelisting method still functions as expected)
-
 ### Code Review Checklist: (Code Reviewer)
 
+1. [ ] All applicable variables tested (i.e. UBI, Ubuntu, and Distroless all build, or Whitelisting method still functions as expected)
 1. [ ] Check the Feature is implemented as described
 1. [ ] Run tests
 1. [ ] Run lint
