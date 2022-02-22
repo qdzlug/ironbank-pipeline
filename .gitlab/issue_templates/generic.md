@@ -4,7 +4,6 @@
 What is the ticket?
 Who reported this or is looking for the change?
 What other information is pertinent to this issue?
-Please add appropriate
 -->
 
 ## Acceptance Criteria
