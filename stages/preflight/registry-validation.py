@@ -69,12 +69,15 @@ def reject_invalid_tags(content: dict) -> list:
     """
     logging.info("Checking tags")
     invalid_tags = []
-    for x in content["resources"]:
-        if x["url"].startswith("docker://") or x["url"].startswith("github://"):
-            invalid_tag = check_for_invalid_tag(x)
-            if invalid_tag:
-                logging.info("Invalid tag found")
-                invalid_tags.append(invalid_tag)
+    try:
+        for x in content["resources"]:
+            if x["url"].startswith("docker://") or x["url"].startswith("github://"):
+                invalid_tag = check_for_invalid_tag(x)
+                if invalid_tag:
+                    logging.info("Invalid tag found")
+                    invalid_tags.append(invalid_tag)
+    except KeyError:
+        logging.info("Hardening Manifest does not contain a resources section")
     return invalid_tags
 
 
