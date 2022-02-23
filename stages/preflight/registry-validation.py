@@ -58,7 +58,7 @@ def main():
 
 
 def check_for_invalid_tag(subcontent: dict):
-    for k, v in subcontent.items():
+    for _, v in subcontent.items():
         if "registry1.dso.mil" in v.lower():
             return v
 
