@@ -58,23 +58,26 @@ def main():
 
 
 def check_for_invalid_tag(subcontent: dict):
-    for k, v in subcontent.items():
+    for _, v in subcontent.items():
         if "registry1.dso.mil" in v.lower():
             return v
 
 
-def reject_invalid_tags(content: list) -> list:
+def reject_invalid_tags(content: dict) -> list:
     """
     Returns list of tags in the hardening manifest's resource list that are invalid, i.e. contain 'registry1.dso.mil'
     """
     logging.info("Checking tags")
     invalid_tags = []
-    for x in content["resources"]:
-        if x["url"].startswith("docker://") or x["url"].startswith("github://"):
-            invalid_tag = check_for_invalid_tag(x)
-            if invalid_tag:
-                logging.info("Invalid tag found")
-                invalid_tags.append(invalid_tag)
+    try:
+        for x in content["resources"]:
+            if x["url"].startswith("docker://") or x["url"].startswith("github://"):
+                invalid_tag = check_for_invalid_tag(x)
+                if invalid_tag:
+                    logging.info("Invalid tag found")
+                    invalid_tags.append(invalid_tag)
+    except KeyError:
+        logging.info("Hardening Manifest does not contain a resources section")
     return invalid_tags
 
 
