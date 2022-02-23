@@ -5,8 +5,6 @@ registry-validation:
   script:
     - pip3 install dockerfile
     - python3 "${PIPELINE_REPO_DIR}/stages/preflight/registry-validation.py"
-  allow_failure:
-    exit_codes: 1
   retry:
     max: 2
     when: runner_system_failure
