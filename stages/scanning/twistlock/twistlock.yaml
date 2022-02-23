@@ -25,7 +25,7 @@ twistlock-scan:
   artifacts:
     when: always
     paths:
-      - "${CVE_FILE}"
+      - "${VERSION_FILE}"
     expire_in: 1 week
   retry:
     max: 2
