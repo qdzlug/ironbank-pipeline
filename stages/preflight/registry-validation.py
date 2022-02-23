@@ -63,7 +63,7 @@ def check_for_invalid_tag(subcontent: dict):
             return v
 
 
-def reject_invalid_tags(content: list) -> list:
+def reject_invalid_tags(content: dict) -> list:
     """
     Returns list of tags in the hardening manifest's resource list that are invalid, i.e. contain 'registry1.dso.mil'
     """
