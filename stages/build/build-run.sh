@@ -52,6 +52,9 @@ args_parameters=$(while IFS= read -r line; do
   echo "--build-arg=$line"
 done <"${ARTIFACT_STORAGE}/preflight/args.env")
 
+# Startup forward proxy
+squid -f /tmp/squid.conf
+
 echo "Adding the ironbank.repo to the containter via mount.conf"
 # Must be able to overrride DISTRO_REPO_DIR to equal '' and cannot simply check for vars existence
 # shellcheck disable=SC2236
