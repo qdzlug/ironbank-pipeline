@@ -8,7 +8,6 @@ twistlock-scan:
     - build
   variables:
     # put all scan outputs in the scan-results folder
-    TWISTCLI_SCAN_IMAGE: "${STAGING_REGISTRY_URL}/${IMAGE_NAME}@${IMAGE_PODMAN_SHA}"
     TWISTLOCK_SCANS: "${ARTIFACT_STORAGE}/scan-results/twistlock"
     VERSION_FILE: "${TWISTLOCK_SCANS}/twistlock-version.txt"
     CVE_FILE: "${TWISTLOCK_SCANS}/twistlock_cve.json"
@@ -17,16 +16,16 @@ twistlock-scan:
   before_script:
     - mkdir -p "${TWISTLOCK_SCANS}"
   script:
-    - 'podman pull --authfile "${DOCKER_AUTH_CONFIG}" "${TWISTCLI_SCAN_IMAGE}"'
+    - 'podman pull --authfile "${DOCKER_AUTH_CONFIG}" "${IMAGE_FULLTAG}"'
     - 'twistcli --version >"${VERSION_FILE}"'
-    - 'twistcli images scan --address "${TWISTLOCK_SERVER_ADDRESS}" --podman-path podman --custom-labels --output-file "${CVE_FILE}" --details "${TWISTCLI_SCAN_IMAGE}" | tee "${DETAIL_FILE}"'
+    - 'twistcli images scan --address "${TWISTLOCK_SERVER_ADDRESS}" --podman-path podman --custom-labels --output-file "${CVE_FILE}" --details "${IMAGE_FULLTAG}" | tee "${DETAIL_FILE}"'
     - 'ls "${CVE_FILE}"'
     - 'chmod 0644 "${CVE_FILE}"'
 
   artifacts:
     when: always
     paths:
-      - "${TWISTLOCK_SCANS}"
+      - "${TWISTLOCK_SCANS}/"
     expire_in: 1 week
   retry:
     max: 2
