@@ -517,20 +517,27 @@ def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
                 if id in justifications.keys():
                     cve_justification = justifications[id]
                 # else cve_justification is ""
-                cves.append(
-                    {
-                        "id": d["id"],
-                        "cvss": d["cvss"],
-                        "desc": d.get("description"),
-                        "link": d["link"],
-                        "packageName": d["packageName"],
-                        "packageVersion": d["packageVersion"],
-                        "severity": d["severity"],
-                        "status": d["status"],
-                        "vecStr": d.get("vector"),
-                        "Justification": cve_justification,
-                    }
-                )
+                try:
+                    cves.append(
+                        {
+                            "id": d["id"],
+                            "cvss": d["cvss"],
+                            "desc": d.get("description", ""),
+                            "link": d["link"],
+                            "packageName": d["packageName"],
+                            "packageVersion": d["packageVersion"],
+                            "severity": d["severity"],
+                            "status": d["status"],
+                            "vecStr": d.get("vector", ""),
+                            "Justification": cve_justification,
+                        }
+                    )
+                except KeyError as e:
+                    logging.error(
+                        "Missing key. Please contact the Iron Bank Pipeline and Ops (POPs) team"
+                    )
+                    logging.error(e.args)
+                    sys.exit(1)
         else:
             cves = []
 
