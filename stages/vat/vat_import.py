@@ -253,7 +253,7 @@ def generate_twistlock_jobs(twistlock_cve_path):
                 {
                     "finding": v_d["id"],
                     "severity": v_d["severity"].lower(),
-                    "description": v_d["description"],
+                    "description": v_d.get("description"),
                     "link": v_d["link"],
                     "score": v_d["cvss"],
                     "package": v_d["packageName"] + "-" + v_d["packageVersion"],

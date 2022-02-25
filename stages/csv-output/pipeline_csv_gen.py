@@ -521,7 +521,7 @@ def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
                     {
                         "id": d["id"],
                         "cvss": d["cvss"],
-                        "desc": d["description"],
+                        "desc": d.get("description"),
                         "link": d["link"],
                         "packageName": d["packageName"],
                         "packageVersion": d["packageVersion"],
