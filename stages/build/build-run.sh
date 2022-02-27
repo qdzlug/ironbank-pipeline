@@ -52,8 +52,11 @@ args_parameters=$(while IFS= read -r line; do
   echo "--build-arg=$line"
 done <"${ARTIFACT_STORAGE}/preflight/args.env")
 
-# Startup forward proxy
+# Start up the forward proxy
+echo "Start up the forward proxy"
+squid -k parse -f /tmp/squid.conf
 squid -f /tmp/squid.conf
+sleep 5 # because squid will not start properly without this
 
 echo "Adding the ironbank.repo to the containter via mount.conf"
 # Must be able to overrride DISTRO_REPO_DIR to equal '' and cannot simply check for vars existence
@@ -70,6 +73,7 @@ echo "Build the image"
 env -i BUILDAH_ISOLATION=chroot PATH="$PATH" buildah bud \
   $args_parameters \
   --build-arg=BASE_REGISTRY="${BASE_REGISTRY}" \
+  --build-arg=GOPROXY="http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/goproxy/" \
   $label_parameters \
   --label=maintainer="ironbank@dsop.io" \
   --label=org.opencontainers.image.created="$(date --rfc-3339=seconds)" \
@@ -117,3 +121,7 @@ IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" -
 
   echo "IMAGE_NAME=${IMAGE_NAME}"
 } >>build.env
+
+echo "Archive the proxy access log"
+chmod 644 access.log
+cp access.log "${ARTIFACT_DIR}/access_log"
