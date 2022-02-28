@@ -72,6 +72,7 @@ def main() -> None:
     cmd = [
         "trufflehog3",
         "--no-entropy",
+        "--ignore-nosecret",
         "--branch",
         branch_name,
         *history_cmd,
@@ -102,7 +103,7 @@ def main() -> None:
         )
         assert findings.returncode == 0
     except subprocess.CalledProcessError as e:
-        if e.returncode == 1 and e.stdout:
+        if e.returncode == 2 and e.stdout:
             logging.error(f"Return code: {e.returncode}")
             logging.error("truffleHog found secrets")
             msg = f"docker run -it --rm -v $(pwd):/proj {job_image} {th_flags} /proj"
@@ -169,10 +170,10 @@ def get_config(config_file: Path, expand_vars: bool = False) -> list:
         if expand_vars:
             for item in exclude_list:
                 item["paths"] = [os.path.expandvars(x) for x in item["paths"]]
-        return exclude_list
 
     else:
         logging.debug("Config file not found")
+    return exclude_list
 
 
 def create_trufflehog_config(

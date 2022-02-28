@@ -1,24 +1,22 @@
-<!-- This template is **ONLY** used for quick fixes/adds (primarily for tracking smaller issues). New feature request, pipeline enhancement, and bug issues should use the other template options for issue submission. -->
+## Background
 
-## Quick Fix / Add
-
-<!--- What is the quick fix/add? -->
-
-## Interested Party
-
-<!--- Who reported this or is looking for the fix? -->
+<!---
+What is the ticket?
+Who reported this or is looking for the change?
+What other information is pertinent to this issue?
+-->
 
 ## Acceptance Criteria
 
-<!--- What is the acceptance criteria for this quick fix/add?
+<!--- What is the acceptance criteria specific to this quick issue?
     e.g.
     - [ ] Log for lint job now prints VAT API version with INFO log level
     or
     - [ ] S3 upload no longer includes docker archive
 -->
 
--
--
+- [ ]
+- [ ]
 
 ## Definition of Done
 
@@ -31,5 +29,11 @@
 - [ ] Code review completed and merge request approved/merged
 - [ ] All Acceptance Criteria have been completed
 
+<!-- Uncomment/add labels as needed -->
+
 /label ~"Project::Ironbank Pipeline"
-/label ~"Quick Fix/Add"
+
+<!-- /label ~"Quick Fix/Add" -->
+<!-- /label ~"Bug" -->
+<!-- /label ~"High Priority" -->
+<!-- /label ~"🌟  Bonus" -->
