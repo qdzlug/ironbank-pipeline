@@ -8,11 +8,11 @@ GPG_VERSION_INFO=$(gpg --version | grep "gpg")
 
 if [[ "${DISTROLESS:-}" ]]; then
   ANCHORE_VERSION=$(sed 's/"//g' "${ANCHORE_VERSION_FILE}")
-  TWISTLOCK_VERSION=$(sed 's/"//g' "${TWISTLOCK_VERSION_FILE}")
+  TWISTLOCK_VERSION=$(sed 's/"//g' "${TWISTLOCK_VERSION_FILE}" | cut -d" " -f3)
 else
   OPENSCAP_VERSION=$(<"${OPENSCAP_VERSION_FILE}")
   ANCHORE_VERSION=$(sed 's/"//g' "${ANCHORE_VERSION_FILE}")
-  TWISTLOCK_VERSION=$(sed 's/"//g' "${TWISTLOCK_VERSION_FILE}")
+  TWISTLOCK_VERSION=$(sed 's/"//g' "${TWISTLOCK_VERSION_FILE}" | cut -d" " -f3)
 fi
 
 #- OPENSCAP_VERSION=$(<"${OPENSCAP_VERSION}"")
