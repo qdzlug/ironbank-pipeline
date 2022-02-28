@@ -72,6 +72,7 @@ def main() -> None:
     cmd = [
         "trufflehog3",
         "--no-entropy",
+        "--ignore-nosecret",
         "--branch",
         branch_name,
         *history_cmd,
