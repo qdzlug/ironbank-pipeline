@@ -7,7 +7,6 @@ import argparse
 import logging
 from pathlib import Path
 import requests
-import time
 from requests.structures import CaseInsensitiveDict
 
 sys.path.append(
@@ -249,24 +248,19 @@ def generate_twistlock_jobs(twistlock_cve_path):
     cves = []
     if json_data["results"][0]["vulnerabilities"]:
         for v_d in json_data["results"][0]["vulnerabilities"]:
-            published_date = (
-                v_d["publishedDate"]
-                if "publishedDate" in v_d
-                else time.strftime("%FT%TZ", time.gmtime(0))
-            )
             # get associated justification if one exists
             try:
                 cves.append(
                     {
                         "finding": v_d["id"],
                         "severity": v_d["severity"].lower(),
-                        "description": v_d.get("description", ""),
-                        "link": v_d.get("link", ""),
-                        "score": v_d.get("cvss", None),
+                        "description": v_d.get("description"),
+                        "link": v_d["link"],
+                        "score": v_d.get("cvss"),
                         "package": v_d["packageName"] + "-" + v_d["packageVersion"],
                         "packagePath": None,
                         "scanSource": "twistlock_cve",
-                        "reportDate": published_date,
+                        "reportDate": v_d.get("publishedDate"),
                     }
                 )
             except KeyError as e:
