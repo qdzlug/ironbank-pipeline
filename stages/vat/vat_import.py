@@ -7,7 +7,6 @@ import argparse
 import logging
 from pathlib import Path
 import requests
-import time
 from requests.structures import CaseInsensitiveDict
 
 sys.path.append(
@@ -247,24 +246,29 @@ def generate_twistlock_jobs(twistlock_cve_path):
     with tc_path.open(mode="r", encoding="utf-8") as f:
         json_data = json.load(f)
     cves = []
-    if json_data[0]["vulnerabilities"]:
-        for v_d in json_data[0]["vulnerabilities"]:
+    if json_data["results"][0]["vulnerabilities"]:
+        for v_d in json_data["results"][0]["vulnerabilities"]:
             # get associated justification if one exists
-            cves.append(
-                {
-                    "finding": v_d["cve"],
-                    "severity": v_d["severity"].lower(),
-                    "description": v_d["description"],
-                    "link": v_d["link"],
-                    "score": v_d["cvss"],
-                    "package": v_d["packageName"] + "-" + v_d["packageVersion"],
-                    "packagePath": None,
-                    "scanSource": "twistlock_cve",
-                    "reportDate": time.strftime(
-                        "%FT%TZ", time.gmtime(v_d["published"])
-                    ),
-                }
-            )
+            try:
+                cves.append(
+                    {
+                        "finding": v_d["id"],
+                        "severity": v_d["severity"].lower(),
+                        "description": v_d.get("description"),
+                        "link": v_d["link"],
+                        "score": v_d.get("cvss"),
+                        "package": v_d["packageName"] + "-" + v_d["packageVersion"],
+                        "packagePath": None,
+                        "scanSource": "twistlock_cve",
+                        "reportDate": v_d.get("publishedDate"),
+                    }
+                )
+            except KeyError as e:
+                logging.error(
+                    "Missing key. Please contact the Iron Bank Pipeline and Ops (POPs) team"
+                )
+                logging.error(e.args)
+                sys.exit(1)
     return cves
 
 

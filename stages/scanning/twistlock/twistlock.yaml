@@ -1,5 +1,5 @@
 twistlock-scan:
-  extends: .scanning
+  image: registry1.dso.mil/ironbank-apps/rootless-twistcli:21.08.520
   stage: scanning
 
   # Load in the IMAGE_VERSION variable from load-scripts env
@@ -9,21 +9,19 @@ twistlock-scan:
   variables:
     # put all scan outputs in the scan-results folder
     TWISTLOCK_SCANS: "${ARTIFACT_STORAGE}/scan-results/twistlock"
+    VERSION_FILE: "${TWISTLOCK_SCANS}/twistlock-version.txt"
+    CVE_FILE: "${TWISTLOCK_SCANS}/twistlock_cve.json"
+    DETAIL_FILE: "${TWISTLOCK_SCANS}/twistcli-details.txt"
+
   before_script:
     - mkdir -p "${TWISTLOCK_SCANS}"
   script:
-    - |
-      python3 "${PIPELINE_REPO_DIR}/stages/scanning/twistlock/twistlock.py" \
-        --registry="${REGISTRY1_URL}" \
-        --api_url="${TWISTLOCK_SERVER_ADDRESS}/api/v1" \
-        --name="ironbank-staging/${IMAGE_NAME}" \
-        --tag="ibci-${CI_PIPELINE_ID}" \
-        --username="${TWISTLOCK_USER}" \
-        --password="${TWISTLOCK_PASSWORD}" \
-        --version_file="${TWISTLOCK_SCANS}/twistlock-version.txt" \
-        --filename="${TWISTLOCK_SCANS}/twistlock_cve.json" \
-        --imageid="${IMAGE_ID}" \
-        --timeout "${TWISTLOCK_TIMEOUT}"
+    - 'podman pull --authfile "${DOCKER_AUTH_CONFIG}" "${IMAGE_FULLTAG}"'
+    - 'twistcli --version >"${VERSION_FILE}"'
+    - 'twistcli images scan --address "${TWISTLOCK_SERVER_ADDRESS}" --podman-path podman --custom-labels --output-file "${CVE_FILE}" --details "${IMAGE_FULLTAG}" | tee "${DETAIL_FILE}"'
+    - 'ls "${CVE_FILE}"'
+    - 'chmod 0644 "${CVE_FILE}"'
+
   artifacts:
     when: always
     paths:

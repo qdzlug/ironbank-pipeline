@@ -505,32 +505,39 @@ def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
     with open(twistlock_cve_json, mode="r", encoding="utf-8") as f:
         json_data = json.load(f)
         cves = []
-        if json_data[0]["vulnerabilities"]:
-            for d in json_data[0]["vulnerabilities"]:
+        if json_data["results"][0]["vulnerabilities"]:
+            for d in json_data["results"][0]["vulnerabilities"]:
                 # get associated justification if one exists
                 cve_justification = ""
                 # if d["description"]:
-                id = (d["cve"], f"{d['packageName']}-{d['packageVersion']}", None)
+                id = (d["id"], f"{d['packageName']}-{d['packageVersion']}", None)
                 # id = d["cve"] + "-" + d["description"]
                 # else:
                 #     id = d["cve"]
                 if id in justifications.keys():
                     cve_justification = justifications[id]
                 # else cve_justification is ""
-                cves.append(
-                    {
-                        "id": d["cve"],
-                        "cvss": d["cvss"],
-                        "desc": d["description"],
-                        "link": d["link"],
-                        "packageName": d["packageName"],
-                        "packageVersion": d["packageVersion"],
-                        "severity": d["severity"],
-                        "status": d["status"],
-                        "vecStr": d["vecStr"],
-                        "Justification": cve_justification,
-                    }
-                )
+                try:
+                    cves.append(
+                        {
+                            "id": d["id"],
+                            "cvss": d.get("cvss"),
+                            "desc": d.get("description"),
+                            "link": d["link"],
+                            "packageName": d["packageName"],
+                            "packageVersion": d["packageVersion"],
+                            "severity": d["severity"],
+                            "status": d["status"],
+                            "vecStr": d.get("vector"),
+                            "Justification": cve_justification,
+                        }
+                    )
+                except KeyError as e:
+                    logging.error(
+                        "Missing key. Please contact the Iron Bank Pipeline and Ops (POPs) team"
+                    )
+                    logging.error(e.args)
+                    sys.exit(1)
         else:
             cves = []
 
