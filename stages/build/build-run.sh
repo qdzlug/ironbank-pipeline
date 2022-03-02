@@ -65,6 +65,12 @@ if [ ! -z "${DISTRO_REPO_DIR:-}" ]; then
   echo "${PWD}/${PIPELINE_REPO_DIR}/stages/build/${DISTRO_REPO_DIR}:${DISTRO_REPO_MOUNT}" >>"${HOME}"/.config/containers/mounts.conf
 fi
 
+# Set up ARG(s) in Dockerfile to recieve the buildah bud --build-arg so that the container owner won't have to deal with it.
+# These will not persist and will only be available to the build process.
+# buildah bud ignores this requirement for http/ftp/no proxy envvars, but we're required to do this for anything else.
+cp "${PIPELINE_REPO_DIR}"/stages/build/build-args.txt .
+sed -i '/^FROM /r build-args.txt' Dockerfile
+
 old_ifs=$IFS
 IFS=$'\n'
 echo "Build the image"
@@ -73,6 +79,8 @@ echo "Build the image"
 env -i BUILDAH_ISOLATION=chroot PATH="$PATH" buildah bud \
   $args_parameters \
   --build-arg=BASE_REGISTRY="${BASE_REGISTRY}" \
+  --build-arg=http_proxy="localhost:3128" \
+  --build-arg=HTTP_PROXY="localhost:3128" \
   --build-arg=GOPROXY="http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/goproxy/" \
   --build-arg=GOSUMDB="sum.golang.org http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/gosum" \
   $label_parameters \
