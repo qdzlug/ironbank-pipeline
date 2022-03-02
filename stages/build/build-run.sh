@@ -54,8 +54,8 @@ done <"${ARTIFACT_STORAGE}/preflight/args.env")
 
 # Start up the forward proxy
 echo "Start up the forward proxy"
-squid -k parse -f /tmp/squid.conf
-squid -f /tmp/squid.conf
+squid -k parse -f "${PIPELINE_REPO_DIR}"/stages/build/squid.conf
+squid -f "${PIPELINE_REPO_DIR}"/stages/build/squid.conf
 sleep 5 # because squid will not start properly without this
 
 echo "Adding the ironbank.repo to the containter via mount.conf"

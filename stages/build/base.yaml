@@ -1,7 +1,7 @@
 # IMPORTANT: The name of this stage/job is must not be changed from "build" without first reconfiguring runners in the bootstrap
 build:
   stage: build
-  image: "registry1.dso.mil/ironbank-staging/ironbank-pipelines/rootless-podman:ibci-706555"
+  image: "registry1.dso.mil/ironbank-staging/ironbank-pipelines/rootless-podman:ibci-707863"
   dependencies:
     - import-artifacts
     - load-scripts
