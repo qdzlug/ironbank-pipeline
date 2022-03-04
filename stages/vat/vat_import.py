@@ -246,7 +246,7 @@ def generate_twistlock_jobs(twistlock_cve_path):
     with tc_path.open(mode="r", encoding="utf-8") as f:
         json_data = json.load(f)
     cves = []
-    if json_data["results"][0]["vulnerabilities"]:
+    if "vulnerabilities" in json_data["results"][0]:
         for v_d in json_data["results"][0]["vulnerabilities"]:
             # get associated justification if one exists
             try:
