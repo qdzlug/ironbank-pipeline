@@ -505,7 +505,7 @@ def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
     with open(twistlock_cve_json, mode="r", encoding="utf-8") as f:
         json_data = json.load(f)
         cves = []
-        if json_data["results"][0]["vulnerabilities"]:
+        if "vulnerabilities" in json_data["results"][0]:
             for d in json_data["results"][0]["vulnerabilities"]:
                 # get associated justification if one exists
                 cve_justification = ""
