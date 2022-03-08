@@ -7,6 +7,9 @@ harbor:
     - hardening-manifest
     - build
     - anchore-sbom-generation
+  variables:
+    DOCKER_CONFIG: /tmp
+    SBOM_DIR: ${ARTIFACT_STORAGE}/scan-results/anchore
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/harbor/upload_to_harbor.py"'
   retry:
