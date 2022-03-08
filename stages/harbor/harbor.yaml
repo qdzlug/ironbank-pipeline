@@ -3,9 +3,10 @@ harbor:
   only:
     - master
   dependencies:
-    - build
     - load-scripts
     - hardening-manifest
+    - build
+    - anchore-sbom-generation
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/harbor/upload_to_harbor.py"'
   retry:
