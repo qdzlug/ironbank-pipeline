@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
 import base64
-import hashlib
+
+# import hashlib
 import logging
 import os
 import pathlib
-import secrets
+
+# import secrets
 import subprocess
 import sys
 
@@ -202,80 +204,81 @@ def main():
             "utf-8"
         )
     pathlib.Path("dest_auth.json").write_text(dest_auth)
+    pathlib.Path("/tmp/config.json").write_text(dest_auth)
 
     staging_image = f"docker://{os.environ['STAGING_REGISTRY_URL']}/{os.environ['IMAGE_NAME']}@{os.environ['IMAGE_PODMAN_SHA']}"
     gun = f"{os.environ['REGISTRY_URL']}/{os.environ['IMAGE_NAME']}"
-    trust_dir = "trust-dir-delegation/"
+    # trust_dir = "trust-dir-delegation/"
 
-    # Generated randomly and used in both `notary` commands
-    delegation_passphrase = secrets.token_urlsafe(32)
+    # # Generated randomly and used in both `notary` commands
+    # delegation_passphrase = secrets.token_urlsafe(32)
 
-    key = get_delegation_key()
+    # key = get_delegation_key()
 
-    # Import delegation key
-    cmd = [
-        "notary",
-        "--trustDir",
-        trust_dir,
-        "key",
-        "import",
-        "--role",
-        "delegation",
-        "--gun",
-        gun,
-        "/dev/stdin",
-    ]
-    logging.info(" ".join(cmd))
-    try:
-        subprocess.run(
-            args=cmd,
-            input=key,
-            check=True,
-            encoding="utf-8",
-            env={
-                "NOTARY_DELEGATION_PASSPHRASE": delegation_passphrase,
-                **os.environ,
-            },
-        )
-    except subprocess.CalledProcessError:
-        logging.error(f"Failed to import key for {gun}")
-        sys.exit(1)
+    # # Import delegation key
+    # cmd = [
+    #     "notary",
+    #     "--trustDir",
+    #     trust_dir,
+    #     "key",
+    #     "import",
+    #     "--role",
+    #     "delegation",
+    #     "--gun",
+    #     gun,
+    #     "/dev/stdin",
+    # ]
+    # logging.info(" ".join(cmd))
+    # try:
+    #     subprocess.run(
+    #         args=cmd,
+    #         input=key,
+    #         check=True,
+    #         encoding="utf-8",
+    #         env={
+    #             "NOTARY_DELEGATION_PASSPHRASE": delegation_passphrase,
+    #             **os.environ,
+    #         },
+    #     )
+    # except subprocess.CalledProcessError:
+    #     logging.error(f"Failed to import key for {gun}")
+    #     sys.exit(1)
 
-    logging.info("Key imported")
+    # logging.info("Key imported")
 
-    # Pull down image manifest to sign
-    manifest_file = pathlib.Path("manifest.json")
-    logging.info(f"Pulling {manifest_file} with skopeo")
-    cmd = [
-        "skopeo",
-        "inspect",
-        "--authfile",
-        "staging_auth.json",
-        "--raw",
-        staging_image,
-    ]
-    logging.info(" ".join(cmd))
-    with manifest_file.open(mode="w") as f:
-        try:
-            subprocess.run(
-                args=cmd,
-                stdout=f,
-                check=True,
-                encoding="utf-8",
-            )
-        except subprocess.CalledProcessError:
-            logging.error(f"Failed to retrieve manifest for {gun}")
-            sys.exit(1)
+    # # Pull down image manifest to sign
+    # manifest_file = pathlib.Path("manifest.json")
+    # logging.info(f"Pulling {manifest_file} with skopeo")
+    # cmd = [
+    #     "skopeo",
+    #     "inspect",
+    #     "--authfile",
+    #     "staging_auth.json",
+    #     "--raw",
+    #     staging_image,
+    # ]
+    # logging.info(" ".join(cmd))
+    # with manifest_file.open(mode="w") as f:
+    #     try:
+    #         subprocess.run(
+    #             args=cmd,
+    #             stdout=f,
+    #             check=True,
+    #             encoding="utf-8",
+    #         )
+    #     except subprocess.CalledProcessError:
+    #         logging.error(f"Failed to retrieve manifest for {gun}")
+    #         sys.exit(1)
 
-    # Confirm digest matches sha of the manifest
-    digest = os.environ["IMAGE_PODMAN_SHA"].split(":")[-1]
-    manifest = hashlib.sha256(manifest_file.read_bytes())
+    # # Confirm digest matches sha of the manifest
+    # digest = os.environ["IMAGE_PODMAN_SHA"].split(":")[-1]
+    # manifest = hashlib.sha256(manifest_file.read_bytes())
 
-    if digest == manifest.hexdigest():
-        logging.info("Digests match")
-    else:
-        logging.error(f"Digests do not match {digest}  {manifest.hexdigest()}")
-        sys.exit(1)
+    # if digest == manifest.hexdigest():
+    #     logging.info("Digests match")
+    # else:
+    #     logging.error(f"Digests do not match {digest}  {manifest.hexdigest()}")
+    #     sys.exit(1)
 
     # Sign and promote all tags
     with pathlib.Path(os.environ["ARTIFACT_STORAGE"], "preflight", "tags.txt").open(
@@ -283,37 +286,37 @@ def main():
     ) as f:
         for tag in f:
             tag = tag.strip()
-            logging.info(f"Signing {manifest_file} with notary")
+            # logging.info(f"Signing {manifest_file} with notary")
 
-            cmd = [
-                "notary",
-                "--verbose",
-                "--server",
-                os.environ["NOTARY_URL"],
-                "--trustDir",
-                trust_dir,
-                "add",
-                "--roles",
-                "targets/releases",
-                "--publish",
-                gun,
-                tag,
-                str(manifest_file),
-            ]
-            logging.info(" ".join(cmd))
-            try:
-                subprocess.run(
-                    args=cmd,
-                    check=True,
-                    encoding="utf-8",
-                    env={
-                        "NOTARY_DELEGATION_PASSPHRASE": delegation_passphrase,
-                        **os.environ,
-                    },
-                )
-            except subprocess.CalledProcessError:
-                logging.error(f"Failed to sign {gun}")
-                sys.exit(1)
+            #         cmd = [
+            #             "notary",
+            #             "--verbose",
+            #             "--server",
+            #             os.environ["NOTARY_URL"],
+            #             "--trustDir",
+            #             trust_dir,
+            #             "add",
+            #             "--roles",
+            #             "targets/releases",
+            #             "--publish",
+            #             gun,
+            #             tag,
+            #             str(manifest_file),
+            #         ]
+            #         logging.info(" ".join(cmd))
+            #         try:
+            #             subprocess.run(
+            #                 args=cmd,
+            #                 check=True,
+            #                 encoding="utf-8",
+            #                 env={
+            #                     "NOTARY_DELEGATION_PASSPHRASE": delegation_passphrase,
+            #                     **os.environ,
+            #                 },
+            #             )
+            #         except subprocess.CalledProcessError:
+            #             logging.error(f"Failed to sign {gun}")
+            #             sys.exit(1)
 
             logging.info(f"Copy from staging to {gun}:{tag}")
             prod_image = f"docker://{gun}:{tag}"
