@@ -50,6 +50,10 @@
     "environment-variable-name": {
       "type": "string",
       "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_.-]*$"
+    },
+    "environment-variable-name-no-base-registry": {
+      "type": "string",
+      "pattern": "(?i)(?!^BASE_REGISTRY$)^[a-zA-Z0-9][a-zA-Z0-9_.-]*$"
     }
   },
   "title": "IronBank",
@@ -110,7 +114,7 @@
         "$ref": "#/definitions/printable-characters-without-newlines"
       },
       "propertyNames": {
-        "$ref": "#/definitions/environment-variable-name"
+        "$ref": "#/definitions/environment-variable-name-no-base-registry"
       },
       "required": ["BASE_IMAGE", "BASE_TAG"]
     },
