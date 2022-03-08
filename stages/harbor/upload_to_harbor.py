@@ -340,6 +340,14 @@ def main():
                 logging.error(f"Failed to copy {staging_image} to {prod_image}")
                 sys.exit(1)
 
+    logging.info("Run cosign commands")
+    image_name = f"docker://{os.environ['REGISTRY_URL']}/{os.environ['IMAGE_NAME']}@{os.environ['IMAGE_PODMAN_SHA']}"
+
+    cosign = Cosign(image_name)
+    cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-cyclonedx.xml", "cyclonedx")
+    cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-spdx-json.json", "spdx")
+    cosign.sign_image()
+
 
 if __name__ == "__main__":
     main()
