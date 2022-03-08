@@ -12,6 +12,77 @@ import sys
 import requests
 
 
+class Cosign:
+    def __init__(self, image_name):
+        self.image_name = image_name
+
+    def sign_image(self) -> None:
+        """
+        Perform cosign image signature
+        """
+        logging.info(f"Signing {self.image_name}")
+        sign_cmd = [
+            "cosign",
+            "sign",
+            "--key",
+            os.environ["AWS_KMS_KEY_ID"],
+            "--cert",
+            os.environ["COSIGN_CERT"],
+            self.image_name,
+        ]
+        try:
+            subprocess.run(
+                args=sign_cmd,
+                check=True,
+                encoding="utf-8",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env={
+                    "AWS_ACCESS_KEY_ID": os.environ["S3_ACCESS_KEY"],
+                    "AWS_SECRET_ACCESS_KEY": os.environ["S3_SECRET_KEY"],
+                    **os.environ,
+                },
+            )
+        except subprocess.CalledProcessError:
+            logging.error(f"Failed to sign {self.image_name}")
+            sys.exit(1)
+        return
+
+    def attach_sbom(self, sbom_path: str, sbom_type: str) -> None:
+        """
+        Sign and attach SBOMs
+        """
+        logging.info(f"Attaching SBOM: {sbom_path}")
+        attach_cmd = [
+            "cosign",
+            "attach",
+            "sbom",
+            "--sbom",
+            sbom_path,
+            "--type",
+            sbom_type,
+            self.image_name,
+        ]
+        logging.info(" ".join(attach_cmd))
+        try:
+            subprocess.run(
+                args=attach_cmd,
+                check=True,
+                encoding="utf-8",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env={
+                    "AWS_ACCESS_KEY_ID": os.environ["S3_ACCESS_KEY"],
+                    "AWS_SECRET_ACCESS_KEY": os.environ["S3_SECRET_KEY"],
+                    **os.environ,
+                },
+            )
+        except subprocess.CalledProcessError:
+            logging.error(f"Failed to attach {sbom_path}")
+            sys.exit(1)
+        return
+
+
 def query_delegation_key(url, token):
     """
     Query the delegation key url a few times to make sure there isn't any
