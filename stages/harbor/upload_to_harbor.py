@@ -166,7 +166,7 @@ def get_delegation_key():
 
 
 def main():
-    # assert os.environ.get("NOTARY_AUTH")
+    assert os.environ.get("NOTARY_AUTH")
 
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
