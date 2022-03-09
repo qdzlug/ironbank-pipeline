@@ -52,12 +52,24 @@ args_parameters=$(while IFS= read -r line; do
   echo "--build-arg=$line"
 done <"${ARTIFACT_STORAGE}/preflight/args.env")
 
+# Start up the forward proxy
+echo "Start up the forward proxy"
+squid -k parse -f "${PIPELINE_REPO_DIR}"/stages/build/squid.conf
+squid -f "${PIPELINE_REPO_DIR}"/stages/build/squid.conf
+sleep 5 # because squid will not start properly without this
+
 echo "Adding the ironbank.repo to the containter via mount.conf"
 # Must be able to overrride DISTRO_REPO_DIR to equal '' and cannot simply check for vars existence
 # shellcheck disable=SC2236
 if [ ! -z "${DISTRO_REPO_DIR:-}" ]; then
   echo "${PWD}/${PIPELINE_REPO_DIR}/stages/build/${DISTRO_REPO_DIR}:${DISTRO_REPO_MOUNT}" >>"${HOME}"/.config/containers/mounts.conf
 fi
+
+# Set up ARG(s) in Dockerfile to recieve the buildah bud --build-arg so that the container owner won't have to deal with it.
+# These will not persist and will only be available to the build process.
+# buildah bud ignores this requirement for http/ftp/no proxy envvars, but we're required to do this for anything else.
+cp "${PIPELINE_REPO_DIR}"/stages/build/build-args.txt .
+sed -i '/^FROM /r build-args.txt' Dockerfile
 
 old_ifs=$IFS
 IFS=$'\n'
@@ -67,6 +79,10 @@ echo "Build the image"
 env -i BUILDAH_ISOLATION=chroot PATH="$PATH" buildah bud \
   $args_parameters \
   --build-arg=BASE_REGISTRY="${BASE_REGISTRY}" \
+  --build-arg=http_proxy="localhost:3128" \
+  --build-arg=HTTP_PROXY="localhost:3128" \
+  --build-arg=GOPROXY="http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/goproxy/" \
+  --build-arg=GOSUMDB="sum.golang.org http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/gosum" \
   $label_parameters \
   --label=maintainer="ironbank@dsop.io" \
   --label=org.opencontainers.image.created="$(date --rfc-3339=seconds)" \
@@ -114,3 +130,7 @@ IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" -
 
   echo "IMAGE_NAME=${IMAGE_NAME}"
 } >>build.env
+
+echo "Archive the proxy access log"
+chmod 644 access.log
+cp access.log "${ARTIFACT_DIR}/access_log"
