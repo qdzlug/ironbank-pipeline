@@ -24,6 +24,8 @@ source "${PIPELINE_REPO_DIR}/stages/s3/repo_map_vars.sh"
 
 python3 "${PIPELINE_REPO_DIR}"/stages/s3/create_repo_map_default.py --target "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/repo_map.json"
 mkdir reports
+cp hardening_manifest.yaml reports/
+cp "${BUILD_DIRECTORY}"/access_log reports/
 cp -r "${DOCUMENTATION_DIRECTORY}"/reports/* reports/
 cp -r "${SCAN_DIRECTORY}"/* reports/
 
