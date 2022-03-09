@@ -89,7 +89,7 @@ env -i BUILDAH_ISOLATION=chroot PATH="$PATH" buildah bud \
   --label=org.opencontainers.image.source="${CI_PROJECT_URL}" \
   --label=org.opencontainers.image.revision="${CI_COMMIT_SHA}" \
   --authfile /tmp/prod_auth.json \
-  --format=docker \
+  --format=oci \
   --log-level=warn \
   --default-mounts-file="${HOME}"/.config/containers/mounts.conf \
   --storage-driver=vfs \
