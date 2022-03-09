@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 
 import base64
-
 import hashlib
 import logging
 import os
 import pathlib
-
 import secrets
 import subprocess
 import sys
