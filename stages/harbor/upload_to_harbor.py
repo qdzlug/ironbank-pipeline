@@ -25,6 +25,7 @@ class Cosign:
         logging.info(f"Signing {self.image_name}")
         sign_cmd = [
             "cosign",
+            "--verbose",
             "sign",
             "--key",
             os.environ["AWS_KMS_KEY_ID"],
@@ -32,6 +33,7 @@ class Cosign:
             os.environ["COSIGN_CERT"],
             self.image_name,
         ]
+        logging.info(" ".join(sign_cmd))
         try:
             subprocess.run(
                 args=sign_cmd,
@@ -167,7 +169,7 @@ def get_delegation_key():
 
 
 def main():
-    assert os.environ.get("NOTARY_AUTH")
+    # assert os.environ.get("NOTARY_AUTH")
 
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
@@ -341,11 +343,11 @@ def main():
                 sys.exit(1)
 
     logging.info("Run cosign commands")
-    image_name = f"docker://{os.environ['REGISTRY_URL']}/{os.environ['IMAGE_NAME']}@{os.environ['IMAGE_PODMAN_SHA']}"
+    image_name = f"{os.environ['REGISTRY_URL']}/{os.environ['IMAGE_NAME']}:{os.environ['IMAGE_TAG']}"
 
     cosign = Cosign(image_name)
-    cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-cyclonedx.xml", "cyclonedx")
-    cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-spdx-json.json", "spdx")
+    cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom/sbom-cyclonedx.xml", "cyclonedx")
+    cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom/sbom-spdx-json.json", "spdx")
     cosign.sign_image()
 
 
