@@ -31,6 +31,7 @@ class Cosign:
             os.environ["AWS_KMS_KEY_ID"],
             "--cert",
             os.environ["COSIGN_CERT"],
+            "--attachment=sbom",
             self.image_name,
         ]
         logging.info(" ".join(sign_cmd))
@@ -44,6 +45,7 @@ class Cosign:
                 env={
                     "AWS_ACCESS_KEY_ID": os.environ["S3_ACCESS_KEY"],
                     "AWS_SECRET_ACCESS_KEY": os.environ["S3_SECRET_KEY"],
+                    "AWS_REGION": "us-gov-west-1",
                     **os.environ,
                 },
             )
@@ -75,11 +77,6 @@ class Cosign:
                 encoding="utf-8",
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                env={
-                    "AWS_ACCESS_KEY_ID": os.environ["S3_ACCESS_KEY"],
-                    "AWS_SECRET_ACCESS_KEY": os.environ["S3_SECRET_KEY"],
-                    **os.environ,
-                },
             )
         except subprocess.CalledProcessError:
             logging.error(f"Failed to attach {sbom_path}")
