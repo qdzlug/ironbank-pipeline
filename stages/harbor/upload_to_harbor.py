@@ -343,8 +343,8 @@ def main():
     image_name = f"{os.environ['REGISTRY_URL']}/{os.environ['IMAGE_NAME']}:{os.environ['IMAGE_TAG']}"
 
     cosign = Cosign(image_name)
-    cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom/sbom-cyclonedx.xml", "cyclonedx")
-    cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom/sbom-spdx-json.json", "spdx")
+    cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-cyclonedx.xml", "cyclonedx")
+    cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-spdx-json.json", "spdx")
     cosign.sign_image()
 
 
