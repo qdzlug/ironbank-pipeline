@@ -79,8 +79,8 @@ echo "Build the image"
 env -i BUILDAH_ISOLATION=chroot PATH="$PATH" buildah bud \
   $args_parameters \
   --build-arg=BASE_REGISTRY="${BASE_REGISTRY}" \
-  --build-arg=http_proxy="localhost:3128" \
-  --build-arg=HTTP_PROXY="localhost:3128" \
+  --build-arg=http_proxy="http://localhost:3128" \
+  --build-arg=HTTP_PROXY="http://localhost:3128" \
   --build-arg=GOPROXY="http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/goproxy/" \
   --build-arg=GOSUMDB="sum.golang.org http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/gosum" \
   $label_parameters \
