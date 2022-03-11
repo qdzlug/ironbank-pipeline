@@ -29,7 +29,6 @@ class Cosign:
             os.environ["AWS_KMS_KEY_ID"],
             "--cert",
             os.environ["COSIGN_CERT"],
-            "--attachment=sbom",
             self.image_name,
         ]
         logging.info(" ".join(sign_cmd))
@@ -48,7 +47,7 @@ class Cosign:
                 },
             )
         except subprocess.CalledProcessError:
-            logging.error(f"Failed to sign {self.image_name}")
+            logging.exception(f"Failed to sign {self.image_name}")
             sys.exit(1)
         return
 
@@ -81,6 +80,39 @@ class Cosign:
             sys.exit(1)
         return
 
+    def sign_image_attachment(self) -> None:
+        """
+        Perform cosign image attachment signature
+        """
+        logging.info(f"Signing {self.image_name}")
+        sign_cmd = [
+            "cosign",
+            "--verbose",
+            "sign",
+            "--key",
+            os.environ["AWS_KMS_KEY_ID"],
+            "--attachment=sbom",
+            self.image_name,
+        ]
+        logging.info(" ".join(sign_cmd))
+        try:
+            subprocess.run(
+                args=sign_cmd,
+                check=True,
+                encoding="utf-8",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env={
+                    "AWS_ACCESS_KEY_ID": os.environ["S3_ACCESS_KEY"],
+                    "AWS_SECRET_ACCESS_KEY": os.environ["S3_SECRET_KEY"],
+                    "AWS_REGION": "us-gov-west-1",
+                    **os.environ,
+                },
+            )
+        except subprocess.CalledProcessError:
+            logging.exception(f"Failed to sign {self.image_name}")
+            sys.exit(1)
+        return
 
 def query_delegation_key(url, token):
     """
@@ -341,9 +373,12 @@ def main():
     image_name = f"{os.environ['REGISTRY_URL']}/{os.environ['IMAGE_NAME']}:{os.environ['IMAGE_TAG']}"
 
     cosign = Cosign(image_name)
-    cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-cyclonedx.xml", "cyclonedx")
-    cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-spdx-json.json", "spdx")
     cosign.sign_image()
+    cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-syft-json.json", "syft")
+    # Cosign doesn't currently support combining SBOMs into a single artifact
+    #cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-cyclonedx.xml", "cyclonedx")
+    #cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-spdx-json.json", "spdx")
+    cosign.sign_image_attachment()
 
 
 if __name__ == "__main__":
