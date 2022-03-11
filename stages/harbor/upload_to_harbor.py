@@ -370,7 +370,7 @@ def main():
                 sys.exit(1)
 
     logging.info("Run cosign commands")
-    image_name = f"{os.environ['REGISTRY_URL']}/{os.environ['IMAGE_NAME']}:{os.environ['IMAGE_TAG']}"
+    image_name = f"{os.environ['REGISTRY_URL']}/{os.environ['IMAGE_NAME']}@{os.environ['IMAGE_PODMAN_SHA']}"
 
     cosign = Cosign(image_name)
     cosign.sign_image()
