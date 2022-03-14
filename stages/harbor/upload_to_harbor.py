@@ -13,6 +13,10 @@ import requests
 
 
 class Cosign:
+    """
+    Perform cosign operations
+    """
+
     def __init__(self, image_name: str, aws_key_id: str, aws_access_key: str):
         self.image_name = image_name
         self.aws_key_id = aws_key_id
