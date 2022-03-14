@@ -51,7 +51,6 @@ class Cosign:
         except subprocess.CalledProcessError:
             logging.exception(f"Failed to sign {self.image_name}")
             sys.exit(1)
-        return
 
     def attach_sbom(self, sbom_path: str, sbom_type: str) -> None:
         """
@@ -80,7 +79,6 @@ class Cosign:
         except subprocess.CalledProcessError:
             logging.error(f"Failed to attach {sbom_path}")
             sys.exit(1)
-        return
 
     def sign_image_attachment(self) -> None:
         """
@@ -114,7 +112,6 @@ class Cosign:
         except subprocess.CalledProcessError:
             logging.exception(f"Failed to sign {self.image_name}")
             sys.exit(1)
-        return
 
 def query_delegation_key(url, token):
     """
