@@ -13,8 +13,10 @@ import requests
 
 
 class Cosign:
-    def __init__(self, image_name):
+    def __init__(self, image_name: str, aws_key_id: str, aws_access_key: str):
         self.image_name = image_name
+        self.aws_key_id = aws_key_id
+        self.aws_access_key = aws_access_key
 
     def sign_image(self) -> None:
         """
@@ -26,7 +28,7 @@ class Cosign:
             "--verbose",
             "sign",
             "--key",
-            os.environ["AWS_KMS_KEY_ID"],
+            self.aws_key_id,
             "--cert",
             os.environ["COSIGN_CERT"],
             self.image_name,
@@ -40,8 +42,8 @@ class Cosign:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 env={
-                    "AWS_ACCESS_KEY_ID": os.environ["S3_ACCESS_KEY"],
-                    "AWS_SECRET_ACCESS_KEY": os.environ["S3_SECRET_KEY"],
+                    "AWS_ACCESS_KEY_ID": self.aws_key_id,
+                    "AWS_SECRET_ACCESS_KEY": self.aws_access_key,
                     "AWS_REGION": "us-gov-west-1",
                     **os.environ,
                 },
@@ -90,7 +92,7 @@ class Cosign:
             "--verbose",
             "sign",
             "--key",
-            os.environ["AWS_KMS_KEY_ID"],
+            self.aws_key_id,
             "--attachment=sbom",
             self.image_name,
         ]
@@ -103,8 +105,8 @@ class Cosign:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 env={
-                    "AWS_ACCESS_KEY_ID": os.environ["S3_ACCESS_KEY"],
-                    "AWS_SECRET_ACCESS_KEY": os.environ["S3_SECRET_KEY"],
+                    "AWS_ACCESS_KEY_ID": self.aws_key_id,
+                    "AWS_SECRET_ACCESS_KEY": self.aws_access_key,
                     "AWS_REGION": "us-gov-west-1",
                     **os.environ,
                 },
@@ -372,7 +374,11 @@ def main():
     logging.info("Run cosign commands")
     image_name = f"{os.environ['REGISTRY_URL']}/{os.environ['IMAGE_NAME']}@{os.environ['IMAGE_PODMAN_SHA']}"
 
-    cosign = Cosign(image_name)
+    cosign = Cosign(
+        image_name,
+        os.environ["KMS_KEY_ID"],
+        os.environ["KMS_ACCESS_KEY"],
+    )
     cosign.sign_image()
     cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-syft-json.json", "syft")
     # Cosign doesn't currently support combining SBOMs into a single artifact
