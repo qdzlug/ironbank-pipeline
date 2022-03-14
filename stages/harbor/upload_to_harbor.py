@@ -113,6 +113,7 @@ class Cosign:
             logging.exception(f"Failed to sign {self.image_name}")
             sys.exit(1)
 
+
 def query_delegation_key(url, token):
     """
     Query the delegation key url a few times to make sure there isn't any
@@ -379,8 +380,8 @@ def main():
     cosign.sign_image()
     cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-syft-json.json", "syft")
     # Cosign doesn't currently support combining SBOMs into a single artifact
-    #cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-cyclonedx.xml", "cyclonedx")
-    #cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-spdx-json.json", "spdx")
+    # cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-cyclonedx.xml", "cyclonedx")
+    # cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-spdx-json.json", "spdx")
     cosign.sign_image_attachment()
 
 
