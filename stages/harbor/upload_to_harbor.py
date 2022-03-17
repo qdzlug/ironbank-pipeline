@@ -20,14 +20,14 @@ class Cosign:
     def __init__(
         self,
         image_name: str,
-        aws_key_id: str,
-        aws_access_key: str,
-        aws_key_arn: str,
+        kms_key_arn: str,
+        aws_access_key_id: str,
+        aws_secret_access_key: str,
     ):
         self.image_name = image_name
-        self.aws_key_id = aws_key_id
-        self.aws_access_key = aws_access_key
-        self.aws_key_arn = aws_key_arn
+        self.kms_key_arn = kms_key_arn
+        self.aws_access_key_id = aws_access_key_id
+        self.aws_secret_access_key = aws_secret_access_key
 
     def sign_image(self) -> None:
         """
@@ -39,7 +39,7 @@ class Cosign:
             "--verbose",
             "sign",
             "--key",
-            self.aws_key_arn,
+            self.kms_key_arn,
             "--cert",
             os.environ["COSIGN_CERT"],
             self.image_name,
@@ -53,8 +53,8 @@ class Cosign:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 env={
-                    "AWS_ACCESS_KEY_ID": self.aws_key_id,
-                    "AWS_SECRET_ACCESS_KEY": self.aws_access_key,
+                    "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
+                    "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
                     "AWS_REGION": "us-gov-west-1",
                     **os.environ,
                 },
@@ -101,7 +101,7 @@ class Cosign:
             "--verbose",
             "sign",
             "--key",
-            self.aws_key_arn,
+            self.kms_key_arn,
             "--attachment=sbom",
             self.image_name,
         ]
@@ -114,8 +114,8 @@ class Cosign:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 env={
-                    "AWS_ACCESS_KEY_ID": self.aws_key_id,
-                    "AWS_SECRET_ACCESS_KEY": self.aws_access_key,
+                    "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
+                    "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
                     "AWS_REGION": "us-gov-west-1",
                     **os.environ,
                 },
@@ -385,10 +385,10 @@ def main():
 
     cosign = Cosign(
         image_name,
-        os.environ["KMS_KEY_ID"],
-        os.environ["KMS_ACCESS_KEY"],
-        # TODO: update to full ARN once cosign allows for us-gov ARNs
         os.environ["KMS_KEY_SHORT_ARN"],
+        os.environ["COSIGN_AWS_ACCESS_KEY_ID"],
+        os.environ["COSIGN_AWS_SECRET_ACCESS_KEY"],
+        # TODO: update to full ARN once cosign allows for us-gov ARNs
     )
     cosign.sign_image()
     cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-syft-json.json", "syft")
