@@ -395,7 +395,7 @@ class Anchore:
         sbom_dir.mkdir(parents=True, exist_ok=True)
         with (sbom_dir / f"sbom-{output_format}.{file_type}").open("wb") as f:
             try:
-                logging.info(f"{' '.join(cmd[0:3])} {' '.join(cmd[5:])}")
+                logging.info(" ".join(cmd))
                 subprocess.run(
                     cmd,
                     check=True,
