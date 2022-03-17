@@ -380,22 +380,22 @@ def main():
                 logging.error(f"Failed to copy {staging_image} to {prod_image}")
                 sys.exit(1)
 
-    logging.info("Run cosign commands")
-    image_name = f"{os.environ['REGISTRY_URL']}/{os.environ['IMAGE_NAME']}@{os.environ['IMAGE_PODMAN_SHA']}"
+    # logging.info("Run cosign commands")
+    # image_name = f"{os.environ['REGISTRY_URL']}/{os.environ['IMAGE_NAME']}@{os.environ['IMAGE_PODMAN_SHA']}"
 
-    cosign = Cosign(
-        image_name,
-        os.environ["KMS_KEY_SHORT_ARN"],
-        os.environ["COSIGN_AWS_ACCESS_KEY_ID"],
-        os.environ["COSIGN_AWS_SECRET_ACCESS_KEY"],
-        # TODO: update to full ARN once cosign allows for us-gov ARNs
-    )
-    cosign.sign_image()
-    cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-syft-json.json", "syft")
-    # Cosign doesn't currently support combining SBOMs into a single artifact
-    # cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-cyclonedx.xml", "cyclonedx")
-    # cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-spdx-json.json", "spdx")
-    cosign.sign_image_attachment()
+    # cosign = Cosign(
+    #     image_name,
+    #     os.environ["KMS_KEY_SHORT_ARN"],
+    #     os.environ["COSIGN_AWS_ACCESS_KEY_ID"],
+    #     os.environ["COSIGN_AWS_SECRET_ACCESS_KEY"],
+    #     # TODO: update to full ARN once cosign allows for us-gov ARNs
+    # )
+    # cosign.sign_image()
+    # cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-syft-json.json", "syft")
+    # # Cosign doesn't currently support combining SBOMs into a single artifact
+    # # cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-cyclonedx.xml", "cyclonedx")
+    # # cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-spdx-json.json", "spdx")
+    # cosign.sign_image_attachment()
 
 
 if __name__ == "__main__":
