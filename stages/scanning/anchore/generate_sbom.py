@@ -33,7 +33,7 @@ def main() -> None:
     anchore_scan.generate_sbom(image, artifacts_path, "cyclonedx", "xml")
     anchore_scan.generate_sbom(image, artifacts_path, "spdx-tag-value", "txt")
     anchore_scan.generate_sbom(image, artifacts_path, "spdx-json", "json")
-    anchore_scan.generate_sbom(image, artifacts_path, "syft-json", "json")
+    anchore_scan.generate_sbom(image, artifacts_path, "json", "json")
 
 
 if __name__ == "__main__":
