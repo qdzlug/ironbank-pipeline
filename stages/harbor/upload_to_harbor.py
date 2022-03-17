@@ -22,10 +22,12 @@ class Cosign:
         image_name: str,
         aws_key_id: str,
         aws_access_key: str,
+        aws_key_arn: str,
     ):
         self.image_name = image_name
         self.aws_key_id = aws_key_id
         self.aws_access_key = aws_access_key
+        self.aws_key_arn = aws_key_arn
 
     def sign_image(self) -> None:
         """
@@ -37,7 +39,7 @@ class Cosign:
             "--verbose",
             "sign",
             "--key",
-            self.aws_key_id,
+            self.aws_key_arn,
             "--cert",
             os.environ["COSIGN_CERT"],
             self.image_name,
@@ -99,7 +101,7 @@ class Cosign:
             "--verbose",
             "sign",
             "--key",
-            self.aws_key_id,
+            self.aws_key_arn,
             "--attachment=sbom",
             self.image_name,
         ]
@@ -385,6 +387,8 @@ def main():
         image_name,
         os.environ["KMS_KEY_ID"],
         os.environ["KMS_ACCESS_KEY"],
+        # TODO: update to full ARN once cosign allows for us-gov ARNs
+        os.environ["KMS_KEY_SHORT_ARN"],
     )
     cosign.sign_image()
     cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-syft-json.json", "syft")
