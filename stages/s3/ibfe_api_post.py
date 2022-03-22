@@ -71,7 +71,7 @@ def main():
         new_data = load_data()
         try:
             app = "IBFE"
-            post_resp = post_artifact_data_ibfe()
+            post_resp = post_artifact_data_ibfe(new_data)
             post_resp.raise_for_status()
             logging.info(f"Uploaded container data to {app} API")
             app = "VAT"
