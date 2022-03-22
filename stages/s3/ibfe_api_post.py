@@ -92,7 +92,7 @@ def main():
             logging.exception("Unhandled exception for {app}")
             sys.exit(1)
     else:
-        logging.debug("Skipping use of vat artifacts and ibfe api build endpoint")
+        logging.debug("Skipping use of vat artifacts and ibfe build endpoints")
 
 
 if __name__ == "__main__":
