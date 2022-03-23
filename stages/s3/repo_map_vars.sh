@@ -1,8 +1,9 @@
 #!/bin/bash
 S3_HTML_LINK="https://s3-us-gov-west-1.amazonaws.com/${S3_REPORT_BUCKET}/${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}"
+directory_date=$(date --utc '+%FT%T.%3N')
 public_key=$(<"${IB_CONTAINER_GPG_PUBKEY}")
 
-export directory_date=$(date --utc '+%FT%T.%3N')
+export directory_date
 export REMOTE_DOCUMENTATION_DIRECTORY="${directory_date}_${CI_PIPELINE_ID}"
 export REMOTE_REPORT_DIRECTORY="${REMOTE_DOCUMENTATION_DIRECTORY}/reports"
 export repo_name="${IMAGE_NAME}"
