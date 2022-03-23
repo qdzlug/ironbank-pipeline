@@ -124,7 +124,7 @@ class Cosign:
             logging.exception(f"Failed to sign {self.image_name}")
             sys.exit(1)
 
-    def add_attestation(self, predicate_path: str, predicate: str) -> None:
+    def add_attestation(self, predicate_path: str, predicate_type: str) -> None:
         """
         Add attestation
         """
@@ -135,7 +135,7 @@ class Cosign:
             "--predicate",
             predicate_path,
             "--type",
-            predicate,
+            predicate_type,
             self.image_name,
         ]
         logging.info(" ".join(cmd))
