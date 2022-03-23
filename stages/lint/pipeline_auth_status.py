@@ -15,7 +15,7 @@ def main() -> None:
     params = {"createRequest": "true"}
     headers = CaseInsensitiveDict()
     headers["Content-Type"] = "application/json"
-    headers["Authorization"] = f"Bearer {os.environ['CI_JOB_JWT']}"
+    headers["Authorization"] = f"Bearer {os.environ['CI_JOB_JWT_V2']}"
     logging.info(f"Request URL: {url}")
     try:
         r = requests.get(url, headers=headers, params=params)
