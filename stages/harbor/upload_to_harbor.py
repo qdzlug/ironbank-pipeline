@@ -428,6 +428,10 @@ def main():
     # Cosign doesn't currently support combining SBOMs into a single artifact
     # cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-cyclonedx.xml", "cyclonedx")
     # cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-spdx-json.json", "spdx")
+    cosign.add_attestation(
+        os.environ["VAT_RESPONSE"],
+        "https://vat.dso.mil/api/p1/predicate/beta1",
+    )
     cosign.sign_image_attachment()
 
 
