@@ -21,3 +21,7 @@ include:
   - local: stages/lint/base-image-validation.yaml
   - local: stages/lint/pipeline-auth-status.yaml
   - local: stages/lint/wl-compare-lint.yaml
+  - local: stages/lint/trufflehog.yaml
+  - local: stages/lint/folder-structure.yaml
+  - local: stages/lint/hardening-manifest.yaml
+  - local: stages/lint/registry-validation.yaml
