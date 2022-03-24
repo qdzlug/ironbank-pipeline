@@ -6,7 +6,7 @@ lint:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/lint"
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: vat
   before_script:
-    - 'mkdir -p "${ARTIFACT_DIR}'
+    - 'mkdir -p "${ARTIFACT_DIR}"'
   artifacts:
     paths:
       - "${ARTIFACT_DIR}"
@@ -25,7 +25,7 @@ lint:
       fi
     - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/base-image-validation.py"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/container_status_check.py"'
-    - '"${PIPELINE_REPO_DIR}/stages/preflight/folder_structure.sh"' # replace folder structure with simple python script
+    - "${PIPELINE_REPO_DIR}/stages/preflight/folder_structure.sh" # replace folder structure with simple python script
     - 'python3 "${PIPELINE_REPO_DIR}/stages/preflight/metadata.py"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/pipeline_auth_status.py"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/preflight/registry-validation.py"'
