@@ -89,7 +89,7 @@ def main():
             logging.exception(f"Error submitting container data to {app} API")
             sys.exit(1)
         except Exception:
-            logging.exception("Unhandled exception for {app}")
+            logging.exception(f"Unhandled exception for {app}")
             sys.exit(1)
     else:
         logging.debug("Skipping use of vat artifacts and ibfe build endpoints")
