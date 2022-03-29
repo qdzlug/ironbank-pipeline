@@ -1,10 +1,10 @@
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Dict
 import sys
 import os
 import logging
 import re
+from pathlib import Path
+from typing import Dict
+from dataclasses import dataclass
 
 
 @dataclass

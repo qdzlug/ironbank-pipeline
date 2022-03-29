@@ -13,7 +13,7 @@ sys.path.append(
     )
 )
 
-from hardening_manifest_parse import (
+from hardening_manifest import (
     source_values,
     get_source_keys_values,
     get_approval_status,

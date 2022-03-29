@@ -16,7 +16,7 @@ sys.path.append(
 )
 
 from get_oscap_failures import generate_oscap_jobs  # noqa E402
-from hardening_manifest_parse import (
+from hardening_manifest import (
     source_values,
     get_source_keys_values,
 )  # noqa E402
