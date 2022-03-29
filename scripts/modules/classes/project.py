@@ -15,21 +15,21 @@ class Project:
 
 @dataclass
 class CHT_Project(Project):
-    hardening_manifest: Path = Path("hardening_manifest.yaml")
-    license: Path = Path("LICENSE")
-    readme: Path = Path("README.md")
-    dockerfile: Path = Path("Dockerfile")
-    trufflehog_conf: Path = (
+    hardening_manifest_path: Path = Path("hardening_manifest.yaml")
+    license_path: Path = Path("LICENSE")
+    readme_path: Path = Path("README.md")
+    dockerfile_path: Path = Path("Dockerfile")
+    trufflehog_conf_path: Path = (
         Path("trufflehog_config.yaml")
         if Path("trufflehog_config.yaml").exists()
         else None
     )
-    trufflehog_conf = (
+    trufflehog_conf_path: Path = (
         Path("trufflehog_config.yml")
         if Path("trufflehog_config.yml").exists()
         else None
     )
-    clamav_wl: Path = (
+    clamav_wl_path: Path = (
         Path("clamav-whitelist") if Path("clamav-whitelist").exists() else None
     )
 
