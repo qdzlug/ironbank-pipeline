@@ -12,6 +12,119 @@ import sys
 import requests
 
 
+class Cosign:
+    """
+    Perform cosign operations
+    """
+
+    def __init__(
+        self,
+        image_name: str,
+        kms_key_arn: str,
+        aws_access_key_id: str,
+        aws_secret_access_key: str,
+    ):
+        self.image_name = image_name
+        self.kms_key_arn = kms_key_arn
+        self.aws_access_key_id = aws_access_key_id
+        self.aws_secret_access_key = aws_secret_access_key
+
+    def sign_image(self) -> None:
+        """
+        Perform cosign image signature
+        """
+        logging.info(f"Signing {self.image_name}")
+        sign_cmd = [
+            "cosign",
+            "--verbose",
+            "sign",
+            "--key",
+            self.kms_key_arn,
+            "--cert",
+            os.environ["COSIGN_CERT"],
+            self.image_name,
+        ]
+        logging.info(" ".join(sign_cmd))
+        try:
+            subprocess.run(
+                args=sign_cmd,
+                check=True,
+                encoding="utf-8",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env={
+                    "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
+                    "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
+                    "AWS_REGION": "us-gov-west-1",
+                    **os.environ,
+                },
+            )
+        except subprocess.CalledProcessError:
+            logging.exception(f"Failed to sign {self.image_name}")
+            sys.exit(1)
+
+    def attach_sbom(self, sbom_path: str, sbom_type: str) -> None:
+        """
+        Sign and attach SBOMs
+        """
+        logging.info(f"Attaching SBOM: {sbom_path}")
+        attach_cmd = [
+            "cosign",
+            "attach",
+            "sbom",
+            "--sbom",
+            sbom_path,
+            "--type",
+            sbom_type,
+            self.image_name,
+        ]
+        logging.info(" ".join(attach_cmd))
+        try:
+            subprocess.run(
+                args=attach_cmd,
+                check=True,
+                encoding="utf-8",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+        except subprocess.CalledProcessError:
+            logging.error(f"Failed to attach {sbom_path}")
+            sys.exit(1)
+
+    def sign_image_attachment(self) -> None:
+        """
+        Perform cosign image attachment signature
+        """
+        logging.info(f"Signing {self.image_name}")
+        sign_cmd = [
+            "cosign",
+            "--verbose",
+            "sign",
+            "--key",
+            self.kms_key_arn,
+            "--attachment=sbom",
+            self.image_name,
+        ]
+        logging.info(" ".join(sign_cmd))
+        try:
+            subprocess.run(
+                args=sign_cmd,
+                check=True,
+                encoding="utf-8",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env={
+                    "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
+                    "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
+                    "AWS_REGION": "us-gov-west-1",
+                    **os.environ,
+                },
+            )
+        except subprocess.CalledProcessError:
+            logging.exception(f"Failed to sign {self.image_name}")
+            sys.exit(1)
+
+
 def query_delegation_key(url, token):
     """
     Query the delegation key url a few times to make sure there isn't any
@@ -131,6 +244,7 @@ def main():
             "utf-8"
         )
     pathlib.Path("dest_auth.json").write_text(dest_auth)
+    pathlib.Path("/tmp/config.json").write_text(dest_auth)
 
     staging_image = f"docker://{os.environ['STAGING_REGISTRY_URL']}/{os.environ['IMAGE_NAME']}@{os.environ['IMAGE_PODMAN_SHA']}"
     gun = f"{os.environ['REGISTRY_URL']}/{os.environ['IMAGE_NAME']}"
@@ -265,6 +379,23 @@ def main():
             except subprocess.CalledProcessError:
                 logging.error(f"Failed to copy {staging_image} to {prod_image}")
                 sys.exit(1)
+
+    logging.info("Run cosign commands")
+    image_name = f"{os.environ['REGISTRY_URL']}/{os.environ['IMAGE_NAME']}@{os.environ['IMAGE_PODMAN_SHA']}"
+
+    cosign = Cosign(
+        image_name,
+        # TODO: update to full ARN once cosign allows for us-gov ARNs
+        os.environ["KMS_KEY_SHORT_ARN"],
+        os.environ["COSIGN_AWS_ACCESS_KEY_ID"],
+        os.environ["COSIGN_AWS_SECRET_ACCESS_KEY"],
+    )
+    cosign.sign_image()
+    cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-syft-json.json", "syft")
+    # Cosign doesn't currently support combining SBOMs into a single artifact
+    # cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-cyclonedx.xml", "cyclonedx")
+    # cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-spdx-json.json", "spdx")
+    cosign.sign_image_attachment()
 
 
 if __name__ == "__main__":
