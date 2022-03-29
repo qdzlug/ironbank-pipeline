@@ -27,22 +27,35 @@ class Project:
     )
 
     def validate_files_exist(self):
-        assert self.license.exists()
-        assert self.readme.exists()
-        assert self.dockerfile.exists()
-        assert self.hardening_manifest_path.exists()
-        assert Path("Jenkinsfile").exists()
+        assert self.license.exists(), "LICENSE not found"
+        assert self.readme.exists(), "README.md not found"
+        assert self.dockerfile.exists(), "Dockerfile not found"
+        assert (
+            self.hardening_manifest_path.exists()
+        ), "hardening_manifest.yaml not found"
+        assert Path(
+            "Jenkinsfile"
+        ).exists(), (
+            "Jenkinsfile found, please remove this file before rerunning your pipeline"
+        )
 
     def validate_clamav_whitelist_config(self):
-        if os.environ["CLAMAV_WHITELIST"] and not self.clamav_wl:
+        bail = False
+        if os.environ.get("CLAMAV_WHITELIST") and not self.clamav_wl:
+            bail = True
+        if self.clamav_wl and not os.environ.get("CLAMAV_WHITELIST"):
+            bail = True
+        if bail:
             logging.error(
                 "CLAMAV_WHITELIST CI variable exists but clamav-whitelist file not found"
             )
             sys.exit(1)
 
     def validate_trufflehog_config(self):
-        assert not Path("trufflehog.yaml").exists()
-        if self.trufflehog_conf_path and not os.environ["TRUFFLEHOG_CONFIG"]:
+        assert not Path(
+            "trufflehog.yaml"
+        ).exists(), "trufflehog.yaml is not permitted to exist in repo"
+        if self.trufflehog_conf_path and not os.environ.get("TRUFFLEHOG_CONFIG"):
             logging.error(
                 "trufflehog-config file found but TRUFFLEHOG_CONFIG CI variable does not exist"
             )
