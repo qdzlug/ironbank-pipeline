@@ -1,57 +1,132 @@
 #!/usr/bin/env python3
 
-import logging
 import os
+import sys
 import json
 import yaml
+import logging
+import jsonschema
 from pathlib import Path
 from dataclasses import dataclass
+import multiprocessing
 
+# Not using dataclass because post_init is required for file load and parameter initialization
+class Hardening_Manifest:
+    def __init__(self, hm_path: str, schema_path: str = "./"):
+        self.hm_path: Path = Path(hm_path)
+        self.schema_path: Path = Path(schema_path)
+        with self.hm_path.open("r") as f:
+            tmp_content: dict = yaml.safe_load(f)
+        self.image_name: str = tmp_content["name"]
+        # validation done in hardening manifest schema
+        self.image_tags: list[str] = tmp_content["tags"]
+        # added for clarity over what tag will be used to publish
+        self.image_tag: str = self.image_tags[0]
+        self.args: dict = tmp_content["args"]
+        # added for clarity for required args
+        self.base_image_name: str = self.args["BASE_IMAGE"]
+        self.base_image_tag: str = self.args["BASE_TAG"]
+        # TODO: define labels type
+        self.labels: dict = tmp_content["labels"]
+        # TODO: define resources type
+        self.resources: list[dict] = tmp_content["resources"]
+        self.maintainers: list[dict] = tmp_content["maintainers"]
 
-@dataclass
-class hardening_manifest:
-    hm_path: Path = Path(hm_path)
-    with path.open("r") as f:
-        tmp_obj: dict = yaml.safe_load(f)
-    image_name: str = tmp_obj["name"]
-    image_tag: str = tmp_obj["tags"][0]
-    base_image_name: str = tmp_obj["args"]["BASE_IMAGE"]
-    base_image_tag: str = tmp_obj["args"]["BASE_TAG"]
-    # TODO: define labels type
-    labels: dict = tmp_obj["labels"]
-    # TODO: define resources type
-    resources: list[dict] = tmp_obj["resources"]
+    def validate_schema(self, conn: multiprocessing.Pipe):
+        logging.info("Validating schema")
+        with self.hm_path.open("r") as f:
+            hm_content = yaml.safe_load(f)
+        with self.schema_path.open("r") as f:
+            schema_content = json.load(f)
+        label_regex = os.environ.get("LABEL_ALLOWLIST_REGEX", None)
+        if label_regex:
+            schema_content["properties"]["labels"]["patternProperties"] = {
+                label_regex: {
+                    "$ref": "#/definitions/printable-characters-without-newlines"
+                }
+            }
+        try:
+            # may hang from catastrophic backtracking if format is invalid
+            logging.info("This task will exit if not completed within 2 minutes")
+            jsonschema.validate(hm_content, schema_content)
+        except jsonschema.ValidationError as ex:
+            conn.send(ex.message)
+            sys.exit(1)
 
-    # def validate_hardening_manifest():
+    def check_for_fixme(self, subcontent: dict) -> list:
+        """
+        Returns list of keys in dictionary whose value contains FIXME (case insensitve)
+        """
+        return [
+            k
+            for (k, v) in subcontent.items()
+            if isinstance(v, (str)) and "fixme" in v.lower()
+        ]
 
+    def reject_invalid_labels(self) -> list:
+        """
+        Returns list of keys in hardening manifest labels whose value contains FIXME (case insensitve)
+        """
+        logging.info("Checking label values")
+        invalid_labels = self.check_for_fixme(self.labels)
+        for k in invalid_labels:
+            logging.error(f"FIXME found in {k}")
+        return invalid_labels
 
-"""
-    cht_project = CHT_Project()
-    hm = hardening_manifest(cht_project.hardening_manifest) # _path ?
-    ibfe_post_data = {
-        "name": hm.image_name
-        "tag": hm.image_tag
-        "base_image": f"{hm.base_image_name}:{hm.base_image_tag}"
-        "mil.dso.ironbank.image.keywords": hm.labels['mil.dso.ironbank.image.keywords']
-    }
-"""
+    def reject_invalid_maintainers(self) -> list:
+        """
+        Returns list of keys in hardening manifest maintainers whose value contains FIXME (case insensitve)
+        """
+        logging.info("Checking maintainer values")
+        invalid_maintainers = []
+        for maintainer in self.maintainers:
+            invalid_maintainers += self.check_for_fixme(maintainer)
+        for k in invalid_maintainers:
+            logging.error(f"FIXME found in {k}")
+        return invalid_maintainers
 
-"""
-import artifacts
+    # TODO: Deprecate this once CI variables are replaced by modules with reusable methods
+    def create_artifacts(self):
+        artifact_dir = Path(os.environ["ARTIFACT_DIR"])
 
-cht_project = CHT_Project()
-hm = hardening_manifest(cht_project.hardening_manifest) # _path ?
+        with (artifact_dir / "variables.env").open("w") as f:
+            f.write(f"IMAGE_NAME={self.image_name}\n")
+            f.write(f"IMAGE_VERSION={self.image_tag}\n")
 
-for resource in hm.resources:
-    downloaded_resource = curl resource['url']
-    validate sha of resource['validation']['value'] == shasum(downloaded_resource)
+        with (artifact_dir / "tags.txt").open("w") as f:
+            for tag in self.image_tags:
+                f.write(tag)
+                f.write("\n")
 
-"""
+        with (artifact_dir / "args.env").open("w") as f:
+            for key, value in self.args.items():
+                f.write(f"{key}={value}\n")
 
+        with (artifact_dir / "labels.env").open("w") as f:
+            for key, value in self.labels.items():
+                f.write(f"{key}={value}\n")
 
-# hm = hardening_manifest(Project().hardening_manifest)
-# hm.image_name
-# hm.image_tag
+        # optional field,if keywords key in yaml, create file. source_values() in create_repo_map checks if file exists, if not pass empty list
+        if "mil.dso.ironbank.image.keywords" in self.labels:
+            with (artifact_dir / "keywords.txt").open("w") as f:
+                labels = [
+                    k.strip()
+                    for k in self.labels["mil.dso.ironbank.image.keywords"].split(",")
+                ]
+                for label in labels:
+                    f.write(label)
+                    f.write("\n")
+        else:
+            logging.info("Keywords field does not exist in hardening_manifest.yaml")
+
+    # define dict() method and use for __repr__ and __str__
+
+    def __repr__(self) -> str:
+        return f"{self.image_name}:{self.image_tag}"
+
+    def __str__(self) -> str:
+        return f"{self.image_name}:{self.image_tag}"
+
 
 # Get values generated by process_yaml() in metadata.py
 # Currently used to retrieve keywords and tags
