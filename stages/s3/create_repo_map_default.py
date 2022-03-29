@@ -64,11 +64,9 @@ def main() -> None:
     existing_repomap = get_repomap(object_name)
     artifact_storage = os.environ["ARTIFACT_STORAGE"]
 
-    keyword_list = source_values(
-        f"{artifact_storage}/preflight/keywords.txt", "keywords"
-    )
-    tag_list = source_values(f"{artifact_storage}/preflight/tags.txt", "tags")
-    label_dict = get_source_keys_values(f"{artifact_storage}/preflight/labels.env")
+    keyword_list = source_values(f"{artifact_storage}/lint/keywords.txt", "keywords")
+    tag_list = source_values(f"{artifact_storage}/lint/tags.txt", "tags")
+    label_dict = get_source_keys_values(f"{artifact_storage}/lint/labels.env")
 
     approval_status, approval_text = get_approval_status(
         f"{artifact_storage}/lint/image_approval.json"

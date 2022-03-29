@@ -46,7 +46,7 @@ def main() -> None:
     )
     default_truffle_config = Path(
         pipeline_repo_dir,
-        "stages/preflight/default-trufflehog-config.yaml",
+        "stages/lint/default-trufflehog-config.yaml",
     )
 
     project_origin = os.environ.get("TRUFFLEHOG_TARGET", "cht")
