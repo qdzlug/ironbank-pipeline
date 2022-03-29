@@ -4,10 +4,17 @@ from typing import Dict
 import sys
 import os
 import logging
+import re
 
 
 @dataclass
 class Project:
+    project_path: str = os.environ.get("CI_PROJECT_PATH")
+    # logger: logger
+
+
+@dataclass
+class CHT_Project(Project):
     hardening_manifest: Path = Path("hardening_manifest.yaml")
     license: Path = Path("LICENSE")
     readme: Path = Path("README.md")
@@ -23,7 +30,7 @@ class Project:
         else None
     )
     clamav_wl: Path = (
-        Path("clamav-whitelist") if Path("clamav-whitelist").exist() else None
+        Path("clamav-whitelist") if Path("clamav-whitelist").exists() else None
     )
 
     def validate_files_exist(self):
@@ -33,19 +40,25 @@ class Project:
         assert (
             self.hardening_manifest_path.exists()
         ), "hardening_manifest.yaml not found"
-        assert Path(
+        assert not Path(
             "Jenkinsfile"
         ).exists(), (
             "Jenkinsfile found, please remove this file before rerunning your pipeline"
         )
+        assert not Path(
+            "download.yaml"
+        ), "download.yaml found, this file is no longer supported"
+        assert not Path(
+            "download.json"
+        ), "download.json found, this file is no longer supported"
 
     def validate_clamav_whitelist_config(self):
-        bail = False
         if os.environ.get("CLAMAV_WHITELIST") and not self.clamav_wl:
-            bail = True
+            logging.error(
+                "clamav-whitelist file found but CLAMAV_WHITELIST CI variable does not exist"
+            )
+            sys.exit(1)
         if self.clamav_wl and not os.environ.get("CLAMAV_WHITELIST"):
-            bail = True
-        if bail:
             logging.error(
                 "CLAMAV_WHITELIST CI variable exists but clamav-whitelist file not found"
             )
@@ -60,3 +73,10 @@ class Project:
                 "trufflehog-config file found but TRUFFLEHOG_CONFIG CI variable does not exist"
             )
             sys.exit(1)
+
+    def validate_dockerfile(self):
+        with self.dockerfile.open("r") as f:
+            for line in f.readlines():
+                assert not re.findall(
+                    "^\s*LABEL", line
+                ), "LABEL found in Dockerfile, move all LABELs to the hardening_manifest.yaml file"
