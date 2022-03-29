@@ -114,24 +114,24 @@ def parse_dockerfile(dockerfile_path: str):
         sys.exit(1)
 
 
-def validate_yaml(content, conn):
-    logging.info("Validating schema")
-    schema_path = Path(__file__).parent / "../../schema/hardening_manifest.schema.json"
-    with schema_path.open("r") as s:
-        schema_s = s.read()
-    schema = json.loads(schema_s)
-    regex = os.environ.get("LABEL_ALLOWLIST_REGEX", None)
-    if regex:
-        schema["properties"]["labels"]["patternProperties"] = {
-            regex: {"$ref": "#/definitions/printable-characters-without-newlines"}
-        }
-    try:
-        # may hang from catastrophic backtracking if format is invalid
-        logging.info("This task will exit if not completed within 2 minutes")
-        jsonschema.validate(content, schema)
-    except jsonschema.ValidationError as ex:
-        conn.send(ex.message)
-        sys.exit(1)
+# def validate_yaml(content, conn):
+#     logging.info("Validating schema")
+#     schema_path = Path(__file__).parent / "../../schema/hardening_manifest.schema.json"
+#     with schema_path.open("r") as s:
+#         schema_s = s.read()
+#     schema = json.loads(schema_s)
+#     regex = os.environ.get("LABEL_ALLOWLIST_REGEX", None)
+#     if regex:
+#         schema["properties"]["labels"]["patternProperties"] = {
+#             regex: {"$ref": "#/definitions/printable-characters-without-newlines"}
+#         }
+#     try:
+#         # may hang from catastrophic backtracking if format is invalid
+#         logging.info("This task will exit if not completed within 2 minutes")
+#         jsonschema.validate(content, schema)
+#     except jsonschema.ValidationError as ex:
+#         conn.send(ex.message)
+#         sys.exit(1)
 
 
 if __name__ == "__main__":
