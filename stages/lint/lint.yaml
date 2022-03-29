@@ -12,6 +12,8 @@ lint:
       - "${ARTIFACT_DIR}"
     expire_in: 1 week
     when: always
+    reports:
+      dotenv: variables.env
   retry:
     max: 2
     when: runner_system_failure
@@ -23,10 +25,10 @@ lint:
         echo "Exiting"
         exit 1
       fi
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/folder_structure.py"' # done
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/metadata.py"' # done
     - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/base-image-validation.py"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/container_status_check.py"'
-    - "${PIPELINE_REPO_DIR}/stages/lint/folder_structure.sh" # replace folder structure with simple python script
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/metadata.py"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/pipeline_auth_status.py"'
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/registry-validation.py"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/registry-validation.py"' # needs an allow failure exit code 1
     - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/vat-api-findings.py"'
