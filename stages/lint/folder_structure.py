@@ -7,7 +7,7 @@ sys.path.append(
     )
 )
 
-from project import CHT_Project  # noqa E402
+from classes.project import CHT_Project  # noqa E402
 
 
 def main():
