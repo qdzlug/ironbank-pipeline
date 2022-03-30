@@ -47,10 +47,10 @@ class CHT_Project(Project):
         )
         assert not Path(
             "download.yaml"
-        ), "download.yaml found, this file is no longer supported"
+        ).exists(), "download.yaml found, this file is no longer supported"
         assert not Path(
             "download.json"
-        ), "download.json found, this file is no longer supported"
+        ).exists(), "download.json found, this file is no longer supported"
 
     def validate_clamav_whitelist_config(self):
         if os.environ.get("CLAMAV_WHITELIST") and not self.clamav_wl_path:
