@@ -32,7 +32,7 @@ def post_artifact_data_vat():
         },
         json={
             "containerName": os.environ["IMAGE_NAME"],
-            "containerVersion": os.environ["IMAGE_TAG"],
+            "containerVersion": os.environ["IMAGE_VERSION"],
             "publishedTimestamp": os.environ["directory_date"],
             "readme": os.environ["project_readme"],
             "license": os.environ["project_license"],
