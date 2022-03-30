@@ -38,7 +38,7 @@ def main():
 
     cht_project = CHT_Project()
     print(os.getcwd())
-    hm = Hardening_Manifest(
+    hardening_manifest = Hardening_Manifest(
         cht_project.hardening_manifest_path,
         Path(
             Path(__file__).parent.parent.parent, "schema/hardening_manifest.schema.json"
@@ -47,7 +47,9 @@ def main():
     # Use the project description.yaml file path if one exists
 
     parent_conn, child_conn = multiprocessing.Pipe()
-    process = multiprocessing.Process(target=hm.validate_schema, args=(child_conn,))
+    process = multiprocessing.Process(
+        target=hardening_manifest.validate_schema, args=(child_conn,)
+    )
     process.start()
     # wait for two minutes unless process exits
     # if process exits, check status
@@ -76,15 +78,15 @@ def main():
     else:
         # verify no labels have a value of fixme (case insensitive)
         logging.debug("Checking for FIXME values in labels/maintainers")
-        invalid_labels = hm.reject_invalid_labels()
-        invalid_maintainers = hm.reject_invalid_maintainers()
+        invalid_labels = hardening_manifest.reject_invalid_labels()
+        invalid_maintainers = hardening_manifest.reject_invalid_maintainers()
         if invalid_labels or invalid_maintainers:
             logging.error(
                 "Please update these labels to appropriately describe your container before rerunning this pipeline"
             )
             sys.exit(1)
         logging.info("Hardening manifest is validated")
-    hm.create_artifacts()
+    hardening_manifest.create_artifacts()
 
 
 if __name__ == "__main__":

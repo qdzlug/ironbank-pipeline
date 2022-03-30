@@ -78,7 +78,7 @@ def main():
     #
     cht_project = CHT_Project()
     hardening_manifest = Hardening_Manifest(cht_project.hardening_manifest_path)
-    if base_image:
+    if hardening_manifest.base_image_name:
         skopeo_inspect_base_image(
             hardening_manifest.base_image_name, hardening_manifest.base_image_tag
         )
