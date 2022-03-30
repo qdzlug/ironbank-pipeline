@@ -11,10 +11,14 @@ import multiprocessing
 import time
 
 
-sys.path.insert(1, os.path.join(os.path.dirname(__file__), "../../scripts/"))
+sys.path.append(
+    os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts/modules"
+    )
+)
 
-from modules.classes.project import CHT_Project
-from modules.hardening_manifest import Hardening_Manifest
+from classes.project import CHT_Project
+from hardening_manifest import Hardening_Manifest
 
 
 def main():
@@ -33,9 +37,10 @@ def main():
         logging.info("Log level set to info")
 
     cht_project = CHT_Project()
+    print(os.getcwd())
     hm = Hardening_Manifest(
         cht_project.hardening_manifest_path,
-        "../../schema/hardening_manifest.schema.json",
+        "./schema/hardening_manifest.schema.json",
     )
     # Use the project description.yaml file path if one exists
 

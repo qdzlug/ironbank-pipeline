@@ -9,24 +9,14 @@ import sys
 
 import yaml
 
+sys.path.append(
+    os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts/modules"
+    )
+)
 
-def _load_local_hardening_manifest():
-    """
-    Load up the hardening_manifest.yaml file as a dictionary. Search for the file in
-    the immediate repo first, if that is not found then search for the generated file.
-
-    If neither are found then return None and let the calling function handle the error.
-
-    """
-    path = pathlib.Path("hardening_manifest.yaml")
-
-    if path.is_file():
-        logging.debug(f"Using {path}")
-        with path.open("r") as f:
-            return yaml.safe_load(f)
-    else:
-        logging.debug(f"Couldn't find {path}")
-    return None
+from classes.project import CHT_Project
+from hardening_manifest import Hardening_Manifest
 
 
 def skopeo_inspect_base_image(base_image, base_tag):
@@ -86,20 +76,12 @@ def main():
     # At the very least the hardening_manifest.yaml should be generated if it has not been
     # merged in yet.
     #
-
-    hardening_manifest = _load_local_hardening_manifest()
-    if not hardening_manifest:
-        logging.error("Your project must contain a hardening_manifest.yaml")
-        sys.exit(1)
-    else:
-        base_image = hardening_manifest["args"]["BASE_IMAGE"]
-        base_tag = hardening_manifest["args"]["BASE_TAG"]
-        with open("variables.env", "w") as f:
-            f.write(f"BASE_IMAGE={base_image}\n")
-            f.write(f"BASE_TAG={base_tag}")
-            logging.debug(f"BASE_IMAGE={base_image}\nBASE_TAG={base_tag}")
+    cht_project = CHT_Project()
+    hardening_manifest = Hardening_Manifest(cht_project.hardening_manifest_path)
     if base_image:
-        skopeo_inspect_base_image(base_image, base_tag)
+        skopeo_inspect_base_image(
+            hardening_manifest.base_image_name, hardening_manifest.base_image_tag
+        )
 
 
 if __name__ == "__main__":

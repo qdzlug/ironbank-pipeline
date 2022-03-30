@@ -92,6 +92,14 @@ class Hardening_Manifest:
         with (artifact_dir / "variables.env").open("w") as f:
             f.write(f"IMAGE_NAME={self.image_name}\n")
             f.write(f"IMAGE_VERSION={self.image_tag}\n")
+            f.write(f"BASE_IMAGE={self.base_image_name}\n")
+            f.write(f"BASE_TAG={self.base_image_tag}")
+            logging.debug(
+                f"IMAGE_NAME={self.image_name}\nIMAGE_VERSION={self.image_tag}"
+            )
+            logging.debug(
+                f"BASE_IMAGE={self.base_image_name}\nBASE_TAG={self.base_image_tag}"
+            )
 
         with (artifact_dir / "tags.txt").open("w") as f:
             for tag in self.image_tags:
