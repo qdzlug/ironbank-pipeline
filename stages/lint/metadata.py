@@ -42,7 +42,7 @@ def main():
         cht_project.hardening_manifest_path,
         Path(
             Path(__file__).parent.parent.parent, "schema/hardening_manifest.schema.json"
-        ).to_posix(),
+        ).as_posix(),
     )
     # Use the project description.yaml file path if one exists
 
