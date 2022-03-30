@@ -34,9 +34,9 @@ class CHT_Project(Project):
     )
 
     def validate_files_exist(self):
-        assert self.license.exists(), "LICENSE not found"
-        assert self.readme.exists(), "README.md not found"
-        assert self.dockerfile.exists(), "Dockerfile not found"
+        assert self.license_path.exists(), "LICENSE not found"
+        assert self.readme_path.exists(), "README.md not found"
+        assert self.dockerfile_path.exists(), "Dockerfile not found"
         assert (
             self.hardening_manifest_path.exists()
         ), "hardening_manifest.yaml not found"
@@ -53,12 +53,12 @@ class CHT_Project(Project):
         ), "download.json found, this file is no longer supported"
 
     def validate_clamav_whitelist_config(self):
-        if os.environ.get("CLAMAV_WHITELIST") and not self.clamav_wl:
+        if os.environ.get("CLAMAV_WHITELIST") and not self.clamav_wl_path:
             logging.error(
                 "clamav-whitelist file found but CLAMAV_WHITELIST CI variable does not exist"
             )
             sys.exit(1)
-        if self.clamav_wl and not os.environ.get("CLAMAV_WHITELIST"):
+        if self.clamav_wl_path and not os.environ.get("CLAMAV_WHITELIST"):
             logging.error(
                 "CLAMAV_WHITELIST CI variable exists but clamav-whitelist file not found"
             )
@@ -75,7 +75,7 @@ class CHT_Project(Project):
             sys.exit(1)
 
     def validate_dockerfile(self):
-        with self.dockerfile.open("r") as f:
+        with self.dockerfile_path.open("r") as f:
             for line in f.readlines():
                 assert not re.findall(
                     "^\s*LABEL", line
