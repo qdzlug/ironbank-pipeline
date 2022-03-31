@@ -3,7 +3,6 @@ from pathlib import Path
 import sys
 import os
 import logging
-import requests
 import json
 
 sys.path.append(
@@ -12,9 +11,11 @@ sys.path.append(
     )
 )
 
+
 from classes.project import CHT_Project
 from classes.api import VAT_API
 from hardening_manifest import Hardening_Manifest
+from vat_container_status import is_approved
 
 
 def main():
@@ -23,14 +24,11 @@ def main():
     # )
     cht_project = CHT_Project()
     hardening_manifest = Hardening_Manifest(cht_project.hardening_manifest_path)
-    vat_api = VAT_API(
-        url=f"{os.environ['VAT_BACKEND_SERVER_ADDRESS']}",
-    )
+    vat_api = VAT_API(url=f"{os.environ['VAT_BACKEND_SERVER_ADDRESS']}")
     vat_response = vat_api._get_container(
-        params={
-            "name": hardening_manifest.image_name,
-            "tag": hardening_manifest.image_tag,
-        }
+        vat_api,
+        image_name=hardening_manifest.image_name,
+        image_tag=hardening_manifest.image_tag,
     )
 
     approved, approval_status, approval_comment = is_approved(vat_response, False)

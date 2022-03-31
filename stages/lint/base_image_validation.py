@@ -7,7 +7,6 @@ import pathlib
 import subprocess
 import sys
 
-import yaml
 
 sys.path.append(
     os.path.join(

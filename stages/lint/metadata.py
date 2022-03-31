@@ -1,12 +1,9 @@
 #!/usr/bin/python3
-import json
 import logging
 import os
 import sys
 from pathlib import Path
 
-import jsonschema
-import yaml
 import multiprocessing
 import time
 
