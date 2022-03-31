@@ -3,6 +3,7 @@ S3_HTML_LINK="https://s3-us-gov-west-1.amazonaws.com/${S3_REPORT_BUCKET}/${BASE_
 directory_date=$(date --utc '+%FT%T.%3N')
 public_key=$(<"${IB_CONTAINER_GPG_PUBKEY}")
 
+export directory_date
 export REMOTE_DOCUMENTATION_DIRECTORY="${directory_date}_${CI_PIPELINE_ID}"
 export REMOTE_REPORT_DIRECTORY="${REMOTE_DOCUMENTATION_DIRECTORY}/reports"
 export repo_name="${IMAGE_NAME}"
@@ -27,3 +28,8 @@ export openscap_report="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/openscap/repo
 export output_dir="${ARTIFACT_DIR}"
 export project_license="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_LICENSE}"
 export project_readme="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_README}"
+
+export SHORTENED_PATH="${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}"
+export README_PATH_SHORT="${SHORTENED_PATH}/${PROJECT_README}"
+export LICENSE_PATH_SHORT="${SHORTENED_PATH}/${PROJECT_LICENSE}"
+export TAR_PATH_SHORT="${SHORTENED_PATH}/${REPORT_TAR_NAME}"

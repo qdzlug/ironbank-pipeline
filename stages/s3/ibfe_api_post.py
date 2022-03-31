@@ -20,6 +20,40 @@ def load_data() -> dict:
     return data[build_id]
 
 
+def post_artifact_data_vat():
+    vat_endpoint = (
+        f"{os.environ['VAT_BACKEND_SERVER_ADDRESS']}/internal/import/artifacts"
+    )
+    post_resp = requests.post(
+        vat_endpoint,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {os.environ['CI_JOB_JWT_V2']}",
+        },
+        json={
+            "containerName": os.environ["IMAGE_NAME"],
+            "containerVersion": os.environ["IMAGE_VERSION"],
+            "publishedTimestamp": os.environ["directory_date"],
+            "readme": os.environ["README_PATH_SHORT"],
+            "license": os.environ["LICENSE_PATH_SHORT"],
+            "tar": os.environ["TAR_PATH_SHORT"],
+        },
+    )
+    return post_resp
+
+
+def post_artifact_data_ibfe(new_data: dict):
+    post_resp = requests.post(
+        os.environ["IBFE_API_ENDPOINT"],
+        headers={
+            "Authorization": os.environ["IBFE_API_KEY"],
+            "x-gitlab-ci-jwt": f"Bearer {os.environ['CI_JOB_JWT_V2']}",
+        },
+        json=new_data,
+    )
+    return post_resp
+
+
 def main():
     if os.environ["CI_COMMIT_BRANCH"] == "master":
         # Get logging level, set manually when running pipeline
@@ -36,35 +70,29 @@ def main():
 
         new_data = load_data()
         try:
-            post_resp = requests.post(
-                os.environ["IBFE_API_ENDPOINT"],
-                headers={
-                    "Authorization": os.environ["IBFE_API_KEY"],
-                    "x-gitlab-ci-jwt": f"Bearer {os.environ['CI_JOB_JWT']}",
-                },
-                json=new_data,
-            )
+            app = "IBFE"
+            post_resp = post_artifact_data_ibfe(new_data)
             post_resp.raise_for_status()
-            logging.info("Uploaded container data to IBFE API")
+            logging.info(f"Uploaded container data to {app} API")
+            app = "VAT"
+            post_resp = post_artifact_data_vat()
+            post_resp.raise_for_status()
+            logging.info(f"Uploaded container data to {app} API")
         except requests.exceptions.Timeout:
             logging.exception("Unable to reach the IBFE API, TIMEOUT.")
             sys.exit(1)
         except requests.exceptions.HTTPError:
             logging.error(f"Got HTTP {post_resp.status_code}")
-            if post_resp.status_code == 500:
-                logging.error(
-                    "HTTP error: 500 likely received due to duplicate org.opencontainers.image.title and version. Please investigate ironbank.dso.mil to see if something already exists."
-                )
-            logging.exception("HTTP error")
+            logging.error(f"{app} HTTP error")
             sys.exit(1)
         except requests.exceptions.RequestException:
-            logging.exception("Error submitting container data to IBFE API")
+            logging.error(f"Error submitting container data to {app} API")
             sys.exit(1)
         except Exception:
-            logging.exception("Unhandled exception")
+            logging.error(f"Unhandled exception for {app}")
             sys.exit(1)
     else:
-        logging.debug("Skipping use of ibfe api build endpoint")
+        logging.debug("Skipping use of vat artifacts and ibfe build endpoints")
 
 
 if __name__ == "__main__":
