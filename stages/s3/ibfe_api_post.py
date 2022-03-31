@@ -83,13 +83,13 @@ def main():
             sys.exit(1)
         except requests.exceptions.HTTPError:
             logging.error(f"Got HTTP {post_resp.status_code}")
-            logging.exception(f"{app} HTTP error")
+            logging.error(f"{app} HTTP error")
             sys.exit(1)
         except requests.exceptions.RequestException:
-            logging.exception(f"Error submitting container data to {app} API")
+            logging.error(f"Error submitting container data to {app} API")
             sys.exit(1)
         except Exception:
-            logging.exception(f"Unhandled exception for {app}")
+            logging.error(f"Unhandled exception for {app}")
             sys.exit(1)
     else:
         logging.debug("Skipping use of vat artifacts and ibfe build endpoints")
