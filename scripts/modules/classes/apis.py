@@ -39,6 +39,7 @@ def request_error_handler(func):
             elif self.response.status_code == 400:
                 logging.warning(f"Bad request: {self.url}")
                 logging.warning(self.response.text)
+                sys.exit(1)
             else:
                 logging.warning(
                     f"Unknown response from VAT {self.response.status_code}"
@@ -47,10 +48,13 @@ def request_error_handler(func):
                 logging.warning(
                     "Failing the pipeline due to an unexpected response from the vat findings api. Please open an issue in this project using the `Pipeline Failure` template to ensure that we assist you. If you need further assistance, please visit the `Team - Iron Bank Pipelines and Operations` Mattermost channel."
                 )
+                sys.exit(1)
         except requests.exceptions.RequestException:
-            logging.exception(f"Could not access VAT API: {self.url}")
+            logging.warning(f"Could not access VAT API: {self.url}")
+            sys.exit(1)
         except Exception as e:
-            logging.exception(f"Unexpected exception thrown {e}")
+            logging.warning(f"Unexpected exception thrown {e}")
+            sys.exit(1)
 
     return _request_error_handler
 
@@ -74,7 +78,7 @@ class VAT_API(API):
         logging.info("Fetched data from vat successfully")
         if self.response.status_code not in [200, 404]:
             sys.exit(1)
-        return self.response
+        return self.response.json() if self.response.status_code == 200 else None
 
     @request_error_handler
     def _force_400(self) -> dict:

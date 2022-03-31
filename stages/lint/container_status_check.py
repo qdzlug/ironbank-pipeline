@@ -31,10 +31,15 @@ def main():
         image_tag=hardening_manifest.image_tag,
     )
 
-    approved, _, approval_status, approval_comment = is_approved(
-        vat_response.json(), False
-    )
+    logging.debug(f"VAT response\n{vat_response}")
+    filename = Path(os.environ["ARTIFACT_DIR"], "vat_api_findings.json")
+    with filename.open(mode="w") as f:
+        json.dump(vat_response, f)
+
+    approved, _, approval_status, approval_comment = is_approved(vat_response, False)
     approval_status = approval_status.lower().replace(" ", "_")
+    logging.debug("updated Approval Status: {approval_status}")
+
     filename = Path(os.environ["ARTIFACT_DIR"], "image_approval.json")
     image_approval = {
         "IMAGE_APPROVAL_STATUS": approval_status,
@@ -45,8 +50,11 @@ def main():
 
     if approved:
         logging.info("This container is noted as an approved image in VAT")
+    elif os.environ["CI_COMMIT_BRANCH"] != "master":
+        logging.warning("This container is not noted as an approved image in VAT")
     else:
         logging.error("This container is not noted as an approved image in VAT")
+        logging.error("Failing pipeline")
         sys.exit(1)
 
 

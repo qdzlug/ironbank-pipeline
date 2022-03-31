@@ -25,9 +25,9 @@ def is_approved(
     ft_ineligible_findings = False
     approval_status = "notapproved"
     approval_comment = None
-    force_approval = os.environ.get("FORCE_APPROVAL", "false") in ("True", "true", "1")
+    exists_in_vat = bool(vat_resp_dict)
     # Check accreditation
-    if vat_resp_dict:
+    if exists_in_vat:
         logging.info(
             f"VAT image {vat_resp_dict['imageName']}:{vat_resp_dict['imageTag']} {vat_resp_dict['vatUrl']}"
         )
@@ -45,9 +45,10 @@ def is_approved(
             )
     branch = os.environ["CI_COMMIT_BRANCH"]
     approved = _get_approval_status(
-        accredited, not_expired, ft_ineligible_findings, branch, force_approval
+        exists_in_vat, accredited, not_expired, ft_ineligible_findings, branch
     )
 
+    logging.warn(approved)
     # Exit codes for Check CVE parsing of VAT response
     # 0   - Container is accredited, accreditation is not expired, and there are no unapproved findings
     # 1   - Either Container is not accredited or the accreditation has expired and the branch is master, or there is an unapproved finding not eligible to be fast tracked
@@ -103,7 +104,11 @@ def _check_expiration(vat_resp_dict) -> bool:
 
 
 def _get_approval_status(
-    accredited, not_expired, ft_ineligible_findings, branch, force_approval=False
+    exists,
+    accredited,
+    not_expired,
+    ft_ineligible_findings,
+    branch,
 ) -> bool:
     """
     Returns True if
@@ -112,16 +117,21 @@ def _get_approval_status(
             else container is noted as accredited, and the accreditation has no expiration or expiration is not prior to current date, and there are no unapproved fast track ineligible findings
         branch != 'master' there are no unapproved fast track ineligible findings
     """
+
+    """
+        If master:
+            check
+    """
+
+    if not exists:
+        return False
     if not accredited:
         logging.warning("Container is not accredited in VAT")
     if not not_expired:
         logging.warning("Container's earliest expiration is prior to current date")
     if branch == "master":
         # Check if an approval has been forced and if so, return accreditation and not_expired
-        if force_approval:
-            return accredited and not_expired
-        else:
-            return accredited and not_expired and not ft_ineligible_findings
+        return accredited and not_expired and not ft_ineligible_findings
     else:
         return not ft_ineligible_findings
 
