@@ -51,8 +51,6 @@ def request_error_handler(func):
             logging.exception(f"Could not access VAT API: {self.url}")
         except Exception as e:
             logging.exception(f"Unexpected exception thrown {e}")
-        finally:
-            return self.response
 
     return _request_error_handler
 

@@ -13,7 +13,7 @@ sys.path.append(
 
 
 from classes.project import CHT_Project
-from classes.api import VAT_API
+from classes.apis import VAT_API
 from hardening_manifest import Hardening_Manifest
 from vat_container_status import is_approved
 
@@ -31,7 +31,9 @@ def main():
         image_tag=hardening_manifest.image_tag,
     )
 
-    approved, approval_status, approval_comment = is_approved(vat_response, False)
+    approved, _, approval_status, approval_comment = is_approved(
+        vat_response.json(), False
+    )
     approval_status = approval_status.lower().replace(" ", "_")
     filename = Path(os.environ["ARTIFACT_DIR"], "image_approval.json")
     image_approval = {
