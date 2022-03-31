@@ -47,7 +47,7 @@ def post_artifact_data_ibfe(new_data: dict):
         os.environ["IBFE_API_ENDPOINT"],
         headers={
             "Authorization": os.environ["IBFE_API_KEY"],
-            "x-gitlab-ci-jwt": f"Bearer {os.environ['CI_JOB_JWT']}",
+            "x-gitlab-ci-jwt": f"Bearer {os.environ['CI_JOB_JWT_V2']}",
         },
         json=new_data,
     )
