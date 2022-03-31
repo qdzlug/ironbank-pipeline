@@ -28,7 +28,7 @@ def post_artifact_data_vat():
         vat_endpoint,
         headers={
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {os.environ['CI_JOB_JWT']}",
+            "Authorization": f"Bearer {os.environ['CI_JOB_JWT_V2']}",
         },
         json={
             "containerName": os.environ["IMAGE_NAME"],
