@@ -76,12 +76,15 @@ def main():
     # At the very least the hardening_manifest.yaml should be generated if it has not been
     # merged in yet.
     #
-    cht_project = CHT_Project()
-    hardening_manifest = Hardening_Manifest(cht_project.hardening_manifest_path)
 
     # Get logging level, set manually when running pipeline
-    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
-    log = logger.setup(name="stages.lint.base_image_validation", level=loglevel)
+    logLevel = os.environ.get("LOGLEVEL", "INFO").upper()
+    logFormat = "%(levelname)s [%(filename)s:%(lineno)d]: %(message)s" \
+                if logLevel == "DEBUG" else "%(levelname)s: %(message)s"
+    log = logger.setup(name="stages.lint.base_image_validation", level=logLevel, format=logFormat)
+
+    cht_project = CHT_Project()
+    hardening_manifest = Hardening_Manifest(cht_project.hardening_manifest_path)
 
     if hardening_manifest.base_image_name:
         skopeo_inspect_base_image(

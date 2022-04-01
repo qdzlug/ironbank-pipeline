@@ -2,7 +2,6 @@
 from pathlib import Path
 import sys
 import os
-import logging
 import json
 
 sys.path.append(
@@ -12,10 +11,11 @@ sys.path.append(
 )
 
 
-from classes.project import CHT_Project
-from classes.apis import VAT_API
-from hardening_manifest import Hardening_Manifest
-from vat_container_status import is_approved
+from classes.project import CHT_Project  # noqa: E402
+from classes.apis import VAT_API  # noqa: E402
+from classes.utils import logger  # noqa: E402
+from hardening_manifest import Hardening_Manifest  # noqa: E402
+from vat_container_status import is_approved  # noqa: E402
 
 
 def create_api_findings_artifact(vat_response: dict) -> None:
@@ -38,6 +38,13 @@ def main():
     # approval_status, approval_text = _get_vat_findings_api(
     #     os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
     # )
+
+    # Get logging level, set manually when running pipeline
+    logLevel = os.environ.get("LOGLEVEL", "INFO").upper()
+    logFormat = "%(levelname)s [%(filename)s:%(lineno)d]: %(message)s" \
+                if logLevel == "DEBUG" else "%(levelname)s: %(message)s"
+    log = logger.setup(name="stages.lint.container_status_check", level=logLevel, format=logFormat)
+
     cht_project = CHT_Project()
     hardening_manifest = Hardening_Manifest(cht_project.hardening_manifest_path)
     vat_api = VAT_API(url=os.environ["VAT_BACKEND_SERVER_ADDRESS"])
@@ -45,35 +52,24 @@ def main():
         image_name=hardening_manifest.image_name, image_tag=hardening_manifest.image_tag
     )
 
-    logging.debug(f"VAT response\n{vat_response}")
+    log.debug(f"VAT response\n{vat_response}")
     create_api_findings_artifact(vat_response)
 
     approved, _, approval_status, approval_comment = is_approved(vat_response, False)
     approval_status = approval_status.lower().replace(" ", "_")
 
-    logging.debug("updated Approval Status: {approval_status}")
+    log.debug("updated Approval Status: {approval_status}")
     create_approval_artifact(approval_status, approval_comment)
 
     if approved:
-        logging.info("This container is noted as an approved image in VAT")
+        log.info("This container is noted as an approved image in VAT")
     elif os.environ["CI_COMMIT_BRANCH"] != "master":
-        logging.warning("This container is not noted as an approved image in VAT")
+        log.warning("This container is not noted as an approved image in VAT")
     else:
-        logging.error("This container is not noted as an approved image in VAT")
-        logging.error("Failing pipeline")
+        log.error("This container is not noted as an approved image in VAT")
+        log.error("Failing pipeline")
         sys.exit(1)
 
 
 if __name__ == "__main__":
-    # Get logging level, set manually when running pipeline
-    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
-    if loglevel == "DEBUG":
-        logging.basicConfig(
-            level=loglevel,
-            format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
-        )
-        logging.debug("Log level set to debug")
-    else:
-        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
-        logging.info("Log level set to info")
     main()
