@@ -36,7 +36,7 @@ def main():
     invalid_tags = hardening_manifest.reject_invalid_image_sources()
     if invalid_tags:
         logging.error(
-            "Please update the following tags to ensure they do not contain registry1.dso.mil.å"
+            "Please update the following tags to ensure they do not contain registry1.dso.mil"
         )
         for tag in invalid_tags:
             logging.error(f"The following tag is invalid and must be addressed: {tag}")

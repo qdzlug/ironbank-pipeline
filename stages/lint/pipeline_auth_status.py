@@ -10,7 +10,7 @@ sys.path.append(
 )
 
 
-from classes.project import CHT_Project
+from classes.project import CHT_Project  # noqa E402
 from classes.apis import VAT_API
 from hardening_manifest import Hardening_Manifest
 
