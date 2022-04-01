@@ -29,7 +29,7 @@ class Hardening_Manifest:
         # TODO: define labels type
         self.labels: dict = tmp_content["labels"]
         # TODO: define resources type
-        self.resources: list[dict] = tmp_content["resources"]
+        self.resources: list[dict] = tmp_content.get("resources", [])
         self.maintainers: list[dict] = tmp_content["maintainers"]
 
     def validate_schema(self, conn: multiprocessing.Pipe):
@@ -88,7 +88,11 @@ class Hardening_Manifest:
     # TODO: Deprecate this once CI variables are replaced by modules with reusable methods
     def create_artifacts(self):
         artifact_dir = Path(os.environ["ARTIFACT_DIR"])
+        self.create_env_var_artifacts(artifact_dir)
+        self.create_tags_artifact(artifact_dir)
+        self.create_keywords_artifact(artifact_dir)
 
+    def create_env_var_artifacts(self, artifact_dir: Path) -> None:
         with (artifact_dir / "variables.env").open("w") as f:
             f.write(f"IMAGE_NAME={self.image_name}\n")
             f.write(f"IMAGE_VERSION={self.image_tag}\n")
@@ -100,20 +104,20 @@ class Hardening_Manifest:
             logging.debug(
                 f"BASE_IMAGE={self.base_image_name}\nBASE_TAG={self.base_image_tag}"
             )
+        with (artifact_dir / "args.env").open("w") as f:
+            for key, value in self.args.items():
+                f.write(f"{key}={value}\n")
+        with (artifact_dir / "labels.env").open("w") as f:
+            for key, value in self.labels.items():
+                f.write(f"{key}={value}\n")
 
+    def create_tags_artifact(self, artifact_dir: Path) -> None:
         with (artifact_dir / "tags.txt").open("w") as f:
             for tag in self.image_tags:
                 f.write(tag)
                 f.write("\n")
 
-        with (artifact_dir / "args.env").open("w") as f:
-            for key, value in self.args.items():
-                f.write(f"{key}={value}\n")
-
-        with (artifact_dir / "labels.env").open("w") as f:
-            for key, value in self.labels.items():
-                f.write(f"{key}={value}\n")
-
+    def create_keywords_artifact(self, artifact_dir: Path) -> None:
         # optional field,if keywords key in yaml, create file. source_values() in create_repo_map checks if file exists, if not pass empty list
         if "mil.dso.ironbank.image.keywords" in self.labels:
             with (artifact_dir / "keywords.txt").open("w") as f:
