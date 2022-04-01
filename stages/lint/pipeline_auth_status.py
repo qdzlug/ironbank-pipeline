@@ -1,11 +1,7 @@
-import requests
-import urllib.parse
 import logging
 import os
 import sys
 
-from requests.models import HTTPError
-from requests.structures import CaseInsensitiveDict
 
 sys.path.append(
     os.path.join(
