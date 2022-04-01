@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 
 from base64 import b64decode
-import logging
 import os
 import pathlib
 import subprocess
 import sys
-
 
 sys.path.append(
     os.path.join(
@@ -14,11 +12,12 @@ sys.path.append(
     )
 )
 
-from classes.project import CHT_Project
-from hardening_manifest import Hardening_Manifest
+from classes.project import CHT_Project  # noqa: E402
+from classes.utils import logger  # noqa: E402
+from hardening_manifest import Hardening_Manifest  # noqa: E402
 
 
-def skopeo_inspect_base_image(base_image, base_tag):
+def skopeo_inspect_base_image(base_image, base_tag, log):
     #
     # Use the local hardening manifest to get the first parent. From here *only* the
     # the master branch should be used for the ancestry.
@@ -45,7 +44,7 @@ def skopeo_inspect_base_image(base_image, base_tag):
         auth_file,
         f"docker://registry1.dso.mil/{registry}/{base_image}:{base_tag}",
     ]
-    logging.info(" ".join(cmd))
+    log.info(" ".join(cmd))
     # if skopeo inspect fails, because BASE_IMAGE value doesn't match a registry1 container name
     #   fail back to using existing functionality
     try:
@@ -56,16 +55,18 @@ def skopeo_inspect_base_image(base_image, base_tag):
             check=True,
         )
     except subprocess.CalledProcessError as e:
-        logging.error(
-            "Failed to inspect BASE_IMAGE:BASE_TAG provided in hardening_manifest. Please validate this image exists in the registry1.dso.mil/ironbank project."
+        log.error(
+            "Failed to inspect BASE_IMAGE:BASE_TAG provided in hardening_manifest. \
+                Please validate this image exists in the registry1.dso.mil/ironbank project."
         )
-        logging.error(
-            f"Failed 'skopeo inspect' of image: registry1.dso.mil/{registry}/{base_image}:{base_tag} "
+        log.error(
+            f"Failed 'skopeo inspect' of image: \
+                registry1.dso.mil/{registry}/{base_image}:{base_tag} "
         )
-        logging.error(f"Return code: {e.returncode}")
+        log.error(f"Return code: {e.returncode}")
         sys.exit(1)
     except Exception:
-        logging.exception("Unknown failure when attemping to inspect BASE_IMAGE")
+        log.exception("Unknown failure when attemping to inspect BASE_IMAGE")
         sys.exit(1)
 
 
@@ -77,22 +78,16 @@ def main():
     #
     cht_project = CHT_Project()
     hardening_manifest = Hardening_Manifest(cht_project.hardening_manifest_path)
+
+    # Get logging level, set manually when running pipeline
+    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
+    log = logger.setup(name="stages.lint.base_image_validation", level=loglevel)
+
     if hardening_manifest.base_image_name:
         skopeo_inspect_base_image(
-            hardening_manifest.base_image_name, hardening_manifest.base_image_tag
+            hardening_manifest.base_image_name, hardening_manifest.base_image_tag, log
         )
 
 
 if __name__ == "__main__":
-    # Get logging level, set manually when running pipeline
-    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
-    if loglevel == "DEBUG":
-        logging.basicConfig(
-            level=loglevel,
-            format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
-        )
-        logging.debug("Log level set to debug")
-    else:
-        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
-        logging.info("Log level set to info")
     main()
