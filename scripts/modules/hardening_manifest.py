@@ -73,7 +73,7 @@ class Hardening_Manifest:
             logging.error(f"FIXME found in {k}")
         return invalid_labels
 
-    def check_for_invalid_tag(subcontent: dict):
+    def check_for_invalid_image_source(self, subcontent: dict):
         for v in subcontent.values():
             if "registry1.dso.mil" in v.lower():
                 return v
@@ -86,7 +86,7 @@ class Hardening_Manifest:
         invalid_sources = []
         for x in self.resources:
             if x["url"].startswith("docker://") or x["url"].startswith("github://"):
-                invalid_source = self.check_for_invalid_tag(x)
+                invalid_source = self.check_for_invalid_image_source(x)
                 if invalid_source:
                     logging.info("Invalid tag found")
                     invalid_sources.append(invalid_source)

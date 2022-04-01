@@ -43,15 +43,14 @@ def main():
         sys.exit(1)
     logging.info("Hardening manifest is validated")
     if hardening_manifest.base_image_name or hardening_manifest.base_image_tag:
-        if dockerfile_file_path.exists():
-            parsed_dockerfile = parse_dockerfile("Dockerfile")
-            from_statement_list = remove_non_from_statements(parsed_dockerfile)
-            invalid_from = validate_final_from(from_statement_list)
-            if invalid_from:
-                logging.error(
-                    "The final FROM statement in the Dockerfile must be FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}"
-                )
-                sys.exit(1)
+        parsed_dockerfile = parse_dockerfile("Dockerfile")
+        from_statement_list = remove_non_from_statements(parsed_dockerfile)
+        invalid_from = validate_final_from(from_statement_list)
+        if invalid_from:
+            logging.error(
+                "The final FROM statement in the Dockerfile must be FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}"
+            )
+            sys.exit(1)
     logging.info("Dockerfile is validated.")
 
 
