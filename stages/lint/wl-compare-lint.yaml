@@ -1,7 +1,0 @@
-wl-compare-lint:
-  extends: .lint
-  script:
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/vat-api-findings.py"'
-  retry:
-    max: 2
-    when: runner_system_failure
