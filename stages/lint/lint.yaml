@@ -30,4 +30,4 @@ lint:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/base_image_validation.py"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/container_status_check.py"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/pipeline_auth_status.py"'
-    # - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/registry_validation.py"' # needs an allow failure exit code 1
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/registry_validation.py"'
