@@ -73,6 +73,25 @@ class Hardening_Manifest:
             logging.error(f"FIXME found in {k}")
         return invalid_labels
 
+    def check_for_invalid_tag(subcontent: dict):
+        for v in subcontent.values():
+            if "registry1.dso.mil" in v.lower():
+                return v
+
+    def reject_invalid_image_sources(self) -> list:
+        """
+        Returns list of tags in the hardening manifest's resource list that are invalid, i.e. contain 'registry1.dso.mil'
+        """
+        logging.info("Checking tags")
+        invalid_sources = []
+        for x in self.resources:
+            if x["url"].startswith("docker://") or x["url"].startswith("github://"):
+                invalid_source = self.check_for_invalid_tag(x)
+                if invalid_source:
+                    logging.info("Invalid tag found")
+                    invalid_sources.append(invalid_source)
+        return invalid_sources
+
     def reject_invalid_maintainers(self) -> list:
         """
         Returns list of keys in hardening manifest maintainers whose value contains FIXME (case insensitve)
