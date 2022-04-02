@@ -3,7 +3,6 @@ import os
 import logging
 import re
 from pathlib import Path
-from typing import Dict
 from dataclasses import dataclass
 
 
@@ -78,5 +77,5 @@ class CHT_Project(Project):
         with self.dockerfile_path.open("r") as f:
             for line in f.readlines():
                 assert not re.findall(
-                    "^\s*LABEL", line
+                    r"^\s*LABEL", line
                 ), "LABEL found in Dockerfile, move all LABELs to the hardening_manifest.yaml file"

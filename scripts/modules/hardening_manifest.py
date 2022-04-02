@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import os
 import sys
 import json
@@ -7,8 +6,8 @@ import yaml
 import logging
 import jsonschema
 from pathlib import Path
-from dataclasses import dataclass
 import multiprocessing
+
 
 # Not using dataclass because post_init is required for file load and parameter initialization
 class Hardening_Manifest:
