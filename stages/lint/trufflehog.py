@@ -15,17 +15,17 @@ sys.path.append(
 
 from classes.utils import logger  # noqa: E402
 
+# Get  level, set manually when running pipeline
+logLevel = os.environ.get("LOGLEVEL", "INFO").upper()
+logFormat = (
+    "%(levelname)s [%(filename)s:%(lineno)d]: %(message)s"
+    if logLevel == "DEBUG"
+    else "%(levelname)s: %(message)s"
+)
+log = logger.setup(name="lint.trufflehog", level=logLevel, format=logFormat)
+
 
 def main() -> None:
-    # Get  level, set manually when running pipeline
-    logLevel = os.environ.get("LOGLEVEL", "INFO").upper()
-    logFormat = (
-        "%(levelname)s [%(filename)s:%(lineno)d]: %(message)s"
-        if logLevel == "DEBUG"
-        else "%(levelname)s: %(message)s"
-    )
-    log = logger.setup(name="lint.trufflehog", level=logLevel, format=logFormat)
-
     repo_dir = os.environ["CI_PROJECT_DIR"]
     pipeline_repo_dir = os.environ.get(
         "PIPELINE_REPO_DIR",
@@ -131,7 +131,7 @@ def main() -> None:
     log.info("truffleHog found no secrets")
 
 
-def get_commit_diff(repo_dir: str, diff_branch: str, log) -> str:
+def get_commit_diff(repo_dir: str, diff_branch: str) -> str:
     """
     Uses gitpython to get a list of commit shasums of feature branch
     commits that don't exist in development, or for commits in
@@ -148,7 +148,7 @@ def get_commit_diff(repo_dir: str, diff_branch: str, log) -> str:
     return commits
 
 
-def get_history_cmd(commits: str, log) -> list[str]:
+def get_history_cmd(commits: str) -> list[str]:
     """
     Splits a string of newline separated commit SHAs
     Returns a list of truffleHog3 flags
@@ -163,7 +163,7 @@ def get_history_cmd(commits: str, log) -> list[str]:
     return ["--since", since_commit] if since_commit else ["--no-history"]
 
 
-def get_config(config_file: Path, log, expand_vars: bool = False) -> list:
+def get_config(config_file: Path, expand_vars: bool = False) -> list:
     """
     Loads a trufflehog config yaml file and pulls out the skip_strings and skip_paths values
     """
