@@ -62,8 +62,8 @@ def remove_non_from_statements(dockerfile_tuple: tuple) -> list:
 
 def validate_final_from(content: list):
     """
-    Returns whether the final FROM statement in the Dockerfile is valid, i.e. \
-        FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}
+    Returns whether the final FROM statement in the Dockerfile is valid, i.e.
+    FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}
     """
     if content[-1].value[0] not in (
         "${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}",

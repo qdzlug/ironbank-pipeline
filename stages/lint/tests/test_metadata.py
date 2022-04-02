@@ -15,9 +15,11 @@ logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
 def load_good_labels():
     return {
         "org.opencontainers.image.title": "ubi8-minimal",
-        "org.opencontainers.image.description": "Red Hat Universal Base Images (UBI) are OCI-compliant container base operating system images with complementary runtime languages and packages that are freely redistributable.",
+        "org.opencontainers.image.description": "Red Hat Universal Base Images (UBI) \
+            are OCI-compliant container base operating system images with complementary \
+            runtime languages and packages that are freely redistributable.",
         "org.opencontainers.image.licenses": "Apache v2",
-        "org.opencontainers.image.url": "https://catalog.redhat.com/software/container-stacks/detail/5ec53f50ef29fd35586d9a56",
+        "org.opencontainers.image.url": "https://catalog.redhat.com/software/container-stacks/detail/5ec53f50ef29fd35586d9a56",  # noqa: E501
         "org.opencontainers.image.vendor": "Red Hat",
         "org.opencontainers.image.version": "8.3",
         "mil.dso.ironbank.image.keywords": "ubi, minimal, base, test",
@@ -30,9 +32,11 @@ def load_good_labels():
 def load_bad_labels():
     return {
         "org.opencontainers.image.title": "ubi8-minimal",
-        "org.opencontainers.image.description": "Red Hat Universal Base Images (UBI) are OCI-compliant container base operating system images with complementary runtime languages and packages that are freely redistributable.",
+        "org.opencontainers.image.description": "Red Hat Universal Base Images (UBI) \
+            are OCI-compliant container base operating system images with complementary \
+            runtime languages and packages that are freely redistributable.",
         "org.opencontainers.image.licenses": "FIXME",
-        "org.opencontainers.image.url": "https://catalog.redhat.com/software/container-stacks/detail/5ec53f50ef29fd35586d9a56",
+        "org.opencontainers.image.url": "https://catalog.redhat.com/software/container-stacks/detail/5ec53f50ef29fd35586d9a56",  # noqa: E501
         "org.opencontainers.image.vendor": "Red Hat",
         "org.opencontainers.image.version": "8.3",
         "mil.dso.ironbank.image.keywords": "ubi, minimal, base, test",
