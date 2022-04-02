@@ -79,9 +79,14 @@ def main():
 
     # Get logging level, set manually when running pipeline
     logLevel = os.environ.get("LOGLEVEL", "INFO").upper()
-    logFormat = "%(levelname)s [%(filename)s:%(lineno)d]: %(message)s" \
-                if logLevel == "DEBUG" else "%(levelname)s: %(message)s"
-    log = logger.setup(name="stages.lint.base_image_validation", level=logLevel, format=logFormat)
+    logFormat = (
+        "%(levelname)s [%(filename)s:%(lineno)d]: %(message)s"
+        if logLevel == "DEBUG"
+        else "%(levelname)s: %(message)s"
+    )
+    log = logger.setup(
+        name="lint.base_image_validation", level=logLevel, format=logFormat
+    )
 
     cht_project = CHT_Project()
     hardening_manifest = Hardening_Manifest(cht_project.hardening_manifest_path)

@@ -1,9 +1,7 @@
 #!/usr/bin/python3
-import logging
 import os
 import sys
 from pathlib import Path
-
 import multiprocessing
 import time
 
@@ -14,24 +12,20 @@ sys.path.append(
     )
 )
 
-from classes.project import CHT_Project
-from hardening_manifest import Hardening_Manifest
+from classes.project import CHT_Project  # noqa: E402
+from classes.utils import logger  # noqa: E402
+from hardening_manifest import Hardening_Manifest  # noqa: E402
 
 
 def main():
     # Get logging level, set manually when running pipeline
-
-    # replace with logger
-    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
-    if loglevel == "DEBUG":
-        logging.basicConfig(
-            level=loglevel,
-            format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
-        )
-        logging.debug("Log level set to debug")
-    else:
-        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
-        logging.info("Log level set to info")
+    logLevel = os.environ.get("LOGLEVEL", "INFO").upper()
+    logFormat = (
+        "%(levelname)s [%(filename)s:%(lineno)d]: %(message)s"
+        if logLevel == "DEBUG"
+        else "%(levelname)s: %(message)s"
+    )
+    log = logger.setup(name="lint.metadata", level=logLevel, format=logFormat)
 
     cht_project = CHT_Project()
     print(os.getcwd())
@@ -58,31 +52,33 @@ def main():
         if not process.is_alive():
             break
     if process.is_alive():
-        logging.error("Hardening Manifest validation timeout exceeded.")
-        logging.error(
-            "This is likely due to field in the hardening_manifest.yaml being invalid and causing an infinite loop during validation"
+        log.error("Hardening Manifest validation timeout exceeded.")
+        log.error(
+            "This is likely due to field in the hardening_manifest.yaml being invalid and \
+            causing an infinite loop during validation"
         )
-        logging.error(
+        log.error(
             "Please check your hardening manifest to confirm all fields have valid values"
         )
         process.terminate()
         sys.exit(1)
     elif process.exitcode != 0:
-        logging.error("Hardening Manifest failed jsonschema validation")
-        logging.error("Verify Hardening Manifest content")
-        logging.error(parent_conn.recv())
+        log.error("Hardening Manifest failed jsonschema validation")
+        log.error("Verify Hardening Manifest content")
+        log.error(parent_conn.recv())
         sys.exit(1)
     else:
         # verify no labels have a value of fixme (case insensitive)
-        logging.debug("Checking for FIXME values in labels/maintainers")
+        log.debug("Checking for FIXME values in labels/maintainers")
         invalid_labels = hardening_manifest.reject_invalid_labels()
         invalid_maintainers = hardening_manifest.reject_invalid_maintainers()
         if invalid_labels or invalid_maintainers:
-            logging.error(
-                "Please update these labels to appropriately describe your container before rerunning this pipeline"
+            log.error(
+                "Please update these labels to appropriately describe your container \
+                    before rerunning this pipeline"
             )
             sys.exit(1)
-        logging.info("Hardening manifest is validated")
+        log.info("Hardening manifest is validated")
     hardening_manifest.create_artifacts()
 
 
