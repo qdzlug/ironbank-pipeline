@@ -13,16 +13,9 @@ sys.path.append(
     )
 )
 
-from classes.utils import logger  # noqa: E402
+from utils import logger  # noqa: E402
 
-# Get  level, set manually when running pipeline
-logLevel = os.environ.get("LOGLEVEL", "INFO").upper()
-logFormat = (
-    "%(levelname)s [%(filename)s:%(lineno)d]: %(message)s"
-    if logLevel == "DEBUG"
-    else "%(levelname)s: %(message)s"
-)
-log = logger.setup(name="lint.trufflehog", level=logLevel, format=logFormat)
+log = logger.setup(name="lint.trufflehog")
 
 
 def main() -> None:

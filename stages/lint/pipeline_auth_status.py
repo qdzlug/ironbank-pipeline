@@ -9,17 +9,15 @@ sys.path.append(
 )
 
 
-from classes.project import DsopProject  # noqa E402
-from classes.utils import logger  # noqa: E402
-from classes.apis import VatAPI  # noqa: E402
+from project import DsopProject  # noqa E402
+from utils import logger  # noqa: E402
+from apis import VatAPI  # noqa: E402
 from hardening_manifest import HardeningManifest  # noqa: E402
+
+log = logger.setup(name="lint.pipeline_auth_status")
 
 
 def main() -> None:
-    # Get logging level, set manually when running pipeline
-    log = logger.setup(
-        name="lint.pipeline_auth_status",
-    )
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     vat_api = VatAPI(url=os.environ["VAT_BACKEND_SERVER_ADDRESS"])

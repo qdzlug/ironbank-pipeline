@@ -7,7 +7,7 @@ sys.path.append(
     )
 )
 
-from classes.project import DsopProject  # noqa E402
+from project import DsopProject  # noqa E402
 
 
 def main():

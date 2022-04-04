@@ -10,8 +10,8 @@ sys.path.append(
 )
 
 
-from classes.project import DsopProject  # noqa: E402
-from classes.utils import logger  # noqa: E402
+from project import DsopProject  # noqa: E402
+from utils import logger  # noqa: E402
 from hardening_manifest import HardeningManifest  # noqa: E402
 
 log = logger.setup(name="lint.registry_validation")
@@ -32,7 +32,7 @@ def main():
         sys.exit(100)
     log.info("Hardening manifest is validated")
     if hardening_manifest.base_image_name or hardening_manifest.base_image_tag:
-        parsed_dockerfile = parse_dockerfile("Dockerfile", log)
+        parsed_dockerfile = parse_dockerfile("Dockerfile")
         from_statement_list = remove_non_from_statements(parsed_dockerfile)
         invalid_from = validate_final_from(from_statement_list)
         if invalid_from:
@@ -67,7 +67,7 @@ def validate_final_from(content: list):
         return False
 
 
-def parse_dockerfile(dockerfile_path: str, log):
+def parse_dockerfile(dockerfile_path: str):
     try:
         parsed_file = dockerfile.parse_file(dockerfile_path)
         return parsed_file

@@ -12,12 +12,14 @@ sys.path.append(
     )
 )
 
-from classes.project import DsopProject  # noqa: E402
-from classes.utils import logger  # noqa: E402
+from project import DsopProject  # noqa: E402
+from utils import logger  # noqa: E402
 from hardening_manifest import HardeningManifest  # noqa: E402
 
+log = logger.setup(name="lint.base_image_validation")
 
-def skopeo_inspect_base_image(base_image, base_tag, log):
+
+def skopeo_inspect_base_image(base_image, base_tag):
     #
     # Use the local hardening manifest to get the first parent. From here *only* the
     # the master branch should be used for the ancestry.
@@ -76,24 +78,12 @@ def main():
     # At the very least the hardening_manifest.yaml should be generated if it has not been
     # merged in yet.
     #
-
-    # Get logging level, set manually when running pipeline
-    logLevel = os.environ.get("LOGLEVEL", "INFO").upper()
-    logFormat = (
-        "%(levelname)s [%(filename)s:%(lineno)d]: %(message)s"
-        if logLevel == "DEBUG"
-        else "%(levelname)s: %(message)s"
-    )
-    log = logger.setup(
-        name="lint.base_image_validation", level=logLevel, format=logFormat
-    )
-
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
 
     if hardening_manifest.base_image_name:
         skopeo_inspect_base_image(
-            hardening_manifest.base_image_name, hardening_manifest.base_image_tag, log
+            hardening_manifest.base_image_name, hardening_manifest.base_image_tag
         )
 
 

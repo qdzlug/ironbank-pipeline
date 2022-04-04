@@ -1,19 +1,21 @@
 import sys
 import os
-import logging
 import re
 from pathlib import Path
 from dataclasses import dataclass
 
+from utils import logger
+
 
 @dataclass
 class Project:
+    log = logger.setup(name="Project")
     project_path: str = os.environ.get("CI_PROJECT_PATH")
-    # logger: logger
 
 
 @dataclass
 class DsopProject(Project):
+    log = logger.setup(name="Project.DsopProject")
     hardening_manifest_path: Path = Path("hardening_manifest.yaml")
     license_path: Path = Path("LICENSE")
     readme_path: Path = Path("README.md")
@@ -53,12 +55,12 @@ class DsopProject(Project):
 
     def validate_clamav_whitelist_config(self):
         if os.environ.get("CLAMAV_WHITELIST") and not self.clamav_wl_path:
-            logging.error(
+            self.log.error(
                 "clamav-whitelist file found but CLAMAV_WHITELIST CI variable does not exist"
             )
             sys.exit(1)
         if self.clamav_wl_path and not os.environ.get("CLAMAV_WHITELIST"):
-            logging.error(
+            self.log.error(
                 "CLAMAV_WHITELIST CI variable exists but clamav-whitelist file not found"
             )
             sys.exit(1)
@@ -68,7 +70,7 @@ class DsopProject(Project):
             "trufflehog.yaml"
         ).exists(), "trufflehog.yaml is not permitted to exist in repo"
         if self.trufflehog_conf_path and not os.environ.get("TRUFFLEHOG_CONFIG"):
-            logging.error(
+            self.log.error(
                 "trufflehog-config file found but TRUFFLEHOG_CONFIG CI variable does not exist"
             )
             sys.exit(1)

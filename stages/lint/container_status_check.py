@@ -11,11 +11,13 @@ sys.path.append(
 )
 
 
-from classes.project import DsopProject  # noqa: E402
-from classes.apis import VatAPI  # noqa: E402
-from classes.utils import logger  # noqa: E402
+from project import DsopProject  # noqa: E402
+from apis import VatAPI  # noqa: E402
+from utils import logger  # noqa: E402
 from hardening_manifest import HardeningManifest  # noqa: E402
 from vat_container_status import is_approved  # noqa: E402
+
+log = logger.setup(name="lint.container_status_check")
 
 
 def create_api_findings_artifact(vat_response: dict) -> None:
@@ -38,11 +40,6 @@ def main():
     # approval_status, approval_text = _get_vat_findings_api(
     #     os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
     # )
-
-    log = logger.setup(
-        name="lint.container_status_check",
-    )
-
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     vat_api = VatAPI(url=os.environ["VAT_BACKEND_SERVER_ADDRESS"])

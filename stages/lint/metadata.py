@@ -12,21 +12,14 @@ sys.path.append(
     )
 )
 
-from classes.project import DsopProject  # noqa: E402
-from classes.utils import logger  # noqa: E402
+from project import DsopProject  # noqa: E402
+from utils import logger  # noqa: E402
 from hardening_manifest import HardeningManifest  # noqa: E402
+
+log = logger.setup(name="lint.metadata")
 
 
 def main():
-    # Get logging level, set manually when running pipeline
-    logLevel = os.environ.get("LOGLEVEL", "INFO").upper()
-    logFormat = (
-        "%(levelname)s [%(filename)s:%(lineno)d]: %(message)s"
-        if logLevel == "DEBUG"
-        else "%(levelname)s: %(message)s"
-    )
-    log = logger.setup(name="lint.metadata", level=logLevel, format=logFormat)
-
     dsop_project = DsopProject()
     print(os.getcwd())
     hardening_manifest = HardeningManifest(
