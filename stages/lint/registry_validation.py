@@ -44,6 +44,7 @@ def main():
     log.info("Dockerfile is validated.")
 
 
+# TODO: Consider moving these to a separate "Dockerfile" module
 def remove_non_from_statements(dockerfile_tuple: tuple) -> list:
     from_list = []
     for command in dockerfile_tuple:

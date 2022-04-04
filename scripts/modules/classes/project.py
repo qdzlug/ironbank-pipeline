@@ -73,6 +73,7 @@ class DsopProject(Project):
             )
             sys.exit(1)
 
+    # TODO: Consider moving this to a separate "Dockerfile" module
     def validate_dockerfile(self):
         with self.dockerfile_path.open("r") as f:
             for line in f.readlines():

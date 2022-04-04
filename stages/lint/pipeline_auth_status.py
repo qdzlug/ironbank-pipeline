@@ -17,14 +17,8 @@ from hardening_manifest import HardeningManifest  # noqa: E402
 
 def main() -> None:
     # Get logging level, set manually when running pipeline
-    logLevel = os.environ.get("LOGLEVEL", "INFO").upper()
-    logFormat = (
-        "%(levelname)s [%(filename)s:%(lineno)d]: %(message)s"
-        if logLevel == "DEBUG"
-        else "%(levelname)s: %(message)s"
-    )
     log = logger.setup(
-        name="lint.pipeline_auth_status", level=logLevel, format=logFormat
+        name="lint.pipeline_auth_status",
     )
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
