@@ -15,6 +15,7 @@ def main():
     dsop_project.validate_files_exist()
     dsop_project.validate_clamav_whitelist_config()
     dsop_project.validate_trufflehog_config()
+    dsop_project.validate_dockerfile()
 
 
 if __name__ == "__main__":
