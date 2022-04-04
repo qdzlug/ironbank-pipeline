@@ -8,6 +8,7 @@ import pathlib
 import subprocess
 import sys
 
+
 class Cosign:
     """
     Perform cosign operations
@@ -58,6 +59,7 @@ class Cosign:
         except subprocess.CalledProcessError:
             logging.exception(f"Failed to sign {self.image_name}")
             sys.exit(1)
+
 
     def attach_sbom(self, sbom_path: str, sbom_type: str) -> None:
         """
