@@ -7,14 +7,14 @@ sys.path.append(
     )
 )
 
-from classes.project import CHT_Project  # noqa E402
+from classes.project import DsopProject  # noqa E402
 
 
 def main():
-    cht_project = CHT_Project()
-    cht_project.validate_files_exist()
-    cht_project.validate_clamav_whitelist_config()
-    cht_project.validate_trufflehog_config()
+    dsop_project = DsopProject()
+    dsop_project.validate_files_exist()
+    dsop_project.validate_clamav_whitelist_config()
+    dsop_project.validate_trufflehog_config()
 
 
 if __name__ == "__main__":

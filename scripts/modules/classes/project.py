@@ -13,7 +13,7 @@ class Project:
 
 
 @dataclass
-class CHT_Project(Project):
+class DsopProject(Project):
     hardening_manifest_path: Path = Path("hardening_manifest.yaml")
     license_path: Path = Path("LICENSE")
     readme_path: Path = Path("README.md")

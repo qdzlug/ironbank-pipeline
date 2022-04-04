@@ -12,7 +12,7 @@ sys.path.append(
     )
 )
 
-from classes.project import CHT_Project  # noqa: E402
+from classes.project import DsopProject  # noqa: E402
 from classes.utils import logger  # noqa: E402
 from hardening_manifest import Hardening_Manifest  # noqa: E402
 
@@ -27,10 +27,10 @@ def main():
     )
     log = logger.setup(name="lint.metadata", level=logLevel, format=logFormat)
 
-    cht_project = CHT_Project()
+    dsop_project = DsopProject()
     print(os.getcwd())
     hardening_manifest = Hardening_Manifest(
-        cht_project.hardening_manifest_path,
+        dsop_project.hardening_manifest_path,
         Path(
             Path(__file__).parent.parent.parent, "schema/hardening_manifest.schema.json"
         ).as_posix(),

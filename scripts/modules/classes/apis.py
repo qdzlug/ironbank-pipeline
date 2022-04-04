@@ -28,19 +28,15 @@ class API:
 
 
 def request_error_handler(func):
-    def _request_error_handler(self, *args, **kwargs):
+    def _request_error_handler(
+        self, image_name: str = "", image_tag: str = "", *args, **kwargs
+    ):
         try:
             return func(self, *args, **kwargs)
         except requests.exceptions.HTTPError:
-            if self.response.status_code == 404 and func.__name__ == "get_image":
-                logging.warning(
-                    f"{kwargs.get('image_name')}:{kwargs.get('image_tag')} not found in {self.app}"
-                )
-                logging.warning(self.response.text)
-            elif self.response.status_code == 400:
+            if self.response.status_code == 400:
                 logging.warning(f"Bad request: {self.url}")
                 logging.warning(self.response.text)
-                sys.exit(1)
             elif self.response.status_code == 403:
                 logging.warning(
                     f"{os.environ['CI_PROJECT_NAME']} is not authorized to use the image name of: {kwargs.get('image_name')}. Either the name has changed or the container has never been tracked in VAT. An authorization request has automatically been generated. Please create a ticket with the link below for VAT authorization review."
@@ -56,19 +52,16 @@ def request_error_handler(func):
                 logging.warning(
                     "Failing the pipeline due to an unexpected response from the vat findings api. Please open an issue in this project using the `Pipeline Failure` template to ensure that we assist you. If you need further assistance, please visit the `Team - Iron Bank Pipelines and Operations` Mattermost channel."
                 )
-                sys.exit(1)
         except requests.exceptions.RequestException:
             logging.warning(f"Could not access VAT API: {self.url}")
-            sys.exit(1)
-        except Exception as e:
-            logging.warning(f"Unexpected exception thrown {e}")
-            sys.exit(1)
+        except RuntimeError as runerr:
+            logging.warning(f"Unexpected exception thrown {runerr}")
 
     return _request_error_handler
 
 
 @dataclass
-class VAT_API(API):
+class VatAPI(API):
     app: str = "VAT"
     container_route: str = "/p1/container"
     import_route: str = "/internal/import"
@@ -83,7 +76,12 @@ class VAT_API(API):
             f"{self.url}{self.container_route}",
             params={"name": image_name, "tag": image_tag},
         )
-        self.response.raise_for_status()
+        try:
+            self.response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            if self.response.status_code == 404:
+                logging.warning(f"{image_name}:{image_tag} not found in {self.app}")
+                logging.warning(self.response.text)
         logging.info("Fetched data from vat successfully")
         if self.response.status_code not in [200, 404]:
             sys.exit(1)

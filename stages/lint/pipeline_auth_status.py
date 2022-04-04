@@ -9,9 +9,9 @@ sys.path.append(
 )
 
 
-from classes.project import CHT_Project  # noqa E402
+from classes.project import DsopProject  # noqa E402
 from classes.utils import logger  # noqa: E402
-from classes.apis import VAT_API  # noqa: E402
+from classes.apis import VatAPI  # noqa: E402
 from hardening_manifest import Hardening_Manifest  # noqa: E402
 
 
@@ -26,9 +26,9 @@ def main() -> None:
     log = logger.setup(
         name="lint.pipeline_auth_status", level=logLevel, format=logFormat
     )
-    cht_project = CHT_Project()
-    hardening_manifest = Hardening_Manifest(cht_project.hardening_manifest_path)
-    vat_api = VAT_API(url=os.environ["VAT_BACKEND_SERVER_ADDRESS"])
+    dsop_project = DsopProject()
+    hardening_manifest = Hardening_Manifest(dsop_project.hardening_manifest_path)
+    vat_api = VatAPI(url=os.environ["VAT_BACKEND_SERVER_ADDRESS"])
     vat_api.check_access(image_name=hardening_manifest.image_name, create_request=True)
     log.info("Retrieve Auth Status from VAT")
     log.info(f"Response: {vat_api.response.text}")
