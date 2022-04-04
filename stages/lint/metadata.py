@@ -21,7 +21,6 @@ log = logger.setup(name="lint.metadata")
 
 def main():
     dsop_project = DsopProject()
-    print(os.getcwd())
     hardening_manifest = HardeningManifest(
         dsop_project.hardening_manifest_path,
         Path(
