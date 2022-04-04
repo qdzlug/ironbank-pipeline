@@ -10,7 +10,7 @@ import multiprocessing
 
 
 # Not using dataclass because post_init is required for file load and parameter initialization
-class Hardening_Manifest:
+class HardeningManifest:
     def __init__(self, hm_path: str, schema_path: str = "./"):
         self.hm_path: Path = Path(hm_path)
         self.schema_path: Path = Path(schema_path)

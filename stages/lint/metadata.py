@@ -14,7 +14,7 @@ sys.path.append(
 
 from classes.project import DsopProject  # noqa: E402
 from classes.utils import logger  # noqa: E402
-from hardening_manifest import Hardening_Manifest  # noqa: E402
+from hardening_manifest import HardeningManifest  # noqa: E402
 
 
 def main():
@@ -29,7 +29,7 @@ def main():
 
     dsop_project = DsopProject()
     print(os.getcwd())
-    hardening_manifest = Hardening_Manifest(
+    hardening_manifest = HardeningManifest(
         dsop_project.hardening_manifest_path,
         Path(
             Path(__file__).parent.parent.parent, "schema/hardening_manifest.schema.json"

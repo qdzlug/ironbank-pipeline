@@ -12,14 +12,14 @@ sys.path.append(
 
 from classes.project import DsopProject  # noqa: E402
 from classes.utils import logger  # noqa: E402
-from hardening_manifest import Hardening_Manifest  # noqa: E402
+from hardening_manifest import HardeningManifest  # noqa: E402
 
 log = logger.setup(name="lint.registry_validation")
 
 
 def main():
     dsop_project = DsopProject()
-    hardening_manifest = Hardening_Manifest(dsop_project.hardening_manifest_path)
+    hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
 
     log.debug("Checking for valid registry data in resources.")
     invalid_tags = hardening_manifest.reject_invalid_image_sources()

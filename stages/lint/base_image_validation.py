@@ -14,7 +14,7 @@ sys.path.append(
 
 from classes.project import DsopProject  # noqa: E402
 from classes.utils import logger  # noqa: E402
-from hardening_manifest import Hardening_Manifest  # noqa: E402
+from hardening_manifest import HardeningManifest  # noqa: E402
 
 
 def skopeo_inspect_base_image(base_image, base_tag, log):
@@ -89,7 +89,7 @@ def main():
     )
 
     dsop_project = DsopProject()
-    hardening_manifest = Hardening_Manifest(dsop_project.hardening_manifest_path)
+    hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
 
     if hardening_manifest.base_image_name:
         skopeo_inspect_base_image(

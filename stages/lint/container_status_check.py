@@ -14,7 +14,7 @@ sys.path.append(
 from classes.project import DsopProject  # noqa: E402
 from classes.apis import VatAPI  # noqa: E402
 from classes.utils import logger  # noqa: E402
-from hardening_manifest import Hardening_Manifest  # noqa: E402
+from hardening_manifest import HardeningManifest  # noqa: E402
 from vat_container_status import is_approved  # noqa: E402
 
 
@@ -51,7 +51,7 @@ def main():
     )
 
     dsop_project = DsopProject()
-    hardening_manifest = Hardening_Manifest(dsop_project.hardening_manifest_path)
+    hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     vat_api = VatAPI(url=os.environ["VAT_BACKEND_SERVER_ADDRESS"])
     vat_response = vat_api.get_image(
         image_name=hardening_manifest.image_name, image_tag=hardening_manifest.image_tag
