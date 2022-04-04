@@ -8,7 +8,7 @@ LOG_LEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
 LOG_FORMAT = (
     "| %(levelname)s | [%(filename)s: %(lineno)d]: | %(message)s"
     if LOG_LEVEL == "DEBUG"
-    else "| %(name)s | %(levelname)-8s | %(message)s"
+    else "| %(name)-28s | %(levelname)-8s | %(message)s"
 )
 
 
