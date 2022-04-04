@@ -2,8 +2,6 @@
 
 import json
 import logging
-import os
-import pathlib
 import re
 
 from scanners.helper import write_csv_from_dict_list
