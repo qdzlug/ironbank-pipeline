@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 import requests
 import os
-import sys
 import logging
 
 
@@ -28,18 +27,16 @@ class API:
 
 
 def request_error_handler(func):
-    def _request_error_handler(
-        self, image_name: str = "", image_tag: str = "", *args, **kwargs
-    ):
+    def _request_error_handler(self, image_name: str = "", *args, **kwargs):
         try:
-            return func(self, *args, **kwargs)
+            return func(self, image_name, *args, **kwargs)
         except requests.exceptions.HTTPError:
             if self.response.status_code == 400:
                 logging.warning(f"Bad request: {self.url}")
                 logging.warning(self.response.text)
             elif self.response.status_code == 403:
                 logging.warning(
-                    f"{os.environ['CI_PROJECT_NAME']} is not authorized to use the image name of: {kwargs.get('image_name')}. Either the name has changed or the container has never been tracked in VAT. An authorization request has automatically been generated. Please create a ticket with the link below for VAT authorization review."
+                    f"{os.environ['CI_PROJECT_NAME']} is not authorized to use the image name of: {image_name}. Either the name has changed or the container has never been tracked in VAT. An authorization request has automatically been generated. Please create a ticket with the link below for VAT authorization review."
                 )
                 logging.info(
                     f"https://repo1.dso.mil/dsop/dccscr/-/issues/new?issuable_template=VAT%20Pipeline%20Access%20Request&issue[title]=VAT+Pipeline+Access+Request+{os.environ['CI_PROJECT_URL']}"
@@ -83,8 +80,6 @@ class VatAPI(API):
                 logging.warning(f"{image_name}:{image_tag} not found in {self.app}")
                 logging.warning(self.response.text)
         logging.info("Fetched data from vat successfully")
-        if self.response.status_code not in [200, 404]:
-            sys.exit(1)
         return self.response.json() if self.response.status_code == 200 else None
 
     @request_error_handler
@@ -108,6 +103,4 @@ class VatAPI(API):
             url=f"{self.url}{self.import_scan_route}",
         )
         self.response.raise_for_status()
-        if self.response.status_code not in [201]:
-            sys.exit(1)
         return self.response
