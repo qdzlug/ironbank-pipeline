@@ -29,7 +29,7 @@ def main():
         )
         for tag in invalid_tags:
             log.error(f"The following tag is invalid and must be addressed: {tag}")
-        sys.exit(1)
+        sys.exit(100)
     log.info("Hardening manifest is validated")
     if hardening_manifest.base_image_name or hardening_manifest.base_image_tag:
         parsed_dockerfile = parse_dockerfile("Dockerfile", log)
@@ -40,7 +40,7 @@ def main():
                 "The final FROM statement in the Dockerfile must be \
                     FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}"
             )
-            sys.exit(1)
+            sys.exit(100)
     log.info("Dockerfile is validated.")
 
 

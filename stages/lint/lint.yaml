@@ -7,6 +7,8 @@ lint:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: vat
   before_script:
     - 'mkdir -p "${ARTIFACT_DIR}"'
+  allow_failure:
+    exit_codes: 100
   artifacts:
     paths:
       - "${ARTIFACT_DIR}"
