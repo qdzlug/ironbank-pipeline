@@ -43,15 +43,18 @@ def main():
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     vat_api = VatAPI(url=os.environ["VAT_BACKEND_SERVER_ADDRESS"])
-    vat_response = vat_api.get_image(
+    image_response_body = vat_api.get_image(
         image_name=hardening_manifest.image_name, image_tag=hardening_manifest.image_tag
     )
-    if not vat_response or vat_response.status_code not in [200, 404]:
-        log.error("Failing")
-    log.debug(f"VAT response\n{vat_response}")
-    create_api_findings_artifact(vat_response)
+    if not vat_api.response or vat_api.response.status_code not in [200, 404]:
+        log.error("Failing pipeline")
+        sys.exit(1)
+    log.debug(f"VAT response\n{image_response_body}")
+    create_api_findings_artifact(image_response_body)
 
-    approved, _, approval_status, approval_comment = is_approved(vat_response, False)
+    approved, _, approval_status, approval_comment = is_approved(
+        image_response_body, False
+    )
     approval_status = approval_status.lower().replace(" ", "_")
 
     log.debug("updated Approval Status: {approval_status}")
