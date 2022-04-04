@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 
 import logging
-import sys
+import os
 
-DEFAULT_FORMAT = "%(name)-12s  %(levelname)-8s %(message)s"
+LOG_LEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
+LOG_FORMAT = (
+    "%(levelname)s [%(filename)s:%(lineno)d]: %(message)s"
+    if LOG_LEVEL == "DEBUG"
+    else "%(levelname)s: %(message)s"
+)
 
-logging.basicConfig(level=logging.INFO, stream=sys.stdout, format=DEFAULT_FORMAT)
 
-
-def setup(name="main", level=logging.INFO, format=DEFAULT_FORMAT, debug_file=None):
+def setup(name="main", level=LOG_LEVEL, format=LOG_FORMAT, debug_file=None):
     logger = logging.getLogger(name)
     logger.setLevel(level)
     streamHandler = logging.StreamHandler()

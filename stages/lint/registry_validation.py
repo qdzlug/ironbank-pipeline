@@ -10,24 +10,16 @@ sys.path.append(
 )
 
 
-from classes.project import CHT_Project  # noqa: E402
+from classes.project import DsopProject  # noqa: E402
 from classes.utils import logger  # noqa: E402
 from hardening_manifest import Hardening_Manifest  # noqa: E402
 
+log = logger.setup(name="lint.registry_validation")
+
 
 def main():
-    # Get logging level, set manually when running pipeline
-    logLevel = os.environ.get("LOGLEVEL", "INFO").upper()
-    logFormat = (
-        "%(levelname)s [%(filename)s:%(lineno)d]: %(message)s"
-        if logLevel == "DEBUG"
-        else "%(levelname)s: %(message)s"
-    )
-    log = logger.setup(
-        name="lint.registry_validation", level=logLevel, format=logFormat
-    )
-    cht_project = CHT_Project()
-    hardening_manifest = Hardening_Manifest(cht_project.hardening_manifest_path)
+    dsop_project = DsopProject()
+    hardening_manifest = Hardening_Manifest(dsop_project.hardening_manifest_path)
 
     log.debug("Checking for valid registry data in resources.")
     invalid_tags = hardening_manifest.reject_invalid_image_sources()
