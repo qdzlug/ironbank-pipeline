@@ -3,10 +3,11 @@ import sys
 import os
 import logging
 import pytest
+from pathlib import Path
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from metadata import check_for_fixme  # noqa E402
+from hardening_manifest import HardeningManifest  # noqa E402
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
 
@@ -63,10 +64,18 @@ def load_bad_maintainers():
     }
 
 
+@pytest.fixture
+def hm():
+    return HardeningManifest(
+        Path(Path(__file__).absolute().parent, "mocks/mock_hardening_manifest.yaml")
+    )
+
+
 def test_find_fixme(
-    load_good_labels, load_good_maintainers, load_bad_labels, load_bad_maintainers
+    hm, load_good_labels, load_good_maintainers, load_bad_labels, load_bad_maintainers
 ):
-    assert check_for_fixme(load_good_labels) == []
-    assert check_for_fixme(load_good_maintainers) == []
-    assert check_for_fixme(load_bad_labels) == ["org.opencontainers.image.licenses"]
-    assert check_for_fixme(load_bad_maintainers) == ["name"]
+
+    assert hm.check_for_fixme(load_good_labels) == []
+    assert hm.check_for_fixme(load_good_maintainers) == []
+    assert hm.check_for_fixme(load_bad_labels) == ["org.opencontainers.image.licenses"]
+    assert hm.check_for_fixme(load_bad_maintainers) == ["name"]
