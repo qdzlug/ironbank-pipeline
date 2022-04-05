@@ -32,9 +32,6 @@ stages:
 
   ### build stage
   # build image w version tag and create tar file
-  # Requirements:
-  # - executor image with docker installed
-  # NOTE: Executor image must have docker installed in order to work properly with Notary for image signing
   - build
 
   ### post-build stage
