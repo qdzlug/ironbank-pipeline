@@ -8,7 +8,7 @@ import pipeline_auth_status
 import sys
 
 
-system_exits = []
+system_exits = {}
 
 
 def handle_system_exit(func):
@@ -16,7 +16,10 @@ def handle_system_exit(func):
         try:
             return await func()
         except SystemExit as se:
-            system_exits.append(se.code)
+            system_exits[se.code] = (
+                system_exits[se.code] if system_exits.get(se.code) else []
+            )
+            system_exits[se.code].append(func.__name__)
 
     return _handle_system_exit
 
@@ -63,11 +66,16 @@ async def main():
     HARD_FAIL_CODE = 1
     SOFT_FAIL_CODE = 100
 
-    if HARD_FAIL_CODE in system_exits:
-        print("Something bad happened")
+    for k, v in system_exits.items():
+        print(f"The following stages returned error code: {k}")
+        for s in v:
+            print(f"\t- {s}")
+
+    if HARD_FAIL_CODE in system_exits.keys():
+        print("Failing pipeline")
         sys.exit(HARD_FAIL_CODE)
-    elif SOFT_FAIL_CODE in system_exits:
-        print("Something less bad happened")
+    elif SOFT_FAIL_CODE in system_exits.keys():
+        print("Failing pipeline")
         sys.exit(SOFT_FAIL_CODE)
     else:
         print("All stages successful")

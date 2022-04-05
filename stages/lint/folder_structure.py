@@ -8,10 +8,15 @@ sys.path.append(
     )
 )
 
+from utils import logger
 from project import DsopProject  # noqa E402
+
+log = logger.setup("lint.folder_structure")
 
 
 async def main():
+
+    log.info("Validating folder structure")
     dsop_project = DsopProject()
     dsop_project.validate_files_exist()
     dsop_project.validate_clamav_whitelist_config()
