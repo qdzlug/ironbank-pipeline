@@ -27,4 +27,4 @@ lint:
         echo "Exiting"
         exit 1
       fi
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/run_async.py'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/run_async.py"'
