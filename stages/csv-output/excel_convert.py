@@ -3,7 +3,6 @@
 import argparse
 import logging
 import os
-import pathlib
 import sys
 
 import openpyxl
@@ -125,17 +124,6 @@ def _colorize_sheet(sheet):
             )
 
 
-def _write_sbom_to_excel(csv_dir, writer):
-    for report in os.listdir(f"{csv_dir}/sbom"):
-        read_report = pd.read_csv(pathlib.Path(csv_dir, "sbom", report))
-        read_report.to_excel(
-            writer,
-            sheet_name=f"SBOM {report.split('.')[0]}",
-            header=True,
-            index=False,
-        )
-
-
 # convert all csvs to Excel file
 # Generates output_file (w/ justifications) and all_scans.xlsx (w/o justifications)
 def convert_to_excel(csv_dir, justification_sheet):
@@ -169,7 +157,6 @@ def convert_to_excel(csv_dir, justification_sheet):
         read_gates_no_justifications.to_excel(
             writer, sheet_name="Anchore Compliance Results", header=True, index=False
         )
-        _write_sbom_to_excel(csv_dir=csv_dir, writer=writer)
         writer.save()
     with pd.ExcelWriter(
         justification_sheet
@@ -190,7 +177,6 @@ def convert_to_excel(csv_dir, justification_sheet):
         read_gates.to_excel(
             writer, sheet_name="Anchore Compliance Results", header=True, index=False
         )
-        _write_sbom_to_excel(csv_dir=csv_dir, writer=writer)
         writer.save()
 
 
