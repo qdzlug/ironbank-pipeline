@@ -237,7 +237,7 @@ def main():
         os.environ["COSIGN_AWS_SECRET_ACCESS_KEY"],
     )
     cosign.sign_image()
-    cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-syft-json.json", "syft")
+    cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-json.json", "syft")
     # Cosign doesn't currently support combining SBOMs into a single artifact
     # cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-cyclonedx.xml", "cyclonedx")
     # cosign.attach_sbom(f"{os.environ['SBOM_DIR']}/sbom-spdx-json.json", "spdx")
