@@ -35,7 +35,7 @@ class HardeningManifest:
         self.resources: list[dict] = tmp_content.get("resources", [])
         self.maintainers: list[dict] = tmp_content["maintainers"]
 
-    def validate_schema(self, conn: multiprocessing.Pipe):
+    def validate_schema(self, conn: multiprocessing.Pipe) -> None:
         log.info("Validating schema")
         with self.hm_path.open("r") as f:
             hm_content = yaml.safe_load(f)
@@ -76,7 +76,7 @@ class HardeningManifest:
             log.error(f"FIXME found in {k}")
         return invalid_labels
 
-    def check_for_invalid_image_source(self, subcontent: dict):
+    def check_for_invalid_image_source(self, subcontent: dict) -> str:
         for v in subcontent.values():
             if "registry1.dso.mil" in v.lower():
                 return v
@@ -108,7 +108,7 @@ class HardeningManifest:
         return invalid_maintainers
 
     # TODO: Deprecate this once CI variables are replaced by modules with reusable methods
-    def create_artifacts(self):
+    def create_artifacts(self) -> None:
         artifact_dir = Path(os.environ["ARTIFACT_DIR"])
         self.create_env_var_artifacts(artifact_dir)
         self.create_tags_artifact(artifact_dir)

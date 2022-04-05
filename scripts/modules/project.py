@@ -34,7 +34,7 @@ class DsopProject(Project):
         Path("clamav-whitelist") if Path("clamav-whitelist").exists() else None
     )
 
-    def validate_files_exist(self):
+    def validate_files_exist(self) -> None:
         assert self.license_path.exists(), "LICENSE not found"
         assert self.readme_path.exists(), "README.md not found"
         assert self.dockerfile_path.exists(), "Dockerfile not found"
@@ -53,7 +53,7 @@ class DsopProject(Project):
             "download.json"
         ).exists(), "download.json found, this file is no longer supported"
 
-    def validate_clamav_whitelist_config(self):
+    def validate_clamav_whitelist_config(self) -> None:
         if os.environ.get("CLAMAV_WHITELIST") and not self.clamav_wl_path:
             self.log.error(
                 "clamav-whitelist file found but CLAMAV_WHITELIST CI variable does not exist"
@@ -65,7 +65,7 @@ class DsopProject(Project):
             )
             sys.exit(1)
 
-    def validate_trufflehog_config(self):
+    def validate_trufflehog_config(self) -> None:
         assert not Path(
             "trufflehog.yaml"
         ).exists(), "trufflehog.yaml is not permitted to exist in repo"
@@ -76,7 +76,7 @@ class DsopProject(Project):
             sys.exit(1)
 
     # TODO: Consider moving this to a separate "Dockerfile" module
-    def validate_dockerfile(self):
+    def validate_dockerfile(self) -> None:
         with self.dockerfile_path.open("r") as f:
             for line in f.readlines():
                 assert not re.findall(
