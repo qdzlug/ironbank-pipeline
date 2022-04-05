@@ -1,6 +1,6 @@
 import os
 import sys
-
+import asyncio
 
 sys.path.append(
     os.path.join(
@@ -17,7 +17,7 @@ from hardening_manifest import HardeningManifest  # noqa: E402
 log = logger.setup(name="lint.pipeline_auth_status")
 
 
-def main() -> None:
+async def main() -> None:
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     vat_api = VatAPI(url=os.environ["VAT_BACKEND_SERVER_ADDRESS"])
@@ -31,4 +31,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

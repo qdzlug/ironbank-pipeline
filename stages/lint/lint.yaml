@@ -27,9 +27,4 @@ lint:
         echo "Exiting"
         exit 1
       fi
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/folder_structure.py"' # done
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/metadata.py"' # done
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/base_image_validation.py"'
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/container_status_check.py"'
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/pipeline_auth_status.py"'
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/registry_validation.py"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/run_async.py'

@@ -3,6 +3,7 @@ from pathlib import Path
 import sys
 import os
 import json
+import asyncio
 
 sys.path.append(
     os.path.join(
@@ -36,7 +37,7 @@ def create_approval_artifact(approval_status: str, approval_comment: str) -> Non
         json.dump(image_approval, f)
 
 
-def main():
+async def main():
     # approval_status, approval_text = _get_vat_findings_api(
     #     os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
     # )
@@ -46,7 +47,7 @@ def main():
     image_response_body = vat_api.get_image(
         image_name=hardening_manifest.image_name, image_tag=hardening_manifest.image_tag
     )
-    if not vat_api.response or vat_api.response.status_code not in [200, 404]:
+    if vat_api.response is None or vat_api.response.status_code not in [200, 404]:
         log.error("Failing pipeline")
         sys.exit(1)
     log.debug(f"VAT response\n{image_response_body}")
@@ -71,4 +72,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

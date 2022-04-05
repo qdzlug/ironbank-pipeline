@@ -1,5 +1,6 @@
 import sys
 import os
+import asyncio
 
 sys.path.append(
     os.path.join(
@@ -10,7 +11,7 @@ sys.path.append(
 from project import DsopProject  # noqa E402
 
 
-def main():
+async def main():
     dsop_project = DsopProject()
     dsop_project.validate_files_exist()
     dsop_project.validate_clamav_whitelist_config()
@@ -19,4 +20,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

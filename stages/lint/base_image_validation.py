@@ -2,6 +2,7 @@
 
 from base64 import b64decode
 import os
+import asyncio
 import pathlib
 import subprocess
 import sys
@@ -72,7 +73,7 @@ def skopeo_inspect_base_image(base_image, base_tag):
         sys.exit(1)
 
 
-def main():
+async def main():
     #
     # Hardening manifest is expected for all of the current repos that are being processed.
     # At the very least the hardening_manifest.yaml should be generated if it has not been
@@ -88,4 +89,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

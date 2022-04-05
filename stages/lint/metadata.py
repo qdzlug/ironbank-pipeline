@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 import multiprocessing
 import time
+import asyncio
 
 
 sys.path.append(
@@ -19,7 +20,7 @@ from hardening_manifest import HardeningManifest  # noqa: E402
 log = logger.setup(name="lint.metadata")
 
 
-def main():
+async def main():
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(
         dsop_project.hardening_manifest_path,
@@ -75,4 +76,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
