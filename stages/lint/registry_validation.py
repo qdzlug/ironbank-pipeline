@@ -2,6 +2,7 @@
 import os
 import sys
 import dockerfile
+import asyncio
 
 sys.path.append(
     os.path.join(
@@ -15,7 +16,6 @@ from utils import logger  # noqa: E402
 from hardening_manifest import HardeningManifest  # noqa: E402
 
 log = logger.setup(name="lint.registry_validation")
-import asyncio
 
 
 async def main():

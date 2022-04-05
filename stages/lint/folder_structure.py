@@ -8,7 +8,7 @@ sys.path.append(
     )
 )
 
-from utils import logger
+from utils import logger  # noqa E402
 from project import DsopProject  # noqa E402
 
 log = logger.setup("lint.folder_structure")
