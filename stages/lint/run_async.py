@@ -20,7 +20,11 @@ def handle_system_exit(func):
                 system_exits[se.code] if system_exits.get(se.code) else []
             )
             system_exits[se.code].append(func.__name__)
-        except RuntimeError as rune:
+        except KeyError:
+            # catch runtime error and assume hard failure
+            system_exits[1] = system_exits[1] if system_exits.get(1) else []
+            system_exits[1].append(func.__name__)
+        except RuntimeError:
             # catch runtime error and assume hard failure
             system_exits[1] = system_exits[1] if system_exits.get(1) else []
             system_exits[1].append(func.__name__)
