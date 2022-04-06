@@ -31,6 +31,7 @@ def is_approved(
     approval_comment = None
     exists_in_vat = bool(vat_resp_dict)
     # Check accreditation
+    force_approval = os.environ.get("FORCE_APPROVAL", "false") in ("True", "true", "1")
     if exists_in_vat:
         log.info(
             f"VAT image {vat_resp_dict['imageName']}:{vat_resp_dict['imageTag']} {vat_resp_dict['vatUrl']}"
@@ -49,7 +50,12 @@ def is_approved(
             )
     branch = os.environ["CI_COMMIT_BRANCH"]
     approved = _get_approval_status(
-        exists_in_vat, accredited, not_expired, ft_ineligible_findings, branch
+        exists_in_vat,
+        accredited,
+        not_expired,
+        ft_ineligible_findings,
+        branch,
+        force_approval,
     )
 
     log.warn(approved)
@@ -113,6 +119,7 @@ def _get_approval_status(
     not_expired,
     ft_ineligible_findings,
     branch,
+    force_approved=False,
 ) -> bool:
     """
     Returns True if
@@ -134,8 +141,13 @@ def _get_approval_status(
     if not not_expired:
         log.warning("Container's earliest expiration is prior to current date")
     if branch == "master":
-        # Check if an approval has been forced and if so, return accreditation and not_expired
-        return accredited and not_expired and not ft_ineligible_findings
+        # returns False if not accredited, is expired, or non fast track findings exist and the image isn't force approved
+        # else return True
+        return (
+            accredited and not_expired and False
+            if (ft_ineligible_findings and not force_approved)
+            else True
+        )
     else:
         return not ft_ineligible_findings
 
