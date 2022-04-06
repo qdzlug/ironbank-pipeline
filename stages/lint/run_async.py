@@ -66,10 +66,10 @@ async def main():
     HARD_FAIL_CODE = 1
     SOFT_FAIL_CODE = 100
 
-    for k, v in system_exits.items():
-        print(f"The following stages returned error code: {k}")
-        for s in v:
-            print(f"\t- {s}")
+    for error_code, stages in system_exits.items():
+        print(f"The following stages returned error code: {error_code}")
+        for stage in stages:
+            print(f"\t- {stage}")
 
     if HARD_FAIL_CODE in system_exits.keys():
         print("Failing pipeline")
