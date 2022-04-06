@@ -141,13 +141,11 @@ def _get_approval_status(
     if not not_expired:
         log.warning("Container's earliest expiration is prior to current date")
     if branch == "master":
-        # returns False if not accredited, is expired, or non fast track findings exist and the image isn't force approved
-        # else return True
-        return (
-            accredited and not_expired and False
-            if (ft_ineligible_findings and not force_approved)
-            else True
-        )
+        # Check if an approval has been forced and if so, return accreditation and not_expired
+        if force_approved:
+            return accredited and not_expired
+        else:
+            return accredited and not_expired and not ft_ineligible_findings
     else:
         return not ft_ineligible_findings
 
