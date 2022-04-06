@@ -119,7 +119,7 @@ def _get_approval_status(
     not_expired,
     ft_ineligible_findings,
     branch,
-    force_approved=False,
+    force_approval=False,
 ) -> bool:
     """
     Returns True if
@@ -142,7 +142,7 @@ def _get_approval_status(
         log.warning("Container's earliest expiration is prior to current date")
     if branch == "master":
         # Check if an approval has been forced and if so, return accreditation and not_expired
-        if force_approved:
+        if force_approval:
             return accredited and not_expired
         else:
             return accredited and not_expired and not ft_ineligible_findings
