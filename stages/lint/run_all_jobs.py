@@ -19,7 +19,7 @@ def handle_system_exit(func):
             system_exits[se.code] = (
                 system_exits[se.code] if system_exits.get(se.code) else []
             )
-            system_exits[se.code].append(func.__name__)
+            system_exits[se.code].append(func.__module__)
         except KeyError:
             # catch runtime error and assume hard failure
             system_exits[1] = system_exits[1] if system_exits.get(1) else []
@@ -32,44 +32,14 @@ def handle_system_exit(func):
     return _handle_system_exit
 
 
-@handle_system_exit
-async def run_metadata():
-    await metadata.main()
-
-
-@handle_system_exit
-async def run_registry_validation():
-    await registry_validation.main()
-
-
-@handle_system_exit
-async def run_container_status_check():
-    await container_status_check.main()
-
-
-@handle_system_exit
-async def run_base_image_validation():
-    await base_image_validation.main()
-
-
-@handle_system_exit
-async def run_pipeline_auth_status():
-    await pipeline_auth_status.main()
-
-
-@handle_system_exit
-async def run_folder_structure():
-    await folder_structure.main()
-
-
 async def main():
 
-    await run_folder_structure()
-    await run_metadata()
-    await run_registry_validation()
-    await run_container_status_check()
-    await run_base_image_validation()
-    await run_pipeline_auth_status()
+    await handle_system_exit(folder_structure.main)()
+    await handle_system_exit(metadata.main)()
+    await handle_system_exit(registry_validation.main)()
+    await handle_system_exit(container_status_check.main)()
+    await handle_system_exit(base_image_validation.main)()
+    await handle_system_exit(pipeline_auth_status.main)()
 
     HARD_FAIL_CODE = 1
     SOFT_FAIL_CODE = 100

@@ -28,4 +28,4 @@ lint:
         exit 1
       fi
     - set +e
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/run_async.py"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/run_all_jobs.py"'
