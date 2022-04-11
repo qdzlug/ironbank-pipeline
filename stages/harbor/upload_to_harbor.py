@@ -133,6 +133,8 @@ class Cosign:
             predicate_path,
             "--type",
             predicate_type,
+            "--key",
+            self.kms_key_arn,
             self.image_name,
         ]
         logging.info(" ".join(cmd))
