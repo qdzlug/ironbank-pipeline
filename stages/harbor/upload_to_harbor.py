@@ -187,6 +187,41 @@ class Cosign:
             logging.exception(f"Failed to add attestation {predicate_path}")
             sys.exit(1)
 
+    # def add_attestation(self, predicate_path: str, predicate_type: str) -> None:
+    #     """
+    #     Add attestation
+    #     """
+    #     cmd = [
+    #         "cosign",
+    #         "attest",
+    #         "--replace",
+    #         "--predicate",
+    #         predicate_path,
+    #         "--type",
+    #         predicate_type,
+    #         "--key",
+    #         self.kms_key_arn,
+    #         self.image_name,
+    #     ]
+    #     logging.info(" ".join(cmd))
+    #     try:
+    #         subprocess.run(
+    #             args=cmd,
+    #             check=True,
+    #             encoding="utf-8",
+    #             stdout=subprocess.PIPE,
+    #             stderr=subprocess.PIPE,
+    #             env={
+    #                 "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
+    #                 "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
+    #                 "AWS_REGION": "us-gov-west-1",
+    #                 **os.environ,
+    #             },
+    #         )
+    #     except subprocess.CalledProcessError:
+    #         logging.exception(f"Failed to add attestation {predicate_path}")
+    #         sys.exit(1)
+
 
 def main():
     # Get logging level, set manually when running pipeline
