@@ -35,7 +35,6 @@ async def main():
 
     HARD_FAIL_CODE = 1
     SOFT_FAIL_CODE = 100
-    print(system_exits)
 
     for error_code, stages in system_exits.items():
         print(f"The following stages returned error code: {error_code}")
