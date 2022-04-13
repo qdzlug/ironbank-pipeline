@@ -69,7 +69,7 @@ def main() -> None:
         branch_name,
         *history_cmd,
         "--config",
-        dsop_project.trufflehog_conf_path,
+        dsop_project.trufflehog_conf_path.as_posix(),
         ".",
     ]
 
