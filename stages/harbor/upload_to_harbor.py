@@ -121,43 +121,13 @@ class Cosign:
             logging.exception(f"Failed to sign {self.image_name}")
             sys.exit(1)
 
-    def _attach_attestation(self, path: str) -> None:
-        """
-        Run cosign attach attestation
-        """
-        cmd = [
-            "cosign",
-            "attach",
-            "attestation",
-            "--attestation",
-            path,
-            self.image_name,
-        ]
-        logging.info(" ".join(cmd))
-        try:
-            subprocess.run(
-                args=cmd,
-                check=True,
-                encoding="utf-8",
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-            logging.info("Uploaded attestation")
-        except subprocess.CalledProcessError:
-            logging.exception(f"Failed to attach {path}")
-            sys.exit(1)
-
-    # TODO: remove the '--no-upload' flag from the cmd, and no longer call _attach_attestation
     def add_attestation(self, predicate_path: str, predicate_type: str) -> None:
         """
         Add attestation
-        Use --no-upload flag
         """
         cmd = [
             "cosign",
             "attest",
-            "--replace",
-            "--no-upload",
             "--predicate",
             predicate_path,
             "--type",
@@ -168,59 +138,22 @@ class Cosign:
         ]
         logging.info(" ".join(cmd))
         try:
-            with open("attestation.json", mode="w") as f:
-                subprocess.run(
-                    args=cmd,
-                    check=True,
-                    encoding="utf-8",
-                    stdout=f,
-                    stderr=subprocess.PIPE,
-                    env={
-                        "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
-                        "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
-                        "AWS_REGION": "us-gov-west-1",
-                        **os.environ,
-                    },
-                )
-            self._attach_attestation("attestation.json")
+            subprocess.run(
+                args=cmd,
+                check=True,
+                encoding="utf-8",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env={
+                    "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
+                    "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
+                    "AWS_REGION": "us-gov-west-1",
+                    **os.environ,
+                },
+            )
         except subprocess.CalledProcessError:
             logging.exception(f"Failed to add attestation {predicate_path}")
             sys.exit(1)
-
-    # def add_attestation(self, predicate_path: str, predicate_type: str) -> None:
-    #     """
-    #     Add attestation
-    #     """
-    #     cmd = [
-    #         "cosign",
-    #         "attest",
-    #         "--replace",
-    #         "--predicate",
-    #         predicate_path,
-    #         "--type",
-    #         predicate_type,
-    #         "--key",
-    #         self.kms_key_arn,
-    #         self.image_name,
-    #     ]
-    #     logging.info(" ".join(cmd))
-    #     try:
-    #         subprocess.run(
-    #             args=cmd,
-    #             check=True,
-    #             encoding="utf-8",
-    #             stdout=subprocess.PIPE,
-    #             stderr=subprocess.PIPE,
-    #             env={
-    #                 "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
-    #                 "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
-    #                 "AWS_REGION": "us-gov-west-1",
-    #                 **os.environ,
-    #             },
-    #         )
-    #     except subprocess.CalledProcessError:
-    #         logging.exception(f"Failed to add attestation {predicate_path}")
-    #         sys.exit(1)
 
 
 def main():
