@@ -20,14 +20,6 @@ def handle_system_exit(func):
                 system_exits[se.code] if system_exits.get(se.code) else []
             )
             system_exits[se.code].append(func.__module__)
-        except KeyError:
-            # catch runtime error and assume hard failure
-            system_exits[1] = system_exits[1] if system_exits.get(1) else []
-            system_exits[1].append(func.__name__)
-        except RuntimeError:
-            # catch runtime error and assume hard failure
-            system_exits[1] = system_exits[1] if system_exits.get(1) else []
-            system_exits[1].append(func.__name__)
 
     return _handle_system_exit
 
@@ -43,6 +35,7 @@ async def main():
 
     HARD_FAIL_CODE = 1
     SOFT_FAIL_CODE = 100
+    print(system_exits)
 
     for error_code, stages in system_exits.items():
         print(f"The following stages returned error code: {error_code}")

@@ -6,6 +6,7 @@ import yaml
 import jsonschema
 from pathlib import Path
 import multiprocessing
+import time
 
 from utils import logger
 
@@ -15,25 +16,73 @@ log = logger.setup(name="hardening_manifest")
 
 # Not using dataclass because post_init is required for file load and parameter initialization
 class HardeningManifest:
-    def __init__(self, hm_path: str, schema_path: str = "./"):
+    def __init__(self, hm_path: str, schema_path: str = "./", validate: bool = False):
         self.hm_path: Path = Path(hm_path)
         self.schema_path: Path = Path(schema_path)
         with self.hm_path.open("r") as f:
             tmp_content: dict = yaml.safe_load(f)
-        self.image_name: str = tmp_content["name"]
+        self.image_name: str = tmp_content.get("name", "")
         # validation done in hardening manifest schema
-        self.image_tags: list[str] = tmp_content["tags"]
+        self.image_tags: list[str] = tmp_content.get("tags", [])
         # added for clarity over what tag will be used to publish
-        self.image_tag: str = self.image_tags[0]
-        self.args: dict = tmp_content["args"]
+        self.image_tag: str = self.image_tags[0] if self.image_tags else ""
+        self.args: dict = tmp_content.get("args", {})
         # added for clarity for required args
-        self.base_image_name: str = self.args["BASE_IMAGE"]
-        self.base_image_tag: str = self.args["BASE_TAG"]
+        self.base_image_name: str = self.args.get("BASE_IMAGE", "")
+        self.base_image_tag: str = self.args.get("BASE_TAG", "")
         # TODO: define labels type
-        self.labels: dict = tmp_content["labels"]
+        self.labels: dict = tmp_content.get("labels", {})
         # TODO: define resources type
         self.resources: list[dict] = tmp_content.get("resources", [])
-        self.maintainers: list[dict] = tmp_content["maintainers"]
+        self.maintainers: list[dict] = tmp_content.get("maintainers", [])
+        if validate:
+            self.validate()
+
+    def validate(self):
+        self.validate_schema_with_timeout()
+        # verify no labels have a value of fixme (case insensitive)
+        log.debug("Checking for FIXME values in labels/maintainers")
+        invalid_labels = self.reject_invalid_labels()
+        invalid_maintainers = self.reject_invalid_maintainers()
+        if invalid_labels or invalid_maintainers:
+            log.error(
+                "Please update these labels to appropriately describe your container \
+                    before rerunning this pipeline"
+            )
+            sys.exit(1)
+        log.info("Hardening manifest is validated")
+
+    def validate_schema_with_timeout(self):
+        parent_conn, child_conn = multiprocessing.Pipe()
+        process = multiprocessing.Process(
+            target=self.validate_schema, args=(child_conn,)
+        )
+        process.start()
+        # wait for two minutes unless process exits
+        # if process exits, check status
+        # if alive after two minutes, exit
+        verification_timeout = int(os.environ.get("HM_VERIFY_TIMEOUT", 120))
+        while verification_timeout:
+            time.sleep(1)
+            verification_timeout -= 1
+            if not process.is_alive():
+                break
+        if process.is_alive():
+            log.error("Hardening Manifest validation timeout exceeded.")
+            log.error(
+                "This is likely due to field in the hardening_manifest.yaml being invalid and \
+                causing an infinite loop during validation"
+            )
+            log.error(
+                "Please check your hardening manifest to confirm all fields have valid values"
+            )
+            process.terminate()
+            sys.exit(1)
+        elif process.exitcode != 0:
+            log.error("Hardening Manifest failed jsonschema validation")
+            log.error("Verify Hardening Manifest content")
+            log.error(parent_conn.recv())
+            sys.exit(1)
 
     def validate_schema(self, conn: multiprocessing.Pipe) -> None:
         log.info("Validating schema")
@@ -66,7 +115,7 @@ class HardeningManifest:
             if isinstance(v, (str)) and "fixme" in v.lower()
         ]
 
-    def reject_invalid_labels(self) -> list:
+    def reject_invalid_labels(self, labels: str = None) -> list:
         """
         Returns list of keys in hardening manifest labels whose value contains FIXME (case insensitve)
         """
