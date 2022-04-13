@@ -6,7 +6,7 @@ import git
 import yaml
 from typing import Optional
 from pathlib import Path
-from scripts.modules.project import DsopProject
+
 
 sys.path.append(
     os.path.join(
@@ -14,6 +14,7 @@ sys.path.append(
     )
 )
 
+from project import DsopProject  # noqa: E402
 from utils import logger  # noqa: E402
 
 log = logger.setup(name="lint.trufflehog")
