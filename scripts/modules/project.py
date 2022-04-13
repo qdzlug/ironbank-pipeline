@@ -23,16 +23,9 @@ class DsopProject(Project):
     trufflehog_conf_path: Path = (
         Path("trufflehog_config.yaml")
         if Path("trufflehog_config.yaml").exists()
-        else None
+        else Path("trufflehog_config.yml")
     )
-    trufflehog_conf_path: Path = (
-        Path("trufflehog_config.yml")
-        if Path("trufflehog_config.yml").exists()
-        else None
-    )
-    clamav_wl_path: Path = (
-        Path("clamav-whitelist") if Path("clamav-whitelist").exists() else None
-    )
+    clamav_wl_path: Path = Path("clamav-whitelist")
 
     def validate_files_exist(self) -> None:
         assert self.license_path.exists(), "LICENSE not found"
@@ -54,14 +47,14 @@ class DsopProject(Project):
         ).exists(), "download.json found, this file is no longer supported"
 
     def validate_clamav_whitelist_config(self) -> None:
-        if os.environ.get("CLAMAV_WHITELIST") and not self.clamav_wl_path:
-            self.log.error(
-                "clamav-whitelist file found but CLAMAV_WHITELIST CI variable does not exist"
-            )
-            sys.exit(1)
-        if self.clamav_wl_path and not os.environ.get("CLAMAV_WHITELIST"):
+        if os.environ.get("CLAMAV_WHITELIST") and not self.clamav_wl_path.exists():
             self.log.error(
                 "CLAMAV_WHITELIST CI variable exists but clamav-whitelist file not found"
+            )
+            sys.exit(1)
+        if self.clamav_wl_path.exists() and not os.environ.get("CLAMAV_WHITELIST"):
+            self.log.error(
+                "clamav-whitelist file found but CLAMAV_WHITELIST CI variable does not exist"
             )
             sys.exit(1)
 
@@ -69,7 +62,9 @@ class DsopProject(Project):
         assert not Path(
             "trufflehog.yaml"
         ).exists(), "trufflehog.yaml is not permitted to exist in repo"
-        if self.trufflehog_conf_path and not os.environ.get("TRUFFLEHOG_CONFIG"):
+        if self.trufflehog_conf_path.exists() and not os.environ.get(
+            "TRUFFLEHOG_CONFIG"
+        ):
             self.log.error(
                 "trufflehog-config file found but TRUFFLEHOG_CONFIG CI variable does not exist"
             )
