@@ -35,6 +35,9 @@ class HardeningManifest:
         # TODO: define resources type
         self.resources: list[dict] = tmp_content.get("resources", [])
         self.maintainers: list[dict] = tmp_content.get("maintainers", [])
+        self.invalid_labels = None
+        self.invalid_maintainers = None
+        self.invalid_image_sources = None
         if validate:
             self.validate()
 
@@ -42,15 +45,10 @@ class HardeningManifest:
         self.validate_schema_with_timeout()
         # verify no labels have a value of fixme (case insensitive)
         log.debug("Checking for FIXME values in labels/maintainers")
-        invalid_labels = self.reject_invalid_labels()
-        invalid_maintainers = self.reject_invalid_maintainers()
-        if invalid_labels or invalid_maintainers:
-            log.error(
-                "Please update these labels to appropriately describe your container \
-                    before rerunning this pipeline"
-            )
-            sys.exit(1)
-        log.info("Hardening manifest is validated")
+        self.invalid_labels = self.reject_invalid_labels()
+        self.invalid_maintainers = self.reject_invalid_maintainers()
+        log.debug("Checking for invalid image sources")
+        self.invalid_image_sources = self.reject_invalid_image_sources()
 
     def validate_schema_with_timeout(self):
         parent_conn, child_conn = multiprocessing.Pipe()

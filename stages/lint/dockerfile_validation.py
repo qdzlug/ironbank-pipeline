@@ -22,16 +22,7 @@ async def main():
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
 
-    log.debug("Checking for valid registry data in resources.")
-    invalid_tags = hardening_manifest.reject_invalid_image_sources()
-    if invalid_tags:
-        log.error(
-            "Please update the following tags to ensure they do not contain registry1.dso.mil"
-        )
-        for tag in invalid_tags:
-            log.error(f"The following tag is invalid and must be addressed: {tag}")
-        sys.exit(100)
-    log.info("Hardening manifest is validated")
+    log.debug("Validating dockerfile contents")
     if hardening_manifest.base_image_name or hardening_manifest.base_image_tag:
         parsed_dockerfile = parse_dockerfile("Dockerfile")
         from_statement_list = remove_non_from_statements(parsed_dockerfile)
