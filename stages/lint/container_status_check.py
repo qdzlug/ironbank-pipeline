@@ -44,12 +44,14 @@ async def main():
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     vat_api = VatAPI(url=os.environ["VAT_BACKEND_SERVER_ADDRESS"])
+
     image_response_body = vat_api.get_image(
         image_name=hardening_manifest.image_name, image_tag=hardening_manifest.image_tag
     )
     if vat_api.response is None or vat_api.response.status_code not in [200, 404]:
         log.error("Failing pipeline")
         sys.exit(1)
+
     log.debug(f"VAT response\n{image_response_body}")
     create_api_findings_artifact(image_response_body)
 

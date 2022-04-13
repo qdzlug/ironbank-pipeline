@@ -15,9 +15,9 @@ log = logger.setup("lint.folder_structure")
 
 
 async def main():
-
     log.info("Validating folder structure")
     dsop_project = DsopProject()
+
     try:
         dsop_project.validate_files_exist()
         dsop_project.validate_clamav_whitelist_config()

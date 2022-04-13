@@ -6,6 +6,7 @@ import git
 import yaml
 from typing import Optional
 from pathlib import Path
+from scripts.modules.project import DsopProject
 
 sys.path.append(
     os.path.join(
@@ -28,17 +29,11 @@ def main() -> None:
     job_image = os.environ["CI_JOB_IMAGE"]
     config_variable = os.environ.get("TRUFFLEHOG_CONFIG")
 
-    if Path(repo_dir, "trufflehog-config.yaml").is_file():
-        config_file = "trufflehog-config.yaml"
-    elif Path(repo_dir, "trufflehog-config.yml").is_file():
-        config_file = "trufflehog-config.yml"
-    else:
-        log.info("custom trufflehog configuration not detected")
-        config_file = "trufflehog-config.yaml"
+    dsop_project = DsopProject()
 
     project_truffle_config = Path(
         repo_dir,
-        config_file,
+        dsop_project.trufflehog_conf_path,
     )
     default_truffle_config = Path(
         pipeline_repo_dir,
@@ -73,7 +68,7 @@ def main() -> None:
         branch_name,
         *history_cmd,
         "--config",
-        config_file,
+        dsop_project.trufflehog_conf_path,
         ".",
     ]
 
