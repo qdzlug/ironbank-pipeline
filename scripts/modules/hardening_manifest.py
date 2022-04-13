@@ -132,13 +132,13 @@ class HardeningManifest:
         """
         Returns list of tags in the hardening manifest's resource list that are invalid, i.e. contain 'registry1.dso.mil'
         """
-        log.info("Checking tags")
+        log.info("Checking image resource sources")
         invalid_sources = []
         for x in self.resources:
             if x["url"].startswith("docker://") or x["url"].startswith("github://"):
                 invalid_source = self.check_for_invalid_image_source(x)
                 if invalid_source:
-                    log.info("Invalid tag found")
+                    log.info(f"Invalid image found: {invalid_source}")
                     invalid_sources.append(invalid_source)
         return invalid_sources
 

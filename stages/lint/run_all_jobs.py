@@ -1,7 +1,7 @@
 import asyncio
 import hardening_manifest_validation
 import folder_structure
-import registry_validation
+import dockerfile_validation
 import container_status_check
 import base_image_validation
 import pipeline_auth_status
@@ -28,7 +28,7 @@ async def main():
 
     await handle_system_exit(folder_structure.main)()
     await handle_system_exit(hardening_manifest_validation.main)()
-    await handle_system_exit(registry_validation.main)()
+    await handle_system_exit(dockerfile_validation.main)()
     await handle_system_exit(container_status_check.main)()
     await handle_system_exit(base_image_validation.main)()
     await handle_system_exit(pipeline_auth_status.main)()

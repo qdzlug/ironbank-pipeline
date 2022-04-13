@@ -15,7 +15,7 @@ from project import DsopProject  # noqa: E402
 from utils import logger  # noqa: E402
 from hardening_manifest import HardeningManifest  # noqa: E402
 
-log = logger.setup(name="lint.registry_validation")
+log = logger.setup(name="lint.dockerfile_validation")
 
 
 async def main():
@@ -29,8 +29,7 @@ async def main():
         invalid_from = validate_final_from(from_statement_list)
         if invalid_from:
             log.error(
-                "The final FROM statement in the Dockerfile must be \
-                    FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}"
+                "The final FROM statement in the Dockerfile must be FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}"
             )
             sys.exit(100)
     log.info("Dockerfile is validated.")
