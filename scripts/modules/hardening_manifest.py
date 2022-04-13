@@ -161,6 +161,7 @@ class HardeningManifest:
         self.create_tags_artifact(artifact_dir)
         self.create_keywords_artifact(artifact_dir)
 
+    # TODO: Deprecate this once CI variables are replaced by modules with reusable methods
     def create_env_var_artifacts(self, artifact_dir: Path) -> None:
         with (artifact_dir / "variables.env").open("w") as f:
             f.write(f"IMAGE_NAME={self.image_name}\n")
@@ -178,12 +179,14 @@ class HardeningManifest:
             for key, value in self.labels.items():
                 f.write(f"{key}={value}\n")
 
+    # TODO: Deprecate this once CI variables are replaced by modules with reusable methods
     def create_tags_artifact(self, artifact_dir: Path) -> None:
         with (artifact_dir / "tags.txt").open("w") as f:
             for tag in self.image_tags:
                 f.write(tag)
                 f.write("\n")
 
+    # TODO: Deprecate this once CI variables are replaced by modules with reusable methods
     def create_keywords_artifact(self, artifact_dir: Path) -> None:
         # optional field,if keywords key in yaml, create file. source_values() in create_repo_map checks if file exists, if not pass empty list
         if "mil.dso.ironbank.image.keywords" in self.labels:
