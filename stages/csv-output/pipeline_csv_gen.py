@@ -101,8 +101,6 @@ def main():
             anchore_gates_json=args.anchore_gates,
             justifications=j_anchore_comp,
         )
-    if args.sbom_dir:
-        anchore.sbom_report(csv_dir=args.output_dir, sbom_dir=args.sbom_dir)
 
     generate_summary_report(
         csv_dir=args.output_dir,

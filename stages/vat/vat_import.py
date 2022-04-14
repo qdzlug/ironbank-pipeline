@@ -342,7 +342,7 @@ def main():
 
     headers = CaseInsensitiveDict()
     headers["Content-Type"] = "application/json"
-    headers["Authorization"] = f"Bearer {os.environ['CI_JOB_JWT']}"
+    headers["Authorization"] = f"Bearer {os.environ['CI_JOB_JWT_V2']}"
     try:
         resp = requests.post(args.api_url, headers=headers, json=large_data)
         resp.raise_for_status()

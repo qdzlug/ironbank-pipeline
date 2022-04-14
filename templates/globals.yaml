@@ -1,4 +1,4 @@
-image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:0.4
+image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:0.5
 stages:
   ### preprocess stage
   # clone down the templates directory for use in later stages
@@ -32,9 +32,6 @@ stages:
 
   ### build stage
   # build image w version tag and create tar file
-  # Requirements:
-  # - executor image with docker installed
-  # NOTE: Executor image must have docker installed in order to work properly with Notary for image signing
   - build
 
   ### post-build stage
