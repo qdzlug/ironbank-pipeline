@@ -95,7 +95,7 @@ class VatAPI(API):
             params={"createRequest": create_request},
             headers={
                 "Content-Type": "application/json",
-                "Authorization": f"Bearer {os.environ['CI_JOB_JWT']}",
+                "Authorization": f"Bearer {os.environ['CI_JOB_JWT_V2']}",
             },
         )
         self.response.raise_for_status()
