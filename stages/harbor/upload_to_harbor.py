@@ -57,7 +57,7 @@ class Cosign:
         Perform cosign image signature
         """
         logging.info(
-            f"Signing {self.image.registry}/{self.image.name}@{self.image.digest}"
+            f"Signing image: {self.image.registry}/{self.image.name}@{self.image.digest}"
         )
         sign_cmd = [
             "cosign",
@@ -94,7 +94,7 @@ class Cosign:
         Perform cosign image attachment signature
         """
         logging.info(
-            f"Signing {self.image.registry}/{self.image.name}@{self.image.digest}"
+            f"Signing {attachment_type}: {self.image.registry}/{self.image.name}@{self.image.digest}"
         )
         sign_cmd = [
             "cosign",
