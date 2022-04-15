@@ -12,16 +12,19 @@ To verify a signature, make sure you have [`cosign` installed](https://github.co
 First, generate a public key to use in validation.
 
 ```log
-openssl x509 -in <path-to-cosign-certificate.pem> -noout -pubkey >cosign.pub
+cosign validate --cert <path-to-cert.pem> registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5
 ```
 
-Then run a `cosign validate`
+or
 
 ```log
+openssl x509 -in <path-to-cosign-certificate.pem> -noout -pubkey >cosign.pub
 cosign validate --key cosign.pub registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5
 ```
 
-Which will display the following
+---
+
+A successful verify command will display the following
 
 ```log
 Verification for registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5 --
