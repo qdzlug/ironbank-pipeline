@@ -48,7 +48,7 @@ These can be pulled by using `cosign download` or `skopeo copy`
 ### cosign
 
 To access the predicate file uploaded as a cosign attestation, look at the `.payload` and base64 decode this value.
-The predicate ile contents can then be found at `.predicate`.
+The predicate file contents can then be found at `.predicate`.
 The following script will pipe stdout to jq to access the `.predicate`, and save this to a file.
 
 `cosign download attestation registry1.dso.mil/ironbank/docker/scratch:ironbank | jq '.payload | @base64d | fromjson | .predicate' >vat_response.json`
