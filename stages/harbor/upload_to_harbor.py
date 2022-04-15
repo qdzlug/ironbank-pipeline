@@ -244,8 +244,6 @@ def compare_digests(image: Image) -> None:
         logging.error(f"Digests do not match {digest}  {manifest.hexdigest()}")
         sys.exit(1)
 
-    return
-
 
 def promote_tags(staging_image: Image, production_image: Image) -> None:
     """
@@ -287,8 +285,6 @@ def promote_tags(staging_image: Image, production_image: Image) -> None:
                     """
                 )
                 sys.exit(1)
-
-    return
 
 
 def main():
