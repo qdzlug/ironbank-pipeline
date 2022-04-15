@@ -41,11 +41,13 @@ class Cosign:
     def __init__(
         self,
         image: Image,
+        cosign_cert: str,
         kms_key_arn: str,
         aws_access_key_id: str,
         aws_secret_access_key: str,
     ):
         self.image = image
+        self.cosign_cert = cosign_cert
         self.kms_key_arn = kms_key_arn
         self.aws_access_key_id = aws_access_key_id
         self.aws_secret_access_key = aws_secret_access_key
@@ -59,12 +61,11 @@ class Cosign:
         )
         sign_cmd = [
             "cosign",
-            "--verbose",
             "sign",
             "--key",
             self.kms_key_arn,
             "--cert",
-            os.environ["COSIGN_CERT"],
+            self.cosign_cert,
             f"{self.image.registry}/{self.image.name}@{self.image.digest}",
         ]
         logging.info(" ".join(sign_cmd))
@@ -97,7 +98,6 @@ class Cosign:
         )
         sign_cmd = [
             "cosign",
-            "--verbose",
             "sign",
             "--key",
             self.kms_key_arn,
@@ -338,6 +338,7 @@ def main():
 
     cosign = Cosign(
         production_image,
+        os.environ["COSIGN_CERT"],
         os.environ["KMS_KEY_SHORT_ARN"],
         os.environ["COSIGN_AWS_ACCESS_KEY_ID"],
         os.environ["COSIGN_AWS_SECRET_ACCESS_KEY"],
