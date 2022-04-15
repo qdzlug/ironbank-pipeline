@@ -82,12 +82,9 @@ class Cosign:
                     **os.environ,
                 },
             )
-        except subprocess.CalledProcessError as e:
-            logging.error(e.output)
-            logging.error(e.stderr)
-            logging.error(e.stdout)
+        except subprocess.CalledProcessError:
             logging.error(
-                f"{self.image.registry}/{self.image.name}@{self.image.digest}"
+                f"Failed to sign image: {self.image.registry}/{self.image.name}@{self.image.digest}"
             )
             sys.exit(1)
 
@@ -123,8 +120,8 @@ class Cosign:
                 },
             )
         except subprocess.CalledProcessError:
-            logging.exception(
-                f"Failed to sign {self.image.registry}/{self.image.name}@{self.image.digest}"
+            logging.error(
+                f"Failed to sign {attachment_type}: {self.image.registry}/{self.image.name}@{self.image.digest}"
             )
             sys.exit(1)
 
@@ -162,7 +159,7 @@ class Cosign:
                 },
             )
         except subprocess.CalledProcessError:
-            logging.exception(f"Failed to add attestation {predicate_path}")
+            logging.error(f"Failed to add attestation {predicate_path}")
             sys.exit(1)
 
 
@@ -199,7 +196,7 @@ def push_oras(image: Image) -> None:
         )
         os.chdir(os.environ["CI_PROJECT_DIR"])
     except subprocess.CalledProcessError:
-        logging.exception(
+        logging.error(
             f"Failed to push SBOM for {image.registry}/{image.name}@{image.digest}"
         )
         sys.exit(1)
