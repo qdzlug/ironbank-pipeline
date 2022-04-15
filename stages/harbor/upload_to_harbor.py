@@ -34,6 +34,10 @@ class Image:
 
 
 class Cosign:
+    """
+    Perform cosign operations
+    """
+
     def __init__(
         self,
         image: Image,
