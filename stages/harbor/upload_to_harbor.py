@@ -169,11 +169,8 @@ def push_oras(image: Image) -> None:
     """
 
     logging.info("Push SBOM")
-    sboms = []
     os.chdir(os.environ["SBOM_DIR"])
-    for file in os.listdir(os.getcwd()):
-        mime_type = mime_types[file]
-        sboms.append(f"{file}:{mime_type}")
+    sboms = [f"{file}:{mime_types[file]}" for file in os.listdir(os.getcwd())]
     formatted_digest = image.digest.split(":")[1]
     logging.info(f"Pushing SBOM for {image.registry}/{image.name}@{image.digest}")
     sign_cmd = [
