@@ -6,8 +6,8 @@ import logging
 
 
 def getProjects(gl, token, id):
-    group = gl.groups.get(id)
-    projects = group.projects.list(all=True)
+    group = gl.groups.get(id, lazy=True)
+    projects = group.projects.list(as_list=False, include_subgroups=True)
     return projects
 
 
