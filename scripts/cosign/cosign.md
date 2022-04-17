@@ -59,7 +59,7 @@ cosign download attestation registry1.dso.mil/ironbank/docker/scratch:ironbank |
 
 ### skopeo
 
-skopeo can be downloaded by following [these instructions](https://github.com/containers/skopeo/blob/main/install.md).
+skopeo can be installed by following [these instructions](https://github.com/containers/skopeo/blob/main/install.md).
 
 To `skopeo copy` an artifact, you will need to know the image digest the artifact relates to.
 The directory created by the copy will include a manifest file and the layer containing the predicate file.
