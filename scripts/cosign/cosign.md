@@ -9,7 +9,6 @@ The CA bundle cert can be used to validate the `cosign-certificate.pem` file's a
 ## Verifying a Signature
 
 To verify a signature, make sure you have [`cosign` installed](https://github.com/sigstore/cosign#installation).
-First, generate a public key to use in validation.
 
 ```log
 cosign validate --cert <path-to-cert.pem> registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5
@@ -18,8 +17,8 @@ cosign validate --cert <path-to-cert.pem> registry1.dso.mil/ironbank/redhat/ubi/
 or
 
 ```log
-openssl x509 -in <path-to-cosign-certificate.pem> -noout -pubkey >cosign.pub
-cosign validate --key cosign.pub registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5
+openssl x509 -in <path-to-cosign-certificate.pem> -noout -pubkey >cosign.pem
+cosign validate --key cosign.pem registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5
 ```
 
 ---
@@ -54,9 +53,13 @@ To access the predicate file uploaded as a cosign attestation, look at the `.pay
 The predicate file contents can then be found at `.predicate`.
 The following script will pipe stdout to jq to access the `.predicate`, and save this to a file.
 
-`cosign download attestation registry1.dso.mil/ironbank/docker/scratch:ironbank | jq '.payload | @base64d | fromjson | .predicate' >vat_response.json`
+```bash
+cosign download attestation registry1.dso.mil/ironbank/docker/scratch:ironbank | jq '.payload | @base64d | fromjson | .predicate' >vat_response.json
+```
 
 ### skopeo
+
+skopeo can be downloaded by following [these instructions](https://github.com/containers/skopeo/blob/main/install.md).
 
 To `skopeo copy` an artifact, you will need to know the image digest the artifact relates to.
 The directory created by the copy will include a manifest file and the layer containing the predicate file.
@@ -68,3 +71,12 @@ jq '.payload | @base64d | fromjson | .predicate' output-dir/<attestation-digest>
 ```
 
 ## SBOM
+
+The simplest way to get the sbom artifacts is to use cosign and oras.
+
+Oras can be installed by following [these instructions](https://oras.land/cli/).
+
+```bash
+artifact_name=$(cosign triangulate --type sbom registry1.dso.mil/ironbank/docker/scratch:ironbank)
+oras pull --allow-all "{artifact_name}"
+```
