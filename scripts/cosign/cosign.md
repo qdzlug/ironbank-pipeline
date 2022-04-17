@@ -12,7 +12,7 @@ To verify a signature, make sure you have [`cosign` installed](https://github.co
 First, generate a public key to use in validation.
 
 ```log
-cosign validate --cert <path-to-cert.pem> registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5
+cosign validate --cert <path-to-cosign-certificate.pem> registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5
 ```
 
 or
@@ -68,3 +68,7 @@ jq '.payload | @base64d | fromjson | .predicate' output-dir/<attestation-digest>
 ```
 
 ## SBOM
+
+The recommended methd=od for downloading SBOM artifacts is using the [`oras CLI`](https://oras.land/cli/).
+
+To download all SBOM artifacts associated with a given <image>, run `oras pull registry1.dso.mil/ironbank/<image>.sbom`.  This command will produce one file per layer of the SBOM atrifact.
