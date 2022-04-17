@@ -11,7 +11,7 @@ The CA bundle cert can be used to validate the `cosign-certificate.pem` file's a
 To verify a signature, make sure you have [`cosign` installed](https://github.com/sigstore/cosign#installation).
 
 ```log
-cosign validate --cert <path-to-cert.pem> registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5
+cosign validate --cert <path-to-cosign-certificate.pem> registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5
 ```
 
 or
@@ -73,6 +73,7 @@ jq '.payload | @base64d | fromjson | .predicate' output-dir/<attestation-digest>
 ## SBOM
 
 The simplest way to get the sbom artifacts is to use cosign and oras.
+This command will produce one file per layer of the SBOM artifact.
 
 Oras can be installed by following [these instructions](https://oras.land/cli/).
 
