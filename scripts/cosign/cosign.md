@@ -30,7 +30,11 @@ The following checks were performed on each of these signatures:
   - The signatures were verified against the specified public key
 ```
 
-## Pulling Additional Artifacts
+## Pulling Cosign Artifacts
+
+Beyond creating image signatures, Cosign can be used to generate additional artifacts in support of software supply chain security, such as image SBOMs and Attestations.
+
+These artifacts, as well as their own signature artifacts, can be downloaded and verified using tools such as `cosign`, `skopeo`, and `oras`, as described in the following sections.
 
 If using `cosign download [command]`, the output will be sent to stdout.
 It is recommended to use either `--output-file` or pipe this output to another command.
