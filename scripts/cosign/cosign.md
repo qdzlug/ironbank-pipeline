@@ -18,7 +18,7 @@ or
 
 ```log
 openssl x509 -in <path-to-cosign-certificate.pem> -noout -pubkey >cosign.pem
-cosign validate --key cosign.pem registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5
+cosign verify --key cosign.pem registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5
 ```
 
 ---
