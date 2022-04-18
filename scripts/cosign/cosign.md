@@ -41,35 +41,22 @@ It is recommended to use either `--output-file` or pipe this output to another c
 
 ## Signature
 
-There are a few ways a signature can be pulled from the registry.
 The easiest way to access a signature is to use `cosign download signature`
+
+```bash
+cosign download signature <image uri>
+```
 
 ## Attestation
 
 Attestation artifacts have tags ending in `.att`.
-These can be pulled by using `cosign download` or `skopeo copy`
-
-### cosign
 
 To access the predicate file uploaded as a cosign attestation, look at the `.payload` and base64 decode this value.
 The predicate file contents can then be found at `.predicate`.
 The following script will pipe stdout to jq to access the `.predicate`, and save this to a file.
 
 ```bash
-cosign download attestation registry1.dso.mil/ironbank/docker/scratch:ironbank | jq '.payload | @base64d | fromjson | .predicate' >vat_response.json
-```
-
-### skopeo
-
-skopeo can be installed by following [these instructions](https://github.com/containers/skopeo/blob/main/install.md).
-
-To `skopeo copy` an artifact, you will need to know the image digest the artifact relates to.
-The directory created by the copy will include a manifest file and the layer containing the predicate file.
-To find the digest of the predicate file, look at the digest at `.layers[].digest` in the manifest file.
-
-```sh
-skopeo copy docker://registry1.dso.mil/ironbank/docker/scratch:sha256-<digest>.att dir:output-dir
-jq '.payload | @base64d | fromjson | .predicate' output-dir/<attestation-digest> >vat_response.json
+cosign verify-attestation --key cosign.pem registry1.dso.mil/ironbank/docker/scratch:ironbank | jq '.payload | @base64d | fromjson | .predicate'
 ```
 
 ## SBOM
