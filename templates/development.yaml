@@ -59,7 +59,9 @@ include:
   # - local: templates/globals.yaml
   - local: stages/preprocess/load-scripts.yaml
 
-  - local: stages/lint/base.yaml
+  - local: stages/lint/lint.yaml
+
+  - local: stages/lint/trufflehog.yaml
 
   - local: stages/import-artifacts/base.yaml
 
