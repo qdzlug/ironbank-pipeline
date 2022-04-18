@@ -1,7 +1,0 @@
-folder-structure:
-  extends: .preflight
-  script:
-    - '"${PIPELINE_REPO_DIR}/stages/preflight/folder_structure.sh"'
-  retry:
-    max: 2
-    when: runner_system_failure

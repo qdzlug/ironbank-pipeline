@@ -9,9 +9,7 @@
     ANCHORE_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/anchore/anchore-version.txt"
   dependencies:
     - load-scripts
-    - hardening-manifest
-    - base-image-validation
-    - wl-compare-lint
+    - lint
     - build
     - anchore-scan
     - twistlock-scan
