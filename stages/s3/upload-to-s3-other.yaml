@@ -17,9 +17,7 @@ distroless-upload-to-s3:
 
   dependencies:
     - load-scripts
-    - hardening-manifest
-    - base-image-validation
-    - wl-compare-lint
+    - lint
     - build
     - anchore-scan
     - twistlock-scan
