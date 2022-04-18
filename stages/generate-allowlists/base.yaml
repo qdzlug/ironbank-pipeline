@@ -6,7 +6,9 @@ generate-allowlists:
   dependencies:
     - load-scripts
     - anchore-scan
-    - lint
+    - base-image-validation
+    - wl-compare-lint
+    - hardening-manifest
     - build
   variables:
     ALLOWLISTS: "${ARTIFACT_STORAGE}/allowlists"

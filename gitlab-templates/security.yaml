@@ -5,7 +5,7 @@ include:
   - template: Security/Secret-Detection.gitlab-ci.yml
 
 .secret-analyzer:
-  stage: lint
+  stage: preflight
 
 secret_detection:
   tags:

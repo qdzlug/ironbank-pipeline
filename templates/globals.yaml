@@ -6,6 +6,12 @@ stages:
   # - executor image with git
   - preprocess
 
+  ### preflight stage
+  # check folder structure, check build variables
+  # Requirements:
+  # - None
+  - preflight
+
   ### lint stage
   # yaml lint (ci file, hardening_manifest.yaml), dockerfile lint, wl compare lint
   # Requirements:

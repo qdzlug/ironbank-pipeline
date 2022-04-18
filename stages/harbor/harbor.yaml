@@ -5,7 +5,7 @@ harbor:
     - master
   dependencies:
     - load-scripts
-    - lint
+    - hardening-manifest
     - build
     - anchore-sbom-generation
     - vat

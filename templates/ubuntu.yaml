@@ -1,6 +1,8 @@
 include:
   - local: templates/globals.yaml
 
+  - local: stages/preflight/base.yaml
+
   - local: stages/lint/base.yaml
 
   - local: stages/import-artifacts/base.yaml

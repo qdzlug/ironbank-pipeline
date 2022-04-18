@@ -17,7 +17,9 @@ upload-to-s3:
 
   dependencies:
     - load-scripts
-    - lint
+    - hardening-manifest
+    - base-image-validation
+    - wl-compare-lint
     - build
     - anchore-scan
     - anchore-sbom-generation

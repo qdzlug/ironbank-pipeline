@@ -245,7 +245,7 @@ def promote_tags(staging_image: Image, production_image: Image) -> None:
     tagging it according the the tags defined in tags.txt
     """
 
-    with pathlib.Path(os.environ["ARTIFACT_STORAGE"], "lint", "tags.txt").open(
+    with pathlib.Path(os.environ["ARTIFACT_STORAGE"], "preflight", "tags.txt").open(
         mode="r"
     ) as f:
         for tag in f:

@@ -18,7 +18,7 @@ trufflehog:
     # This forces the trufflehog job to NOT perform a shallow clone
     GIT_DEPTH: 0
   script:
-    - python3 stages/lint/trufflehog.py
+    - python3 stages/preflight/trufflehog.py
 
 shellcheck:
   needs: []
