@@ -366,10 +366,10 @@ Set Boolean `existing_repomap` to the returned value from `get_repomap` function
 
 ```py
     keyword_list = source_values(
-        f"{artifact_storage}/preflight/keywords.txt", "Keywords"
+        f"{artifact_storage}/lint/keywords.txt", "Keywords"
     )
-    tag_list = source_values(f"{artifact_storage}/preflight/tags.txt", "Tags")
-    label_dict = _get_source_keys_values(f"{artifact_storage}/preflight/labels.env")
+    tag_list = source_values(f"{artifact_storage}/lint/tags.txt", "Tags")
+    label_dict = _get_source_keys_values(f"{artifact_storage}/lint/labels.env")
 
     approval_status, approval_text = _get_approval_status(
         f"{artifact_storage}/lint/image_approval.json"

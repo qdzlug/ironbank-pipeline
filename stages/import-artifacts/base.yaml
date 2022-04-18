@@ -2,7 +2,7 @@ import-artifacts:
   stage: import-artifacts
   dependencies:
     - load-scripts
-    - hardening-manifest
+    - lint
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/import-artifacts"
   script:
