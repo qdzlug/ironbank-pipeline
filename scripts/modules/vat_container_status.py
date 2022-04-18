@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
 
+import logging
 import os
 from typing import Optional
 from dateutil import parser
 from datetime import datetime, timezone
-
-
-from utils import logger
-
-log = logger.setup(name="vat_container_status")
 
 
 def is_approved(
@@ -29,11 +25,10 @@ def is_approved(
     ft_ineligible_findings = False
     approval_status = "notapproved"
     approval_comment = None
-    exists_in_vat = bool(vat_resp_dict)
-    # Check accreditation
     force_approval = os.environ.get("FORCE_APPROVAL", "false") in ("True", "true", "1")
-    if exists_in_vat:
-        log.info(
+    # Check accreditation
+    if vat_resp_dict:
+        logging.info(
             f"VAT image {vat_resp_dict['imageName']}:{vat_resp_dict['imageTag']} {vat_resp_dict['vatUrl']}"
         )
         accredited = _is_accredited(vat_resp_dict)
@@ -50,15 +45,9 @@ def is_approved(
             )
     branch = os.environ["CI_COMMIT_BRANCH"]
     approved = _get_approval_status(
-        exists_in_vat,
-        accredited,
-        not_expired,
-        ft_ineligible_findings,
-        branch,
-        force_approval,
+        accredited, not_expired, ft_ineligible_findings, branch, force_approval
     )
 
-    log.warn(approved)
     # Exit codes for Check CVE parsing of VAT response
     # 0   - Container is accredited, accreditation is not expired, and there are no unapproved findings
     # 1   - Either Container is not accredited or the accreditation has expired and the branch is master, or there is an unapproved finding not eligible to be fast tracked
@@ -114,12 +103,7 @@ def _check_expiration(vat_resp_dict) -> bool:
 
 
 def _get_approval_status(
-    exists,
-    accredited,
-    not_expired,
-    ft_ineligible_findings,
-    branch,
-    force_approval=False,
+    accredited, not_expired, ft_ineligible_findings, branch, force_approval=False
 ) -> bool:
     """
     Returns True if
@@ -128,18 +112,10 @@ def _get_approval_status(
             else container is noted as accredited, and the accreditation has no expiration or expiration is not prior to current date, and there are no unapproved fast track ineligible findings
         branch != 'master' there are no unapproved fast track ineligible findings
     """
-
-    """
-        If master:
-            check
-    """
-
-    if not exists:
-        return False
     if not accredited:
-        log.warning("Container is not accredited in VAT")
+        logging.warning("Container is not accredited in VAT")
     if not not_expired:
-        log.warning("Container's earliest expiration is prior to current date")
+        logging.warning("Container's earliest expiration is prior to current date")
     if branch == "master":
         # Check if an approval has been forced and if so, return accreditation and not_expired
         if force_approval:
@@ -201,14 +177,14 @@ def log_finding(findings: list, log_type: str) -> None:
     if log_type == "WARN":
         finding_color = colors["bright_yellow"]
         log_level = 30
-        log.debug("Fast Track eligible findings")
+        logging.debug("Fast Track eligible findings")
     elif log_type == "ERR":
         finding_color = colors["bright_red"]
         log_level = 40
-        log.debug("Fast Track ineligible findings")
+        logging.debug("Fast Track ineligible findings")
     log_findings_header(log_level)
     for finding in findings:
-        log.log(
+        logging.log(
             log_level,
             f"{finding_color}{finding['identifier']:<20} {finding['source']:20} {finding.get('severity', ''):20} {finding.get('package', ''):35} {finding.get('packagePath', ''):45} {colors['white']}{finding['inheritsFrom'] if finding['inheritsFrom'] else 'Uninherited'}",
         )
@@ -224,7 +200,7 @@ def log_findings_header(log_level: int) -> None:
         "packagePath": "Package Path",
         "inheritsFrom": "Inherits From",
     }
-    log.log(
+    logging.log(
         log_level,
         f"{values['identifier']:<20} {values['source']:20} {values.get('severity', ''):20} {values.get('package', ''):35} {values.get('packagePath', ''):45} {values['inheritsFrom']}",
     )

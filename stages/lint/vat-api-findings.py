@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 from pathlib import Path
 import sys
 import os
@@ -55,15 +56,21 @@ def _get_vat_response(im_name, im_version):
 
 
 def main():
-    # approval_status, approval_text = _get_vat_findings_api(
-    #     os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
-    # )
     vat_response = _get_vat_response(
         os.environ["IMAGE_NAME"], os.environ["IMAGE_VERSION"]
     )
+    logging.debug(f"VAT response\n{vat_response}")
+    filename = Path(os.environ["ARTIFACT_DIR"], "vat_api_findings.json")
+    with filename.open(mode="w") as f:
+        json.dump(vat_response, f)
 
-    approved, approval_status, approval_comment = is_approved(vat_response, False)
+    approved, _, approval_status, approval_comment = is_approved(vat_response, False)
+    logging.info(f"Approved: {approved}")
+    logging.info(f"Approval Status: {approval_status}")
+    if approval_comment:
+        logging.info(f"Approval Comment: {approval_comment}")
     approval_status = approval_status.lower().replace(" ", "_")
+    logging.debug("updated Approval Status: {approval_status}")
     filename = Path(os.environ["ARTIFACT_DIR"], "image_approval.json")
     image_approval = {
         "IMAGE_APPROVAL_STATUS": approval_status,
@@ -71,11 +78,13 @@ def main():
     }
     with filename.open(mode="w") as f:
         json.dump(image_approval, f)
-
     if approved:
         logging.info("This container is noted as an approved image in VAT")
+    elif os.environ["CI_COMMIT_BRANCH"] != "master":
+        logging.warning("This container is not noted as an approved image in VAT")
     else:
         logging.error("This container is not noted as an approved image in VAT")
+        logging.error("Failing pipeline")
         sys.exit(1)
 
 

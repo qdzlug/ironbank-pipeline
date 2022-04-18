@@ -5,7 +5,9 @@ build:
   dependencies:
     - import-artifacts
     - load-scripts
-    - lint
+    - base-image-validation
+    - wl-compare-lint
+    - hardening-manifest
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
   script:
