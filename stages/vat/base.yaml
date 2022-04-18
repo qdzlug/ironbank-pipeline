@@ -10,9 +10,7 @@ vat:
   dependencies:
     - load-scripts
     - build
-    - base-image-validation
-    - wl-compare-lint
-    - hardening-manifest
+    - lint
     - anchore-scan
     - openscap-compliance
     - twistlock-scan

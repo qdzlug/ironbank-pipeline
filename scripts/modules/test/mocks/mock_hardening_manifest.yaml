@@ -1,0 +1,51 @@
+---
+apiVersion: v1
+
+# The repository name in registry1, excluding /ironbank/
+name: "example/example/exampleimage"
+
+# List of tags to push for the repository in registry1
+# The most specific version should be the first tag and will be shown
+# on ironbank.dsop.io
+tags:
+  - "8.6.7_5309"
+  - "latest"
+
+# Build args passed to Dockerfile ARGs
+args:
+  BASE_IMAGE: "redhat/ubi/ubi8"
+  BASE_TAG: "8.5"
+
+# Docker image labels
+labels:
+  org.opencontainers.image.title: "exampleimage"
+  ## Human-readable description of the software packaged in the image
+  org.opencontainers.image.description: "lengthy string words more words and even more words"
+  ## License(s) under which contained software is distributed
+  org.opencontainers.image.licenses: "lol"
+  ## URL to find more information on the image
+  org.opencontainers.image.url: "https://invalid.com"
+  ## Name of the distributing entity, organization or individual
+  org.opencontainers.image.vendor: "Example Image"
+  org.opencontainers.image.version: "8.6.7.5309"
+  ## Keywords to help with search (ex. "cicd,gitops,golang")
+  mil.dso.ironbank.image.keywords: "awesome,verycool,example"
+  ## This value can be "opensource" or "commercial"
+  mil.dso.ironbank.image.type: "opensource"
+  ## Product the image belongs to for grouping multiple images
+  mil.dso.ironbank.product.name: "Example Image"
+
+# List of resources to make available to the offline build context
+resources:
+  - tag: registry.example_image.com/exampleimage:8.6.7_5309
+    url: docker://registry.example_image.com/exampleimage@sha256:4d736d84721c8fa09d5b0f5988da5f34163d407d386cc80b62cbf933ea5124e8
+
+# List of project maintainers
+maintainers:
+  - email: "vendor@example.com"
+    name: "Vendor Person"
+    username: "v_endor"
+  - name: "CHT Memeber"
+    username: "cht_memeber"
+    email: "cht_member@company.com"
+    cht_member: true

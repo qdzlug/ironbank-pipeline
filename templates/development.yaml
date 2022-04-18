@@ -5,12 +5,6 @@ stages:
   # - executor image with git
   - preprocess
 
-  ### preflight stage
-  # check folder structure, check build variables
-  # Requirements:
-  # - None
-  - preflight
-
   ### lint stage
   # yaml lint (ci file, hardening_manifest.yaml), dockerfile lint, wl compare lint
   # Requirements:
@@ -64,7 +58,6 @@ include:
   # Removing globals template from inclusion so we can overwrite variables.
   # - local: templates/globals.yaml
   - local: stages/preprocess/load-scripts.yaml
-  - local: stages/preflight/base.yaml
 
   - local: stages/lint/base.yaml
 

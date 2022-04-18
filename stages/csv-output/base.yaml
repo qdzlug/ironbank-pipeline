@@ -6,9 +6,7 @@ csv-output:
     - vat
     - anchore-scan
     - load-scripts
-    - hardening-manifest
-    - base-image-validation
-    - wl-compare-lint
+    - lint
     - build
   variables:
     # Put generated csv report in the scan-results folder

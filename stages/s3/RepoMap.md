@@ -77,10 +77,10 @@ variables:
 | Tar_Location                | `${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/${REPORT_TAR_NAME}`                                      | See above for `REPORT_TAR_NAME` variable creation                                                        |
 | Full_Report                 | `${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/csvs/all_scans.xlsx`                                     | Excel sheet created by combining individual CSV files                                                    |
 | Repo_Name                   | `${IMAGE_NAME}`                                                                                      | `IMAGE_NAME` set in `metadata.py` script, see above. This value may conflict with the `Image_Name` value |
-| Keywords                    | `preflight/keywords.txt` and parsed by script in `create_repo_map_default.py`                        | uses `source_values` function to parse                                                                   |
+| Keywords                    | `lint/keywords.txt` and parsed by script in `create_repo_map_default.py`                             | uses `source_values` function to parse                                                                   |
 | digest                      | `os.environ["IMAGE_PODMAN_SHA"].replace("sha256:", "")`                                              | `IMAGE_PODMAN_SHA` variable is created in the build stage                                                |
-| Tags                        | `preflight/tags.txt` and parsed by script in `create_repo_map_default.py`                            | uses `source_values` function to parse                                                                   |
-| Labels                      | `preflight/labels.env` and parsed by script in `create_repo_map_default.py`                          | uses `_get_source_keys_values` function to parse                                                         |
+| Tags                        | `lint/tags.txt` and parsed by script in `create_repo_map_default.py`                                 | uses `source_values` function to parse                                                                   |
+| Labels                      | `lint/labels.env` and parsed by script in `create_repo_map_default.py`                               | uses `_get_source_keys_values` function to parse                                                         |
 
 ### Data Structure
 
