@@ -21,9 +21,9 @@ class DsopProject(Project):
     readme_path: Path = Path("README.md")
     dockerfile_path: Path = Path("Dockerfile")
     trufflehog_conf_path: Path = (
-        Path("trufflehog_config.yaml")
-        if Path("trufflehog_config.yaml").exists()
-        else Path("trufflehog_config.yml")
+        Path("trufflehog-config.yaml")
+        if Path("trufflehog-config.yaml").exists()
+        else Path("trufflehog-config.yml")
     )
     clamav_wl_path: Path = Path("clamav-whitelist")
 
