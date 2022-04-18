@@ -1,5 +1,5 @@
 harbor:
-  image: registry1.dso.mil/ironbank/ironbank-pipelines/cosign:0.1
+  image: registry1.dso.mil/ironbank/ironbank-pipelines/cosign:0.2
   stage: harbor
   only:
     - master
@@ -8,9 +8,11 @@ harbor:
     - lint
     - build
     - anchore-sbom-generation
+    - vat
   variables:
     DOCKER_CONFIG: /tmp
     SBOM_DIR: ${ARTIFACT_STORAGE}/scan-results/anchore/sbom
+    VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/vat_response.json
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/harbor/upload_to_harbor.py"'
   retry:
