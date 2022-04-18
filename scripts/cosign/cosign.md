@@ -9,14 +9,19 @@ The CA bundle cert can be used to validate the `cosign-certificate.pem` file's a
 ## Verifying a Signature
 
 To verify a signature, make sure you have [`cosign` installed](https://github.com/sigstore/cosign#installation).
+The path to the certificate file can be a URL or a file path.
 
-```log
+```bash
 cosign validate --cert <path-to-cosign-certificate.pem> registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5
+```
+
+```bash
+cosign verify --cert https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-certificate.pem registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5
 ```
 
 or
 
-```log
+```bash
 openssl x509 -in <path-to-cosign-certificate.pem> -noout -pubkey >cosign.pem
 cosign verify --key cosign.pem registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5
 ```
@@ -56,7 +61,7 @@ The predicate file contents can then be found at `.predicate`.
 The following script will pipe stdout to jq to access the `.predicate`, and save this to a file.
 
 ```bash
-cosign verify-attestation --key cosign.pem registry1.dso.mil/ironbank/docker/scratch:ironbank | jq '.payload | @base64d | fromjson | .predicate'
+cosign verify-attestation --cert <path-to-cosign-certificate.pem> registry1.dso.mil/ironbank/docker/scratch:ironbank | jq '.payload | @base64d | fromjson | .predicate'
 ```
 
 ## SBOM
