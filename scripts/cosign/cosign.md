@@ -12,18 +12,11 @@ To verify a signature, make sure you have [`cosign` installed](https://github.co
 The path to the certificate file can be a URL or a file path.
 
 ```bash
-cosign validate --cert <path-to-cosign-certificate.pem> registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5
+cosign verify --cert <path-to-cosign-certificate.pem> registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5
 ```
 
 ```bash
 cosign verify --cert https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-certificate.pem registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5
-```
-
-or
-
-```bash
-openssl x509 -in <path-to-cosign-certificate.pem> -noout -pubkey >cosign.pem
-cosign verify --key cosign.pem registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5
 ```
 
 A successful verify command will display the following
