@@ -73,6 +73,6 @@ Oras can be installed by following [these instructions](https://oras.land/cli/).
 
 ```bash
 artifact=$(cosign triangulate --type sbom registry1.dso.mil/ironbank/docker/scratch:ironbank)
-cosign verify --key cosign.pem "${artifact}"
+cosign verify --key https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-certificate.pem "${artifact}"
 oras pull --allow-all "${artifact}"
 ```
