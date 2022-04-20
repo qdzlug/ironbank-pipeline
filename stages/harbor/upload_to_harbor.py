@@ -101,6 +101,8 @@ class Cosign:
             "sign",
             "--key",
             self.kms_key_arn,
+            "--cert",
+            self.cosign_cert,
             f"--attachment={attachment_type}",
             f"{self.image.registry}/{self.image.name}@{self.image.digest}",
         ]
@@ -141,6 +143,8 @@ class Cosign:
             predicate_type,
             "--key",
             self.kms_key_arn,
+            "--cert",
+            self.cosign_cert,
             f"{self.image.registry}/{self.image.name}@{self.image.digest}",
         ]
         logging.info(" ".join(cmd))
