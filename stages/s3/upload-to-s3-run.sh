@@ -13,7 +13,7 @@ fi
 
 IMAGE_PATH=$(echo "${CI_PROJECT_PATH}" | sed -e 's/.*dsop\/\(.*\)/\1/')
 
-# Files are guaranteed to exist by the preflight checks
+# Files are guaranteed to exist by the lint checks
 PROJECT_README="README.md"
 PROJECT_LICENSE="LICENSE"
 VAT_FINDINGS="${ARTIFACT_STORAGE}/lint/vat_api_findings.json"
@@ -24,6 +24,8 @@ source "${PIPELINE_REPO_DIR}/stages/s3/repo_map_vars.sh"
 
 python3 "${PIPELINE_REPO_DIR}"/stages/s3/create_repo_map_default.py --target "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/repo_map.json"
 mkdir reports
+cp hardening_manifest.yaml reports/
+cp "${BUILD_DIRECTORY}"/access_log reports/
 cp -r "${DOCUMENTATION_DIRECTORY}"/reports/* reports/
 cp -r "${SCAN_DIRECTORY}"/* reports/
 

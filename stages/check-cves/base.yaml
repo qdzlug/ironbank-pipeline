@@ -3,10 +3,8 @@ check-cves:
   allow_failure:
     exit_codes: 100
   dependencies:
-    - hardening-manifest
     - load-scripts
-    - base-image-validation
-    - wl-compare-lint
+    - lint
     - twistlock-scan
     - openscap-compliance
     - anchore-scan

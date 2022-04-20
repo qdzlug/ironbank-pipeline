@@ -5,12 +5,6 @@ stages:
   # - executor image with git
   - preprocess
 
-  ### preflight stage
-  # check folder structure, check build variables
-  # Requirements:
-  # - None
-  - preflight
-
   ### lint stage
   # yaml lint (ci file, hardening_manifest.yaml), dockerfile lint, wl compare lint
   # Requirements:
@@ -31,9 +25,7 @@ stages:
 
   ### build stage
   # build image w version tag and create tar file
-  # Requirements:
-  # - executor image with docker installed
-  # NOTE: Executor image must have docker installed in order to work properly with Notary for image signing
+
   - build
 
   ### post-build stage
@@ -66,9 +58,10 @@ include:
   # Removing globals template from inclusion so we can overwrite variables.
   # - local: templates/globals.yaml
   - local: stages/preprocess/load-scripts.yaml
-  - local: stages/preflight/base.yaml
 
-  - local: stages/lint/base.yaml
+  - local: stages/lint/lint.yaml
+
+  - local: stages/lint/trufflehog.yaml
 
   - local: stages/import-artifacts/base.yaml
 

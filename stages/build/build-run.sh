@@ -45,12 +45,12 @@ echo "/tmp/prod_auth.json" >>.dockerignore
 echo "Converting labels from hardening manifest into command line args"
 label_parameters=$(while IFS= read -r line; do
   echo "--label=$line"
-done <"${ARTIFACT_STORAGE}/preflight/labels.env")
+done <"${ARTIFACT_STORAGE}/lint/labels.env")
 
 echo "Converting build args from hardening manifest into command line args"
 args_parameters=$(while IFS= read -r line; do
   echo "--build-arg=$line"
-done <"${ARTIFACT_STORAGE}/preflight/args.env")
+done <"${ARTIFACT_STORAGE}/lint/args.env")
 
 # Start up the forward proxy
 echo "Start up the forward proxy"
@@ -79,8 +79,8 @@ echo "Build the image"
 env -i BUILDAH_ISOLATION=chroot PATH="$PATH" buildah bud \
   $args_parameters \
   --build-arg=BASE_REGISTRY="${BASE_REGISTRY}" \
-  --build-arg=http_proxy="localhost:3128" \
-  --build-arg=HTTP_PROXY="localhost:3128" \
+  --build-arg=http_proxy="http://localhost:3128" \
+  --build-arg=HTTP_PROXY="http://localhost:3128" \
   --build-arg=GOPROXY="http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/goproxy/" \
   --build-arg=GOSUMDB="sum.golang.org http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/gosum" \
   $label_parameters \
@@ -107,7 +107,7 @@ buildah push --storage-driver=vfs --authfile staging_auth.json --digestfile="${A
 
 function push_tags() {
   echo "Read the tags"
-  tags_file="${ARTIFACT_STORAGE}/preflight/tags.txt"
+  tags_file="${ARTIFACT_STORAGE}/lint/tags.txt"
   test -f "$tags_file"
   while IFS= read -r tag; do
     buildah tag --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" "${IMAGE_REGISTRY_REPO}:${tag}"

@@ -323,67 +323,6 @@ class Anchore:
             logging.error(image_wait.stderr)
             sys.exit(image_wait.returncode)
 
-    #
-    # Content Fetching to build the SBOM
-    #
-    def __get_content(self, cmd):
-        """
-        Use anchore-cli to fetch the content specified
-
-        """
-        try:
-            logging.info(f"{' '.join(cmd[0:3])} {' '.join(cmd[5:])}")
-            image_content = subprocess.run(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                encoding="utf-8",
-            )
-        except subprocess.SubprocessError:
-            logging.exception("Could not get content of image")
-            sys.exit(1)
-
-        if image_content.returncode != 0:
-            logging.error(image_content.stdout)
-            logging.error(image_content.stderr)
-            sys.exit(image_content.returncode)
-
-        logging.debug(image_content.stdout)
-
-        return json.loads(image_content.stdout)
-
-    def image_content(self, digest, artifacts_path):
-        """
-        Grab the SBOM from Anchore
-
-        """
-        content_cmd = [
-            "anchore-cli",
-            "--json",
-            "--u",
-            self.username,
-            "--p",
-            self.password,
-            "--url",
-            self.url,
-            "image",
-            "content",
-            digest,
-        ]
-
-        pathlib.Path(artifacts_path, "sbom").mkdir(parents=True, exist_ok=True)
-
-        content_types = self.__get_content(cmd=content_cmd)
-
-        for ct in content_types:
-            cmd = content_cmd + [ct]
-            content = self.__get_content(cmd=cmd)
-            logging.debug(content)
-            filename = pathlib.Path(artifacts_path, "sbom", f"{ct}.json")
-            logging.debug(f"Writing to {filename}")
-            with filename.open(mode="w") as f:
-                json.dump(content, f)
-
     def generate_sbom(self, image, artifacts_path, output_format, file_type):
         """
         Grab the SBOM from Anchore
@@ -395,7 +334,7 @@ class Anchore:
         sbom_dir.mkdir(parents=True, exist_ok=True)
         with (sbom_dir / f"sbom-{output_format}.{file_type}").open("wb") as f:
             try:
-                logging.info(f"{' '.join(cmd[0:3])} {' '.join(cmd[5:])}")
+                logging.info(" ".join(cmd))
                 subprocess.run(
                     cmd,
                     check=True,
