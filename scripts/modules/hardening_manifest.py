@@ -125,8 +125,9 @@ class HardeningManifest:
 
     def check_for_invalid_image_source(self, subcontent: dict) -> str:
         for k, v in subcontent.items():
-            if "registry1.dso.mil" in v.lower():
-                return v
+            if k != "auth":
+                if "registry1.dso.mil" in v.lower():
+                    return v
 
     def reject_invalid_image_sources(self) -> list:
         """
