@@ -16,17 +16,17 @@ logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
 
 @pytest.fixture
 def good_dockerfile_path():
-    return "./mock/Dockerfile.test-good"
+    return "tests/mock/Dockerfile.test-good"
 
 
 @pytest.fixture
 def bad_dockerfile_path():
-    return "./mock/Dockerfile.test-bad"
+    return "tests/mock/Dockerfile.test-bad"
 
 
 @pytest.fixture
 def nonexistent_dockerfile_path():
-    return "./mock/Dockerfile"
+    return "tests/mock/Dockerfile"
 
 
 @pytest.fixture
