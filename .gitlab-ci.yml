@@ -106,7 +106,8 @@ unit-testing:
   stage: test
   image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:0.4"
   script:
-    - python3 -m pip install --user pytest-cov dockerfile
+    - python3 -m pip install --user pytest-cov
+    - python3 -m pip install --user dockerfile
     - python3 -m pytest -m "not slow"
   coverage: '/^TOTAL.+?(\d+\%)$/'
   artifacts:
