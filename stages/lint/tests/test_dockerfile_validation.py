@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from pathlib import Path
 import sys
 import os
 import logging
@@ -16,17 +17,17 @@ logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
 
 @pytest.fixture
 def good_dockerfile_path():
-    return "mock/Dockerfile.test-good"
+    return Path(Path(__file__).absolute().parent, "mock/Dockerfile.test-good")
 
 
 @pytest.fixture
 def bad_dockerfile_path():
-    return "mock/Dockerfile.test-bad"
+    return Path(Path(__file__).absolute().parent, "mock/Dockerfile.test-bad")
 
 
 @pytest.fixture
 def nonexistent_dockerfile_path():
-    return "mock/Dockerfile"
+    return Path(Path(__file__).absolute().parent, "mock/Dockerfile")
 
 
 @pytest.fixture
