@@ -98,7 +98,7 @@ class HardeningManifest:
         try:
             # may hang from catastrophic backtracking if format is invalid
             log.info("This task will exit if not completed within 2 minutes")
-            jsonschema.validate(hm_content, schema_content)
+            jsonschema.Draft201909Validator(schema_content).validate(hm_content)
         except jsonschema.ValidationError as ex:
             conn.send(ex.message)
             sys.exit(1)
