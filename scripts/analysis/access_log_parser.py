@@ -31,10 +31,13 @@ def go_parser(url_path: str) -> Package:
         url_path,
     )
 
+    if not match:
+        raise ValueError(f"Could not parse go URL: {url_path}")
+
     if match.group("ext") in ["zip", "info"] or match.group("latest"):
         return None
     elif match.group("ext") != "mod":
-        raise ValueError
+        raise ValueError(f"Unexpected go mod extension: {url_path}")
     else:
         return Package("go", match.group("name"), match.group("version"))
 
@@ -47,6 +50,9 @@ def yum_parser(url_path: str) -> Package:
     match = re.match(
         "(?:^|.+/)(?P<name>[^/]+)-(?P<version>[^/-]*-\d+)\.[^/]+\.[^./]+.rpm", url_path
     )
+
+    if not match:
+        raise ValueError(f"Could not parse yum URL: {url_path}")
 
     return (
         Package("yum", match.group("name"), match.group("version")) if match else None
@@ -106,7 +112,7 @@ if __name__ == "__main__":
                 match = nexus_parser.match(url)
 
                 if not match:
-                    raise ValueError()
+                    raise ValueError(f"Could not find parser for URL: {url}")
 
                 # get repository from list
                 repo = REPOS[match.group("repo_type")]
