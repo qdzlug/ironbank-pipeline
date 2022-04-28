@@ -86,9 +86,14 @@ if __name__ == "__main__":
     )
 
     try:
-        access_log = open(Path(args.path), "r")
+        access_log = Path(args.path).open("r")
         log.info(f"File successfully read. Parsing...")
         line_count = 0
+    except OSError:
+        log.error("Unable to open file.")
+        sys.exit(1)
+
+    with access_log:
         for line in access_log.readlines():
             line_count += 1
             try:
@@ -116,7 +121,5 @@ if __name__ == "__main__":
             except ValueError:
                 log.error(f"Unable to parse line: {line_count}")
                 if not args.allow_errors:
-                    exit(0)
-        log.info(f"File Successfully Parsed.")
-    except ValueError:
-        log.error("Unable to open file.")
+                    sys.exit(1)
+    log.info(f"File Successfully Parsed.")
