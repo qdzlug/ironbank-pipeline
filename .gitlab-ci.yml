@@ -110,6 +110,8 @@ unit-testing:
     - python3 -m pip install --user dockerfile
     - python3 -m pytest -m "not slow"
   coverage: '/^TOTAL.+?(\d+\%)$/'
+  variables:
+    ARTIFACT_DIR: 'stages/lint/tests/mock'
   artifacts:
     reports:
       cobertura: coverage.xml
