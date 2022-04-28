@@ -1,13 +1,16 @@
 import os, sys, re, argparse
 from pathlib import Path
 from collections import namedtuple
-import logging
 
+sys.path.append(
+    os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts/modules"
+    )
+)
 
-LOG_LEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
-LOG_FORMAT = "| %(levelname)-5s | %(message)s"
-logging.basicConfig(level=LOG_LEVEL, stream=sys.stdout, format=LOG_FORMAT)
-logger = logging.getLogger()
+from utils import logger  # noqa: E402
+
+log = logger.setup(name="access_log_parser", format="| %(levelname)-5s | %(message)s")
 
 
 REPOS = {
@@ -37,6 +40,7 @@ def go_parser(url_path: str) -> Package:
 
 
 def yum_parser(url_path: str) -> Package:
+
     if url_path.startswith("repodata"):
         return None
 
@@ -83,7 +87,7 @@ if __name__ == "__main__":
 
     try:
         access_log = open(Path(args.path), "r")
-        logger.info(f"File successfully read. Parsing...")
+        log.info(f"File successfully read. Parsing...")
         line_count = 0
         for line in access_log.readlines():
             line_count += 1
@@ -105,14 +109,14 @@ if __name__ == "__main__":
                 package = PARSERS[repo](match.group("url"))
                 if package:
                     package_tuples.append(package)
-                    logger.info(
+                    log.info(
                         f"Parsed Package: {package.package} version={package.version} type={package.type}"
                     )
 
             except ValueError:
-                logger.error(f"Unable to parse line: {line_count}")
+                log.error(f"Unable to parse line: {line_count}")
                 if not args.allow_errors:
                     exit(0)
-        logger.info(f"File Successfully Parsed.")
+        log.info(f"File Successfully Parsed.")
     except ValueError:
-        logger.error("Unable to open file.")
+        log.error("Unable to open file.")
