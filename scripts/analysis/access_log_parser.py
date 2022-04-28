@@ -1,6 +1,14 @@
-import re, argparse
+import os, sys, re, argparse
 from pathlib import Path
 from collections import namedtuple
+import logging
+
+
+LOG_LEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
+LOG_FORMAT = "| %(levelname)-5s | %(message)s"
+logging.basicConfig(level=LOG_LEVEL, stream=sys.stdout, format=LOG_FORMAT)
+logger = logging.getLogger()
+
 
 REPOS = {
     "ubi-8-baseos": "yum",
@@ -75,6 +83,7 @@ if __name__ == "__main__":
 
     try:
         access_log = open(Path(args.path), "r")
+        logger.info(f"File successfully read. Parsing...")
         line_count = 0
         for line in access_log.readlines():
             line_count += 1
@@ -96,12 +105,14 @@ if __name__ == "__main__":
                 package = PARSERS[repo](match.group("url"))
                 if package:
                     package_tuples.append(package)
+                    logger.info(
+                        f"Parsed Package: {package.package} version={package.version} type={package.type}"
+                    )
 
             except ValueError:
-                print(f"ERROR | Unable to parse line: {line_count}")
+                logger.error(f"Unable to parse line: {line_count}")
                 if not args.allow_errors:
                     exit(0)
-        for pkg in package_tuples:
-            print(pkg)
+        logger.info(f"File Successfully Parsed.")
     except ValueError:
-        print("ERROR | Unable to open file.")
+        logger.error("Unable to open file.")
