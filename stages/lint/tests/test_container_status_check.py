@@ -32,5 +32,5 @@ def test_create_api_findings_artifacts(fake_vat_response):
     assert create_api_findings_artifact(fake_vat_response) == None
 
 def test_create_approval_artifact(approval_status, approval_comment):
-    os.environ["ARTIFACT_DIR"] = "stages/lint/tests/mock/test-artifact"
+    os.environ["ARTIFACT_DIR"] = "stages/lint/tests/mock"
     assert create_approval_artifact(approval_status, approval_comment) == None
