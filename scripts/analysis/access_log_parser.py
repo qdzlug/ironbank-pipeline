@@ -114,8 +114,12 @@ if __name__ == "__main__":
                 if not match:
                     raise ValueError(f"Could not find parser for URL: {url}")
 
+                repo_type = match.group("repo_type")
                 # get repository from list
-                repo = REPOS[match.group("repo_type")]
+                if repo_type not in REPOS:
+                    raise ValueError(f"Repository type not supported: {repo_type}")
+
+                repo = REPOS[repo_type]
                 # call desired parser function stored in dictionary
                 package = PARSERS[repo](match.group("url"))
                 if package:
@@ -124,8 +128,9 @@ if __name__ == "__main__":
                         f"Parsed Package: {package.package} version={package.version} type={package.type}"
                     )
 
-            except ValueError:
+            except ValueError as e:
                 log.error(f"Unable to parse line: {line_count}")
+                log.error(e)
                 if not args.allow_errors:
                     sys.exit(1)
     log.info(f"File Successfully Parsed.")
