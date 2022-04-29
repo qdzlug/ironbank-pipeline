@@ -113,7 +113,7 @@ if __name__ == "__main__":
             try:
                 line = line.rstrip("\n")
 
-                if not line.startswith('200'):
+                if not line.startswith("200"):
                     continue
 
                 # split on spaces and get the url
