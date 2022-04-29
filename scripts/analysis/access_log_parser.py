@@ -14,10 +14,18 @@ log = logger.setup(name="access_log_parser", format="| %(levelname)-5s | %(messa
 
 
 REPOS = {
-    "ubi-8-baseos": "yum",
-    "ubi-8-appstream": "yum",
-    "ubi-8-codeready-builder": "yum",
     "goproxy": "go",
+    "gosum": "gosum",
+    "ubi-7": "yum",
+    "ubi-7-extras": "yum",
+    "ubi-7-optional": "yum",
+    "ubi-7-rhah": "yum",
+    "ubi-7-rhscl": "yum",
+    "ubi-8-appstream": "yum",
+    "ubi-8-baseos": "yum",
+    "ubi-8-codeready-builder": "yum",
+    "ubigroup-7Server": "yum",
+    "ubigroup-8": "yum",
 }
 
 Package = namedtuple("Package", ["type", "package", "version"])
@@ -104,6 +112,9 @@ if __name__ == "__main__":
             line_count += 1
             try:
                 line = line.rstrip("\n")
+
+                if not line.startswith('200'):
+                    continue
 
                 # split on spaces and get the url
                 url = line.split(" ")[-1]
