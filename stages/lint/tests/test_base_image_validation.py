@@ -25,7 +25,7 @@ def bad_base_image():
 
 
 def test_skopeo_inspect_good_base_image(good_base_image):
-    assert skopeo_inspect_base_image(good_base_image[0], good_base_image[1]) == None
+    assert skopeo_inspect_base_image(good_base_image[0], good_base_image[1]) == None # noqa E711
 
 
 def test_skopeo_inspect_bad_base_image(bad_base_image):

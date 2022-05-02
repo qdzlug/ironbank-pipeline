@@ -113,9 +113,9 @@ def test_remove_non_from_statements(dockerfile_tuple):
 def test_validate_final_from(
     first_good_from_list, second_good_from_list, bad_from_list
 ):
-    assert validate_final_from(first_good_from_list) == False
-    assert validate_final_from(second_good_from_list) == False
-    assert validate_final_from(bad_from_list) == True
+    assert validate_final_from(first_good_from_list) == False # noqa E712
+    assert validate_final_from(second_good_from_list) == False # noqa E712
+    assert validate_final_from(bad_from_list) == True # noqa E712
 
 
 def test_parse_dockerfile(

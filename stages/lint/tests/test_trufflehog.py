@@ -115,5 +115,20 @@ def test_get_config():
     # assert get_config(Path("")) == None
 
 def test_create_trufflehog_config():
-    assert create_trufflehog_config(pathlib.Path("stages/lint/tests/mock/test-th-config-concat.yaml"), pathlib.Path("stages/lint/tests/mock/test-th-config.yaml"), "./", ["TRUFFLEHOG"]) == True
-    assert create_trufflehog_config(pathlib.Path("stages/lint/tests/mock/test-th-config-concat.yaml"), pathlib.Path("stages/lint/tests/mock/test-th-config.yaml"), "./",) == False
+    assert (
+        create_trufflehog_config(
+            pathlib.Path("stages/lint/tests/mock/test-th-config-concat.yaml"),
+            pathlib.Path("stages/lint/tests/mock/test-th-config.yaml"),
+            "./",
+            ["TRUFFLEHOG"],
+        )
+        == True # noqa E712
+    )
+    assert (
+        create_trufflehog_config(
+            pathlib.Path("stages/lint/tests/mock/test-th-config-concat.yaml"),
+            pathlib.Path("stages/lint/tests/mock/test-th-config.yaml"),
+            "./",
+        )
+        == False # noqa E712
+    )
