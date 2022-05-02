@@ -114,6 +114,7 @@ def test_get_config():
     # TODO finish this test
     # assert get_config(Path("")) == None
 
+
 def test_create_trufflehog_config():
     assert (
         create_trufflehog_config(
@@ -122,7 +123,7 @@ def test_create_trufflehog_config():
             "./",
             ["TRUFFLEHOG"],
         )
-        == True # noqa E712
+        == True  # noqa E712
     )
     assert (
         create_trufflehog_config(
@@ -130,5 +131,5 @@ def test_create_trufflehog_config():
             pathlib.Path("stages/lint/tests/mock/test-th-config.yaml"),
             "./",
         )
-        == False # noqa E712
+        == False  # noqa E712
     )

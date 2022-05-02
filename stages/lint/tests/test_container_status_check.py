@@ -30,8 +30,10 @@ def approval_comment():
 
 
 def test_create_api_findings_artifacts(fake_vat_response):
-    assert create_api_findings_artifact(fake_vat_response) == None # noqa E711
+    assert create_api_findings_artifact(fake_vat_response) == None  # noqa E711
 
 
 def test_create_approval_artifact(approval_status, approval_comment):
-    assert create_approval_artifact(approval_status, approval_comment) == None # noqa E711
+    assert (
+        create_approval_artifact(approval_status, approval_comment) == None
+    )  # noqa E711

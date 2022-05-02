@@ -95,13 +95,13 @@ def test_is_approved(mock_vat_response, bad_mock_vat_response):
 
 
 def test_is_accredited(mock_vat_response, bad_mock_vat_response):
-    assert _is_accredited(mock_vat_response) == True # noqa E712
-    assert _is_accredited(bad_mock_vat_response) == False # noqa E712
+    assert _is_accredited(mock_vat_response) == True  # noqa E712
+    assert _is_accredited(bad_mock_vat_response) == False  # noqa E712
 
 
 def test_check_expiration(mock_vat_response, bad_mock_vat_response):
-    assert _check_expiration(mock_vat_response) == True # noqa E712
-    assert _check_expiration(bad_mock_vat_response) == False # noqa E712
+    assert _check_expiration(mock_vat_response) == True  # noqa E712
+    assert _check_expiration(bad_mock_vat_response) == False  # noqa E712
 
 
 def test_get_approval_status():
@@ -114,7 +114,7 @@ def test_get_approval_status():
             branch="development",
             force_approval=False,
         )
-        == True # noqa E712
+        == True  # noqa E712
     )
     assert (
         _get_approval_status(
@@ -125,7 +125,7 @@ def test_get_approval_status():
             branch="development",
             force_approval=False,
         )
-        == False # noqa E712
+        == False  # noqa E712
     )
 
 
