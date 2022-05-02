@@ -14,11 +14,14 @@ from get_oscap_failures import get_redhat_oval_definitions  # noqa E402
 def test_format_reference():
     pass
 
+
 def test_generate_oscap_jobs():
     pass
 
+
 def test_get_oval_findings():
     pass
+
 
 def test_get_redhat_oval_definitions():
     pass
