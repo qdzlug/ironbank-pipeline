@@ -29,6 +29,10 @@ upload-to-s3:
     - vat
   script:
     - '"${PIPELINE_REPO_DIR}/stages/s3/upload-to-s3-run.sh"'
+  artifacts:
+    paths:
+      - reports/
+    expire_in: 1 week
   retry:
     max: 2
     when: runner_system_failure

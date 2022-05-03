@@ -59,6 +59,8 @@ stages:
   # publish artifacts to S3 (runs on development and master)
   - s3-publish
 
+  - stargate
+
 include:
   - local: stages/preprocess/load-scripts.yaml
   - local: stages/scanning/base.yaml
