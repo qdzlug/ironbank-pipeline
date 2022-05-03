@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-from operator import contains
 import sys
 import os
 import logging
 import pytest
-import subprocess
 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

@@ -5,12 +5,13 @@ import json
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from get_oscap_failures import (
-    _format_reference,
-    generate_oscap_jobs,
-    get_oval_findings,
-    get_redhat_oval_definitions,
-)  # noqa E402
+# These will be uncommented when the methods are implemented
+# from get_oscap_failures import (
+#     _format_reference,
+#     generate_oscap_jobs,
+#     get_oval_findings,
+#     get_redhat_oval_definitions,
+# )  # noqa E402
 
 
 def test_format_reference():
