@@ -58,7 +58,7 @@ def is_approved(
         force_approval,
     )
 
-    log.warn(approved)
+    log.warning(approved)
     # Exit codes for Check CVE parsing of VAT response
     # 0   - Container is accredited, accreditation is not expired, and there are no unapproved findings
     # 1   - Either Container is not accredited or the accreditation has expired and the branch is master, or there is an unapproved finding not eligible to be fast tracked

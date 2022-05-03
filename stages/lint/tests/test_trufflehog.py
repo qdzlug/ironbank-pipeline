@@ -9,7 +9,12 @@ import pytest
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from trufflehog import get_commit_diff, get_history_cmd  # noqa E402
+from trufflehog import (
+    get_commit_diff,
+    get_history_cmd,
+    create_trufflehog_config,
+    get_config,
+)  # noqa E402
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
 
@@ -89,3 +94,41 @@ def test_create_history_message(commits_string, single_commit, empty_string):
         "e72223cd59700b6dc45bf30d039fa8dd2055d1ec",
     ]
     assert get_history_cmd(empty_string) == ["--no-history"]
+
+
+def test_get_commit_diff():
+    # TODO implement this
+    pass
+
+
+def test_get_config():
+    assert get_config(pathlib.Path("stages/lint/tests/mock/test-th-config.yaml")) == [
+        {
+            "message": "Standard pipeline config",
+            "paths": ["stages/lint/README.md"],
+            "pattern": "airflow_conf_set",
+        }
+    ]
+
+    # TODO finish this test
+    # assert get_config(Path("")) == None
+
+
+def test_create_trufflehog_config():
+    assert (
+        create_trufflehog_config(
+            pathlib.Path("stages/lint/tests/mock/test-th-config-concat.yaml"),
+            pathlib.Path("stages/lint/tests/mock/test-th-config.yaml"),
+            "./",
+            ["TRUFFLEHOG"],
+        )
+        == True  # noqa E712
+    )
+    assert (
+        create_trufflehog_config(
+            pathlib.Path("stages/lint/tests/mock/test-th-config-concat.yaml"),
+            pathlib.Path("stages/lint/tests/mock/test-th-config.yaml"),
+            "./",
+        )
+        == False  # noqa E712
+    )
