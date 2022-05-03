@@ -111,8 +111,8 @@ unit-testing:
     - python3 -m pytest -m "not slow"
   coverage: '/^TOTAL.+?(\d+\%)$/'
   variables:
-    ARTIFACT_DIR: 'stages/lint/tests/mock'
-    CI_COMMIT_BRANCH: 'development'
+    ARTIFACT_DIR: "stages/lint/tests/mock"
+    CI_COMMIT_BRANCH: "development"
   artifacts:
     reports:
       cobertura: coverage.xml
