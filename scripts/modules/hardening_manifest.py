@@ -136,11 +136,15 @@ class HardeningManifest:
         log.info("Checking image resource sources")
         invalid_sources = []
         for x in self.resources:
-            if x["url"].startswith("docker://") or x["url"].startswith("github://"):
-                invalid_source = self.check_for_invalid_image_source(x)
-                if invalid_source:
-                    log.info(f"Invalid image found: {invalid_source}")
-                    invalid_sources.append(invalid_source)
+            urls = []
+            urls += [x.get("url")] if x.get("url") else x.get("urls")
+            log.info(urls)
+            for url in urls:
+                if url.startswith("docker://") or url.startswith("github://"):
+                    invalid_source = self.check_for_invalid_image_source(x)
+                    if invalid_source:
+                        log.info(f"Invalid image found: {invalid_source}")
+                        invalid_sources.append(invalid_source)
         return invalid_sources
 
     def reject_invalid_maintainers(self) -> list:
