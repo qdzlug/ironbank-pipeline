@@ -138,7 +138,7 @@ class HardeningManifest:
         for x in self.resources:
             urls = []
             urls += [x.get("url")] if x.get("url") else x.get("urls")
-            log.info(urls)
+            log.debug(urls)
             for url in urls:
                 if url.startswith("docker://") or url.startswith("github://"):
                     invalid_source = self.check_for_invalid_image_source(x)
