@@ -1,10 +1,15 @@
 import pytest
 import os
 import sys
+import json
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from vat_container_status import _check_findings  # noqa E402
+from vat_container_status import is_approved  # noqa E402
+from vat_container_status import _is_accredited  # noqa E402
+from vat_container_status import _check_expiration  # noqa E402
+from vat_container_status import _get_approval_status  # noqa E402
 
 
 @pytest.fixture
@@ -60,6 +65,68 @@ def mock_vat_resp_findings():
             },
         },
     ]
+
+
+@pytest.fixture
+def mock_vat_response():
+    with open("scripts/modules/test/mocks/mock_vat_response.json") as f:
+        return json.load(f)
+
+
+@pytest.fixture
+def bad_mock_vat_response():
+    with open("scripts/modules/test/mocks/mock_vat_response_not_accredited.json") as f:
+        return json.load(f)
+
+
+def test_is_approved(mock_vat_response, bad_mock_vat_response):
+    assert is_approved(mock_vat_response, None) == (
+        True,
+        0,
+        "Approved",
+        "Auto Approval derived from previous version redhat/ubi/ubi8:8.4-fips",
+    )
+    assert is_approved(bad_mock_vat_response, None) == (
+        True,
+        0,
+        "Not Accredited",
+        "Auto Approval derived from previous version redhat/ubi/ubi8:8.4-fips",
+    )
+
+
+def test_is_accredited(mock_vat_response, bad_mock_vat_response):
+    assert _is_accredited(mock_vat_response) == True  # noqa E712
+    assert _is_accredited(bad_mock_vat_response) == False  # noqa E712
+
+
+def test_check_expiration(mock_vat_response, bad_mock_vat_response):
+    assert _check_expiration(mock_vat_response) == True  # noqa E712
+    assert _check_expiration(bad_mock_vat_response) == False  # noqa E712
+
+
+def test_get_approval_status():
+    assert (
+        _get_approval_status(
+            exists=True,
+            accredited=True,
+            not_expired=True,
+            ft_ineligible_findings=False,
+            branch="development",
+            force_approval=False,
+        )
+        == True  # noqa E712
+    )
+    assert (
+        _get_approval_status(
+            exists=True,
+            accredited=True,
+            not_expired=True,
+            ft_ineligible_findings=True,
+            branch="development",
+            force_approval=False,
+        )
+        == False  # noqa E712
+    )
 
 
 def test_check_findings(mock_vat_resp_findings):
