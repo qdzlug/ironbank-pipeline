@@ -69,7 +69,7 @@ def main() -> None:
     label_dict = get_source_keys_values(f"{artifact_storage}/lint/labels.env")
 
     approval_status, approval_text = get_approval_status(
-        f"{artifact_storage}/lint/image_approval.json"
+        f"{artifact_storage}/vat/vat_response.json"
     )
 
     digest = os.environ["IMAGE_PODMAN_SHA"].replace("sha256:", "")

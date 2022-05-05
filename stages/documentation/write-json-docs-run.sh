@@ -21,8 +21,8 @@ GPG_PUB_KEY=$(awk '{printf "%s\\n", $0}' "${IB_CONTAINER_GPG_PUBKEY}")
 # Create manifest.json
 export IMAGE_VERSION
 export CI_COMMIT_SHA
-IMAGE_APPROVAL_STATUS=$(jq -r .IMAGE_APPROVAL_STATUS "${ARTIFACT_STORAGE}/lint/image_approval.json")
-export IMAGE_APPROVAL_STATUS
+IMAGE_ACCREDITATION=$(jq -r .accreditation "${ARTIFACT_STORAGE}/vat/vat_response.json")
+export IMAGE_ACCREDITATION
 export IMAGE_PODMAN_SHA
 export GPG_PUB_KEY
 export GPG_VERSION_INFO
@@ -38,7 +38,7 @@ jq -n '
 {
   "buildTag": env.IMAGE_VERSION,
   "buildNumber": env.CI_PIPELINE_ID,
-  "approval": env.IMAGE_APPROVAL_STATUS,
+  "approval": env.IMAGE_ACCREDITATION,
   "image": {
     "digest": env.IMAGE_PODMAN_SHA
   },
