@@ -253,6 +253,6 @@ def get_approval_status(source_file) -> tuple[str, str]:
     if os.path.exists(source_file):
         with open(source_file, mode="r", encoding="utf-8") as sf:
             approval_object = json.load(sf)
-    approval_status = approval_object["IMAGE_APPROVAL_STATUS"]
-    approval_text = approval_object["IMAGE_APPROVAL_TEXT"]
+    approval_status = approval_object["accreditation"]
+    approval_text = approval_object["accreditationComment"]
     return approval_status, approval_text
