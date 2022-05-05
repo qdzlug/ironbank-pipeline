@@ -4,7 +4,7 @@
   "definitions": {
     "printable-characters-without-newlines": {
       "type": "string",
-      "pattern": "^[ -~]*$",
+      "pattern": "^(?!\\s*$)[ -~|]*$",
       "minLength": 1
     },
     "printable-characters-without-newlines-or-slashes": {
