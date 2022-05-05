@@ -25,12 +25,11 @@ The job can accept a config file as long as it is named `trufflehog-config.yaml`
 An example config file looks like the following
 
 ```yaml
-skip_strings:
-  # These are the false positives we want to ignore
-  # will only be skipped in corresponding files
-  rootfs/opt/bitnami/scripts/libairflow.sh:
-    - "<string of secret>"
-# The config file must be skipped by truffleHog
-skip_paths:
-  - trufflehog-config.yaml
+exclude:
+  - message: Ignore secretstorage
+    # These are the false positives we want to ignore
+    # will only be skipped in corresponding files
+    pattern: secretstorage
+    paths: 
+      - config/linux-64/repodata.json
 ```
