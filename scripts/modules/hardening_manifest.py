@@ -254,5 +254,5 @@ def get_approval_status(source_file) -> tuple[str, str]:
         with open(source_file, mode="r", encoding="utf-8") as sf:
             approval_object = json.load(sf)
     approval_status = approval_object["accreditation"]
-    approval_text = approval_object["accreditationComment"]
+    approval_text = approval_object.get("accreditationComment")
     return approval_status, approval_text
