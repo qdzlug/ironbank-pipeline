@@ -46,6 +46,9 @@ def skopeo_inspect_base_image(base_image, base_tag):
         "--authfile",
         auth_file,
         f"docker://registry1.dso.mil/{registry}/{base_image}:{base_tag}",
+        "|",
+        "jq",
+        "'.Digest'"
     ]
     log.info(" ".join(cmd))
     # if skopeo inspect fails, because BASE_IMAGE value doesn't match a registry1 container name
@@ -57,6 +60,9 @@ def skopeo_inspect_base_image(base_image, base_tag):
             stderr=subprocess.PIPE,
             check=True,
         )
+        sha_value = subprocess.stout
+        with (os.environ["ARTIFACT_DIR"] / "labels.env").open("w") as f:
+            f.write(f"mil.dso.ironbank.image.parent=registry1.dso.mil/{registry}/{base_image}:{base_tag}@{sha_value}")
     except subprocess.CalledProcessError as e:
         log.error(
             "Failed to inspect BASE_IMAGE:BASE_TAG provided in hardening_manifest. \
