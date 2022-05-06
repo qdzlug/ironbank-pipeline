@@ -95,7 +95,7 @@ def main() -> None:
             "Image_Tag": os.environ["image_tag"],
             "Manifest_Name": os.environ["manifest_name"],
             "Approval_Status": approval_status,
-            "Approval_Text": approval_text,
+            "Approval_Text": approval_text if approval_text else "",
             "Image_Name": os.environ["image_name"],
             "Version_Documentation": os.environ["version_documentation"],
             "PROJECT_FILE": os.environ["project_license"],
