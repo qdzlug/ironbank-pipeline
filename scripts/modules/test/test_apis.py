@@ -4,10 +4,11 @@ import logging
 from unittest import mock
 import pytest
 import requests
+from dataclasses import dataclass
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from apis import *
-from utils import logger
+from apis import API, VatAPI, request_error_handler  # noqa E402
+from utils import logger  # noqa E402
 
 
 @pytest.fixture
@@ -111,7 +112,7 @@ def test_request_error_handler(caplog, mock_responses):
 
     logging.info("It shouldn't throw exception on 200")
     mock_request = MockRequest(mock_responses["200"])
-    response = mock_request.mock_func()
+    mock_request.mock_func()
     assert mock_request.response.text == "successful_request"
     assert mock_request.response.status_code == 200
     for record in caplog.records:
@@ -144,12 +145,12 @@ def test_request_error_handler(caplog, mock_responses):
 
     mock_request = MockRequest(mock_responses["requestErr"])
     mock_request.mock_func()
-    assert mock_request.response == None
+    assert mock_request.response is None
     assert "Could not access VAT" in caplog.text
     caplog.clear()
 
     mock_request = MockRequest(mock_responses["runErr"])
     mock_request.mock_func()
-    assert mock_request.response == None
+    assert mock_request.response is None
     assert "Unexpected exception" in caplog.text
     caplog.clear()
