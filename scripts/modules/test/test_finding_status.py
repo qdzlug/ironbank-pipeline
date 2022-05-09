@@ -2,6 +2,7 @@ import pytest
 import os
 import sys
 import json
+from unittest import mock
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -79,7 +80,10 @@ def bad_mock_vat_response():
         return json.load(f)
 
 
+@mock.patch.dict(os.environ, {"CI_COMMIT_BRANCH": "example"})
 def test_is_approved(mock_vat_response, bad_mock_vat_response):
+    # os.environ['CI_COMMIT_BRANCH'] = "example"
+    # monkeypatch.setattr(os, 'environ', "example")
     assert is_approved(mock_vat_response, None) == (
         True,
         0,
