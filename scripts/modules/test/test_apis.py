@@ -26,6 +26,13 @@ class MockSessionResponse:
     status_code: int
     text: str
 
+    def raise_for_status(self):
+        if self.status_code != 200:
+            raise requests.exceptions.HTTPError
+
+    def json(self):
+        return {"status_code": self.status_code, "text": self.text}
+
 
 # Various responses for a mocked request object (200, 400, 403, 500)
 @pytest.fixture
@@ -90,6 +97,7 @@ class MockRequest:
         self.response = None
         self.log = logger.setup("mock_request_log")
 
+    # TODO: refactor this function out of this class and handle raise for status in response
     def raise_for_status(self):
         if self.response.status_code != 200:
             raise requests.exceptions.HTTPError
@@ -153,4 +161,54 @@ def test_request_error_handler(caplog, mock_responses):
     mock_request.mock_func()
     assert mock_request.response is None
     assert "Unexpected exception" in caplog.text
+    caplog.clear()
+
+
+def test_get_image_success(monkeypatch, caplog, mock_vat_api):
+    def mock_response(url: str, params: dict):
+        return MockSessionResponse(200, "successful_request")
+
+    monkeypatch.setattr(requests, "get", mock_response)
+    mock_vat_api.get_image("example/example/example", "1.0")
+    assert "Fetched data from vat successfully" in caplog.text
+    caplog.clear()
+
+
+def test_get_image_404(monkeypatch, caplog, mock_vat_api):
+    def mock_response(url: str, params: dict):
+        return MockSessionResponse(404, "not_found")
+
+    monkeypatch.setattr(requests, "get", mock_response)
+    mock_vat_api.get_image("example/example/example", "1.0")
+    assert "not found in" in caplog.text
+    caplog.clear()
+
+
+@mock.patch.dict(os.environ, {"CI_JOB_JWT_V2": "abcdefg"})
+def test_check_access_success(monkeypatch, caplog, mock_vat_api):
+    def mock_response(url: str, params: dict, headers: dict):
+        return MockSessionResponse(200, "successful_request")
+
+    monkeypatch.setattr(requests, "get", mock_response)
+    mock_vat_api.check_access("example/example/example")
+    for record in caplog.records:
+        assert record.levelname != "WARNING"
+    caplog.clear()
+
+
+@mock.patch.dict(
+    os.environ,
+    {
+        "CI_JOB_JWT_V2": "abcdefg",
+        "CI_PROJECT_NAME": "example/example/example",
+        "CI_PROJECT_URL": "https://example.invalid",
+    },
+)
+def test_check_access_failure(monkeypatch, caplog, mock_vat_api):
+    def mock_response(url: str, params: dict, headers: dict):
+        return MockSessionResponse(403, "bad_auth")
+
+    monkeypatch.setattr(requests, "get", mock_response)
+    mock_vat_api.check_access("example/example/example")
+    assert "is not authorized to use the image name of:" in caplog.text
     caplog.clear()
