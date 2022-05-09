@@ -130,7 +130,8 @@
         },
         "org.opencontainers.image.licenses": {
           "$comment": "See https://spdx.org/licenses/",
-          "$ref": "#/definitions/printable-characters-without-newlines"
+          "$ref": "#/definitions/printable-characters-without-newlines",
+          "maxLength": 255
         },
         "org.opencontainers.image.url": {
           "format": "uri",
