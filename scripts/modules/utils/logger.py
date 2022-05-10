@@ -12,7 +12,9 @@ def setup(name="main", level=None, format=None, debug_file=None):
         if level == "DEBUG"
         else "| %(name)-28s | %(levelname)-8s | %(message)s"
     )
-    format = format if format else default_format
+    # if format is truthy, use format
+    # else if falsy, use default format
+    format = format or default_format
     logging.basicConfig(level=level, stream=sys.stdout, format=format)
     logger = logging.getLogger(name)
     logger.setLevel(level)

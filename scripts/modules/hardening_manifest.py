@@ -118,7 +118,7 @@ class HardeningManifest:
         Returns list of keys in hardening manifest labels whose value contains FIXME (case insensitve)
         """
         log.info("Checking label values")
-        invalid_labels = self.check_for_fixme(self.labels)
+        invalid_labels = self.check_for_fixme(labels or self.labels)
         for k in invalid_labels:
             log.error(f"FIXME found in {k}")
         return invalid_labels
