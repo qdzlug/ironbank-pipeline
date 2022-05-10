@@ -1,15 +1,12 @@
-import pytest
 import logging
 import sys
 import os
 from unittest import mock
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils import logger
+from utils import logger  # noqa E402
 
-# This doesn't work without `from utils import logger` inside the test
-# After this test successfully passes, `assert log.level == logging.INFO` fails below even after unsetting the env var and reimporting logger
-# TODO: Get this test working with the tests below
+
 @mock.patch.dict(os.environ, {"LOGLEVEL": "DEBUG"})
 def test_setup_env_vars():
     logging.info("It should use env var to set level")
