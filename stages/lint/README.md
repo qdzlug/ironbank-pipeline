@@ -30,6 +30,6 @@ exclude:
     # These are the false positives we want to ignore
     # will only be skipped in corresponding files
     pattern: secretstorage
-    paths: 
+    paths:
       - config/linux-64/repodata.json
 ```
