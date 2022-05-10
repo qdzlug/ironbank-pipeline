@@ -7,6 +7,7 @@ import pytest
 import pathlib
 import json
 import yaml
+import time
 import jsonschema
 from unittest.mock import patch, mock_open, Mock
 from dataclasses import dataclass
@@ -53,7 +54,7 @@ class MockJsonschemaFailure(Mock):
 
 
 @pytest.fixture
-def load_good_labels():
+def mock_good_labels():
     return {
         "org.opencontainers.image.title": "ubi8-minimal",
         "org.opencontainers.image.description": "Red Hat Universal Base Images (UBI) \
@@ -70,7 +71,7 @@ def load_good_labels():
 
 
 @pytest.fixture
-def load_bad_labels():
+def mock_bad_labels():
     return {
         "org.opencontainers.image.title": "ubi8-minimal",
         "org.opencontainers.image.description": "Red Hat Universal Base Images (UBI) \
@@ -87,7 +88,7 @@ def load_bad_labels():
 
 
 @pytest.fixture
-def load_good_maintainers():
+def mock_good_maintainers():
     return {
         "name": "Example Examp",
         "username": "example",
@@ -96,7 +97,7 @@ def load_good_maintainers():
 
 
 @pytest.fixture
-def load_bad_maintainers():
+def mock_bad_maintainers():
     return {
         "name": "FIXME",
         "username": "example",
@@ -160,7 +161,11 @@ def test_validate_schema_with_timeout(monkeypatch, caplog, hm):
     def mock_failed_process(target="", args=()):
         return MockProcess(alive=False, exitcode=1)
 
+    def mock_sleep(val):
+        pass
+
     caplog.set_level(logging.INFO)
+    monkeypatch.setattr(time, "sleep", mock_sleep)
 
     logging.info("It should successfully validate the hardening manifest")
     monkeypatch.setattr(multiprocessing, "Pipe", mock_pipe)
@@ -200,9 +205,7 @@ def test_validate_schema(monkeypatch, caplog, hm):
     monkeypatch.setattr(json, "load", mock_json_load)
     # mocking instance method: jsonschema.Draft201909Validator().validate()
     logging.info("It should successfully validate the schema")
-    with patch(
-        target="jsonschema.Draft201909Validator", new=MockJsonschema
-    ) as mock_validator:
+    with patch(target="jsonschema.Draft201909Validator", new=MockJsonschema):
         hm.validate_schema(MockConnection())
 
         logging.info(
@@ -215,17 +218,32 @@ def test_validate_schema(monkeypatch, caplog, hm):
 
     logging.info("It should exit on schema validation errors")
     with pytest.raises(SystemExit) as exc_info:
-        with patch(
-            "jsonschema.Draft201909Validator", new=MockJsonschemaFailure
-        ) as mock_validator:
+        with patch("jsonschema.Draft201909Validator", new=MockJsonschemaFailure):
             hm.validate_schema(MockConnection())
     assert exc_info.type == SystemExit
 
 
 def test_find_fixme(
-    hm, load_good_labels, load_good_maintainers, load_bad_labels, load_bad_maintainers
+    hm, mock_good_labels, mock_good_maintainers, mock_bad_labels, mock_bad_maintainers
 ):
-    assert hm.check_for_fixme(load_good_labels) == []
-    assert hm.check_for_fixme(load_good_maintainers) == []
-    assert hm.check_for_fixme(load_bad_labels) == ["org.opencontainers.image.licenses"]
-    assert hm.check_for_fixme(load_bad_maintainers) == ["name"]
+    assert hm.check_for_fixme(mock_good_labels) == []
+    assert hm.check_for_fixme(mock_good_maintainers) == []
+    assert hm.check_for_fixme(mock_bad_labels) == ["org.opencontainers.image.licenses"]
+    assert hm.check_for_fixme(mock_bad_maintainers) == ["name"]
+
+
+def test_reject_invalid_labels(
+    monkeypatch, caplog, hm, mock_good_labels, mock_bad_labels
+):
+    def mock_good_check_for_fixme(_, subcontent):
+        return []
+
+    def mock_bad_check_for_fixme(_, subcontent):
+        return subcontent.keys()
+
+    monkeypatch.setattr(HardeningManifest, "check_for_fixme", mock_good_check_for_fixme)
+    assert hm.reject_invalid_labels(mock_good_labels) == []
+    monkeypatch.setattr(HardeningManifest, "check_for_fixme", mock_bad_check_for_fixme)
+    assert hm.reject_invalid_labels(mock_bad_labels) == mock_bad_labels.keys()
+    assert "FIXME found in" in caplog.text
+    caplog.clear()
