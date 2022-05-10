@@ -15,6 +15,7 @@ LOG_FORMAT = (
 def setup(name="main", level=LOG_LEVEL, format=LOG_FORMAT, debug_file=None):
     logging.basicConfig(level=level, stream=sys.stdout, format=format)
     logger = logging.getLogger(name)
+    logger.setLevel(level)
     if debug_file:
         formatter = logging.Formatter(format)
         fileHandler = logging.FileHandler(debug_file)
