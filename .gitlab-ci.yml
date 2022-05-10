@@ -2,6 +2,8 @@
 # See https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
 # Note that environment variables can be set in several places
 # See https://docs.gitlab.com/ee/ci/variables/#priority-of-environment-variables
+image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:0.5"
+
 stages:
   - secret-scanning
   - format
@@ -13,7 +15,7 @@ trufflehog:
   tags:
     - ironbank-tools
   stage: secret-scanning
-  image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.4
+  image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.5
   variables:
     # This forces the trufflehog job to NOT perform a shallow clone
     GIT_DEPTH: 0
@@ -60,7 +62,6 @@ black:
   tags:
     - ironbank-tools
   stage: format
-  image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:0.4"
   script:
     - pip install --user black
     - black --check --diff --color -t py39 .
@@ -70,9 +71,6 @@ pylama:
   tags:
     - ironbank-tools
   stage: lint
-  image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:0.4"
-  dependencies:
-    - black
   script:
     - pip install --user pylama
     - pylama
@@ -83,7 +81,7 @@ prettier:
   tags:
     - ironbank-tools
   stage: format
-  image: "registry1.dso.mil/ironbank/opensource/nodejs/nodejs12:12.22.7"
+  image: "registry1.dso.mil/ironbank/opensource/nodejs/nodejs14:14.19.1"
   script:
     - npx prettier -c .
 
@@ -92,7 +90,7 @@ shfmt:
   tags:
     - ironbank-tools
   stage: format
-  image: "registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.4"
+  image: "registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5"
   script:
     - dnf install wget -y
     - wget https://github.com/mvdan/sh/releases/download/v3.1.2/shfmt_v3.1.2_linux_amd64
@@ -104,7 +102,6 @@ unit-testing:
   tags:
     - ironbank-tools
   stage: test
-  image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:0.4"
   script:
     - python3 -m pip install --user pytest-cov
     - python3 -m pip install --user dockerfile
