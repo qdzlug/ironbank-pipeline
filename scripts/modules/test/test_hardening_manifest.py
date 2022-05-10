@@ -1,18 +1,55 @@
 #!/usr/bin/env python3
-from dataclasses import dataclass
 import multiprocessing
 import sys
 import os
 import logging
 import pytest
-from pathlib import Path
-from unittest import mock
+import pathlib
+import json
+import yaml
+import jsonschema
+from unittest.mock import patch, mock_open, Mock
+from dataclasses import dataclass
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from hardening_manifest import HardeningManifest  # noqa E402
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
+
+
+@dataclass
+class MockConnection:
+    def send(self, message):
+        logging.info(f"{message} sent")
+
+    def recv(self):
+        logging.info("message received")
+
+
+@dataclass
+class MockProcess:
+    alive: bool = True
+    exitcode: int = 0
+
+    def start(self):
+        return None
+
+    def is_alive(self):
+        return self.alive
+
+    def terminate(self):
+        self.alive = False
+
+
+class MockJsonschema(Mock):
+    def validate(self, content):
+        pass
+
+
+class MockJsonschemaFailure(Mock):
+    def validate(self, content):
+        raise jsonschema.ValidationError("invalid schema")
 
 
 @pytest.fixture
@@ -70,7 +107,10 @@ def load_bad_maintainers():
 @pytest.fixture
 def hm():
     return HardeningManifest(
-        Path(Path(__file__).absolute().parent, "mocks/mock_hardening_manifest.yaml")
+        pathlib.Path(
+            pathlib.Path(__file__).absolute().parent,
+            "mocks/mock_hardening_manifest.yaml",
+        )
     )
 
 
@@ -86,15 +126,6 @@ def mock_empty():
         return ""
 
     return {"none": mock_none, "arr": mock_empty_arr, "str": mock_empty_str}
-
-
-def test_find_fixme(
-    hm, load_good_labels, load_good_maintainers, load_bad_labels, load_bad_maintainers
-):
-    assert hm.check_for_fixme(load_good_labels) == []
-    assert hm.check_for_fixme(load_good_maintainers) == []
-    assert hm.check_for_fixme(load_bad_labels) == ["org.opencontainers.image.licenses"]
-    assert hm.check_for_fixme(load_bad_maintainers) == ["name"]
 
 
 def test_validate(monkeypatch, caplog, hm, mock_empty):
@@ -115,28 +146,10 @@ def test_validate(monkeypatch, caplog, hm, mock_empty):
     caplog.clear()
 
 
-@dataclass
-class MockProcess:
-    alive: bool = True
-    exitcode: int = 0
-
-    def recv(self):
-        return None
-
-    def start(self):
-        return None
-
-    def is_alive(self):
-        return self.alive
-
-    def terminate(self):
-        self.alive = False
-
-
-@mock.patch.dict(os.environ, {"HM_VERIFY_TIMEOUT": "1"})
+@patch.dict(os.environ, {"HM_VERIFY_TIMEOUT": "1"})
 def test_validate_schema_with_timeout(monkeypatch, caplog, hm):
     def mock_pipe():
-        return (MockProcess(), MockProcess())
+        return (MockConnection(), MockConnection())
 
     def mock_successful_process(target="", args=()):
         return MockProcess(alive=False)
@@ -172,3 +185,47 @@ def test_validate_schema_with_timeout(monkeypatch, caplog, hm):
     assert exc_info2.type == SystemExit
     assert "Hardening Manifest failed jsonschema validation" in caplog.text
     caplog.clear()
+
+
+def test_validate_schema(monkeypatch, caplog, hm):
+    def mock_yaml_load(f):
+        # intentionally returning str instead of dict from yaml to ensure jsonschema is being mocked correctly
+        return "a"
+
+    def mock_json_load(f):
+        return {"properties": {"labels": {"patternProperties": ""}}}
+
+    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data="data"))
+    monkeypatch.setattr(yaml, "safe_load", mock_yaml_load)
+    monkeypatch.setattr(json, "load", mock_json_load)
+    # mocking instance method: jsonschema.Draft201909Validator().validate()
+    logging.info("It should successfully validate the schema")
+    with patch(
+        target="jsonschema.Draft201909Validator", new=MockJsonschema
+    ) as mock_validator:
+        hm.validate_schema(MockConnection())
+
+        logging.info(
+            "It should successfully validate the schema, and pattern properties"
+        )
+        with patch.dict(
+            os.environ, {"LABEL_ALLOWLIST_REGEX": r"^mil\.dso\.ironbank\.os-type$"}
+        ):
+            hm.validate_schema(MockConnection())
+
+    logging.info("It should exit on schema validation errors")
+    with pytest.raises(SystemExit) as exc_info:
+        with patch(
+            "jsonschema.Draft201909Validator", new=MockJsonschemaFailure
+        ) as mock_validator:
+            hm.validate_schema(MockConnection())
+    assert exc_info.type == SystemExit
+
+
+def test_find_fixme(
+    hm, load_good_labels, load_good_maintainers, load_bad_labels, load_bad_maintainers
+):
+    assert hm.check_for_fixme(load_good_labels) == []
+    assert hm.check_for_fixme(load_good_maintainers) == []
+    assert hm.check_for_fixme(load_bad_labels) == ["org.opencontainers.image.licenses"]
+    assert hm.check_for_fixme(load_bad_maintainers) == ["name"]
