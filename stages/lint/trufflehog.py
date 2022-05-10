@@ -102,12 +102,10 @@ def main() -> None:
             log.error("=" * len(msg))
             log.error("The offending commits must be removed from commit history")
             log.error(
-                "Secrets committed to a git repository are considered exposed \
-                     and should be rolled immediately"
+                "Secrets committed to a git repository are considered exposed and should be rolled immediately"
             )
             log.error(
-                "To review truffleHog findings locally run the following \
-                    command from the root of your project"
+                "To review truffleHog findings locally run the following command from the root of your project"
             )
             log.error(msg)
         else:

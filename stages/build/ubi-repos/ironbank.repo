@@ -1,23 +1,15 @@
-[ubi-8-baseos]
-name = Red Hat Universal Base Image 8 (RPMs) - BaseOS
-baseurl = http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/ubi-8-baseos/
+[ubi]
+name = Red Hat Universal Base Image (RPMs)
+baseurl = http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/ubigroup-$releasever/
 enabled = 1
 gpgkey = file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
 gpgcheck = 1
-timeout = 5
 
-[ubi-8-appstream]
-name = Red Hat Universal Base Image 8 (RPMs) - AppStream
-baseurl = http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/ubi-8-appstream/
+[ubi-appstream]
+# https://issues.sonatype.org/browse/NEXUS-21311
+name = Red Hat Universal Base Image (RPMs) - AppStream
+baseurl = http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/ubi-$releasever-appstream/
 enabled = 1
 gpgkey = file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
 gpgcheck = 1
-timeout = 5
-
-[ubi-8-codeready-builder]
-name = Red Hat Universal Base Image 8 (RPMs) - CodeReady Builder
-baseurl = http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/ubi-8-codeready-builder/
-enabled = 1
-gpgkey = file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
-gpgcheck = 1
-timeout = 5
+skip_if_unavailable = 1
