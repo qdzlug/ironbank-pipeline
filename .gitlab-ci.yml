@@ -2,7 +2,7 @@
 # See https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
 # Note that environment variables can be set in several places
 # See https://docs.gitlab.com/ee/ci/variables/#priority-of-environment-variables
-image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:0.5"
+image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.5.0"
 
 stages:
   - secret-scanning
