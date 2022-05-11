@@ -37,17 +37,19 @@ def getProjects(gl, targetGroup):
         except gitlab.exceptions.GitlabHttpError as e:
             print(e)
         except requests.exceptions.ConnectionError as e:
-            print(f'  - [{i}/{retries}] Failed retreiving project due to: {e}')
+            print(f"  - [{i}/{retries}] Failed retreiving project due to: {e}")
 
         if not group:
             break
 
         try:
-            return group.projects.list(all=True, as_list=True, include_subgroups=True, archived=False)
+            return group.projects.list(
+                all=True, as_list=True, include_subgroups=True, archived=False
+            )
         except gitlab.exceptions.GitlabHttpError as e:
-            print(f'  - [{i}/{retries}] Failed retreiving projects due to: {e}')
+            print(f"  - [{i}/{retries}] Failed retreiving projects due to: {e}")
         except requests.exceptions.ConnectionError as e:
-            print(f'  - [{i}/{retries}] Failed retreiving project due to: {e}')
+            print(f"  - [{i}/{retries}] Failed retreiving project due to: {e}")
 
 
 @readlimiter.ratelimit("readlimiter", delay=True)
@@ -57,39 +59,45 @@ def getProject(gl, projectId):
         try:
             return gl.projects.get(projectId)
         except gitlab.exceptions.GitlabHttpError as e:
-            print(f'  - [{i}/{retries}] Failed retreiving project due to: {e}')
+            print(f"  - [{i}/{retries}] Failed retreiving project due to: {e}")
         except requests.exceptions.ConnectionError as e:
-            print(f'  - [{i}/{retries}] Failed retreiving project due to: {e}')
+            print(f"  - [{i}/{retries}] Failed retreiving project due to: {e}")
 
 
 @readlimiter.ratelimit("readlimiter", delay=True)
 def getManifest(project):
-    parent = ''
-    image = ''
-    tag = ''
+    parent = ""
+    image = ""
+    tag = ""
 
     for i in range(1, retries + 1):
         try:
-            manifest = project.files.get(file_path='hardening_manifest.yaml', ref='master')
+            manifest = project.files.get(
+                file_path="hardening_manifest.yaml", ref="master"
+            )
             contents = yaml.load(manifest.decode(), Loader=yaml.FullLoader)
 
-            parent = contents['args']['BASE_IMAGE']
-            image = contents['name']
-            tag = contents['tags'][0]
+            parent = contents["args"]["BASE_IMAGE"]
+            image = contents["name"]
+            tag = contents["tags"][0]
         except gitlab.exceptions.GitlabHttpError as e:
-            print(f'  - [{i}/{retries}] Failed retreiving pipeline job trace due to: {e}')
+            print(
+                f"  - [{i}/{retries}] Failed retreiving pipeline job trace due to: {e}"
+            )
 
-            parent = ''
-            image = ''
-            tag = ''
+            parent = ""
+            image = ""
+            tag = ""
         except requests.exceptions.ConnectionError as e:
-            print(f'  - [{i}/{retries}] Failed retreiving project due to: {e}')
+            print(f"  - [{i}/{retries}] Failed retreiving project due to: {e}")
 
-            parent = ''
-            image = ''
-            tag = ''
+            parent = ""
+            image = ""
+            tag = ""
 
     return parent, image, tag
+
+
 #################################################
 
 #################################################
@@ -109,15 +117,16 @@ def createBaseImageIssue(project, image):
     body = template.render(image=image)
 
     # Create the ticket
-    issue = project.issues.create({
-        'title': 'Update base image for ' + image,
-        'description': body
-    })
+    issue = project.issues.create(
+        {"title": "Update base image for " + image, "description": body}
+    )
 
     if issue:
         return True
     else:
         return False
+
+
 #################################################
 
 # Check image against VAT api to validate status is active
@@ -130,7 +139,7 @@ def checkVatStatus(image, tag):
 
         checkImage = r.json()
 
-        if checkImage['lifecycle'] != "Active":
+        if checkImage["lifecycle"] != "Active":
             return False
 
         return True
@@ -138,6 +147,7 @@ def checkVatStatus(image, tag):
         print(e)
     except requests.exceptions.RequestException as e:
         print(e)
+
 
 # Main function
 
@@ -157,20 +167,39 @@ def main(argv):
     usage.append("notifier.py <args>")
     usage.append("Argument                  Description")
     usage.append("  --gitlab-url            The URL to the GitLab instance.")
-    usage.append("  --gitlab-token          The access token to use when querying the GitLab instance.")
-    usage.append("  --target-group          The GitLab group to target and apply templates to all subprojects. Defaults to '40'")
-    usage.append("  --base-image            The base image to detect. Defaults to 'redhat/ubi/ubi8'")
-    usage.append("  --retries               Optional. Specifies the maximum number of retries for failed API calls. Defaults to 3.")
+    usage.append(
+        "  --gitlab-token          The access token to use when querying the GitLab instance."
+    )
+    usage.append(
+        "  --target-group          The GitLab group to target and apply templates to all subprojects. Defaults to '40'"
+    )
+    usage.append(
+        "  --base-image            The base image to detect. Defaults to 'redhat/ubi/ubi8'"
+    )
+    usage.append(
+        "  --retries               Optional. Specifies the maximum number of retries for failed API calls. Defaults to 3."
+    )
 
     try:
-        opts, args = getopt.getopt(argv, "h", ["gitlab-url=", "gitlab-token=", "target-group=", "retries=", "create-issue", "trigger-pipeline"])
+        opts, args = getopt.getopt(
+            argv,
+            "h",
+            [
+                "gitlab-url=",
+                "gitlab-token=",
+                "target-group=",
+                "retries=",
+                "create-issue",
+                "trigger-pipeline",
+            ],
+        )
     except getopt.GetoptError:
         for i in usage:
             print(i)
         sys.exit(2)
 
     for opt, arg in opts:
-        if opt == '-h':
+        if opt == "-h":
             print(usage)
             sys.exit()
         elif opt in ("--gitlab-url"):
@@ -186,7 +215,7 @@ def main(argv):
 
     # Make sure the retries are greater than 0
     if retries < 1:
-        print('Retries must have a value greater than 0.')
+        print("Retries must have a value greater than 0.")
         print()
 
         for i in usage:
@@ -198,7 +227,7 @@ def main(argv):
 
     # Get a list of all the Gitlab projects. Additionally, to reduce API calls later
     # we just go ahead and do them all now with `as_list=True`.
-    print('Getting a list of all projects...')
+    print("Getting a list of all projects...")
     projects = getProjects(gl, targetGroup)
 
     # Initialize array for the tickets and MRs we want to create later
@@ -207,7 +236,7 @@ def main(argv):
     # Loop through each of the projects
     current = 1
     total = len(projects)
-    print('Processing projects... ')
+    print("Processing projects... ")
     for project in projects:
         # We don't truly have a project object that we can act upon (we have a GroupProject), so
         # we need another API call to get a proper Project object.
@@ -215,7 +244,7 @@ def main(argv):
 
         # Indicate to the user how far along we are
         percent = round((current / total) * 100, 1)
-        print(f'[{current}/{total} - {percent}%] {project.path_with_namespace}')
+        print(f"[{current}/{total} - {percent}%] {project.path_with_namespace}")
 
         # Get the parent and the image name from the hardening manifest
         parent, image, tag = getManifest(project)
@@ -225,20 +254,21 @@ def main(argv):
             print(f"Processing active image {image}:{tag} with parent {parent}")
 
             if parent == baseImage:
-                baseImageIssues.append({
-                    'project':  project,
-                    'image':    image
-                })
+                baseImageIssues.append({"project": project, "image": image})
 
         current += 1
 
     # Print/create the number of issues
     print()
-    print(f'Total new base image tickets to create: {len(baseImageIssues)}')
+    print(f"Total new base image tickets to create: {len(baseImageIssues)}")
     if baseImageIssues:
         for i in range(0, len(baseImageIssues)):
-            print(f'[{i+1}/{len(baseImageIssues)} - {(round((i+1)/len(baseImageIssues)*100,1))}%] Creating issue for {baseImageIssues[i]["project"].path_with_namespace}')
-            createBaseImageIssue(baseImageIssues[i]['project'], baseImageIssues[i]['image'])
+            print(
+                f'[{i+1}/{len(baseImageIssues)} - {(round((i+1)/len(baseImageIssues)*100,1))}%] Creating issue for {baseImageIssues[i]["project"].path_with_namespace}'
+            )
+            createBaseImageIssue(
+                baseImageIssues[i]["project"], baseImageIssues[i]["image"]
+            )
         print()
 
 
