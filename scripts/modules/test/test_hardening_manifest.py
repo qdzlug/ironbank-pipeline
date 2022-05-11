@@ -106,6 +106,34 @@ def mock_bad_maintainers():
 
 
 @pytest.fixture
+def mock_good_image_sources():
+    return [
+        {
+            "tag": "registry.example.com/example:1.0",
+            "url": "docker://registry.example.com/example@sha256:4d736d84721c8fa09d5b0f5988da5f34163d407d386cc80b62cbf933ea5124e8",
+        },
+    ]
+
+
+@pytest.fixture
+def mock_bad_image_sources():
+    return [
+        {
+            "tag": "registry1.dso.mil/example:1.0",
+            "url": "docker://registry.example.com/example@sha256:4d736d84721c8fa09d5b0f5988da5f34163d407d386cc80b62cbf933ea5124e8",
+        },
+        {
+            "tag": "registry.example.com/example:1.0",
+            "url": "docker://registry1.dso.mil/example@sha256:4d736d84721c8fa09d5b0f5988da5f34163d407d386cc80b62cbf933ea5124e8",
+        },
+        {
+            "tag": "registry1.dso.mil/example:1.0",
+            "url": "docker://registry1.dso.mil/example@sha256:4d736d84721c8fa09d5b0f5988da5f34163d407d386cc80b62cbf933ea5124e8",
+        },
+    ]
+
+
+@pytest.fixture
 def hm():
     return HardeningManifest(
         pathlib.Path(
@@ -127,6 +155,22 @@ def mock_empty():
         return ""
 
     return {"none": mock_none, "arr": mock_empty_arr, "str": mock_empty_str}
+
+
+def test_init(monkeypatch, caplog):
+    def mock_validate(_):
+        logging.info("validated")
+
+    monkeypatch.setattr(HardeningManifest, "validate", mock_validate)
+    hm_path = pathlib.Path(
+        pathlib.Path(__file__).absolute().parent,
+        "mocks/mock_hardening_manifest.yaml",
+    )
+    HardeningManifest(hm_path)
+    assert "validated" not in caplog.text
+    caplog.clear()
+    HardeningManifest(hm_path, validate=True)
+    assert "validated" in caplog.text
 
 
 def test_validate(monkeypatch, caplog, hm, mock_empty):
@@ -241,9 +285,35 @@ def test_reject_invalid_labels(
     def mock_bad_check_for_fixme(_, subcontent):
         return subcontent.keys()
 
+    logging.info("It should accept valid labels")
     monkeypatch.setattr(HardeningManifest, "check_for_fixme", mock_good_check_for_fixme)
     assert hm.reject_invalid_labels(mock_good_labels) == []
+
+    logging.info("It should reject invalid labels")
     monkeypatch.setattr(HardeningManifest, "check_for_fixme", mock_bad_check_for_fixme)
     assert hm.reject_invalid_labels(mock_bad_labels) == mock_bad_labels.keys()
     assert "FIXME found in" in caplog.text
     caplog.clear()
+
+
+def test_check_for_invalid_image_source(
+    hm, mock_good_image_sources, mock_bad_image_sources
+):
+    logging.info("It should accept valid image sources")
+    for image_source in mock_good_image_sources:
+        assert hm.check_for_invalid_image_source(image_source) is None
+
+    logging.info("It should reject invalid image sources")
+    assert (
+        hm.check_for_invalid_image_source(mock_bad_image_sources[0])
+        == mock_bad_image_sources[0]["tag"]
+    )
+    assert (
+        hm.check_for_invalid_image_source(mock_bad_image_sources[1])
+        == mock_bad_image_sources[1]["url"]
+    )
+    # should return first value fourd
+    assert (
+        hm.check_for_invalid_image_source(mock_bad_image_sources[2])
+        == mock_bad_image_sources[2]["tag"]
+    )
