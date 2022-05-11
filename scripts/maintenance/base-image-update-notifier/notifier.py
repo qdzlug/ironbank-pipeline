@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-from asyncio import exceptions
-from collections import defaultdict
-from tabnanny import check
 import gitlab
 import yaml
 import sys
@@ -11,7 +8,6 @@ import getopt
 import jinja2
 from pyrate_limiter import Duration, Limiter, RequestRate
 import requests
-from pprint import pprint
 
 # VAT config
 vat_api_url = f"{os.environ['VAT_BACKEND_SERVER_ADDRESS']}/p1"
@@ -19,15 +15,20 @@ vat_api_url = f"{os.environ['VAT_BACKEND_SERVER_ADDRESS']}/p1"
 # Set the rate limiters. These have to be global and specified first.
 # Modifying these during the main function has no effect, so these
 # values ultimately require being hardcoded.
-issuelimiter = Limiter(RequestRate(50, Duration.MINUTE))        # Limits the number of issues created (by minute)
-pipelinelimiter = Limiter(RequestRate(20, Duration.HOUR))       # Limits the number of pipeline triggers (by hour)
-readlimiter = Limiter(RequestRate(720, Duration.MINUTE))        # Limits ALL read API's (by minute)
+issuelimiter = Limiter(RequestRate(50, Duration.MINUTE))
+# Limits the number of issues created (by minute)
+pipelinelimiter = Limiter(RequestRate(20, Duration.HOUR))
+# Limits the number of pipeline triggers (by hour)
+readlimiter = Limiter(RequestRate(720, Duration.MINUTE))
+# Limits ALL read API's (by minute)
 
 #################################################
-##### These functions are grouped into the same 'read-only' rate limiter
-##### to help reduce/prevent random remote disconnects. This form of
-##### rate-limiting only applies to the function, not individual API
-##### calls that may be necessary such as pagination.
+# These functions are grouped into the same 'read-only' rate limiter
+# to help reduce/prevent random remote disconnects. This form of
+# rate-limiting only applies to the function, not individual API
+# calls that may be necessary such as pagination.
+
+
 @readlimiter.ratelimit("readlimiter", delay=True)
 def getProjects(gl, targetGroup):
     for i in range(1, retries + 1):
@@ -35,13 +36,12 @@ def getProjects(gl, targetGroup):
             group = gl.groups.get(targetGroup)
         except gitlab.exceptions.GitlabHttpError as e:
             print(e)
-            #print(f"  - [{i}/{retries}] Failed retreiving groups due to: {e}")
         except requests.exceptions.ConnectionError as e:
             print(f'  - [{i}/{retries}] Failed retreiving project due to: {e}')
 
         if not group:
             break
-    
+
         try:
             return group.projects.list(all=True, as_list=True, include_subgroups=True, archived=False)
         except gitlab.exceptions.GitlabHttpError as e:
@@ -49,8 +49,10 @@ def getProjects(gl, targetGroup):
         except requests.exceptions.ConnectionError as e:
             print(f'  - [{i}/{retries}] Failed retreiving project due to: {e}')
 
+
 @readlimiter.ratelimit("readlimiter", delay=True)
 def getProject(gl, projectId):
+
     for i in range(1, retries + 1):
         try:
             return gl.projects.get(projectId)
@@ -62,9 +64,9 @@ def getProject(gl, projectId):
 
 @readlimiter.ratelimit("readlimiter", delay=True)
 def getManifest(project):
-    parent  = ''
-    image   = ''
-    tag     = ''
+    parent = ''
+    image = ''
+    tag = ''
 
     for i in range(1, retries + 1):
         try:
@@ -74,7 +76,7 @@ def getManifest(project):
             parent = contents['args']['BASE_IMAGE']
             image = contents['name']
             tag = contents['tags'][0]
-        except gitlab.exceptions.GitlabHttpError:
+        except gitlab.exceptions.GitlabHttpError as e:
             print(f'  - [{i}/{retries}] Failed retreiving pipeline job trace due to: {e}')
 
             parent = ''
@@ -86,15 +88,13 @@ def getManifest(project):
             parent = ''
             image = ''
             tag = ''
-        except:
-            parent = ''
-            image = ''
-            tag = ''
 
     return parent, image, tag
 #################################################
 
 #################################################
+
+
 @issuelimiter.ratelimit("issuelimiter", delay=True)
 def createBaseImageIssue(project, image):
 
@@ -121,13 +121,15 @@ def createBaseImageIssue(project, image):
 #################################################
 
 # Check image against VAT api to validate status is active
+
+
 def checkVatStatus(image, tag):
     try:
         r = requests.get(f"{vat_api_url}/container?name={image}&tag={tag}")
         r.raise_for_status()
 
         checkImage = r.json()
-        
+
         if checkImage['lifecycle'] != "Active":
             return False
 
@@ -137,18 +139,20 @@ def checkVatStatus(image, tag):
     except requests.exceptions.RequestException as e:
         print(e)
 
-########## Main function
+# Main function
+
+
 def main(argv):
     # Global variables
     global retries
 
     # Process command-line arguments
-    gitlab_url      = ""
-    gitlab_token    = ""
-    targetGroup     = "40"
-    baseImage       = "redhat/ubi/ubi8"
-    retries         = 3
-    
+    gitlab_url = ""
+    gitlab_token = ""
+    targetGroup = "40"
+    baseImage = "redhat/ubi/ubi8"
+    retries = 3
+
     usage = []
     usage.append("notifier.py <args>")
     usage.append("Argument                  Description")
@@ -236,6 +240,7 @@ def main(argv):
             print(f'[{i+1}/{len(baseImageIssues)} - {(round((i+1)/len(baseImageIssues)*100,1))}%] Creating issue for {baseImageIssues[i]["project"].path_with_namespace}')
             createBaseImageIssue(baseImageIssues[i]['project'], baseImageIssues[i]['image'])
         print()
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])
