@@ -1,6 +1,6 @@
 # Platform One Iron Bank Base Image Updater Tool
 
-Accets a base-image and will search all projects within target-group. If the base-image
+Accepts a base-image and will search all projects within target-group. If the base-image
 is detected, an issue will be created from `./templates/issue.md` telling the maintainer
 to update their base image.
 
@@ -11,7 +11,7 @@ Use `40` for all of DSOP projects, or more focused `2730` for the python project
 ```shell
 pip install -r requirements.txt
 export VAT_BACKEND_SERVER_ADDRESS="https://vat-protected.dso.mil/api"
-python notifier.py --gitlab-url=https://repo1.dso.mil --gitlab-token=${IRONBANK_TOOLS_TOKEN} --target-group=2680
+python3 notifier.py -u https://repo1.dso.mil -t ${IRONBANK_TOOLS_TOKEN} -g 2680
 ```
 
 ## VAT API Integration

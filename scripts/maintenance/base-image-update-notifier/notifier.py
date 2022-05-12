@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
+import argparse
 import gitlab
 import yaml
 import sys
 import os
-import getopt
 import jinja2
 from pyrate_limiter import Duration, Limiter, RequestRate
 import requests
@@ -37,7 +37,7 @@ def getProjects(gl, targetGroup):
         except gitlab.exceptions.GitlabHttpError as e:
             print(e)
         except requests.exceptions.ConnectionError as e:
-            print(f"  - [{i}/{retries}] Failed retreiving project due to: {e}")
+            print(f"  - [{i}/{retries}] Failed retrieving project due to: {e}")
 
         if not group:
             break
@@ -47,9 +47,9 @@ def getProjects(gl, targetGroup):
                 all=True, as_list=True, include_subgroups=True, archived=False
             )
         except gitlab.exceptions.GitlabHttpError as e:
-            print(f"  - [{i}/{retries}] Failed retreiving projects due to: {e}")
+            print(f"  - [{i}/{retries}] Failed retrieving projects due to: {e}")
         except requests.exceptions.ConnectionError as e:
-            print(f"  - [{i}/{retries}] Failed retreiving project due to: {e}")
+            print(f"  - [{i}/{retries}] Failed retrieving project due to: {e}")
 
 
 @readlimiter.ratelimit("readlimiter", delay=True)
@@ -59,9 +59,9 @@ def getProject(gl, projectId):
         try:
             return gl.projects.get(projectId)
         except gitlab.exceptions.GitlabHttpError as e:
-            print(f"  - [{i}/{retries}] Failed retreiving project due to: {e}")
+            print(f"  - [{i}/{retries}] Failed retrieving project due to: {e}")
         except requests.exceptions.ConnectionError as e:
-            print(f"  - [{i}/{retries}] Failed retreiving project due to: {e}")
+            print(f"  - [{i}/{retries}] Failed retrieving project due to: {e}")
 
 
 @readlimiter.ratelimit("readlimiter", delay=True)
@@ -82,14 +82,14 @@ def getManifest(project):
             tag = contents["tags"][0]
         except gitlab.exceptions.GitlabHttpError as e:
             print(
-                f"  - [{i}/{retries}] Failed retreiving pipeline job trace due to: {e}"
+                f"  - [{i}/{retries}] Failed retrieving pipeline job trace due to: {e}"
             )
 
             parent = ""
             image = ""
             tag = ""
         except requests.exceptions.ConnectionError as e:
-            print(f"  - [{i}/{retries}] Failed retreiving project due to: {e}")
+            print(f"  - [{i}/{retries}] Failed retrieving project due to: {e}")
 
             parent = ""
             image = ""
@@ -156,71 +156,30 @@ def main(argv):
     # Global variables
     global retries
 
+    parser = argparse.ArgumentParser("notifier")
+
+    parser.add_argument("-u", "--url", default="",
+                        help="The URL to the GitLab instance.")
+    parser.add_argument("-t", "--token", default="",
+                        help="The access token to use when querying the GitLab instance.")
+    parser.add_argument("-g", "--group", default="40",
+                        help="The GitLab group to target and apply templates to all subprojects.")
+    parser.add_argument("-i", "--image", default="redhat/ubi/ubi8",
+                        help="The base image to detect.")
+    parser.add_argument("-r", "--retries", default=3,
+                        help="Specifies the maximum number of retries for failed API call.")
+    args = parser.parse_args()
+
     # Process command-line arguments
-    gitlab_url = ""
-    gitlab_token = ""
-    targetGroup = "40"
-    baseImage = "redhat/ubi/ubi8"
-    retries = 3
-
-    usage = []
-    usage.append("notifier.py <args>")
-    usage.append("Argument                  Description")
-    usage.append("  --gitlab-url            The URL to the GitLab instance.")
-    usage.append(
-        "  --gitlab-token          The access token to use when querying the GitLab instance."
-    )
-    usage.append(
-        "  --target-group          The GitLab group to target and apply templates to all subprojects. Defaults to '40'"
-    )
-    usage.append(
-        "  --base-image            The base image to detect. Defaults to 'redhat/ubi/ubi8'"
-    )
-    usage.append(
-        "  --retries               Optional. Specifies the maximum number of retries for failed API calls. Defaults to 3."
-    )
-
-    try:
-        opts, args = getopt.getopt(
-            argv,
-            "h",
-            [
-                "gitlab-url=",
-                "gitlab-token=",
-                "target-group=",
-                "retries=",
-                "create-issue",
-                "trigger-pipeline",
-            ],
-        )
-    except getopt.GetoptError:
-        for i in usage:
-            print(i)
-        sys.exit(2)
-
-    for opt, arg in opts:
-        if opt == "-h":
-            print(usage)
-            sys.exit()
-        elif opt in ("--gitlab-url"):
-            gitlab_url = arg
-        elif opt in ("--gitlab-token"):
-            gitlab_token = arg
-        elif opt in ("--target-group"):
-            targetGroup = int(arg)
-        elif opt in ("--base-image"):
-            baseImage = arg
-        elif opt in ("--retries"):
-            retries = int(arg)
+    gitlab_url = args.url
+    gitlab_token = args.token
+    targetGroup = args.group
+    baseImage = args.image
+    retries = args.retries
 
     # Make sure the retries are greater than 0
     if retries < 1:
         print("Retries must have a value greater than 0.")
-        print()
-
-        for i in usage:
-            print(i)
-        sys.exit(2)
 
     gl = gitlab.Gitlab(gitlab_url, private_token=gitlab_token)
     gl.auth()
