@@ -44,10 +44,10 @@ class HardeningManifest:
     def validate(self):
         self.validate_schema_with_timeout()
         # verify no labels have a value of fixme (case insensitive)
-        log.debug("Checking for FIXME values in labels/maintainers")
+        log.info("Checking for FIXME values in labels/maintainers")
         self.invalid_labels = self.reject_invalid_labels()
         self.invalid_maintainers = self.reject_invalid_maintainers()
-        log.debug("Checking for invalid image sources")
+        log.info("Checking for invalid image sources")
         self.invalid_image_sources = self.reject_invalid_image_sources()
 
     def validate_schema_with_timeout(self):
@@ -66,7 +66,7 @@ class HardeningManifest:
             if not process.is_alive():
                 break
         if process.is_alive():
-            log.error("Hardening Manifest validation timeout exceeded.")
+            log.error("Hardening Manifest validation timeout exceeded")
             log.error(
                 "This is likely due to field in the hardening_manifest.yaml being invalid and \
                 causing an infinite loop during validation"
@@ -118,7 +118,7 @@ class HardeningManifest:
         Returns list of keys in hardening manifest labels whose value contains FIXME (case insensitve)
         """
         log.info("Checking label values")
-        invalid_labels = self.check_for_fixme(self.labels)
+        invalid_labels = self.check_for_fixme(labels or self.labels)
         for k in invalid_labels:
             log.error(f"FIXME found in {k}")
         return invalid_labels

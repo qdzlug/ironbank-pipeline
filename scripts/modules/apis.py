@@ -99,12 +99,3 @@ class VatAPI(API):
             },
         )
         self.response.raise_for_status()
-
-    @request_error_handler
-    def _force_400(self) -> dict:
-        self.log.info("Forcing 400")
-        self.response = requests.post(
-            url=f"{self.url}{self.import_scan_route}",
-        )
-        self.response.raise_for_status()
-        return self.response
