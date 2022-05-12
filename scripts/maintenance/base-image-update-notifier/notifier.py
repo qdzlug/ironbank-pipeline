@@ -158,16 +158,30 @@ def main(argv):
 
     parser = argparse.ArgumentParser("notifier")
 
-    parser.add_argument("-u", "--url", default="",
-                        help="The URL to the GitLab instance.")
-    parser.add_argument("-t", "--token", default="",
-                        help="The access token to use when querying the GitLab instance.")
-    parser.add_argument("-g", "--group", default="40",
-                        help="The GitLab group to target and apply templates to all subprojects.")
-    parser.add_argument("-i", "--image", default="redhat/ubi/ubi8",
-                        help="The base image to detect.")
-    parser.add_argument("-r", "--retries", default=3,
-                        help="Specifies the maximum number of retries for failed API call.")
+    parser.add_argument(
+        "-u", "--url", default="", help="The URL to the GitLab instance."
+    )
+    parser.add_argument(
+        "-t",
+        "--token",
+        default="",
+        help="The access token to use when querying the GitLab instance.",
+    )
+    parser.add_argument(
+        "-g",
+        "--group",
+        default="40",
+        help="The GitLab group to target and apply templates to all subprojects.",
+    )
+    parser.add_argument(
+        "-i", "--image", default="redhat/ubi/ubi8", help="The base image to detect."
+    )
+    parser.add_argument(
+        "-r",
+        "--retries",
+        default=3,
+        help="Specifies the maximum number of retries for failed API call.",
+    )
     args = parser.parse_args()
 
     # Process command-line arguments
