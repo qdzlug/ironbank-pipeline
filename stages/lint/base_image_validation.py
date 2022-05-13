@@ -60,7 +60,7 @@ def skopeo_inspect_base_image(base_image, base_tag):
             stderr=subprocess.PIPE,
             check=True,
         )
-        sha_value = subprocess.stout
+        sha_value = subprocess.stdout
         with (os.environ["ARTIFACT_DIR"] / "labels.env").open("w") as f:
             f.write(
                 f"mil.dso.ironbank.image.parent=registry1.dso.mil/{registry}/{base_image}:{base_tag}@{sha_value}"
