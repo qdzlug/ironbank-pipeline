@@ -54,13 +54,12 @@ def skopeo_inspect_base_image(base_image, base_tag):
     # if skopeo inspect fails, because BASE_IMAGE value doesn't match a registry1 container name
     #   fail back to using existing functionality
     try:
-        subprocess.run(
+        sha_value = subprocess.run(
             args=cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             check=True,
         )
-        sha_value = subprocess.stdout
         with (os.environ["ARTIFACT_DIR"] / "labels.env").open("w") as f:
             f.write(
                 f"mil.dso.ironbank.image.parent=registry1.dso.mil/{registry}/{base_image}:{base_tag}@{sha_value}"
