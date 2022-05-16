@@ -62,7 +62,7 @@ def skopeo_inspect_base_image(base_image, base_tag):
         )
         base_image_info = {"BASE_SHA": sha_value.stdout}
         with open(f'{os.environ["ARTIFACT_DIR"]}/base_image.json', 'w') as f:
-            f = json.dump(base_image_info)
+            json.dump(base_image_info, f)
     except subprocess.CalledProcessError as e:
         log.error(
             "Failed to inspect BASE_IMAGE:BASE_TAG provided in hardening_manifest. \
