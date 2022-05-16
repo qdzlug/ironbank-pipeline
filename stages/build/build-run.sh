@@ -58,7 +58,7 @@ squid -k parse -f "${PIPELINE_REPO_DIR}"/stages/build/squid.conf
 squid -f "${PIPELINE_REPO_DIR}"/stages/build/squid.conf
 sleep 5 # because squid will not start properly without this
 
-echo "Adding the ironbank.repo to the containter via mount.conf"
+echo "Adding the ironbank.repo to the container via mount.conf"
 # Must be able to overrride DISTRO_REPO_DIR to equal '' and cannot simply check for vars existence
 # shellcheck disable=SC2236
 if [ ! -z "${DISTRO_REPO_DIR:-}" ]; then
@@ -88,7 +88,7 @@ env -i BUILDAH_ISOLATION=chroot PATH="$PATH" buildah bud \
   --label=org.opencontainers.image.created="$(date --rfc-3339=seconds)" \
   --label=org.opencontainers.image.source="${CI_PROJECT_URL}" \
   --label=org.opencontainers.image.revision="${CI_COMMIT_SHA}" \
-  --label=mil.dso.ironbank.image.parent="registry1.dso.mil/${BAE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}@${BASE_SHA}"
+  --label=mil.dso.ironbank.image.parent="registry1.dso.mil/${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}@${BASE_SHA}" \
   --authfile /tmp/prod_auth.json \
   --format=oci \
   --log-level=warn \
