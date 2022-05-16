@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from base64 import b64decode
+from encodings import utf_8
 import json
 import os
 import asyncio
@@ -59,6 +60,7 @@ def skopeo_inspect_base_image(base_image, base_tag):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             check=True,
+            encoding="utf-8"
         )
         base_image_info = {"BASE_SHA": str(sha_value.stdout)}
         with open(f'{os.environ["ARTIFACT_DIR"]}/base_image.json', 'w') as f:
