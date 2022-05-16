@@ -46,9 +46,8 @@ def skopeo_inspect_base_image(base_image, base_tag):
         "--authfile",
         auth_file,
         f"docker://registry1.dso.mil/{registry}/{base_image}:{base_tag}",
-        "|",
-        "jq",
-        "'.Digest'",
+        "--format",
+        "'{{ .Digest }}'"
     ]
     log.info(" ".join(cmd))
     # if skopeo inspect fails, because BASE_IMAGE value doesn't match a registry1 container name
