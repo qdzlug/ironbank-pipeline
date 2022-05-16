@@ -202,6 +202,38 @@ def push_oras(image: Image) -> None:
         )
         sys.exit(1)
 
+def push_oras_access_log(image: Image) -> None:
+    """
+    Perform image SBOM push with Oras
+    """
+
+    logging.info("Push access_log")
+    os.chdir(os.environ["ACCESS_LOG_DIR"])
+    logging.info(f"Pushing access_log for {image.registry}/{image.name}@{image.digest}")
+    sign_cmd = [
+        "oras",
+        "push",
+        "--config",
+        "/tmp/config.json",
+        "access_log",
+    ]
+
+    logging.info(" ".join(sign_cmd))
+    try:
+        subprocess.run(
+            args=sign_cmd,
+            check=True,
+            encoding="utf-8",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        os.chdir(os.environ["CI_PROJECT_DIR"])
+    except subprocess.CalledProcessError:
+        logging.error(
+            f"Failed to push access_log for {image.registry}/{image.name}@{image.digest}"
+        )
+        sys.exit(1)
+
 
 def compare_digests(image: Image) -> None:
     """
@@ -357,6 +389,9 @@ def main():
 
     # Create combined SBOM from SBOMs contained in the SBOM_DIR
     push_oras(production_image)
+
+    # Push the build access_log to Harbor
+    push_oras_access_log(production_image)
 
     # Push VAT response file as attestation
     cosign.add_attestation(
