@@ -88,6 +88,7 @@ env -i BUILDAH_ISOLATION=chroot PATH="$PATH" buildah bud \
   --label=org.opencontainers.image.created="$(date --rfc-3339=seconds)" \
   --label=org.opencontainers.image.source="${CI_PROJECT_URL}" \
   --label=org.opencontainers.image.revision="${CI_COMMIT_SHA}" \
+  --label=mil.dso.ironbank.image.parent="registry1.dso.mil/${BAE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}@${BASE_SHA}"
   --authfile /tmp/prod_auth.json \
   --format=oci \
   --log-level=warn \

@@ -60,10 +60,7 @@ def skopeo_inspect_base_image(base_image, base_tag):
             stderr=subprocess.PIPE,
             check=True,
         )
-        with (os.environ["ARTIFACT_DIR"] / "labels.env").open("w") as f:
-            f.write(
-                f"mil.dso.ironbank.image.parent=registry1.dso.mil/{registry}/{base_image}:{base_tag}@{sha_value}"
-            )
+        os.environ["BASE_SHA"] = sha_value
     except subprocess.CalledProcessError as e:
         log.error(
             "Failed to inspect BASE_IMAGE:BASE_TAG provided in hardening_manifest. \
