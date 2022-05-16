@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from base64 import b64decode
+import json
 import os
 import asyncio
 import pathlib
@@ -59,7 +60,9 @@ def skopeo_inspect_base_image(base_image, base_tag):
             stderr=subprocess.PIPE,
             check=True,
         )
-        os.environ["BASE_SHA"] = sha_value
+        base_image_info = {"BASE_SHA": sha_value.stdout}
+        with open(f'{os.environ["ARTIFACT_DIR"]}/lint/base_image.json', 'w') as f:
+            f = json.dump(base_image_info)
     except subprocess.CalledProcessError as e:
         log.error(
             "Failed to inspect BASE_IMAGE:BASE_TAG provided in hardening_manifest. \
