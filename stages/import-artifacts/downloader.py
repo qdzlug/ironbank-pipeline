@@ -218,7 +218,13 @@ def http_download(
     for url in urls:
         try:
             logging.info(f"Downloading from {url}")
-            with requests.get(url, allow_redirects=True, stream=True, auth=auth, verify=os.environ["REQUESTS_CA_BUNDLE"]) as r:
+            with requests.get(
+                url,
+                allow_redirects=True,
+                stream=True,
+                auth=auth,
+                verify=os.environ["REQUESTS_CA_BUNDLE"],
+            ) as r:
                 r.raw.decode_content = True
                 r.raise_for_status()
                 with open(
