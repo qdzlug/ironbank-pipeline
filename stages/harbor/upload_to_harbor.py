@@ -19,7 +19,7 @@ mime_types = {
     "sbom-spdx.xml": "text/spdx",
     "sbom-spdx-json.json": "application/spdx+json",
     "sbom-spdx-tag-value.txt": "text/plain",
-    "access_log": "text/plain"
+    "access_log": "text/plain",
 }
 
 
@@ -202,6 +202,7 @@ def push_oras(image: Image) -> None:
             f"Failed to push SBOM for {image.registry}/{image.name}@{image.digest}"
         )
         sys.exit(1)
+
 
 def push_oras_access_log(image: Image) -> None:
     """

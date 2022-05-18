@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 from base64 import b64decode
-from encodings import utf_8
 import json
 import os
 import asyncio
@@ -49,7 +48,7 @@ def skopeo_inspect_base_image(base_image, base_tag):
         auth_file,
         f"docker://registry1.dso.mil/{registry}/{base_image}:{base_tag}",
         "--format",
-        "'{{ .Digest }}'"
+        "'{{ .Digest }}'",
     ]
     log.info(" ".join(cmd))
     # if skopeo inspect fails, because BASE_IMAGE value doesn't match a registry1 container name
@@ -60,10 +59,10 @@ def skopeo_inspect_base_image(base_image, base_tag):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             check=True,
-            encoding="utf-8"
+            encoding="utf-8",
         )
         base_image_info = {"BASE_SHA": sha_value.stdout.strip().replace("'", "")}
-        with open(f'{os.environ["ARTIFACT_DIR"]}/base_image.json', 'w') as f:
+        with open(f'{os.environ["ARTIFACT_DIR"]}/base_image.json', "w") as f:
             json.dump(base_image_info, f)
     except subprocess.CalledProcessError as e:
         log.error(
