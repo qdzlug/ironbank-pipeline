@@ -280,6 +280,12 @@ def s3_download(
     logging.info(f"===== ARTIFACT: {download_item}")
 
     bucket = download_item.split("s3://")[1].split("/")[0]
+    extra_args = {}
+    if download_item.find("versionId=") != -1:
+        version_id = download_item.split("?versionId=")[1].split("&")[0]
+        download_item = download_item.split("?")[0]
+        extra_args = {"versionId": version_id}
+
     object_name = download_item[len("s3://" + bucket + "/") :]
     # Validate filename doesn't do anything nefarious
     match = re.search(r"^[A-Za-z0-9][^/\x00]*", resource_name)
@@ -298,7 +304,10 @@ def s3_download(
 
     try:
         s3_client.download_file(
-            bucket, object_name, artifacts_path + "/external-resources/" + resource_name
+            bucket,
+            object_name,
+            artifacts_path + "/external-resources/" + resource_name,
+            extra_args,
         )
     except ClientError:
         logging.error("S3 client error occurred")
