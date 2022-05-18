@@ -250,7 +250,7 @@ def http_download(
 
     logging.info("Generating checksum")
     checksum_value_from_calc = generate_checksum(
-        validation_type, checksum_value, artifacts_path, resource_name
+        validation_type, artifacts_path, resource_name
     )
 
     # Compare checksums
