@@ -19,6 +19,7 @@ mime_types = {
     "sbom-spdx.xml": "text/spdx",
     "sbom-spdx-json.json": "application/spdx+json",
     "sbom-spdx-tag-value.txt": "text/plain",
+    "access_log": "text/plain"
 }
 
 
@@ -209,13 +210,18 @@ def push_oras_access_log(image: Image) -> None:
 
     logging.info("Push access_log")
     os.chdir(os.environ["ACCESS_LOG_DIR"])
+    artifacts = os.listdir(os.getcwd())
+    logging.info(artifacts)
+    access_log = artifacts[-1]
+    formatted_digest = image.digest.split(":")[1]
     logging.info(f"Pushing access_log for {image.registry}/{image.name}@{image.digest}")
     sign_cmd = [
         "oras",
         "push",
         "--config",
         "/tmp/config.json",
-        "access_log",
+        f"{image.registry}/{image.name}:sha256-{formatted_digest}.sbom",
+        f"{access_log}:{mime_types[access_log]}",
     ]
 
     logging.info(" ".join(sign_cmd))
