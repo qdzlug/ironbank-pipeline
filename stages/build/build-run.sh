@@ -70,7 +70,8 @@ fi
 # buildah bud ignores this requirement for http/ftp/no proxy envvars, but we're required to do this for anything else.
 cp "${PIPELINE_REPO_DIR}"/stages/build/build-args.txt .
 sed -i '/^FROM /r build-args.txt' Dockerfile
-BASE_SHA=$(grep -Po "(?<='BASE_SHA': ')[^']*" ${ARTIFACT_STORAGE}/lint/base_image.json) # noqa SC2086
+# shellcheck disable=SC2086
+BASE_SHA=$(grep -Po '(?<="BASE_SHA": ")[^"]*' ${ARTIFACT_STORAGE}/lint/base_image.json)
 old_ifs=$IFS
 IFS=$'\n'
 echo "Build the image"
