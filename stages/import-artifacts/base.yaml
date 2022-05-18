@@ -7,6 +7,7 @@ import-artifacts:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/import-artifacts"
     REQUESTS_CA_BUNDLE: "/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt"
   script:
+    - "echo ${REQUESTS_CA_BUNDLE}"
     - '"${PIPELINE_REPO_DIR}/stages/import-artifacts/import-run.sh"'
   artifacts:
     when: always
