@@ -284,7 +284,7 @@ def s3_download(
     if download_item.find("versionId=") != -1:
         version_id = download_item.split("?versionId=")[1].split("&")[0]
         download_item = download_item.split("?")[0]
-        extra_args = {"versionId": version_id}
+        extra_args = {"VersionId": version_id}
 
     object_name = download_item[len("s3://" + bucket + "/") :]
     # Validate filename doesn't do anything nefarious
