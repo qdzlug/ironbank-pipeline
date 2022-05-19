@@ -54,7 +54,8 @@ The predicate file contents can then be found at `.predicate`.
 The following script will pipe stdout to jq to access the `.predicate`, and save this to a file.
 
 ```bash
-cosign verify-attestation --cert https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-certificate.pem registry1.dso.mil/ironbank/docker/scratch:ironbank | jq '.payload | @base64d | fromjson | .predicate'
+cosign verify-attestation --output-file cosign-attestation.json --cert https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-certificate.pem registry1.dso.mil/ironbank/docker/scratch:ironbank
+jq '.payload | @base64d | fromjson | .predicate' cosign-attestation.json >vat-response.json
 ```
 
 ## SBOM
