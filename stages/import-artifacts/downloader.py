@@ -223,7 +223,6 @@ def http_download(
                 allow_redirects=True,
                 stream=True,
                 auth=auth,
-                verify=os.environ["REQUESTS_CA_BUNDLE"],
             ) as r:
                 r.raw.decode_content = True
                 r.raise_for_status()
