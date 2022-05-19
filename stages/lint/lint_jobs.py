@@ -5,7 +5,17 @@ import dockerfile_validation
 import base_image_validation
 import pipeline_auth_status
 import sys
+import os
 
+sys.path.append(
+    os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts/modules"
+    )
+)
+
+from utils import logger  # noqa E402
+
+log = logger.setup("lint_jobs")
 
 system_exits = {}
 
@@ -25,28 +35,31 @@ def handle_system_exit(func):
 
 async def main():
 
+    HARD_FAIL_CODE = 1
+    SOFT_FAIL_CODE = 100
+
     await handle_system_exit(folder_structure.main)()
     await handle_system_exit(hardening_manifest_validation.main)()
     await handle_system_exit(dockerfile_validation.main)()
     await handle_system_exit(base_image_validation.main)()
-    await handle_system_exit(pipeline_auth_status.main)()
-
-    HARD_FAIL_CODE = 1
-    SOFT_FAIL_CODE = 100
+    if HARD_FAIL_CODE not in system_exits.keys():
+        await handle_system_exit(pipeline_auth_status.main)()
+    else:
+        log.warning("Skipping pipeline auth status due to prior failure")
 
     for error_code, stages in system_exits.items():
-        print(f"The following stages returned error code: {error_code}")
+        log.error(f"The following stages returned error code: {error_code}")
         for stage in stages:
-            print(f"\t- {stage}")
+            log.error(f"\t- {stage}")
 
     if HARD_FAIL_CODE in system_exits.keys():
-        print("Failing pipeline")
+        log.error("Failing pipeline")
         sys.exit(HARD_FAIL_CODE)
     elif SOFT_FAIL_CODE in system_exits.keys():
-        print("Failing pipeline")
+        log.warning("Failing pipeline")
         sys.exit(SOFT_FAIL_CODE)
     else:
-        print("All stages successful")
+        log.info("All stages successful")
 
 
 if __name__ == "__main__":
