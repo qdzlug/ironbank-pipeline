@@ -32,6 +32,9 @@ stages:
   # container archive output
   - post-build
 
+  # output syft SBOM
+  - sbom-creation
+
   ### scanning stage
   # twistlock, oscap, and anchore scans
   - scanning

@@ -9,6 +9,7 @@ upload-to-s3:
     SCAN_DIRECTORY: "${ARTIFACT_STORAGE}/scan-results"
     DOCUMENTATION_DIRECTORY: "${ARTIFACT_STORAGE}/documentation"
     BUILD_DIRECTORY: "${ARTIFACT_STORAGE}/build"
+    SBOM_DIRECTORY: "${ARTIFACT_STORAGE}/sbom"
     BASE_BUCKET_DIRECTORY: testing/container-scan-reports
     DOCUMENTATION_FILENAME: documentation
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
@@ -19,8 +20,8 @@ upload-to-s3:
     - load-scripts
     - lint
     - build
+    - sbom
     - anchore-scan
-    - anchore-sbom-generation
     - twistlock-scan
     - openscap-compliance
     - csv-output
