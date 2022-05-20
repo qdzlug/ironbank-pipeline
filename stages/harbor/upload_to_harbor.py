@@ -175,7 +175,9 @@ def push_oras(image: Image) -> None:
 
     logging.info("Push SBOM")
     os.chdir(os.environ["SBOM_DIR"])
-    os.popen(f'cp {os.environ["ACCESS_LOG_DIR"]}/access_log {os.environ["SBOM_DIR"]}/access_log')
+    os.popen(
+        f'cp {os.environ["ACCESS_LOG_DIR"]}/access_log {os.environ["SBOM_DIR"]}/access_log'
+    )
     sboms = [f"{file}:{mime_types[file]}" for file in os.listdir(os.getcwd())]
     formatted_digest = image.digest.split(":")[1]
     logging.info(f"Pushing SBOM for {image.registry}/{image.name}@{image.digest}")
