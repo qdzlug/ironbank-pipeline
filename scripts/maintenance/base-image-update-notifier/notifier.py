@@ -75,7 +75,7 @@ def getManifest(project):
             manifest = project.files.get(
                 file_path="hardening_manifest.yaml", ref="master"
             )
-            contents = yaml.load(manifest.decode(), Loader=yaml.FullLoader)
+            contents = yaml.load(manifest.decode(), Loader=yaml.SafeLoader)
 
             parent = contents["args"]["BASE_IMAGE"]
             image = contents["name"]
