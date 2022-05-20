@@ -30,6 +30,7 @@ cp -r "${DOCUMENTATION_DIRECTORY}"/reports/* reports/
 cp -r "${SCAN_DIRECTORY}"/* reports/
 
 cp "${PROJECT_LICENSE}" "${PROJECT_README}" reports/
+mv "${SBOM_DIRECTORY}"/* reports/
 
 if [ -f "${VAT_FINDINGS}" ]; then
   cp "${VAT_FINDINGS}" reports/

@@ -12,6 +12,9 @@ include:
   - local: stages/build/base.yaml
 
   - local: stages/post-build/base.yaml
+
+  - local: stages/sbom-creation/sbom.yaml
+
   # scanning stage jobs
   - local: stages/scanning/anchore/anchore.yaml
   - local: stages/scanning/openscap/openscap-compliance.yaml

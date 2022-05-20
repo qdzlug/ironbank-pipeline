@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
 
 import os
+import sys
 import logging
 import pathlib
 
-from anchore import Anchore
+sys.path.append(
+    os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
+        "scripts/modules",
+    )
+)
+
+from anchore import Anchore  # noqa: E402
 
 
 def main() -> None:

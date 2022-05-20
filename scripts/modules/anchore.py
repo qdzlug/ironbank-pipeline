@@ -330,7 +330,7 @@ class Anchore:
         """
         cmd = ["syft", image, "--scope", "all-layers", "-o", f"{output_format}"]
 
-        sbom_dir = pathlib.Path(artifacts_path, "sbom")
+        sbom_dir = pathlib.Path(artifacts_path)
         sbom_dir.mkdir(parents=True, exist_ok=True)
         with (sbom_dir / f"sbom-{output_format}.{file_type}").open("wb") as f:
             try:

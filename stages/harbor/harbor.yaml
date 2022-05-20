@@ -7,11 +7,11 @@ harbor:
     - load-scripts
     - lint
     - build
-    - anchore-sbom-generation
+    - sbom
     - vat
   variables:
     DOCKER_CONFIG: /tmp
-    SBOM_DIR: ${ARTIFACT_STORAGE}/scan-results/anchore/sbom
+    SBOM_DIR: ${ARTIFACT_STORAGE}/sbom
     VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/vat_response.json
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/harbor/upload_to_harbor.py"'

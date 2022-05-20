@@ -1,10 +1,13 @@
-.anchore:
+anchore-scan:
   stage: scanning
   dependencies:
     - load-scripts
     - build
   variables:
     ANCHORE_SCANS: "${ARTIFACT_STORAGE}/scan-results/anchore"
+  image: "registry1.dso.mil/ironbank/anchore/cli/cli:0.9.4"
+  script:
+    - python3 "${PIPELINE_REPO_DIR}/stages/scanning/anchore/anchore_scan.py"
   artifacts:
     when: always
     paths:
@@ -13,15 +16,3 @@
   retry:
     max: 2
     when: always
-
-anchore-scan:
-  extends: .anchore
-  image: "registry1.dso.mil/ironbank/anchore/cli/cli:0.9.4"
-  script:
-    - python3 "${PIPELINE_REPO_DIR}/stages/scanning/anchore/anchore_scan.py"
-
-anchore-sbom-generation:
-  extends: .anchore
-  image: "registry1.dso.mil/ironbank/anchore/engine/engine:1.0.0"
-  script:
-    - python3 "${PIPELINE_REPO_DIR}/stages/scanning/anchore/generate_sbom.py"
