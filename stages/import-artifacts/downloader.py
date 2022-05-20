@@ -218,7 +218,12 @@ def http_download(
     for url in urls:
         try:
             logging.info(f"Downloading from {url}")
-            with requests.get(url, allow_redirects=True, stream=True, auth=auth) as r:
+            with requests.get(
+                url,
+                allow_redirects=True,
+                stream=True,
+                auth=auth,
+            ) as r:
                 r.raw.decode_content = True
                 r.raise_for_status()
                 with open(
@@ -250,7 +255,7 @@ def http_download(
 
     logging.info("Generating checksum")
     checksum_value_from_calc = generate_checksum(
-        validation_type, checksum_value, artifacts_path, resource_name
+        validation_type, artifacts_path, resource_name
     )
 
     # Compare checksums
@@ -338,7 +343,7 @@ def s3_download(
         sys.exit(1)
 
 
-def generate_checksum(validation_type, checksum_value, artifacts_path, resource_name):
+def generate_checksum(validation_type, artifacts_path, resource_name):
     if validation_type == "sha256":
         sha256_hash = hashlib.sha256()
         with open(artifacts_path + "/external-resources/" + resource_name, "rb") as f:
