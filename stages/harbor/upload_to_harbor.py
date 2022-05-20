@@ -175,6 +175,7 @@ def push_oras(image: Image) -> None:
 
     logging.info("Push SBOM")
     os.chdir(os.environ["SBOM_DIR"])
+    os.popen(f'cp {os.environ["ACCESS_LOG_DIR"]}/access_log {os.environ["SBOM_DIR"]}/access_log')
     sboms = [f"{file}:{mime_types[file]}" for file in os.listdir(os.getcwd())]
     formatted_digest = image.digest.split(":")[1]
     logging.info(f"Pushing SBOM for {image.registry}/{image.name}@{image.digest}")
@@ -200,44 +201,6 @@ def push_oras(image: Image) -> None:
     except subprocess.CalledProcessError:
         logging.error(
             f"Failed to push SBOM for {image.registry}/{image.name}@{image.digest}"
-        )
-        sys.exit(1)
-
-
-def push_oras_access_log(image: Image) -> None:
-    """
-    Perform image SBOM push with Oras
-    """
-
-    logging.info("Push access_log")
-    os.chdir(os.environ["ACCESS_LOG_DIR"])
-    artifacts = os.listdir(os.getcwd())
-    logging.info(artifacts)
-    access_log = artifacts[-1]
-    formatted_digest = image.digest.split(":")[1]
-    logging.info(f"Pushing access_log for {image.registry}/{image.name}@{image.digest}")
-    sign_cmd = [
-        "oras",
-        "push",
-        "--config",
-        "/tmp/config.json",
-        f"{image.registry}/{image.name}:sha256-{formatted_digest}.sbom",
-        f"{access_log}:{mime_types[access_log]}",
-    ]
-
-    logging.info(" ".join(sign_cmd))
-    try:
-        subprocess.run(
-            args=sign_cmd,
-            check=True,
-            encoding="utf-8",
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        os.chdir(os.environ["CI_PROJECT_DIR"])
-    except subprocess.CalledProcessError:
-        logging.error(
-            f"Failed to push access_log for {image.registry}/{image.name}@{image.digest}"
         )
         sys.exit(1)
 
@@ -396,9 +359,6 @@ def main():
 
     # Create combined SBOM from SBOMs contained in the SBOM_DIR
     push_oras(production_image)
-
-    # Push the build access_log to Harbor
-    push_oras_access_log(production_image)
 
     # Push VAT response file as attestation
     cosign.add_attestation(
