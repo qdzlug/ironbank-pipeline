@@ -1,9 +1,14 @@
-create-tar:
+.post-build:
   stage: post-build
-
   needs:
     - load-scripts
     - build
+  retry:
+    max: 2
+    when: runner_system_failure
+
+create-tar:
+  extends: .post-build
   variables:
     IMAGE_FILE: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
   script:
@@ -13,6 +18,10 @@ create-tar:
     paths:
       - ${IMAGE_FILE}.tar
     expire_in: 1 week
-  retry:
-    max: 2
-    when: runner_system_failure
+
+parse-access-log:
+  extends: .post-build
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
+  script:
+    - 'python3 "${PIPELINE_REPO_DIR}/scripts/modules/access_log_parser.py" --allow-errors "${ARTIFACT_DIR}/access_log"'
