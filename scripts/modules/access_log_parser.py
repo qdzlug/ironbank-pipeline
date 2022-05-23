@@ -1,6 +1,10 @@
-import os, sys, re, argparse
+import os
+import sys
+import re
+import argparse
 from pathlib import Path
 from collections import namedtuple
+from typing import Optional
 
 sys.path.append(
     os.path.join(
@@ -32,10 +36,10 @@ Package = namedtuple("Package", ["type", "package", "version"])
 package_tuples = []
 
 
-def go_parser(url_path: str) -> Package:
+def go_parser(url_path: str) -> Optional[Package]:
 
     match = re.match(
-        "(?P<name>.*?)/(:?@v/(?P<version>.*?)\.(?P<ext>[^.]+)|(?P<latest>@latest))$",
+        r"(?P<name>.*?)/(:?@v/(?P<version>.*?)\.(?P<ext>[^.]+)|(?P<latest>@latest))$",
         url_path,
     )
 
@@ -50,13 +54,13 @@ def go_parser(url_path: str) -> Package:
         return Package("go", match.group("name"), match.group("version"))
 
 
-def yum_parser(url_path: str) -> Package:
+def yum_parser(url_path: str) -> Optional[Package]:
 
     if url_path.startswith("repodata"):
         return None
 
     match = re.match(
-        "(?:^|.+/)(?P<name>[^/]+)-(?P<version>[^/-]*-\d+)\.[^/]+\.[^./]+.rpm", url_path
+        r"(?:^|.+/)(?P<name>[^/]+)-(?P<version>[^/-]*-\d+)\.[^/]+\.[^./]+.rpm", url_path
     )
 
     if not match:
@@ -99,12 +103,13 @@ if __name__ == "__main__":
         f"({re.escape(nexus_host)})(?P<repo_type>[^/]+)/(?P<url>.*)"
     )
 
+    log.info("Access log parser started")
     try:
         access_log = Path(args.path).open("r")
-        log.info(f"File successfully read. Parsing...")
+        log.info("File successfully read")
         line_count = 0
     except OSError:
-        log.error("Unable to open file.")
+        log.error(f"Unable to open file: {args.path}")
         sys.exit(1)
 
     with access_log:
@@ -136,7 +141,7 @@ if __name__ == "__main__":
                 if package:
                     package_tuples.append(package)
                     log.info(
-                        f"Parsed Package: {package.package} version={package.version} type={package.type}"
+                        f"Parsed package: {package.package} version={package.version} type={package.type}"
                     )
 
             except ValueError as e:
@@ -144,4 +149,9 @@ if __name__ == "__main__":
                 log.error(e)
                 if not args.allow_errors:
                     sys.exit(1)
-    log.info(f"File Successfully Parsed.")
+            except Exception:
+                log.exception("Exception: Unknown exception")
+                # TODO: Consider adding custom exception handler to reduce repetition
+                if not args.allow_errors:
+                    sys.exit(1)
+    log.info("File successfully parsed")
