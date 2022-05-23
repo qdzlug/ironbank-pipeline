@@ -4,6 +4,7 @@ import re
 import argparse
 from pathlib import Path
 from collections import namedtuple
+from typing import Optional
 
 sys.path.append(
     os.path.join(
@@ -35,7 +36,7 @@ Package = namedtuple("Package", ["type", "package", "version"])
 package_tuples = []
 
 
-def go_parser(url_path: str) -> Package:
+def go_parser(url_path: str) -> Optional[Package]:
 
     match = re.match(
         r"(?P<name>.*?)/(:?@v/(?P<version>.*?)\.(?P<ext>[^.]+)|(?P<latest>@latest))$",
@@ -53,7 +54,7 @@ def go_parser(url_path: str) -> Package:
         return Package("go", match.group("name"), match.group("version"))
 
 
-def yum_parser(url_path: str) -> Package:
+def yum_parser(url_path: str) -> Optional[Package]:
 
     if url_path.startswith("repodata"):
         return None
