@@ -99,12 +99,13 @@ if __name__ == "__main__":
         f"({re.escape(nexus_host)})(?P<repo_type>[^/]+)/(?P<url>.*)"
     )
 
+    log.info(f"Access Log Parser Started")
     try:
         access_log = Path(args.path).open("r")
-        log.info(f"File successfully read. Parsing...")
+        log.info(f"File successfully read")
         line_count = 0
     except OSError:
-        log.error("Unable to open file.")
+        log.error(f"Unable to open file: {args.path}")
         sys.exit(1)
 
     with access_log:
@@ -144,4 +145,9 @@ if __name__ == "__main__":
                 log.error(e)
                 if not args.allow_errors:
                     sys.exit(1)
-    log.info(f"File Successfully Parsed.")
+            except Exception:
+                log.exception("Exception: Unknown exception")
+                # TODO: Consider adding custom exception handler to reduce repetition
+                if not args.allow_errors:
+                    sys.exit(1)
+    log.info(f"File Successfully Parsed")
