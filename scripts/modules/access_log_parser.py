@@ -1,4 +1,7 @@
-import os, sys, re, argparse
+import os
+import sys
+import re
+import argparse
 from pathlib import Path
 from collections import namedtuple
 
@@ -35,7 +38,7 @@ package_tuples = []
 def go_parser(url_path: str) -> Package:
 
     match = re.match(
-        "(?P<name>.*?)/(:?@v/(?P<version>.*?)\.(?P<ext>[^.]+)|(?P<latest>@latest))$",
+        r"(?P<name>.*?)/(:?@v/(?P<version>.*?)\.(?P<ext>[^.]+)|(?P<latest>@latest))$",
         url_path,
     )
 
@@ -56,7 +59,7 @@ def yum_parser(url_path: str) -> Package:
         return None
 
     match = re.match(
-        "(?:^|.+/)(?P<name>[^/]+)-(?P<version>[^/-]*-\d+)\.[^/]+\.[^./]+.rpm", url_path
+        r"(?:^|.+/)(?P<name>[^/]+)-(?P<version>[^/-]*-\d+)\.[^/]+\.[^./]+.rpm", url_path
     )
 
     if not match:
@@ -99,10 +102,10 @@ if __name__ == "__main__":
         f"({re.escape(nexus_host)})(?P<repo_type>[^/]+)/(?P<url>.*)"
     )
 
-    log.info(f"Access Log Parser Started")
+    log.info("Access log parser started")
     try:
         access_log = Path(args.path).open("r")
-        log.info(f"File successfully read")
+        log.info("File successfully read")
         line_count = 0
     except OSError:
         log.error(f"Unable to open file: {args.path}")
@@ -137,7 +140,7 @@ if __name__ == "__main__":
                 if package:
                     package_tuples.append(package)
                     log.info(
-                        f"Parsed Package: {package.package} version={package.version} type={package.type}"
+                        f"Parsed package: {package.package} version={package.version} type={package.type}"
                     )
 
             except ValueError as e:
@@ -150,4 +153,4 @@ if __name__ == "__main__":
                 # TODO: Consider adding custom exception handler to reduce repetition
                 if not args.allow_errors:
                     sys.exit(1)
-    log.info(f"File Successfully Parsed")
+    log.info("File successfully parsed")
