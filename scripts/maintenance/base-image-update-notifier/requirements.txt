@@ -1,0 +1,9 @@
+datetime
+jinja2
+nose
+pyrate_limiter
+python-gitlab
+pyyaml
+requests
+jsonschema
+logging2

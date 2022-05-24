@@ -1,0 +1,6 @@
+**/bin
+**/include
+**/lib
+pyvenv.cfg
+*.xlsx
+__pycache__
