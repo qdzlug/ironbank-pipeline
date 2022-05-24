@@ -174,7 +174,10 @@ def push_oras(image: Image) -> None:
     """
 
     logging.info("Push SBOM")
-    with open(f'{os.environ["ACCESS_LOG_DIR"]}/access_log', 'rb') as src, open(f'{os.environ["SBOM_DIR"]}/access_log', 'wb') as dst: dst.write(src.read())
+    with open(f'{os.environ["ACCESS_LOG_DIR"]}/access_log', "rb") as src, open(
+        f'{os.environ["SBOM_DIR"]}/access_log', "wb"
+    ) as dst:
+        dst.write(src.read())  # noqa E701
     os.chdir(os.environ["SBOM_DIR"])
     sboms = [f"{file}:{mime_types[file]}" for file in os.listdir(os.getcwd())]
     logging.info(sboms)
