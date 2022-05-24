@@ -174,11 +174,10 @@ def push_oras(image: Image) -> None:
     """
 
     logging.info("Push SBOM")
+    with open(f'{os.environ["ACCESS_LOG_DIR"]}/access_log', 'rb') as src, open(f'{os.environ["SBOM_DIR"]}/access_log', 'wb') as dst: dst.write(src.read())
     os.chdir(os.environ["SBOM_DIR"])
-    os.popen(
-        f'cp {os.environ["ACCESS_LOG_DIR"]}/access_log {os.environ["SBOM_DIR"]}/access_log'
-    )
     sboms = [f"{file}:{mime_types[file]}" for file in os.listdir(os.getcwd())]
+    logging.info(sboms)
     formatted_digest = image.digest.split(":")[1]
     logging.info(f"Pushing SBOM for {image.registry}/{image.name}@{image.digest}")
     sign_cmd = [
