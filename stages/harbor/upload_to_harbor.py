@@ -174,6 +174,7 @@ def push_oras(image: Image) -> None:
     """
 
     logging.info("Push SBOM")
+    # TODO: switch this to a shutil.copy()
     with open(f'{os.environ["ACCESS_LOG_DIR"]}/access_log', "rb") as src, open(
         f'{os.environ["SBOM_DIR"]}/access_log', "wb"
     ) as dst:
