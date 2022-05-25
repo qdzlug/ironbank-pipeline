@@ -37,20 +37,17 @@ def main():
     logging.debug(f"EXIT CODE returned from is_approved function: {exit_code}")
     logging.debug(f"Accreditation Status: {accreditation_status}")
     logging.debug(f"Accreditation Comments: {accreditation_comments}")
-    if not os.environ["SKIP_VAT"]:
-        if exit_code == 0:
-            logging.info("This pipeline passed the Check CVEs job")
-        else:
-            logging.error("This pipeline failed the Check CVEs job")
-            if os.environ["CI_COMMIT_BRANCH"] == "master":
-                subprocess.run(
-                    [
-                        f"{os.environ['PIPELINE_REPO_DIR']}/stages/check-cves/mattermost-failure-webhook.sh"
-                    ]
-                )
-        sys.exit(exit_code)
+    if exit_code == 0:
+        logging.info("This pipeline passed the Check CVEs job")
     else:
-        logging.info("Skipping VAT gates")
+        logging.error("This pipeline failed the Check CVEs job")
+        if os.environ["CI_COMMIT_BRANCH"] == "master":
+            subprocess.run(
+                [
+                    f"{os.environ['PIPELINE_REPO_DIR']}/stages/check-cves/mattermost-failure-webhook.sh"
+                ]
+            )
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":
