@@ -19,6 +19,7 @@ mime_types = {
     "sbom-spdx.xml": "text/spdx",
     "sbom-spdx-json.json": "application/spdx+json",
     "sbom-spdx-tag-value.txt": "text/plain",
+    "access_log": "text/plain",
 }
 
 
@@ -173,8 +174,14 @@ def push_oras(image: Image) -> None:
     """
 
     logging.info("Push SBOM")
+    # TODO: switch this to a shutil.copy()
+    with open(f'{os.environ["ACCESS_LOG_DIR"]}/access_log', "rb") as src, open(
+        f'{os.environ["SBOM_DIR"]}/access_log', "wb"
+    ) as dst:
+        dst.write(src.read())  # noqa E701
     os.chdir(os.environ["SBOM_DIR"])
     sboms = [f"{file}:{mime_types[file]}" for file in os.listdir(os.getcwd())]
+    logging.info(sboms)
     formatted_digest = image.digest.split(":")[1]
     logging.info(f"Pushing SBOM for {image.registry}/{image.name}@{image.digest}")
     sign_cmd = [

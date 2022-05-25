@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from base64 import b64decode
+import json
 import os
 import asyncio
 import pathlib
@@ -46,17 +47,23 @@ def skopeo_inspect_base_image(base_image, base_tag):
         "--authfile",
         auth_file,
         f"docker://registry1.dso.mil/{registry}/{base_image}:{base_tag}",
+        "--format",
+        "'{{ .Digest }}'",
     ]
     log.info(" ".join(cmd))
     # if skopeo inspect fails, because BASE_IMAGE value doesn't match a registry1 container name
     #   fail back to using existing functionality
     try:
-        subprocess.run(
+        sha_value = subprocess.run(
             args=cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             check=True,
+            encoding="utf-8",
         )
+        base_image_info = {"BASE_SHA": sha_value.stdout.strip().replace("'", "")}
+        with open(f'{os.environ["ARTIFACT_DIR"]}/base_image.json', "w") as f:
+            json.dump(base_image_info, f)
     except subprocess.CalledProcessError as e:
         log.error(
             "Failed to inspect BASE_IMAGE:BASE_TAG provided in hardening_manifest. \
