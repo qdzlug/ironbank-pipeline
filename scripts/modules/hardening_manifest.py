@@ -180,7 +180,7 @@ class HardeningManifest:
         with (artifact_dir / "args.env").open("w") as f:
             for key, value in self.args.items():
                 f.write(f"{key}={value}\n")
-        with (artifact_dir / "labels.env").open("a") as f:
+        with (artifact_dir / "labels.env").open("w") as f:
             for key, value in self.labels.items():
                 f.write(f"{key}={value}\n")
 
