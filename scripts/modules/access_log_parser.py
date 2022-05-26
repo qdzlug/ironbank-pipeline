@@ -1,21 +1,12 @@
-import os
 import sys
 import re
 import argparse
 from pathlib import Path
 from collections import namedtuple
 from typing import Optional
-
-sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts/modules"
-    )
-)
-
-from utils import logger  # noqa: E402
+from utils import logger
 
 log = logger.setup(name="access_log_parser", format="| %(levelname)-5s | %(message)s")
-
 
 REPOS = {
     "goproxy": "go",
