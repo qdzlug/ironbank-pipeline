@@ -5,6 +5,7 @@ import hashlib
 import logging
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -175,11 +176,18 @@ def push_oras(image: Image) -> None:
 
     logging.info("Push SBOM")
     if os.stat(f"{os.environ['ACCESS_LOG_DIR']}/access_log").st_size:
-        # TODO: switch this to a shutil.copy()
-        with open(f'{os.environ["ACCESS_LOG_DIR"]}/access_log', "rb") as src, open(
-            f'{os.environ["SBOM_DIR"]}/access_log', "wb"
-        ) as dst:
-            dst.write(src.read())  # noqa E701
+        try:
+            shutil.copy(
+                f'{os.environ["ACCESS_LOG_DIR"]}/access_log',
+                f'{os.environ["SBOM_DIR"]}/access_log',
+            )
+            print("File copied successfully.")
+        except shutil.SameFileError:
+            print("Source and destination represents the same file.")
+        except PermissionError:
+            print("Permission denied.")
+        except:
+            print("Error occurred while copying file.")
     os.chdir(os.environ["SBOM_DIR"])
     sboms = [f"{file}:{mime_types[file]}" for file in os.listdir(os.getcwd())]
     logging.info(sboms)
