@@ -71,10 +71,15 @@ fi
 cp "${PIPELINE_REPO_DIR}"/stages/build/build-args.txt .
 sed -i '/^FROM /r build-args.txt' Dockerfile
 # shellcheck disable=SC2086
-BASE_SHA=$(grep -Po '(?<="BASE_SHA": ")[^"]*' ${ARTIFACT_STORAGE}/lint/base_image.json)
+
 old_ifs=$IFS
 IFS=$'\n'
 echo "Build the image"
+PARENT_LABEL=""
+if [ ! -z "${BASE_IMAGE:-}" ]; then
+  BASE_SHA=$(grep -Po '(?<="BASE_SHA": ")[^"]*' ${ARTIFACT_STORAGE}/lint/base_image.json)
+  PARENT_LABEL="registry1.dso.mil/${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}@${BASE_SHA}"
+fi
 # Intentional wordsplitting:
 # shellcheck disable=SC2086
 env -i BUILDAH_ISOLATION=chroot PATH="$PATH" buildah bud \
@@ -89,7 +94,7 @@ env -i BUILDAH_ISOLATION=chroot PATH="$PATH" buildah bud \
   --label=org.opencontainers.image.created="$(date --rfc-3339=seconds)" \
   --label=org.opencontainers.image.source="${CI_PROJECT_URL}" \
   --label=org.opencontainers.image.revision="${CI_COMMIT_SHA}" \
-  --label=mil.dso.ironbank.image.parent="registry1.dso.mil/${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}@${BASE_SHA}" \
+  --label=mil.dso.ironbank.image.parent="${PARENT_LABEL}" \
   --authfile /tmp/prod_auth.json \
   --format=oci \
   --log-level=warn \
