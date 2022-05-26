@@ -186,8 +186,6 @@ def push_oras(image: Image) -> None:
             print("Source and destination represents the same file.")
         except PermissionError:
             print("Permission denied.")
-        except:
-            print("Error occurred while copying file.")
     os.chdir(os.environ["SBOM_DIR"])
     sboms = [f"{file}:{mime_types[file]}" for file in os.listdir(os.getcwd())]
     logging.info(sboms)
