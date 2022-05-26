@@ -175,11 +175,13 @@ def push_oras(image: Image) -> None:
     """
 
     logging.info("Push SBOM")
-    if os.stat(f"{os.environ['ACCESS_LOG_DIR']}/access_log").st_size:
+    access_log_path = pathlib.Path(os.environ["ACCESS_LOG_DIR"], "access_log")
+    sbom_access_log_path =  pathlib.Path(os.environ["SBOM_DIR"], "access_log")
+    if os.stat(access_log_path).st_size:
         try:
             shutil.copy(
-                f'{os.environ["ACCESS_LOG_DIR"]}/access_log',
-                f'{os.environ["SBOM_DIR"]}/access_log',
+                access_log_path,
+                sbom_access_log_path,
             )
             print("File copied successfully.")
         except shutil.SameFileError:
