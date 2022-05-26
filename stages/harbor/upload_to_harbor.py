@@ -176,7 +176,7 @@ def push_oras(image: Image) -> None:
 
     logging.info("Push SBOM")
     access_log_path = pathlib.Path(os.environ["ACCESS_LOG_DIR"], "access_log")
-    sbom_access_log_path =  pathlib.Path(os.environ["SBOM_DIR"], "access_log")
+    sbom_access_log_path = pathlib.Path(os.environ["SBOM_DIR"], "access_log")
     if os.stat(access_log_path).st_size:
         try:
             shutil.copy(
