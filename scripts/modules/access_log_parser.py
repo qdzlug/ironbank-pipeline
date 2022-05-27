@@ -2,9 +2,9 @@ import sys
 import re
 import argparse
 from pathlib import Path
-from collections import namedtuple
 from typing import Optional
 from utils import logger
+from utils.sbom import Package
 
 log = logger.setup(name="access_log_parser", format="| %(levelname)-5s | %(message)s")
 
@@ -23,72 +23,8 @@ REPOS = {
     "ubigroup-8": "yum",
 }
 
-Package = namedtuple("Package", ["type", "package", "version"])
-package_tuples = []
-
-
-def go_parser(url_path: str) -> Optional[Package]:
-
-    match = re.match(
-        r"(?P<name>.*?)/(:?@v/(?P<version>.*?)\.(?P<ext>[^.]+)|(?P<latest>@latest))$",
-        url_path,
-    )
-
-    if not match:
-        raise ValueError(f"Could not parse go URL: {url_path}")
-
-    if match.group("ext") in ["zip", "info"] or match.group("latest"):
-        return None
-    elif match.group("ext") != "mod":
-        raise ValueError(f"Unexpected go mod extension: {url_path}")
-    else:
-        return Package("go", match.group("name"), match.group("version"))
-
-
-def yum_parser(url_path: str) -> Optional[Package]:
-
-    if url_path.startswith("repodata"):
-        return None
-
-    match = re.match(
-        r"(?:^|.+/)(?P<name>[^/]+)-(?P<version>[^/-]*-\d+)\.[^/]+\.[^./]+.rpm", url_path
-    )
-
-    if not match:
-        raise ValueError(f"Could not parse yum URL: {url_path}")
-
-    return (
-        Package("yum", match.group("name"), match.group("version")) if match else None
-    )
-
-
-def null_parser(url: str) -> None:
-    return None
-
-
-PARSERS = {
-    "gosum": null_parser,
-    "go": go_parser,
-    "yum": yum_parser,
-}
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Script used to parse access_log files"
-    )
-    parser.add_argument(
-        "--allow-errors",
-        action="store_true",
-        help="allow parsing to continue upon encountering an error",
-    )
-    parser.add_argument(
-        "path",
-        type=str,
-        help="path to access_log file",
-    )
-    args = parser.parse_args()
-
+def parse_access_log(path: Path, allow_errors: bool) -> list[Package]:
+    package_tuples = []
     nexus_host = "http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/"
     nexus_parser = re.compile(
         f"({re.escape(nexus_host)})(?P<repo_type>[^/]+)/(?P<url>.*)"
@@ -96,11 +32,11 @@ if __name__ == "__main__":
 
     log.info("Access log parser started")
     try:
-        access_log = Path(args.path).open("r")
+        access_log = Path(path).open("r")
         log.info("File successfully read")
         line_count = 0
     except OSError:
-        log.error(f"Unable to open file: {args.path}")
+        log.error(f"Unable to open file: {path}")
         sys.exit(1)
 
     with access_log:
@@ -138,11 +74,77 @@ if __name__ == "__main__":
             except ValueError as e:
                 log.error(f"Unable to parse line: {line_count}")
                 log.error(e)
-                if not args.allow_errors:
+                if not allow_errors:
                     sys.exit(1)
             except Exception:
                 log.exception("Exception: Unknown exception")
                 # TODO: Consider adding custom exception handler to reduce repetition
-                if not args.allow_errors:
+                if not allow_errors:
                     sys.exit(1)
     log.info("File successfully parsed")
+    return package_tuples
+
+
+def go_parser(url_path: str) -> Optional[Package]:
+
+    match = re.match(
+        r"(?P<name>.*?)/(:?@v/(?P<version>.*?)\.(?P<ext>[^.]+)|(?P<latest>@latest))$",
+        url_path,
+    )
+
+    if not match:
+        raise ValueError(f"Could not parse go URL: {url_path}")
+
+    if match.group("ext") in ["zip", "info"] or match.group("latest"):
+        return None
+    elif match.group("ext") != "mod":
+        raise ValueError(f"Unexpected go mod extension: {url_path}")
+    else:
+        return Package("go", match.group("name"), match.group("version"))
+
+
+def yum_parser(url_path: str) -> Optional[Package]:
+
+    if url_path.startswith("repodata"):
+        return None
+
+    match = re.match(
+        r"(?:^|.+/)(?P<name>[^/]+)-(?P<version>[^/-]*-\d+)\.[^/]+\.[^./]+.rpm", url_path
+    )
+
+    if not match:
+        raise ValueError(f"Could not parse yum URL: {url_path}")
+
+    return (
+        Package("rpm", match.group("name"), match.group("version")) if match else None
+    )
+
+
+def null_parser(url: str) -> None:
+    return None
+
+
+PARSERS = {
+    "gosum": null_parser,
+    "go": go_parser,
+    "yum": yum_parser,
+}
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Script used to parse access_log files"
+    )
+    parser.add_argument(
+        "--allow-errors",
+        action="store_true",
+        help="allow parsing to continue upon encountering an error",
+    )
+    parser.add_argument(
+        "path",
+        type=str,
+        help="path to access_log file",
+    )
+    args = parser.parse_args()
+
+    parse_access_log(args.path, args.allow_errors)

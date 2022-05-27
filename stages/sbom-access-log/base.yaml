@@ -15,3 +15,10 @@ parse-access-log:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/scripts/modules/access_log_parser.py" --allow-errors "${ARTIFACT_DIR}/access_log"'
+
+parse-sbom:
+  extends: .sbom-access-log
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
+  script:
+    - 'python3 "${PIPELINE_REPO_DIR}/scripts/modules/sbom_parser.py" --allow-errors "${ARTIFACT_DIR}/access_log"'

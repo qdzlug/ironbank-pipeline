@@ -1,23 +1,48 @@
 import sys
-import re
 import argparse
 from pathlib import Path
-from collections import namedtuple
-from typing import Optional
 from utils import logger
+from utils.sbom import Package
 import json
 
 log = logger.setup(name="sbom_parser", format="| %(levelname)-5s | %(message)s")
 
-Package = namedtuple("Package", ["type", "package", "version"])
-package_tuples = []
+def parse_sbom(path: Path, allow_errors: bool) -> list[Package]:
 
+    package_tuples = []
+    log.info("SBOM parser started")
+    try:
+        sbom = Path(path).open("r")
+        log.info("File successfully read")
+    except OSError:
+        log.error(f"Unable to open file: {path}")
+        sys.exit(1)
 
-def parse_artifact(artifact: object) -> Optional[Package]:
+    with sbom:
+        try:
+            data = json.load(sbom)
+            for artifact in data['artifacts']:
 
-    return (
-        Package(artifact['type'], artifact['name'], artifact['version'])
-    )
+                package = Package(artifact['type'], artifact['name'], artifact['version'].split('.el')[0])
+
+                if package:
+                    package_tuples.append(package)
+                    log.info(
+                        f"Parsed package: {package.package} version={package.version} type={package.type}"
+                    )
+        except ValueError as e:
+                log.error(f"Unable to parse sbom")
+                log.error(e)
+                if not allow_errors:
+                    sys.exit(1)
+        except Exception:
+            log.exception("Exception: Unknown exception")
+            # TODO: Consider adding custom exception handler to reduce repetition
+            if not allow_errors:
+                sys.exit(1)
+
+    log.info("File successfully parsed")
+    return package_tuples
 
 
 if __name__ == "__main__":
@@ -36,35 +61,4 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    log.info("SBOM parser started")
-    try:
-        sbom = Path(args.path).open("r")
-        log.info("File successfully read")
-    except OSError:
-        log.error(f"Unable to open file: {args.path}")
-        sys.exit(1)
-
-    with sbom:
-        try:
-            data = json.load(sbom)
-            for artifact in data['artifacts']:
-
-                package = parse_artifact(artifact)
-
-                if package:
-                    package_tuples.append(package)
-                    log.info(
-                        f"Parsed package: {package.package} version={package.version} type={package.type}"
-                    )
-        except ValueError as e:
-                log.error(f"Unable to parse sbom")
-                log.error(e)
-                if not args.allow_errors:
-                    sys.exit(1)
-        except Exception:
-            log.exception("Exception: Unknown exception")
-            # TODO: Consider adding custom exception handler to reduce repetition
-            if not args.allow_errors:
-                sys.exit(1)
-
-    log.info("File successfully parsed")
+    parse_sbom(args.path, args.allow_errors)    
