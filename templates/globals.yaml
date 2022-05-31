@@ -18,12 +18,6 @@ stages:
   # - executor image with Python 3.x installed
   - import-artifacts
 
-  ### artifact scan stage
-  # use clamav to scan download artifacts
-  # Requirements:
-  # - executor image with docker (or podman) installed
-  - scan-artifacts
-
   ### build stage
   # build image w version tag and create tar file
   - build
