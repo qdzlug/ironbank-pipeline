@@ -185,7 +185,7 @@ def generate_anchore_cve_jobs(anchore_sec_path):
             if v_d["package_path"] != "pkgdb"
             else None,
             "scanSource": "anchore_cve",
-            "identifiers": identifiers
+            "identifiers": identifiers,
         }
         if cve not in cves:
             cves.append(cve)
