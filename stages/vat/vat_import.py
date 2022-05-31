@@ -161,6 +161,19 @@ def generate_anchore_cve_jobs(anchore_sec_path):
         # vulnerability's url value is NOT a list. Just use the string value provided
         else:
             link_string = v_d["url"]
+        identifiers = []
+        if v_d["nvd_data"]:
+            if v_d["nvd_data"]["id"] == v_d["vuln"]:
+                identifiers.append(v_d["vuln"])
+            else:
+                identifiers.append(v_d["vuln"])
+                identifiers.append(v_d["nvd_data"]["id"])
+        else:
+            if v_d["vendor_data"]["id"] == v_d["vuln"]:
+                identifiers.append(v_d["vuln"])
+            else:
+                identifiers.append(v_d["vuln"])
+                identifiers.append(v_d["vendor_data"]["id"])
         cve = {
             "finding": v_d["vuln"],
             "severity": v_d["severity"].lower(),
@@ -172,6 +185,7 @@ def generate_anchore_cve_jobs(anchore_sec_path):
             if v_d["package_path"] != "pkgdb"
             else None,
             "scanSource": "anchore_cve",
+            "identifiers": identifiers
         }
         if cve not in cves:
             cves.append(cve)
