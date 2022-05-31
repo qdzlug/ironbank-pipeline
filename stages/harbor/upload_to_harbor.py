@@ -183,7 +183,7 @@ def push_oras(image: Image) -> None:
                 access_log_path,
                 sbom_access_log_path,
             )
-            print("File copied successfully.")
+            logging.info("File copied successfully.")
         except shutil.SameFileError:
             logging.error("Source and destination represents the same file.")
             sys.exit(1)
