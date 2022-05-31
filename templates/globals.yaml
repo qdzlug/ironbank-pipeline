@@ -48,9 +48,6 @@ stages:
   ### check cve stage
   - check-cves
 
-  ### generate allowlists for Anchore (runs on master)
-  - generate-allowlists
-
   ### Sign image and manifest and write documentation
   - documentation
 
