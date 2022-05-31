@@ -185,10 +185,10 @@ def push_oras(image: Image) -> None:
             )
             print("File copied successfully.")
         except shutil.SameFileError:
-            print("Source and destination represents the same file.")
+            logging.error("Source and destination represents the same file.")
             sys.exit(1)
         except PermissionError:
-            print("Permission denied.")
+            logging.error("Permission denied.")
             sys.exit(1)
     os.chdir(os.environ["SBOM_DIR"])
     sboms = [f"{file}:{mime_types[file]}" for file in os.listdir(os.getcwd())]
