@@ -163,17 +163,41 @@ def generate_anchore_cve_jobs(anchore_sec_path):
             link_string = v_d["url"]
         identifiers = []
         if v_d["nvd_data"]:
-            if v_d["nvd_data"]["id"] == v_d["vuln"]:
-                identifiers.append(v_d["vuln"])
-            else:
-                identifiers.append(v_d["vuln"])
-                identifiers.append(v_d["nvd_data"]["id"])
+            try:
+                if not v_d["nvd_data"]:
+                    identifiers.append(v_d["vuln"])
+                elif v_d["nvd_data"][0]:
+                    if v_d["nvd_data"][0]["id"] == v_d["vuln"]:
+                        identifiers.append(v_d["vuln"])
+                    else:
+                        identifiers.append(v_d["vuln"])
+                        identifiers.append(v_d["nvd_data"][0]["id"])
+                else:
+                    if v_d["nvd_data"]["id"] == v_d["vuln"]:
+                        identifiers.append(v_d["vuln"])
+                    else:
+                        identifiers.append(v_d["vuln"])
+                        identifiers.append(v_d["nvd_data"]["id"])
+            except IndexError:
+                logging.info("Index out of range. No vendor data available. Continuing.")
         else:
-            if v_d["vendor_data"]["id"] == v_d["vuln"]:
-                identifiers.append(v_d["vuln"])
-            else:
-                identifiers.append(v_d["vuln"])
-                identifiers.append(v_d["vendor_data"]["id"])
+            try:
+                if not v_d["vendor_data"]:
+                    identifiers.append(v_d["vuln"])
+                if v_d["vendor_data"][0]:
+                    if v_d["vendor_data"][0]["id"] == v_d["vuln"]:
+                        identifiers.append(v_d["vuln"])
+                    else:
+                        identifiers.append(v_d["vuln"])
+                        identifiers.append(v_d["vendor_data"][0]["id"])
+                else:
+                    if v_d["vendor_data"]["id"] == v_d["vuln"]:
+                        identifiers.append(v_d["vuln"])
+                    else:
+                        identifiers.append(v_d["vuln"])
+                        identifiers.append(v_d["vendor_data"]["id"])
+            except IndexError:
+                logging.info("Index out of range. No vendor data available. Continuing.")
         cve = {
             "finding": v_d["vuln"],
             "severity": v_d["severity"].lower(),
