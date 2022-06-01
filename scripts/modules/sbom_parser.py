@@ -7,39 +7,24 @@ import json
 
 log = logger.setup(name="sbom_parser", format="| %(levelname)-5s | %(message)s")
 
-def parse_sbom(path: Path, allow_errors: bool) -> list[Package]:
+def parse_sbom(path: Path) -> list[Package]:
 
     package_tuples = []
     log.info("SBOM parser started")
-    try:
-        sbom = Path(path).open("r")
-        log.info("File successfully read")
-    except OSError:
-        log.error(f"Unable to open file: {path}")
-        sys.exit(1)
+    sbom = Path(path).open("r")
+    log.info("File successfully read")
 
     with sbom:
-        try:
-            data = json.load(sbom)
-            for artifact in data['artifacts']:
+        data = json.load(sbom)
+        for artifact in data['artifacts']:
 
-                package = Package(artifact['type'], artifact['name'], artifact['version'].split('.el')[0])
+            package = Package(artifact['type'], artifact['name'], artifact['version'].split('.el')[0])
 
-                if package:
-                    package_tuples.append(package)
-                    log.info(
-                        f"Parsed package: {package.package} version={package.version} type={package.type}"
-                    )
-        except ValueError as e:
-                log.error(f"Unable to parse sbom")
-                log.error(e)
-                if not allow_errors:
-                    sys.exit(1)
-        except Exception:
-            log.exception("Exception: Unknown exception")
-            # TODO: Consider adding custom exception handler to reduce repetition
-            if not allow_errors:
-                sys.exit(1)
+            if package:
+                package_tuples.append(package)
+                log.info(
+                    f"Parsed package: {package.package} version={package.version} type={package.type}"
+                )
 
     log.info("File successfully parsed")
     return package_tuples
@@ -61,4 +46,19 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    parse_sbom(args.path, args.allow_errors)    
+    try:
+        parse_sbom(args.path)
+    except OSError:
+        log.error(f"Unable to open file: {args.path}")
+        sys.exit(1)
+    except ValueError as e:
+        log.error(f"Unable to parse sbom")
+        log.error(e)
+        if not args.allow_errors:
+            sys.exit(1)
+    except Exception:
+        log.exception("Exception: Unknown exception")
+        # TODO: Consider adding custom exception handler to reduce repetition
+        if not args.allow_errors:
+            sys.exit(1)
+

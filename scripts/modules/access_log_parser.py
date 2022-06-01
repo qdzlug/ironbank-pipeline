@@ -8,6 +8,7 @@ from utils.sbom import Package
 
 log = logger.setup(name="access_log_parser", format="| %(levelname)-5s | %(message)s")
 
+#TODO: Move to CI variable
 REPOS = {
     "goproxy": "go",
     "gosum": "gosum",
@@ -31,56 +32,42 @@ def parse_access_log(path: Path, allow_errors: bool) -> list[Package]:
     )
 
     log.info("Access log parser started")
-    try:
-        access_log = Path(path).open("r")
-        log.info("File successfully read")
-        line_count = 0
-    except OSError:
-        log.error(f"Unable to open file: {path}")
-        sys.exit(1)
+    access_log = Path(path).open("r")
+    log.info("File successfully read")
+    line_count = 0
 
     with access_log:
         for line in access_log.readlines():
             line_count += 1
-            try:
-                line = line.rstrip("\n")
 
-                if not line.startswith("200"):
-                    continue
+            line = line.rstrip("\n")
 
-                # split on spaces and get the url
-                url = line.split(" ")[-1]
+            if not line.startswith("200"):
+                continue
 
-                # match against the nexus repo parser
-                match = nexus_parser.match(url)
+            # split on spaces and get the url
+            url = line.split(" ")[-1]
 
-                if not match:
-                    raise ValueError(f"Could not find parser for URL: {url}")
+            # match against the nexus repo parser
+            match = nexus_parser.match(url)
 
-                repo_type = match.group("repo_type")
-                # get repository from list
-                if repo_type not in REPOS:
-                    raise ValueError(f"Repository type not supported: {repo_type}")
+            if not match:
+                raise ValueError(f"Could not find parser for URL: {url}")
 
-                repo = REPOS[repo_type]
-                # call desired parser function stored in dictionary
-                package = PARSERS[repo](match.group("url"))
-                if package:
-                    package_tuples.append(package)
-                    log.info(
-                        f"Parsed package: {package.package} version={package.version} type={package.type}"
-                    )
+            repo_type = match.group("repo_type")
+            # get repository from list
+            if repo_type not in REPOS:
+                raise ValueError(f"Repository type not supported: {repo_type}")
 
-            except ValueError as e:
-                log.error(f"Unable to parse line: {line_count}")
-                log.error(e)
-                if not allow_errors:
-                    sys.exit(1)
-            except Exception:
-                log.exception("Exception: Unknown exception")
-                # TODO: Consider adding custom exception handler to reduce repetition
-                if not allow_errors:
-                    sys.exit(1)
+            repo = REPOS[repo_type]
+            # call desired parser function stored in dictionary
+            package = PARSERS[repo](match.group("url"))
+            if package:
+                package_tuples.append(package)
+                log.info(
+                    f"Parsed package: {package.package} version={package.version} type={package.type}"
+                )
+
     log.info("File successfully parsed")
     return package_tuples
 
@@ -119,10 +106,8 @@ def yum_parser(url_path: str) -> Optional[Package]:
         Package("rpm", match.group("name"), match.group("version")) if match else None
     )
 
-
 def null_parser(url: str) -> None:
     return None
-
 
 PARSERS = {
     "gosum": null_parser,
@@ -147,4 +132,18 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    parse_access_log(args.path, args.allow_errors)
+    try:
+        parse_access_log(args.path,)
+    except OSError:
+        log.error(f"Unable to open file: {args.path}")
+        sys.exit(1)
+    except ValueError as e:
+        log.error(f"Unable to parse access_log: {args.path}")
+        log.error(e)
+        if not args.allow_errors:
+            sys.exit(1)
+    except Exception:
+        log.exception("Exception: Unknown exception")
+        # TODO: Consider adding custom exception handler to reduce repetition
+        if not args.allow_errors:
+            sys.exit(1)

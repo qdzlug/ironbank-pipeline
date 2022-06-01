@@ -8,7 +8,6 @@
     max: 2
     when: runner_system_failure
 
-
 parse-access-log:
   extends: .sbom-access-log
   variables:
