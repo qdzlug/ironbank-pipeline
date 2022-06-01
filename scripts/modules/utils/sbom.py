@@ -1,3 +1,10 @@
 from collections import namedtuple
+from dataclasses import dataclass
 
-Package = namedtuple("Package", ["type", "package", "version"])
+
+@dataclass
+class Package:
+    type: str = None
+    name: str = None
+    version: str = None
+    url: str = None

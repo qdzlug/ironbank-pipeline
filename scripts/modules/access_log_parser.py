@@ -1,119 +1,81 @@
 import sys
+import os
 import re
 import argparse
+import json
+import utils.parser
 from pathlib import Path
-from typing import Optional
 from utils import logger
 from utils.sbom import Package
+from dataclasses import dataclass
 
 log = logger.setup(name="access_log_parser", format="| %(levelname)-5s | %(message)s")
 
-#TODO: Move to CI variable
-REPOS = {
-    "goproxy": "go",
-    "gosum": "gosum",
-    "ubi-7": "yum",
-    "ubi-7-extras": "yum",
-    "ubi-7-optional": "yum",
-    "ubi-7-rhah": "yum",
-    "ubi-7-rhscl": "yum",
-    "ubi-8-appstream": "yum",
-    "ubi-8-baseos": "yum",
-    "ubi-8-codeready-builder": "yum",
-    "ubigroup-7Server": "yum",
-    "ubigroup-8": "yum",
-}
 
-def parse_access_log(path: Path, allow_errors: bool) -> list[Package]:
-    package_tuples = []
-    nexus_host = "http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/"
-    nexus_parser = re.compile(
-        f"({re.escape(nexus_host)})(?P<repo_type>[^/]+)/(?P<url>.*)"
-    )
+@dataclass
+class AccessLogParser(utils.parser.Parser):
+    repos: dict = None
 
-    log.info("Access log parser started")
-    access_log = Path(path).open("r")
-    log.info("File successfully read")
-    line_count = 0
+    def parse_access_log(self) -> list[Package]:
+        packages = [Package]
+        # TODO make this an environment variable
+        nexus_host = "http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/"
+        nexus_re = re.compile(
+            f"({re.escape(nexus_host)})(?P<repo_type>[^/]+)/(?P<url>.*)"
+        )
 
-    with access_log:
-        for line in access_log.readlines():
-            line_count += 1
+        log.info("Access log parser started")
+        access_log = Path(self.file).open("r")
+        log.info("File successfully read")
+        line_count = 0
 
-            line = line.rstrip("\n")
+        with access_log:
+            for line in access_log.readlines():
+                line_count += 1
 
-            if not line.startswith("200"):
-                continue
+                line = line.rstrip("\n")
 
-            # split on spaces and get the url
-            url = line.split(" ")[-1]
+                if not line.startswith("200"):
+                    continue
 
-            # match against the nexus repo parser
-            match = nexus_parser.match(url)
+                # split on spaces and get the url
+                url = line.split(" ")[-1]
 
-            if not match:
-                raise ValueError(f"Could not find parser for URL: {url}")
+                # match against the nexus repo regex
+                match = nexus_re.match(url)
 
-            repo_type = match.group("repo_type")
-            # get repository from list
-            if repo_type not in REPOS:
-                raise ValueError(f"Repository type not supported: {repo_type}")
+                if not match:
+                    raise ValueError(f"Could not parse URL: {url}")
 
-            repo = REPOS[repo_type]
-            # call desired parser function stored in dictionary
-            package = PARSERS[repo](match.group("url"))
-            if package:
-                package_tuples.append(package)
-                log.info(
-                    f"Parsed package: {package.package} version={package.version} type={package.type}"
-                )
+                repo_type = match.group("repo_type")
 
-    log.info("File successfully parsed")
-    return package_tuples
+                # get repository from list
+                if repo_type not in self.repos:
+                    raise ValueError(f"Repository type not supported: {repo_type}")
 
+                # call desired parser function
+                match self.repos[repo_type]:
+                    case "gosum":
+                        package = utils.parser.NullPackageParser(
+                            url=match.group("url")
+                        ).parse()
+                    case "go":
+                        package = utils.parser.GoPackageParser(
+                            url=match.group("url")
+                        ).parse()
+                    case "yum":
+                        package = utils.parser.YumPackageParser(
+                            url=match.group("url")
+                        ).parse()
 
-def go_parser(url_path: str) -> Optional[Package]:
+                if package:
+                    packages.append(package)
+                    log.info(
+                        f"Parsed package: {package.name} version={package.version} type={package.type}"
+                    )
 
-    match = re.match(
-        r"(?P<name>.*?)/(:?@v/(?P<version>.*?)\.(?P<ext>[^.]+)|(?P<latest>@latest))$",
-        url_path,
-    )
-
-    if not match:
-        raise ValueError(f"Could not parse go URL: {url_path}")
-
-    if match.group("ext") in ["zip", "info"] or match.group("latest"):
-        return None
-    elif match.group("ext") != "mod":
-        raise ValueError(f"Unexpected go mod extension: {url_path}")
-    else:
-        return Package("go", match.group("name"), match.group("version"))
-
-
-def yum_parser(url_path: str) -> Optional[Package]:
-
-    if url_path.startswith("repodata"):
-        return None
-
-    match = re.match(
-        r"(?:^|.+/)(?P<name>[^/]+)-(?P<version>[^/-]*-\d+)\.[^/]+\.[^./]+.rpm", url_path
-    )
-
-    if not match:
-        raise ValueError(f"Could not parse yum URL: {url_path}")
-
-    return (
-        Package("rpm", match.group("name"), match.group("version")) if match else None
-    )
-
-def null_parser(url: str) -> None:
-    return None
-
-PARSERS = {
-    "gosum": null_parser,
-    "go": go_parser,
-    "yum": yum_parser,
-}
+        log.info(f"access_log successfully parsed")
+        return packages
 
 
 if __name__ == "__main__":
@@ -132,8 +94,11 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
+    access_log_parser = AccessLogParser(
+        file=args.path, repos=json.load(open(os.environ.get("ACCESS_LOG_REPOS"), "r"))
+    )
     try:
-        parse_access_log(args.path,)
+        access_log_parser.parse_access_log()
     except OSError:
         log.error(f"Unable to open file: {args.path}")
         sys.exit(1)

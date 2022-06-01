@@ -1,39 +1,46 @@
 import sys
 import argparse
+import json
 from pathlib import Path
 from utils import logger
 from utils.sbom import Package
-import json
+from utils.parser import Parser
+from dataclasses import dataclass
 
 log = logger.setup(name="sbom_parser", format="| %(levelname)-5s | %(message)s")
 
-def parse_sbom(path: Path) -> list[Package]:
 
-    package_tuples = []
-    log.info("SBOM parser started")
-    sbom = Path(path).open("r")
-    log.info("File successfully read")
+@dataclass
+class SbomParser(Parser):
+    def parse_sbom(self) -> list[Package]:
 
-    with sbom:
-        data = json.load(sbom)
-        for artifact in data['artifacts']:
+        packages = [Package]
+        log.info("SBOM parser started")
+        sbom = Path(self.file).open("r")
+        log.info("File successfully read")
 
-            package = Package(artifact['type'], artifact['name'], artifact['version'].split('.el')[0])
+        with sbom:
+            data = json.load(sbom)
+            for artifact in data["artifacts"]:
 
-            if package:
-                package_tuples.append(package)
-                log.info(
-                    f"Parsed package: {package.package} version={package.version} type={package.type}"
+                package = Package(
+                    artifact["type"],
+                    artifact["name"],
+                    artifact["version"].split(".el")[0],
                 )
 
-    log.info("File successfully parsed")
-    return package_tuples
+                if package:
+                    packages.append(package)
+                    log.info(
+                        f"Parsed package: {package.name} version={package.version} type={package.type}"
+                    )
+
+        log.info("File successfully parsed")
+        return packages
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Script used to parse sbom files"
-    )
+    parser = argparse.ArgumentParser(description="Script used to parse sbom files")
     parser.add_argument(
         "--allow-errors",
         action="store_true",
@@ -45,11 +52,12 @@ if __name__ == "__main__":
         help="path to sbom file",
     )
     args = parser.parse_args()
+    sbom_parser = SbomParser(args.path)
 
     try:
-        parse_sbom(args.path)
+        sbom_parser.parse_sbom()
     except OSError:
-        log.error(f"Unable to open file: {args.path}")
+        log.error(f"Unable to open file: {sbom_parser.path}")
         sys.exit(1)
     except ValueError as e:
         log.error(f"Unable to parse sbom")
@@ -61,4 +69,3 @@ if __name__ == "__main__":
         # TODO: Consider adding custom exception handler to reduce repetition
         if not args.allow_errors:
             sys.exit(1)
-
