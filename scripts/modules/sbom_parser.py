@@ -60,7 +60,7 @@ if __name__ == "__main__":
         log.error(f"Unable to open file: {sbom_parser.path}")
         sys.exit(1)
     except ValueError as e:
-        log.error(f"Unable to parse sbom")
+        log.error("Unable to parse sbom")
         log.error(e)
         if not args.allow_errors:
             sys.exit(1)

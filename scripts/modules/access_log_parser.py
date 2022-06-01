@@ -74,7 +74,7 @@ class AccessLogParser(utils.parser.Parser):
                         f"Parsed package: {package.name} version={package.version} type={package.type}"
                     )
 
-        log.info(f"access_log successfully parsed")
+        log.info("access_log successfully parsed")
         return packages
 
 
