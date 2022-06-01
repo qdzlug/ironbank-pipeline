@@ -64,7 +64,7 @@ black:
   stage: format
   script:
     - pip install --user black
-    - black --check --diff --color -t py39 .
+    - black --check --diff --color -t py310 .
 
 pylama:
   needs: []
