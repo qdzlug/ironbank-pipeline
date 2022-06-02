@@ -2,6 +2,7 @@ import os
 import re
 import hashlib
 import pathlib
+import subprocess
 import requests
 from requests.auth import HTTPBasicAuth
 from utils import logger
@@ -25,6 +26,10 @@ class _FileArtifactBase:
     filename: str = None
     validation: dict = None
 
+    def __post_init__(self):
+        self.dest_path = pathlib.Path(self.dest_path, "external_resources")
+        self.artifact_path = pathlib.Path(self.dest_path, self.filename)
+
 
 @dataclass
 class _ContainerArtifactBase:
@@ -32,7 +37,8 @@ class _ContainerArtifactBase:
 
     def __post_init__(self):
         self.dest_path = pathlib.Path(self.dest_path, "images")
-        self.artifact_path = pathlib.Path(self.dest_path, "SOME_VARIABLE_HERE")
+        self.__tar_name = self.tag.replace("/", "-").replace(":", "-")
+        self.artifact_path = pathlib.Path(self.dest_path, f"{self.__tar_name}.tar")
 
 
 @dataclass
@@ -57,8 +63,7 @@ class Artifact(_ArtifactBase):
 @dataclass
 class FileArtifact(_FileArtifactBase, Artifact):
     def __post_init__(self):
-        self.dest_path = pathlib.Path(self.dest_path, "external_resources")
-        self.artifact_path = pathlib.Path(self.dest_path, self.filename)
+        super().__post_init__()
 
     def handle_invalid_checksum(self, generated, expected):
         self.log.error(f"Checksum mismatch: generated {generated}, expected {expected}")
@@ -130,7 +135,7 @@ class HttpArtifact(FileArtifact):
             raise ValueError(
                 "Filename has invalid characters. Filename must start with a letter or a number. Aborting"
             )
-        # TODO: rethink auth for local dev
+        # TODO: potentially rethink auth for local dev use
         for url in self.urls:
             self.log.info(f"Downloading from {url}")
             with requests.get(
@@ -153,13 +158,34 @@ class HttpArtifact(FileArtifact):
 class ContainerArtifact(Artifact, _ContainerArtifactBase):
     # artifact_path: pathlib.Path = pathlib.Path(f'{os.environ.get('ARTIFACT_DIR')/images/')
     log: logger = logger.setup("ContainerArtifact")
+    authfile: pathlib.Path = pathlib.Path("tmp", "prod_auth.json")
 
     def __post_init__(self):
         super().__post_init__()
 
     def get_credentials(self) -> str:
-        username, password = self.get_credentials()
+        username, password = self.get_username_password()
         return f"{username}:{password}"
+
+    def download(self):
+        self.log.info(f"Pulling {self.url}")
+
+        pull_cmd = [
+            "skopeo",
+            "copy",
+        ]
+        # authfile may not exist when testing locally
+        pull_cmd += [f"--authfile={self.authfile}"] if self.authfile.exists() else []
+        pull_cmd += ["--remove-signatures", "--additional-tag", self.tag]
+        pull_cmd += ["--src-creds", self.get_credentials()] if self.auth else []
+        # add src and dest
+        pull_cmd += [self.url, f"docker-archive:{self.artifact_path}"]
+        subprocess.run(
+            args=pull_cmd,
+            stdout=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            check=True,
+        )
 
 
 @dataclass
@@ -167,7 +193,7 @@ class GithubArtifact(ContainerArtifact):
     def __post_init__(self):
         super().__post_init__()
 
-    def get_credentials(self) -> tuple:
+    def get_username_password(self) -> tuple:
         username = b64decode(os.environ["GITHUB_ROBOT_USER"]).decode("utf-8")
         password = b64decode(os.environ["GITHUB_ROBOT_TOKEN"]).decode("utf-8")
         return username, password
