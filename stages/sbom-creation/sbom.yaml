@@ -13,6 +13,6 @@ sbom:
   retry:
     max: 2
     when: always
-  image: "registry1.dso.mil/ironbank/anchore/engine/engine:1.0.0"
+  image: "registry1.dso.mil/ironbank/anchore/enterprise/enterprise:4.0.1"
   script:
     - python3 "${PIPELINE_REPO_DIR}/stages/sbom-creation/generate_sbom.py"
