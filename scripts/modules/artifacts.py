@@ -12,10 +12,11 @@ from dataclasses import dataclass
 from base64 import b64decode
 from typing import Union
 from botocore.exceptions import ClientError
+from abc import ABC, abstractmethod
 
 
 @dataclass
-class _ArtifactBase:
+class _ArtifactBase(ABC):
     # url is optional since urls can also be used for http artifacts
     url: str = None
     auth: dict = None
@@ -23,9 +24,25 @@ class _ArtifactBase:
     dest_path: pathlib.Path = pathlib.Path(f"{os.environ.get('ARTIFACT_DIR')}")
     artifact_path: pathlib.Path = None
 
+    @abstractmethod
+    def delete_artifact(self):
+        pass
+
+    @abstractmethod
+    def get_username_password(self):
+        pass
+
+    @abstractmethod
+    def get_credentials(self):
+        pass
+
+    @abstractmethod
+    def download(self):
+        pass
+
 
 @dataclass
-class _FileArtifactBase:
+class _FileArtifactBase(ABC):
     filename: str = None
     validation: dict = None
 
@@ -33,9 +50,25 @@ class _FileArtifactBase:
         self.dest_path = pathlib.Path(self.dest_path, "external_resources")
         self.artifact_path = pathlib.Path(self.dest_path, self.filename)
 
+    @abstractmethod
+    def handle_invalid_checksum(self, generated, expected):
+        pass
+
+    @abstractmethod
+    def validate_checksum(self):
+        pass
+
+    @abstractmethod
+    def generate_checksum(self):
+        pass
+
+    @abstractmethod
+    def validate_filename(self):
+        pass
+
 
 @dataclass
-class _ContainerArtifactBase:
+class _ContainerArtifactBase(ABC):
     tag: str = None
 
     def __post_init__(self):
@@ -62,6 +95,7 @@ class Artifact(_ArtifactBase):
             "utf-8"
         )
         return username, password
+
 
 @dataclass
 class FileArtifact(_FileArtifactBase, Artifact):
@@ -102,6 +136,7 @@ class FileArtifact(_FileArtifactBase, Artifact):
             self.log.error(
                 "Filename is has invalid characters. Filename must start with a letter or a number. Aborting."
             )
+
 
 @dataclass
 class S3Artifact(FileArtifact):
