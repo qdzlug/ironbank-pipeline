@@ -47,6 +47,7 @@ class _ContainerArtifactBase:
 @dataclass
 class Artifact(_ArtifactBase):
     # TODO: consider overriding __new__ to prevent instantiation of this base class
+
     def delete_artifact(self):
         os.remove(self.artifact_path)
         self.log.error("File deleted")
@@ -62,9 +63,10 @@ class Artifact(_ArtifactBase):
         )
         return username, password
 
-
 @dataclass
 class FileArtifact(_FileArtifactBase, Artifact):
+
+    # TODO: Consider overriding __new__ for this class to prevent instantiation
     def __post_init__(self):
         super().__post_init__()
 
@@ -101,7 +103,6 @@ class FileArtifact(_FileArtifactBase, Artifact):
                 "Filename is has invalid characters. Filename must start with a letter or a number. Aborting."
             )
 
-
 @dataclass
 class S3Artifact(FileArtifact):
     log: logger = logger.setup("S3Artifact")
@@ -109,9 +110,8 @@ class S3Artifact(FileArtifact):
     def __post_init__(self):
         super().__post_init__()
 
-    # override auth
-    def get_username_password(self):
-        # do stuff
+    # credentials are just username and password
+    def get_credentials(self):
         credential_id = self.auth["id"].replace("-", "_")
         username = b64decode(os.environ["S3_ACCESS_KEY_" + credential_id]).decode(
             "utf-8"
@@ -122,31 +122,42 @@ class S3Artifact(FileArtifact):
         region = self.auth["region"]
         return username, password, region
 
+    # TODO: Allow parameters to be passed to this function for url, auth etc.
     def download(self):
         self.validate_filename()
-        parsed_url = urlparse(self.url)
+        parsed_url = urlparse(self.url, allow_fragments=False)
         extra_args = {}
         if "versionId" in parsed_url.query:
             extra_args = {
                 "VersionId": parsed_url.query.replace("versionId", "").split("&")[0]
             }
+        if not self.auth:
+            raise ValueError(
+                "You must provide auth to download S3 resources using the s3:// method \
+                Please use https or provide auth for your S3 download"
+            )
 
-        username, password, region = (
-            self.get_username_password() if self.auth else (None, None, None)
-        )
+        username, password, region = self.get_credentials()
 
-        s3_client = boto3.client(
-            "s3",
-            aws_access_key_id=username,
-            aws_secret_access_key=password,
-            region_name=region,
-        )
+        params = {"aws_access_key_id": username, "aws_secret_access_key": password}
+
+        if os.environ.get("LOCALTEST"):
+            params["endpoint_url"] = "http://localhost:9000"
+            params["config"] = boto3.session.Config(signature_version="s3v4")
+        else:
+            params["region_name"] = region
+
+        print(params)
+
+        s3_client = boto3.client("s3", **params)
+
         # remove leading forward slash
         bucket, object_name = parsed_url.netloc, parsed_url.path.lstrip("/")
+
         s3_client.download_file(
             bucket,
             object_name,
-            self.artifact_path,
+            self.artifact_path.as_posix(),
             extra_args,
         )
 
@@ -161,12 +172,14 @@ class HttpArtifact(FileArtifact):
     # self.urls should have len 1 if url is defined, else it's length should remain the same after this step
     def __post_init__(self):
         super().__post_init__()
+        # needs to exist in this post_init because S3 downloads will never have multiple urls
         self.urls = self.urls or [self.url]
 
     def get_credentials(self) -> HTTPBasicAuth:
         username, password = self.get_username_password()
         return HTTPBasicAuth(username, password)
 
+    # TODO: Allow parameters to be passed to this function for url, auth etc.
     def download(self) -> Union[int, None]:
         # Validate filename doesn't do anything nefarious
         self.validate_filename()
@@ -185,7 +198,7 @@ class HttpArtifact(FileArtifact):
                 if response.status_code == 200:
                     with self.artifact_path.open("wb") as f:
                         f.write(response.content)
-                    self.log.info(f"===== ARTIFACTS: {url}")
+                    self.log.info(f"===== ARTIFACT: {self.url}")
                     return response.status_code
 
 
@@ -202,6 +215,7 @@ class ContainerArtifact(Artifact, _ContainerArtifactBase):
         username, password = self.get_username_password()
         return f"{username}:{password}"
 
+    # TODO: Allow parameters to be passed to this function for url, auth etc.
     def download(self):
         self.log.info(f"Pulling {self.url}")
 
