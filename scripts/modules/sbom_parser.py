@@ -3,8 +3,8 @@ import argparse
 import json
 from pathlib import Path
 from utils import logger
-from utils.sbom import Package
-from utils.parser import Parser
+from utils.package_parser import Package
+from utils.package_parser import Parser
 from dataclasses import dataclass
 
 log = logger.setup(name="sbom_parser", format="| %(levelname)-5s | %(message)s")
