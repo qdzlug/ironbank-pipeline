@@ -4,11 +4,14 @@ import hashlib
 import pathlib
 import subprocess
 import requests
+import boto3
+from urllib.parse import urlparse
 from requests.auth import HTTPBasicAuth
 from utils import logger
 from dataclasses import dataclass
 from base64 import b64decode
 from typing import Union
+from botocore.exceptions import ClientError
 
 
 @dataclass
@@ -90,6 +93,14 @@ class FileArtifact(_FileArtifactBase, Artifact):
                 sha_hash.update(chunk)
         return sha_hash
 
+    def validate_filename(self):
+        # Validate filename doesn't do anything nefarious
+        match = re.search(r"^[A-Za-z0-9][^/\x00]*", self.filename)
+        if match is None:
+            self.log.error(
+                "Filename is has invalid characters. Filename must start with a letter or a number. Aborting."
+            )
+
 
 @dataclass
 class S3Artifact(FileArtifact):
@@ -111,6 +122,34 @@ class S3Artifact(FileArtifact):
         region = self.auth["region"]
         return username, password, region
 
+    def download(self):
+        self.validate_filename()
+        parsed_url = urlparse(self.url)
+        extra_args = {}
+        if "versionId" in parsed_url.query:
+            extra_args = {
+                "VersionId": parsed_url.query.replace("versionId", "").split("&")[0]
+            }
+
+        username, password, region = (
+            self.get_username_password() if self.auth else (None, None, None)
+        )
+
+        s3_client = boto3.client(
+            "s3",
+            aws_access_key_id=username,
+            aws_secret_access_key=password,
+            region_name=region,
+        )
+        # remove leading forward slash
+        bucket, object_name = parsed_url.netloc, parsed_url.path.lstrip("/")
+        s3_client.download_file(
+            bucket,
+            object_name,
+            self.artifact_path,
+            extra_args,
+        )
+
 
 @dataclass
 class HttpArtifact(FileArtifact):
@@ -130,11 +169,7 @@ class HttpArtifact(FileArtifact):
 
     def download(self) -> Union[int, None]:
         # Validate filename doesn't do anything nefarious
-        match = re.search(r"^[A-Za-z0-9][^/\x00]*", self.filename)
-        if not match:
-            raise ValueError(
-                "Filename has invalid characters. Filename must start with a letter or a number. Aborting"
-            )
+        self.validate_filename()
         # TODO: potentially rethink auth for local dev use
         for url in self.urls:
             self.log.info(f"Downloading from {url}")
