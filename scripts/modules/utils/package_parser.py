@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 log = logger.setup(name="package_parser", format="| %(levelname)-5s | %(message)s")
 
+
 @dataclass
 class Parser:
     file: Path = None
@@ -13,12 +14,14 @@ class Parser:
     def parse(self):
         pass
 
+
 @dataclass
 class Package:
     type: str = None
     name: str = None
     version: str = None
     url: str = None
+
 
 @dataclass
 class YumPackageParser(Package, Parser):
@@ -69,6 +72,7 @@ class NullPackageParser(Package, Parser):
     def parse(self) -> None:
         return None
 
+
 # TODO AccessLogParser is relly a "FileParser", we should consider refactoring, along iwth what's currently in sbom_parser.py
 @dataclass
 class AccessLogParser(Parser):
@@ -114,17 +118,11 @@ class AccessLogParser(Parser):
                 # call desired parser function
                 match self.repos[repo_type]:
                     case "gosum":
-                        package = NullPackageParser(
-                            url=match.group("url")
-                        ).parse()
+                        package = NullPackageParser(url=match.group("url")).parse()
                     case "go":
-                        package = GoPackageParser(
-                            url=match.group("url")
-                        ).parse()
+                        package = GoPackageParser(url=match.group("url")).parse()
                     case "yum":
-                        package = YumPackageParser(
-                            url=match.group("url")
-                        ).parse()
+                        package = YumPackageParser(url=match.group("url")).parse()
 
                 if package:
                     packages.append(package)
@@ -134,5 +132,3 @@ class AccessLogParser(Parser):
 
         log.info("access_log successfully parsed")
         return packages
-
-
