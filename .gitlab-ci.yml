@@ -58,6 +58,7 @@ shellcheck:
       exit "$ret"
 
 black:
+  image: registry1.dso.mil/ironbank/opensource/python/python39:v3.9.13
   needs: []
   tags:
     - ironbank-tools
