@@ -15,6 +15,31 @@ from botocore.exceptions import ClientError
 from abc import ABC, abstractmethod
 
 
+def request_retry(retry_count):
+    """
+    Decorator for retrying a function running a subprocess call
+    """
+
+    def decorate(func):
+        # self, args and kwargs are passed to allow this decorator to work on any method
+        def wrapper(self, *args, **kwargs):
+            for retry_num in range(1, retry_count + 1):
+                try:
+                    return func(self, *args, **kwargs)
+                except subprocess.CalledProcessError as e:
+                    if retry_num >= retry_count:
+                        self.log.error(
+                            "Resource failed to pull, please check hardening_manifest.yaml configuration"
+                        )
+                        raise subprocess.CalledProcessError(e.returncode, e.cmd)
+                    else:
+                        self.log.warn(f"Resource failed to pull, retrying...")
+
+        return wrapper
+
+    return decorate
+
+
 @dataclass
 class _ArtifactBase(ABC):
     # url is optional since urls can also be used for http artifacts
@@ -182,8 +207,6 @@ class S3Artifact(FileArtifact):
         else:
             params["region_name"] = region
 
-        print(params)
-
         s3_client = boto3.client("s3", **params)
 
         # remove leading forward slash
@@ -251,6 +274,7 @@ class ContainerArtifact(Artifact, _ContainerArtifactBase):
         return f"{username}:{password}"
 
     # TODO: Allow parameters to be passed to this function for url, auth etc.
+    @request_retry(3)
     def download(self):
         self.log.info(f"Pulling {self.url}")
 
