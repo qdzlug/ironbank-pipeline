@@ -124,7 +124,6 @@ parser.add_argument(
     required=False,
 )
 
-
 def generate_anchore_cve_jobs(anchore_sec_path):
     """
     Generate the anchore vulnerability report
@@ -179,9 +178,7 @@ def generate_anchore_cve_jobs(anchore_sec_path):
                         identifiers.append(v_d["vuln"])
                         identifiers.append(v_d["nvd_data"]["id"])
             except IndexError:
-                logging.info(
-                    "Index out of range. No vendor data available. Continuing."
-                )
+                logging.info("Index out of range. No vendor data available. Continuing.")
         else:
             try:
                 if not v_d["vendor_data"]:
@@ -199,9 +196,7 @@ def generate_anchore_cve_jobs(anchore_sec_path):
                         identifiers.append(v_d["vuln"])
                         identifiers.append(v_d["vendor_data"]["id"])
             except IndexError:
-                logging.info(
-                    "Index out of range. No vendor data available. Continuing."
-                )
+                logging.info("Index out of range. No vendor data available. Continuing.")
         cve = {
             "finding": v_d["vuln"],
             "severity": v_d["severity"].lower(),
@@ -219,7 +214,6 @@ def generate_anchore_cve_jobs(anchore_sec_path):
             cves.append(cve)
 
     return cves
-
 
 def generate_anchore_comp_jobs(anchore_comp_path):
     """
@@ -291,6 +285,8 @@ def generate_twistlock_jobs(twistlock_cve_path):
     if "vulnerabilities" in json_data["results"][0]:
         for v_d in json_data["results"][0]["vulnerabilities"]:
             # get associated justification if one exists
+            identifiers = []
+            identifiers.append(v_d["id"])
             try:
                 cves.append(
                     {
@@ -303,6 +299,7 @@ def generate_twistlock_jobs(twistlock_cve_path):
                         "packagePath": None,
                         "scanSource": "twistlock_cve",
                         "reportDate": v_d.get("publishedDate"),
+                        "identifiers": identifiers,
                     }
                 )
             except KeyError as e:
