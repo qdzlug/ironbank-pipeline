@@ -1,48 +1,84 @@
+from dataclasses import dataclass
 import os
 import sys
+from unittest.mock import Mock
 import pytest
 import yaml
 import pathlib
+from requests.exceptions import HTTPError
 import base64
 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from downloader import download_all_resources, resource_type  # noqa E402
 import downloader  # noqa E402
+from hardening_manifest import HardeningManifest
+from project import DsopProject
+from artifacts import S3Artifact, GithubArtifact, HttpArtifact, ContainerArtifact
+from utils import logger
+from utils.exceptions import InvalidURLList
+
+
+log = logger.setup("test_downloader")
 
 
 @pytest.fixture
 def mock_docker_resources():
-    return {
-        "resources": [
-            {
-                "auth": {"type": "basic"},
-                "tag": "registry.access.redhat.com/ubi8:8.5",
-                "url": "docker://registry.access.redhat.com/ubi8/ubi@sha256:060d7d6827b34949cc0fc58a50f72a5dccf00a4cc594406bdf5982f41dfe6118",
-            },
-            {
-                "tag": "registry.access.redhat.com/ubi8:8.5",
-                "url": "docker://registry.access.redhat.com/ubi8/ubi@sha256:060d7d6827b34949cc0fc58a50f72a5dccf00a4cc594406bdf5982f41dfe6118",
-            },
-        ]
-    }
+    return [
+        {
+            "auth": {"type": "basic"},
+            "tag": "registry.access.redhat.com/ubi8:8.5",
+            "url": "docker://registry.access.redhat.com/ubi8/ubi@sha256:060d7d6827b34949cc0fc58a50f72a5dccf00a4cc594406bdf5982f41dfe6118",
+        },
+        {
+            "tag": "registry.access.redhat.com/ubi8:8.5",
+            "url": "docker://registry.access.redhat.com/ubi8/ubi@sha256:060d7d6827b34949cc0fc58a50f72a5dccf00a4cc594406bdf5982f41dfe6118",
+        },
+    ]
 
 
 @pytest.fixture
 def mock_github_resources():
-    return {
-        "resources": [
-            {
-                "tag": "abc",
-                "url": "docker.pkg.github.com/abc",
-            },
-            {
-                "tag": "xyz",
-                "url": "ghcr.io/xyz",
-            },
-        ]
-    }
+    return [
+        {
+            "tag": "abc",
+            "url": "docker://docker.pkg.github.com/abc",
+        },
+        {
+            "tag": "xyz",
+            "url": "docker://ghcr.io/xyz",
+        },
+    ]
 
+
+@pytest.fixture
+def mock_http_resources():
+    return [
+        {
+            "url": "http://example.com/artifact-name.txt",
+            "filename": "artifact.txt",
+            "validation": {},
+        }
+    ]
+
+
+@pytest.fixture
+def mock_s3_resources():
+    return [
+        {
+            "url": "s3://example.com/artifact-name.txt",
+            "filename": "artifact.txt",
+            "validation": {},
+        }
+    ]
+
+@pytest.fixture
+def mock_bad_scheme_resources():
+    return [
+        {
+            "url": "abcdef://example.example/cool/cool/cool:1.0",
+            "tag": "cool:1.0"
+        }
+    ]
 
 @pytest.fixture
 def mock_bad_auth_type():
@@ -81,52 +117,119 @@ def mock_urls():
     }
 
 
-def test_resource_type(mock_urls):
-    assert resource_type(mock_urls["docker_string"]) == "docker"
-    assert resource_type(mock_urls["http_string"]) == "http"
-    assert resource_type(mock_urls["s3_string"]) == "s3"
-    assert resource_type(mock_urls["github_string_deprecated"]) == "github"
-    assert resource_type(mock_urls["github_string_current"]) == "github"
-    assert resource_type("") == "Error in parsing resource type."
-
-
-def test_download_all_resources(
+def test_main_class_assignment(
     monkeypatch,
+    caplog,
+    mock_urls,
+    mock_bad_scheme_resources,
     mock_docker_resources,
     mock_github_resources,
-    mock_bad_auth_type,
-    mock_artifacts_path,
+    mock_http_resources,
+    mock_s3_resources,
 ):
-    def mock_resource_type_docker(*args, **kwargs):
-        return "docker"
+    def mock_dsop_init(self):
+        self.hardening_manifest_path = "lol"
 
-    def mock_resource_type_github(*args, **kwargs):
-        return "github"
+    def mock_hm_init(self, hm_path):
+        self.resources = []
 
-    def mock_pull_image(*args, **kwargs):
-        return None
+    def patch_artifact(artifact_class, mock_dsop, mock_hm):
+        monkeypatch.setattr(
+            artifact_class, "download", lambda self: self.log.info(self)
+        )
+        monkeypatch.setattr(artifact_class, "delete_artifact", lambda x: None)
+        if hasattr(artifact_class, "validate_checksum"):
+            monkeypatch.setattr(
+                artifact_class, "validate_checksum", lambda x: None
+            )
 
-    def mock_b64decode(*args, **kwargs):
-        return "random".encode()
+        monkeypatch.setattr(DsopProject, "__init__", mock_dsop)
+        monkeypatch.setattr(HardeningManifest, "__init__", mock_hm)
 
-    def mock_get_auth(*args, **kwargs):
-        return ("blah", "blah")
+    log.info("It should exit 0 on empty resources section")
+    with pytest.raises(SystemExit) as se:
+        monkeypatch.setattr(DsopProject, "__init__", mock_dsop_init)
+        monkeypatch.setattr(HardeningManifest, "__init__", mock_hm_init)
+        downloader.main()
+    assert se.type == SystemExit
+    assert se.value.code == 0
+    caplog.clear()
 
-    monkeypatch.setattr(downloader, "resource_type", mock_resource_type_docker)
-    monkeypatch.setattr(downloader, "pull_image", mock_pull_image)
-    monkeypatch.setattr(downloader, "get_auth", mock_get_auth)
+    def mock_hm_init_bad_scheme(self, hm_path):
+        self.resources = mock_bad_scheme_resources
 
-    assert not download_all_resources(mock_docker_resources, mock_artifacts_path)
+    with pytest.raises(SystemExit) as se:
+        monkeypatch.setattr(DsopProject, "__init__", mock_dsop_init)
+        monkeypatch.setattr(HardeningManifest, "__init__", mock_hm_init_bad_scheme)
+        downloader.main()
+    assert se.type == SystemExit
+    assert se.value.code == 1
+    caplog.clear()
 
-    monkeypatch.setattr(downloader, "resource_type", mock_resource_type_github)
+    log.info("It should use the correct class for each HTTP scheme")
 
-    os.environ["GITHUB_ROBOT_USER"] = base64.b64encode("random".encode()).decode()
-    os.environ["GITHUB_ROBOT_TOKEN"] = base64.b64encode("random".encode()).decode()
+    def mock_hm_init_s3(self, hm_path):
+        self.resources = mock_s3_resources
 
-    assert not download_all_resources(mock_github_resources, mock_artifacts_path)
+    with pytest.raises(SystemExit) as se:
+        patch_artifact(S3Artifact, mock_dsop_init, mock_hm_init_s3)
+        downloader.main()
+    assert se.type == SystemExit
+    assert se.value.code == 0
+    assert "S3Artifact" in caplog.text
+    assert (
+        "HttpArtifact" not in caplog.text
+        and "GithubArtifact" not in caplog.text
+        and "ContainerArtifact" not in caplog.text
+    )
+    caplog.clear()
 
-    with pytest.raises(SystemExit) as exitInfo:
-        download_all_resources(mock_bad_auth_type, mock_artifacts_path)
+    def mock_hm_init_github(self, hm_path):
+        self.resources = mock_github_resources
 
-    assert exitInfo.type == SystemExit
-    assert exitInfo.value.code
+    with pytest.raises(SystemExit) as se:
+        patch_artifact(ContainerArtifact, mock_dsop_init, mock_hm_init_github)
+        downloader.main()
+    assert se.type == SystemExit
+    assert se.value.code == 0
+    assert "GithubArtifact" in caplog.text
+    assert (
+        "HttpArtifact" not in caplog.text
+        and "S3Artifact" not in caplog.text
+    )
+    caplog.clear()
+
+    def mock_hm_init_docker(self, hm_path):
+        self.resources = mock_docker_resources
+
+    with pytest.raises(SystemExit) as se:
+        patch_artifact(ContainerArtifact, mock_dsop_init, mock_hm_init_docker)
+        downloader.main()
+    assert se.type == SystemExit
+    assert se.value.code == 0
+    assert "ContainerArtifact" in caplog.text
+    assert (
+        "S3Artifact" not in caplog.text
+        and "GithubArtifact" not in caplog.text
+        and "HttpArtifact" not in caplog.text
+    )
+    caplog.clear()
+
+    def mock_hm_init_http(self, hm_path):
+        self.resources = mock_http_resources
+
+    with pytest.raises(SystemExit) as se:
+        patch_artifact(HttpArtifact, mock_dsop_init, mock_hm_init_http)
+        downloader.main()
+    assert se.type == SystemExit
+    assert se.value.code == 0
+    assert "HttpArtifact" in caplog.text
+    assert (
+        "S3Artifact" not in caplog.text
+        and "GithubArtifact" not in caplog.text
+        and "ContainerArtifact" not in caplog.text
+    )
+    caplog.clear()
+
+
+
