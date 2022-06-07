@@ -1,12 +1,11 @@
-from dataclasses import dataclass
 import os
 import sys
-from unittest.mock import Mock
 import pytest
 import yaml
 import pathlib
 from requests.exceptions import HTTPError
-import base64
+from botocore.exceptions import ClientError
+from subprocess import CalledProcessError
 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -71,14 +70,11 @@ def mock_s3_resources():
         }
     ]
 
+
 @pytest.fixture
 def mock_bad_scheme_resources():
-    return [
-        {
-            "url": "abcdef://example.example/cool/cool/cool:1.0",
-            "tag": "cool:1.0"
-        }
-    ]
+    return [{"url": "abcdef://example.example/cool/cool/cool:1.0", "tag": "cool:1.0"}]
+
 
 @pytest.fixture
 def mock_bad_auth_type():
@@ -139,9 +135,7 @@ def test_main_class_assignment(
         )
         monkeypatch.setattr(artifact_class, "delete_artifact", lambda x: None)
         if hasattr(artifact_class, "validate_checksum"):
-            monkeypatch.setattr(
-                artifact_class, "validate_checksum", lambda x: None
-            )
+            monkeypatch.setattr(artifact_class, "validate_checksum", lambda x: None)
 
         monkeypatch.setattr(DsopProject, "__init__", mock_dsop)
         monkeypatch.setattr(HardeningManifest, "__init__", mock_hm)
@@ -193,10 +187,7 @@ def test_main_class_assignment(
     assert se.type == SystemExit
     assert se.value.code == 0
     assert "GithubArtifact" in caplog.text
-    assert (
-        "HttpArtifact" not in caplog.text
-        and "S3Artifact" not in caplog.text
-    )
+    assert "HttpArtifact" not in caplog.text and "S3Artifact" not in caplog.text
     caplog.clear()
 
     def mock_hm_init_docker(self, hm_path):
@@ -232,4 +223,100 @@ def test_main_class_assignment(
     caplog.clear()
 
 
+# @pytest.mark.only
+def test_main_exceptions(monkeypatch, caplog, mock_s3_resources):
+    def mock_dsop_init(self):
+        self.hardening_manifest_path = "lol"
 
+    def mock_hm_init(self, hm_path):
+        self.resources = mock_s3_resources
+
+    def patch_artifact(artifact_class, mock_dsop, mock_hm, exception_func):
+        monkeypatch.setattr(artifact_class, "download", exception_func)
+
+        monkeypatch.setattr(DsopProject, "__init__", mock_dsop)
+        monkeypatch.setattr(HardeningManifest, "__init__", mock_hm)
+
+    def raise_(e):
+        raise e
+
+    with pytest.raises(SystemExit):
+        patch_artifact(
+            S3Artifact,
+            mock_dsop_init,
+            mock_hm_init,
+            lambda self: raise_(KeyError("bad key")),
+        )
+        downloader.main()
+    assert "The following key does not have a value: 'bad key'" in caplog.text
+    caplog.clear()
+
+    with pytest.raises(SystemExit):
+        patch_artifact(
+            S3Artifact,
+            mock_dsop_init,
+            mock_hm_init,
+            lambda self: raise_(AssertionError("bad assertion")),
+        )
+        downloader.main()
+    assert "Assertion Error: bad assertion" in caplog.text
+    caplog.clear()
+
+    with pytest.raises(SystemExit):
+        patch_artifact(
+            S3Artifact,
+            mock_dsop_init,
+            mock_hm_init,
+            lambda self: raise_(InvalidURLList("invalid url")),
+        )
+        downloader.main()
+    assert "No valid urls provided for" in caplog.text
+    caplog.clear()
+
+    class MockResponse:
+        def __init__(self, status_code):
+            self.status_code = status_code
+
+    class MockHTTPError(HTTPError):
+        def __init__(self, status_code):
+            self.response = MockResponse(status_code)
+
+    with pytest.raises(SystemExit) as se:
+        patch_artifact(
+            S3Artifact,
+            mock_dsop_init,
+            mock_hm_init,
+            lambda self: raise_(MockHTTPError(400)),
+        )
+        downloader.main()
+    assert "Error downloading" in caplog.text
+    caplog.clear()
+
+    class MockClientError(ClientError):
+        def __init__(self, error_response, operation_name):
+            pass
+
+    with pytest.raises(SystemExit):
+        patch_artifact(
+            S3Artifact,
+            mock_dsop_init,
+            mock_hm_init,
+            lambda self: raise_(MockClientError("yes", "no")),
+        )
+        downloader.main()
+    assert "S3 client error occurred" in caplog.text
+    caplog.clear()
+
+    with pytest.raises(SystemExit):
+        patch_artifact(
+            S3Artifact,
+            mock_dsop_init,
+            mock_hm_init,
+            lambda self: raise_(CalledProcessError("example", ["example"])),
+        )
+        downloader.main()
+    assert (
+        "Resource failed to pull, please check hardening_manifest.yaml configuration"
+        in caplog.text
+    )
+    caplog.clear()

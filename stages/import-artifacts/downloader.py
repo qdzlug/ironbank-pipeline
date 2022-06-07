@@ -2,9 +2,9 @@
 
 import os
 import sys
-import logging
-from urllib.parse import urlparse
 import subprocess
+from subprocess import CalledProcessError
+from urllib.parse import urlparse
 from botocore.exceptions import ClientError
 from requests.exceptions import HTTPError
 
@@ -37,7 +37,7 @@ def main():
     # we probably don't need this, but maybe we want to validate it in case it somehow changes state before import?
     # hardening_manifest.validate()
     if not hardening_manifest.resources:
-        logging.info(f"No resources in {hardening_manifest.resources}")
+        log.info(f"No resources in {hardening_manifest.resources}")
         sys.exit(0)
     exit_code = 1
     artifact = None
@@ -55,7 +55,7 @@ def main():
             elif github_current in netloc:
                 artifact = GithubArtifact(**resource)
             elif github_deprecated in netloc:
-                logging.warn(
+                log.warn(
                     "{github_deprecated} has been deprecated. Please switch to {github_current} when possible."
                 )
                 artifact = GithubArtifact(**resource)
@@ -71,33 +71,32 @@ def main():
             artifact.download()
             if isinstance(artifact, AbstractFileArtifact):
                 artifact.validate_checksum()
-            logging.info("")
+            log.info("")
         # all resources are downloaded successfully
         exit_code = 0
     except KeyError as ke:
-        logging.error(f"The following key does not have a value: {str(ke)}")
+        log.error(f"The following key does not have a value: {str(ke)}")
     except AssertionError as ae:
-        logging.error(f"Assertion Error: {ae}")
+        log.error(f"Assertion Error: {ae}")
     except InvalidURLList:
-        logging.error(
+        log.error(
             f"No valid urls provided for {artifact.filename}. Please ensure the url(s) for this resource exists and is not password protected. If you require basic authentication to download this resource, please open a ticket in this repository."
         )
     except HTTPError as he:
-        logging.debug(
+        log.error("abc")
+        log.info(
             f"Error downloading {artifact.url}, Status code: {he.response.status_code}"
         )
     except ClientError:
-        logging.error("S3 client error occurred")
-    except subprocess.CalledProcessError:
-        logging.error(
+        log.error("S3 client error occurred")
+    except CalledProcessError:
+        log.error(
             "Resource failed to pull, please check hardening_manifest.yaml configuration"
         )
     except RuntimeError as rune:
-        logging.error(
-            f"Unexpected runtime error occurred. Exception class: {rune.__class__}"
-        )
+        log.error(f"Unexpected runtime error occurred.")
     except Exception as e:
-        logging.error(f"Unexpected error occurred. Exception class: {e.__class__}")
+        log.error(f"Unexpected error occurred. Exception class: {e}")
     finally:
         if artifact != None and exit_code == 1:
             artifact.delete_artifact()
