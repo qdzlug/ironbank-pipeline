@@ -3,7 +3,7 @@
   dependencies:
     - load-scripts
     - build
-    - post-build
+    - create-sbom
   retry:
     max: 2
     when: runner_system_failure
