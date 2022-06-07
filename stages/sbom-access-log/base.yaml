@@ -1,6 +1,6 @@
 .sbom-access-log:
   stage: sbom-access-log
-  needs:
+  dependencies:
     - load-scripts
     - build
     - post-build
