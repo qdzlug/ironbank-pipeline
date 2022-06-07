@@ -11,11 +11,13 @@ from dataclasses import field
 
 log = logger.setup(name="package_parser", format="| %(levelname)-5s | %(message)s")
 
+
 class ParsedURLPackage(ABC, Package):
     @classmethod
     @abstractmethod
     def parse(cls, url) -> Optional[Package]:
         pass
+
 
 @dataclass(slots=True, frozen=True)
 class YumPackage(ParsedURLPackage):
@@ -34,7 +36,10 @@ class YumPackage(ParsedURLPackage):
         if not match:
             raise ValueError(f"Could not parse yum URL: {url}")
 
-        return YumPackage(name=match.group("name"), version=match.group("version"), url=url)
+        return YumPackage(
+            name=match.group("name"), version=match.group("version"), url=url
+        )
+
 
 @dataclass(slots=True, frozen=True)
 class GoPackage(ParsedURLPackage):
@@ -58,7 +63,9 @@ class GoPackage(ParsedURLPackage):
         elif match.group("ext") and match.group("ext") != "mod":
             raise ValueError(f"Unexpected go mod extension: {url}")
         else:
-            return GoPackage(name=match.group("name"), version=match.group("version"), url=url)
+            return GoPackage(
+                name=match.group("name"), version=match.group("version"), url=url
+            )
 
 
 @dataclass(slots=True, frozen=True)
@@ -97,12 +104,12 @@ class AccessLogFileParser(FileParser):
                 url = line.split(" ")[-1]
 
                 # match against the nexus repo regex
-                match = nexus_re.match(url)
+                re_match = nexus_re.match(url)
 
-                if not match:
+                if not re_match:
                     raise ValueError(f"Could not parse URL: {url}")
 
-                repo_type = match.group("repo_type")
+                repo_type = re_match.group("repo_type")
 
                 # get repository from list
                 if repo_type not in repos:
@@ -111,17 +118,15 @@ class AccessLogFileParser(FileParser):
                 # call desired parser function
                 match repos[repo_type]:
                     case "gosum":
-                        package = NullPackage.parse(match.group("url"))
+                        package = NullPackage.parse(re_match.group("url"))
                     case "go":
-                        package = GoPackage.parse((match.group("url")))
+                        package = GoPackage.parse((re_match.group("url")))
                     case "yum":
-                        package = YumPackage.parse((match.group("url")))
+                        package = YumPackage.parse((re_match.group("url")))
 
                 if package:
                     packages.append(package)
-                    log.info(
-                        f"Parsed package: {package}"
-                    )
+                    log.info(f"Parsed package: {package}")
 
         log.info("access_log successfully parsed")
         return packages

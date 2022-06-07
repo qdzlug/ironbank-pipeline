@@ -28,9 +28,7 @@ class SbomParser(FileParser):
 
             if package:
                 packages.append(package)
-                log.info(
-                    f"Parsed package: {package}"
-                )
+                log.info(f"Parsed package: {package}")
 
         log.info("File successfully parsed")
         return packages
