@@ -11,104 +11,21 @@ from utils import logger
 from dataclasses import dataclass
 from base64 import b64decode
 from typing import Union
-from botocore.exceptions import ClientError
-from abc import ABC, abstractmethod
-
-
-def request_retry(retry_count):
-    """
-    Decorator for retrying a function running a subprocess call
-    """
-
-    def decorate(func):
-        # self, args and kwargs are passed to allow this decorator to work on any method
-        def wrapper(self, *args, **kwargs):
-            for retry_num in range(1, retry_count + 1):
-                try:
-                    return func(self, *args, **kwargs)
-                except subprocess.CalledProcessError as e:
-                    if retry_num >= retry_count:
-                        self.log.error(
-                            "Resource failed to pull, please check hardening_manifest.yaml configuration"
-                        )
-                        raise subprocess.CalledProcessError(e.returncode, e.cmd)
-                    else:
-                        self.log.warn(f"Resource failed to pull, retrying...")
-
-        return wrapper
-
-    return decorate
+from utils.decorators import request_retry
+from utils.exceptions import InvalidURLList
+from artifacts_base import (
+    AbstractArtifact,
+    AbstractFileArtifact,
+    AbstractContainerArtifact,
+)
 
 
 @dataclass
-class _ArtifactBase(ABC):
-    # url is optional since urls can also be used for http artifacts
-    url: str = None
-    auth: dict = None
-    log: logger = logger.setup("Artifact")
-    dest_path: pathlib.Path = pathlib.Path(f"{os.environ.get('ARTIFACT_DIR')}")
-    artifact_path: pathlib.Path = None
-
-    @abstractmethod
+class Artifact(AbstractArtifact):
     def delete_artifact(self):
-        pass
-
-    @abstractmethod
-    def get_username_password(self):
-        pass
-
-    @abstractmethod
-    def get_credentials(self):
-        pass
-
-    @abstractmethod
-    def download(self):
-        pass
-
-
-@dataclass
-class _FileArtifactBase(ABC):
-    filename: str = None
-    validation: dict = None
-
-    def __post_init__(self):
-        self.dest_path = pathlib.Path(self.dest_path, "external_resources")
-        self.artifact_path = pathlib.Path(self.dest_path, self.filename)
-
-    @abstractmethod
-    def handle_invalid_checksum(self, generated, expected):
-        pass
-
-    @abstractmethod
-    def validate_checksum(self):
-        pass
-
-    @abstractmethod
-    def generate_checksum(self):
-        pass
-
-    @abstractmethod
-    def validate_filename(self):
-        pass
-
-
-@dataclass
-class _ContainerArtifactBase(ABC):
-    tag: str = None
-
-    def __post_init__(self):
-        self.dest_path = pathlib.Path(self.dest_path, "images")
-        self.__tar_name = self.tag.replace("/", "-").replace(":", "-")
-        self.artifact_path = pathlib.Path(self.dest_path, f"{self.__tar_name}.tar")
-
-
-@dataclass
-class Artifact(_ArtifactBase):
-    # TODO: consider overriding __new__ to prevent instantiation of this base class
-
-    def delete_artifact(self):
-        os.remove(self.artifact_path)
-        self.log.error("File deleted")
+        if self.artifact_path.exists():
+            os.remove(self.artifact_path)
+        self.log.error(f"File deleted: {self.artifact_path}")
 
     # get basic auth, used by Container and Http
     def get_username_password(self) -> tuple:
@@ -123,15 +40,9 @@ class Artifact(_ArtifactBase):
 
 
 @dataclass
-class FileArtifact(_FileArtifactBase, Artifact):
-
-    # TODO: Consider overriding __new__ for this class to prevent instantiation
+class FileArtifact(AbstractFileArtifact, Artifact):
     def __post_init__(self):
         super().__post_init__()
-
-    def handle_invalid_checksum(self, generated, expected):
-        self.log.error(f"Checksum mismatch: generated {generated}, expected {expected}")
-        self.delete_artifact()
 
     def validate_checksum(self):
         if "sha" not in self.validation["type"]:
@@ -143,7 +54,7 @@ class FileArtifact(_FileArtifactBase, Artifact):
 
         assert (
             generated_checksum == self.validation["value"]
-        ), self.handle_invalid_checksum(generated_checksum, self.validation["value"])
+        ), f"Checksum mismatch: generated {generated_checksum}, expected {self.validation['value']}"
         self.log.info("Checksum validated")
 
     def generate_checksum(self):
@@ -156,10 +67,10 @@ class FileArtifact(_FileArtifactBase, Artifact):
 
     def validate_filename(self):
         # Validate filename doesn't do anything nefarious
-        match = re.search(r"^[A-Za-z0-9][^/\x00]*", self.filename)
-        if match is None:
-            self.log.error(
-                "Filename is has invalid characters. Filename must start with a letter or a number. Aborting."
+        re_match = re.search(r"^[A-Za-z0-9][^/\x00]*", self.filename)
+        if not re_match:
+            raise ValueError(
+                "Filename has invalid characters. Filename must start with a letter or a number. Aborting."
             )
 
 
@@ -193,8 +104,8 @@ class S3Artifact(FileArtifact):
             }
         if not self.auth:
             raise ValueError(
-                "You must provide auth to download S3 resources using the s3:// method \
-                Please use https or provide auth for your S3 download"
+                "You must provide auth to download S3 resources using the s3:// scheme \
+                Please use https:// if your S3 bucket is publicly accessible"
             )
 
         username, password, region = self.get_credentials()
@@ -207,6 +118,7 @@ class S3Artifact(FileArtifact):
         else:
             params["region_name"] = region
 
+        self.log.info(f"Downloading from {self.url}")
         s3_client = boto3.client("s3", **params)
 
         # remove leading forward slash
@@ -252,16 +164,18 @@ class HttpArtifact(FileArtifact):
             ) as response:
                 # exception will be caught in main
                 # need unit tests for multiple response statuses
-                response.raise_for_status()
+                # skip response.raise_for_status() to prevent raising exception (allow for retry on other urls)
                 if response.status_code == 200:
-                    with self.artifact_path.open("wb") as f:
-                        f.write(response.content)
-                    self.log.info(f"===== ARTIFACT: {self.url}")
+                    self.artifact_path.write_bytes(response.content)
                     return response.status_code
+        # if we haven't returned at this point, we need to raise an exception
+        raise InvalidURLList(
+            f"No valid urls provided for {self.filename}. Please ensure the url(s) for this resource exists and is not password protected. If you require basic authentication to download this resource, please open a ticket in this repository."
+        )
 
 
 @dataclass
-class ContainerArtifact(Artifact, _ContainerArtifactBase):
+class ContainerArtifact(Artifact, AbstractContainerArtifact):
     # artifact_path: pathlib.Path = pathlib.Path(f'{os.environ.get('ARTIFACT_DIR')/images/')
     log: logger = logger.setup("ContainerArtifact")
     authfile: pathlib.Path = pathlib.Path("tmp", "prod_auth.json")
