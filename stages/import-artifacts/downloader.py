@@ -14,10 +14,10 @@ sys.path.append(
     )
 )
 from utils import logger  # noqa E402
-from utils.exceptions import InvalidURLList
-from project import DsopProject
-from hardening_manifest import HardeningManifest
-from artifacts import (
+from utils.exceptions import InvalidURLList  # noqa E402
+from project import DsopProject  # noqa E402
+from hardening_manifest import HardeningManifest  # noqa E402
+from artifacts import (  # noqa E402
     HttpArtifact,
     S3Artifact,
     ContainerArtifact,
@@ -69,21 +69,21 @@ def main():
                 artifact.validate_checksum()
         # all resources are downloaded successfully
         exit_code = 0
-    except KeyError as e:
-        logging.error(f"The following key does not have a value: {str(e)}")
-    except AssertionError as e:
-        logging.error(f"Assertion Error: {e}")
-    except InvalidURLList as e:
+    except KeyError as ke:
+        logging.error(f"The following key does not have a value: {str(ke)}")
+    except AssertionError as ae:
+        logging.error(f"Assertion Error: {ae}")
+    except InvalidURLList:
         logging.error(
             f"No valid urls provided for {artifact.filename}. Please ensure the url(s) for this resource exists and is not password protected. If you require basic authentication to download this resource, please open a ticket in this repository."
         )
-    except HTTPError as e:
+    except HTTPError as he:
         logging.debug(
-            f"Error downloading {artifact.url}, Status code: {e.response.status_code}"
+            f"Error downloading {artifact.url}, Status code: {he.response.status_code}"
         )
-    except ClientError as e:
+    except ClientError:
         logging.error("S3 client error occurred")
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         logging.error(
             "Resource failed to pull, please check hardening_manifest.yaml configuration"
         )

@@ -18,7 +18,7 @@ def request_retry(retry_count):
                     if retry_num >= retry_count:
                         raise subprocess.CalledProcessError(e.returncode, e.cmd)
                     else:
-                        self.log.warn(f"Resource failed to pull, retrying...")
+                        self.log.warn("Resource failed to pull, retrying...")
 
         return wrapper
 
