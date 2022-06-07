@@ -163,6 +163,8 @@ class ContainerArtifact(AbstractArtifact):
 
 @dataclass
 class GithubArtifact(ContainerArtifact):
+    log: logger = logger.setup("GithubArtifact")
+
     def __post_init__(self):
         super().__post_init__()
 

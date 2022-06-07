@@ -43,25 +43,29 @@ def main():
     artifact = None
     try:
         for resource in hardening_manifest.resources:
-            scheme = urlparse(resource["url"]).scheme
+            parsed_url = urlparse(resource["url"])
+            scheme = parsed_url.scheme
+            netloc = parsed_url.netloc
 
             github_current = "ghcr.io"
-            github_deprecated = "docker.pkg.github.com/"
-            if "docker" in scheme:
-                artifact = ContainerArtifact(**resource)
-            elif "s3" in scheme:
+            github_deprecated = "docker.pkg.github.com"
+
+            if "s3" in scheme:
                 artifact = S3Artifact(**resource)
-            elif github_current in scheme:
+            elif github_current in netloc:
                 artifact = GithubArtifact(**resource)
-            elif github_deprecated in scheme:
+            elif github_deprecated in netloc:
                 logging.warn(
                     "{github_deprecated} has been deprecated. Please switch to {github_current} when possible."
                 )
                 artifact = GithubArtifact(**resource)
+            elif "docker" in scheme:
+                artifact = ContainerArtifact(**resource)
             elif "http" in scheme:
                 artifact = HttpArtifact(**resource)
             else:
-                log.error(f"Invalid scheme {scheme}")
+                log.error(f"Invalid scheme {scheme} for artifact {resource['url']}")
+                sys.exit(1)
 
             # download also gathers any relevant auth and runs any pre download validation
             artifact.download()
@@ -95,7 +99,7 @@ def main():
     except Exception as e:
         logging.error(f"Unexpected error occurred. Exception class: {e.__class__}")
     finally:
-        if exit_code == 1:
+        if artifact != None and exit_code == 1:
             artifact.delete_artifact()
         sys.exit(exit_code)
 
