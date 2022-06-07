@@ -2,7 +2,7 @@ import sys
 import os
 import argparse
 import json
-from utils.package_parser import AccessLogParser
+from utils.package_parser import AccessLogFileParser
 from utils import logger
 
 log = logger.setup(name="access_log_parser", format="| %(levelname)-5s | %(message)s")
@@ -23,11 +23,8 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    access_log_parser = AccessLogParser(
-        file=args.file, repos=json.load(open(os.environ.get("ACCESS_LOG_REPOS"), "r"))
-    )
     try:
-        access_log_parser.parse_access_log()
+        AccessLogFileParser.parse(file=args.file)
     except OSError:
         log.error(f"Unable to open file: {args.file}")
         sys.exit(1)

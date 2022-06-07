@@ -1,60 +1,54 @@
 import re
+import json
+import os
+from abc import ABC, abstractmethod
 from utils import logger
+from . import FileParser, Package
 from pathlib import Path
 from typing import Optional
 from dataclasses import dataclass
+from dataclasses import field
 
 log = logger.setup(name="package_parser", format="| %(levelname)-5s | %(message)s")
 
-
-@dataclass
-class Parser:
-    file: Path = None
-
-    def parse(self):
+class ParsedURLPackage(ABC, Package):
+    @classmethod
+    @abstractmethod
+    def parse(cls, url) -> Optional[Package]:
         pass
 
+@dataclass(slots=True, frozen=True)
+class YumPackage(ParsedURLPackage):
+    kind: str = field(init=False, default="rpm")
 
-@dataclass
-class Package:
-    type: str = None
-    name: str = None
-    version: str = None
-    url: str = None
-
-
-@dataclass
-class YumPackageParser(Package, Parser):
-    def parse(self) -> Optional[Package]:
-        if self.url.startswith("repodata"):
+    @classmethod
+    def parse(cls, url) -> Optional[Package]:
+        if url.startswith("repodata"):
             return None
 
         match = re.match(
             r"(?:^|.+/)(?P<name>[^/]+)-(?P<version>[^/-]*-\d+)\.[^/]+\.[^./]+.rpm",
-            self.url,
+            url,
         )
 
         if not match:
-            raise ValueError(f"Could not parse yum URL: {self.url}")
+            raise ValueError(f"Could not parse yum URL: {url}")
 
-        return (
-            Package("rpm", match.group("name"), match.group("version"), self.url)
-            if match
-            else None
-        )
+        return YumPackage(name=match.group("name"), version=match.group("version"), url=url)
 
+@dataclass(slots=True, frozen=True)
+class GoPackage(ParsedURLPackage):
+    kind: str = field(init=False, default="go")
 
-@dataclass
-class GoPackageParser(Package, Parser):
-    def parse(self) -> Optional[Package]:
-
+    @classmethod
+    def parse(cls, url) -> Optional[Package]:
         match = re.match(
             r"(?P<name>.*?)/(:?@v/(?P<version>.*?)\.(?P<ext>[^.]+)|(?P<latest>@latest)|(?P<list>list))$",
-            self.url,
+            url,
         )
 
         if not match:
-            raise ValueError(f"Could not parse go URL: {self.url}")
+            raise ValueError(f"Could not parse go URL: {url}")
         elif (
             match.group("ext") in ["zip", "info"]
             or match.group("latest")
@@ -62,24 +56,23 @@ class GoPackageParser(Package, Parser):
         ):
             return None
         elif match.group("ext") and match.group("ext") != "mod":
-            raise ValueError(f"Unexpected go mod extension: {self.url}")
+            raise ValueError(f"Unexpected go mod extension: {url}")
         else:
-            return Package("go", match.group("name"), match.group("version"), self.url)
+            return GoPackage(name=match.group("name"), version=match.group("version"), url=url)
 
 
-@dataclass
-class NullPackageParser(Package, Parser):
-    def parse(self) -> None:
+@dataclass(slots=True, frozen=True)
+class NullPackage(ParsedURLPackage):
+    @classmethod
+    def parse(cls, url) -> None:
         return None
 
 
-# TODO AccessLogParser is relly a "FileParser", we should consider refactoring, along iwth what's currently in sbom_parser.py
-@dataclass
-class AccessLogParser(Parser):
-    repos: dict = None
-
-    def parse_access_log(self) -> list[Package]:
-        packages = [Package]
+class AccessLogFileParser(FileParser):
+    @classmethod
+    def parse(cls, file) -> list[Package]:
+        repos = json.load(open(os.environ["ACCESS_LOG_REPOS"], "r"))
+        packages: list[Package] = []
         # TODO make this an environment variable
         nexus_host = "http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/"
         nexus_re = re.compile(
@@ -87,7 +80,7 @@ class AccessLogParser(Parser):
         )
 
         log.info("Access log parser started")
-        access_log = Path(self.file).open("r")
+        access_log = Path(file).open("r")
         log.info("File successfully read")
         line_count = 0
 
@@ -112,22 +105,22 @@ class AccessLogParser(Parser):
                 repo_type = match.group("repo_type")
 
                 # get repository from list
-                if repo_type not in self.repos:
+                if repo_type not in repos:
                     raise ValueError(f"Repository type not supported: {repo_type}")
 
                 # call desired parser function
-                match self.repos[repo_type]:
+                match repos[repo_type]:
                     case "gosum":
-                        package = NullPackageParser(url=match.group("url")).parse()
+                        package = NullPackage.parse(match.group("url"))
                     case "go":
-                        package = GoPackageParser(url=match.group("url")).parse()
+                        package = GoPackage.parse((match.group("url")))
                     case "yum":
-                        package = YumPackageParser(url=match.group("url")).parse()
+                        package = YumPackage.parse((match.group("url")))
 
                 if package:
                     packages.append(package)
                     log.info(
-                        f"Parsed package: {package.name} version={package.version} type={package.type}"
+                        f"Parsed package: {package}"
                     )
 
         log.info("access_log successfully parsed")

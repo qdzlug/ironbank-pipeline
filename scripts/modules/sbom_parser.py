@@ -3,37 +3,34 @@ import argparse
 import json
 from pathlib import Path
 from utils import logger
-from utils.package_parser import Package
-from utils.package_parser import Parser
+from utils import Package, FileParser
 from dataclasses import dataclass
 
 log = logger.setup(name="sbom_parser", format="| %(levelname)-5s | %(message)s")
 
 
 @dataclass
-class SbomParser(Parser):
-    def parse_sbom(self) -> list[Package]:
+class SbomParser(FileParser):
+    @classmethod
+    def parse(cls, file) -> list[Package]:
 
-        packages = [Package]
+        packages: [Package] = []
         log.info("SBOM parser started")
-        sbom = Path(self.file).open("r")
-        log.info("File successfully read")
 
-        with sbom:
-            data = json.load(sbom)
-            for artifact in data["artifacts"]:
+        data = json.load(file)
+        for artifact in data["artifacts"]:
 
-                package = Package(
-                    artifact["type"],
-                    artifact["name"],
-                    artifact["version"].split(".el")[0],
+            package = Package(
+                kind=artifact["type"],
+                name=artifact["name"],
+                version=artifact["version"].split(".el")[0],
+            )
+
+            if package:
+                packages.append(package)
+                log.info(
+                    f"Parsed package: {package}"
                 )
-
-                if package:
-                    packages.append(package)
-                    log.info(
-                        f"Parsed package: {package.name} version={package.version} type={package.type}"
-                    )
 
         log.info("File successfully parsed")
         return packages
@@ -47,17 +44,16 @@ if __name__ == "__main__":
         help="allow parsing to continue upon encountering an error",
     )
     parser.add_argument(
-        "path",
+        "file",
         type=str,
         help="path to sbom file",
     )
     args = parser.parse_args()
-    sbom_parser = SbomParser(args.path)
 
     try:
-        sbom_parser.parse_sbom()
+        SbomParser.parse(Path(args.file).open("r"))
     except OSError:
-        log.error(f"Unable to open file: {sbom_parser.path}")
+        log.error(f"Unable to open file: {args.file}")
         sys.exit(1)
     except ValueError as e:
         log.error("Unable to parse sbom")
