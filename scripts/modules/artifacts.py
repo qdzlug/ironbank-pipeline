@@ -1,6 +1,4 @@
 import os
-import re
-import hashlib
 import pathlib
 import subprocess
 import requests
@@ -16,66 +14,11 @@ from utils.exceptions import InvalidURLList
 from artifacts_base import (
     AbstractArtifact,
     AbstractFileArtifact,
-    AbstractContainerArtifact,
 )
 
 
 @dataclass
-class Artifact(AbstractArtifact):
-    def delete_artifact(self):
-        if self.artifact_path.exists():
-            os.remove(self.artifact_path)
-        self.log.error(f"File deleted: {self.artifact_path}")
-
-    # get basic auth, used by Container and Http
-    def get_username_password(self) -> tuple:
-        credential_id = self.auth["id"].replace("-", "_")
-        username = b64decode(os.environ["CREDENTIAL_USERNAME_" + credential_id]).decode(
-            "utf-8"
-        )
-        password = b64decode(os.environ["CREDENTIAL_PASSWORD_" + credential_id]).decode(
-            "utf-8"
-        )
-        return username, password
-
-
-@dataclass
-class FileArtifact(AbstractFileArtifact, Artifact):
-    def __post_init__(self):
-        super().__post_init__()
-
-    def validate_checksum(self):
-        if "sha" not in self.validation["type"]:
-            raise ValueError(
-                f"file verification type not supported: {self.validation['type']}"
-            )
-        generated_checksum = self.generate_checksum().hexdigest()
-        self.log.info(generated_checksum)
-
-        assert (
-            generated_checksum == self.validation["value"]
-        ), f"Checksum mismatch: generated {generated_checksum}, expected {self.validation['value']}"
-        self.log.info("Checksum validated")
-
-    def generate_checksum(self):
-        sha_hash = hashlib.new(self.validation["type"])
-        with self.artifact_path.open("rb") as f:
-            # read file in 4 KB chunks to prevent filling mem unnecessarily
-            while chunk := f.read(4096):
-                sha_hash.update(chunk)
-        return sha_hash
-
-    def validate_filename(self):
-        # Validate filename doesn't do anything nefarious
-        re_match = re.search(r"^[A-Za-z0-9][^/\x00]*", self.filename)
-        if not re_match:
-            raise ValueError(
-                "Filename has invalid characters. Filename must start with a letter or a number. Aborting."
-            )
-
-
-@dataclass
-class S3Artifact(FileArtifact):
+class S3Artifact(AbstractFileArtifact):
     log: logger = logger.setup("S3Artifact")
 
     def __post_init__(self):
@@ -112,11 +55,11 @@ class S3Artifact(FileArtifact):
 
         params = {"aws_access_key_id": username, "aws_secret_access_key": password}
 
-        if os.environ.get("LOCALTEST"):
-            params["endpoint_url"] = "http://localhost:9000"
-            params["config"] = boto3.session.Config(signature_version="s3v4")
-        else:
-            params["region_name"] = region
+        # if os.environ.get("LOCALTEST"):
+        #     params["endpoint_url"] = "http://localhost:9000"
+        #     params["config"] = boto3.session.Config(signature_version="s3v4")
+        # else:
+        params["region_name"] = region
 
         self.log.info(f"Downloading from {self.url}")
         s3_client = boto3.client("s3", **params)
@@ -133,7 +76,7 @@ class S3Artifact(FileArtifact):
 
 
 @dataclass
-class HttpArtifact(FileArtifact):
+class HttpArtifact(AbstractFileArtifact):
     # could also be urls
     urls: list = None
     log: logger = logger.setup("HttpArtifact")
@@ -175,13 +118,15 @@ class HttpArtifact(FileArtifact):
 
 
 @dataclass
-class ContainerArtifact(Artifact, AbstractContainerArtifact):
+class ContainerArtifact(AbstractArtifact):
     # artifact_path: pathlib.Path = pathlib.Path(f'{os.environ.get('ARTIFACT_DIR')/images/')
     log: logger = logger.setup("ContainerArtifact")
     authfile: pathlib.Path = pathlib.Path("tmp", "prod_auth.json")
 
     def __post_init__(self):
-        super().__post_init__()
+        self.dest_path = pathlib.Path(self.dest_path, "images")
+        self.__tar_name = self.tag.replace("/", "-").replace(":", "-")
+        self.artifact_path = pathlib.Path(self.dest_path, f"{self.__tar_name}.tar")
 
     def get_credentials(self) -> str:
         username, password = self.get_username_password()

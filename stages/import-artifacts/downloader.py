@@ -87,6 +87,10 @@ def main():
         logging.error(
             "Resource failed to pull, please check hardening_manifest.yaml configuration"
         )
+    except RuntimeError as rune:
+        logging.error(
+            f"Unexpected runtime error occurred. Exception class: {rune.__class__}"
+        )
     except Exception as e:
         logging.error(f"Unexpected error occurred. Exception class: {e.__class__}")
     finally:
