@@ -3,7 +3,7 @@ import json
 import os
 from abc import ABC, abstractmethod
 from utils import logger
-from . import FileParser, Package
+from .types import FileParser, Package
 from pathlib import Path
 from typing import Optional
 from dataclasses import dataclass

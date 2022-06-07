@@ -1,7 +1,5 @@
 import sys
-import os
 import argparse
-import json
 from utils.package_parser import AccessLogFileParser
 from utils import logger
 
