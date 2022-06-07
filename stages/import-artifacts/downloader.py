@@ -17,12 +17,12 @@ from utils import logger  # noqa E402
 from utils.exceptions import InvalidURLList  # noqa E402
 from project import DsopProject  # noqa E402
 from hardening_manifest import HardeningManifest  # noqa E402
+from artifacts_base import AbstractFileArtifact
 from artifacts import (  # noqa E402
     HttpArtifact,
     S3Artifact,
     ContainerArtifact,
     GithubArtifact,
-    FileArtifact,
 )
 
 log = logger.setup("import_artifacts")
@@ -65,8 +65,9 @@ def main():
 
             # download also gathers any relevant auth and runs any pre download validation
             artifact.download()
-            if isinstance(artifact, FileArtifact):
+            if isinstance(artifact, AbstractFileArtifact):
                 artifact.validate_checksum()
+            logging.info("")
         # all resources are downloaded successfully
         exit_code = 0
     except KeyError as ke:

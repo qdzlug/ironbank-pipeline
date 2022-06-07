@@ -55,6 +55,7 @@ class S3Artifact(AbstractFileArtifact):
 
         params = {"aws_access_key_id": username, "aws_secret_access_key": password}
 
+        # TODO: move this to an integration test (using minio)
         # if os.environ.get("LOCALTEST"):
         #     params["endpoint_url"] = "http://localhost:9000"
         #     params["config"] = boto3.session.Config(signature_version="s3v4")
@@ -135,8 +136,12 @@ class ContainerArtifact(AbstractArtifact):
     # TODO: Allow parameters to be passed to this function for url, auth etc.
     @request_retry(3)
     def download(self):
-        self.log.info(f"Pulling {self.url}")
+        # prevent failing when running locally due to file already existing
+        if self.artifact_path.exists():
+            self.log.warn("Found existing container artifact, deleting file")
+            self.delete_artifact()
 
+        self.log.info(f"Pulling {self.url}")
         pull_cmd = [
             "skopeo",
             "copy",
@@ -153,6 +158,7 @@ class ContainerArtifact(AbstractArtifact):
             stdin=subprocess.PIPE,
             check=True,
         )
+        self.log.info(f"Successfully pulled")
 
 
 @dataclass

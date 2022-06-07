@@ -22,7 +22,7 @@ class AbstractArtifact(ABC):
     def delete_artifact(self):
         if self.artifact_path.exists():
             os.remove(self.artifact_path)
-        self.log.error(f"File deleted: {self.artifact_path}")
+            self.log.error(f"File deleted: {self.artifact_path}")
 
     # get basic auth, used by Container and Http
     def get_username_password(self) -> tuple:
