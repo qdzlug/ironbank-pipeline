@@ -41,7 +41,8 @@ example_url = "http://example.com/example.test"
 
 
 @pytest.fixture
-def mock_artifact():
+def mock_artifact(monkeypatch):
+    monkeypatch.delenv("ARTIFACT_DIR", raising=False)
     return MockArtifact(url=example_url, filename="example.txt")
 
 

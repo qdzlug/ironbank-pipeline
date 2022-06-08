@@ -16,8 +16,6 @@ class AbstractArtifact(ABC):
     auth: dict = None
     tag: str = None
     log: logger = logger.setup("Artifact")
-    dest_path: pathlib.Path = None
-    artifact_path: pathlib.Path = None
 
     def __post_init__(self):
         self.dest_path = pathlib.Path(f"{os.environ.get('ARTIFACT_DIR')}")
