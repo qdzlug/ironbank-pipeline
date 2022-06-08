@@ -17,10 +17,11 @@ class AbstractArtifact(ABC):
     tag: str = None
     log: logger = logger.setup("Artifact")
     dest_path: pathlib.Path = None
-    artifact_path: pathlib.Path = pathlib.Path("None")
+    artifact_path: pathlib.Path = None
 
     def __post_init__(self):
         self.dest_path = pathlib.Path(f"{os.environ.get('ARTIFACT_DIR')}")
+        self.artifact_path = pathlib.Path(self.dest_path, self.filename or self.tag)
 
     def delete_artifact(self):
         if self.artifact_path.exists() and self.artifact_path.is_file():

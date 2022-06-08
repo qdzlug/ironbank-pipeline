@@ -13,7 +13,11 @@ from utils import logger
 log = logger.setup("test_abstract_artifacts")
 
 
+@dataclass
 class MockArtifact(AbstractArtifact):
+    def __post_init__(self):
+        super().__post_init__()
+
     def get_credentials():
         pass
 
@@ -21,7 +25,11 @@ class MockArtifact(AbstractArtifact):
         pass
 
 
+@dataclass
 class MockFileArtifact(AbstractFileArtifact):
+    def __post_init__(self):
+        super().__post_init__()
+
     def get_credentials():
         pass
 
@@ -34,13 +42,13 @@ example_url = "http://example.com/example.test"
 
 @pytest.fixture
 def mock_artifact():
-    return MockArtifact(url=example_url)
+    return MockArtifact(url=example_url, filename="example.txt")
 
 
 @pytest.fixture
 def mock_artifact_with_dir(monkeypatch):
     monkeypatch.setenv("ARTIFACT_DIR", "example")
-    return MockArtifact(url=example_url)
+    return MockArtifact(url=example_url, filename="example.txt")
 
 
 @pytest.fixture
@@ -49,7 +57,7 @@ def mock_artifact_with_basic_auth(monkeypatch):
     monkeypatch.setenv("CREDENTIAL_USERNAME_test", "ZXhhbXBsZV91bg==")
     # encoded text is example_pw
     monkeypatch.setenv("CREDENTIAL_PASSWORD_test", "ZXhhbXBsZV9wdw==")
-    return MockArtifact(url=example_url, auth={"id": "test"})
+    return MockArtifact(url=example_url, filename="example.txt", auth={"id": "test"})
 
 
 @pytest.fixture
