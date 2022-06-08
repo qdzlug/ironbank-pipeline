@@ -2,6 +2,7 @@ import sys
 import os
 from unittest import mock
 import pytest
+from dataclasses import dataclass
 import pathlib
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -42,9 +43,39 @@ def mock_artifact_with_dir(monkeypatch):
     return MockArtifact(url=example_url)
 
 
+@pytest.fixture
+def mock_artifact_with_basic_auth(monkeypatch):
+    # encoded text is example_un
+    monkeypatch.setenv("CREDENTIAL_USERNAME_test", "ZXhhbXBsZV91bg==")
+    # encoded text is example_pw
+    monkeypatch.setenv("CREDENTIAL_PASSWORD_test", "ZXhhbXBsZV9wdw==")
+    return MockArtifact(url=example_url, auth={"id": "test"})
+
+
+@pytest.fixture
+def mock_file_artifact(monkeypatch):
+    monkeypatch.setenv("ARTIFACT_DIR", "example")
+    return MockFileArtifact(
+        url=example_url,
+        filename="abc",
+        validation={
+            "type": "sha256",
+            "value": "b9104c364781d253ee4c26220cbbef4a486037613629662aa5e97b7e6a97e897",
+        },
+    )
+
+
 @pytest.fixture()
-def mock_file_artifact():
-    return MockFileArtifact(url=example_url)
+def mock_file_artifact_bad_validation(monkeypatch):
+    monkeypatch.setenv("ARTIFACT_DIR", "example")
+    return MockFileArtifact(
+        url=example_url,
+        filename="abc",
+        validation={
+            "type": "md5",
+            "value": "b9104c364781d253ee4c26220cbbef4a486037613629662aa5e97b7e6a97e897",
+        },
+    )
 
 
 def test_artifact_init(mock_artifact, mock_artifact_with_dir):
@@ -52,7 +83,6 @@ def test_artifact_init(mock_artifact, mock_artifact_with_dir):
     assert mock_artifact_with_dir.dest_path == pathlib.Path("example")
 
 
-@pytest.mark.only
 def test_artifact_delete(monkeypatch, caplog, mock_artifact):
     monkeypatch.setattr(pathlib.Path, "exists", lambda x: False)
     monkeypatch.setattr(pathlib.Path, "is_file", lambda x: False)
@@ -65,3 +95,55 @@ def test_artifact_delete(monkeypatch, caplog, mock_artifact):
     monkeypatch.setattr(os, "remove", lambda x: log.info("remove"))
     mock_artifact.delete_artifact()
     assert "File deleted" in caplog.text
+
+
+def test_username_password(mock_artifact_with_basic_auth):
+    username, password = mock_artifact_with_basic_auth.get_username_password()
+    assert username == "example_un"
+    assert password == "example_pw"
+
+
+def test_file_artifact_init(mock_file_artifact):
+    assert mock_file_artifact.dest_path == pathlib.Path("example/external_resources")
+    assert mock_file_artifact.artifact_path == pathlib.Path(
+        "example/external_resources/abc"
+    )
+
+
+def test_validate_checksum(
+    monkeypatch, caplog, mock_file_artifact, mock_file_artifact_bad_validation
+):
+    @dataclass
+    class MockGenerateChecksum:
+        checksum: str
+
+        def hexdigest(self):
+            return self.checksum
+
+    with pytest.raises(ValueError) as ve:
+        mock_file_artifact_bad_validation.validate_checksum()
+    assert ve.type == ValueError
+
+    # match sha
+    monkeypatch.setattr(
+        AbstractFileArtifact,
+        "generate_checksum",
+        lambda self: MockGenerateChecksum(
+            "b9104c364781d253ee4c26220cbbef4a486037613629662aa5e97b7e6a97e897"
+        ),
+    )
+    mock_file_artifact.validate_checksum()
+    assert "Checksum validated" in caplog.text
+    caplog.clear()
+    # no match sha
+    with pytest.raises(AssertionError) as ae:
+        monkeypatch.setattr(
+            AbstractFileArtifact,
+            "generate_checksum",
+            lambda self: MockGenerateChecksum(
+                "061277afcd391ddc24c2032aa320fa31722fcc3b006703610f9a49e3d8f8549d"
+            ),
+        )
+        mock_file_artifact.validate_checksum()
+    assert ae.type == AssertionError
+    assert "Checksum validated" not in caplog.text
