@@ -58,7 +58,7 @@ squid -k parse -f "${PIPELINE_REPO_DIR}"/stages/build/squid.conf
 squid -f "${PIPELINE_REPO_DIR}"/stages/build/squid.conf
 sleep 5 # because squid will not start properly without this
 
-echo "Adding the ironbank.repo to the containter via mount.conf"
+echo "Adding the ironbank.repo to the container via mount.conf"
 # Must be able to overrride DISTRO_REPO_DIR to equal '' and cannot simply check for vars existence
 # shellcheck disable=SC2236
 if [ ! -z "${DISTRO_REPO_DIR:-}" ]; then
@@ -74,6 +74,13 @@ sed -i '/^FROM /r build-args.txt' Dockerfile
 old_ifs=$IFS
 IFS=$'\n'
 echo "Build the image"
+PARENT_LABEL=""
+# shellcheck disable=SC2236
+if [ ! -z "${BASE_IMAGE:-}" ]; then
+  # shellcheck disable=SC2086
+  BASE_SHA=$(grep -Po '(?<="BASE_SHA": ")[^"]*' ${ARTIFACT_STORAGE}/lint/base_image.json)
+  PARENT_LABEL="registry1.dso.mil/${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}@${BASE_SHA}"
+fi
 # Intentional wordsplitting:
 # shellcheck disable=SC2086
 env -i BUILDAH_ISOLATION=chroot PATH="$PATH" buildah bud \
@@ -83,11 +90,14 @@ env -i BUILDAH_ISOLATION=chroot PATH="$PATH" buildah bud \
   --build-arg=HTTP_PROXY="http://localhost:3128" \
   --build-arg=GOPROXY="http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/goproxy/" \
   --build-arg=GOSUMDB="sum.golang.org http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/gosum" \
+  --build-arg=PIP_INDEX_URL="http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/pypi/simple/" \
+  --build-arg=PIP_TRUSTED_HOST="nexus-repository-manager.nexus-repository-manager.svc.cluster.local" \
   $label_parameters \
   --label=maintainer="ironbank@dsop.io" \
   --label=org.opencontainers.image.created="$(date --rfc-3339=seconds)" \
   --label=org.opencontainers.image.source="${CI_PROJECT_URL}" \
   --label=org.opencontainers.image.revision="${CI_COMMIT_SHA}" \
+  --label=mil.dso.ironbank.image.parent="${PARENT_LABEL}" \
   --authfile /tmp/prod_auth.json \
   --format=oci \
   --log-level=warn \

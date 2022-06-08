@@ -5,6 +5,7 @@ import hashlib
 import logging
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -19,6 +20,7 @@ mime_types = {
     "sbom-spdx.xml": "text/spdx",
     "sbom-spdx-json.json": "application/spdx+json",
     "sbom-spdx-tag-value.txt": "text/plain",
+    "access_log": "text/plain",
 }
 
 
@@ -173,8 +175,24 @@ def push_oras(image: Image) -> None:
     """
 
     logging.info("Push SBOM")
+    access_log_path = pathlib.Path(os.environ["ACCESS_LOG_DIR"], "access_log")
+    sbom_access_log_path = pathlib.Path(os.environ["SBOM_DIR"], "access_log")
+    if access_log_path.stat().st_size:
+        try:
+            shutil.copy(
+                access_log_path,
+                sbom_access_log_path,
+            )
+            logging.info("File copied successfully.")
+        except shutil.SameFileError:
+            logging.error("Source and destination represents the same file.")
+            sys.exit(1)
+        except PermissionError:
+            logging.error("Permission denied.")
+            sys.exit(1)
     os.chdir(os.environ["SBOM_DIR"])
     sboms = [f"{file}:{mime_types[file]}" for file in os.listdir(os.getcwd())]
+    logging.info(sboms)
     formatted_digest = image.digest.split(":")[1]
     logging.info(f"Pushing SBOM for {image.registry}/{image.name}@{image.digest}")
     sign_cmd = [
