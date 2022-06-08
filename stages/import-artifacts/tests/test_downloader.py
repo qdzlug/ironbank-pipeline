@@ -320,3 +320,19 @@ def test_main_exceptions(monkeypatch, caplog, mock_s3_resources):
         in caplog.text
     )
     caplog.clear()
+
+    with pytest.raises(SystemExit):
+        patch_artifact(
+            S3Artifact, mock_dsop_init, mock_hm_init, lambda self: raise_(RuntimeError)
+        )
+        downloader.main()
+    assert "Unexpected runtime error occurred" in caplog.text
+    caplog.clear()
+
+    with pytest.raises(SystemExit):
+        patch_artifact(
+            S3Artifact, mock_dsop_init, mock_hm_init, lambda self: raise_(Exception)
+        )
+        downloader.main()
+    assert "Unexpected error occurred. Exception class:" in caplog.text
+    caplog.clear()
