@@ -16,11 +16,14 @@ class AbstractArtifact(ABC):
     auth: dict = None
     tag: str = None
     log: logger = logger.setup("Artifact")
-    dest_path: pathlib.Path = pathlib.Path(f"{os.environ.get('ARTIFACT_DIR')}")
-    artifact_path: pathlib.Path = None
+    dest_path: pathlib.Path = None
+    artifact_path: pathlib.Path = pathlib.Path("None")
+
+    def __post_init__(self):
+        self.dest_path = pathlib.Path(f"{os.environ.get('ARTIFACT_DIR')}")
 
     def delete_artifact(self):
-        if self.artifact_path.exists():
+        if self.artifact_path.exists() and self.artifact_path.is_file():
             os.remove(self.artifact_path)
             self.log.error(f"File deleted: {self.artifact_path}")
 
@@ -47,6 +50,7 @@ class AbstractArtifact(ABC):
 @dataclass
 class AbstractFileArtifact(AbstractArtifact):
     def __post_init__(self):
+        super().__post_init__()
         self.dest_path = pathlib.Path(self.dest_path, "external_resources")
         self.artifact_path = pathlib.Path(self.dest_path, self.filename)
 

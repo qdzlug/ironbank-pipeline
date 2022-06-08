@@ -17,7 +17,7 @@ from utils import logger  # noqa E402
 from utils.exceptions import InvalidURLList  # noqa E402
 from project import DsopProject  # noqa E402
 from hardening_manifest import HardeningManifest  # noqa E402
-from artifacts_base import AbstractFileArtifact
+from abstract_artifacts import AbstractFileArtifact
 from artifacts import (  # noqa E402
     HttpArtifact,
     S3Artifact,

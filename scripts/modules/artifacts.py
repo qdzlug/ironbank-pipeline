@@ -11,7 +11,7 @@ from base64 import b64decode
 from typing import Union
 from utils.decorators import request_retry
 from utils.exceptions import InvalidURLList
-from artifacts_base import (
+from abstract_artifacts import (
     AbstractArtifact,
     AbstractFileArtifact,
 )
