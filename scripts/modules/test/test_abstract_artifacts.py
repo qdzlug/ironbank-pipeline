@@ -147,3 +147,32 @@ def test_validate_checksum(
         mock_file_artifact.validate_checksum()
     assert ae.type == AssertionError
     assert "Checksum validated" not in caplog.text
+
+
+def test_validate_filename():
+    mock_filename_artifact1 = MockFileArtifact(url=example_url, filename="abc.txt")
+    mock_filename_artifact2 = MockFileArtifact(url=example_url, filename="1abc.txt")
+    mock_bad_filename_artifact1 = MockFileArtifact(
+        url=example_url, filename="../../abc.txt"
+    )
+    mock_bad_filename_artifact2 = MockFileArtifact(
+        url=example_url, filename="\/../abc.txt"
+    )
+    mock_bad_filename_artifact3 = MockFileArtifact(url=example_url, filename="@abc.txt")
+
+    # shouldn't throw error for valid file
+    mock_filename_artifact1.validate_filename()
+
+    mock_filename_artifact2.validate_filename()
+
+    with pytest.raises(ValueError) as ve:
+        mock_bad_filename_artifact1.validate_filename()
+    assert ve.type == ValueError
+
+    with pytest.raises(ValueError) as ve:
+        mock_bad_filename_artifact2.validate_filename()
+    assert ve.type == ValueError
+
+    with pytest.raises(ValueError) as ve:
+        mock_bad_filename_artifact3.validate_filename()
+    assert ve.type == ValueError
