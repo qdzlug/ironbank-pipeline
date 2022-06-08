@@ -96,7 +96,7 @@ def main():
     except RuntimeError as rune:
         log.error(f"Unexpected runtime error occurred.")
     except Exception as e:
-        log.error(f"Unexpected error occurred. Exception class: {e}")
+        log.error(f"Unexpected error occurred. Exception class: {e.__class__}")
     finally:
         if artifact != None and exit_code == 1:
             artifact.delete_artifact()
