@@ -162,20 +162,28 @@ def generate_anchore_cve_jobs(anchore_sec_path):
         else:
             link_string = v_d["url"]
         identifiers = []
+        # nvd_data is one of the two possible data types
         if v_d["nvd_data"]:
             try:
+                # There is no additional vendor_data provided, append the vuln identifier to the indentifiers array
                 if not v_d["nvd_data"]:
                     identifiers.append(v_d["vuln"])
+                # NVD data is provided in an array format
                 elif v_d["nvd_data"][0]:
+                    # If only the CVE or GHSA is available, append it to the identifiers array
                     if v_d["nvd_data"][0]["id"] == v_d["vuln"]:
                         identifiers.append(v_d["vuln"])
+                    # If both a GHSA and CVE id are available, append them both to the identifiers array.
                     else:
                         identifiers.append(v_d["vuln"])
                         identifiers.append(v_d["nvd_data"][0]["id"])
+                # NVD data is not an array.
                 else:
+                    # If only the CVE or GHSA is available, append it to the identifiers array
                     if v_d["nvd_data"]["id"] == v_d["vuln"]:
                         identifiers.append(v_d["vuln"])
                     else:
+                        # If both a GHSA and CVE id are available, append them both to the identifiers array.
                         identifiers.append(v_d["vuln"])
                         identifiers.append(v_d["nvd_data"]["id"])
             except IndexError:
@@ -183,19 +191,27 @@ def generate_anchore_cve_jobs(anchore_sec_path):
                     "Index out of range. No vendor data available. Continuing."
                 )
         else:
+            # vendor_data is the other data type
             try:
+                # There is no additional vendor_data provided, append the vuln identifier to the indentifiers array
                 if not v_d["vendor_data"]:
                     identifiers.append(v_d["vuln"])
-                if v_d["vendor_data"][0]:
+                # Vendor data is provided in an array format
+                elif v_d["vendor_data"][0]:
+                    # If only the CVE or GHSA is available, append it to the identifiers array
                     if v_d["vendor_data"][0]["id"] == v_d["vuln"]:
                         identifiers.append(v_d["vuln"])
                     else:
+                        # If both a GHSA and CVE id are available, append them both to the identifiers array.
                         identifiers.append(v_d["vuln"])
                         identifiers.append(v_d["vendor_data"][0]["id"])
+                # Vendor data is not an array.
                 else:
+                    # If only the CVE or GHSA is available, append it to the identifiers array
                     if v_d["vendor_data"]["id"] == v_d["vuln"]:
                         identifiers.append(v_d["vuln"])
                     else:
+                        # If both a GHSA and CVE id are available, append them both to the identifiers array.
                         identifiers.append(v_d["vuln"])
                         identifiers.append(v_d["vendor_data"]["id"])
             except IndexError:
