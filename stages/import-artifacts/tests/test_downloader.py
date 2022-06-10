@@ -227,7 +227,6 @@ def test_main_class_assignment(
     caplog.clear()
 
 
-# @pytest.mark.only
 def test_main_exceptions(monkeypatch, caplog, mock_s3_resources):
     def mock_dsop_init(self):
         self.hardening_manifest_path = "lol"

@@ -1,8 +1,10 @@
+import hashlib
 import sys
 import os
 import pytest
 from dataclasses import dataclass
 import pathlib
+from unittest.mock import mock_open
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from abstract_artifacts import AbstractArtifact, AbstractFileArtifact  # noqa E402
@@ -155,6 +157,22 @@ def test_validate_checksum(
         mock_file_artifact.validate_checksum()
     assert ae.type == AssertionError
     assert "Checksum validated" not in caplog.text
+
+
+def test_generate_checksum(monkeypatch, mock_file_artifact):
+    # TODO: move this to a Mock file
+    @dataclass
+    class MockHashlib:
+        type: str
+        fake_hash: str = ""
+
+        def update(self, chunk):
+            self.fake_hash += chunk
+
+    monkeypatch.setattr(hashlib, "new", lambda self: MockHashlib("sha256"))
+    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data="data"))
+    result = mock_file_artifact.generate_checksum()
+    assert result.fake_hash == "data"
 
 
 def test_validate_filename():
