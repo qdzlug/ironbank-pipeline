@@ -10,11 +10,15 @@ from subprocess import CalledProcessError
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import downloader  # noqa E402
-from hardening_manifest import HardeningManifest
-from project import DsopProject
-from artifacts import S3Artifact, GithubArtifact, HttpArtifact, ContainerArtifact
-from utils import logger
-from utils.exceptions import InvalidURLList
+from hardening_manifest import HardeningManifest  # noqa E402
+from project import DsopProject  # noqa E402
+from artifacts import (
+    S3Artifact,
+    HttpArtifact,
+    ContainerArtifact,
+)  # noqa E402
+from utils import logger  # noqa E402
+from utils.exceptions import InvalidURLList  # noqa E402
 
 
 log = logger.setup("test_downloader")
@@ -281,7 +285,7 @@ def test_main_exceptions(monkeypatch, caplog, mock_s3_resources):
         def __init__(self, status_code):
             self.response = MockResponse(status_code)
 
-    with pytest.raises(SystemExit) as se:
+    with pytest.raises(SystemExit):
         patch_artifact(
             S3Artifact,
             mock_dsop_init,

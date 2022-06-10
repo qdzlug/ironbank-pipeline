@@ -1,15 +1,19 @@
 import sys
 import os
-from unittest import mock
 import pytest
 from dataclasses import dataclass
 from requests.auth import HTTPBasicAuth
 import boto3
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils import logger
-from abstract_artifacts import AbstractArtifact, AbstractFileArtifact
-from artifacts import S3Artifact, HttpArtifact, ContainerArtifact, GithubArtifact
+from utils import logger  # noqa E402
+from abstract_artifacts import AbstractArtifact  # noqa E402
+from artifacts import (
+    S3Artifact,
+    HttpArtifact,
+    ContainerArtifact,
+    GithubArtifact,
+)  # noqa E402
 
 log = logger.setup("test_abstract_artifacts")
 
@@ -109,7 +113,6 @@ def test_s3_artifact_get_credentials(mock_s3_artifact):
     assert region == "test"
 
 
-@pytest.mark.only
 def test_s3_artifact_download(
     monkeypatch,
     caplog,

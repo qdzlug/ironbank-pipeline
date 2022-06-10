@@ -2,7 +2,6 @@
 
 import os
 import sys
-import subprocess
 from subprocess import CalledProcessError
 from urllib.parse import urlparse
 from botocore.exceptions import ClientError
@@ -17,7 +16,7 @@ from utils import logger  # noqa E402
 from utils.exceptions import InvalidURLList  # noqa E402
 from project import DsopProject  # noqa E402
 from hardening_manifest import HardeningManifest  # noqa E402
-from abstract_artifacts import AbstractFileArtifact
+from abstract_artifacts import AbstractFileArtifact  # noqa E402
 from artifacts import (  # noqa E402
     HttpArtifact,
     S3Artifact,
@@ -93,12 +92,12 @@ def main():
         log.error(
             "Resource failed to pull, please check hardening_manifest.yaml configuration"
         )
-    except RuntimeError as rune:
-        log.error(f"Unexpected runtime error occurred.")
+    except RuntimeError:
+        log.error("Unexpected runtime error occurred.")
     except Exception as e:
         log.error(f"Unexpected error occurred. Exception class: {e.__class__}")
     finally:
-        if artifact != None and exit_code == 1:
+        if artifact is not None and exit_code == 1:
             artifact.delete_artifact()
         sys.exit(exit_code)
 

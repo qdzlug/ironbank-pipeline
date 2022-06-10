@@ -1,14 +1,13 @@
 import sys
 import os
-from unittest import mock
 import pytest
 from dataclasses import dataclass
 import pathlib
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from abstract_artifacts import AbstractArtifact, AbstractFileArtifact
+from abstract_artifacts import AbstractArtifact, AbstractFileArtifact  # noqa E402
 
-from utils import logger
+from utils import logger  # noqa E402
 
 log = logger.setup("test_abstract_artifacts")
 
@@ -165,7 +164,7 @@ def test_validate_filename():
         url=example_url, filename="../../abc.txt"
     )
     mock_bad_filename_artifact2 = MockFileArtifact(
-        url=example_url, filename="\/../abc.txt"
+        url=example_url, filename="\\/../abc.txt"
     )
     mock_bad_filename_artifact3 = MockFileArtifact(url=example_url, filename="@abc.txt")
 

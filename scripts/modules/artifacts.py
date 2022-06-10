@@ -43,7 +43,7 @@ class S3Artifact(AbstractFileArtifact):
         extra_args = {}
         if "versionId" in parsed_url.query:
             extra_args = {
-                "VersionId": parsed_url.query.replace("versionId", "").split("&")[0]
+                "VersionId": parsed_url.query.replace("versionId=", "").split("&")[0]
             }
         if not self.auth:
             raise ValueError(
@@ -159,7 +159,7 @@ class ContainerArtifact(AbstractArtifact):
             stdin=subprocess.PIPE,
             check=True,
         )
-        self.log.info(f"Successfully pulled")
+        self.log.info("Successfully pulled")
 
 
 @dataclass
