@@ -1,10 +1,12 @@
 import pathlib
+import subprocess
 import sys
 import os
 import pytest
 import requests
 from dataclasses import dataclass
 from requests.auth import HTTPBasicAuth
+from subprocess import CalledProcessError
 import boto3
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -33,6 +35,7 @@ mock_tag = "example:1.0"
 
 
 def add_s3_vars(monkeypatch):
+    # mock_key123
     monkeypatch.setenv(
         "S3_ACCESS_KEY_test",
         "bW9ja19rZXkxMjM=",
@@ -46,7 +49,6 @@ def add_s3_vars(monkeypatch):
 
 @pytest.fixture
 def mock_s3_artifact(monkeypatch):
-    # mock_key123
     add_s3_vars(monkeypatch)
     return S3Artifact(
         url=mock_s3_url, filename=mock_filename, auth={"id": "test", "region": "test"}
@@ -89,7 +91,17 @@ def mock_container_artifact():
 
 
 @pytest.fixture
-def mock_github_artifact():
+def mock_github_artifact(monkeypatch):
+    # mock_key123
+    monkeypatch.setenv(
+        "GITHUB_ROBOT_USER",
+        "bW9ja19rZXkxMjM=",
+    )
+    # mock_key123
+    monkeypatch.setenv(
+        "GITHUB_ROBOT_TOKEN",
+        "bW9ja19rZXkxMjM=",
+    )
     return GithubArtifact(url=mock_github_url, tag=mock_tag)
 
 
@@ -152,9 +164,15 @@ def test_s3_artifact_download(
     caplog.clear()
 
 
-@pytest.mark.only
+def test_http_artifact_get_credentials(monkeypatch, mock_http_artifact):
+    monkeypatch.setattr(
+        AbstractArtifact, "get_username_password", lambda x: ("example", "test")
+    )
+    assert mock_http_artifact.get_credentials() == HTTPBasicAuth("example", "test")
+
+
 def test_http_artifact_download(
-    monkeypatch, caplog, mock_http_artifact, mock_responses  # noqa W0404
+    monkeypatch, mock_http_artifact, mock_responses  # noqa W0404
 ):
 
     monkeypatch.setattr(pathlib.Path, "write_bytes", lambda self, x: "no")
@@ -172,15 +190,46 @@ def test_http_artifact_download(
     assert status_code == 200
 
 
-def test_http_artifact_get_credentials(monkeypatch, mock_http_artifact):
-    monkeypatch.setattr(
-        AbstractArtifact, "get_username_password", lambda x: ("example", "test")
-    )
-    assert mock_http_artifact.get_credentials() == HTTPBasicAuth("example", "test")
-
-
 def test_container_artifact_get_credentials(monkeypatch, mock_container_artifact):
     monkeypatch.setattr(
         AbstractArtifact, "get_username_password", lambda x: ("example", "test")
     )
     assert mock_container_artifact.get_credentials() == "example:test"
+
+
+def test_container_artifact_download(monkeypatch, caplog, mock_container_artifact):
+    monkeypatch.setattr(pathlib.Path, "exists", lambda self: False)
+    monkeypatch.setattr(
+        AbstractArtifact, "delete_artifact", lambda self: log.info("deleting artifact")
+    )
+    monkeypatch.setattr(
+        subprocess, "run", lambda args, stdout, stdin, check: log.info(args)
+    )
+    mock_container_artifact.download()
+    assert "Successfully pulled" in caplog.text
+    caplog.clear()
+
+    monkeypatch.setattr(pathlib.Path, "exists", lambda self: True)
+    mock_container_artifact.download()
+    assert "Found existing container artifact, deleting file" in caplog.text
+
+    caplog.clear()
+
+    # TODO: move this to a module, duplicate func in test_downloader.py
+    def raise_(e):
+        raise e
+
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda args, stdout, stdin, check: raise_(CalledProcessError(1, ["example"])),
+    )
+    with pytest.raises(CalledProcessError) as ce:
+        mock_container_artifact.download()
+    assert "Successfully pulled" not in caplog.text
+
+
+def test_github_artifact_un_pw(mock_github_artifact):
+    username, password = mock_github_artifact.get_username_password()
+    assert username == "mock_key123"
+    assert password == "mock_key123"

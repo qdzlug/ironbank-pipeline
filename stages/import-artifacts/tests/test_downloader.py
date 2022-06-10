@@ -241,6 +241,7 @@ def test_main_exceptions(monkeypatch, caplog, mock_s3_resources):
         monkeypatch.setattr(DsopProject, "__init__", mock_dsop)
         monkeypatch.setattr(HardeningManifest, "__init__", mock_hm)
 
+    # TODO: move this to a module, duplicate func in test_artifacts.py
     def raise_(e):
         raise e
 
