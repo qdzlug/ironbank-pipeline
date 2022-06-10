@@ -8,7 +8,7 @@ set -Eeuo pipefail
 #
 
 # Set up the image reference variables
-export IMAGE_REGISTRY_REPO="${STAGING_REGISTRY_URL}/${IMAGE_NAME}"
+export IMAGE_REGISTRY_REPO="${REGISTRY_URL_STAGING}/${IMAGE_NAME}"
 export IMAGE_FULLTAG="${IMAGE_REGISTRY_REPO}:ibci-${CI_PIPELINE_ID}"
 
 mkdir -p "${ARTIFACT_DIR}"
@@ -79,7 +79,7 @@ PARENT_LABEL=""
 if [ ! -z "${BASE_IMAGE:-}" ]; then
   # shellcheck disable=SC2086
   BASE_SHA=$(grep -Po '(?<="BASE_SHA": ")[^"]*' ${ARTIFACT_STORAGE}/lint/base_image.json)
-  PARENT_LABEL="registry1.dso.mil/${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}@${BASE_SHA}"
+  PARENT_LABEL="${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}@${BASE_SHA}"
 fi
 # Intentional wordsplitting:
 # shellcheck disable=SC2086

@@ -11,7 +11,7 @@ export public_key
 export image_sha="${IMAGE_ID}"
 export image_name="${CI_PROJECT_NAME}"
 export image_tag="${IMAGE_VERSION}"
-export image_path="${REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_VERSION}"
+export image_path="${REGISTRY_URL_PROD}/${IMAGE_NAME}:${IMAGE_VERSION}"
 export build_number="${CI_PIPELINE_ID}"
 export image_manifest="${S3_HTML_LINK}/${REMOTE_REPORT_DIRECTORY}/manifest.json"
 export manifest_name="manifest.json"

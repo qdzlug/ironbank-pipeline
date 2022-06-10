@@ -83,7 +83,7 @@ class Stargate:
         Returns a tuple of the name of the image dir and image description
         """
         log.info("Creating image directory")
-        registry1_path = f"docker://{os.environ['STAGING_REGISTRY_URL']}/{os.environ['IMAGE_NAME']}@{os.environ['IMAGE_PODMAN_SHA']}"
+        registry1_path = f"docker://{os.environ['REGISTRY_URL_STAGING']}/{os.environ['IMAGE_NAME']}@{os.environ['IMAGE_PODMAN_SHA']}"
         dir_path = f"oci:{self.image_dir}/{image_title}:{os.environ['IMAGE_VERSION']}"
         # create authfile for skopeo to pull from staging project
         staging_auth = (

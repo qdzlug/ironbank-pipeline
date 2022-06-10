@@ -345,13 +345,13 @@ def main():
 
     staging_image = Image(
         os.environ["IMAGE_NAME"],
-        os.environ["STAGING_REGISTRY_URL"],
+        os.environ["REGISTRY_URL_STAGING"],
         os.environ["IMAGE_PODMAN_SHA"],
     )
 
     production_image = Image(
         os.environ["IMAGE_NAME"],
-        os.environ["REGISTRY_URL"],
+        os.environ["REGISTRY_URL_PROD"],
         os.environ["IMAGE_PODMAN_SHA"],
     )
 
