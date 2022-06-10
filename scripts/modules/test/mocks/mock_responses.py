@@ -7,6 +7,13 @@ import pytest
 class MockResponse:
     status_code: int
     text: str
+    content: str = "example"
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, mock1, mock2, mock3):
+        pass
 
     def raise_for_status(self):
         if self.status_code != 200:
@@ -17,26 +24,26 @@ class MockResponse:
 
 
 @pytest.fixture(scope="module")
-def mock_responses(url="", params={}, headers={}):
-    def mock200(url="", params={}, headers={}):
+def mock_responses():
+    def mock200(*args, **kwargs):
         return MockResponse(200, "successful_request")
 
-    def mock400(url="", params={}, headers={}):
+    def mock400(*args, **kwargs):
         return MockResponse(400, "bad_json_body")
 
-    def mock403(url="", params={}, headers={}):
+    def mock403(*args, **kwargs):
         return MockResponse(403, "bad_auth")
 
-    def mock404(url="", params={}, headers={}):
+    def mock404(*args, **kwargs):
         return MockResponse(404, "not_found")
 
-    def mock500(url="", params={}, headers={}):
+    def mock500(*args, **kwargs):
         return MockResponse(500, "server_ded")
 
-    def mockRequestException(url="", params={}, headers={}):
+    def mockRequestException(*args, **kwargs):
         raise requests.exceptions.RequestException
 
-    def mockRuntimeError(url="", params={}, headers={}):
+    def mockRuntimeError(*args, **kwargs):
         raise RuntimeError
 
     return {
