@@ -1,13 +1,17 @@
+import pathlib
 import sys
 import os
 import pytest
+import requests
 from dataclasses import dataclass
 from requests.auth import HTTPBasicAuth
 import boto3
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils import logger  # noqa E402
+from utils.exceptions import InvalidURLList  # noqa E402
 from abstract_artifacts import AbstractArtifact  # noqa E402
+from mocks.mock_responses import mock_responses  # noqa E402 W0611
 from artifacts import (
     S3Artifact,
     HttpArtifact,
@@ -146,6 +150,26 @@ def test_s3_artifact_download(
     # this should confirm the additional args aren't being picked up
     assert "Extra args: {'VersionId': '1.0'}" in caplog.text
     caplog.clear()
+
+
+@pytest.mark.only
+def test_http_artifact_download(
+    monkeypatch, caplog, mock_http_artifact, mock_responses  # noqa W0404
+):
+
+    monkeypatch.setattr(pathlib.Path, "write_bytes", lambda self, x: "no")
+    monkeypatch.setattr(HttpArtifact, "get_credentials", lambda self: "example")
+
+    status_code = None
+    monkeypatch.setattr(requests, "get", mock_responses["500"])
+    with pytest.raises(InvalidURLList) as inv:
+        status_code = mock_http_artifact.download()
+    assert status_code is None
+    assert inv.type == InvalidURLList
+
+    monkeypatch.setattr(requests, "get", mock_responses["200"])
+    status_code = mock_http_artifact.download()
+    assert status_code == 200
 
 
 def test_http_artifact_get_credentials(monkeypatch, mock_http_artifact):
