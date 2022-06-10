@@ -224,7 +224,7 @@ def test_container_artifact_download(monkeypatch, caplog, mock_container_artifac
         "run",
         lambda args, stdout, stdin, check: raise_(CalledProcessError(1, ["example"])),
     )
-    with pytest.raises(CalledProcessError) as ce:
+    with pytest.raises(CalledProcessError):
         mock_container_artifact.download()
     assert "Successfully pulled" not in caplog.text
 

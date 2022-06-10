@@ -1,16 +1,13 @@
 import os
 import sys
-import logging
 from unittest import mock
 import pytest
 import requests
-from dataclasses import dataclass
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from apis import API, VatAPI  # noqa E402
 from utils import logger  # noqa E402
 from mocks.mock_responses import mock_responses  # noqa E402 W0611
-from utils.decorators import request_error_handler
 
 
 @pytest.fixture

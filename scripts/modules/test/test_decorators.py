@@ -7,11 +7,11 @@ from subprocess import CalledProcessError
 from unittest import mock
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from apis import API
-from utils import logger
-from utils.decorators import request_retry
-from utils.decorators import request_error_handler
-from mocks.mock_responses import mock_responses
+from apis import API  # noqa E402
+from utils import logger  # noqa E402
+from utils.decorators import request_retry  # noqa E402
+from utils.decorators import request_error_handler  # noqa E402
+from mocks.mock_responses import mock_responses  # noqa E402 W0611
 
 log = logger.setup("test_decorators")
 
@@ -44,7 +44,7 @@ class MockApiSubclass(API):
 
 def test_request_retry(caplog, mock_class):
     mock_class.mock_func()
-    with pytest.raises(CalledProcessError) as ce:
+    with pytest.raises(CalledProcessError):
         mock_class.mock_failing_func()
 
 
