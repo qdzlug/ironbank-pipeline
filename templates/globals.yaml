@@ -1,4 +1,4 @@
-image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:0.5
+image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.6.0
 stages:
   ### preprocess stage
   # clone down the templates directory for use in later stages
@@ -41,9 +41,6 @@ stages:
 
   ### check cve stage
   - check-cves
-
-  ### generate allowlists for Anchore (runs on master)
-  - generate-allowlists
 
   ### Sign image and manifest and write documentation
   - documentation

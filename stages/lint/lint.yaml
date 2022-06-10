@@ -20,7 +20,6 @@ lint:
     max: 2
     when: runner_system_failure
   script:
-    - pip3 install dockerfile
     - |
       if [[ "${CI_COMMIT_BRANCH}" == "master" || "${CI_COMMIT_BRANCH}" == "development" ]] && [[ "${CI_COMMIT_REF_PROTECTED}" != true ]]; then
         echo "This pipeline is running on an unprotected '${CI_COMMIT_BRANCH}' branch. Please protect '${CI_COMMIT_BRANCH}' before running the pipeline on this branch"

@@ -90,6 +90,8 @@ env -i BUILDAH_ISOLATION=chroot PATH="$PATH" buildah bud \
   --build-arg=HTTP_PROXY="http://localhost:3128" \
   --build-arg=GOPROXY="http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/goproxy/" \
   --build-arg=GOSUMDB="sum.golang.org http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/gosum" \
+  --build-arg=PIP_INDEX_URL="http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/pypi/simple/" \
+  --build-arg=PIP_TRUSTED_HOST="nexus-repository-manager.nexus-repository-manager.svc.cluster.local" \
   $label_parameters \
   --label=maintainer="ironbank@dsop.io" \
   --label=org.opencontainers.image.created="$(date --rfc-3339=seconds)" \
