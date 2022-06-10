@@ -9,6 +9,7 @@ from dataclasses import dataclass
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from apis import API, VatAPI, request_error_handler  # noqa E402
 from utils import logger  # noqa E402
+from mocks.mock_responses import mock_responses  # noqa E402 W0611
 
 
 @pytest.fixture
@@ -29,53 +30,6 @@ class MockApiSubclass(API):
         self.response.raise_for_status()
 
 
-@dataclass
-class MockResponse:
-    status_code: int
-    text: str
-
-    def raise_for_status(self):
-        if self.status_code != 200:
-            raise requests.exceptions.HTTPError
-
-    def json(self):
-        return {"status_code": self.status_code, "text": self.text}
-
-
-@pytest.fixture
-def mock_responses(url="", params={}, headers={}):
-    def mock200(url="", params={}, headers={}):
-        return MockResponse(200, "successful_request")
-
-    def mock400(url="", params={}, headers={}):
-        return MockResponse(400, "bad_json_body")
-
-    def mock403(url="", params={}, headers={}):
-        return MockResponse(403, "bad_auth")
-
-    def mock404(url="", params={}, headers={}):
-        return MockResponse(404, "not_found")
-
-    def mock500(url="", params={}, headers={}):
-        return MockResponse(500, "server_ded")
-
-    def mockRequestException(url="", params={}, headers={}):
-        raise requests.exceptions.RequestException
-
-    def mockRuntimeError(url="", params={}, headers={}):
-        raise RuntimeError
-
-    return {
-        "200": mock200,
-        "400": mock400,
-        "403": mock403,
-        "404": mock404,
-        "500": mock500,
-        "requestException": mockRequestException,
-        "runtimeError": mockRuntimeError,
-    }
-
-
 @mock.patch.dict(
     os.environ,
     {
@@ -83,7 +37,7 @@ def mock_responses(url="", params={}, headers={}):
         "CI_PROJECT_URL": "https://example/example/example",
     },
 )
-def test_request_error_decorator(caplog, mock_responses):
+def test_request_error_decorator(caplog, mock_responses):  # noqa W0404
     caplog.set_level(logging.INFO)
 
     logging.info("It shouldn't throw exception on 200")
@@ -135,7 +89,7 @@ def test_request_error_decorator(caplog, mock_responses):
     caplog.clear()
 
 
-def test_get_image(monkeypatch, caplog, mock_vat_api, mock_responses):
+def test_get_image(monkeypatch, caplog, mock_vat_api, mock_responses):  # noqa W0404
 
     monkeypatch.setattr(requests, "get", mock_responses["200"])
     mock_vat_api.get_image("example/example/example", "1.0")
@@ -156,7 +110,7 @@ def test_get_image(monkeypatch, caplog, mock_vat_api, mock_responses):
         "CI_PROJECT_URL": "https://example.invalid",
     },
 )
-def test_check_access(monkeypatch, caplog, mock_vat_api, mock_responses):
+def test_check_access(monkeypatch, caplog, mock_vat_api, mock_responses):  # noqa W0404
 
     monkeypatch.setattr(requests, "get", mock_responses["200"])
     mock_vat_api.check_access("example/example/example")
