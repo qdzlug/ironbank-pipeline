@@ -20,7 +20,7 @@ distroless-upload-to-s3:
     - load-scripts
     - lint
     - build
-    - create-sbom
+    - sbom
     - anchore-scan
     - twistlock-scan
     - csv-output
