@@ -26,8 +26,8 @@ stages:
   # container archive output
   - post-build
 
-  # SBOM and Access Log Parsing
-  - sbom-access-log
+  # output syft SBOM
+  - sbom-creation
 
   ### scanning stage
   # twistlock, oscap, and anchore scans
