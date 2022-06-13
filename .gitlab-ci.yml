@@ -2,7 +2,7 @@
 # See https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
 # Note that environment variables can be set in several places
 # See https://docs.gitlab.com/ee/ci/variables/#priority-of-environment-variables
-image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.5.0"
+image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.6.0"
 
 stages:
   - secret-scanning
@@ -58,13 +58,14 @@ shellcheck:
       exit "$ret"
 
 black:
+  image: registry1.dso.mil/ironbank/opensource/python/python39:v3.9.13
   needs: []
   tags:
     - ironbank-tools
   stage: format
   script:
     - pip install --user black
-    - black --check --diff --color -t py39 .
+    - black --check --diff --color -t py310 .
 
 pylama:
   needs: []
@@ -90,7 +91,7 @@ shfmt:
   tags:
     - ironbank-tools
   stage: format
-  image: "registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5"
+  image: "registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.6"
   script:
     - dnf install wget -y
     - wget https://github.com/mvdan/sh/releases/download/v3.1.2/shfmt_v3.1.2_linux_amd64
@@ -104,7 +105,6 @@ unit-testing:
   stage: test
   script:
     - python3 -m pip install --user pytest-cov
-    - python3 -m pip install --user dockerfile
     - python3 -m pytest -m "not slow"
   coverage: '/^TOTAL.+?(\d+\%)$/'
   variables:

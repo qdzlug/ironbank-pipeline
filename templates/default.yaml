@@ -11,7 +11,7 @@ include:
 
   - local: stages/post-build/base.yaml
 
-  - local: stages/sbom-creation/sbom.yaml
+  - local: stages/sbom-access-log/base.yaml
 
   # scanning stage jobs
   - local: stages/scanning/anchore/anchore.yaml
