@@ -18,6 +18,6 @@ parse-access-log:
 parse-sbom:
   extends: .sbom-access-log
   variables:
-    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/anchore/sbom"
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/sbom"
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/scripts/modules/sbom_parser.py" --allow-errors "${ARTIFACT_DIR}/sbom-json.json"'
