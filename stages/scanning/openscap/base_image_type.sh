@@ -1,7 +1,7 @@
 #!/bin/bash
 set -Eeuo pipefail
 echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >staging_auth.json
-podman pull --authfile staging_auth.json "${STAGING_REGISTRY_URL}/${IMAGE_NAME}@${IMAGE_PODMAN_SHA}"
+podman pull --authfile staging_auth.json "${REGISTRY_URL_STAGING}/${IMAGE_NAME}@${IMAGE_PODMAN_SHA}"
 DOCKER_IMAGE_PATH=$(podman images --noheading | awk '{print $3}')
 export DOCKER_IMAGE_PATH
 BASE_IMAGE_TYPE=$(podman inspect -f '{{index .Labels "com.redhat.component"}}' "${DOCKER_IMAGE_PATH}")
