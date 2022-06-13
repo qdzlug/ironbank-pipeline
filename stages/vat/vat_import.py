@@ -180,9 +180,7 @@ def generate_anchore_cve_jobs(anchore_sec_path):
                 if v_d[search_key]["id"] != v_d["vuln"]:
                     identifiers.append(v_d[search_key]["id"])
         except IndexError:
-            logging.info(
-                "Index out of range. No vendor data available. Continuing."
-            )
+            logging.info("Index out of range. No vendor data available. Continuing.")
         cve = {
             "finding": v_d["vuln"],
             "severity": v_d["severity"].lower(),
