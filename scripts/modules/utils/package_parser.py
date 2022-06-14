@@ -70,7 +70,7 @@ class GoPackage(ParsedURLPackage):
 
 @dataclass(slots=True, frozen=True)
 class PypiPackage(ParsedURLPackage):
-    kind: str = field(init=False, default="whl")
+    kind: str = field(init=False, default="python")
 
     @classmethod
     def parse(cls, url) -> Optional[Package]:
