@@ -1,410 +1,107 @@
 #!/usr/bin/env python3
 
-import re
 import os
 import sys
-from requests.models import HTTPError
-import yaml
-import boto3
-import shutil
-import logging
-import pathlib
-import hashlib
-import requests
-import subprocess
-from base64 import b64decode
-from requests.auth import HTTPBasicAuth
+from subprocess import CalledProcessError
+from urllib.parse import urlparse
 from botocore.exceptions import ClientError
+from requests.exceptions import HTTPError
 
+sys.path.append(
+    os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts/modules"
+    )
+)
+from utils import logger  # noqa E402
+from utils.exceptions import InvalidURLList  # noqa E402
+from project import DsopProject  # noqa E402
+from hardening_manifest import HardeningManifest  # noqa E402
+from abstract_artifacts import AbstractFileArtifact  # noqa E402
+from artifacts import (  # noqa E402
+    HttpArtifact,
+    S3Artifact,
+    ContainerArtifact,
+    GithubArtifact,
+)
 
-class InvalidURLList(Exception):
-    pass
+log = logger.setup("import_artifacts")
 
 
 def main():
-    # Get logging level, set manually when running pipeline
-    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
-    if loglevel == "DEBUG":
-        logging.basicConfig(
-            level=loglevel,
-            format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
-        )
-        logging.debug("Log level set to debug")
-    else:
-        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
-        logging.info("Log level set to info")
-
-    artifacts_path = os.environ["ARTIFACT_DIR"]
-    logging.info(f"Output directory: {artifacts_path}")
 
     # Read hardening_manifest.yaml file
-    downloads = _load_hardening_manifest()
+    dsop_project = DsopProject()
+    hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
 
-    if not downloads:
-        logging.error("INTERNAL ERROR: No hardening_mainfest.yaml file found")
-        sys.exit(1)
-
-    if "resources" not in downloads or not downloads["resources"]:
-        logging.info(f"No resources in {downloads}")
+    # we probably don't need this, but maybe we want to validate it in case it somehow changes state before import?
+    # hardening_manifest.validate()
+    if not hardening_manifest.resources:
+        log.info(f"No resources in {hardening_manifest.resources}")
         sys.exit(0)
+    exit_code = 1
+    artifact = None
     try:
-        download_all_resources(downloads, artifacts_path)
-    except KeyError as ke:
-        logging.error(f"The following auth key does not have a value: {str(ke)}")
-        sys.exit(1)
+        for resource in hardening_manifest.resources:
+            parsed_url = urlparse(resource["url"])
+            scheme = parsed_url.scheme
+            netloc = parsed_url.netloc
 
+            github_current = "ghcr.io"
+            github_deprecated = "docker.pkg.github.com"
 
-def download_all_resources(downloads, artifacts_path):
-    for item in downloads["resources"]:
-        if "urls" in item:
-            # All URLs must be of the same type when using "urls"
-            download_type = resource_type(item["urls"][0])
-        else:
-            download_type = resource_type(item["url"])
-        if download_type == "http":
-            username, password = None, None
-            urls = None
-            if "url" in item:
-                urls = [item["url"]]
+            if "s3" in scheme:
+                artifact = S3Artifact(**resource)
+            elif github_current in netloc:
+                artifact = GithubArtifact(**resource)
+            elif github_deprecated in netloc:
+                log.warn(
+                    "{github_deprecated} has been deprecated. Please switch to {github_current} when possible."
+                )
+                artifact = GithubArtifact(**resource)
+            elif "docker" in scheme:
+                artifact = ContainerArtifact(**resource)
+            elif "http" in scheme:
+                artifact = HttpArtifact(**resource)
             else:
-                urls = item["urls"]
-            if "auth" in item:
-                if item["auth"]["type"] == "basic":
-                    username, password = get_auth(download_type, item)
-                else:
-                    logging.error(
-                        "Non Basic auth type provided for HTTP resource, failing"
-                    )
-                    sys.exit(1)
-            http_download(
-                urls,
-                item["filename"],
-                item["validation"]["type"],
-                item["validation"]["value"],
-                artifacts_path,
-                username,
-                password,
-            )
-        if download_type in ["docker", "github"]:
-            username, password = None, None
-            if "auth" in item:
-                if item["auth"]["type"] == "basic":
-                    username, password = get_auth(download_type, item)
-                else:
-                    logging.error(
-                        "Non Basic auth type provided for Docker resource, failing"
-                    )
-                    sys.exit(1)
-            elif download_type == "github":
-                username = b64decode(os.environ["GITHUB_ROBOT_USER"]).decode("utf-8")
-                password = b64decode(os.environ["GITHUB_ROBOT_TOKEN"]).decode("utf-8")
-            pull_image(
-                download_type, item["url"], item["tag"], item["tag"], username, password
-            )
-        if download_type == "s3":
-            username, password, region = None, None, None
-            if "auth" in item:
-                username, password, region = get_auth(download_type, item)
-            s3_download(
-                item["url"],
-                item["filename"],
-                item["validation"]["type"],
-                item["validation"]["value"],
-                artifacts_path,
-                username,
-                password,
-                region,
-            )
+                log.error(f"Invalid scheme {scheme} for artifact {resource['url']}")
+                sys.exit(1)
 
-
-def _load_hardening_manifest():
-    """
-    Load up the hardening_manifest.yaml file as a dictionary. Search for the file in
-    the immediate repo first, if that is not found then search for the generated file.
-
-    If neither are found then return None and let the calling function handle the error.
-
-    """
-    artifacts_path = os.environ["ARTIFACT_STORAGE"]
-    paths = [
-        pathlib.Path("hardening_manifest.yaml"),
-        # Check for the generated hardening manifest. This method will be deprecated.
-        pathlib.Path(artifacts_path, "lint", "hardening_manifest.yaml"),
-    ]
-
-    for path in paths:
-        logging.debug(f"Looking for {path}")
-        if path.is_file():
-            logging.debug(f"Using {path}")
-
-            if "lint" in str(path):
-                logging.info("Using autogenerated hardening_manifest.yaml")
-
-            with path.open("r") as f:
-                return yaml.safe_load(f)
-        else:
-            logging.debug(f"Couldn't find {path}")
-    return None
-
-
-def resource_type(url):
-    check = url
-    docker_string = "docker://"
-    http_string = "http"
-    s3_string = "s3://"
-    github_string_deprecated = "docker.pkg.github.com/"
-    github_string_current = "ghcr.io"
-    if docker_string in check:
-        return "docker"
-    elif s3_string in check:
-        return "s3"
-    elif github_string_current in check:
-        return "github"
-    elif github_string_deprecated in check:
-        logging.warning(
-            f"{github_string_deprecated} has been deprecated. Please switch to {github_string_current} when possible."
+            # download also gathers any relevant auth and runs any pre download validation
+            artifact.download()
+            if isinstance(artifact, AbstractFileArtifact):
+                artifact.validate_checksum()
+            log.info("")
+        # all resources are downloaded successfully
+        exit_code = 0
+    except KeyError as ke:
+        log.error(f"The following key does not have a value: {str(ke)}")
+    except AssertionError as ae:
+        log.error(f"Assertion Error: {ae}")
+    except InvalidURLList:
+        log.error(
+            f"No valid urls provided for {artifact.filename}. Please ensure the url(s) for this resource exists and is not password protected. If you require basic authentication to download this resource, please open a ticket in this repository."
         )
-        return "github"
-    elif http_string in check:
-        return "http"
-    else:
-        return "Error in parsing resource type."
-
-
-def get_auth(resource_type, item):
-    if resource_type != "s3":
-        credential_id = item["auth"]["id"].replace("-", "_")
-        password = b64decode(os.environ["CREDENTIAL_PASSWORD_" + credential_id]).decode(
-            "utf-8"
-        )
-        username = b64decode(os.environ["CREDENTIAL_USERNAME_" + credential_id]).decode(
-            "utf-8"
-        )
-        return username, password
-    else:
-        credential_id = item["auth"]["id"].replace("-", "_")
-        username = b64decode(os.environ["S3_ACCESS_KEY_" + credential_id]).decode(
-            "utf-8"
-        )
-        password = b64decode(os.environ["S3_SECRET_KEY_" + credential_id]).decode(
-            "utf-8"
-        )
-        region = item["auth"]["region"]
-        return username, password, region
-
-
-def http_download(
-    urls,
-    resource_name,
-    validation_type,
-    checksum_value,
-    artifacts_path,
-    username=None,
-    password=None,
-):
-    successful_download = False
-    # Validate filename doesn't do anything nefarious
-    match = re.search(r"^[A-Za-z0-9][^/\x00]*", resource_name)
-    if match is None:
-        logging.error(
-            "Filename is has invalid characters. Filename must start with a letter or a number. Aborting."
-        )
-        sys.exit(1)
-
-    auth = None
-    if username and password:
-        auth = HTTPBasicAuth(username, password)
-
-    for url in urls:
-        try:
-            logging.info(f"Downloading from {url}")
-            with requests.get(
-                url,
-                allow_redirects=True,
-                stream=True,
-                auth=auth,
-            ) as r:
-                r.raw.decode_content = True
-                r.raise_for_status()
-                with open(
-                    artifacts_path + "/external-resources/" + resource_name, "wb"
-                ) as f:
-                    shutil.copyfileobj(r.raw, f, length=16 * 1024 * 1024)
-            if r.status_code == 200:
-                logging.info(f"===== ARTIFACT: {url}")
-                successful_download = True
-                break
-        except HTTPError as e:
-            logging.debug(
-                f"Error downloading {url}, Status code: {e.response.status_code}"
-            )
-
-    try:
-        assert successful_download
-    except AssertionError:
-        raise InvalidURLList(
-            f"No valid urls provided for {resource_name}. Please ensure the url(s) for this resource exists and is not password protected. If you require basic authentication to download this resource, please open a ticket in this repository."
-        )
-
-    # Calculate SHA256 checksum of downloaded file
-    logging.info("Checking file verification type")
-
-    if validation_type != "sha256" and validation_type != "sha512":
-        logging.error(f"file verification type not supported: '{validation_type}'")
-        sys.exit(1)
-
-    logging.info("Generating checksum")
-    checksum_value_from_calc = generate_checksum(
-        validation_type, artifacts_path, resource_name
-    )
-
-    # Compare checksums
-    logging.info(
-        f"validating checksums: actual {str(checksum_value_from_calc.hexdigest())}, expected {str(checksum_value)}"
-    )
-    if checksum_value_from_calc.hexdigest() == checksum_value:
-        logging.info("Checksum verified")
-        logging.info(f"File saved as '{resource_name}'")
-    else:
-        os.remove(artifacts_path + "/external-resources/" + resource_name)
-        logging.error("Checksum mismatch")
-        logging.error("File deleted")
-        sys.exit(1)
-
-
-def s3_download(
-    download_item,
-    resource_name,
-    validation_type,
-    checksum_value,
-    artifacts_path,
-    username=None,
-    password=None,
-    region=None,
-):
-    logging.info(f"===== ARTIFACT: {download_item}")
-
-    bucket = download_item.split("s3://")[1].split("/")[0]
-    extra_args = {}
-    if download_item.find("versionId=") != -1:
-        version_id = download_item.split("?versionId=")[1].split("&")[0]
-        download_item = download_item.split("?")[0]
-        extra_args = {"VersionId": version_id}
-
-    object_name = download_item[len("s3://" + bucket + "/") :]
-    # Validate filename doesn't do anything nefarious
-    match = re.search(r"^[A-Za-z0-9][^/\x00]*", resource_name)
-    if match is None:
-        logging.error(
-            "Filename is has invalid characters. Filename must start with a letter or a number. Aborting."
-        )
-        sys.exit(1)
-
-    s3_client = boto3.client(
-        "s3",
-        aws_access_key_id=username,
-        aws_secret_access_key=password,
-        region_name=region,
-    )
-
-    try:
-        s3_client.download_file(
-            bucket,
-            object_name,
-            artifacts_path + "/external-resources/" + resource_name,
-            extra_args,
+    except HTTPError as he:
+        log.error("abc")
+        log.info(
+            f"Error downloading {artifact.url}, Status code: {he.response.status_code}"
         )
     except ClientError:
-        logging.error("S3 client error occurred")
-        sys.exit(1)
+        log.error("S3 client error occurred")
+    except CalledProcessError:
+        log.error(
+            "Resource failed to pull, please check hardening_manifest.yaml configuration"
+        )
+    except RuntimeError:
+        log.error("Unexpected runtime error occurred.")
+    except Exception as e:
+        log.error(f"Unexpected error occurred. Exception class: {e.__class__}")
+    finally:
+        if artifact is not None and exit_code == 1:
+            artifact.delete_artifact()
+        sys.exit(exit_code)
 
-    # Calculate SHA256 checksum of downloaded file
-    logging.info("Checking file verification type")
-    if validation_type != "sha256" and validation_type != "sha512":
-        logging.error(f"file verification type not supported: '{validation_type}'")
-        sys.exit(1)
-
-    logging.info("Generating checksum")
-    checksum_value_from_calc = generate_checksum(
-        validation_type, artifacts_path, resource_name
-    )
-
-    # Compare checksums
-    logging.info(
-        f"checksum mismatch: actual {str(checksum_value_from_calc.hexdigest())}, expected {str(checksum_value)}"
-    )
-    if checksum_value_from_calc.hexdigest() == checksum_value:
-        logging.info("Checksum verified")
-        logging.info("File saved as '%s'" % resource_name)
-    else:
-        os.remove(artifacts_path + "/external-resources/" + resource_name)
-        logging.error("Checksum failed")
-        logging.error("File deleted")
-        sys.exit(1)
-
-
-def generate_checksum(validation_type, artifacts_path, resource_name):
-    if validation_type == "sha256":
-        sha256_hash = hashlib.sha256()
-        with open(artifacts_path + "/external-resources/" + resource_name, "rb") as f:
-            for byte_block in iter(lambda: f.read(4096), b""):
-                sha256_hash.update(byte_block)
-            return sha256_hash
-    elif validation_type == "sha512":
-        sha512_hash = hashlib.sha512()
-        with open(artifacts_path + "/external-resources/" + resource_name, "rb") as f:
-            for byte_block in iter(lambda: f.read(4096), b""):
-                sha512_hash.update(byte_block)
-            return sha512_hash
-
-
-def pull_image(
-    image_source, download_item, tag_value, tar_name, username=None, password=None
-):
-    logging.info(f"===== ARTIFACT: {download_item}")
-    if image_source == "github":
-        image = download_item
-    else:
-        image = download_item.split("//")[1]
-    tar_name = tar_name.replace("/", "-")
-    tar_name = tar_name.replace(":", "-")
-    logging.info(f"Pulling {image}")
-
-    pull_cmd = [
-        "skopeo",
-        "copy",
-        "--authfile=/tmp/prod_auth.json",
-        "--remove-signatures",
-        "--additional-tag",
-        tag_value,
-    ]
-    if username and password:
-        pull_cmd += ["--src-creds", f"{username}:{password}"]
-    pull_cmd += [
-        f"docker://{image}",
-        f"docker-archive:{os.environ['ARTIFACT_STORAGE']}/import-artifacts/images/{tar_name}.tar",
-    ]
-
-    retry = True
-    retry_count = 0
-    while retry:
-        try:
-            subprocess.run(
-                args=pull_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                check=True,
-            )
-            retry = False
-        except subprocess.CalledProcessError:
-            if retry_count == 2:
-                logging.error(
-                    "Resource failed to pull, please check hardening_manifest.yaml configuration"
-                )
-                sys.exit(1)
-            else:
-                retry_count += 1
-                logging.warning(f"Resource failed to pull, retrying: {retry_count}/2")
+    # more exceptions
 
 
 if __name__ == "__main__":

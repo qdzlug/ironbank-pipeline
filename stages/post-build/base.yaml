@@ -19,9 +19,15 @@ create-tar:
       - ${IMAGE_FILE}.tar
     expire_in: 1 week
 
-parse-access-log:
+create-sbom:
   extends: .post-build
   variables:
-    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
+    SBOM_DIR: "${ARTIFACT_STORAGE}/sbom"
+  artifacts:
+    when: always
+    paths:
+      - "${SBOM_DIR}/"
+    expire_in: 1 week
+  image: "registry1.dso.mil/ironbank/anchore/engine/engine:1.0.0"
   script:
-    - 'python3 "${PIPELINE_REPO_DIR}/scripts/modules/access_log_parser.py" --allow-errors "${ARTIFACT_DIR}/access_log"'
+    - python3 "${PIPELINE_REPO_DIR}/stages/post-build/generate_sbom.py"
