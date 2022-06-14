@@ -13,22 +13,8 @@ from utils.package_parser import AccessLogFileParser  # noqa: E402
 
 log = logger.setup(name="access_log_parser", format="| %(levelname)-5s | %(message)s")
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Script used to parse access_log files"
-    )
-    parser.add_argument(
-        "--allow-errors",
-        action="store_true",
-        help="allow parsing to continue upon encountering an error",
-    )
-    parser.add_argument(
-        "file",
-        type=str,
-        help="path to access_log file",
-    )
-    args = parser.parse_args()
 
+def main(args):
     try:
         AccessLogFileParser.parse(file=args.file)
     except OSError:
@@ -44,3 +30,21 @@ if __name__ == "__main__":
         # TODO: Consider adding custom exception handler to reduce repetition
         if not args.allow_errors:
             sys.exit(1)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Script used to parse access_log files"
+    )
+    parser.add_argument(
+        "--allow-errors",
+        action="store_true",
+        help="allow parsing to continue upon encountering an error",
+    )
+    parser.add_argument(
+        "file",
+        type=str,
+        help="path to access_log file",
+    )
+    args = parser.parse_args()
+    main(args)
