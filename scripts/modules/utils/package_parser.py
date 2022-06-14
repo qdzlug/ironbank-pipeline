@@ -131,6 +131,7 @@ class AccessLogFileParser(FileParser):
         log.info("access_log successfully parsed")
         return packages
 
+
 @dataclass
 class SbomFileParser(FileParser):
     @classmethod
