@@ -67,6 +67,26 @@ class GoPackage(ParsedURLPackage):
                 name=match.group("name"), version=match.group("version"), url=url
             )
 
+@dataclass(slots=True, frozen=True)
+class PypiPackage(ParsedURLPackage):
+    kind: str = field(init=False, default="whl")
+
+    @classmethod
+    def parse(cls, url) -> Optional[Package]:
+        if url.startswith("simple"):
+            return None
+
+        match = re.match(
+            r"(?:^|.+/)(?P<name>[^/]+)/(?P<version>[^/]+)/(?P<filename>[^/]+)\.(?P<ext>tar\.gz|whl|tar\.gz\.asc|whl\.asc)$",
+            url,
+        )
+
+        if not match:
+            raise ValueError(f"Could not parse pypi URL: {url}")
+
+        return PypiPackage(
+            name=match.group("name"), version=match.group("version"), url=url
+        )
 
 @dataclass(slots=True, frozen=True)
 class NullPackage(ParsedURLPackage):
@@ -123,6 +143,8 @@ class AccessLogFileParser(FileParser):
                         package = GoPackage.parse((re_match.group("url")))
                     case "yum":
                         package = YumPackage.parse((re_match.group("url")))
+                    case "pypi":
+                        package = PypiPackage.parse((re_match.group("url")))
 
                 if package:
                     packages.append(package)
