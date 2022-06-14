@@ -1,7 +1,15 @@
+import os
 import sys
 import argparse
-from utils.package_parser import AccessLogFileParser
-from utils import logger
+
+sys.path.append(
+    os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts/modules"
+    )
+)
+
+from utils import logger  # noqa: E402
+from utils.package_parser import AccessLogFileParser  # noqa: E402
 
 log = logger.setup(name="access_log_parser", format="| %(levelname)-5s | %(message)s")
 

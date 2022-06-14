@@ -1,37 +1,18 @@
+import os
 import sys
 import argparse
-import json
 from pathlib import Path
-from utils import logger
-from utils.types import Package, FileParser
-from dataclasses import dataclass
+
+sys.path.append(
+    os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts/modules"
+    )
+)
+
+from utils import logger  # noqa: E402
+from utils.package_parser import SbomFileParser  # noqa: E402
 
 log = logger.setup(name="sbom_parser", format="| %(levelname)-5s | %(message)s")
-
-
-@dataclass
-class SbomParser(FileParser):
-    @classmethod
-    def parse(cls, file) -> list[Package]:
-
-        packages: [Package] = []
-        log.info("SBOM parser started")
-
-        data = json.load(file)
-        for artifact in data["artifacts"]:
-
-            package = Package(
-                kind=artifact["type"],
-                name=artifact["name"],
-                version=artifact["version"].split(".el")[0],
-            )
-
-            if package:
-                packages.append(package)
-                log.info(f"Parsed package: {package}")
-
-        log.info("File successfully parsed")
-        return packages
 
 
 if __name__ == "__main__":
@@ -49,7 +30,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     try:
-        SbomParser.parse(Path(args.file).open("r"))
+        SbomFileParser.parse(Path(args.file).open("r"))
     except OSError:
         log.error(f"Unable to open file: {args.file}")
         sys.exit(1)
