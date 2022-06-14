@@ -67,6 +67,7 @@ class GoPackage(ParsedURLPackage):
                 name=match.group("name"), version=match.group("version"), url=url
             )
 
+
 @dataclass(slots=True, frozen=True)
 class PypiPackage(ParsedURLPackage):
     kind: str = field(init=False, default="whl")
@@ -87,6 +88,7 @@ class PypiPackage(ParsedURLPackage):
         return PypiPackage(
             name=match.group("name"), version=match.group("version"), url=url
         )
+
 
 @dataclass(slots=True, frozen=True)
 class NullPackage(ParsedURLPackage):
