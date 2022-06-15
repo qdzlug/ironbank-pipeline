@@ -61,7 +61,7 @@ class VatAPI(API):
         self.log.info(f"Checking access to {image_name}")
         self.log.info(f"{self.url}{self.import_access_route}/{image_name}")
         self.response = requests.get(
-            f"{self.url}{self.import_access_route}/{image_name}",
+            f"{self.url}{self.import_access_route}/?name={image_name}",
             params={"createRequest": create_request},
             headers={
                 "Content-Type": "application/json",
