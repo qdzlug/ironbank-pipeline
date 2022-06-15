@@ -1,10 +1,10 @@
-# Adding a proxy to Nexus
+## Adding a proxy to Nexus
 
-## Description of new proxy
+### Description of new proxy
 
 <!-- Provide a description of the proxy that is to be added here -->
 
-## Acceptance Criteria (AC)
+### Acceptance Criteria (AC)
 
 <!--- What is the acceptance criteria specific to this proxy issue?
     e.g.
@@ -19,7 +19,7 @@
 <!-- Example of best practices would be pinning package version in  requirements.txt boto3==1.24.4 -->
 - [ ] Access log parsing updated to accommodate new proxy
 
-## Definition of Done (DoD)
+### Definition of Done (DoD)
 
 <!-- Add/remove tasks to demonstrate completeness of issue -->
 
