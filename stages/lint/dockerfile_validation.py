@@ -18,23 +18,6 @@ from hardening_manifest import HardeningManifest  # noqa: E402
 log = logger.setup(name="lint.dockerfile_validation")
 
 
-async def main():
-    dsop_project = DsopProject()
-    hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
-
-    log.debug("Validating dockerfile contents")
-    if hardening_manifest.base_image_name or hardening_manifest.base_image_tag:
-        parsed_dockerfile = parse_dockerfile("Dockerfile")
-        from_statement_list = remove_non_from_statements(parsed_dockerfile)
-        invalid_from = validate_final_from(from_statement_list)
-        if invalid_from:
-            log.error(
-                "The final FROM statement in the Dockerfile must be FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}"
-            )
-            sys.exit(100)
-    log.info("Dockerfile is validated.")
-
-
 # TODO: Consider moving these to a separate "Dockerfile" module
 def remove_non_from_statements(dockerfile_tuple: tuple) -> list:
     from_list = []
@@ -68,6 +51,23 @@ def parse_dockerfile(dockerfile_path: str):
     except dockerfile.GoParseError:
         log.error("The Dockerfile is not parseable.")
         sys.exit(1)
+
+
+async def main():
+    dsop_project = DsopProject()
+    hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
+
+    log.debug("Validating dockerfile contents")
+    if hardening_manifest.base_image_name or hardening_manifest.base_image_tag:
+        parsed_dockerfile = parse_dockerfile("Dockerfile")
+        from_statement_list = remove_non_from_statements(parsed_dockerfile)
+        invalid_from = validate_final_from(from_statement_list)
+        if invalid_from:
+            log.error(
+                "The final FROM statement in the Dockerfile must be FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}"
+            )
+            sys.exit(100)
+    log.info("Dockerfile is validated.")
 
 
 if __name__ == "__main__":

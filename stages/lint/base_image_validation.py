@@ -62,7 +62,7 @@ def skopeo_inspect_base_image(base_image, base_tag):
             encoding="utf-8",
         )
         base_image_info = {"BASE_SHA": sha_value.stdout.strip().replace("'", "")}
-        with open(f'{os.environ["ARTIFACT_DIR"]}/base_image.json', "w") as f:
+        with pathlib.Path(os.environ["ARTIFACT_DIR"], 'base_image.json').open('w') as f:
             json.dump(base_image_info, f)
     except subprocess.CalledProcessError as e:
         log.error(

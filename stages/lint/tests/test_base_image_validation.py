@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
+from dataclasses import dataclass
+import json
+import pathlib
+import subprocess
 import sys
 import os
 import logging
+from unittest.mock import mock_open
 import pytest
 
 
@@ -21,16 +26,49 @@ def good_base_image():
 def bad_base_image():
     return ["redhat/ubi/ubi8", "8.100"]
 
+# @dataclass
+# class MockOpen:
+
+#     def __enter__():
+#         return MockOpen()
+
+#     def __exit__():
+#         pass
+
+# @dataclass
+# class MockPath():
+
+#     mock_file_path_one: str = "mocked_file"
+#     mock_file_path_two: str = "mocked_file"
+
+#     def write_text(self, *args, **kwargs):
+#         pass
+
+#     # def open(self, write_mode):
+#     #     return MockOpen()
+@dataclass
+class MockSubprocessReturn:
+    stdout: str = "standard out"
+
+def mock_subprocess_run(*args, **kwargs):
+    return MockSubprocessReturn("data")
+
+
 
 # TODO: update these tests to mock skopeo calls
-# def test_skopeo_inspect_good_base_image(good_base_image):
-# assert (
-#     skopeo_inspect_base_image(good_base_image[0], good_base_image[1]) == None
-# )  # noqa E711
+@pytest.mark.only
+def test_skopeo_inspect_good_base_image(monkeypatch, good_base_image):
+    monkeypatch.setenv("STAGING_BASE_IMAGE", 1)
+    monkeypatch.setenv("DOCKER_AUTH_CONFIG_STAGING", "c3RhZ2luZy10ZXN0Cg==") # staging-test -> base64 encoded value
+    monkeypatch.setattr(pathlib.Path, "write_text", lambda x, y: True)
+    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data='data'))
+    monkeypatch.setattr(subprocess, "run", mock_subprocess_run)
+    monkeypatch.setenv("ARTIFACT_DIR", "right/here")
+    monkeypatch.setattr(json, "dump", lambda x,y: True)
 
-# TODO: update these tests to mock skopeo calls
-# def test_skopeo_inspect_bad_base_image(bad_base_image):
-# with pytest.raises(SystemExit) as exc_info:
-#     skopeo_inspect_base_image(bad_base_image[0], bad_base_image[1])
+    skopeo_inspect_base_image(good_base_image[0], good_base_image[1])
 
-# assert exc_info.type == SystemExit
+    monkeypatch.delenv("STAGING_BASE_IMAGE")
+    monkeypatch.setenv("DOCKER_AUTH_CONFIG_PULL", "c3RhZ2luZy10ZXN0Cg==")
+
+    skopeo_inspect_base_image(good_base_image[0], good_base_image[1])

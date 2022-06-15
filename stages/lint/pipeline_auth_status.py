@@ -24,7 +24,7 @@ async def main() -> None:
 
     vat_api.check_access(image_name=hardening_manifest.image_name, create_request=True)
 
-    if not vat_api.response or vat_api.response.status_code not in [200]:
+    if not vat_api.response or vat_api.response.status_code != 200:
         log.error("Failing Pipeline")
         sys.exit(1)
 
