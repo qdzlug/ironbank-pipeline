@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 
 @dataclass
 class AbstractArtifact(ABC):
-    url: str
+    url: str = None
     filename: str = None
     validation: dict = None
     auth: dict = None
