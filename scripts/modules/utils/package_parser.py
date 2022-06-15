@@ -74,7 +74,7 @@ class PypiPackage(ParsedURLPackage):
 
     @classmethod
     def parse(cls, url) -> Optional[Package]:
-        if url.startswith("simple"):
+        if url.startswith("simple/"):
             return None
 
         match = re.match(
