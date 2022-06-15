@@ -15,7 +15,7 @@ from utils.package_parser import SbomFileParser  # noqa: E402
 log = logger.setup(name="sbom_parser", format="| %(levelname)-5s | %(message)s")
 
 
-def main(args):
+def main(args) -> None:
     try:
         SbomFileParser.parse(Path(args.file).open("r"))
     except OSError:

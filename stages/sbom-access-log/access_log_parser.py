@@ -14,7 +14,7 @@ from utils.package_parser import AccessLogFileParser  # noqa: E402
 log = logger.setup(name="access_log_parser", format="| %(levelname)-5s | %(message)s")
 
 
-def main(args):
+def main(args) -> None:
     try:
         AccessLogFileParser.parse(file=args.file)
     except OSError:
