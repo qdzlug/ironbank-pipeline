@@ -15,7 +15,7 @@ import asyncio
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from base_image_validation import skopeo_inspect_base_image  # noqa E402
-import base_image_validation
+import base_image_validation # noqa E402
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
 
