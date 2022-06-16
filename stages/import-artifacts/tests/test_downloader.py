@@ -117,6 +117,7 @@ def mock_urls():
     }
 
 
+# TODO: update all DsopProject and HardeningManifest __init__ mocks to use patch
 def test_main_class_assignment(
     monkeypatch,
     caplog,

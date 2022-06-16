@@ -121,10 +121,11 @@ class MockHardeningManifest:
     base_image_name: str = "example"
     base_image_tag: str = "1.0"
 
-
+# We have to patch base_image_validation.<Class> because we're doing from <module> import <Class> in base_image_validation
+# If we use import <module> and example = <module>.<Class>(), then we can just patch <module>.<Class>
 @pytest.mark.only
-@patch("project.DsopProject", new=MockProject)
-@patch("hardening_manifest.HardeningManifest", new=MockHardeningManifest)
+@patch("base_image_validation.DsopProject", new=MockProject)
+@patch("base_image_validation.HardeningManifest", new=MockHardeningManifest)
 @patch("base_image_validation.skopeo_inspect_base_image", lambda x, y: "blah")
 def test_base_image_validation_main():
     asyncio.run(base_image_validation.main())

@@ -12,9 +12,9 @@ sys.path.append(
     os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
 )
 
-import project  # noqa: E402
+from project import DsopProject  # noqa: E402
+from hardening_manifest import HardeningManifest  # noqa: E402
 from utils import logger  # noqa: E402
-import hardening_manifest  # noqa: E402
 
 log = logger.setup(name="lint.base_image_validation")
 
@@ -84,10 +84,8 @@ async def main():
     # At the very least the hardening_manifest.yaml should be generated if it has not been
     # merged in yet.
     #
-    dsop_project = project.DsopProject()
-    manifest = hardening_manifest.HardeningManifest(
-        dsop_project.hardening_manifest_path
-    )
+    dsop_project = DsopProject()
+    manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     if manifest.base_image_name:
         skopeo_inspect_base_image(manifest.base_image_name, manifest.base_image_tag)
 

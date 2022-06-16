@@ -2,13 +2,14 @@
 import git
 import sys
 import os
+import yaml
 import logging
 import pathlib
 import pytest
-
+from unittest.mock import mock_open
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+import trufflehog
 from trufflehog import (
     get_commit_diff,
     get_history_cmd,
@@ -114,7 +115,10 @@ def test_get_config():
     # assert get_config(Path("")) == None
 
 
-def test_create_trufflehog_config():
+def test_create_trufflehog_config(monkeypatch):
+    monkeypatch.setattr(trufflehog, "get_config", lambda *args, **kwargs: [])
+    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data="data"))
+    monkeypatch.setattr(yaml, "safe_dump", lambda *args, **kwargs: True)
     assert (
         create_trufflehog_config(
             pathlib.Path("stages/lint/tests/mock/test-th-config-concat.yaml"),
