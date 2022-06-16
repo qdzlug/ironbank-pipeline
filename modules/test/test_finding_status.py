@@ -70,13 +70,13 @@ def mock_vat_resp_findings():
 
 @pytest.fixture
 def mock_vat_response():
-    with open("scripts/modules/test/mocks/mock_vat_response.json") as f:
+    with open("modules/test/mocks/mock_vat_response.json") as f:
         return json.load(f)
 
 
 @pytest.fixture
 def bad_mock_vat_response():
-    with open("scripts/modules/test/mocks/mock_vat_response_not_accredited.json") as f:
+    with open("modules/test/mocks/mock_vat_response_not_accredited.json") as f:
         return json.load(f)
 
 

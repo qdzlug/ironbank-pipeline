@@ -9,9 +9,7 @@ import subprocess
 import sys
 
 sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts/modules"
-    )
+    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
 )
 
 import project  # noqa: E402

@@ -6,9 +6,7 @@ import asyncio
 
 
 sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts/modules"
-    )
+    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
 )
 
 from project import DsopProject  # noqa: E402

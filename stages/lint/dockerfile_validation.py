@@ -5,9 +5,7 @@ import dockerfile
 import asyncio
 
 sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts/modules"
-    )
+    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
 )
 
 
