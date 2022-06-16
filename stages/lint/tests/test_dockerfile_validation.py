@@ -4,6 +4,7 @@ import os
 import logging
 import pytest
 import asyncio
+import pathlib
 from unittest.mock import patch
 
 import dockerfile
@@ -11,7 +12,7 @@ from yaml import parse
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.testing import raise_
-from mock.mock_classes import MockProject, MockHardeningManifest
+from mocks.mock_classes import MockProject, MockHardeningManifest
 import dockerfile_validation
 from dockerfile_validation import (
     remove_non_from_statements,
@@ -21,20 +22,24 @@ from dockerfile_validation import (
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
 
+mock_path = pathlib.Path(
+    pathlib.Path(__file__).absolute().parent.parent.parent.parent, "mocks"
+)
+
 
 @pytest.fixture
 def good_dockerfile_path():
-    return "stages/lint/tests/mock/Dockerfile.test-good"
+    return pathlib.Path(mock_path, "Dockerfile.test-good").as_posix()
 
 
 @pytest.fixture
 def bad_dockerfile_path():
-    return "stages/lint/tests/mock/Dockerfile.test-bad"
+    return pathlib.Path(mock_path, "Dockerfile.test-bad").as_posix()
 
 
 @pytest.fixture
 def nonexistent_dockerfile_path():
-    return "stages/lint/tests/mock/Dockerfile"
+    return pathlib.Path(mock_path, "Dockerfile").as_posix()
 
 
 @pytest.fixture

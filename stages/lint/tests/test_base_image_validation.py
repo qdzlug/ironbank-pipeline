@@ -13,7 +13,7 @@ import asyncio
 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from mock.mock_classes import MockProject, MockHardeningManifest
+from mocks.mock_classes import MockProject, MockHardeningManifest
 from base_image_validation import skopeo_inspect_base_image  # noqa E402
 import base_image_validation  # noqa E402
 from utils.testing import raise_

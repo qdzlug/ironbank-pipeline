@@ -7,9 +7,7 @@ from urllib.parse import urlparse
 from botocore.exceptions import ClientError
 from requests.exceptions import HTTPError
 
-sys.path.append(
-    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
-)
+
 from utils import logger  # noqa E402
 from utils.exceptions import InvalidURLList  # noqa E402
 from project import DsopProject  # noqa E402

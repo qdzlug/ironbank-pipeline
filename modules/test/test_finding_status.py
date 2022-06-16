@@ -2,7 +2,9 @@ import pytest
 import os
 import sys
 import json
+import pathlib
 from unittest import mock
+
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -11,6 +13,10 @@ from vat_container_status import is_approved  # noqa E402
 from vat_container_status import _is_accredited  # noqa E402
 from vat_container_status import _check_expiration  # noqa E402
 from vat_container_status import _get_approval_status  # noqa E402
+
+mock_path = pathlib.Path(
+    pathlib.Path(__file__).absolute().parent.parent.parent, "mocks"
+)
 
 
 @pytest.fixture
@@ -70,13 +76,19 @@ def mock_vat_resp_findings():
 
 @pytest.fixture
 def mock_vat_response():
-    with open("modules/test/mocks/mock_vat_response.json") as f:
+    with pathlib.Path(
+        mock_path,
+        "mock_vat_response.json",
+    ).open() as f:
         return json.load(f)
 
 
 @pytest.fixture
 def bad_mock_vat_response():
-    with open("modules/test/mocks/mock_vat_response_not_accredited.json") as f:
+    with pathlib.Path(
+        mock_path,
+        "mock_vat_response_not_accredited.json",
+    ).open() as f:
         return json.load(f)
 
 

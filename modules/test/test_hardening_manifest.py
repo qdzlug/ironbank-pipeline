@@ -12,11 +12,18 @@ import jsonschema
 from unittest.mock import patch, mock_open, Mock
 from dataclasses import dataclass
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 
+from mocks.mock_classes import MockHardeningManifest
 from hardening_manifest import HardeningManifest  # noqa E402
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
+
+mock_path = pathlib.Path(
+    pathlib.Path(__file__).absolute().parent.parent.parent, "mocks"
+)
 
 
 @dataclass
@@ -137,8 +144,8 @@ def mock_bad_image_sources():
 def hm():
     return HardeningManifest(
         pathlib.Path(
-            pathlib.Path(__file__).absolute().parent,
-            "mocks/mock_hardening_manifest.yaml",
+            mock_path,
+            "mock_hardening_manifest.yaml",
         )
     )
 
@@ -163,8 +170,8 @@ def test_init(monkeypatch, caplog):
 
     monkeypatch.setattr(HardeningManifest, "validate", mock_validate)
     hm_path = pathlib.Path(
-        pathlib.Path(__file__).absolute().parent,
-        "mocks/mock_hardening_manifest.yaml",
+        mock_path,
+        "mock_hardening_manifest.yaml",
     )
     HardeningManifest(hm_path)
     assert "validated" not in caplog.text
@@ -317,3 +324,13 @@ def test_check_for_invalid_image_source(
         hm.check_for_invalid_image_source(mock_bad_image_sources[2])
         == mock_bad_image_sources[2]["tag"]
     )
+
+
+@pytest.mark.only
+def test_reject_invalid_image_sources(monkeypatch, mock_good_image_sources):
+    monkeypatch.setattr(
+        HardeningManifest, "check_for_invalid_image_source", lambda x, y: []
+    )
+    mock_hm = MockHardeningManifest(resources=mock_good_image_sources)
+    invalid_sources = mock_hm.reject_invalid_image_sources()
+    assert invalid_sources == []
