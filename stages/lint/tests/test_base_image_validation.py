@@ -15,7 +15,7 @@ import asyncio
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from base_image_validation import skopeo_inspect_base_image  # noqa E402
-import base_image_validation # noqa E402
+import base_image_validation  # noqa E402
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
 
@@ -120,6 +120,7 @@ class MockProject:
 class MockHardeningManifest:
     base_image_name: str = "example"
     base_image_tag: str = "1.0"
+
 
 # We have to patch base_image_validation.<Class> because we're doing from <module> import <Class> in base_image_validation
 # If we use import <module> and example = <module>.<Class>(), then we can just patch <module>.<Class>
