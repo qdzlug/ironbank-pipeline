@@ -3,14 +3,21 @@ import sys
 import os
 import logging
 import pytest
+import asyncio
+from unittest.mock import patch
 
-from dockerfile import Command
+import dockerfile
+from yaml import parse
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from dockerfile_validation import remove_non_from_statements  # noqa E402
-from dockerfile_validation import validate_final_from  # noqa E402
-from dockerfile_validation import parse_dockerfile  # noqa E402
+from utils.testing import raise_
+from mock.mock_classes import MockProject, MockHardeningManifest
+import dockerfile_validation
+from dockerfile_validation import (
+    remove_non_from_statements,
+    validate_final_from,
+    parse_dockerfile,
+)  # noqa E402
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
 
@@ -33,7 +40,7 @@ def nonexistent_dockerfile_path():
 @pytest.fixture
 def first_good_from_list():
     return [
-        Command(
+        dockerfile.Command(
             cmd="FROM",
             sub_cmd=None,
             json=False,
@@ -49,7 +56,7 @@ def first_good_from_list():
 @pytest.fixture
 def second_good_from_list():
     return [
-        Command(
+        dockerfile.Command(
             cmd="FROM",
             sub_cmd=None,
             json=False,
@@ -65,7 +72,7 @@ def second_good_from_list():
 @pytest.fixture
 def bad_from_list():
     return [
-        Command(
+        dockerfile.Command(
             cmd="FROM",
             sub_cmd=None,
             json=False,
@@ -81,7 +88,7 @@ def bad_from_list():
 @pytest.fixture
 def dockerfile_tuple():
     return (
-        Command(
+        dockerfile.Command(
             cmd="FROM",
             sub_cmd=None,
             json=False,
@@ -96,7 +103,7 @@ def dockerfile_tuple():
 
 def test_remove_non_from_statements(dockerfile_tuple):
     assert remove_non_from_statements(dockerfile_tuple) == [
-        Command(
+        dockerfile.Command(
             cmd="FROM",
             sub_cmd=None,
             json=False,
@@ -117,11 +124,48 @@ def test_validate_final_from(
     assert validate_final_from(bad_from_list) == True  # noqa E712
 
 
-def test_parse_dockerfile(
+def test_parse_dockerfile(monkeypatch):
+    monkeypatch.setattr(dockerfile, "parse_file", lambda x: x)
+    parsed_file = parse_dockerfile("example")
+    assert parsed_file == "example"
+
+    monkeypatch.setattr(
+        dockerfile, "parse_file", lambda x: raise_(dockerfile.GoIOError)
+    )
+    with pytest.raises(SystemExit) as se:
+        parsed_file = parse_dockerfile("example")
+    assert se.value.code == 1
+
+    monkeypatch.setattr(
+        dockerfile, "parse_file", lambda x: raise_(dockerfile.GoParseError)
+    )
+    with pytest.raises(SystemExit) as se:
+        parsed_file = parse_dockerfile("example")
+    assert se.value.code == 1
+
+
+@patch("dockerfile_validation.DsopProject", new=MockProject)
+@patch("dockerfile_validation.HardeningManifest", new=MockHardeningManifest)
+def test_dockerfile_validation_main(monkeypatch, caplog):
+    monkeypatch.setattr("dockerfile_validation.parse_dockerfile", lambda x: x)
+    monkeypatch.setattr("dockerfile_validation.remove_non_from_statements", lambda x: x)
+    monkeypatch.setattr("dockerfile_validation.validate_final_from", lambda x: None)
+    asyncio.run(dockerfile_validation.main())
+    assert "Dockerfile is validated" in caplog.text
+
+    monkeypatch.setattr("dockerfile_validation.validate_final_from", lambda x: x)
+    with pytest.raises(SystemExit) as se:
+        asyncio.run(dockerfile_validation.main())
+    assert se.value.code == 100
+
+
+# TODO: move this to an integration test file
+@pytest.mark.integration
+def test_parse_dockerfile_integration(
     good_dockerfile_path, bad_dockerfile_path, nonexistent_dockerfile_path
 ):
     assert parse_dockerfile(good_dockerfile_path) == (
-        Command(
+        dockerfile.Command(
             cmd="ARG",
             sub_cmd=None,
             json=False,
@@ -131,7 +175,7 @@ def test_parse_dockerfile(
             flags=(),
             value=("BASE_REGISTRY=registry1.dso.mil",),
         ),
-        Command(
+        dockerfile.Command(
             cmd="ARG",
             sub_cmd=None,
             json=False,
@@ -141,7 +185,7 @@ def test_parse_dockerfile(
             flags=(),
             value=("BASE_IMAGE=ironbank/redhat/ubi/ubi8",),
         ),
-        Command(
+        dockerfile.Command(
             cmd="ARG",
             sub_cmd=None,
             json=False,
@@ -151,7 +195,7 @@ def test_parse_dockerfile(
             flags=(),
             value=("BASE_TAG=8.5",),
         ),
-        Command(
+        dockerfile.Command(
             cmd="FROM",
             sub_cmd=None,
             json=False,
@@ -164,7 +208,7 @@ def test_parse_dockerfile(
     )
 
     assert parse_dockerfile(bad_dockerfile_path) == (
-        Command(
+        dockerfile.Command(
             cmd="FROM",
             sub_cmd=None,
             json=False,

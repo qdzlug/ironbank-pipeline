@@ -18,6 +18,7 @@ from artifacts import (
     ContainerArtifact,
 )  # noqa E402
 from utils import logger  # noqa E402
+from utils.testing import raise_
 from utils.exceptions import InvalidURLList  # noqa E402
 
 
@@ -240,10 +241,6 @@ def test_main_exceptions(monkeypatch, caplog, mock_s3_resources):
 
         monkeypatch.setattr(DsopProject, "__init__", mock_dsop)
         monkeypatch.setattr(HardeningManifest, "__init__", mock_hm)
-
-    # TODO: move this to a module, duplicate func in test_artifacts.py
-    def raise_(e):
-        raise e
 
     with pytest.raises(SystemExit):
         patch_artifact(

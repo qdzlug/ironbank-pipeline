@@ -13,9 +13,10 @@ import asyncio
 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+from mock.mock_classes import MockProject, MockHardeningManifest
 from base_image_validation import skopeo_inspect_base_image  # noqa E402
 import base_image_validation  # noqa E402
+from utils.testing import raise_
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
 
@@ -63,11 +64,6 @@ def mock_subprocess_fail(*args, **kwargs):
     raise subprocess.CalledProcessError(1, ["cmd"])
 
 
-# TODO: add this to a module
-def raise_(e):
-    raise e
-
-
 def test_skopeo_inspect_base_image(monkeypatch, caplog, good_base_image):
     monkeypatch.setenv("STAGING_BASE_IMAGE", "base")
     monkeypatch.setenv(
@@ -110,21 +106,8 @@ def test_skopeo_inspect_base_image(monkeypatch, caplog, good_base_image):
     caplog.clear()
 
 
-@dataclass
-class MockProject:
-    example: str = "nah"
-    hardening_manifest_path = "example_path"
-
-
-@dataclass
-class MockHardeningManifest:
-    base_image_name: str = "example"
-    base_image_tag: str = "1.0"
-
-
 # We have to patch base_image_validation.<Class> because we're doing from <module> import <Class> in base_image_validation
 # If we use import <module> and example = <module>.<Class>(), then we can just patch <module>.<Class>
-@pytest.mark.only
 @patch("base_image_validation.DsopProject", new=MockProject)
 @patch("base_image_validation.HardeningManifest", new=MockHardeningManifest)
 @patch("base_image_validation.skopeo_inspect_base_image", lambda x, y: "blah")
