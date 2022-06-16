@@ -69,6 +69,28 @@ class GoPackage(ParsedURLPackage):
 
 
 @dataclass(slots=True, frozen=True)
+class PypiPackage(ParsedURLPackage):
+    kind: str = field(init=False, default="python")
+
+    @classmethod
+    def parse(cls, url) -> Optional[Package]:
+        if url.startswith("simple/"):
+            return None
+
+        match = re.match(
+            r"^packages/(?P<name>[^/]+)/(?P<version>[^/]+)/(?P<filename>[^/]+)\.(?P<ext>tar\.gz|whl|tar\.gz\.asc|whl\.asc)$",
+            url,
+        )
+
+        if not match:
+            raise ValueError(f"Could not parse pypi URL: {url}")
+
+        return PypiPackage(
+            name=match.group("name"), version=match.group("version"), url=url
+        )
+
+
+@dataclass(slots=True, frozen=True)
 class NullPackage(ParsedURLPackage):
     @classmethod
     def parse(cls, url) -> None:
@@ -123,10 +145,37 @@ class AccessLogFileParser(FileParser):
                         package = GoPackage.parse((re_match.group("url")))
                     case "yum":
                         package = YumPackage.parse((re_match.group("url")))
+                    case "pypi":
+                        package = PypiPackage.parse((re_match.group("url")))
 
                 if package:
                     packages.append(package)
                     log.info(f"Parsed package: {package}")
 
         log.info("access_log successfully parsed")
+        return packages
+
+
+@dataclass
+class SbomFileParser(FileParser):
+    @classmethod
+    def parse(cls, file) -> list[Package]:
+
+        packages: [Package] = []
+        log.info("SBOM parser started")
+
+        data = json.load(file)
+        for artifact in data["artifacts"]:
+
+            package = Package(
+                kind=artifact["type"],
+                name=artifact["name"],
+                version=artifact["version"].split(".el")[0],
+            )
+
+            if package:
+                packages.append(package)
+                log.info(f"Parsed package: {package}")
+
+        log.info("File successfully parsed")
         return packages
