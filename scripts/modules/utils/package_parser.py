@@ -130,3 +130,28 @@ class AccessLogFileParser(FileParser):
 
         log.info("access_log successfully parsed")
         return packages
+
+
+@dataclass
+class SbomFileParser(FileParser):
+    @classmethod
+    def parse(cls, file) -> list[Package]:
+
+        packages: [Package] = []
+        log.info("SBOM parser started")
+
+        data = json.load(file)
+        for artifact in data["artifacts"]:
+
+            package = Package(
+                kind=artifact["type"],
+                name=artifact["name"],
+                version=artifact["version"].split(".el")[0],
+            )
+
+            if package:
+                packages.append(package)
+                log.info(f"Parsed package: {package}")
+
+        log.info("File successfully parsed")
+        return packages
