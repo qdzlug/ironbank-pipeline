@@ -41,8 +41,13 @@ def main():
     exit_code = 1
     artifact = None
     try:
+        # TODO: refactor into a separate function
         for resource in hardening_manifest.resources:
-            parsed_url = urlparse(resource["url"])
+            parsed_url = (
+                urlparse(resource["url"])
+                if "url" in resource
+                else urlparse(resource["urls"][0])
+            )
             scheme = parsed_url.scheme
             netloc = parsed_url.netloc
 
@@ -95,7 +100,7 @@ def main():
     except RuntimeError:
         log.error("Unexpected runtime error occurred.")
     except Exception as e:
-        log.error(f"Unexpected error occurred. Exception class: {e.__class__}")
+        log.error(f"Unexpected error occurred. Exception class: {e}")
     finally:
         if artifact is not None and exit_code == 1:
             artifact.delete_artifact()
