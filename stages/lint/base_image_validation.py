@@ -14,9 +14,9 @@ sys.path.append(
     )
 )
 
-from project import DsopProject  # noqa: E402
+import project  # noqa: E402
 from utils import logger  # noqa: E402
-from hardening_manifest import HardeningManifest  # noqa: E402
+import hardening_manifest  # noqa: E402
 
 log = logger.setup(name="lint.base_image_validation")
 
@@ -62,7 +62,7 @@ def skopeo_inspect_base_image(base_image, base_tag):
             encoding="utf-8",
         )
         base_image_info = {"BASE_SHA": sha_value.stdout.strip().replace("'", "")}
-        with pathlib.Path(os.environ["ARTIFACT_DIR"], 'base_image.json').open('w') as f:
+        with pathlib.Path(os.environ["ARTIFACT_DIR"], "base_image.json").open("w") as f:
             json.dump(base_image_info, f)
     except subprocess.CalledProcessError as e:
         log.error(
@@ -86,13 +86,12 @@ async def main():
     # At the very least the hardening_manifest.yaml should be generated if it has not been
     # merged in yet.
     #
-    dsop_project = DsopProject()
-    hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
-
-    if hardening_manifest.base_image_name:
-        skopeo_inspect_base_image(
-            hardening_manifest.base_image_name, hardening_manifest.base_image_tag
-        )
+    dsop_project = project.DsopProject()
+    manifest = hardening_manifest.HardeningManifest(
+        dsop_project.hardening_manifest_path
+    )
+    if manifest.base_image_name:
+        skopeo_inspect_base_image(manifest.base_image_name, manifest.base_image_tag)
 
 
 if __name__ == "__main__":
