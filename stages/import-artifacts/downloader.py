@@ -7,7 +7,9 @@ from urllib.parse import urlparse
 from botocore.exceptions import ClientError
 from requests.exceptions import HTTPError
 
-
+sys.path.append(
+    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
+)
 from utils import logger  # noqa E402
 from utils.exceptions import InvalidURLList  # noqa E402
 from project import DsopProject  # noqa E402
@@ -96,7 +98,7 @@ def main():
     except RuntimeError:
         log.error("Unexpected runtime error occurred.")
     except Exception as e:
-        log.error(f"Unexpected error occurred. Exception class: {e}")
+        log.error(f"Unexpected error occurred. Exception class: {e.__class__}")
     finally:
         if artifact is not None and exit_code == 1:
             artifact.delete_artifact()

@@ -19,3 +19,4 @@ class MockHardeningManifest(HardeningManifest):
     base_image_name: str = "example"
     base_image_tag: str = "1.0"
     resources: list[str] = field(default_factory=list)
+    maintainers: list[str] = field(default_factory=list)

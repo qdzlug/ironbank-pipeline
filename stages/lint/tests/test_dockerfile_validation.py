@@ -9,22 +9,21 @@ from unittest.mock import patch
 
 import dockerfile
 from yaml import parse
+from modules.utils.exceptions import DockerfileParseError
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.testing import raise_
+from utils.package_parser import DockerfileParser
+from utils.exceptions import DockerfileParseError
+from utils.testing import raise_
 from mocks.mock_classes import MockProject, MockHardeningManifest
 import dockerfile_validation
-from dockerfile_validation import (
-    remove_non_from_statements,
-    validate_final_from,
-    parse_dockerfile,
-)  # noqa E402
-
-logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
 
 mock_path = pathlib.Path(
     pathlib.Path(__file__).absolute().parent.parent.parent.parent, "mocks"
 )
+
+logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
 
 
 @pytest.fixture
@@ -42,126 +41,31 @@ def nonexistent_dockerfile_path():
     return pathlib.Path(mock_path, "Dockerfile").as_posix()
 
 
-@pytest.fixture
-def first_good_from_list():
-    return [
-        dockerfile.Command(
-            cmd="FROM",
-            sub_cmd=None,
-            json=False,
-            original="FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}",
-            start_line=5,
-            end_line=5,
-            flags=(),
-            value=("${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}",),
-        )
-    ]
-
-
-@pytest.fixture
-def second_good_from_list():
-    return [
-        dockerfile.Command(
-            cmd="FROM",
-            sub_cmd=None,
-            json=False,
-            original="FROM $BASE_REGISTRY/$BASE_IMAGE:$BASE_TAG",
-            start_line=5,
-            end_line=5,
-            flags=(),
-            value=("$BASE_REGISTRY/$BASE_IMAGE:$BASE_TAG",),
-        )
-    ]
-
-
-@pytest.fixture
-def bad_from_list():
-    return [
-        dockerfile.Command(
-            cmd="FROM",
-            sub_cmd=None,
-            json=False,
-            original="FROM ubuntu:20.04",
-            start_line=5,
-            end_line=5,
-            flags=(),
-            value=("ubuntu:20.04",),
-        )
-    ]
-
-
-@pytest.fixture
-def dockerfile_tuple():
-    return (
-        dockerfile.Command(
-            cmd="FROM",
-            sub_cmd=None,
-            json=False,
-            original="FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}",
-            start_line=5,
-            end_line=5,
-            flags=(),
-            value=("${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}",),
-        ),
-    )
-
-
-def test_remove_non_from_statements(dockerfile_tuple):
-    assert remove_non_from_statements(dockerfile_tuple) == [
-        dockerfile.Command(
-            cmd="FROM",
-            sub_cmd=None,
-            json=False,
-            original="FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}",
-            start_line=5,
-            end_line=5,
-            flags=(),
-            value=("${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}",),
-        )
-    ]
-
-
-def test_validate_final_from(
-    first_good_from_list, second_good_from_list, bad_from_list
-):
-    assert validate_final_from(first_good_from_list) == False  # noqa E712
-    assert validate_final_from(second_good_from_list) == False  # noqa E712
-    assert validate_final_from(bad_from_list) == True  # noqa E712
-
-
-def test_parse_dockerfile(monkeypatch):
-    monkeypatch.setattr(dockerfile, "parse_file", lambda x: x)
-    parsed_file = parse_dockerfile("example")
-    assert parsed_file == "example"
-
-    monkeypatch.setattr(
-        dockerfile, "parse_file", lambda x: raise_(dockerfile.GoIOError)
-    )
-    with pytest.raises(SystemExit) as se:
-        parsed_file = parse_dockerfile("example")
-    assert se.value.code == 1
-
-    monkeypatch.setattr(
-        dockerfile, "parse_file", lambda x: raise_(dockerfile.GoParseError)
-    )
-    with pytest.raises(SystemExit) as se:
-        parsed_file = parse_dockerfile("example")
-    assert se.value.code == 1
-
-
+@pytest.mark.only
 @patch("dockerfile_validation.DsopProject", new=MockProject)
 @patch("dockerfile_validation.HardeningManifest", new=MockHardeningManifest)
 def test_dockerfile_validation_main(monkeypatch, caplog):
-    monkeypatch.setattr("dockerfile_validation.parse_dockerfile", lambda x: x)
-    monkeypatch.setattr("dockerfile_validation.remove_non_from_statements", lambda x: x)
-    monkeypatch.setattr("dockerfile_validation.validate_final_from", lambda x: None)
+
+    monkeypatch.setattr(DockerfileParser, "parse", lambda x: [])
     asyncio.run(dockerfile_validation.main())
     assert "Dockerfile is validated" in caplog.text
 
-    monkeypatch.setattr("dockerfile_validation.validate_final_from", lambda x: x)
+    monkeypatch.setattr(DockerfileParser, "parse", lambda x: x)
     with pytest.raises(SystemExit) as se:
         asyncio.run(dockerfile_validation.main())
     assert se.value.code == 100
+
+    monkeypatch.setattr(
+        DockerfileParser, "parse", lambda x: raise_(DockerfileParseError)
+    )
+    with pytest.raises(SystemExit) as se:
+        asyncio.run(dockerfile_validation.main())
+    assert se.value.code == 1
+
+    monkeypatch.setattr(DockerfileParser, "parse", lambda x: raise_(Exception))
+    with pytest.raises(SystemExit) as se:
+        asyncio.run(dockerfile_validation.main())
+    assert se.value.code == 1
 
 
 # TODO: move this to an integration test file
@@ -169,7 +73,7 @@ def test_dockerfile_validation_main(monkeypatch, caplog):
 def test_parse_dockerfile_integration(
     good_dockerfile_path, bad_dockerfile_path, nonexistent_dockerfile_path
 ):
-    assert parse_dockerfile(good_dockerfile_path) == (
+    assert DockerfileParser.parse_dockerfile(good_dockerfile_path) == (
         dockerfile.Command(
             cmd="ARG",
             sub_cmd=None,
@@ -212,7 +116,7 @@ def test_parse_dockerfile_integration(
         ),
     )
 
-    assert parse_dockerfile(bad_dockerfile_path) == (
+    assert DockerfileParser.parse_dockerfile(bad_dockerfile_path) == (
         dockerfile.Command(
             cmd="FROM",
             sub_cmd=None,
@@ -225,7 +129,7 @@ def test_parse_dockerfile_integration(
         ),
     )
 
-    with pytest.raises(SystemExit) as exc_info:
-        parse_dockerfile(nonexistent_dockerfile_path)
+    with pytest.raises(DockerfileParseError) as exc_info:
+        DockerfileParser.parse_dockerfile(nonexistent_dockerfile_path)
 
-    assert exc_info.type == SystemExit
+    assert exc_info.type == DockerfileParseError
