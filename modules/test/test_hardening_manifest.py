@@ -326,7 +326,6 @@ def test_check_for_invalid_image_source(
     )
 
 
-@pytest.mark.only
 def test_reject_invalid_image_sources(monkeypatch, mock_good_image_sources):
     monkeypatch.setattr(
         HardeningManifest, "check_for_invalid_image_source", lambda self, y: []

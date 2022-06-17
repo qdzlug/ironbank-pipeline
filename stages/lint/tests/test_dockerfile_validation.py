@@ -41,7 +41,6 @@ def nonexistent_dockerfile_path():
     return pathlib.Path(mock_path, "Dockerfile").as_posix()
 
 
-@pytest.mark.only
 @patch("dockerfile_validation.DsopProject", new=MockProject)
 @patch("dockerfile_validation.HardeningManifest", new=MockHardeningManifest)
 def test_dockerfile_validation_main(monkeypatch, caplog):
