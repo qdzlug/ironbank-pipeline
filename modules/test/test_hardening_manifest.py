@@ -329,8 +329,23 @@ def test_check_for_invalid_image_source(
 @pytest.mark.only
 def test_reject_invalid_image_sources(monkeypatch, mock_good_image_sources):
     monkeypatch.setattr(
-        HardeningManifest, "check_for_invalid_image_source", lambda x, y: []
+        HardeningManifest, "check_for_invalid_image_source", lambda self, y: []
     )
     mock_hm = MockHardeningManifest(resources=mock_good_image_sources)
     invalid_sources = mock_hm.reject_invalid_image_sources()
     assert invalid_sources == []
+
+    monkeypatch.setattr(
+        HardeningManifest, "check_for_invalid_image_source", lambda self, y: ["example"]
+    )
+
+    mock_hm = MockHardeningManifest(resources=mock_good_image_sources)
+    invalid_sources = mock_hm.reject_invalid_image_sources()
+    assert invalid_sources == [["example"]]
+
+
+def test_reject_invalid_maintainers(
+    monkeypatch,
+):
+    monkeypatch.setattr(HardeningManifest, "check_for_fixme", lambda self, y: [])
+    # mock_hm = MockHardeningManifest(maintainers=)
