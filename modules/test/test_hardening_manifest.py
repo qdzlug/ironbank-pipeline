@@ -343,8 +343,16 @@ def test_reject_invalid_image_sources(monkeypatch, mock_good_image_sources):
     assert invalid_sources == [["example"]]
 
 
-def test_reject_invalid_maintainers(
-    monkeypatch,
-):
+def test_reject_invalid_maintainers(monkeypatch, caplog):
     monkeypatch.setattr(HardeningManifest, "check_for_fixme", lambda self, y: [])
-    # mock_hm = MockHardeningManifest(maintainers=)
+    mock_hm = MockHardeningManifest(maintainers=[1, 2, 3])
+    assert mock_hm.reject_invalid_maintainers() == []
+    assert "FIXME found in" not in caplog.text
+    caplog.clear()
+
+    monkeypatch.setattr(
+        HardeningManifest, "check_for_fixme", lambda self, y: ["example"]
+    )
+    assert mock_hm.reject_invalid_maintainers() == ["example", "example", "example"]
+    assert "FIXME found in example" in caplog.text
+    caplog.clear()
