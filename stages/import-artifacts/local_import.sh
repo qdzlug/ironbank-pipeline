@@ -1,3 +1,4 @@
+#!/bin/bash
 export ARTIFACT_DIR="."
 mkdir -p "$ARTIFACT_DIR/external-resources"
 mkdir -p "$ARTIFACT_DIR/images"
