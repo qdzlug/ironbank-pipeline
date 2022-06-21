@@ -1,11 +1,16 @@
 #!/usr/bin/python3
 import sys
+import os
 from pathlib import Path
 import asyncio
 
-from ibmodules.project import DsopProject  # noqa: E402
-from ibmodules.utils import logger  # noqa: E402
-from ibmodules.hardening_manifest import HardeningManifest  # noqa: E402
+sys.path.append(
+    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
+)
+
+from project import DsopProject  # noqa: E402
+from utils import logger  # noqa: E402
+from hardening_manifest import HardeningManifest  # noqa: E402
 
 log = logger.setup(name="lint.metadata")
 
