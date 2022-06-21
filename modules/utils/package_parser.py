@@ -11,7 +11,7 @@ import dockerfile
 
 log = logger.setup(name="package_parser", format="| %(levelname)-5s | %(message)s")
 
-from .exceptions import DockerfileParseError
+from .exceptions import DockerfileParseError  # noqa E402
 
 
 class ParsedURLPackage(ABC, Package):
