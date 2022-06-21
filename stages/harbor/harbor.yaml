@@ -1,5 +1,4 @@
 harbor:
-  image: registry1.dso.mil/ironbank/ironbank-pipelines/cosign:0.2
   stage: harbor
   only:
     - master
