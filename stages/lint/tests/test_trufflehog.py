@@ -9,7 +9,7 @@ import pytest
 from unittest.mock import mock_open
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import trufflehog
+import trufflehog  # noqa E402
 from trufflehog import (
     get_commit_diff,
     get_history_cmd,
@@ -22,6 +22,7 @@ logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
 mock_path = pathlib.Path(
     pathlib.Path(__file__).absolute().parent.parent.parent.parent, "mocks"
 )
+
 
 # list of test projects to be cloned and used for testing
 @pytest.fixture

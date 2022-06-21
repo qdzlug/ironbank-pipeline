@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 import os
 import sys
-import dockerfile
 import asyncio
 
 sys.path.append(
@@ -12,8 +11,8 @@ sys.path.append(
 from project import DsopProject  # noqa: E402
 from utils import logger  # noqa: E402
 from hardening_manifest import HardeningManifest  # noqa: E402
-from utils.package_parser import DockerfileParser
-from utils.exceptions import DockerfileParseError
+from utils.package_parser import DockerfileParser  # noqa: E402
+from utils.exceptions import DockerfileParseError  # noqa: E402
 
 log = logger.setup(name="lint.dockerfile_validation")
 

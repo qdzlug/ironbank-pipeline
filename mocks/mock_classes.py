@@ -4,8 +4,8 @@ import os
 
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), "modules"))
 
-from hardening_manifest import HardeningManifest
-from project import DsopProject
+from hardening_manifest import HardeningManifest  # noqa: E402
+from project import DsopProject  # noqa: E402
 
 
 @dataclass

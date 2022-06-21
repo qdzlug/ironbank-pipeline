@@ -9,9 +9,9 @@ sys.path.append(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
 
-from utils.testing import raise_
-from utils.package_parser import DockerfileParser
-from utils.exceptions import DockerfileParseError
+from utils.testing import raise_  # noqa E402
+from utils.package_parser import DockerfileParser  # noqa E402
+from utils.exceptions import DockerfileParseError  # noqa E402
 
 mock_path = pathlib.Path(
     pathlib.Path(__file__).absolute().parent.parent.parent, "mocks"

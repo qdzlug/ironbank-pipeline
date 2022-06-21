@@ -18,7 +18,7 @@ from artifacts import (
     ContainerArtifact,
 )  # noqa E402
 from utils import logger  # noqa E402
-from utils.testing import raise_
+from utils.testing import raise_  # noqa E402
 from utils.exceptions import InvalidURLList  # noqa E402
 
 

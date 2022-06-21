@@ -12,7 +12,7 @@ import boto3
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils import logger  # noqa E402
 from utils.exceptions import InvalidURLList  # noqa E402
-from utils.testing import raise_
+from utils.testing import raise_  # noqa E402
 from abstract_artifacts import AbstractArtifact  # noqa E402
 from mocks.mock_responses import mock_responses  # noqa E402 W0611
 from artifacts import (

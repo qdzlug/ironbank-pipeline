@@ -16,7 +16,7 @@ sys.path.append(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
 
-from mocks.mock_classes import MockHardeningManifest
+from mocks.mock_classes import MockHardeningManifest  # noqa E402
 from hardening_manifest import HardeningManifest  # noqa E402
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")

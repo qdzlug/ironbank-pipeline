@@ -13,10 +13,10 @@ import asyncio
 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from mocks.mock_classes import MockProject, MockHardeningManifest
+from mocks.mock_classes import MockProject, MockHardeningManifest  # noqa E402
 from base_image_validation import skopeo_inspect_base_image  # noqa E402
 import base_image_validation  # noqa E402
-from utils.testing import raise_
+from utils.testing import raise_  # noqa E402
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
 
