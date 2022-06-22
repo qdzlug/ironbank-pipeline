@@ -1,5 +1,4 @@
 harbor:
-  image: registry1.dso.mil/ironbank/ironbank-pipelines/cosign:0.2
   stage: harbor
   only:
     - master
@@ -7,7 +6,7 @@ harbor:
     - load-scripts
     - lint
     - build
-    - sbom
+    - create-sbom
     - vat
   variables:
     DOCKER_CONFIG: /tmp

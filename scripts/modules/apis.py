@@ -3,6 +3,7 @@ import requests
 import os
 
 from utils import logger
+from utils.decorators import request_error_handler
 
 
 @dataclass
@@ -27,37 +28,6 @@ class API:
     # confirm data type is either str or json
     # confirm data is valid json
     # def validate_data():
-
-
-def request_error_handler(func):
-    def _request_error_handler(self, image_name: str = "", *args, **kwargs):
-        try:
-            return func(self, image_name, *args, **kwargs)
-        except requests.exceptions.HTTPError:
-            if self.response.status_code == 400:
-                self.log.warning(f"Bad request: {self.url}")
-                self.log.warning(self.response.text)
-            elif self.response.status_code == 403:
-                self.log.warning(
-                    f"{os.environ['CI_PROJECT_NAME']} is not authorized to use the image name of: {image_name}. Either the name has changed or the container has never been tracked in VAT. An authorization request has automatically been generated. Please create a ticket with the link below for VAT authorization review."
-                )
-                self.log.info(
-                    f"https://repo1.dso.mil/dsop/dccscr/-/issues/new?issuable_template=VAT%20Pipeline%20Access%20Request&issue[title]=VAT+Pipeline+Access+Request+{os.environ['CI_PROJECT_URL']}"
-                )
-            else:
-                self.log.warning(
-                    f"Unknown response from VAT {self.response.status_code}"
-                )
-                self.log.warning(self.response.text)
-                self.log.warning(
-                    "Failing the pipeline due to an unexpected response from the vat findings api. Please open an issue in this project using the `Pipeline Failure` template to ensure that we assist you. If you need further assistance, please visit the `Team - Iron Bank Pipelines and Operations` Mattermost channel."
-                )
-        except requests.exceptions.RequestException:
-            self.log.warning(f"Could not access VAT API: {self.url}")
-        except RuntimeError as runerr:
-            self.log.warning(f"Unexpected exception thrown {runerr}")
-
-    return _request_error_handler
 
 
 @dataclass
@@ -91,7 +61,7 @@ class VatAPI(API):
         self.log.info(f"Checking access to {image_name}")
         self.log.info(f"{self.url}{self.import_access_route}/{image_name}")
         self.response = requests.get(
-            f"{self.url}{self.import_access_route}/{image_name}",
+            f"{self.url}{self.import_access_route}/?name={image_name}",
             params={"createRequest": create_request},
             headers={
                 "Content-Type": "application/json",

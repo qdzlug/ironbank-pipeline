@@ -161,6 +161,26 @@ def generate_anchore_cve_jobs(anchore_sec_path):
         # vulnerability's url value is NOT a list. Just use the string value provided
         else:
             link_string = v_d["url"]
+        identifiers = []
+        identifiers.append(v_d["vuln"])
+        if v_d["nvd_data"]:
+            search_key = "nvd_data"
+        else:
+            search_key = "vendor_data"
+        # nvd_data is one of the two possible data types
+        try:
+            # There is no additional vendor_data provided, append the vuln identifier to the indentifiers array
+            if v_d[search_key][0]:
+                # If only the CVE or GHSA is available, append it to the identifiers array
+                if v_d[search_key][0]["id"] != v_d["vuln"]:
+                    identifiers.append(v_d[search_key][0]["id"])
+            # NVD data is not an array.
+            else:
+                # If only the CVE or GHSA is available, append it to the identifiers array
+                if v_d[search_key]["id"] != v_d["vuln"]:
+                    identifiers.append(v_d[search_key]["id"])
+        except IndexError:
+            logging.info("Index out of range. No vendor data available. Continuing.")
         cve = {
             "finding": v_d["vuln"],
             "severity": v_d["severity"].lower(),
@@ -172,6 +192,7 @@ def generate_anchore_cve_jobs(anchore_sec_path):
             if v_d["package_path"] != "pkgdb"
             else None,
             "scanSource": "anchore_cve",
+            "identifiers": identifiers,
         }
         if cve not in cves:
             cves.append(cve)
@@ -249,6 +270,8 @@ def generate_twistlock_jobs(twistlock_cve_path):
     if "vulnerabilities" in json_data["results"][0]:
         for v_d in json_data["results"][0]["vulnerabilities"]:
             # get associated justification if one exists
+            identifiers = []
+            identifiers.append(v_d["id"])
             try:
                 cves.append(
                     {
@@ -261,6 +284,7 @@ def generate_twistlock_jobs(twistlock_cve_path):
                         "packagePath": None,
                         "scanSource": "twistlock_cve",
                         "reportDate": v_d.get("publishedDate"),
+                        "identifiers": identifiers,
                     }
                 )
             except KeyError as e:

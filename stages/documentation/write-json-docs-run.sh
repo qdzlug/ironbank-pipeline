@@ -65,7 +65,7 @@ jq -n '
 cat "${ARTIFACT_DIR}/scan-metadata.json"
 # Create manifest.json
 
-export DOCKER_REFERENCE="${REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_VERSION}@${IMAGE_PODMAN_SHA}"
+export DOCKER_REFERENCE="${REGISTRY_URL_PROD}/${IMAGE_NAME}:${IMAGE_VERSION}@${IMAGE_PODMAN_SHA}"
 
 jq -n '
 {
