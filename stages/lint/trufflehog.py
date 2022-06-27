@@ -9,15 +9,85 @@ from pathlib import Path
 
 
 sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts/modules"
-    )
+    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
 )
 
 from project import DsopProject  # noqa: E402
 from utils import logger  # noqa: E402
 
 log = logger.setup(name="lint.trufflehog")
+
+
+def get_commit_diff(repo_dir: str, diff_branch: str) -> str:
+    """
+    Uses gitpython to get a list of commit shasums of feature branch
+    commits that don't exist in development, or for commits in
+    development that aren't in master when CI_COMMIT_BRANCH is development
+    Returns a string of commit SHAs separated by newline characters
+    """
+    # fetch origin before performing a git log
+    repo = git.Repo(repo_dir)
+    commits = repo.git.rev_list(
+        f"{diff_branch}..",
+        "--no-merges",
+    )
+    log.info(f"git rev-list {diff_branch}.. --no-merges")
+    return commits
+
+
+def get_history_cmd(commits: str) -> list[str]:
+    """
+    Splits a string of newline separated commit SHAs
+    Returns a list of truffleHog3 flags
+        [--since, the oldest sha in the commits list]
+        if list is empty [--no-history]
+    """
+    commit_lst = commits.split("\n")
+    for commit in commit_lst:
+        log.info(commit)
+    # if no data is returned to commits, since_commit will be an empty string
+    since_commit: str = commit_lst[-1]
+    return ["--since", since_commit] if since_commit else ["--no-history"]
+
+
+def get_config(config_file: Path, expand_vars: bool = False) -> list:
+    """
+    Loads a trufflehog config yaml file and pulls out the skip_strings and skip_paths values
+    """
+    exclude_list = []
+    if config_file.is_file():
+        log.debug("Config file found")
+        with config_file.open(mode="r") as f:
+            data: dict = yaml.safe_load(f)
+        exclude_list = data["exclude"]
+        if expand_vars:
+            for item in exclude_list:
+                item["paths"] = [os.path.expandvars(x) for x in item["paths"]]
+
+    else:
+        log.debug("Config file not found")
+    return exclude_list
+
+
+def create_trufflehog_config(
+    project_config_path: Path,
+    default_config_path: Path,
+    repo_dir: str,
+    config_variable: Optional[str] = None,
+) -> bool:
+    """
+    Loads the default trufflehog config and if a project config exists loads that as well.
+    Then concatonates the default and project configs and writes these to a file.
+    Returns a boolean.
+        True if the config variable exists and a config file is found
+    """
+    default_exclude_list = get_config(default_config_path, True)
+    project_exclude_list = get_config(project_config_path) if config_variable else []
+    config = {"exclude": default_exclude_list + project_exclude_list}
+    outfile = Path(repo_dir, project_config_path)
+    with outfile.open(mode="w") as of:
+        yaml.safe_dump(config, of, indent=2, sort_keys=False)
+    return True if config_variable and project_config_path.is_file() else False
 
 
 def main() -> None:
@@ -116,78 +186,6 @@ def main() -> None:
         log.error("truffleHog returned a non-zero exit code")
         sys.exit(1)
     log.info("truffleHog found no secrets")
-
-
-def get_commit_diff(repo_dir: str, diff_branch: str) -> str:
-    """
-    Uses gitpython to get a list of commit shasums of feature branch
-    commits that don't exist in development, or for commits in
-    development that aren't in master when CI_COMMIT_BRANCH is development
-    Returns a string of commit SHAs separated by newline characters
-    """
-    # fetch origin before performing a git log
-    repo = git.Repo(repo_dir)
-    commits = repo.git.rev_list(
-        f"{diff_branch}..",
-        "--no-merges",
-    )
-    log.info(f"git rev-list {diff_branch}.. --no-merges")
-    return commits
-
-
-def get_history_cmd(commits: str) -> list[str]:
-    """
-    Splits a string of newline separated commit SHAs
-    Returns a list of truffleHog3 flags
-        [--since, the oldest sha in the commits list]
-        if list is empty [--no-history]
-    """
-    commit_lst = commits.split("\n")
-    for commit in commit_lst:
-        log.info(commit)
-    # if no data is returned to commits, since_commit will be an empty string
-    since_commit: str = commit_lst[-1]
-    return ["--since", since_commit] if since_commit else ["--no-history"]
-
-
-def get_config(config_file: Path, expand_vars: bool = False) -> list:
-    """
-    Loads a trufflehog config yaml file and pulls out the skip_strings and skip_paths values
-    """
-    exclude_list = []
-    if config_file.is_file():
-        log.debug("Config file found")
-        with config_file.open(mode="r") as f:
-            data: dict = yaml.safe_load(f)
-        exclude_list = data["exclude"]
-        if expand_vars:
-            for item in exclude_list:
-                item["paths"] = [os.path.expandvars(x) for x in item["paths"]]
-
-    else:
-        log.debug("Config file not found")
-    return exclude_list
-
-
-def create_trufflehog_config(
-    project_config_path: Path,
-    default_config_path: Path,
-    repo_dir: str,
-    config_variable: Optional[str] = None,
-) -> bool:
-    """
-    Loads the default trufflehog config and if a project config exists loads that as well.
-    Then concatonates the default and project configs and writes these to a file.
-    Returns a boolean.
-        True if the config variable exists and a config file is found
-    """
-    default_exclude_list = get_config(default_config_path, True)
-    project_exclude_list = get_config(project_config_path) if config_variable else []
-    config = {"exclude": default_exclude_list + project_exclude_list}
-    outfile = Path(repo_dir, project_config_path)
-    with outfile.open(mode="w") as of:
-        yaml.safe_dump(config, of, indent=2, sort_keys=False)
-    return True if config_variable and project_config_path.is_file() else False
 
 
 if __name__ == "__main__":

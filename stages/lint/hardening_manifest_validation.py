@@ -1,14 +1,11 @@
 #!/usr/bin/python3
-import os
 import sys
+import os
 from pathlib import Path
 import asyncio
 
-
 sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts/modules"
-    )
+    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
 )
 
 from project import DsopProject  # noqa: E402

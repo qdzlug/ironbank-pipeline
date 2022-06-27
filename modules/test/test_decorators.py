@@ -6,7 +6,9 @@ from dataclasses import dataclass
 from subprocess import CalledProcessError
 from unittest import mock
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 from apis import API  # noqa E402
 from utils import logger  # noqa E402
 from utils.decorators import request_retry  # noqa E402

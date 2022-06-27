@@ -10,9 +10,7 @@ import requests
 from requests.structures import CaseInsensitiveDict
 
 sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts/modules"
-    )
+    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
 )
 
 from get_oscap_failures import generate_oscap_jobs  # noqa E402

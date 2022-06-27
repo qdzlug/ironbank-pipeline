@@ -8,9 +8,7 @@ import sys
 import os
 
 sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts/modules"
-    )
+    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
 )
 
 from utils import logger  # noqa E402
@@ -20,6 +18,7 @@ log = logger.setup("lint_jobs")
 system_exits = {}
 
 
+# Proper planning prevents painfully poor performance
 def handle_system_exit(func):
     async def _handle_system_exit(*args, **kwargs):
         try:
