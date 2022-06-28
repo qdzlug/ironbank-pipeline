@@ -2,6 +2,9 @@ import re
 import json
 import os
 from abc import ABC, abstractmethod
+
+import requests
+import urllib
 from utils import logger
 from .types import FileParser, Package
 from pathlib import Path
@@ -179,3 +182,26 @@ class SbomFileParser(FileParser):
 
         log.info("File successfully parsed")
         return packages
+
+    def get_sbom_tag(cls) -> str:
+
+        encoded_project_url = urllib.parse.quote_plus(os.environ["IMAGE_NAME"])
+
+        r = requests.get(f"{os.environ['REGISTRY1_URL']}/api/v2.0/projects/ironbank/repositories/{encoded_project_url}")
+
+        artifacts = r.json()
+
+        for artifact in artifacts:
+            for tag in (artifact["tags"] or []):
+                if tag["name"].endswith(".sbom"):
+                    return tag["name"]
+
+    # def diff(cls, current_sbom):
+
+
+    #     # pull previous sbom from harbor using oras
+
+    #     try:
+            
+
+    #     except Exception:
