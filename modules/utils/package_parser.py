@@ -93,6 +93,50 @@ class PypiPackage(ParsedURLPackage):
 
 
 @dataclass(slots=True, frozen=True)
+class NpmPackage(ParsedURLPackage):
+    kind: str = field(init=False, default="npm")
+
+    @classmethod
+    def parse(cls, url) -> Optional[Package]:
+        if "/-/" not in url:
+            return None
+
+        match = re.match(
+            r"(?P<prefix>:^|.+/)(?P<name>[^/]+)-(?P<version>[^/-]*\d+).(?P<ext>tgz)",
+            url,
+        )
+
+        if not match:
+            raise ValueError(f"Could not parse npm URL: {url}")
+
+        return NpmPackage(
+            name=match.group("name"), version=match.group("version"), url=url
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class RubyGemPackage(ParsedURLPackage):
+    kind: str = field(init=False, default="rubygem")
+
+    @classmethod
+    def parse(cls, url) -> Optional[Package]:
+        if url.startswith("api/"):
+            return None
+
+        match = re.match(
+            r"(?P<prefix>:^|.+/)(?P<name>[^/]+)-(?P<version>[^/-]*\d+).(?P<ext>gemspec\.rz|gem)",
+            url,
+        )
+
+        if not match:
+            raise ValueError(f"Could not parse rubygem URL: {url}")
+
+        return RubyGemPackage(
+            name=match.group("name"), version=match.group("version"), url=url
+        )
+
+
+@dataclass(slots=True, frozen=True)
 class NullPackage(ParsedURLPackage):
     @classmethod
     def parse(cls, url) -> None:
@@ -150,6 +194,10 @@ class AccessLogFileParser(FileParser):
                         package = YumPackage.parse((re_match.group("url")))
                     case "pypi":
                         package = PypiPackage.parse((re_match.group("url")))
+                    case "npm":
+                        package = NpmPackage.parse((re_match.group("url")))                        
+                    case "rubygem":
+                        package = RubyGemPackage.parse((re_match.group("url")))                          
 
                 if package:
                     packages.append(package)
