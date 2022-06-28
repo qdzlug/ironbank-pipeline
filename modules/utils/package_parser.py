@@ -195,9 +195,9 @@ class AccessLogFileParser(FileParser):
                     case "pypi":
                         package = PypiPackage.parse((re_match.group("url")))
                     case "npm":
-                        package = NpmPackage.parse((re_match.group("url")))                        
+                        package = NpmPackage.parse((re_match.group("url")))
                     case "rubygem":
-                        package = RubyGemPackage.parse((re_match.group("url")))                          
+                        package = RubyGemPackage.parse((re_match.group("url")))
 
                 if package:
                     packages.append(package)
