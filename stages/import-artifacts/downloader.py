@@ -8,9 +8,7 @@ from botocore.exceptions import ClientError
 from requests.exceptions import HTTPError
 
 sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts/modules"
-    )
+    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
 )
 from utils import logger  # noqa E402
 from utils.exceptions import InvalidURLList  # noqa E402
@@ -79,7 +77,7 @@ def main():
         # all resources are downloaded successfully
         exit_code = 0
     except KeyError as ke:
-        log.error(f"The following key does not have a value: {str(ke)}")
+        log.error(f"The following key does not have a value: {ke}")
     except AssertionError as ae:
         log.error(f"Assertion Error: {ae}")
     except InvalidURLList:
@@ -87,8 +85,7 @@ def main():
             f"No valid urls provided for {artifact.filename}. Please ensure the url(s) for this resource exists and is not password protected. If you require basic authentication to download this resource, please open a ticket in this repository."
         )
     except HTTPError as he:
-        log.error("abc")
-        log.info(
+        log.error(
             f"Error downloading {artifact.url}, Status code: {he.response.status_code}"
         )
     except ClientError:
@@ -100,7 +97,7 @@ def main():
     except RuntimeError:
         log.error("Unexpected runtime error occurred.")
     except Exception as e:
-        log.error(f"Unexpected error occurred. Exception class: {e}")
+        log.error(f"Unexpected error occurred. Exception class: {e.__class__}")
     finally:
         if artifact is not None and exit_code == 1:
             artifact.delete_artifact()
