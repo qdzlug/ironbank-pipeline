@@ -189,7 +189,6 @@ class SbomFileParser(FileParser):
         log.info("File successfully parsed")
         return packages
 
-<<<<<<< HEAD:scripts/modules/utils/package_parser.py
     # def get_sbom_tag(cls) -> str:
 
     #     encoded_project_url = urllib.parse.quote_plus(os.environ["IMAGE_NAME"])
@@ -250,7 +249,6 @@ class SbomFileParser(FileParser):
         except subprocess.SubprocessError:
             log.exception("Could not oras pull.")
             sys.exit(1)
-=======
 
 # TODO: Move this to a seperate file with other FileParsers
 @dataclass
@@ -295,4 +293,3 @@ class DockerfileParser(FileParser):
         except dockerfile.GoParseError:
             log.error("The Dockerfile is not parseable.")
             raise DockerfileParseError
->>>>>>> master:modules/utils/package_parser.py
