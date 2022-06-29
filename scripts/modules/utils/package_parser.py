@@ -2,6 +2,8 @@ import re
 import json
 import os
 from abc import ABC, abstractmethod
+import subprocess
+import sys
 
 import requests
 import urllib
@@ -183,25 +185,63 @@ class SbomFileParser(FileParser):
         log.info("File successfully parsed")
         return packages
 
-    def get_sbom_tag(cls) -> str:
+    # def get_sbom_tag(cls) -> str:
 
-        encoded_project_url = urllib.parse.quote_plus(os.environ["IMAGE_NAME"])
+    #     encoded_project_url = urllib.parse.quote_plus(os.environ["IMAGE_NAME"])
 
-        r = requests.get(f"{os.environ['REGISTRY1_URL']}/api/v2.0/projects/ironbank/repositories/{encoded_project_url}")
+    #     r = requests.get(f"{os.environ['REGISTRY1_URL']}/api/v2.0/projects/ironbank/repositories/{encoded_project_url}")
 
-        artifacts = r.json()
+    #     artifacts = r.json()
 
-        for artifact in artifacts:
-            for tag in (artifact["tags"] or []):
-                if tag["name"].endswith(".sbom"):
-                    return tag["name"]
+    #     for artifact in artifacts:
+    #         for tag in (artifact["tags"] or []):
+    #             if tag["name"].endswith(".sbom"):
+    #                 return tag["name"]
 
-    # def diff(cls, current_sbom):
+    def cosign_triangulate(cls) -> str:
+        triangulate_cmd = [
+            "cosign",
+            "triangulate",
+            "--type",
+            "sbom",
+            f"{os.environ['REGISTRY1_URL']}/ironbank/{os.environ['IMAGE_NAME']}"
+        ]
+
+        try:
+            previous_sbom = subprocess.run(
+                triangulate_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding="utf-8",
+                check=True,
+            )
+            return previous_sbom.stdout
+        except subprocess.SubprocessError:
+            log.exception("Could not oras pull.")
+            sys.exit(1)
+
+    def diff(cls):
 
 
-    #     # pull previous sbom from harbor using oras
+        # pull previous sbom from harbor using oras
 
-    #     try:
-            
+        previous_sbom = cls.cosign_triangulate()
 
-    #     except Exception:
+        pull_cmd = [
+            "oras",
+            "pull",
+            "--allow-all",
+            previous_sbom,
+        ]
+
+        try:
+            subprocess.run(
+                pull_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding="utf-8",
+                check=True,
+            )
+        except subprocess.SubprocessError:
+            log.exception("Could not oras pull.")
+            sys.exit(1)
