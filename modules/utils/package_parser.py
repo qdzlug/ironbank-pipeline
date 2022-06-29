@@ -11,10 +11,12 @@ from utils import logger
 from .types import FileParser, Package
 from pathlib import Path
 from typing import Optional
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
+import dockerfile
 
 log = logger.setup(name="package_parser", format="| %(levelname)-5s | %(message)s")
+
+from .exceptions import DockerfileParseError  # noqa E402
 
 
 class ParsedURLPackage(ABC, Package):
@@ -102,6 +104,7 @@ class NullPackage(ParsedURLPackage):
         return None
 
 
+# TODO: Move this to a seperate file with other FileParsers
 class AccessLogFileParser(FileParser):
     @classmethod
     def parse(cls, file) -> list[Package]:
@@ -161,12 +164,13 @@ class AccessLogFileParser(FileParser):
         return packages
 
 
+# TODO: Move this to a seperate file with other FileParsers
 @dataclass
 class SbomFileParser(FileParser):
     @classmethod
     def parse(cls, file) -> list[Package]:
 
-        packages: [Package] = []
+        packages: list[Package] = []
         log.info("SBOM parser started")
 
         data = json.load(file)
@@ -185,6 +189,7 @@ class SbomFileParser(FileParser):
         log.info("File successfully parsed")
         return packages
 
+<<<<<<< HEAD:scripts/modules/utils/package_parser.py
     # def get_sbom_tag(cls) -> str:
 
     #     encoded_project_url = urllib.parse.quote_plus(os.environ["IMAGE_NAME"])
@@ -245,3 +250,49 @@ class SbomFileParser(FileParser):
         except subprocess.SubprocessError:
             log.exception("Could not oras pull.")
             sys.exit(1)
+=======
+
+# TODO: Move this to a seperate file with other FileParsers
+@dataclass
+class DockerfileParser(FileParser):
+    @classmethod
+    def parse(cls, filepath) -> None:
+        parsed_dockerfile = cls.parse_dockerfile(filepath)
+        from_statement_list = cls.remove_non_from_statements(parsed_dockerfile)
+        invalid_from = cls.validate_final_from(from_statement_list)
+        return invalid_from
+
+    @staticmethod
+    def remove_non_from_statements(dockerfile_tuple: tuple) -> list:
+        from_list = []
+        for command in dockerfile_tuple:
+            if command.cmd.lower() == "from":
+                from_list.append(command)
+        return from_list
+
+    @staticmethod
+    def validate_final_from(content: list):
+        """
+        Returns whether the final FROM statement in the Dockerfile is valid, i.e.
+        FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}
+        """
+        if content[-1].value[0] not in (
+            "${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}",
+            "$BASE_REGISTRY/$BASE_IMAGE:$BASE_TAG",
+        ):
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def parse_dockerfile(dockerfile_path: str):
+        try:
+            parsed_file = dockerfile.parse_file(dockerfile_path)
+            return parsed_file
+        except dockerfile.GoIOError:
+            log.error("The Dockerfile could not be opened.")
+            raise DockerfileParseError
+        except dockerfile.GoParseError:
+            log.error("The Dockerfile is not parseable.")
+            raise DockerfileParseError
+>>>>>>> master:modules/utils/package_parser.py

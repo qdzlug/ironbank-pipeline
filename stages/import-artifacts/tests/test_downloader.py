@@ -18,6 +18,7 @@ from artifacts import (
     ContainerArtifact,
 )  # noqa E402
 from utils import logger  # noqa E402
+from utils.testing import raise_  # noqa E402
 from utils.exceptions import InvalidURLList  # noqa E402
 
 
@@ -117,6 +118,7 @@ def mock_urls():
     }
 
 
+# TODO: update all DsopProject and HardeningManifest __init__ mocks to use patch
 def test_main_class_assignment(
     monkeypatch,
     caplog,
@@ -149,7 +151,6 @@ def test_main_class_assignment(
         monkeypatch.setattr(DsopProject, "__init__", mock_dsop_init)
         monkeypatch.setattr(HardeningManifest, "__init__", mock_hm_init)
         downloader.main()
-    assert se.type == SystemExit
     assert se.value.code == 0
     caplog.clear()
 
@@ -160,7 +161,6 @@ def test_main_class_assignment(
         monkeypatch.setattr(DsopProject, "__init__", mock_dsop_init)
         monkeypatch.setattr(HardeningManifest, "__init__", mock_hm_init_bad_scheme)
         downloader.main()
-    assert se.type == SystemExit
     assert se.value.code == 1
     caplog.clear()
 
@@ -172,7 +172,6 @@ def test_main_class_assignment(
     with pytest.raises(SystemExit) as se:
         patch_artifact(S3Artifact, mock_dsop_init, mock_hm_init_s3)
         downloader.main()
-    assert se.type == SystemExit
     assert se.value.code == 0
     assert "S3Artifact" in caplog.text
     assert (
@@ -188,7 +187,6 @@ def test_main_class_assignment(
     with pytest.raises(SystemExit) as se:
         patch_artifact(ContainerArtifact, mock_dsop_init, mock_hm_init_github)
         downloader.main()
-    assert se.type == SystemExit
     assert se.value.code == 0
     assert "GithubArtifact" in caplog.text
     assert "HttpArtifact" not in caplog.text and "S3Artifact" not in caplog.text
@@ -200,7 +198,6 @@ def test_main_class_assignment(
     with pytest.raises(SystemExit) as se:
         patch_artifact(ContainerArtifact, mock_dsop_init, mock_hm_init_docker)
         downloader.main()
-    assert se.type == SystemExit
     assert se.value.code == 0
     assert "ContainerArtifact" in caplog.text
     assert (
@@ -216,7 +213,6 @@ def test_main_class_assignment(
     with pytest.raises(SystemExit) as se:
         patch_artifact(HttpArtifact, mock_dsop_init, mock_hm_init_http)
         downloader.main()
-    assert se.type == SystemExit
     assert se.value.code == 0
     assert "HttpArtifact" in caplog.text
     assert (
@@ -227,6 +223,7 @@ def test_main_class_assignment(
     caplog.clear()
 
 
+# TODO: update all DsopProject and HardeningManifest __init__ mocks to use patch
 def test_main_exceptions(monkeypatch, caplog, mock_s3_resources):
     def mock_dsop_init(self):
         self.hardening_manifest_path = "lol"
@@ -234,21 +231,13 @@ def test_main_exceptions(monkeypatch, caplog, mock_s3_resources):
     def mock_hm_init(self, hm_path):
         self.resources = mock_s3_resources
 
-    def patch_artifact(artifact_class, mock_dsop, mock_hm, exception_func):
-        monkeypatch.setattr(artifact_class, "download", exception_func)
-
-        monkeypatch.setattr(DsopProject, "__init__", mock_dsop)
-        monkeypatch.setattr(HardeningManifest, "__init__", mock_hm)
-
-    # TODO: move this to a module, duplicate func in test_artifacts.py
-    def raise_(e):
-        raise e
+    monkeypatch.setattr(DsopProject, "__init__", mock_dsop_init)
+    monkeypatch.setattr(HardeningManifest, "__init__", mock_hm_init)
 
     with pytest.raises(SystemExit):
-        patch_artifact(
+        monkeypatch.setattr(
             S3Artifact,
-            mock_dsop_init,
-            mock_hm_init,
+            "download",
             lambda self: raise_(KeyError("bad key")),
         )
         downloader.main()
@@ -256,10 +245,9 @@ def test_main_exceptions(monkeypatch, caplog, mock_s3_resources):
     caplog.clear()
 
     with pytest.raises(SystemExit):
-        patch_artifact(
+        monkeypatch.setattr(
             S3Artifact,
-            mock_dsop_init,
-            mock_hm_init,
+            "download",
             lambda self: raise_(AssertionError("bad assertion")),
         )
         downloader.main()
@@ -267,10 +255,9 @@ def test_main_exceptions(monkeypatch, caplog, mock_s3_resources):
     caplog.clear()
 
     with pytest.raises(SystemExit):
-        patch_artifact(
+        monkeypatch.setattr(
             S3Artifact,
-            mock_dsop_init,
-            mock_hm_init,
+            "download",
             lambda self: raise_(InvalidURLList("invalid url")),
         )
         downloader.main()
@@ -286,10 +273,9 @@ def test_main_exceptions(monkeypatch, caplog, mock_s3_resources):
             self.response = MockResponse(status_code)
 
     with pytest.raises(SystemExit):
-        patch_artifact(
+        monkeypatch.setattr(
             S3Artifact,
-            mock_dsop_init,
-            mock_hm_init,
+            "download",
             lambda self: raise_(MockHTTPError(400)),
         )
         downloader.main()
@@ -301,10 +287,9 @@ def test_main_exceptions(monkeypatch, caplog, mock_s3_resources):
             pass
 
     with pytest.raises(SystemExit):
-        patch_artifact(
+        monkeypatch.setattr(
             S3Artifact,
-            mock_dsop_init,
-            mock_hm_init,
+            "download",
             lambda self: raise_(MockClientError("yes", "no")),
         )
         downloader.main()
@@ -312,10 +297,9 @@ def test_main_exceptions(monkeypatch, caplog, mock_s3_resources):
     caplog.clear()
 
     with pytest.raises(SystemExit):
-        patch_artifact(
+        monkeypatch.setattr(
             S3Artifact,
-            mock_dsop_init,
-            mock_hm_init,
+            "download",
             lambda self: raise_(CalledProcessError("example", ["example"])),
         )
         downloader.main()
@@ -326,17 +310,13 @@ def test_main_exceptions(monkeypatch, caplog, mock_s3_resources):
     caplog.clear()
 
     with pytest.raises(SystemExit):
-        patch_artifact(
-            S3Artifact, mock_dsop_init, mock_hm_init, lambda self: raise_(RuntimeError)
-        )
+        monkeypatch.setattr(S3Artifact, "download", lambda self: raise_(RuntimeError))
         downloader.main()
     assert "Unexpected runtime error occurred" in caplog.text
     caplog.clear()
 
     with pytest.raises(SystemExit):
-        patch_artifact(
-            S3Artifact, mock_dsop_init, mock_hm_init, lambda self: raise_(Exception)
-        )
+        monkeypatch.setattr(S3Artifact, "download", lambda self: raise_(Exception))
         downloader.main()
     assert "Unexpected error occurred. Exception class:" in caplog.text
     caplog.clear()

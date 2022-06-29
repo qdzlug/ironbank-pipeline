@@ -6,9 +6,7 @@ import os
 import logging
 
 sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts/modules"
-    )
+    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
 )
 
 from vat_container_status import is_approved  # noqa E402

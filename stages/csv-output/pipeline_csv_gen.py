@@ -13,9 +13,7 @@ from scanners import anchore
 from scanners.helper import write_csv_from_dict_list
 
 sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts/modules"
-    )
+    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
 )
 
 from vat_container_status import sort_justifications  # noqa E402

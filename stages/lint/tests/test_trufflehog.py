@@ -2,13 +2,14 @@
 import git
 import sys
 import os
+import yaml
 import logging
 import pathlib
 import pytest
-
+from unittest.mock import mock_open
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+import trufflehog  # noqa E402
 from trufflehog import (
     get_commit_diff,
     get_history_cmd,
@@ -17,6 +18,10 @@ from trufflehog import (
 )  # noqa E402
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
+
+mock_path = pathlib.Path(
+    pathlib.Path(__file__).absolute().parent.parent.parent.parent, "mocks"
+)
 
 
 # list of test projects to be cloned and used for testing
@@ -102,7 +107,7 @@ def test_get_commit_diff():
 
 
 def test_get_config():
-    assert get_config(pathlib.Path("stages/lint/tests/mock/test-th-config.yaml")) == [
+    assert get_config(pathlib.Path(mock_path, "test-th-config.yaml")) == [
         {
             "message": "Standard pipeline config",
             "paths": ["stages/lint/README.md"],
@@ -114,11 +119,14 @@ def test_get_config():
     # assert get_config(Path("")) == None
 
 
-def test_create_trufflehog_config():
+def test_create_trufflehog_config(monkeypatch):
+    monkeypatch.setattr(trufflehog, "get_config", lambda *args, **kwargs: [])
+    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data="data"))
+    monkeypatch.setattr(yaml, "safe_dump", lambda *args, **kwargs: True)
     assert (
         create_trufflehog_config(
-            pathlib.Path("stages/lint/tests/mock/test-th-config-concat.yaml"),
-            pathlib.Path("stages/lint/tests/mock/test-th-config.yaml"),
+            pathlib.Path(mock_path, "test-th-config-concat.yaml"),
+            pathlib.Path(mock_path, "test-th-config.yaml"),
             "./",
             ["TRUFFLEHOG"],
         )
@@ -126,8 +134,8 @@ def test_create_trufflehog_config():
     )
     assert (
         create_trufflehog_config(
-            pathlib.Path("stages/lint/tests/mock/test-th-config-concat.yaml"),
-            pathlib.Path("stages/lint/tests/mock/test-th-config.yaml"),
+            pathlib.Path(mock_path, "test-th-config-concat.yaml"),
+            pathlib.Path(mock_path, "test-th-config.yaml"),
             "./",
         )
         == False  # noqa E712

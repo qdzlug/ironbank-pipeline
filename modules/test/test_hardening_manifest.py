@@ -12,11 +12,18 @@ import jsonschema
 from unittest.mock import patch, mock_open, Mock
 from dataclasses import dataclass
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 
+from mocks.mock_classes import MockHardeningManifest  # noqa E402
 from hardening_manifest import HardeningManifest  # noqa E402
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
+
+mock_path = pathlib.Path(
+    pathlib.Path(__file__).absolute().parent.parent.parent, "mocks"
+)
 
 
 @dataclass
@@ -137,8 +144,8 @@ def mock_bad_image_sources():
 def hm():
     return HardeningManifest(
         pathlib.Path(
-            pathlib.Path(__file__).absolute().parent,
-            "mocks/mock_hardening_manifest.yaml",
+            mock_path,
+            "mock_hardening_manifest.yaml",
         )
     )
 
@@ -163,8 +170,8 @@ def test_init(monkeypatch, caplog):
 
     monkeypatch.setattr(HardeningManifest, "validate", mock_validate)
     hm_path = pathlib.Path(
-        pathlib.Path(__file__).absolute().parent,
-        "mocks/mock_hardening_manifest.yaml",
+        mock_path,
+        "mock_hardening_manifest.yaml",
     )
     HardeningManifest(hm_path)
     assert "validated" not in caplog.text
@@ -317,3 +324,35 @@ def test_check_for_invalid_image_source(
         hm.check_for_invalid_image_source(mock_bad_image_sources[2])
         == mock_bad_image_sources[2]["tag"]
     )
+
+
+def test_reject_invalid_image_sources(monkeypatch, mock_good_image_sources):
+    monkeypatch.setattr(
+        HardeningManifest, "check_for_invalid_image_source", lambda self, y: []
+    )
+    mock_hm = MockHardeningManifest(resources=mock_good_image_sources)
+    invalid_sources = mock_hm.reject_invalid_image_sources()
+    assert invalid_sources == []
+
+    monkeypatch.setattr(
+        HardeningManifest, "check_for_invalid_image_source", lambda self, y: ["example"]
+    )
+
+    mock_hm = MockHardeningManifest(resources=mock_good_image_sources)
+    invalid_sources = mock_hm.reject_invalid_image_sources()
+    assert invalid_sources == [["example"]]
+
+
+def test_reject_invalid_maintainers(monkeypatch, caplog):
+    monkeypatch.setattr(HardeningManifest, "check_for_fixme", lambda self, y: [])
+    mock_hm = MockHardeningManifest(maintainers=[1, 2, 3])
+    assert mock_hm.reject_invalid_maintainers() == []
+    assert "FIXME found in" not in caplog.text
+    caplog.clear()
+
+    monkeypatch.setattr(
+        HardeningManifest, "check_for_fixme", lambda self, y: ["example"]
+    )
+    assert mock_hm.reject_invalid_maintainers() == ["example", "example", "example"]
+    assert "FIXME found in example" in caplog.text
+    caplog.clear()

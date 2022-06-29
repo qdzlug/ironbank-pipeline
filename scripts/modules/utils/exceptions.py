@@ -1,2 +1,0 @@
-class InvalidURLList(Exception):
-    pass
