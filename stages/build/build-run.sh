@@ -67,6 +67,7 @@ fi
 
 # add override to gemrc for ruby gem support
 echo "${PWD}/${PIPELINE_REPO_DIR}/stages/build/ruby/.ironbank-gemrc:/tmp/ruby/.ironbank-gemrc" >>"${HOME}"/.config/containers/mounts.conf
+echo "${PWD}/${PIPELINE_REPO_DIR}/stages/build/ruby/bundler-conf:~/.bundle/config" >>"${HOME}"/.config/containers/mounts.conf
 
 # Set up ARG(s) in Dockerfile to recieve the buildah bud --build-arg so that the container owner won't have to deal with it.
 # These will not persist and will only be available to the build process.

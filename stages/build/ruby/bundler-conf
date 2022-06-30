@@ -1,0 +1,2 @@
+---
+BUNDLE_SET: "--global mirror.https://rubygems.org http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/rubygemproxy/"
