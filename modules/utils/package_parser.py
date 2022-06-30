@@ -102,7 +102,7 @@ class NpmPackage(ParsedURLPackage):
             return None
 
         match = re.match(
-            r"(?P<prefix>:^|.+/)(?P<name>[^/]+)-(?P<version>[^/-]*\d+).(?P<ext>tgz)",
+            r"^(?P<name>[^/]+)/-/\1-(?P<version>.*)\.tgz$",
             url,
         )
 
@@ -120,11 +120,11 @@ class RubyGemPackage(ParsedURLPackage):
 
     @classmethod
     def parse(cls, url) -> Optional[Package]:
-        if url.startswith("api/"):
+        if not url.startswith("gems/"):
             return None
 
         match = re.match(
-            r"(?P<prefix>:^|.+/)(?P<name>[^/]+)-(?P<version>[^/-]*\d+).(?P<ext>gemspec\.rz|gem)",
+            r"^gems/(?P<name>[a-zA-Z0-9._-]+?)-(?P<version>\d[^-]+)(?:-(?:[^-\n]+))*.gem$",
             url,
         )
 
