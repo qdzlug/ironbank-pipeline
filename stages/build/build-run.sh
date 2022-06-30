@@ -65,7 +65,7 @@ if [ ! -z "${DISTRO_REPO_DIR:-}" ]; then
   echo "${PWD}/${PIPELINE_REPO_DIR}/stages/build/${DISTRO_REPO_DIR}:${DISTRO_REPO_MOUNT}" >>"${HOME}"/.config/containers/mounts.conf
 fi
 
-# add override to gemrc for ruby gem support
+# add overrides for ruby gem support
 echo "${PWD}/${PIPELINE_REPO_DIR}/stages/build/ruby/.ironbank-gemrc:/tmp/ruby/.ironbank-gemrc" >>"${HOME}"/.config/containers/mounts.conf
 echo "${PWD}/${PIPELINE_REPO_DIR}/stages/build/ruby/bundler-conf:.bundle/config" >>"${HOME}"/.config/containers/mounts.conf
 
