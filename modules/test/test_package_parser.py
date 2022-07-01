@@ -10,7 +10,7 @@ sys.path.append(
 )
 
 from utils.testing import raise_  # noqa E402
-from utils.package_parser import DockerfileParser  # noqa E402
+from file_parser import DockerfileParser  # noqa E402
 from utils.exceptions import DockerfileParseError  # noqa E402
 
 mock_path = pathlib.Path(
