@@ -166,7 +166,7 @@ class ContainerArtifact(AbstractArtifact):
 class ORASArtifact(AbstractArtifact):
     log: logger = logger.setup("ORASArtifact")
 
-    def gather_sbom_list(self) -> str:
+    def find_sbom(self) -> str:
         triangulate_cmd = [
             "cosign",
             "triangulate",
@@ -185,7 +185,9 @@ class ORASArtifact(AbstractArtifact):
             )
             return previous_sbom.stdout
         except subprocess.SubprocessError:
-            self.log.error(f"Could not locate SBOM for {os.environ['REGISTRY1_URL']}/ironbank/{os.environ['IMAGE_NAME']}")
+            self.log.error(
+                f"Could not locate SBOM for {os.environ['REGISTRY1_URL']}/ironbank/{os.environ['IMAGE_NAME']}"
+            )
 
     def get_credentials(self) -> None:
         pass
