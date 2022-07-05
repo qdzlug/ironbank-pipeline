@@ -185,7 +185,7 @@ class ORASArtifact(AbstractArtifact):
             )
             return previous_sbom.stdout
         except subprocess.SubprocessError:
-            self.log.exception("Could not oras pull.")
+            self.log.error("Could not oras pull.")
 
     def get_credentials(self) -> None:
         pass
@@ -210,7 +210,7 @@ class ORASArtifact(AbstractArtifact):
                 check=True,
             )
         except subprocess.SubprocessError:
-            self.log.exception("Could not oras pull.")
+            self.log.error("Could not oras pull.")
 
 
 @dataclass
