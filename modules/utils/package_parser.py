@@ -87,6 +87,50 @@ class PypiPackage(ParsedURLPackage):
 
 
 @dataclass(slots=True, frozen=True)
+class NpmPackage(ParsedURLPackage):
+    kind: str = field(init=False, default="npm")
+
+    @classmethod
+    def parse(cls, url) -> Optional[Package]:
+        if "/-/" not in url:
+            return None
+
+        match = re.match(
+            r"^(?P<name>[^/]+)/-/\1-(?P<version>.*)\.tgz$",
+            url,
+        )
+
+        if not match:
+            raise ValueError(f"Could not parse npm URL: {url}")
+
+        return NpmPackage(
+            name=match.group("name"), version=match.group("version"), url=url
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class RubyGemPackage(ParsedURLPackage):
+    kind: str = field(init=False, default="rubygem")
+
+    @classmethod
+    def parse(cls, url) -> Optional[Package]:
+        if not url.startswith("gems/"):
+            return None
+
+        match = re.match(
+            r"^gems/(?P<name>[a-zA-Z0-9._-]+?)-(?P<version>\d[^-]+)(?:-(?:[^-\n]+))*.gem$",
+            url,
+        )
+
+        if not match:
+            raise ValueError(f"Could not parse rubygem URL: {url}")
+
+        return RubyGemPackage(
+            name=match.group("name"), version=match.group("version"), url=url
+        )
+
+
+@dataclass(slots=True, frozen=True)
 class NullPackage(ParsedURLPackage):
     @classmethod
     def parse(cls, url) -> None:
