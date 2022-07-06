@@ -1,7 +1,7 @@
 import sys
 import argparse
-from utils.package_parser import AccessLogFileParser
-from utils import logger
+from .utils.package_parser import AccessLogFileParser
+from .utils import logger
 
 log = logger.setup(name="access_log_parser", format="| %(levelname)-5s | %(message)s")
 

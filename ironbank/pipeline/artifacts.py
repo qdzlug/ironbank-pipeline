@@ -5,13 +5,13 @@ import requests
 import boto3
 from urllib.parse import urlparse
 from requests.auth import HTTPBasicAuth
-from utils import logger
+from .utils import logger
 from dataclasses import dataclass
 from base64 import b64decode
 from typing import Union
-from utils.decorators import request_retry
-from utils.exceptions import InvalidURLList
-from abstract_artifacts import (
+from .utils.decorators import request_retry
+from .utils.exceptions import InvalidURLList
+from .abstract_artifacts import (
     AbstractArtifact,
     AbstractFileArtifact,
 )

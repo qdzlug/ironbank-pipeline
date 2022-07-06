@@ -2,8 +2,8 @@ from dataclasses import dataclass
 import requests
 import os
 
-from utils import logger
-from utils.decorators import request_error_handler
+from .utils import logger
+from .utils.decorators import request_error_handler
 
 
 @dataclass

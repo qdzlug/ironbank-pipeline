@@ -2,7 +2,7 @@ import re
 import json
 import os
 from abc import ABC, abstractmethod
-from utils import logger
+from ironbank.pipeline.utils import logger
 from .types import FileParser, Package
 from pathlib import Path
 from typing import Optional
