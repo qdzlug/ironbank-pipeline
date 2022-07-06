@@ -3,7 +3,6 @@ import os
 import sys
 import pathlib
 import pytest
-import dockerfile
 from pathlib import Path
 import requests
 from unittest.mock import patch, mock_open, Mock
@@ -27,8 +26,20 @@ def mock_vulnerability_resp():
         "vulnerabilities": [
         {
             "namespace": "rhel:8",
+            "affected_packages": "These are affected",
             "description": "this is a description",
-            "affected_packages": "These are affected"
+        },
+        ]
+    }
+
+@pytest.fixture
+def mock_vulnerability_resp_no_desc():
+    return {
+        "vulnerabilities": [
+        {
+            "namespace": "rhel:8",
+            "affected_packages": "All of them",
+            "description": None,
         },
         ]
     }
@@ -36,12 +47,9 @@ def mock_vulnerability_resp():
 @pytest.fixture
 def mock_vulnerability():
     return {
-        "vulnerabilities": [
-        {
+        "vuln": "CVE-3022-12345",
         "feed_group": "rhel:8",
         "description": "this is a description",
-        },
-        ]
     }
 
 
@@ -91,3 +99,12 @@ def test_get_version(monkeypatch, caplog):
     assert "Anchore Enterprise Version: 4.0.2" in caplog.text
     caplog.clear
 
+
+def test_get_extra_vuln_data(monkeypatch, mock_vulnerability_resp, mock_vulnerability, mock_vulnerability_resp_no_desc):
+    monkeypatch.setattr(Anchore, "_get_anchore_api_json", lambda *args, **kwargs: mock_vulnerability_resp)
+
+    anchore_object = Anchore(url="http://test.anchore.dso.mil", username="test", password="test", verify=False)
+    assert anchore_object._get_extra_vuln_data(mock_vulnerability) == {"vuln_data": mock_vulnerability_resp["vulnerabilities"][0]}
+
+    monkeypatch.setattr(Anchore, "_get_anchore_api_json", lambda *args, **kwargs: mock_vulnerability_resp_no_desc)
+    assert anchore_object._get_extra_vuln_data(mock_vulnerability) == {"vuln_data": mock_vulnerability_resp_no_desc["vulnerabilities"][0]}
