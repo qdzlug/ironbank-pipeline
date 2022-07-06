@@ -64,7 +64,7 @@ class Anchore:
         except JSONDecodeError:
             raise Exception("Got 200 response but is not valid JSON")
 
-    def __get_parent_sha(self, digest):
+    def _get_parent_sha(self, digest):
         """
         Fetch the ancestry and look for the immediate parent digest
 
@@ -101,7 +101,7 @@ class Anchore:
         with filename.open(mode="w") as f:
             json.dump(version_json["service"]["version"], f)
 
-    def __get_extra_vuln_data(self, vulnerability):
+    def _get_extra_vuln_data(self, vulnerability):
         """
         Grab extra vulnerability data
 
@@ -141,7 +141,7 @@ class Anchore:
         logging.info("Getting vulnerability results")
 
         # Fetch the immediate parent digest if available
-        parent_digest = self.__get_parent_sha(digest)
+        parent_digest = self._get_parent_sha(digest)
 
         if parent_digest:
             url = f"{self.url}/enterprise/images/{digest}/vuln/all?base_digest={parent_digest}"
@@ -170,7 +170,7 @@ class Anchore:
 
         # Add the extra vuln details
         for i in range(len(vuln_dict["vulnerabilities"])):
-            extra = self.__get_extra_vuln_data(vuln_dict["vulnerabilities"][i])
+            extra = self._get_extra_vuln_data(vuln_dict["vulnerabilities"][i])
             try:
                 vuln_dict["vulnerabilities"][i]["extra"] = extra["vuln_data"]
             except KeyError:
@@ -193,7 +193,7 @@ class Anchore:
         logging.info("Getting compliance results")
 
         # Fetch the immediate parent digest if available
-        parent_digest = self.__get_parent_sha(digest)
+        parent_digest = self._get_parent_sha(digest)
 
         if parent_digest:
             url = f"{self.url}/enterprise/images/{digest}/check?tag={image}&detail=true&base_digest={parent_digest}"
