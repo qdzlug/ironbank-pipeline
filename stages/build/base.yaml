@@ -1,7 +1,6 @@
 # IMPORTANT: The name of this stage/job is must not be changed from "build" without first reconfiguring runners in the bootstrap
 build:
   stage: build
-  image: "registry1.dso.mil/ironbank/ironbank-pipelines/rootless-podman:0.5"
   dependencies:
     - import-artifacts
     - load-scripts

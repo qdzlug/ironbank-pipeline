@@ -65,6 +65,10 @@ if [ ! -z "${DISTRO_REPO_DIR:-}" ]; then
   echo "${PWD}/${PIPELINE_REPO_DIR}/stages/build/${DISTRO_REPO_DIR}:${DISTRO_REPO_MOUNT}" >>"${HOME}"/.config/containers/mounts.conf
 fi
 
+# add overrides for ruby gem support
+echo "${PWD}/${PIPELINE_REPO_DIR}/stages/build/ruby/.ironbank-gemrc:.ironbank-gemrc" >>"${HOME}"/.config/containers/mounts.conf
+echo "${PWD}/${PIPELINE_REPO_DIR}/stages/build/ruby/bundler-conf:.bundle/config" >>"${HOME}"/.config/containers/mounts.conf
+
 # Set up ARG(s) in Dockerfile to recieve the buildah bud --build-arg so that the container owner won't have to deal with it.
 # These will not persist and will only be available to the build process.
 # buildah bud ignores this requirement for http/ftp/no proxy envvars, but we're required to do this for anything else.
@@ -92,6 +96,8 @@ env -i BUILDAH_ISOLATION=chroot PATH="$PATH" buildah bud \
   --build-arg=GOSUMDB="sum.golang.org http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/gosum" \
   --build-arg=PIP_INDEX_URL="http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/pypi/simple/" \
   --build-arg=PIP_TRUSTED_HOST="nexus-repository-manager.nexus-repository-manager.svc.cluster.local" \
+  --build-arg=NPM_CONFIG_REGISTRY="http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/npmproxy/" \
+  --build-arg=GEMRC=".ironbank-gemrc" \
   $label_parameters \
   --label=maintainer="ironbank@dsop.io" \
   --label=org.opencontainers.image.created="$(date --rfc-3339=seconds)" \
