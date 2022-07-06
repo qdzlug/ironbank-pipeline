@@ -12,7 +12,7 @@ csv-output:
     # Put generated csv report in the scan-results folder
     CSV_REPORT: "${ARTIFACT_STORAGE}/scan-results/csvs"
   script:
-    - 'pip install "${PIPELINE_REPO_DIR}"'
+    - 'pip install --user "${PIPELINE_REPO_DIR}"'
     - '"${PIPELINE_REPO_DIR}/stages/csv-output/csv-output.sh"'
   artifacts:
     when: always

@@ -22,7 +22,7 @@ vat:
     OPENSCAP_ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/twistlock/"
   script:
     - 'mkdir -p "${ARTIFACT_DIR}"'
-    - 'pip install "${PIPELINE_REPO_DIR}"'
+    - 'pip install --user "${PIPELINE_REPO_DIR}"'
     - '"${PIPELINE_REPO_DIR}/stages/vat/vat-run-api.sh"'
   artifacts:
     when: always

@@ -14,5 +14,5 @@ parse-sbom-access-log:
     SBOM_DIR: "${ARTIFACT_STORAGE}/sbom"
     ACCESS_LOG_DIR: "${ARTIFACT_STORAGE}/build"
   script:
-    - 'pip install "${PIPELINE_REPO_DIR}"'
+    - 'pip install --user "${PIPELINE_REPO_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/sbom-access-log/sbom_access_log_parser.py" --allow-errors "${SBOM_DIR}/sbom-json.json" "${ACCESS_LOG_DIR}/access_log"'
