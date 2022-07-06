@@ -11,13 +11,17 @@ import dockerfile
 from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.file_parser import DockerfileParser
 from ironbank.pipeline.utils.exceptions import DockerfileParseError
+from ironbank.pipeline.test.mocks.mock_classes import (
+    MockProject,
+    MockHardeningManifest,
+)
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from mocks.mock_classes import MockProject, MockHardeningManifest  # noqa E402
 import dockerfile_validation  # noqa E402
 
 mock_path = pathlib.Path(
-    pathlib.Path(__file__).absolute().parent.parent.parent.parent, "mocks"
+    pathlib.Path(__file__).absolute().parent.parent.parent.parent,
+    "ironbank/pipeline/test/mocks",
 )
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
