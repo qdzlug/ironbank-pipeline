@@ -22,6 +22,12 @@ class MockResponse:
     def json(self):
         return {"status_code": self.status_code, "text": self.text}
 
+@dataclass
+class MockInvalidJson(MockResponse):
+
+    def json(self):
+        raise requests.JSONDecodeError
+
 
 @pytest.fixture(scope="module")
 def mock_responses():
@@ -46,6 +52,9 @@ def mock_responses():
     def mockRuntimeError(*args, **kwargs):
         raise RuntimeError
 
+    def mockJsonDecodeError(*args, **kwargs):
+        return MockInvalidJson(200, "")
+
     return {
         "200": mock200,
         "400": mock400,
@@ -54,4 +63,5 @@ def mock_responses():
         "500": mock500,
         "requestException": mockRequestException,
         "runtimeError": mockRuntimeError,
+        "jsonDecodeError": mockJsonDecodeError,
     }

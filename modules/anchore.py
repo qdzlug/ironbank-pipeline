@@ -28,7 +28,7 @@ class Anchore:
         self.password = password
         self.verify = verify
 
-    def __get_anchore_api_json(self, url, payload="", ignore404=False):
+    def _get_anchore_api_json(self, url, payload="", ignore404=False):
         """
         Internal api response fetcher. Will check for a valid return code and
         ensure the response has valid json. Once everything has been validated
@@ -71,7 +71,7 @@ class Anchore:
         Use the ignore404 flag when fetching the ancestry from the API to mitigate
         the pipeline failing hard when ancestry is not available.
         """
-        ancestry = self.__get_anchore_api_json(
+        ancestry = self._get_anchore_api_json(
             f"{self.url}/enterprise/images/{digest}/ancestors",
             ignore404=True,
         )
@@ -92,7 +92,7 @@ class Anchore:
         """
         logging.info("Getting Anchore version")
         url = f"{self.url}/version"
-        version_json = self.__get_anchore_api_json(url)
+        version_json = self._get_anchore_api_json(url)
         logging.info(
             f"Anchore Enterprise Version: {version_json['service']['version']}"
         )
@@ -112,7 +112,7 @@ class Anchore:
         extra = dict()
         description = "none"
 
-        resp = self.__get_anchore_api_json(url=url)
+        resp = self._get_anchore_api_json(url=url)
 
         for vuln in resp["vulnerabilities"]:
             if vuln["description"]:
@@ -148,7 +148,7 @@ class Anchore:
         else:
             url = f"{self.url}/enterprise/images/{digest}/vuln/all"
 
-        vuln_dict = self.__get_anchore_api_json(url)
+        vuln_dict = self._get_anchore_api_json(url)
         vuln_dict["imageFullTag"] = image
 
         for vulnerability in vuln_dict["vulnerabilities"]:
@@ -159,7 +159,7 @@ class Anchore:
                 vulndb_request_url = re.sub(
                     "http://([a-z-_0-9:]*)/v1", self.url, vulnerability["url"]
                 )
-                vulndb_dict = self.__get_anchore_api_json(vulndb_request_url)
+                vulndb_dict = self._get_anchore_api_json(vulndb_request_url)
                 for vulndb_vuln in vulndb_dict["vulnerabilities"]:
                     vulnerability["url"] = vulndb_vuln["references"]
 
@@ -200,7 +200,7 @@ class Anchore:
         else:
             url = f"{self.url}/enterprise/images/{digest}/check?tag={image}&detail=true"
 
-        body_json = self.__get_anchore_api_json(url)
+        body_json = self._get_anchore_api_json(url)
 
         # Save the API response
         filename = pathlib.Path(artifacts_path, "anchore_api_gates_full.json")
