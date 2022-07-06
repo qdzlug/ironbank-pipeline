@@ -2,8 +2,6 @@
 
 import pathlib
 import subprocess
-import sys
-import os
 import pytest
 import requests
 from dataclasses import dataclass
@@ -20,9 +18,7 @@ from ironbank.pipeline.artifacts import (
     ContainerArtifact,
     GithubArtifact,
 )
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from mocks.mock_responses import mock_responses  # noqa E402 W0611
+from mocks.mock_responses import mock_responses  # noqa W0611
 
 
 log = logger.setup("test_abstract_artifacts")

@@ -5,7 +5,7 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import Optional
 
-from utils import logger
+from ironbank.pipeline.utils import logger
 
 
 @dataclass

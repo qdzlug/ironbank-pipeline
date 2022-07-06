@@ -15,8 +15,8 @@ sys.path.append(
     )
 )
 
-from project import DsopProject  # noqa: E402
-from utils import logger  # noqa: E402
+from ironbank.pipeline.project import DsopProject  # noqa: E402
+from ironbank.pipeline.utils import logger  # noqa: E402
 
 log = logger.setup(name="lint.trufflehog")
 

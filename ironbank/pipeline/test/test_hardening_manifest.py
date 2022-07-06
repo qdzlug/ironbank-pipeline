@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
+
 import multiprocessing
-import sys
 import os
 import logging
 import pytest
@@ -11,19 +11,13 @@ import time
 import jsonschema
 from unittest.mock import patch, mock_open, Mock
 from dataclasses import dataclass
-
-sys.path.append(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
+from ironbank.pipeline.hardening_manifest import HardeningManifest  # noqa E402
 
 from mocks.mock_classes import MockHardeningManifest  # noqa E402
-from hardening_manifest import HardeningManifest  # noqa E402
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
 
-mock_path = pathlib.Path(
-    pathlib.Path(__file__).absolute().parent.parent.parent, "mocks"
-)
+mock_path = pathlib.Path(pathlib.Path(__file__).absolute().parent, "mocks")
 
 
 @dataclass

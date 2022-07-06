@@ -6,9 +6,7 @@ import pytest
 from dataclasses import dataclass
 import pathlib
 from unittest.mock import mock_open
-
 from ironbank.pipeline.abstract_artifacts import AbstractArtifact, AbstractFileArtifact
-
 from ironbank.pipeline.utils import logger
 
 log = logger.setup("test_abstract_artifacts")

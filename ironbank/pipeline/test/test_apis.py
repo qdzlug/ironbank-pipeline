@@ -1,15 +1,10 @@
 #!/usr/bin/env python3
 
 import os
-import sys
 from unittest import mock
 import pytest
 import requests
 from ironbank.pipeline.apis import API, VatAPI
-
-sys.path.append(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
 from mocks.mock_responses import mock_responses  # noqa W0611
 
 
