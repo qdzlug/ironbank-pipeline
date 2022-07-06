@@ -1,16 +1,13 @@
+#!/usr/bin/env python3
+
 import os
 import sys
 import asyncio
 
-sys.path.append(
-    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
-)
-
-
-from project import DsopProject  # noqa E402
-from utils import logger  # noqa: E402
-from apis import VatAPI  # noqa: E402
-from hardening_manifest import HardeningManifest  # noqa: E402
+from ironbank.pipeline.project import DsopProject
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.apis import VatAPI
+from ironbank.pipeline.hardening_manifest import HardeningManifest
 
 log = logger.setup(name="lint.pipeline_auth_status")
 

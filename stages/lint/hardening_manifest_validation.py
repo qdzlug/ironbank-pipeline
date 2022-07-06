@@ -1,16 +1,12 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
+
 import sys
-import os
 from pathlib import Path
 import asyncio
 
-sys.path.append(
-    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
-)
-
-from project import DsopProject  # noqa: E402
-from utils import logger  # noqa: E402
-from hardening_manifest import HardeningManifest  # noqa: E402
+from ironbank.pipeline.project import DsopProject
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.hardening_manifest import HardeningManifest
 
 log = logger.setup(name="lint.metadata")
 
