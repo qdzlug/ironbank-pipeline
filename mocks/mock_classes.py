@@ -2,7 +2,9 @@ from dataclasses import dataclass, field
 import sys
 import os
 
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), "modules"))
+sys.path.append(
+    os.path.join(os.path.dirname(os.path.dirname(__file__)), "ironbank/pipeline")
+)
 
 from hardening_manifest import HardeningManifest  # noqa: E402
 from project import DsopProject  # noqa: E402
