@@ -139,7 +139,7 @@ class ContainerArtifact(AbstractArtifact):
     def download(self):
         # prevent failing when running locally due to file already existing
         if self.artifact_path.exists():
-            self.log.warn("Found existing container artifact, deleting file")
+            self.log.warning("Found existing container artifact, deleting file")
             self.delete_artifact()
 
         self.log.info(f"Pulling {self.url}")
