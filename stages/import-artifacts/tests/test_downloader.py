@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os
 import sys
 import pytest
@@ -6,21 +8,19 @@ import pathlib
 from requests.exceptions import HTTPError
 from botocore.exceptions import ClientError
 from subprocess import CalledProcessError
-
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import downloader  # noqa E402
-from hardening_manifest import HardeningManifest  # noqa E402
-from project import DsopProject  # noqa E402
-from artifacts import (
+from ironbank.pipeline.hardening_manifest import HardeningManifest
+from ironbank.pipeline.project import DsopProject
+from ironbank.pipeline.artifacts import (
     S3Artifact,
     HttpArtifact,
     ContainerArtifact,
-)  # noqa E402
-from utils import logger  # noqa E402
-from utils.testing import raise_  # noqa E402
-from utils.exceptions import InvalidURLList  # noqa E402
+)
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.testing import raise_
+from ironbank.pipeline.utils.exceptions import InvalidURLList
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import downloader  # noqa E402
 
 log = logger.setup("test_downloader")
 

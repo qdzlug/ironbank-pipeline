@@ -105,6 +105,7 @@ unit-testing:
   stage: test
   script:
     - python3 -m pip install --user pytest-cov
+    - python3 -m pip install --user .
     - python3 -m pytest -m "not slow"
   coverage: '/^TOTAL.+?(\d+\%)$/'
   variables:
