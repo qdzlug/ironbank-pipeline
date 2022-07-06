@@ -8,7 +8,7 @@ from pathlib import Path
 import multiprocessing
 import time
 
-from .utils import logger
+from utils import logger
 
 # Keeping global until other methods get pulled into class in this file
 log = logger.setup(name="hardening_manifest")
