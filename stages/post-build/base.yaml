@@ -30,5 +30,4 @@ create-sbom:
     expire_in: 1 week
   image: "registry1.dso.mil/ironbank/anchore/engine/engine:1.0.0"
   script:
-    - 'pip install --user "${PIPELINE_REPO_DIR}"'
     - python3 "${PIPELINE_REPO_DIR}/stages/post-build/generate_sbom.py"
