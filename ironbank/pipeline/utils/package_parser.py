@@ -1,13 +1,9 @@
 import re
-import json
-import os
 from abc import ABC, abstractmethod
 from ironbank.pipeline.utils import logger
-from .types import FileParser, Package
-from pathlib import Path
+from ironbank.pipeline.utils.types import Package
 from typing import Optional
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 
 log = logger.setup(name="package_parser", format="| %(levelname)-5s | %(message)s")
 
@@ -69,64 +65,73 @@ class GoPackage(ParsedURLPackage):
 
 
 @dataclass(slots=True, frozen=True)
+class PypiPackage(ParsedURLPackage):
+    kind: str = field(init=False, default="python")
+
+    @classmethod
+    def parse(cls, url) -> Optional[Package]:
+        if url.startswith("simple/"):
+            return None
+
+        match = re.match(
+            r"^packages/(?P<name>[^/]+)/(?P<version>[^/]+)/(?P<filename>[^/]+)\.(?P<ext>tar\.gz|whl|tar\.gz\.asc|whl\.asc)$",
+            url,
+        )
+
+        if not match:
+            raise ValueError(f"Could not parse pypi URL: {url}")
+
+        return PypiPackage(
+            name=match.group("name"), version=match.group("version"), url=url
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class NpmPackage(ParsedURLPackage):
+    kind: str = field(init=False, default="npm")
+
+    @classmethod
+    def parse(cls, url) -> Optional[Package]:
+        if "/-/" not in url:
+            return None
+
+        match = re.match(
+            r"^(?P<name>[^/]+)/-/\1-(?P<version>.*)\.tgz$",
+            url,
+        )
+
+        if not match:
+            raise ValueError(f"Could not parse npm URL: {url}")
+
+        return NpmPackage(
+            name=match.group("name"), version=match.group("version"), url=url
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class RubyGemPackage(ParsedURLPackage):
+    kind: str = field(init=False, default="rubygem")
+
+    @classmethod
+    def parse(cls, url) -> Optional[Package]:
+        if not url.startswith("gems/"):
+            return None
+
+        match = re.match(
+            r"^gems/(?P<name>[a-zA-Z0-9._-]+?)-(?P<version>\d[^-]+)(?:-(?:[^-\n]+))*.gem$",
+            url,
+        )
+
+        if not match:
+            raise ValueError(f"Could not parse rubygem URL: {url}")
+
+        return RubyGemPackage(
+            name=match.group("name"), version=match.group("version"), url=url
+        )
+
+
+@dataclass(slots=True, frozen=True)
 class NullPackage(ParsedURLPackage):
     @classmethod
     def parse(cls, url) -> None:
         return None
-
-
-class AccessLogFileParser(FileParser):
-    @classmethod
-    def parse(cls, file) -> list[Package]:
-        repos = json.load(open(os.environ["ACCESS_LOG_REPOS"], "r"))
-        packages: list[Package] = []
-        # TODO make this an environment variable
-        nexus_host = "http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/"
-        nexus_re = re.compile(
-            f"({re.escape(nexus_host)})(?P<repo_type>[^/]+)/(?P<url>.*)"
-        )
-
-        log.info("Access log parser started")
-        access_log = Path(file).open("r")
-        log.info("File successfully read")
-        line_count = 0
-
-        with access_log:
-            for line in access_log.readlines():
-                line_count += 1
-
-                line = line.rstrip("\n")
-
-                if not line.startswith("200"):
-                    continue
-
-                # split on spaces and get the url
-                url = line.split(" ")[-1]
-
-                # match against the nexus repo regex
-                re_match = nexus_re.match(url)
-
-                if not re_match:
-                    raise ValueError(f"Could not parse URL: {url}")
-
-                repo_type = re_match.group("repo_type")
-
-                # get repository from list
-                if repo_type not in repos:
-                    raise ValueError(f"Repository type not supported: {repo_type}")
-
-                # call desired parser function
-                match repos[repo_type]:
-                    case "gosum":
-                        package = NullPackage.parse(re_match.group("url"))
-                    case "go":
-                        package = GoPackage.parse((re_match.group("url")))
-                    case "yum":
-                        package = YumPackage.parse((re_match.group("url")))
-
-                if package:
-                    packages.append(package)
-                    log.info(f"Parsed package: {package}")
-
-        log.info("access_log successfully parsed")
-        return packages
