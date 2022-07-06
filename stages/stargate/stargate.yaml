@@ -18,6 +18,7 @@ stargate:
     - 'echo "${IB_CONTAINER_GPG_KEY}" | base64 -d >key'
     - 'echo "${IB_CONTAINER_GPG_PUBKEY}" >key.pub'
     - 'gpg --import --batch --pinentry-mode loopback --passphrase "${IB_CONTAINER_SIG_KEY_PASSPHRASE}" key'
+    - 'pip install "${PIPELINE_REPO_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/stargate/stargate_artifact_push.py"'
   artifacts:
     paths:
