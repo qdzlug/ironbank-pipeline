@@ -2,10 +2,10 @@
 name = "ibmodules"
 version = "0.1.0"
 description = ""
-authors = ["Kenneth Maguire <kenneth.maguire.ctr@us.af.mil>"]
+authors = ["Iron Bank Pipelines and Operations <ironbank@dsop.io>"]
 
 packages = [
-    { include = "ibmodules" }
+    { include = "ironbank" }
 ]
 
 [tool.poetry.dependencies]
@@ -16,13 +16,13 @@ gitpython = "^3.1.27"
 jsonschema = "^4.6.0"
 openpyxl = "^3.0.10"
 pandas = "^1.4.2"
-pytest = "^7.1.2"
 python-gitlab = "^3.5.0"
 pyyaml = "^6.0"
 requests = "^2.27.1"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
+pytest = "^7.1.2"
+pytest-cov = "^3.0.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
