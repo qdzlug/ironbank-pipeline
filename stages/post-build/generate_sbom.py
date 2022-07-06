@@ -1,14 +1,9 @@
 #!/usr/bin/env python3
 
 import os
-import sys
 import logging
 
-sys.path.append(
-    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
-)
-
-from anchore import Anchore  # noqa: E402
+from ironbank.pipeline.anchore import Anchore
 
 
 def main() -> None:

@@ -29,6 +29,7 @@ upload-to-s3:
     - write-json-docs
     - vat
   script:
+    - 'pip install "${PIPELINE_REPO_DIR}"'
     - '"${PIPELINE_REPO_DIR}/stages/s3/upload-to-s3-run.sh"'
   artifacts:
     paths:

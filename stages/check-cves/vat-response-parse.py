@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
+
 import subprocess
 import json
 import sys
 import os
 import logging
 
-sys.path.append(
-    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
-)
-
-from vat_container_status import is_approved  # noqa E402
+from ironbank.pipeline.vat_container_status import is_approved  # noqa E402
 
 
 def main():

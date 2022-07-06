@@ -1,14 +1,11 @@
-import os
+#!/usr/bin/env python3
+
 import sys
 import argparse
 
-sys.path.append(
-    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
-)
-
-from utils import logger  # noqa: E402
-from utils.types import Package  # noqa: E402
-from file_parser import AccessLogFileParser, SbomFileParser  # noqa: E402
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.types import Package
+from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
 
 log = logger.setup(
     name="sbom_access_log_parser", format="| %(levelname)-5s | %(message)s"
