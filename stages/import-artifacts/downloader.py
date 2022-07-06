@@ -53,7 +53,7 @@ def main():
             elif github_current in netloc:
                 artifact = GithubArtifact(**resource)
             elif github_deprecated in netloc:
-                log.warn(
+                log.warning(
                     "{github_deprecated} has been deprecated. Please switch to {github_current} when possible."
                 )
                 artifact = GithubArtifact(**resource)
