@@ -7,7 +7,6 @@ anchore-scan:
     ANCHORE_SCANS: "${ARTIFACT_STORAGE}/scan-results/anchore"
   image: "registry1.dso.mil/ironbank/anchore/cli/cli:0.9.4"
   script:
-    - 'pip install --user "${PIPELINE_REPO_DIR}"'
     - python3 "${PIPELINE_REPO_DIR}/stages/scanning/anchore/anchore_scan.py"
   artifacts:
     when: always
