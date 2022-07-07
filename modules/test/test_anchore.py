@@ -76,6 +76,11 @@ def extra_data_vulnerability_resp():
         },
     }
 
+@pytest.fixture
+def compliance_data_resp():
+    with open("mocks/mock_anchore_compliance.json", "r") as f:
+        return json.load(f)
+
 def test_get_anchore_api(monkeypatch, mock_responses, caplog):
     monkeypatch.setattr(requests, "get", mock_responses["200"])
     anchore_object = Anchore(url="http://test.anchore.dso.mil", username="test", password="test", verify=False)
@@ -147,3 +152,15 @@ def test_get_vulns(monkeypatch, full_mock_vulnerability_resp, extra_data_vulnera
 
     monkeypatch.setattr(Anchore, "_get_extra_vuln_data", lambda *args, **kwargs:  {})
     anchore_object.get_vulns("sha256-104237896510837456108", "registry1.dso.mil", "./test-artifacts") == None
+
+def test_get_compliance(monkeypatch, compliance_data_resp):
+    monkeypatch.setattr(Anchore, "_get_parent_sha", lambda self, x: "sha256-123456789012345")
+    monkeypatch.setattr(Anchore, "_get_anchore_api_json", lambda *args, **kwargs: compliance_data_resp)
+    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data="data"))
+    monkeypatch.setattr(json, "dump", lambda x,y: None)
+
+    anchore_object = Anchore(url="http://test.anchore.dso.mil", username="test", password="test", verify=False)
+    assert anchore_object.get_compliance("sha256:c03fec26436653fd06149d2ced7e63fb53bf97fe7270c0cdf928ff19412d7f91", "registry1.dso.mil/ironbank-staging/google/distroless/static:ibci-873812", "./test-artifacts") == None
+
+    monkeypatch.setattr(Anchore, "_get_parent_sha", lambda self, x: None)
+    assert anchore_object.get_compliance("sha256:c03fec26436653fd06149d2ced7e63fb53bf97fe7270c0cdf928ff19412d7f91", "registry1.dso.mil/ironbank-staging/google/distroless/static:ibci-873812", "./test-artifacts") == None
