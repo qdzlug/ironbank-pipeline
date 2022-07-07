@@ -8,7 +8,7 @@ from pathlib import Path
 from dataclasses import dataclass
 from utils.types import FileParser, Package
 from utils.exceptions import DockerfileParseError
-from utils.package_parser import GoPackage, YumPackage, PypiPackage, NullPackage
+from utils.package_parser import GoPackage, YumPackage, PypiPackage, NpmPackage, RubyGemPackage, NullPackage
 
 log = logger.setup(name="package_parser", format="| %(levelname)-5s | %(message)s")
 
@@ -60,6 +60,10 @@ class AccessLogFileParser(FileParser):
                         package = YumPackage.parse((re_match.group("url")))
                     case "pypi":
                         package = PypiPackage.parse((re_match.group("url")))
+                    case "npm":
+                        package = NpmPackage.parse((re_match.group("url")))
+                    case "rubygem":
+                        package = RubyGemPackage.parse((re_match.group("url")))
 
                 if package:
                     packages.append(package)
