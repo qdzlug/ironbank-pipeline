@@ -52,6 +52,29 @@ def mock_vulnerability():
         "description": "this is a description",
     }
 
+@pytest.fixture
+def full_mock_vulnerability_resp():
+    return {
+        "vulnerabilities": [
+        {
+            "namespace": "rhel:8",
+            "affected_packages": "These are affected",
+            "feed_group": "not-vulndb",
+            "description": "this is a description",
+            "extra": None
+        },
+        ]
+    }
+
+@pytest.fixture
+def extra_data_vulnerability_resp():
+    return {
+        "vuln_data": {
+            "namespace": "rhel:8",
+            "affected_packages": "All of them",
+            "description": None,
+        },
+    }
 
 def test_get_anchore_api(monkeypatch, mock_responses, caplog):
     monkeypatch.setattr(requests, "get", mock_responses["200"])
@@ -108,3 +131,19 @@ def test_get_extra_vuln_data(monkeypatch, mock_vulnerability_resp, mock_vulnerab
 
     monkeypatch.setattr(Anchore, "_get_anchore_api_json", lambda *args, **kwargs: mock_vulnerability_resp_no_desc)
     assert anchore_object._get_extra_vuln_data(mock_vulnerability) == {"vuln_data": mock_vulnerability_resp_no_desc["vulnerabilities"][0]}
+
+def test_get_vulns(monkeypatch, full_mock_vulnerability_resp, extra_data_vulnerability_resp):
+    monkeypatch.setattr(Anchore, "_get_parent_sha", lambda self, x: "sha256-123456789012345")
+    monkeypatch.setattr(Anchore, "_get_anchore_api_json", lambda *args, **kwargs: full_mock_vulnerability_resp)
+    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data="data"))
+    monkeypatch.setattr(json, "dump", lambda x,y: None)
+    monkeypatch.setattr(Anchore, "_get_extra_vuln_data", lambda self, x: extra_data_vulnerability_resp)
+
+    anchore_object = Anchore(url="http://test.anchore.dso.mil", username="test", password="test", verify=False)
+    assert anchore_object.get_vulns("sha256-104237896510837456108", "registry1.dso.mil", "./test-artifacts") == None
+
+    monkeypatch.setattr(Anchore, "_get_parent_sha", lambda self, x: None)
+    assert anchore_object.get_vulns("sha256-104237896510837456108", "registry1.dso.mil", "./test-artifacts") == None
+
+    monkeypatch.setattr(Anchore, "_get_extra_vuln_data", lambda *args, **kwargs:  {})
+    anchore_object.get_vulns("sha256-104237896510837456108", "registry1.dso.mil", "./test-artifacts") == None

@@ -153,6 +153,7 @@ class Anchore:
 
         for vulnerability in vuln_dict["vulnerabilities"]:
             # If VulnDB record found, retrive set of reference URLs associated with the record.
+            # TODO: VulnDB is no longer a part of Anchore. This code can be removed.
             if vulnerability["feed_group"] == "vulndb:vulnerabilities":
                 # "http://anchore-anchore-engine-api:8228/v1" or URL to replace may
                 #  need to be modified when changes to the Anchore installation occur
