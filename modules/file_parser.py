@@ -8,7 +8,14 @@ from pathlib import Path
 from dataclasses import dataclass
 from utils.types import FileParser, Package
 from utils.exceptions import DockerfileParseError
-from utils.package_parser import GoPackage, YumPackage, PypiPackage, NpmPackage, RubyGemPackage, NullPackage
+from utils.package_parser import (
+    GoPackage,
+    YumPackage,
+    PypiPackage,
+    NpmPackage,
+    RubyGemPackage,
+    NullPackage,
+)
 
 log = logger.setup(name="package_parser", format="| %(levelname)-5s | %(message)s")
 
