@@ -8,15 +8,8 @@ import yaml
 from typing import Optional
 from pathlib import Path
 
-
-sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "ironbank/pipeline"
-    )
-)
-
-from project import DsopProject  # noqa: E402
-from utils import logger  # noqa: E402
+from ironbank.pipeline.project import DsopProject
+from ironbank.pipeline.utils import logger
 
 log = logger.setup(name="lint.trufflehog")
 
