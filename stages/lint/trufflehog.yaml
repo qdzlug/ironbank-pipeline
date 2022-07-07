@@ -1,6 +1,6 @@
 trufflehog:
   stage: lint
-  image: registry1.dso.mil/ironbank-staging/opensource/trufflehog/trufflehog3:3.0.5
+  image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.5
   variables:
     # This forces the trufflehog job to NOT perform a shallow clone
     GIT_DEPTH: 0

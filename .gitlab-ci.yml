@@ -20,6 +20,7 @@ trufflehog:
     # This forces the trufflehog job to NOT perform a shallow clone
     GIT_DEPTH: 0
   script:
+    - python3 -m pip install --user .
     - python3 stages/lint/trufflehog.py
 
 shellcheck:
