@@ -35,10 +35,8 @@ def main():
     logging.debug(f"EXIT CODE returned from is_approved function: {exit_code}")
     logging.debug(f"Accreditation Status: {accreditation_status}")
     logging.debug(f"Accreditation Comments: {accreditation_comments}")
-    if exit_code == 0:
-        logging.info("This pipeline passed the Check CVEs job")
-    else:
-        logging.error("This pipeline failed the Check CVEs job")
+    if exit_code != 0:
+        logging.debug("Error: This pipeline failed the Check CVEs job")
         if os.environ["CI_COMMIT_BRANCH"] == "master":
             subprocess.run(
                 [
