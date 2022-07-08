@@ -6,7 +6,7 @@ import sys
 import os
 import logging
 
-from ironbank.pipeline.vat_container_status import is_approved  # noqa E402
+from ironbank.pipeline.vat_container_status import is_approved
 
 
 def main():
