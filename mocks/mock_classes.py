@@ -16,7 +16,11 @@ class MockProject(DsopProject):
 
 @dataclass
 class MockHardeningManifest(HardeningManifest):
-    base_image_name: str = "example"
-    base_image_tag: str = "1.0"
+    image_name: str = "example"
+    image_tag: str = "1.0"
+    base_image_name: str = "base_example"
+    base_image_tag: str = "2.0"
+    args: dict = field(default_factory=lambda: {"a": "b", "c": "d"})
+    labels: dict = field(default_factory=lambda: {"very": "cool", "wow": "awesome"})
     resources: list[str] = field(default_factory=list)
     maintainers: list[str] = field(default_factory=list)

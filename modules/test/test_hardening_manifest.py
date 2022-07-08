@@ -356,3 +356,10 @@ def test_reject_invalid_maintainers(monkeypatch, caplog):
     assert mock_hm.reject_invalid_maintainers() == ["example", "example", "example"]
     assert "FIXME found in example" in caplog.text
     caplog.clear()
+
+
+@pytest.mark.only
+def test_create_env_var_artifacts(monkeypatch):
+    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data="data"))
+    mock_hm = MockHardeningManifest()
+    assert mock_hm.create_env_var_artifacts(pathlib.Path("some_path")) == None
