@@ -28,6 +28,14 @@ class MockInvalidJson(MockResponse):
     def json(self):
         raise requests.JSONDecodeError
 
+@dataclass
+class MockAnchoreResponse:
+    returncode: int
+    text: str
+    content: str = "example"
+    stderr: str = "canned_error"
+    stdout: str = "It broke"
+
 
 @pytest.fixture(scope="module")
 def mock_responses():
@@ -46,6 +54,15 @@ def mock_responses():
     def mock500(*args, **kwargs):
         return MockResponse(500, "server_ded")
 
+    def mock0(*args, **kwargs):
+        return MockAnchoreResponse(0, "successful")
+
+    def mock1(*args, **kwargs):
+        return MockAnchoreResponse(1, "exists")
+
+    def mock2(*args, **kwargs):
+        return MockAnchoreResponse(2, "other_error")
+
     def mockRequestException(*args, **kwargs):
         raise requests.exceptions.RequestException
 
@@ -61,6 +78,9 @@ def mock_responses():
         "403": mock403,
         "404": mock404,
         "500": mock500,
+        "0": mock0,
+        "1": mock1,
+        "2": mock2,
         "requestException": mockRequestException,
         "runtimeError": mockRuntimeError,
         "jsonDecodeError": mockJsonDecodeError,

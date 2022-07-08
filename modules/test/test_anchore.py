@@ -1,5 +1,7 @@
 import json
+from operator import sub
 import os
+import subprocess
 import sys
 import pathlib
 import pytest
@@ -164,3 +166,34 @@ def test_get_compliance(monkeypatch, compliance_data_resp):
 
     monkeypatch.setattr(Anchore, "_get_parent_sha", lambda self, x: None)
     assert anchore_object.get_compliance("sha256:c03fec26436653fd06149d2ced7e63fb53bf97fe7270c0cdf928ff19412d7f91", "registry1.dso.mil/ironbank-staging/google/distroless/static:ibci-873812", "./test-artifacts") == None
+
+
+def test_image_add(monkeypatch, mock_responses, caplog):
+    monkeypatch.setattr(pathlib.Path, "is_file", lambda _: True)
+    monkeypatch.setattr(subprocess, "run", mock_responses["0"])
+    monkeypatch.setattr(json, "loads", lambda *args, **kwargs: [{"imageDigest": "sha256-12345678910"}])
+
+    anchore_object = Anchore(url="http://test.anchore.dso.mil", username="test", password="test", verify=False)
+    assert anchore_object.image_add("image.dso.mil/imagename/tag") == "sha256-12345678910"
+
+    monkeypatch.setattr(subprocess, "run", mock_responses["1"])
+    monkeypatch.setattr(json, "loads", lambda *args, **kwargs: {"detail": {"digest": "sha256-12345678910"}})
+    assert anchore_object.image_add("image.dso.mil/imagename/tag") == "sha256-12345678910"
+    assert "already exists in Anchore. Pulling current scan data." in caplog.text
+    caplog.clear()
+
+    with pytest.raises(SystemExit):
+        monkeypatch.setattr(subprocess, "run", mock_responses["2"])
+        monkeypatch.setattr(json, "loads", lambda *args, **kwargs: {"detail": {"digest": "sha256-12345678910"}})
+        anchore_object.image_add("image.dso.mil/imagename/tag")
+        assert "canned_error" in caplog.text
+    caplog.clear()
+
+
+def test_image_wait():
+    pass
+
+def test_generate_sbom(monkeypatch, mock_responses):
+    monkeypatch.setattr(subprocess, "run", mock_responses["0"])
+    anchore_object = Anchore(url="http://test.anchore.dso.mil", username="test", password="test", verify=False)
+    assert anchore_object.generate_sbom("image.dso.mil/imagename/tag", "./test-artifacts", "spdx", "json") == None
