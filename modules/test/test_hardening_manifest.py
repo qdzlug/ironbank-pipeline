@@ -9,6 +9,7 @@ import json
 import yaml
 import time
 import jsonschema
+import hardening_manifest
 from unittest.mock import patch, mock_open, Mock
 from dataclasses import dataclass
 
@@ -76,6 +77,20 @@ def mock_good_labels():
         "mil.dso.ironbank.product.name": "UBI8-minimal",
     }
 
+@pytest.fixture
+def mock_labels_missing_keywords():
+    return {
+        "org.opencontainers.image.title": "ubi8-minimal",
+        "org.opencontainers.image.description": "Red Hat Universal Base Images (UBI) \
+            are OCI-compliant container base operating system images with complementary \
+            runtime languages and packages that are freely redistributable.",
+        "org.opencontainers.image.licenses": "Apache v2",
+        "org.opencontainers.image.url": "https://catalog.redhat.com/software/container-stacks/detail/5ec53f50ef29fd35586d9a56",  # noqa: E501
+        "org.opencontainers.image.vendor": "Red Hat",
+        "org.opencontainers.image.version": "8.3",
+        "mil.dso.ironbank.image.type": "commercial",
+        "mil.dso.ironbank.product.name": "UBI8-minimal",
+    }
 
 @pytest.fixture
 def mock_bad_labels():
@@ -164,19 +179,59 @@ def mock_empty():
     return {"none": mock_none, "arr": mock_empty_arr, "str": mock_empty_str}
 
 
-def test_init(monkeypatch, caplog):
+@pytest.fixture
+def mock_hm_content():
+    return {
+        "apiVersion": "v1",
+        "name": "example/example/exampleimage",
+        "tags": ["8.6.7_5309", "latest"],
+        "args": {"BASE_IMAGE": "redhat/ubi/ubi8", "BASE_TAG": "8.5"},
+        "labels": {
+            "org.opencontainers.image.title": "exampleimage",
+            "org.opencontainers.image.description": "lengthy string words more words and even more words",
+            "org.opencontainers.image.licenses": "lol",
+            "org.opencontainers.image.url": "https://invalid.com",
+            "org.opencontainers.image.vendor": "Example Image",
+            "org.opencontainers.image.version": "8.6.7.5309",
+            "mil.dso.ironbank.image.keywords": "awesome,verycool,example",
+            "mil.dso.ironbank.image.type": "opensource",
+            "mil.dso.ironbank.product.name": "Example Image",
+        },
+        "resources": [
+            {
+                "tag": "registry.example_image.com/exampleimage:8.6.7_5309",
+                "url": "docker://registry.example_image.com/exampleimage@sha256:4d736d84721c8fa09d5b0f5988da5f34163d407d386cc80b62cbf933ea5124e8",
+            }
+        ],
+        "maintainers": [
+            {
+                "email": "vendor@example.com",
+                "name": "Vendor Person",
+                "username": "v_endor",
+            },
+            {
+                "name": "CHT Memeber",
+                "username": "cht_memeber",
+                "email": "cht_member@company.com",
+                "cht_member": True,
+            },
+        ],
+    }
+
+@pytest.mark.only
+def test_init(monkeypatch, caplog, mock_hm_content):
     def mock_validate(_):
         logging.info("validated")
 
     monkeypatch.setattr(HardeningManifest, "validate", mock_validate)
-    hm_path = pathlib.Path(
-        mock_path,
-        "mock_hardening_manifest.yaml",
-    )
-    HardeningManifest(hm_path)
+    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data=yaml.safe_dump(mock_hm_content)))
+    mock_hm = HardeningManifest("")
     assert "validated" not in caplog.text
+    assert mock_hm.image_name == mock_hm_content["name"]
+    assert mock_hm.image_tags == mock_hm_content["tags"]
+    assert mock_hm.image_tag == mock_hm_content["tags"][0]
     caplog.clear()
-    HardeningManifest(hm_path, validate=True)
+    HardeningManifest("", validate=True)
     assert "validated" in caplog.text
 
 
@@ -196,7 +251,6 @@ def test_validate(monkeypatch, caplog, hm, mock_empty):
     logging.info(caplog.text)
     assert "Checking for" in caplog.text
     caplog.clear()
-
 
 @patch.dict(os.environ, {"HM_VERIFY_TIMEOUT": "1"})
 def test_validate_schema_with_timeout(monkeypatch, caplog, hm):
@@ -363,3 +417,50 @@ def test_create_env_var_artifacts(monkeypatch):
     monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data="data"))
     mock_hm = MockHardeningManifest()
     assert mock_hm.create_env_var_artifacts(pathlib.Path("some_path")) == None
+
+@pytest.mark.only
+def test_create_tags_artifact(monkeypatch):
+    monkeypatch.setattr(pathlib.Path, "open", mock_open())
+    mock_hm = MockHardeningManifest()
+    assert mock_hm.create_tags_artifact(pathlib.Path("some_path")) == None
+
+@pytest.mark.only
+def test_create_keywords_artifact(monkeypatch, caplog, mock_labels_missing_keywords, mock_good_labels):
+    monkeypatch.setattr(pathlib.Path, "open", mock_open())
+    mock_hm = MockHardeningManifest(labels=mock_labels_missing_keywords)
+    mock_hm.create_keywords_artifact(pathlib.Path(""))
+    assert "Keywords field does not exist in hardening_manifest.yaml" in caplog.text
+    caplog.clear()
+    mock_hm = MockHardeningManifest(labels=mock_good_labels)
+    mock_hm.create_keywords_artifact(pathlib.Path(""))
+    assert "Keywords field does not exist in hardening_manifest.yaml" not in caplog.text
+    caplog.clear()
+
+@pytest.mark.only
+def test___repr__(monkeypatch, mock_hm_content):
+    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data=yaml.safe_dump(mock_hm_content)))
+    mock_hm = HardeningManifest("")
+    logging.info(repr(mock_hm))
+    assert repr(mock_hm) == f"{mock_hm.image_name}:{mock_hm.image_tag}"
+
+@pytest.mark.only
+def test___str__(monkeypatch, mock_hm_content):
+    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data=yaml.safe_dump(mock_hm_content)))
+    mock_hm = HardeningManifest("")
+    assert str(mock_hm) == f"{mock_hm.image_name}:{mock_hm.image_tag}"
+
+@pytest.mark.only
+def test_source_values(monkeypatch, caplog):
+    def mock_exists_false(x):
+        return False
+    def mock_exists_true(x):
+        return True
+    def mock_open(x):
+        return ["fail", "success", "success"]
+    monkeypatch.setattr(os.path, "exists", mock_exists_false)
+    hardening_manifest.source_values("", "whatever")
+    assert "does not exist" in caplog.text
+    # monkeypatch.setattr(os.path, "exists", mock_exists_true)
+    # monkeypatch.setattr(__buildin__, "open", mock_open)
+    # hardening_manifest.source_values("", "success")
+    # assert "Number of success detected: 2" in caplog.text

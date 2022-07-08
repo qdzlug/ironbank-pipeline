@@ -20,6 +20,8 @@ class HardeningManifest:
         self.hm_path: Path = Path(hm_path)
         self.schema_path: Path = Path(schema_path)
         with self.hm_path.open("r") as f:
+            log.info(type(f))
+            log.info(f)
             tmp_content: dict = yaml.safe_load(f)
         self.image_name: str = tmp_content.get("name", "")
         # validation done in hardening manifest schema
