@@ -474,13 +474,10 @@ def test_source_values(monkeypatch, caplog):
     def mock_exists_true(x):
         return True
 
-    def mock_open(x):
-        return ["fail", "success", "success"]
-
     monkeypatch.setattr(os.path, "exists", mock_exists_false)
     hardening_manifest.source_values("", "whatever")
     assert "does not exist" in caplog.text
-    # monkeypatch.setattr(os.path, "exists", mock_exists_true)
-    # monkeypatch.setattr(__buildin__, "open", mock_open)
-    # hardening_manifest.source_values("", "success")
-    # assert "Number of success detected: 2" in caplog.text
+    monkeypatch.setattr(os.path, "exists", mock_exists_true)
+    monkeypatch.setattr(pathlib.Path, "open", mock_open)
+    hardening_manifest.source_values("", "success")
+    assert "Number of success detected: 2" in caplog.text

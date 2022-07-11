@@ -20,8 +20,6 @@ class HardeningManifest:
         self.hm_path: Path = Path(hm_path)
         self.schema_path: Path = Path(schema_path)
         with self.hm_path.open("r") as f:
-            log.info(type(f))
-            log.info(f)
             tmp_content: dict = yaml.safe_load(f)
         self.image_name: str = tmp_content.get("name", "")
         # validation done in hardening manifest schema
@@ -224,7 +222,7 @@ def source_values(source_file, key) -> list:
     num_vals = 0
     val_list = []
     if os.path.exists(source_file):
-        with open(source_file, mode="r", encoding="utf-8") as sf:
+        with Path(source_file).open("r") as sf:
             for line in sf:
                 val_entry = line.strip()
                 val_list.append(val_entry)
