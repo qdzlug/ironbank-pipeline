@@ -221,8 +221,9 @@ class HardeningManifest:
 def source_values(source_file, key) -> list:
     num_vals = 0
     val_list = []
-    if os.path.exists(source_file):
-        with Path(source_file).open("r") as sf:
+    source_file_path = Path(source_file)
+    if source_file_path.exists():
+        with source_file_path.open("r") as sf:
             for line in sf:
                 val_entry = line.strip()
                 val_list.append(val_entry)

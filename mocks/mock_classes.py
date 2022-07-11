@@ -10,15 +10,30 @@ from pathlib import Path
 
 
 @dataclass
+class MockOpenArray:
+    mode: str = "r"
+
+    def __enter__(self):
+        return ["a", "b"]
+
+    def __exit__(self, values, something, somethingelse):
+        pass
+
+
+@dataclass
 class MockPath:
-    path: str = ""
+    path: str = "whatever"
+
+    def open(self, mode):
+        return MockOpenArray(mode)
 
     def exists(self):
-        return bool(self.path)
+        return False
 
 
 @dataclass
 class MockProject(DsopProject):
+
     example: str = MockPath("example_str")
     hardening_manifest_path: str = MockPath("example_path")
     license_path: str = MockPath("license")

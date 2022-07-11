@@ -17,7 +17,7 @@ sys.path.append(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
 
-from mocks.mock_classes import MockHardeningManifest  # noqa E402
+from mocks.mock_classes import MockHardeningManifest, MockPath  # noqa E402
 from hardening_manifest import HardeningManifest  # noqa E402
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
@@ -466,18 +466,11 @@ def test___str__(monkeypatch, mock_hm_content):
     assert str(mock_hm) == f"{mock_hm.image_name}:{mock_hm.image_tag}"
 
 
-@pytest.mark.only
+@pytest.mark.kenonly
+@patch("hardening_manifest.Path", new=MockPath)
 def test_source_values(monkeypatch, caplog):
-    def mock_exists_false(x):
-        return False
-
-    def mock_exists_true(x):
-        return True
-
-    monkeypatch.setattr(os.path, "exists", mock_exists_false)
     hardening_manifest.source_values("", "whatever")
     assert "does not exist" in caplog.text
-    monkeypatch.setattr(os.path, "exists", mock_exists_true)
-    monkeypatch.setattr(pathlib.Path, "open", mock_open)
+    monkeypatch.setattr(MockPath, "exists", lambda x: True)
     hardening_manifest.source_values("", "success")
     assert "Number of success detected: 2" in caplog.text
