@@ -6,13 +6,22 @@ sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), "module
 
 from hardening_manifest import HardeningManifest  # noqa: E402
 from project import DsopProject  # noqa: E402
-
+from pathlib import Path
 
 @dataclass
+class MockPath():
+    path: str = ""
+    def exists(self):
+        return bool(self.path)
+@dataclass
 class MockProject(DsopProject):
-    example: str = "example_str"
-    hardening_manifest_path = "example_path"
-
+    example: str = MockPath("example_str")
+    hardening_manifest_path: str = MockPath("example_path")
+    license_path: str = MockPath("license")
+    readme_path: str = MockPath("readme")
+    dockerfile_path: str = MockPath("dockerfile")
+    trufflehog_conf_path: str = MockPath("trufflehog")
+    clamav_wl_path: str = MockPath("clamav")
 
 @dataclass
 class MockHardeningManifest(HardeningManifest):
