@@ -77,6 +77,7 @@ def mock_good_labels():
         "mil.dso.ironbank.product.name": "UBI8-minimal",
     }
 
+
 @pytest.fixture
 def mock_labels_missing_keywords():
     return {
@@ -91,6 +92,7 @@ def mock_labels_missing_keywords():
         "mil.dso.ironbank.image.type": "commercial",
         "mil.dso.ironbank.product.name": "UBI8-minimal",
     }
+
 
 @pytest.fixture
 def mock_bad_labels():
@@ -218,13 +220,16 @@ def mock_hm_content():
         ],
     }
 
+
 @pytest.mark.only
 def test_init(monkeypatch, caplog, mock_hm_content):
     def mock_validate(_):
         logging.info("validated")
 
     monkeypatch.setattr(HardeningManifest, "validate", mock_validate)
-    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data=yaml.safe_dump(mock_hm_content)))
+    monkeypatch.setattr(
+        pathlib.Path, "open", mock_open(read_data=yaml.safe_dump(mock_hm_content))
+    )
     mock_hm = HardeningManifest("")
     assert "validated" not in caplog.text
     assert mock_hm.image_name == mock_hm_content["name"]
@@ -251,6 +256,7 @@ def test_validate(monkeypatch, caplog, hm, mock_empty):
     logging.info(caplog.text)
     assert "Checking for" in caplog.text
     caplog.clear()
+
 
 @patch.dict(os.environ, {"HM_VERIFY_TIMEOUT": "1"})
 def test_validate_schema_with_timeout(monkeypatch, caplog, hm):
@@ -418,14 +424,18 @@ def test_create_env_var_artifacts(monkeypatch):
     mock_hm = MockHardeningManifest()
     assert mock_hm.create_env_var_artifacts(pathlib.Path("some_path")) == None
 
+
 @pytest.mark.only
 def test_create_tags_artifact(monkeypatch):
     monkeypatch.setattr(pathlib.Path, "open", mock_open())
     mock_hm = MockHardeningManifest()
     assert mock_hm.create_tags_artifact(pathlib.Path("some_path")) == None
 
+
 @pytest.mark.only
-def test_create_keywords_artifact(monkeypatch, caplog, mock_labels_missing_keywords, mock_good_labels):
+def test_create_keywords_artifact(
+    monkeypatch, caplog, mock_labels_missing_keywords, mock_good_labels
+):
     monkeypatch.setattr(pathlib.Path, "open", mock_open())
     mock_hm = MockHardeningManifest(labels=mock_labels_missing_keywords)
     mock_hm.create_keywords_artifact(pathlib.Path(""))
@@ -436,27 +446,37 @@ def test_create_keywords_artifact(monkeypatch, caplog, mock_labels_missing_keywo
     assert "Keywords field does not exist in hardening_manifest.yaml" not in caplog.text
     caplog.clear()
 
+
 @pytest.mark.only
 def test___repr__(monkeypatch, mock_hm_content):
-    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data=yaml.safe_dump(mock_hm_content)))
+    monkeypatch.setattr(
+        pathlib.Path, "open", mock_open(read_data=yaml.safe_dump(mock_hm_content))
+    )
     mock_hm = HardeningManifest("")
     logging.info(repr(mock_hm))
     assert repr(mock_hm) == f"{mock_hm.image_name}:{mock_hm.image_tag}"
 
+
 @pytest.mark.only
 def test___str__(monkeypatch, mock_hm_content):
-    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data=yaml.safe_dump(mock_hm_content)))
+    monkeypatch.setattr(
+        pathlib.Path, "open", mock_open(read_data=yaml.safe_dump(mock_hm_content))
+    )
     mock_hm = HardeningManifest("")
     assert str(mock_hm) == f"{mock_hm.image_name}:{mock_hm.image_tag}"
+
 
 @pytest.mark.only
 def test_source_values(monkeypatch, caplog):
     def mock_exists_false(x):
         return False
+
     def mock_exists_true(x):
         return True
+
     def mock_open(x):
         return ["fail", "success", "success"]
+
     monkeypatch.setattr(os.path, "exists", mock_exists_false)
     hardening_manifest.source_values("", "whatever")
     assert "does not exist" in caplog.text
