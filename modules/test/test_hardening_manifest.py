@@ -485,4 +485,15 @@ def test_get_source_keys_values(monkeypatch):
     hm_labels = hardening_manifest.get_source_keys_values("")
     assert hm_labels["hm_label"] == "test_label"
 
-
+@pytest.mark.only
+@patch("hardening_manifest.Path", new=MockPath)
+def test_get_approval_status(monkeypatch):
+    mock_approval_object = {
+            "accreditation": "Approved",
+            "accreditationComment": "Test approval"
+        }
+    monkeypatch.setattr(MockPath, "exists", lambda x: True)
+    monkeypatch.setattr(json, "load", lambda x: mock_approval_object)
+    mock_approval_status, mock_approval_text = hardening_manifest.get_approval_status("")
+    assert mock_approval_status == mock_approval_object["accreditation"]
+    assert mock_approval_text == mock_approval_object["accreditationComment"]

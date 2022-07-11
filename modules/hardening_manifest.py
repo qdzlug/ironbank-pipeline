@@ -251,9 +251,10 @@ def get_source_keys_values(source_file) -> dict:
 
 
 def get_approval_status(source_file) -> tuple[str, str]:
-    if os.path.exists(source_file):
-        with open(source_file, mode="r", encoding="utf-8") as sf:
+    if Path(source_file).exists():
+        with Path(source_file).open("r") as sf:
             approval_object = json.load(sf)
+    # TODO: Add error handling if file does not exist
     approval_status = approval_object["accreditation"]
     approval_text = approval_object.get("accreditationComment")
     return approval_status, approval_text
