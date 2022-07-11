@@ -4,7 +4,6 @@ import sys
 import pathlib
 import pytest
 import dockerfile
-from pathlib import Path
 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -13,7 +12,6 @@ from utils.testing import raise_  # noqa E402
 from utils.package_parser import (
     DockerfileParser,
     SbomFileParser,
-    AccessLogFileParser,
 )  # noqa E402
 from utils.exceptions import DockerfileParseError  # noqa E402
 from utils.types import Package  # noqa #402

@@ -91,7 +91,7 @@ def compliance_data_resp():
         return json.load(f)
 
 
-def test_get_anchore_api(monkeypatch, mock_responses, caplog):
+def test_get_anchore_api(monkeypatch, mock_responses, caplog): # noqa W0404
     monkeypatch.setattr(requests, "get", mock_responses["200"])
     anchore_object = Anchore(
         url="http://test.anchore.dso.mil",
@@ -111,7 +111,7 @@ def test_get_anchore_api(monkeypatch, mock_responses, caplog):
     caplog.clear()
 
     monkeypatch.setattr(requests, "get", mock_responses["404"])
-    assert anchore_object._get_anchore_api_json("", "", True) == None
+    assert anchore_object._get_anchore_api_json("", "", True) == None # noqa E711
     assert "No ancestry detected" in caplog.text
     caplog.clear()
 
@@ -148,7 +148,7 @@ def test_get_parent_sha(monkeypatch):
         password="test",
         verify=False,
     )
-    assert anchore_object._get_parent_sha("12345") == None
+    assert anchore_object._get_parent_sha("12345") == None # noqa E711
 
 
 def test_get_version(monkeypatch, caplog):
@@ -230,7 +230,7 @@ def test_get_vulns(
         anchore_object.get_vulns(
             "sha256-104237896510837456108", "registry1.dso.mil", "./test-artifacts"
         )
-        == None
+        == None # noqa E711
     )
 
     monkeypatch.setattr(Anchore, "_get_parent_sha", lambda self, x: None)
@@ -238,13 +238,13 @@ def test_get_vulns(
         anchore_object.get_vulns(
             "sha256-104237896510837456108", "registry1.dso.mil", "./test-artifacts"
         )
-        == None
+        == None # noqa E711
     )
 
     monkeypatch.setattr(Anchore, "_get_extra_vuln_data", lambda *args, **kwargs: {})
     anchore_object.get_vulns(
         "sha256-104237896510837456108", "registry1.dso.mil", "./test-artifacts"
-    ) == None
+    ) == None # noqa E711
 
 
 def test_get_compliance(monkeypatch, compliance_data_resp):
@@ -269,7 +269,7 @@ def test_get_compliance(monkeypatch, compliance_data_resp):
             "registry1.dso.mil/ironbank-staging/google/distroless/static:ibci-873812",
             "./test-artifacts",
         )
-        == None
+        == None # noqa E711
     )
 
     monkeypatch.setattr(Anchore, "_get_parent_sha", lambda self, x: None)
@@ -279,11 +279,11 @@ def test_get_compliance(monkeypatch, compliance_data_resp):
             "registry1.dso.mil/ironbank-staging/google/distroless/static:ibci-873812",
             "./test-artifacts",
         )
-        == None
+        == None # noqa E711
     )
 
 
-def test_image_add(monkeypatch, mock_responses, caplog):
+def test_image_add(monkeypatch, mock_responses, caplog): # noqa W0404
     monkeypatch.setattr(pathlib.Path, "is_file", lambda _: True)
     monkeypatch.setattr(subprocess, "run", mock_responses["0"])
     monkeypatch.setattr(
@@ -324,7 +324,7 @@ def test_image_add(monkeypatch, mock_responses, caplog):
     caplog.clear()
 
 
-def test_generate_sbom(monkeypatch, mock_responses, caplog):
+def test_generate_sbom(monkeypatch, mock_responses, caplog): # noqa W0404
     monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data="data"))
     monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: None)
     monkeypatch.setattr(pathlib.Path, "mkdir", lambda *args, **kwargs: None)
