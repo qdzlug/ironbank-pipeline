@@ -17,7 +17,8 @@ sys.path.append(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
 
-from mocks.mock_classes import MockHardeningManifest, MockPath  # noqa E402
+from mocks.mock_classes import MockHardeningManifest, MockPath, MockOpen  # noqa E402
+from mocks import mock_classes # noqa E402
 from hardening_manifest import HardeningManifest  # noqa E402
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
@@ -466,11 +467,22 @@ def test___str__(monkeypatch, mock_hm_content):
     assert str(mock_hm) == f"{mock_hm.image_name}:{mock_hm.image_tag}"
 
 
-@pytest.mark.kenonly
+@pytest.mark.only
 @patch("hardening_manifest.Path", new=MockPath)
 def test_source_values(monkeypatch, caplog):
     hardening_manifest.source_values("", "whatever")
     assert "does not exist" in caplog.text
     monkeypatch.setattr(MockPath, "exists", lambda x: True)
+    monkeypatch.setattr(mock_classes.MockOpen, "__enter__", lambda x: ["a", "b"])
     hardening_manifest.source_values("", "success")
     assert "Number of success detected: 2" in caplog.text
+
+@pytest.mark.only
+@patch("hardening_manifest.Path", new=MockPath)
+def test_get_source_keys_values(monkeypatch):
+    monkeypatch.setattr(MockPath, "exists", lambda x: True)
+    monkeypatch.setattr(mock_classes.MockOpen, "__enter__", lambda x: ["mil.dso.ironbank.image.keywords=ignore", "hm_label=test_label"])
+    hm_labels = hardening_manifest.get_source_keys_values("")
+    assert hm_labels["hm_label"] == "test_label"
+
+

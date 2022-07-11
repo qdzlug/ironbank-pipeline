@@ -241,8 +241,8 @@ def get_source_keys_values(source_file) -> dict:
 
     """
     hm_labels = {}
-    if os.path.exists(source_file):
-        with open(source_file, mode="r", encoding="utf-8") as sf:
+    if Path(source_file).exists():
+        with Path(source_file).open("r") as sf:
             for line in sf:
                 key, value = line.rstrip().split("=", 1)
                 if key != "mil.dso.ironbank.image.keywords":

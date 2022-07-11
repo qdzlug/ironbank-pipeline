@@ -10,11 +10,11 @@ from pathlib import Path
 
 
 @dataclass
-class MockOpenArray:
+class MockOpen:
     mode: str = "r"
 
     def __enter__(self):
-        return ["a", "b"]
+        return []
 
     def __exit__(self, values, something, somethingelse):
         pass
@@ -22,10 +22,10 @@ class MockOpenArray:
 
 @dataclass
 class MockPath:
-    path: str = "whatever"
+    path: str = "changeme"
 
     def open(self, mode):
-        return MockOpenArray(mode)
+        return MockOpen(mode)
 
     def exists(self):
         return False
