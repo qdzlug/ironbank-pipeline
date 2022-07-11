@@ -5,7 +5,7 @@ import sys
 import pathlib
 import pytest
 import requests
-from unittest.mock import mock_open, Mock
+from unittest.mock import mock_open
 
 
 sys.path.append(
