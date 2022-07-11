@@ -4,16 +4,19 @@ import sys
 import pathlib
 import pytest
 import dockerfile
+from pathlib import Path
 
 
-sys.path.append(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-)
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.testing import raise_  # noqa E402
-from utils.package_parser import DockerfileParser, SbomFileParser, AccessLogFileParser  # noqa E402
+from utils.package_parser import (
+    DockerfileParser,
+    SbomFileParser,
+    AccessLogFileParser,
+)  # noqa E402
 from utils.exceptions import DockerfileParseError  # noqa E402
-from utils.types import Package # noqa #402
+from utils.types import Package  # noqa #402
 
 mock_path = pathlib.Path(
     pathlib.Path(__file__).absolute().parent.parent.parent, "mocks"
@@ -130,7 +133,20 @@ def test_parse_dockerfile(monkeypatch):
         parsed_file = DockerfileParser.parse_dockerfile("example")
     assert se.type == DockerfileParseError
 
+
 def test_sbom_file_parser(monkeypatch):
-    monkeypatch.setattr(json, "load", lambda x: {"artifacts": [{"type": "rpm", "name": "package_name", "version": "1.2.9-2.el8.noarch.rpm"}]})
+    monkeypatch.setattr(
+        json,
+        "load",
+        lambda x: {
+            "artifacts": [
+                {
+                    "type": "rpm",
+                    "name": "package_name",
+                    "version": "1.2.9-2.el8.noarch.rpm",
+                }
+            ]
+        },
+    )
     parsed_sbom = SbomFileParser.parse("example")
     assert parsed_sbom == [Package(kind="rpm", name="package_name", version="1.2.9-2")]
