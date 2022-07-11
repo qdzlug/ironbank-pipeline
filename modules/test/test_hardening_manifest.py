@@ -18,7 +18,7 @@ sys.path.append(
 )
 
 from mocks.mock_classes import MockHardeningManifest, MockPath, MockOpen  # noqa E402
-from mocks import mock_classes # noqa E402
+from mocks import mock_classes  # noqa E402
 from hardening_manifest import HardeningManifest  # noqa E402
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
@@ -477,23 +477,31 @@ def test_source_values(monkeypatch, caplog):
     hardening_manifest.source_values("", "success")
     assert "Number of success detected: 2" in caplog.text
 
+
 @pytest.mark.only
 @patch("hardening_manifest.Path", new=MockPath)
 def test_get_source_keys_values(monkeypatch):
     monkeypatch.setattr(MockPath, "exists", lambda x: True)
-    monkeypatch.setattr(mock_classes.MockOpen, "__enter__", lambda x: ["mil.dso.ironbank.image.keywords=ignore", "hm_label=test_label"])
+    monkeypatch.setattr(
+        mock_classes.MockOpen,
+        "__enter__",
+        lambda x: ["mil.dso.ironbank.image.keywords=ignore", "hm_label=test_label"],
+    )
     hm_labels = hardening_manifest.get_source_keys_values("")
     assert hm_labels["hm_label"] == "test_label"
+
 
 @pytest.mark.only
 @patch("hardening_manifest.Path", new=MockPath)
 def test_get_approval_status(monkeypatch):
     mock_approval_object = {
-            "accreditation": "Approved",
-            "accreditationComment": "Test approval"
-        }
+        "accreditation": "Approved",
+        "accreditationComment": "Test approval",
+    }
     monkeypatch.setattr(MockPath, "exists", lambda x: True)
     monkeypatch.setattr(json, "load", lambda x: mock_approval_object)
-    mock_approval_status, mock_approval_text = hardening_manifest.get_approval_status("")
+    mock_approval_status, mock_approval_text = hardening_manifest.get_approval_status(
+        ""
+    )
     assert mock_approval_status == mock_approval_object["accreditation"]
     assert mock_approval_text == mock_approval_object["accreditationComment"]
