@@ -22,11 +22,12 @@ class MockResponse:
     def json(self):
         return {"status_code": self.status_code, "text": self.text}
 
+
 @dataclass
 class MockInvalidJson(MockResponse):
-
     def json(self):
         raise requests.JSONDecodeError
+
 
 @dataclass
 class MockAnchoreResponse:
