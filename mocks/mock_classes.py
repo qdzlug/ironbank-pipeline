@@ -6,7 +6,6 @@ sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), "module
 
 from hardening_manifest import HardeningManifest  # noqa: E402
 from project import DsopProject  # noqa: E402
-from pathlib import Path
 
 
 @dataclass

@@ -222,7 +222,6 @@ def mock_hm_content():
     }
 
 
-@pytest.mark.only
 def test_init(monkeypatch, caplog, mock_hm_content):
     def mock_validate(_):
         logging.info("validated")
@@ -419,21 +418,18 @@ def test_reject_invalid_maintainers(monkeypatch, caplog):
     caplog.clear()
 
 
-@pytest.mark.only
 def test_create_env_var_artifacts(monkeypatch):
     monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data="data"))
     mock_hm = MockHardeningManifest()
-    assert mock_hm.create_env_var_artifacts(pathlib.Path("some_path")) == None
+    assert mock_hm.create_env_var_artifacts(pathlib.Path("some_path")) is None
 
 
-@pytest.mark.only
 def test_create_tags_artifact(monkeypatch):
     monkeypatch.setattr(pathlib.Path, "open", mock_open())
     mock_hm = MockHardeningManifest()
-    assert mock_hm.create_tags_artifact(pathlib.Path("some_path")) == None
+    assert mock_hm.create_tags_artifact(pathlib.Path("some_path")) is None
 
 
-@pytest.mark.only
 def test_create_keywords_artifact(
     monkeypatch, caplog, mock_labels_missing_keywords, mock_good_labels
 ):
@@ -448,7 +444,6 @@ def test_create_keywords_artifact(
     caplog.clear()
 
 
-@pytest.mark.only
 def test___repr__(monkeypatch, mock_hm_content):
     monkeypatch.setattr(
         pathlib.Path, "open", mock_open(read_data=yaml.safe_dump(mock_hm_content))
@@ -458,7 +453,6 @@ def test___repr__(monkeypatch, mock_hm_content):
     assert repr(mock_hm) == f"{mock_hm.image_name}:{mock_hm.image_tag}"
 
 
-@pytest.mark.only
 def test___str__(monkeypatch, mock_hm_content):
     monkeypatch.setattr(
         pathlib.Path, "open", mock_open(read_data=yaml.safe_dump(mock_hm_content))
@@ -467,7 +461,6 @@ def test___str__(monkeypatch, mock_hm_content):
     assert str(mock_hm) == f"{mock_hm.image_name}:{mock_hm.image_tag}"
 
 
-@pytest.mark.only
 @patch("hardening_manifest.Path", new=MockPath)
 def test_source_values(monkeypatch, caplog):
     hardening_manifest.source_values("", "whatever")
@@ -478,7 +471,6 @@ def test_source_values(monkeypatch, caplog):
     assert "Number of success detected: 2" in caplog.text
 
 
-@pytest.mark.only
 @patch("hardening_manifest.Path", new=MockPath)
 def test_get_source_keys_values(monkeypatch):
     monkeypatch.setattr(MockPath, "exists", lambda x: True)
@@ -491,7 +483,6 @@ def test_get_source_keys_values(monkeypatch):
     assert hm_labels["hm_label"] == "test_label"
 
 
-@pytest.mark.only
 @patch("hardening_manifest.Path", new=MockPath)
 def test_get_approval_status(monkeypatch):
     mock_approval_object = {

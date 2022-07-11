@@ -83,14 +83,13 @@ def test_validate_trufflehog_config(monkeypatch, caplog):
     caplog.clear()
 
 
-@pytest.mark.kenonly
 def test_validate_dockerfile(monkeypatch, caplog):
     monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data="FROM a\nRUN b"))
     mock_project = MockProject(dockerfile_path=pathlib.Path("."))
     mock_project.validate_dockerfile()
     assert "LABEL" not in caplog.text
 
-    with pytest.raises(AssertionError) as ae:
+    with pytest.raises(AssertionError):
         monkeypatch.setattr(
             pathlib.Path, "open", mock_open(read_data="FROM a\nLABEL b\nRUN c")
         )
