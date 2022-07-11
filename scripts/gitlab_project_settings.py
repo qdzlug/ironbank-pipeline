@@ -35,4 +35,4 @@ for group_project in group.projects.list(
             logging.info(f"Removing webhook: {hook.url}")
             hook.delete()
         else:
-            logging.warn(f"Keeping non-Jenkins webhook: {hook.url}")
+            logging.warning(f"Keeping non-Jenkins webhook: {hook.url}")
