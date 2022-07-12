@@ -6,7 +6,7 @@ from dateutil import parser
 from datetime import datetime, timezone
 
 
-from utils import logger
+from .utils import logger
 
 log = logger.setup(name="vat_container_status")
 
@@ -58,7 +58,7 @@ def is_approved(
         force_approval,
     )
 
-    log.warning(approved)
+    log.debug("Approval status: %s", approved)
     # Exit codes for Check CVE parsing of VAT response
     # 0   - Container is accredited, accreditation is not expired, and there are no unapproved findings
     # 100 - Either Container is not accredited or the accreditation has expired and the branch is master, or there is an unapproved finding not eligible to be fast tracked
@@ -135,9 +135,9 @@ def _get_approval_status(
     if not exists:
         return False
     if not accredited:
-        log.warning("Container is not accredited in VAT")
+        log.debug("Container is not accredited in VAT")
     if not not_expired:
-        log.warning("Container's earliest expiration is prior to current date")
+        log.debug("Container's earliest expiration is prior to current date")
     if branch == "master":
         # Check if an approval has been forced and if so, return accreditation and not_expired
         if force_approval:

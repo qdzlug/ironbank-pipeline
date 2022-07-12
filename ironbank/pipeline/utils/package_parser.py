@@ -1,7 +1,7 @@
 import re
 from abc import ABC, abstractmethod
-from utils import logger
-from .types import Package
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.types import Package
 from typing import Optional
 from dataclasses import dataclass, field
 

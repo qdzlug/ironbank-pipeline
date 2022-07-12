@@ -3,14 +3,15 @@ import os
 import re
 from pathlib import Path
 from dataclasses import dataclass
+from typing import Optional
 
-from utils import logger
+from ironbank.pipeline.utils import logger
 
 
 @dataclass
 class Project:
     log = logger.setup(name="Project")
-    project_path: str = os.environ.get("CI_PROJECT_PATH")
+    project_path: Optional[str] = os.environ.get("CI_PROJECT_PATH")
 
 
 @dataclass

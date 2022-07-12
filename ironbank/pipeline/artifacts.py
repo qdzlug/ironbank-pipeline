@@ -5,13 +5,13 @@ import requests
 import boto3
 from urllib.parse import urlparse
 from requests.auth import HTTPBasicAuth
-from utils import logger
+from .utils import logger
 from dataclasses import dataclass
 from base64 import b64decode
 from typing import Union
-from utils.decorators import request_retry
-from utils.exceptions import InvalidURLList
-from abstract_artifacts import (
+from .utils.decorators import request_retry
+from .utils.exceptions import InvalidURLList
+from .abstract_artifacts import (
     AbstractArtifact,
     AbstractFileArtifact,
 )
@@ -139,7 +139,7 @@ class ContainerArtifact(AbstractArtifact):
     def download(self):
         # prevent failing when running locally due to file already existing
         if self.artifact_path.exists():
-            self.log.warn("Found existing container artifact, deleting file")
+            self.log.warning("Found existing container artifact, deleting file")
             self.delete_artifact()
 
         self.log.info(f"Pulling {self.url}")
@@ -160,59 +160,6 @@ class ContainerArtifact(AbstractArtifact):
             check=True,
         )
         self.log.info("Successfully pulled")
-
-
-@dataclass
-class ORASArtifact(AbstractArtifact):
-    log: logger = logger.setup("ORASArtifact")
-
-    def find_sbom(self) -> str:
-        triangulate_cmd = [
-            "cosign",
-            "triangulate",
-            "--type",
-            "sbom",
-            f"{os.environ['REGISTRY1_URL']}/ironbank/{os.environ['IMAGE_NAME']}",
-        ]
-
-        try:
-            previous_sbom = subprocess.run(
-                triangulate_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                encoding="utf-8",
-                check=True,
-            )
-            return previous_sbom.stdout
-        except subprocess.SubprocessError:
-            self.log.error(
-                f"Could not locate SBOM for {os.environ['REGISTRY1_URL']}/ironbank/{os.environ['IMAGE_NAME']}"
-            )
-
-    def get_credentials(self) -> None:
-        pass
-
-    @request_retry(3)
-    def download(self):
-        previous_sbom = self.gather_sbom_list()
-
-        pull_cmd = [
-            "oras",
-            "pull",
-            "--allow-all",
-            previous_sbom,
-        ]
-
-        try:
-            subprocess.run(
-                pull_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                encoding="utf-8",
-                check=True,
-            )
-        except subprocess.SubprocessError:
-            self.log.error("Could not ORAS pull.")
 
 
 @dataclass

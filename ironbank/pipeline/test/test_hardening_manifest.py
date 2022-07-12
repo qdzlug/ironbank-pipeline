@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
+
 import multiprocessing
-import sys
 import os
 import logging
 import pytest
@@ -9,23 +9,17 @@ import json
 import yaml
 import time
 import jsonschema
-import hardening_manifest
+from ironbank.pipeline import hardening_manifest
 from unittest.mock import patch, mock_open, Mock
 from dataclasses import dataclass
+from ironbank.pipeline.hardening_manifest import HardeningManifest, source_values, get_source_keys_values, get_approval_status
 
-sys.path.append(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
-
-from mocks.mock_classes import MockHardeningManifest, MockPath, MockOpen  # noqa E402
-from mocks import mock_classes  # noqa E402
-from hardening_manifest import HardeningManifest  # noqa E402
+from mocks.mock_classes import MockHardeningManifest, MockPath
+from mocks import mock_classes
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
 
-mock_path = pathlib.Path(
-    pathlib.Path(__file__).absolute().parent.parent.parent, "mocks"
-)
+mock_path = pathlib.Path(pathlib.Path(__file__).absolute().parent, "mocks")
 
 
 @dataclass
@@ -461,17 +455,17 @@ def test___str__(monkeypatch, mock_hm_content):
     assert str(mock_hm) == f"{mock_hm.image_name}:{mock_hm.image_tag}"
 
 
-@patch("hardening_manifest.Path", new=MockPath)
+@patch("ironbank.pipeline.hardening_manifest.Path", new=MockPath)
 def test_source_values(monkeypatch, caplog):
-    hardening_manifest.source_values("", "whatever")
+    source_values("", "whatever")
     assert "does not exist" in caplog.text
     monkeypatch.setattr(MockPath, "exists", lambda x: True)
     monkeypatch.setattr(mock_classes.MockOpen, "__enter__", lambda x: ["a", "b"])
-    hardening_manifest.source_values("", "success")
+    source_values("", "success")
     assert "Number of success detected: 2" in caplog.text
 
 
-@patch("hardening_manifest.Path", new=MockPath)
+@patch("ironbank.pipeline.hardening_manifest.Path", new=MockPath)
 def test_get_source_keys_values(monkeypatch):
     monkeypatch.setattr(MockPath, "exists", lambda x: True)
     monkeypatch.setattr(
@@ -479,11 +473,11 @@ def test_get_source_keys_values(monkeypatch):
         "__enter__",
         lambda x: ["mil.dso.ironbank.image.keywords=ignore", "hm_label=test_label"],
     )
-    hm_labels = hardening_manifest.get_source_keys_values("")
+    hm_labels = get_source_keys_values("")
     assert hm_labels["hm_label"] == "test_label"
 
 
-@patch("hardening_manifest.Path", new=MockPath)
+@patch("ironbank.pipeline.hardening_manifest.Path", new=MockPath)
 def test_get_approval_status(monkeypatch):
     mock_approval_object = {
         "accreditation": "Approved",
@@ -491,7 +485,7 @@ def test_get_approval_status(monkeypatch):
     }
     monkeypatch.setattr(MockPath, "exists", lambda x: True)
     monkeypatch.setattr(json, "load", lambda x: mock_approval_object)
-    mock_approval_status, mock_approval_text = hardening_manifest.get_approval_status(
+    mock_approval_status, mock_approval_text = get_approval_status(
         ""
     )
     assert mock_approval_status == mock_approval_object["accreditation"]

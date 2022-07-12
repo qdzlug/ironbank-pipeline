@@ -1,15 +1,11 @@
+#!/usr/bin/env python3
+
 import os
-import sys
 from unittest import mock
 import pytest
 import requests
-
-sys.path.append(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
-from apis import API, VatAPI  # noqa E402
-from utils import logger  # noqa E402
-from mocks.mock_responses import mock_responses  # noqa E402 W0611
+from ironbank.pipeline.apis import API, VatAPI
+from mocks.mock_responses import mock_responses  # noqa W0611
 
 
 @pytest.fixture

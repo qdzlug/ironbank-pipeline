@@ -4,11 +4,7 @@ import os
 import pathlib
 from unittest.mock import mock_open
 
-sys.path.append(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
-
-from mocks.mock_classes import MockProject, MockPath  # noqa E402
+from mocks.mock_classes import MockProject, MockPath
 
 
 def test_validate_files_exist(monkeypatch):

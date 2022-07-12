@@ -1,5 +1,5 @@
-#!/usr/bin/python3
-import sys
+#!/usr/bin/env python3
+
 import json
 import os
 import boto3
@@ -7,15 +7,11 @@ import logging
 from botocore.exceptions import ClientError
 import argparse
 
-sys.path.append(
-    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
-)
-
-from hardening_manifest import (
+from ironbank.pipeline.hardening_manifest import (
     source_values,
     get_source_keys_values,
     get_approval_status,
-)  # noqa E402
+)
 
 
 def get_repomap(object_name, bucket="ironbank-pipeline-artifacts") -> bool:

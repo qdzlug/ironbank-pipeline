@@ -1,10 +1,8 @@
 import logging
-import sys
 import os
 from unittest import mock
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils import logger  # noqa E402
+from ironbank.pipeline.utils import logger  # noqa E402
 
 
 @mock.patch.dict(os.environ, {"LOGLEVEL": "DEBUG"})

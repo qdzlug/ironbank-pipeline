@@ -1,19 +1,16 @@
+#!/usr/bin/env python3
+
 import os
-import sys
 import pytest
 import logging
 from dataclasses import dataclass
 from subprocess import CalledProcessError
 from unittest import mock
-
-sys.path.append(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
-from apis import API  # noqa E402
-from utils import logger  # noqa E402
-from utils.decorators import request_retry  # noqa E402
-from utils.decorators import request_error_handler  # noqa E402
-from mocks.mock_responses import mock_responses  # noqa E402 W0611
+from ironbank.pipeline.apis import API
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.decorators import request_retry
+from ironbank.pipeline.utils.decorators import request_error_handler
+from mocks.mock_responses import mock_responses  # noqa W0611
 
 log = logger.setup("test_decorators")
 
