@@ -81,6 +81,7 @@
         "$ref": "#/definitions/docker-TagRegexp"
       },
       "minItems": 1,
+      "maxItems": 10,
       "uniqueItems": true
     },
     "args": {
