@@ -12,7 +12,7 @@ sys.path.append(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
 
-from modules.anchore import Anchore  # noqa E402
+from pipeline.anchore import Anchore  # noqa E402
 from mocks.mock_responses import mock_responses  # noqa E402 W0611
 
 
@@ -85,7 +85,7 @@ def extra_data_vulnerability_resp():
 
 @pytest.fixture
 def compliance_data_resp():
-    with open("mocks/mock_anchore_compliance.json", "r") as f:
+    with open("ironbank/pipeline/test/mocks/mock_anchore_compliance.json", "r") as f:
         return json.load(f)
 
 
