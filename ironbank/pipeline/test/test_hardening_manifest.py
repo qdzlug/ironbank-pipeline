@@ -9,10 +9,14 @@ import json
 import yaml
 import time
 import jsonschema
-from ironbank.pipeline import hardening_manifest
 from unittest.mock import patch, mock_open, Mock
 from dataclasses import dataclass
-from ironbank.pipeline.hardening_manifest import HardeningManifest, source_values, get_source_keys_values, get_approval_status
+from ironbank.pipeline.hardening_manifest import (
+    HardeningManifest,
+    source_values,
+    get_source_keys_values,
+    get_approval_status,
+)
 
 from mocks.mock_classes import MockHardeningManifest, MockPath
 from mocks import mock_classes
@@ -485,8 +489,6 @@ def test_get_approval_status(monkeypatch):
     }
     monkeypatch.setattr(MockPath, "exists", lambda x: True)
     monkeypatch.setattr(json, "load", lambda x: mock_approval_object)
-    mock_approval_status, mock_approval_text = get_approval_status(
-        ""
-    )
+    mock_approval_status, mock_approval_text = get_approval_status("")
     assert mock_approval_status == mock_approval_object["accreditation"]
     assert mock_approval_text == mock_approval_object["accreditationComment"]

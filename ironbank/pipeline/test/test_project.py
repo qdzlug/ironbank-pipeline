@@ -1,6 +1,4 @@
 import pytest
-import sys
-import os
 import pathlib
 from unittest.mock import mock_open
 
