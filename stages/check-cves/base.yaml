@@ -11,6 +11,7 @@ check-cves:
     - vat
   script:
     - set +e
+    - 'pip install --user "${PIPELINE_REPO_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/check-cves/vat-response-parse.py"'
   retry:
     max: 2

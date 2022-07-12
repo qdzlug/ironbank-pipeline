@@ -1,24 +1,14 @@
-import json
-import os
-import sys
+#!/usr/bin/env python3
+
 import pathlib
 import pytest
 import dockerfile
 
+from ironbank.pipeline.utils.testing import raise_
+from ironbank.pipeline.file_parser import DockerfileParser
+from ironbank.pipeline.utils.exceptions import DockerfileParseError
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from utils.testing import raise_  # noqa E402
-from utils.package_parser import (
-    DockerfileParser,
-    SbomFileParser,
-)  # noqa E402
-from utils.exceptions import DockerfileParseError  # noqa E402
-from utils.types import Package  # noqa #402
-
-mock_path = pathlib.Path(
-    pathlib.Path(__file__).absolute().parent.parent.parent, "mocks"
-)
+mock_path = pathlib.Path(pathlib.Path(__file__).absolute().parent, "mocks")
 
 
 @pytest.fixture

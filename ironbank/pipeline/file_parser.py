@@ -1,108 +1,28 @@
 import re
-import json
 import os
-from abc import ABC, abstractmethod
-from utils import logger
-from .types import FileParser, Package
-from pathlib import Path
-from typing import Optional
-from dataclasses import dataclass, field
+import json
+
 import dockerfile
+from .utils import logger
+from pathlib import Path
+from dataclasses import dataclass
+from .utils.types import FileParser, Package
+from .utils.exceptions import DockerfileParseError
+from .utils.package_parser import (
+    GoPackage,
+    YumPackage,
+    PypiPackage,
+    NpmPackage,
+    RubyGemPackage,
+    NullPackage,
+)
 
 log = logger.setup(name="package_parser", format="| %(levelname)-5s | %(message)s")
 
-from .exceptions import DockerfileParseError  # noqa E402
 
-
-class ParsedURLPackage(ABC, Package):
-    @classmethod
-    @abstractmethod
-    def parse(cls, url) -> Optional[Package]:
-        pass
-
-
-@dataclass(slots=True, frozen=True)
-class YumPackage(ParsedURLPackage):
-    kind: str = field(init=False, default="rpm")
-
-    @classmethod
-    def parse(cls, url) -> Optional[Package]:
-        if url.startswith("repodata"):
-            return None
-
-        match = re.match(
-            r"(?:^|.+/)(?P<name>[^/]+)-(?P<version>[^/-]*-\d+)\.[^/]+\.[^./]+.rpm",
-            url,
-        )
-
-        if not match:
-            raise ValueError(f"Could not parse yum URL: {url}")
-
-        return YumPackage(
-            name=match.group("name"), version=match.group("version"), url=url
-        )
-
-
-@dataclass(slots=True, frozen=True)
-class GoPackage(ParsedURLPackage):
-    kind: str = field(init=False, default="go")
-
-    @classmethod
-    def parse(cls, url) -> Optional[Package]:
-        match = re.match(
-            r"(?P<name>.*?)/(:?@v/(?P<version>.*?)\.(?P<ext>[^.]+)|(?P<latest>@latest)|(?P<list>list))$",
-            url,
-        )
-
-        if not match:
-            raise ValueError(f"Could not parse go URL: {url}")
-        elif (
-            match.group("ext") in ["zip", "info"]
-            or match.group("latest")
-            or match.group("list")
-        ):
-            return None
-        elif match.group("ext") and match.group("ext") != "mod":
-            raise ValueError(f"Unexpected go mod extension: {url}")
-        else:
-            return GoPackage(
-                name=match.group("name"), version=match.group("version"), url=url
-            )
-
-
-@dataclass(slots=True, frozen=True)
-class PypiPackage(ParsedURLPackage):
-    kind: str = field(init=False, default="python")
-
-    @classmethod
-    def parse(cls, url) -> Optional[Package]:
-        if url.startswith("simple/"):
-            return None
-
-        match = re.match(
-            r"^packages/(?P<name>[^/]+)/(?P<version>[^/]+)/(?P<filename>[^/]+)\.(?P<ext>tar\.gz|whl|tar\.gz\.asc|whl\.asc)$",
-            url,
-        )
-
-        if not match:
-            raise ValueError(f"Could not parse pypi URL: {url}")
-
-        return PypiPackage(
-            name=match.group("name"), version=match.group("version"), url=url
-        )
-
-
-@dataclass(slots=True, frozen=True)
-class NullPackage(ParsedURLPackage):
-    @classmethod
-    def parse(cls, url) -> None:
-        return None
-
-
-# TODO: Move this to a seperate file with other FileParsers
 class AccessLogFileParser(FileParser):
     @classmethod
-    def parse(cls, file) -> list[Package]:
+    def parse(cls, file: str) -> list[Package]:
         repos = json.load(open(os.environ["ACCESS_LOG_REPOS"], "r"))
         packages: list[Package] = []
         # TODO make this an environment variable
@@ -114,12 +34,9 @@ class AccessLogFileParser(FileParser):
         log.info("Access log parser started")
         access_log = Path(file).open("r")
         log.info("File successfully read")
-        line_count = 0
 
         with access_log:
             for line in access_log.readlines():
-                line_count += 1
-
                 line = line.rstrip("\n")
 
                 if not line.startswith("200"):
@@ -150,42 +67,47 @@ class AccessLogFileParser(FileParser):
                         package = YumPackage.parse((re_match.group("url")))
                     case "pypi":
                         package = PypiPackage.parse((re_match.group("url")))
+                    case "npm":
+                        package = NpmPackage.parse((re_match.group("url")))
+                    case "rubygem":
+                        package = RubyGemPackage.parse((re_match.group("url")))
 
                 if package:
                     packages.append(package)
                     log.info(f"Parsed package: {package}")
 
-        log.info("access_log successfully parsed")
+        log.info("Access log successfully parsed")
         return packages
 
 
-# TODO: Move this to a seperate file with other FileParsers
 @dataclass
 class SbomFileParser(FileParser):
     @classmethod
-    def parse(cls, file) -> list[Package]:
+    def parse(cls, file: str) -> list[Package]:
 
         packages: list[Package] = []
         log.info("SBOM parser started")
+        sbom = Path(file).open("r")
+        log.info("SBOM successfully read")
 
-        data = json.load(file)
-        for artifact in data["artifacts"]:
+        with sbom:
+            data = json.load(sbom)
+            for artifact in data["artifacts"]:
 
-            package = Package(
-                kind=artifact["type"],
-                name=artifact["name"],
-                version=artifact["version"].split(".el")[0],
-            )
+                package = Package(
+                    kind=artifact["type"],
+                    name=artifact["name"],
+                    version=artifact["version"].split(".el")[0],
+                )
 
-            if package:
-                packages.append(package)
-                log.info(f"Parsed package: {package}")
+                if package:
+                    packages.append(package)
+                    log.info(f"Parsed package: {package}")
 
-        log.info("File successfully parsed")
+            log.info("SBOM successfully parsed")
         return packages
 
 
-# TODO: Move this to a seperate file with other FileParsers
 @dataclass
 class DockerfileParser(FileParser):
     @classmethod

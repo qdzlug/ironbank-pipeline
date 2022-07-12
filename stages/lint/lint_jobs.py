@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import asyncio
 import hardening_manifest_validation
 import folder_structure
@@ -5,17 +7,12 @@ import dockerfile_validation
 import base_image_validation
 import pipeline_auth_status
 import sys
-import os
 
-sys.path.append(
-    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
-)
-
-from utils import logger  # noqa E402
+from ironbank.pipeline.utils import logger  # noqa E402
 
 log = logger.setup("lint_jobs")
 
-system_exits = {}
+system_exits: dict = {}
 
 
 # Proper planning prevents painfully poor performance

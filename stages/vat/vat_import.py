@@ -9,15 +9,11 @@ from pathlib import Path
 import requests
 from requests.structures import CaseInsensitiveDict
 
-sys.path.append(
-    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
-)
-
-from get_oscap_failures import generate_oscap_jobs  # noqa E402
-from hardening_manifest import (
+from ironbank.pipeline.get_oscap_failures import generate_oscap_jobs
+from ironbank.pipeline.hardening_manifest import (
     source_values,
     get_source_keys_values,
-)  # noqa E402
+)
 
 parser = argparse.ArgumentParser(
     description="DCCSCR processing of CVE reports from various sources"

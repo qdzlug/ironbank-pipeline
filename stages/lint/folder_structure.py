@@ -1,13 +1,10 @@
+#!/usr/bin/env python3
+
 import sys
-import os
 import asyncio
 
-sys.path.append(
-    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
-)
-
-from utils import logger  # noqa E402
-from project import DsopProject  # noqa E402
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.project import DsopProject
 
 log = logger.setup("lint.folder_structure")
 

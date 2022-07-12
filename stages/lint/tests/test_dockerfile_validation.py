@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import sys
 import os
 import logging
@@ -6,20 +7,21 @@ import pytest
 import asyncio
 import pathlib
 from unittest.mock import patch
-
 import dockerfile
-from modules.utils.exceptions import DockerfileParseError
+from ironbank.pipeline.utils.testing import raise_
+from ironbank.pipeline.file_parser import DockerfileParser
+from ironbank.pipeline.utils.exceptions import DockerfileParseError
+from ironbank.pipeline.test.mocks.mock_classes import (
+    MockProject,
+    MockHardeningManifest,
+)
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils.testing import raise_  # noqa E402
-from utils.package_parser import DockerfileParser  # noqa E402
-from utils.exceptions import DockerfileParseError  # noqa E402
-from utils.testing import raise_  # noqa E402
-from mocks.mock_classes import MockProject, MockHardeningManifest  # noqa E402
 import dockerfile_validation  # noqa E402
 
 mock_path = pathlib.Path(
-    pathlib.Path(__file__).absolute().parent.parent.parent.parent, "mocks"
+    pathlib.Path(__file__).absolute().parent.parent.parent.parent,
+    "ironbank/pipeline/test/mocks",
 )
 
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")

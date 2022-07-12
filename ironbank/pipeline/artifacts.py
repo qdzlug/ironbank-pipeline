@@ -5,13 +5,13 @@ import requests
 import boto3
 from urllib.parse import urlparse
 from requests.auth import HTTPBasicAuth
-from utils import logger
+from .utils import logger
 from dataclasses import dataclass
 from base64 import b64decode
 from typing import Union
-from utils.decorators import request_retry
-from utils.exceptions import InvalidURLList
-from abstract_artifacts import (
+from .utils.decorators import request_retry
+from .utils.exceptions import InvalidURLList
+from .abstract_artifacts import (
     AbstractArtifact,
     AbstractFileArtifact,
 )
@@ -139,7 +139,7 @@ class ContainerArtifact(AbstractArtifact):
     def download(self):
         # prevent failing when running locally due to file already existing
         if self.artifact_path.exists():
-            self.log.warn("Found existing container artifact, deleting file")
+            self.log.warning("Found existing container artifact, deleting file")
             self.delete_artifact()
 
         self.log.info(f"Pulling {self.url}")

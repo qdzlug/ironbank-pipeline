@@ -1,26 +1,25 @@
+#!/usr/bin/env python3
+
 import pathlib
 import subprocess
-import sys
-import os
 import pytest
 import requests
 from dataclasses import dataclass
 from requests.auth import HTTPBasicAuth
 from subprocess import CalledProcessError
 import boto3
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils import logger  # noqa E402
-from utils.exceptions import InvalidURLList  # noqa E402
-from utils.testing import raise_  # noqa E402
-from abstract_artifacts import AbstractArtifact  # noqa E402
-from mocks.mock_responses import mock_responses  # noqa E402 W0611
-from artifacts import (
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.exceptions import InvalidURLList
+from ironbank.pipeline.utils.testing import raise_
+from ironbank.pipeline.abstract_artifacts import AbstractArtifact
+from ironbank.pipeline.artifacts import (
     S3Artifact,
     HttpArtifact,
     ContainerArtifact,
     GithubArtifact,
-)  # noqa E402
+)
+from mocks.mock_responses import mock_responses  # noqa W0611
+
 
 log = logger.setup("test_abstract_artifacts")
 
