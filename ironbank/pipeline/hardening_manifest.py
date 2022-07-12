@@ -221,8 +221,9 @@ class HardeningManifest:
 def source_values(source_file, key) -> list:
     num_vals = 0
     val_list = []
-    if os.path.exists(source_file):
-        with open(source_file, mode="r", encoding="utf-8") as sf:
+    source_file_path = Path(source_file)
+    if source_file_path.exists():
+        with source_file_path.open("r") as sf:
             for line in sf:
                 val_entry = line.strip()
                 val_list.append(val_entry)
@@ -240,8 +241,8 @@ def get_source_keys_values(source_file) -> dict:
 
     """
     hm_labels = {}
-    if os.path.exists(source_file):
-        with open(source_file, mode="r", encoding="utf-8") as sf:
+    if Path(source_file).exists():
+        with Path(source_file).open("r") as sf:
             for line in sf:
                 key, value = line.rstrip().split("=", 1)
                 if key != "mil.dso.ironbank.image.keywords":
@@ -250,9 +251,10 @@ def get_source_keys_values(source_file) -> dict:
 
 
 def get_approval_status(source_file) -> tuple[str, str]:
-    if os.path.exists(source_file):
-        with open(source_file, mode="r", encoding="utf-8") as sf:
+    if Path(source_file).exists():
+        with Path(source_file).open("r") as sf:
             approval_object = json.load(sf)
+    # TODO: Add error handling if file does not exist
     approval_status = approval_object["accreditation"]
     approval_text = approval_object.get("accreditationComment")
     return approval_status, approval_text

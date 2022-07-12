@@ -17,3 +17,4 @@ libs/*
 test_projects/
 report.xml
 coverage.xml
+example.log
