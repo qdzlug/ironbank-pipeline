@@ -120,21 +120,3 @@ def test_parse_dockerfile(monkeypatch):
     with pytest.raises(DockerfileParseError) as se:
         parsed_file = DockerfileParser.parse_dockerfile("example")
     assert se.type == DockerfileParseError
-
-
-def test_sbom_file_parser(monkeypatch):
-    monkeypatch.setattr(
-        json,
-        "load",
-        lambda x: {
-            "artifacts": [
-                {
-                    "type": "rpm",
-                    "name": "package_name",
-                    "version": "1.2.9-2.el8.noarch.rpm",
-                }
-            ]
-        },
-    )
-    parsed_sbom = SbomFileParser.parse("example")
-    assert parsed_sbom == [Package(kind="rpm", name="package_name", version="1.2.9-2")]
