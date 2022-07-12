@@ -1,15 +1,13 @@
+#!/usr/bin/env python3
+
 import hashlib
-import sys
 import os
 import pytest
 from dataclasses import dataclass
 import pathlib
 from unittest.mock import mock_open
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from abstract_artifacts import AbstractArtifact, AbstractFileArtifact  # noqa E402
-
-from utils import logger  # noqa E402
+from ironbank.pipeline.abstract_artifacts import AbstractArtifact, AbstractFileArtifact
+from ironbank.pipeline.utils import logger
 
 log = logger.setup("test_abstract_artifacts")
 

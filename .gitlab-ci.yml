@@ -20,6 +20,7 @@ trufflehog:
     # This forces the trufflehog job to NOT perform a shallow clone
     GIT_DEPTH: 0
   script:
+    - python3 -m pip install --user .
     - python3 stages/lint/trufflehog.py
 
 shellcheck:
@@ -105,6 +106,7 @@ unit-testing:
   stage: test
   script:
     - python3 -m pip install --user pytest-cov
+    - python3 -m pip install --user .
     - python3 -m pytest -m "not slow"
   coverage: '/^TOTAL.+?(\d+\%)$/'
   variables:

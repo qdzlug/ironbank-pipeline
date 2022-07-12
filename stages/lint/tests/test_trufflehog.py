@@ -20,7 +20,8 @@ from trufflehog import (
 logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
 
 mock_path = pathlib.Path(
-    pathlib.Path(__file__).absolute().parent.parent.parent.parent, "mocks"
+    pathlib.Path(__file__).absolute().parent.parent.parent.parent,
+    "ironbank/pipeline/test/mocks",
 )
 
 

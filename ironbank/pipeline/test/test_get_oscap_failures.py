@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 
-import os
-import sys
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 # These will be uncommented when the methods are implemented
 # from get_oscap_failures import (
 #     _format_reference,

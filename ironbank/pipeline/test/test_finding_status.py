@@ -1,22 +1,17 @@
+#!/usr/bin/env python3
+
 import pytest
 import os
-import sys
 import json
 import pathlib
 from unittest import mock
+from ironbank.pipeline.vat_container_status import _check_findings
+from ironbank.pipeline.vat_container_status import is_approved
+from ironbank.pipeline.vat_container_status import _is_accredited
+from ironbank.pipeline.vat_container_status import _check_expiration
+from ironbank.pipeline.vat_container_status import _get_approval_status
 
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from vat_container_status import _check_findings  # noqa E402
-from vat_container_status import is_approved  # noqa E402
-from vat_container_status import _is_accredited  # noqa E402
-from vat_container_status import _check_expiration  # noqa E402
-from vat_container_status import _get_approval_status  # noqa E402
-
-mock_path = pathlib.Path(
-    pathlib.Path(__file__).absolute().parent.parent.parent, "mocks"
-)
+mock_path = pathlib.Path(pathlib.Path(__file__).absolute().parent, "mocks")
 
 
 @pytest.fixture

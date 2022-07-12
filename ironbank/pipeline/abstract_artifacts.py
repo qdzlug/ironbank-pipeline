@@ -3,7 +3,7 @@ import os
 import hashlib
 import re
 from dataclasses import dataclass
-from utils import logger
+from .utils import logger
 from base64 import b64decode
 from abc import ABC, abstractmethod
 

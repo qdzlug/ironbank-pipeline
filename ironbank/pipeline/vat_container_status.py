@@ -6,7 +6,7 @@ from dateutil import parser
 from datetime import datetime, timezone
 
 
-from utils import logger
+from .utils import logger
 
 log = logger.setup(name="vat_container_status")
 

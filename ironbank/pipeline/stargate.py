@@ -10,7 +10,7 @@ from base64 import b64decode
 import boto3
 from botocore.exceptions import ClientError
 
-from utils import logger  # noqa: E402
+from .utils import logger  # noqa: E402
 
 log = logger.setup(name="stargate.artifact_push")
 

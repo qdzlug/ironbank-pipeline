@@ -1,21 +1,17 @@
 #!/usr/bin/env python3
 
-import os
 import sys
 from subprocess import CalledProcessError
 from urllib.parse import urlparse
 from botocore.exceptions import ClientError
 from requests.exceptions import HTTPError
 
-sys.path.append(
-    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "modules")
-)
-from utils import logger  # noqa E402
-from utils.exceptions import InvalidURLList  # noqa E402
-from project import DsopProject  # noqa E402
-from hardening_manifest import HardeningManifest  # noqa E402
-from abstract_artifacts import AbstractFileArtifact  # noqa E402
-from artifacts import (  # noqa E402
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.exceptions import InvalidURLList
+from ironbank.pipeline.project import DsopProject
+from ironbank.pipeline.hardening_manifest import HardeningManifest
+from ironbank.pipeline.abstract_artifacts import AbstractFileArtifact
+from ironbank.pipeline.artifacts import (
     HttpArtifact,
     S3Artifact,
     ContainerArtifact,
