@@ -121,6 +121,8 @@ buildah tag --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" "${IMAGE_FULLTAG}"
 
 buildah push --storage-driver=vfs --authfile staging_auth.json --digestfile="${ARTIFACT_DIR}/digest" "${IMAGE_FULLTAG}"
 
+export BUILD_DATE="$(date +%F)"
+
 function push_tags() {
   echo "Read the tags"
   tags_file="${ARTIFACT_STORAGE}/lint/tags.txt"
