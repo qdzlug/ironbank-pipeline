@@ -8,12 +8,7 @@ import pathlib
 import logging
 import requests
 import subprocess
-
-# requests will attempt to use simplejson to decode its payload if it is present
-try:
-    from simplejson.errors import JSONDecodeError
-except ImportError:
-    from json.decoder import JSONDecodeError
+from json.decoder import JSONDecodeError
 
 
 class Anchore:
@@ -28,7 +23,7 @@ class Anchore:
         self.password = password
         self.verify = verify
 
-    def __get_anchore_api_json(self, url, payload="", ignore404=False):
+    def _get_anchore_api_json(self, url, payload="", ignore404=False):
         """
         Internal api response fetcher. Will check for a valid return code and
         ensure the response has valid json. Once everything has been validated
@@ -64,14 +59,14 @@ class Anchore:
         except JSONDecodeError:
             raise Exception("Got 200 response but is not valid JSON")
 
-    def __get_parent_sha(self, digest):
+    def _get_parent_sha(self, digest):
         """
         Fetch the ancestry and look for the immediate parent digest
 
         Use the ignore404 flag when fetching the ancestry from the API to mitigate
         the pipeline failing hard when ancestry is not available.
         """
-        ancestry = self.__get_anchore_api_json(
+        ancestry = self._get_anchore_api_json(
             f"{self.url}/enterprise/images/{digest}/ancestors",
             ignore404=True,
         )
@@ -92,7 +87,7 @@ class Anchore:
         """
         logging.info("Getting Anchore version")
         url = f"{self.url}/version"
-        version_json = self.__get_anchore_api_json(url)
+        version_json = self._get_anchore_api_json(url)
         logging.info(
             f"Anchore Enterprise Version: {version_json['service']['version']}"
         )
@@ -101,7 +96,7 @@ class Anchore:
         with filename.open(mode="w") as f:
             json.dump(version_json["service"]["version"], f)
 
-    def __get_extra_vuln_data(self, vulnerability):
+    def _get_extra_vuln_data(self, vulnerability):
         """
         Grab extra vulnerability data
 
@@ -112,7 +107,7 @@ class Anchore:
         extra = dict()
         description = "none"
 
-        resp = self.__get_anchore_api_json(url=url)
+        resp = self._get_anchore_api_json(url=url)
 
         for vuln in resp["vulnerabilities"]:
             if vuln["description"]:
@@ -141,25 +136,26 @@ class Anchore:
         logging.info("Getting vulnerability results")
 
         # Fetch the immediate parent digest if available
-        parent_digest = self.__get_parent_sha(digest)
+        parent_digest = self._get_parent_sha(digest)
 
         if parent_digest:
             url = f"{self.url}/enterprise/images/{digest}/vuln/all?base_digest={parent_digest}"
         else:
             url = f"{self.url}/enterprise/images/{digest}/vuln/all"
 
-        vuln_dict = self.__get_anchore_api_json(url)
+        vuln_dict = self._get_anchore_api_json(url)
         vuln_dict["imageFullTag"] = image
 
         for vulnerability in vuln_dict["vulnerabilities"]:
             # If VulnDB record found, retrive set of reference URLs associated with the record.
+            # TODO: VulnDB is no longer a part of Anchore. This code can be removed.
             if vulnerability["feed_group"] == "vulndb:vulnerabilities":
                 # "http://anchore-anchore-engine-api:8228/v1" or URL to replace may
                 #  need to be modified when changes to the Anchore installation occur
                 vulndb_request_url = re.sub(
                     "http://([a-z-_0-9:]*)/v1", self.url, vulnerability["url"]
                 )
-                vulndb_dict = self.__get_anchore_api_json(vulndb_request_url)
+                vulndb_dict = self._get_anchore_api_json(vulndb_request_url)
                 for vulndb_vuln in vulndb_dict["vulnerabilities"]:
                     vulnerability["url"] = vulndb_vuln["references"]
 
@@ -170,7 +166,7 @@ class Anchore:
 
         # Add the extra vuln details
         for i in range(len(vuln_dict["vulnerabilities"])):
-            extra = self.__get_extra_vuln_data(vuln_dict["vulnerabilities"][i])
+            extra = self._get_extra_vuln_data(vuln_dict["vulnerabilities"][i])
             try:
                 vuln_dict["vulnerabilities"][i]["extra"] = extra["vuln_data"]
             except KeyError:
@@ -193,14 +189,14 @@ class Anchore:
         logging.info("Getting compliance results")
 
         # Fetch the immediate parent digest if available
-        parent_digest = self.__get_parent_sha(digest)
+        parent_digest = self._get_parent_sha(digest)
 
         if parent_digest:
             url = f"{self.url}/enterprise/images/{digest}/check?tag={image}&detail=true&base_digest={parent_digest}"
         else:
             url = f"{self.url}/enterprise/images/{digest}/check?tag={image}&detail=true"
 
-        body_json = self.__get_anchore_api_json(url)
+        body_json = self._get_anchore_api_json(url)
 
         # Save the API response
         filename = pathlib.Path(artifacts_path, "anchore_api_gates_full.json")

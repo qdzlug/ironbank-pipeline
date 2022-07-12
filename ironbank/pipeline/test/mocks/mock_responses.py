@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from dataclasses import dataclass
 import requests
 import pytest
@@ -23,6 +25,21 @@ class MockResponse:
         return {"status_code": self.status_code, "text": self.text}
 
 
+@dataclass
+class MockInvalidJson(MockResponse):
+    def json(self):
+        raise requests.JSONDecodeError
+
+
+@dataclass
+class MockAnchoreResponse:
+    returncode: int
+    text: str
+    content: str = "example"
+    stderr: str = "canned_error"
+    stdout: str = "It broke"
+
+
 @pytest.fixture(scope="module")
 def mock_responses():
     def mock200(*args, **kwargs):
@@ -40,11 +57,23 @@ def mock_responses():
     def mock500(*args, **kwargs):
         return MockResponse(500, "server_ded")
 
+    def mock0(*args, **kwargs):
+        return MockAnchoreResponse(0, "successful")
+
+    def mock1(*args, **kwargs):
+        return MockAnchoreResponse(1, "exists")
+
+    def mock2(*args, **kwargs):
+        return MockAnchoreResponse(2, "other_error")
+
     def mockRequestException(*args, **kwargs):
         raise requests.exceptions.RequestException
 
     def mockRuntimeError(*args, **kwargs):
         raise RuntimeError
+
+    def mockJsonDecodeError(*args, **kwargs):
+        return MockInvalidJson(200, "")
 
     return {
         "200": mock200,
@@ -52,6 +81,10 @@ def mock_responses():
         "403": mock403,
         "404": mock404,
         "500": mock500,
+        "0": mock0,
+        "1": mock1,
+        "2": mock2,
         "requestException": mockRequestException,
         "runtimeError": mockRuntimeError,
+        "jsonDecodeError": mockJsonDecodeError,
     }
