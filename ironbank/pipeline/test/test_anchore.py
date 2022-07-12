@@ -1,19 +1,14 @@
+#!/usr/bin/env python3
+
 import json
-import os
 import subprocess
-import sys
 import pathlib
 import pytest
 import requests
 from unittest.mock import mock_open
 
-
-sys.path.append(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
-
-from pipeline.anchore import Anchore  # noqa E402
-from mocks.mock_responses import mock_responses  # noqa E402 W0611
+from ironbank.pipeline.anchore import Anchore
+from mocks.mock_responses import mock_responses  # noqa W0611
 
 
 @pytest.fixture(autouse=True)

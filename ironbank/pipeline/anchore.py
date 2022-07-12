@@ -8,12 +8,7 @@ import pathlib
 import logging
 import requests
 import subprocess
-
-# requests will attempt to use simplejson to decode its payload if it is present
-try:
-    from simplejson.errors import JSONDecodeError
-except ImportError:
-    from json.decoder import JSONDecodeError
+from json.decoder import JSONDecodeError
 
 
 class Anchore:
