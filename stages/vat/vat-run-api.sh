@@ -13,8 +13,8 @@ python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
   --api_url "${VAT_API_URL}" \
   --job_id "${CI_PIPELINE_ID}" \
   --timestamp "$(date --utc '+%FT%TZ')" \
-  --scan_date "${BUILD_DATE}"
-  --build_date "${BUILD_DATE}"
+  --scan_date "${BUILD_DATE}" \
+  --build_date "${BUILD_DATE}" \
   --commit_hash "${CI_COMMIT_SHA}" \
   --container "${IMAGE_NAME}" \
   --version "${IMAGE_VERSION}" \
