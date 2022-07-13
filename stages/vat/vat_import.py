@@ -32,9 +32,21 @@ parser.add_argument(
     required=True,
 )
 parser.add_argument(
+    "-ts",
+    "--timestamp",
+    help="Timestamp for current pipeline run",
+    required=True,
+)
+parser.add_argument(
     "-sd",
     "--scan_date",
     help="Scan date for pipeline run",
+    required=True,
+)
+parser.add_argument(
+    "-bd",
+    "--build_date",
+    help="Build date for pipeline run",
     required=True,
 )
 parser.add_argument(
