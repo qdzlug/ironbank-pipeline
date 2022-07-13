@@ -121,8 +121,6 @@ buildah tag --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" "${IMAGE_FULLTAG}"
 
 buildah push --storage-driver=vfs --authfile staging_auth.json --digestfile="${ARTIFACT_DIR}/digest" "${IMAGE_FULLTAG}"
 
-export BUILD_DATE="$(date +%F\ %T)"
-
 function push_tags() {
   echo "Read the tags"
   tags_file="${ARTIFACT_STORAGE}/lint/tags.txt"
@@ -147,6 +145,8 @@ IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" -
   echo "IMAGE_FULLTAG=${IMAGE_FULLTAG}"
 
   echo "IMAGE_NAME=${IMAGE_NAME}"
+
+  echo "BUILD_DATE=$(date --utc '+%FT%TZ')"
 } >>build.env
 
 echo "Archive the proxy access log"
