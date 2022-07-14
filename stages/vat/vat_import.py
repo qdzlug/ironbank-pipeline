@@ -32,9 +32,21 @@ parser.add_argument(
     required=True,
 )
 parser.add_argument(
+    "-ts",
+    "--timestamp",
+    help="Timestamp for current pipeline run",
+    required=True,
+)
+parser.add_argument(
     "-sd",
     "--scan_date",
     help="Scan date for pipeline run",
+    required=True,
+)
+parser.add_argument(
+    "-bd",
+    "--build_date",
+    help="Build date for pipeline run",
     required=True,
 )
 parser.add_argument(
@@ -332,7 +344,9 @@ def create_api_call():
         "parentImageTag": args.parent_version,
         "jobId": args.job_id,
         "digest": args.digest.replace("sha256:", ""),
-        "timestamp": args.scan_date,
+        "timestamp": args.timestamp,
+        "scan_date": args.scan_date,
+        "build_date": args.build_date,
         "repo": {
             "url": args.repo_link,
             "commit": args.commit_hash,
