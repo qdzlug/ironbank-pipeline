@@ -6,6 +6,7 @@ import argparse
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.types import Package
 from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
+import ironbank.pipeline.base_image as base
 
 log = logger.setup(
     name="sbom_access_log_parser", format="| %(levelname)-5s | %(message)s"
@@ -14,6 +15,10 @@ log = logger.setup(
 
 def main(args) -> None:
     try:
+
+
+        base.skopeo_inspect_base_image()
+
         # TODO: Gather information that we need from current & previous image
         #       (Name/tag, Git commit SHA, Parent digest)
 
