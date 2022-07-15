@@ -3,7 +3,7 @@
 ## ironbank-pipeline directory structure
 
 `/templates` contains the templates for the pipeline.
-This includes the `globals.yaml` file, which contains variable references needed for each CI/CD job to run and outlines the jobs required to run.
+This includes the `globals.yaml` file, which contains variable references needed for each CI/CD job to run and outlines the stages required to run.
 This directory will also contain templates for special cases, such as distroless or scratch images.
 These special cases will have their own `.yaml` files which override aspects of the `globals.yaml` configuration as needed.
 
@@ -14,7 +14,7 @@ Additional `.yaml` files can be present within the stage directories in order to
 
 ## Contributor project requirements for ironbank-pipeline use
 
-- ### Adding a project pipeline in settings
+### Adding a project pipeline in settings
 
 The Iron Bank pipelines team will control the project configuration.
 As a result, projects _must not_ contain a `.gitlab-ci.yml`.
@@ -30,6 +30,7 @@ The following is provided: `templates/default.yaml@ironbank-tools/ironbank-pipel
 This will point the project towards the default pipeline in ironbank-pipeline.
 
 The `default` template will allow images based on UBI to run through the required pipeline steps (whether the image directly uses an UBI base image for its base image, or by using an approved Iron Bank container with a base UBI image for its base image).
+The other approved template is `templates/distroless.yaml@ironbank-tools/ironbank-pipeline`, and is used for distroless and scratch based images.
 
 Please review templates/README.md for more information on which template your project needs.
 
@@ -38,51 +39,58 @@ Please review templates/README.md for more information on which template your pr
 To access artifacts for each job, select the job in the UI on the `CI/CD -> Pipelines` page by clicking on the button for that job.
 In the top right hand corner of the screen, there is a box which says "Job artifacts" and contains buttons which say "Keep", "Download", and "Browse". Select the button which corresponds to the option you want.
 
-Job artifacts are removed after one week in most cases.
+Job artifacts are retained for the latest pipeline, removed after one week in most cases.
 A new pipeline run will need to occur in order to produce job artifacts after this period of time.
 
 ## Pipeline stages
 
-### preprocess
+### .pre (preprocess)
 
 This stage is used to clone the `ironbank-pipeline` repository from GitLab so that the templates/stages contained within the project can be utilized in later pipeline stages.
 
-Job artifacts:
-
-- pipeline templates/scripts/etc.
-
-### preflight
-
-The `preflight` stage performs multiple functions, which are described below:
-
-- displaying the folder structure for the project which is running through the Container Hardening pipeline.
-
-- testing/checking the build variables exist using the `build variables` job.
-
-- The `metadata.py` file processes the `hardening_manifest.yaml` file
-  - The structure of the file is validated using the `hardening_manifest.schema.json` jsonschema.
-  - The image name, version (first tag), tags, build args, and labels are extracted for use in later build steps
-
 ### lint
 
-The `lint` stage contains multiple functions and is used to ensure the formatting used in various project files is valid.
+The `lint` stage contains two jobs, `lint` and `trufflehog`.
+`lint` runs a number of python scripts to validate a project's structure, and individual file structure.
+`trufflehog` is a python tool to look for secrets or passwords contained in commits pushed to Repo1 (GitLab).
 
-The `wl compare lint` job ensures that the pipeline run will fail on any branch if the repository structure is incorrect.
+The `lint` scripts run, include:
 
-The `folder structure` job will check for the existence of the following files and/or directories within the project which is being run through the pipeline:
+#### folder-structure
 
-    - README.md (required file)
-    - Dockerfile (required file)
-    - LICENSE (required file)
-    - hardening_manifest.yaml (required, includes container metadata and allows external resources to be validated and used in the container build)
-    - scripts (directory, not always required, which stores any script files needed in the container)
-    - signatures (directory, not always required, which contains signatures needed for validation of any repository or external resource files)
-    - config (directory, not always required, which stores any configuration files needed in the container)
-    - accreditation (directory, not always required, which provides information about approved images)
+The `folder_structure` function will check for the required files, and validate some of these as well, excluding the hardening manifest, as a separate functions will check this.
+
+- validate_files_exist
+- validate_clamav_whitelist_config
+- validate_trufflehog_config
+- validate_dockerfile
+- pipeline_auth_status
+
+#### hardening manifest validation
+
+The `hardening_manifest_validation` function will run jsonschema validation, as well as create an environment file with variables used later in the pipeline.
 
 Job artifacts:
 
 - project variables which are used in later pipeline stages.
+
+#### docker file validation
+
+Checks to make sure a proper `FROM` command is used for a project's base image
+
+#### base image validation
+
+If a base image is used, checks to make sure it exists in [Registry1](https://registry1.dso.mil/ironbank).
+`skopeo` is used to perform the base image inspect.
+
+Job artifacts:
+
+- base_image.json which contains the base image digest
+
+#### trufflehog
+
+Scans for secrets and keys in commits pushed to the remote.
+If there is a finding, a command is logged to demonstrate how to run the scan locally, in order to see the finding(s).
 
 ### import artifacts
 
@@ -113,6 +121,22 @@ Job artifacts:
 - image id as IMAGE_ID, image digest as IMAGE_PODMAN_SHA, staging image name (`<staging registry URL>/<image name>:<CI_PIPELINE_ID>`) as IMAGE_FULLTAG, image name as IMAGE_NAME
 
 For more information on this stage, please refer to the [build job readme](https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/-/blob/master/stages/build/README.md).
+
+### post build
+
+#### create tar
+
+#### generate sbom
+
+With the use of `syft`, the pipeline generates four separate software bill of materials (SBOM).
+The formats are:
+
+| SBOM format    | File type |
+| -------------- | --------- |
+| cyclonedx      | xml       |
+| spdx-tag-value | txt       |
+| spdx-json      | json      |
+| json           | json      |
 
 ### scanning
 

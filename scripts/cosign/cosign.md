@@ -1,6 +1,6 @@
 # Cosign Signatures
 
-The Iron Bank pipeline is now performing cosign signatures on all images pushed to the `ironbank` project within Registry1.
+The Iron Bank pipeline now performs cosign signatures on all images pushed to the `ironbank` project within Registry1.
 
 Please see the adjacent pem file, `cosign-certificate.pem` for the public cert used to verify these signatures.
 
@@ -30,7 +30,7 @@ The following checks were performed on each of these signatures:
 
 ## Pulling Cosign Artifacts
 
-Beyond creating image signatures, Cosign can be used to generate additional artifacts in support of software supply chain security, such as image SBOMs and Attestations.
+Beyond creating image signatures, Cosign is used to generate additional artifacts in support of software supply chain security, such as image SBOMs and Attestations.
 
 These artifacts, as well as their own signature artifacts, can be downloaded and verified using tools such as `cosign` and `oras`, as described in the following sections.
 
