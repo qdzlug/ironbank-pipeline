@@ -6,18 +6,28 @@ import argparse
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.types import Package
 from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
-import ironbank.pipeline.base_image as base
+from ironbank.pipeline.container_tools import skopeo
 
 log = logger.setup(
     name="sbom_access_log_parser", format="| %(levelname)-5s | %(message)s"
 )
 
 
+
+
+
 def main(args) -> None:
     try:
+        # img = 'redhat/ubi/ubi8'
+        # tag = 'latest'
+
+        dsop_project = DsopProject()
+        manifest = HardeningManifest(dsop_project.hardening_manifest_path)
+        skopeo_inspect_json = skopeo.skopeo_inspect(manifest.image_name, manifest.image_tag)
+
+        # Image may not exist in the registry
 
 
-        base.skopeo_inspect_base_image()
 
         # TODO: Gather information that we need from current & previous image
         #       (Name/tag, Git commit SHA, Parent digest)
@@ -29,7 +39,7 @@ def main(args) -> None:
         new_pkgs += AccessLogFileParser.parse(args.access_log_file)
 
         # Remove duplicates
-        new_pkgs = list(set(new_pkgs))
+        new_pkgs = set(new_pkgs)
 
         # TODO: Make tmp directory
 
@@ -45,10 +55,10 @@ def main(args) -> None:
         ]
 
         # Remove duplicates
-        old_pkgs = list(set(old_pkgs))
+        old_pkgs = set(old_pkgs)
 
         # Check for package differences
-        if set(new_pkgs).symmetric_difference(set(old_pkgs)):
+        if new_pkgs.symmetric_difference(old_pkgs):
             log.info("SBOM difference(s) detected!")
             # scan new image
         else:

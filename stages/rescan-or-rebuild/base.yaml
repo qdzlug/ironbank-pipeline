@@ -1,5 +1,5 @@
-.sbom-access-log:
-  stage: sbom-access-log
+.rescan-or-rebuild:
+  stage: rescan-or-rebuild
   dependencies:
     - load-scripts
     - build
@@ -8,11 +8,11 @@
     max: 2
     when: runner_system_failure
 
-parse-sbom-access-log:
-  extends: .sbom-access-log
+rescan-or-rebuild:
+  extends: .rescan-or-rebuild
   variables:
     SBOM_DIR: "${ARTIFACT_STORAGE}/sbom"
     ACCESS_LOG_DIR: "${ARTIFACT_STORAGE}/build"
   script:
     - 'pip install --user "${PIPELINE_REPO_DIR}"'
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/sbom-access-log/sbom_access_log_parser.py" --allow-errors "${SBOM_DIR}/sbom-json.json" "${ACCESS_LOG_DIR}/access_log"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/sbom-access-log/sbom_access_log_diff.py" --allow-errors "${SBOM_DIR}/sbom-json.json" "${ACCESS_LOG_DIR}/access_log"'
