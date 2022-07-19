@@ -1,12 +1,13 @@
 from base64 import b64decode
 import os
+import json
 import pathlib
 import subprocess
 import sys
 
 from ironbank.pipeline.utils import logger
 
-log = logger.setup(name="base_image", format="| %(levelname)-5s | %(message)s")
+log = logger.setup(name="skopeo", format="| %(levelname)-5s | %(message)s")
 
 
 class Skopeo:
@@ -24,7 +25,7 @@ class Skopeo:
             pathlib.Path(auth_file).write_text(pull_auth)
         return auth_file
 
-    def inspect(self, image, tag) -> str:
+    def inspect(self, image, tag) -> dict:
 
         auth_file = self.pull_auth()
         registry = 'ironbank-staging' if ('staging' in auth_file) else 'ironbank'
@@ -36,6 +37,7 @@ class Skopeo:
             auth_file,
             f"docker://registry1.dso.mil/{registry}/{image}:{tag}",
         ]
+        log.info("Run inspect cmd:")
         log.info(" ".join(cmd))
         # if skopeo inspect fails, because BASE_IMAGE value doesn't match a registry1 container name
         #   fail back to using existing functionality
@@ -47,7 +49,7 @@ class Skopeo:
                 check=True,
                 encoding="utf-8",
             )
-            return sha_value.stdout
+            return json.loads(sha_value.stdout)
         except subprocess.CalledProcessError as e:
             log.error(
                 "Failed to inspect BASE_IMAGE:BASE_TAG provided in hardening_manifest. \

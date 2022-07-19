@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
+import os
+import json
 import asyncio
+import pathlib
 
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.utils import logger
-import ironbank.pipeline.base_image as base
+from ironbank.pipeline.container_tools.skopeo import Skopeo
 
 log = logger.setup(name="lint.base_image_validation")
 
@@ -19,8 +22,12 @@ async def main():
     dsop_project = DsopProject()
     manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     if manifest.base_image_name:
-        base.skopeo_inspect_base_image(manifest.base_image_name, manifest.base_image_tag)
+        log.info("Inspect base image")
+        base_img_inspect = Skopeo.inspect(manifest.base_image_name, manifest.base_image_tag)
 
-
+        base_image_info = {"BASE_SHA": base_img_inspect['Digest'].strip().replace("'", "")}
+        log.info("Dump SHA to file")
+        with pathlib.Path(os.environ["ARTIFACT_DIR"], "base_image.json").open("w") as f:
+            json.dump(base_image_info, f)
 if __name__ == "__main__":
     asyncio.run(main())
