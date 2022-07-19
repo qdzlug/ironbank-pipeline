@@ -2,28 +2,68 @@
 
 import sys
 import argparse
-
+from pathlib import Path
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.types import Package
 from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
-from ironbank.pipeline.container_tools import skopeo
+from ironbank.pipeline.container_tools.skopeo import Skopeo
 
 log = logger.setup(
     name="sbom_access_log_parser", format="| %(levelname)-5s | %(message)s"
 )
 
 
+def parse_packages(sbom_path: Path, access_log_path: Path) -> set:
+    try:
+        pkgs = SbomFileParser.parse(sbom_path)
+        pkgs += AccessLogFileParser.parse(access_log_path)
+    except OSError as e:
+        log.error("Unable to open file")
+        log.error(e)
+        sys.exit(1)
+    except ValueError as e:
+        log.error("Unable to parse file")
+        log.error(e)
+        # TODO:
+        # if not args.allow_errors:
+        #     sys.exit(1)
+    except Exception:
+        log.exception("Exception: Unknown exception")
+        # TODO:
+        # if not args.allow_errors:
+        #     sys.exit(1)
+    return set(pkgs)
+    
+def download_artifacts() -> str:
+    return Path.cwd() / "cody-test"
+    # TODO: Make tmp directory
+
+    # TODO: Download old artifacts to tmp directory
+
+    # return path to tmp directory
 
 
+def compare(new_pkgs, old_pkgs):
+    # Check for package differences
+    if new_pkgs.symmetric_difference(old_pkgs):
+        log.info("SBOM difference(s) detected!")
+        # scan new image
+    else:
+        log.info("No difference detected!")
+        # rescan old image
 
 def main(args) -> None:
     try:
-        # img = 'redhat/ubi/ubi8'
-        # tag = 'latest'
+        img = 'redhat/ubi/ubi8'
+        tag = 'latest'
 
-        dsop_project = DsopProject()
-        manifest = HardeningManifest(dsop_project.hardening_manifest_path)
-        skopeo_inspect_json = skopeo.skopeo_inspect(manifest.image_name, manifest.image_tag)
+        # dsop_project = DsopProject()
+        # manifest = HardeningManifest(dsop_project.hardening_manifest_path)
+        # skopeo_inspect_json = Skopeo().inspect(manifest.image_name, manifest.image_tag)
+
+        skopeo_inspect_json = Skopeo().inspect(img, tag)
+
+        log.info(skopeo_inspect_json['Digest'])
 
         # Image may not exist in the registry
 
@@ -34,37 +74,7 @@ def main(args) -> None:
 
         # TODO: Determine if we need to diff SBOMs based on information gathered
 
-        # Parse new sbom & access log
-        new_pkgs = SbomFileParser.parse(args.sbom_file)
-        new_pkgs += AccessLogFileParser.parse(args.access_log_file)
-
-        # Remove duplicates
-        new_pkgs = set(new_pkgs)
-
-        # TODO: Make tmp directory
-
-        # TODO: Download old artifacts to tmp directory
-
-        # TODO: Parse old sbom & access log
-        # old_pkgs = SbomFileParser.parse()
-        # old_pkgs += AccessLogFileParser.parse()
-
-        # TODO: Temporary spoof data - remove when above is implemented
-        old_pkgs = [
-            Package(kind="tKind1", name="tName1", version="tVersion1", url="tUrl1"),
-        ]
-
-        # Remove duplicates
-        old_pkgs = set(old_pkgs)
-
-        # Check for package differences
-        if new_pkgs.symmetric_difference(old_pkgs):
-            log.info("SBOM difference(s) detected!")
-            # scan new image
-        else:
-            log.info("No difference detected!")
-            # rescan old image
-
+       
     except OSError as e:
         log.error("Unable to open file")
         log.error(e)

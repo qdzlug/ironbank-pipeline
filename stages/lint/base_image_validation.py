@@ -23,7 +23,7 @@ async def main():
     manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     if manifest.base_image_name:
         log.info("Inspect base image")
-        base_img_inspect = Skopeo.inspect(manifest.base_image_name, manifest.base_image_tag)
+        base_img_inspect = Skopeo().inspect(manifest.base_image_name, manifest.base_image_tag)
 
         base_image_info = {"BASE_SHA": base_img_inspect['Digest'].strip().replace("'", "")}
         log.info("Dump SHA to file")

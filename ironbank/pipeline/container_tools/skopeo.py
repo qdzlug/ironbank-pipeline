@@ -39,7 +39,7 @@ class Skopeo:
         ]
         log.info("Run inspect cmd:")
         log.info(" ".join(cmd))
-        # if skopeo inspect fails, because BASE_IMAGE value doesn't match a registry1 container name
+        # if skopeo inspect fails, because IMAGE value doesn't match a registry1 container name
         #   fail back to using existing functionality
         try:
             sha_value = subprocess.run(
@@ -52,7 +52,7 @@ class Skopeo:
             return json.loads(sha_value.stdout)
         except subprocess.CalledProcessError as e:
             log.error(
-                "Failed to inspect BASE_IMAGE:BASE_TAG provided in hardening_manifest. \
+                "Failed to inspect IMAGE:TAG provided in hardening_manifest. \
                     Please validate this image exists in the registry1.dso.mil/ironbank project."
             )
             log.error(
@@ -62,5 +62,5 @@ class Skopeo:
             log.error(f"Return code: {e.returncode}")
             sys.exit(1)
         except Exception:
-            log.exception("Unknown failure when attempting to inspect BASE_IMAGE")
+            log.exception("Unknown failure when attempting to inspect IMAGE")
             sys.exit(1)
