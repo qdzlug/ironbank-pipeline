@@ -41,6 +41,7 @@
 # def mock_subprocess_fail(*args, **kwargs):
 #     raise subprocess.CalledProcessError(1, ["cmd"])
 
+# # TODO: Update for new Skopeo class - Taken from test_base_image_validation
 
 # def test_skopeo_inspect_base_image(monkeypatch, caplog, good_base_image):
 #     monkeypatch.setenv("STAGING_BASE_IMAGE", "base")
@@ -82,12 +83,3 @@
 
 #     assert "Unknown failure when attemping to inspect BASE_IMAGE" in caplog.text
 #     caplog.clear()
-
-
-# # We have to patch base_image_validation.<Class> because we're doing from <module> import <Class> in base_image_validation
-# # If we use import <module> and example = <module>.<Class>(), then we can just patch <module>.<Class>
-# @patch("base_image_validation.DsopProject", new=MockProject)
-# @patch("base_image_validation.HardeningManifest", new=MockHardeningManifest)
-# @patch("base_image_validation.skopeo_inspect_base_image", lambda x, y: "blah")
-# def test_base_image_validation_main():
-#     asyncio.run(base_image_validation.main())
