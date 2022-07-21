@@ -7,7 +7,7 @@ from pathlib import Path
 
 from ironbank.pipeline.utils import logger
 
-log = logger.setup("lint_jobs")
+log = logger.setup("rescan_or_rebuild_jobs")
 
 
 def main():
@@ -31,7 +31,7 @@ def main():
     # else propagate new date
 
     if old_img:
-        log.info("SBOM/Access Log diff required to determine rescan or rebuild.")
+        log.info("SBOM diff required to determine rescan or rebuild.")
         # tmp_path = Path(package_compare.download_artifacts(old_img))
 
         # TODO: Future ticket
@@ -44,7 +44,7 @@ def main():
         #     log.info("Rebuild required!")
         # TODO: Future - set env var REBUILD_REQUIRED=true
     else:
-        log.info("No diff required. Must rebuild image.")
+        log.info("No SBOM diff required. Must rebuild image.")
 
 
 if __name__ == "__main__":
