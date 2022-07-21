@@ -1,23 +1,9 @@
 #!/usr/bin/env python3
 
 import os
-import pathlib
 import logging
 import requests
-import json
 import sys
-
-
-def load_data() -> dict:
-    """
-    loads the repo_map file and returns the latest build dict
-    """
-    build_id = os.environ["CI_PIPELINE_ID"]
-    current_dir = os.getcwd()
-    filename = pathlib.Path(f"{current_dir}/repo_map.json")
-    with filename.open(mode="r") as f:
-        data: dict[str, dict] = json.load(f)
-    return data[build_id]
 
 
 def post_artifact_data_vat():
@@ -42,18 +28,6 @@ def post_artifact_data_vat():
     return post_resp
 
 
-def post_artifact_data_ibfe(new_data: dict):
-    post_resp = requests.post(
-        os.environ["IBFE_API_ENDPOINT"],
-        headers={
-            "Authorization": os.environ["IBFE_API_KEY"],
-            "x-gitlab-ci-jwt": f"Bearer {os.environ['CI_JOB_JWT_V2']}",
-        },
-        json=new_data,
-    )
-    return post_resp
-
-
 def main():
     if os.environ["CI_COMMIT_BRANCH"] == "master":
         # Get logging level, set manually when running pipeline
@@ -68,12 +42,7 @@ def main():
             logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
             logging.info("Log level set to info")
 
-        new_data = load_data()
         try:
-            app = "IBFE"
-            post_resp = post_artifact_data_ibfe(new_data)
-            post_resp.raise_for_status()
-            logging.info(f"Uploaded container data to {app} API")
             app = "VAT"
             post_resp = post_artifact_data_vat()
             post_resp.raise_for_status()
