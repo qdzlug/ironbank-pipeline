@@ -43,6 +43,8 @@ def main():
         # if not package_compare.compare_equal(new_pkgs, old_pkgs):
         #     log.info("Rebuild required!")
         # TODO: Future - set env var REBUILD_REQUIRED=true
+    else:
+        log.info("No diff required. Must rebuild image.")
 
 
 if __name__ == "__main__":

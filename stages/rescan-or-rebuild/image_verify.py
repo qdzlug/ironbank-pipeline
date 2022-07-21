@@ -16,6 +16,7 @@ def inspect_old_image(manifest: HardeningManifest) -> Optional[dict]:
         return Skopeo().inspect(manifest.image_name, manifest.image_tag)
 
     except subprocess.CalledProcessError:
+        log.info("Failed to inspect old image.")
         return None
 
 
@@ -24,12 +25,17 @@ def commit_sha_equal(img_json: dict) -> bool:
     #   if different, no diff needed: new commit
 
     if "org.opencontainers.image.revision" not in img_json["Labels"]:
+        log.info("Image revision label does not exist.")
         return False
 
-    return (
+    if (
         img_json["Labels"]["org.opencontainers.image.revision"].lower()
         == os.environ["CI_COMMIT_SHA"].lower()
-    )
+    ):
+        return True
+    else:
+        log.info("Git commit SHA difference detected.")
+        return False
 
 
 def parent_digest_equal(img_json: dict, manifest: HardeningManifest) -> bool:
@@ -37,6 +43,7 @@ def parent_digest_equal(img_json: dict, manifest: HardeningManifest) -> bool:
     #   if different, no diff needed: updated parent
 
     if "mil.dso.ironbank.image.parent" not in img_json["Labels"]:
+        log.info("Parent image label does not exist.")
         return False
 
     with pathlib.Path(os.environ["ARTIFACT_DIR"], "base_image.json").open("w") as f:
@@ -48,7 +55,11 @@ def parent_digest_equal(img_json: dict, manifest: HardeningManifest) -> bool:
         else ""
     )
 
-    return new_parent == img_json["Labels"]["mil.dso.ironbank.image.parent"]
+    if new_parent == img_json["Labels"]["mil.dso.ironbank.image.parent"]:
+        return True
+    else:
+        log.info("Parent digest difference detected.")
+        return False
 
 
 def diff_needed() -> Optional[str]:
@@ -59,11 +70,12 @@ def diff_needed() -> Optional[str]:
     old_img_json = inspect_old_image(manifest)
 
     if not (
-        old_img_json  # If manifest exists (not a new tag), return true
-        and commit_sha_equal(old_img_json)  # If no diff in git commit SHA, return true
-        and parent_digest_equal(
-            old_img_json, manifest
-        )  # If no diff in parent digest, return true
+        # If manifest exists (not a new tag), return true
+        old_img_json
+        # If no diff in git commit SHA, return true
+        and commit_sha_equal(old_img_json)
+        # If no diff in parent digest, return true
+        and parent_digest_equal(old_img_json, manifest)
     ):
         return None
 
