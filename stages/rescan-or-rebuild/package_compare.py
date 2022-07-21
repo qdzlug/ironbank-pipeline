@@ -5,7 +5,7 @@ from pathlib import Path
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
 
-log = logger.setup(name="package_compare", format="| %(levelname)-5s | %(message)s")
+log = logger.setup(name="package_compare")
 
 
 def parse_packages(sbom_path: Path, access_log_path: Path) -> set:

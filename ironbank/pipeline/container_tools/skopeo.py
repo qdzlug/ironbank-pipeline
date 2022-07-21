@@ -6,7 +6,7 @@ import subprocess
 
 from ironbank.pipeline.utils import logger
 
-log = logger.setup(name="skopeo", format="| %(levelname)-5s | %(message)s")
+log = logger.setup(name="skopeo")
 
 
 class Skopeo:
@@ -37,7 +37,7 @@ class Skopeo:
             auth_file,
             f"docker://registry1.dso.mil/{registry}/{image}:{tag}",
         ]
-        log.info("Run inspect cmd: ".join(cmd))
+        log.info(f"Run inspect cmd: {cmd}")
         # if skopeo inspect fails, because IMAGE value doesn't match a registry1 container name
         #   fail back to using existing functionality
 

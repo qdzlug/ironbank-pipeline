@@ -5,7 +5,7 @@ from ironbank.pipeline.utils.types import Package
 from typing import Optional
 from dataclasses import dataclass, field
 
-log = logger.setup(name="package_parser", format="| %(levelname)-5s | %(message)s")
+log = logger.setup(name="package_parser")
 
 
 class ParsedURLPackage(ABC, Package):

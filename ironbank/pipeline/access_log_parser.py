@@ -3,7 +3,7 @@ import argparse
 from .utils.package_parser import AccessLogFileParser
 from .utils import logger
 
-log = logger.setup(name="access_log_parser", format="| %(levelname)-5s | %(message)s")
+log = logger.setup(name="access_log_parser")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

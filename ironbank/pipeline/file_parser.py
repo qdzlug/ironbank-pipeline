@@ -17,7 +17,7 @@ from .utils.package_parser import (
     NullPackage,
 )
 
-log = logger.setup(name="package_parser", format="| %(levelname)-5s | %(message)s")
+log = logger.setup(name="package_parser")
 
 
 class AccessLogFileParser(FileParser):
