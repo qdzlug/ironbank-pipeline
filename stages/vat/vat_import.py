@@ -278,11 +278,16 @@ def generate_twistlock_jobs(twistlock_cve_path):
             # get associated justification if one exists
             identifiers = []
             identifiers.append(v_d["id"])
+            severity = (
+                "low"
+                if v_d["severity"].lower() == "unimportant"
+                else v_d["severity"].lower()
+            )
             try:
                 cves.append(
                     {
                         "finding": v_d["id"],
-                        "severity": v_d["severity"].lower(),
+                        "severity": severity,
                         "description": v_d.get("description"),
                         "link": v_d.get("link"),
                         "score": v_d.get("cvss"),
