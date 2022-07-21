@@ -5,29 +5,44 @@ import package_compare
 import image_verify
 from pathlib import Path
 
-from ironbank.pipeline.utils import logger  # noqa E402
+from ironbank.pipeline.utils import logger
 
 log = logger.setup("lint_jobs")
 
+
 def main():
-
-    # TODO: Allow fail capability???
-
-    image_verify.verify_manifest()
-    image_verify.verify_git_sha()
-    image_verify.verify_parent_digest()
 
     sbom_path = Path(os.environ["ARTIFACT_STORAGE"], "sbom/sbom-json.json")
     access_log_path = Path(os.environ["ARTIFACT_STORAGE"], "build/access_log")
 
+    log.info("Parsing new packages")
     new_pkgs = package_compare.parse_packages(sbom_path, access_log_path)
+    log.info(f"New packages parsed: {new_pkgs}")
 
-    tmp_path = package_compare.download_artifacts()
+    # TODO: Future - flush out logic for forced rebuild
+    if os.getenv("FORCE_REBUILD"):
+        log.info("Force Rebuild Set")
+        return
 
-    old_pkgs = package_compare.parse_packages(Path(tmp_path, 'old_sbom.json'), Path(tmp_path, 'old_access_log'))
-    # old_pkgs = package_compare.parse_packages(Path.joinpath(tmp_path, '/sbom-json.json'), Path.joinpath(tmp_path, '/access_log'))
+    old_img = image_verify.diff_needed()
 
-    package_compare.compare(new_pkgs, old_pkgs)
+    # TODO: Future - Might need to make diff_needed return old_img creation date label
+    # If reusing old img for scanning, propagate old date
+    # else propagate new date
+
+    if old_img:
+        log.info("SBOM/Access Log diff required to determine rescan or rebuild.")
+        # tmp_path = Path(package_compare.download_artifacts(old_img))
+
+        # TODO: Future ticket
+        # log.info("Parsing old packages")
+        # old_pkgs = package_compare.parse_packages(
+        #     Path(tmp_path, "sbom-json.json"), Path(tmp_path, "access_log")
+        # )
+
+        # if not package_compare.compare_equal(new_pkgs, old_pkgs):
+        #     log.info("Rebuild required!")
+        # TODO: Future - set env var REBUILD_REQUIRED=true
 
 
 if __name__ == "__main__":

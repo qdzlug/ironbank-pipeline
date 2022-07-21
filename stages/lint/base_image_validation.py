@@ -4,6 +4,8 @@ import os
 import json
 import asyncio
 import pathlib
+import subprocess
+import sys
 
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.hardening_manifest import HardeningManifest
@@ -23,11 +25,27 @@ async def main():
     manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     if manifest.base_image_name:
         log.info("Inspect base image")
-        base_img_inspect = Skopeo().inspect(manifest.base_image_name, manifest.base_image_tag)
 
-        base_image_info = {"BASE_SHA": base_img_inspect['Digest'].strip().replace("'", "")}
+        try:
+            base_img_inspect = Skopeo().inspect(
+                manifest.base_image_name, manifest.base_image_tag
+            )
+        except subprocess.CalledProcessError as e:
+            log.error(
+                "Failed to inspect IMAGE:TAG provided in hardening_manifest. \
+                    Please validate this image exists in the registry1.dso.mil/ironbank project."
+            )
+            log.error(
+                f"Failed 'skopeo inspect' of image: {manifest.base_image_name}, {manifest.base_image_tag}"
+            )
+            log.error(f"Return code: {e.returncode}")
+            sys.exit(1)
+
+        base_image_info = {"BASE_SHA": base_img_inspect["Digest"]}
         log.info("Dump SHA to file")
         with pathlib.Path(os.environ["ARTIFACT_DIR"], "base_image.json").open("w") as f:
             json.dump(base_image_info, f)
+
+
 if __name__ == "__main__":
     asyncio.run(main())

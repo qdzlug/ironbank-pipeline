@@ -74,7 +74,6 @@ class AccessLogFileParser(FileParser):
 
                 if package:
                     packages.append(package)
-                    log.info(f"Parsed package: {package}")
 
         log.info("Access log successfully parsed")
         return packages
@@ -102,7 +101,6 @@ class SbomFileParser(FileParser):
 
                 if package:
                     packages.append(package)
-                    log.info(f"Parsed package: {package}")
 
             log.info("SBOM successfully parsed")
         return packages
