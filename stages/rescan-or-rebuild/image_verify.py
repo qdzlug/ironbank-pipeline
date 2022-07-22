@@ -21,7 +21,7 @@ def inspect_old_image(manifest: HardeningManifest) -> Optional[dict]:
         )
         return None
 
-
+# TODO: Combine these two functions and rework their logic to not return as many bool False values. 
 def commit_sha_equal(img_json: dict) -> bool:
     # Check if the git sha in the old labels is different
     #   if different, no diff needed: new commit
