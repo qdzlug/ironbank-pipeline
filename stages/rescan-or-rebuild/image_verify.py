@@ -16,7 +16,9 @@ def inspect_old_image(manifest: HardeningManifest) -> Optional[dict]:
         return Skopeo().inspect(manifest.image_name, manifest.image_tag)
 
     except subprocess.CalledProcessError:
-        log.info(f"Failed to inspect old image: {manifest.image_name}:{manifest.image_name}")
+        log.info(
+            f"Failed to inspect old image: {manifest.image_name}:{manifest.image_name}"
+        )
         return None
 
 
