@@ -6,156 +6,156 @@ admin:
       port_value: 9901
 static_resources:
   listeners:
-  - name: listener_0
-    address:
-      socket_address:
-        protocol: TCP
-        address: 0.0.0.0
-        port_value: 10000
-    filter_chains:
-    - filters:
-      - name: envoy.filters.network.http_connection_manager
-        typed_config:
-          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
-          stat_prefix: ingress_http
-          access_log:
-            name: 'envoy.access_loggers.stdout'
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
-              log_format:
-                text_format_source:
-                  inline_string: "%RESPONSE_CODE% %REQ(:METHOD)% %REQ(:AUTHORITY)%%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%\n"
-          route_config:
-            name: local_route
-            virtual_hosts:
-            - name: http
-              domains:
-                # HTTP DOMAIN WHITELIST HERE
-                - example.com
-              routes:
-              - match:
-                  prefix: "/"
-                route:
-                  cluster: tcp_dynamic_forward_proxy_cluster
-                  timeout: 0s
-            - name: https
-              domains:
-                # HTTPS DOMAIN WHITELIST HERE
-                - registry-1.docker.io
-                - registry1.dso.mil
-                - ib-prod-harbor-storage.s3.us-gov-west-1.amazonaws.com
-                - auth.docker.io
-                - production.cloudflare.docker.com
-                - cdn-ubi.redhat.com
-              routes:
-              - match:
-                  prefix: "/"
-                route:
-                  cluster: tls_dynamic_forward_proxy_cluster
-                  timeout: 0s
-                  # internal_redirect_policy:
-                  #   max_internal_redirects: 5
-                  #   allow_cross_scheme_redirect: true
-                  #   redirect_response_codes:
-                  #     - 302
-                  #     - 307
-            # - name: connect
-            #   domains:
-            #     - cdn-ubi.redhat.com:443
-            #     # - auth.docker.io:443
-            #     # - registry1.dso.mil:443
-            #     # - production.cloudflare.docker.com:443
-            #     # - ib-prod-harbor-storage.s3.us-gov-west-1.amazonaws.com:443
-            #   routes:
-            #   - match:
-            #       connect_matcher:
-            #         {}
-            #     route:
-            #       cluster: tcp_dynamic_forward_proxy_cluster
-            #       upgrade_configs:
-            #       - upgrade_type: CONNECT
-            #         connect_config:
-            #           {}
-              # - match:
-              #     prefix: "/"
-              #   route:
-              #     cluster: https_dynamic_forward_proxy_cluster
-              #   typed_per_filter_config:
-              #     envoy.filters.http.dynamic_forward_proxy:
-              #       "@type": type.googleapis.com/envoy.extensions.filters.http.dynamic_forward_proxy.v3.PerRouteConfig
-              #       host_rewrite_literal: registry-1.docker.io
-
-          http_filters:
-          - name: envoy.filters.http.lua
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
-              inline_code: |
-                dofile("/etc/envoy/scripts/replaceHttpsToHttpForRedirect.lua")
-          - name: envoy.filters.http.dynamic_forward_proxy
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.filters.http.dynamic_forward_proxy.v3.FilterConfig
-              dns_cache_config:
-                name: dynamic_forward_proxy_cache_config
-                dns_lookup_family: V4_ONLY
-                typed_dns_resolver_config:
-                  name: envoy.network.dns_resolver.cares
+    - name: listener_0
+      address:
+        socket_address:
+          protocol: TCP
+          address: 0.0.0.0
+          port_value: 10000
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: ingress_http
+                access_log:
+                  name: "envoy.access_loggers.stdout"
                   typed_config:
-                    "@type": type.googleapis.com/envoy.extensions.network.dns_resolver.cares.v3.CaresDnsResolverConfig
-                    resolvers:
-                    - socket_address:
-                        address: "8.8.8.8"
-                        port_value: 53
-                    dns_resolver_options:
-                      use_tcp_for_dns_lookups: true
-                      no_default_search_domain: true
-          - name: envoy.filters.http.router
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+                    "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+                    log_format:
+                      text_format_source:
+                        inline_string: "%RESPONSE_CODE% %REQ(:METHOD)% %REQ(:AUTHORITY)%%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%\n"
+                route_config:
+                  name: local_route
+                  virtual_hosts:
+                    - name: http
+                      domains:
+                        # HTTP DOMAIN WHITELIST HERE
+                        - example.com
+                      routes:
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: tcp_dynamic_forward_proxy_cluster
+                            timeout: 0s
+                    - name: https
+                      domains:
+                        # HTTPS DOMAIN WHITELIST HERE
+                        - registry-1.docker.io
+                        - registry1.dso.mil
+                        - ib-prod-harbor-storage.s3.us-gov-west-1.amazonaws.com
+                        - auth.docker.io
+                        - production.cloudflare.docker.com
+                        - cdn-ubi.redhat.com
+                      routes:
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: tls_dynamic_forward_proxy_cluster
+                            timeout: 0s
+                            # internal_redirect_policy:
+                            #   max_internal_redirects: 5
+                            #   allow_cross_scheme_redirect: true
+                            #   redirect_response_codes:
+                            #     - 302
+                            #     - 307
+                  # - name: connect
+                  #   domains:
+                  #     - cdn-ubi.redhat.com:443
+                  #     # - auth.docker.io:443
+                  #     # - registry1.dso.mil:443
+                  #     # - production.cloudflare.docker.com:443
+                  #     # - ib-prod-harbor-storage.s3.us-gov-west-1.amazonaws.com:443
+                  #   routes:
+                  #   - match:
+                  #       connect_matcher:
+                  #         {}
+                  #     route:
+                  #       cluster: tcp_dynamic_forward_proxy_cluster
+                  #       upgrade_configs:
+                  #       - upgrade_type: CONNECT
+                  #         connect_config:
+                  #           {}
+                  # - match:
+                  #     prefix: "/"
+                  #   route:
+                  #     cluster: https_dynamic_forward_proxy_cluster
+                  #   typed_per_filter_config:
+                  #     envoy.filters.http.dynamic_forward_proxy:
+                  #       "@type": type.googleapis.com/envoy.extensions.filters.http.dynamic_forward_proxy.v3.PerRouteConfig
+                  #       host_rewrite_literal: registry-1.docker.io
+
+                http_filters:
+                  - name: envoy.filters.http.lua
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+                      inline_code: |
+                        dofile("/etc/envoy/scripts/replaceHttpsToHttpForRedirect.lua")
+                  - name: envoy.filters.http.dynamic_forward_proxy
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.dynamic_forward_proxy.v3.FilterConfig
+                      dns_cache_config:
+                        name: dynamic_forward_proxy_cache_config
+                        dns_lookup_family: V4_ONLY
+                        typed_dns_resolver_config:
+                          name: envoy.network.dns_resolver.cares
+                          typed_config:
+                            "@type": type.googleapis.com/envoy.extensions.network.dns_resolver.cares.v3.CaresDnsResolverConfig
+                            resolvers:
+                              - socket_address:
+                                  address: "8.8.8.8"
+                                  port_value: 53
+                            dns_resolver_options:
+                              use_tcp_for_dns_lookups: true
+                              no_default_search_domain: true
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
   clusters:
-  - name: tls_dynamic_forward_proxy_cluster
-    lb_policy: CLUSTER_PROVIDED
-    cluster_type:
-      name: envoy.clusters.dynamic_forward_proxy
-      typed_config:
-        "@type": type.googleapis.com/envoy.extensions.clusters.dynamic_forward_proxy.v3.ClusterConfig
-        dns_cache_config:
-          name: dynamic_forward_proxy_cache_config
-          dns_lookup_family: V4_ONLY
-          typed_dns_resolver_config:
-            name: envoy.network.dns_resolver.cares
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.network.dns_resolver.cares.v3.CaresDnsResolverConfig
-              resolvers:
-              - socket_address:
-                  address: "8.8.8.8"
-                  port_value: 53
-              dns_resolver_options:
-                use_tcp_for_dns_lookups: true
-                no_default_search_domain: true
-    transport_socket:
-      name: envoy.transport_sockets.tls
-      typed_config:
-        "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
-        common_tls_context:
-          validation_context:
-            trusted_ca: {filename: /etc/ssl/certs/ca-certificates.crt}
-  - name: tcp_dynamic_forward_proxy_cluster
-    lb_policy: CLUSTER_PROVIDED
-    cluster_type:
-      name: envoy.clusters.dynamic_forward_proxy
-      typed_config:
-        "@type": type.googleapis.com/envoy.extensions.clusters.dynamic_forward_proxy.v3.ClusterConfig
-        dns_cache_config:
-          name: dynamic_forward_proxy_cache_config
-          dns_lookup_family: V4_ONLY
-          typed_dns_resolver_config:
-            name: envoy.network.dns_resolver.cares
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.network.dns_resolver.cares.v3.CaresDnsResolverConfig
-              resolvers:
-              - socket_address:
-                  address: "8.8.8.8"
-                  port_value: 53
-              dns_resolver_options:
-                use_tcp_for_dns_lookups: true
-                no_default_search_domain: true
+    - name: tls_dynamic_forward_proxy_cluster
+      lb_policy: CLUSTER_PROVIDED
+      cluster_type:
+        name: envoy.clusters.dynamic_forward_proxy
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.clusters.dynamic_forward_proxy.v3.ClusterConfig
+          dns_cache_config:
+            name: dynamic_forward_proxy_cache_config
+            dns_lookup_family: V4_ONLY
+            typed_dns_resolver_config:
+              name: envoy.network.dns_resolver.cares
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.network.dns_resolver.cares.v3.CaresDnsResolverConfig
+                resolvers:
+                  - socket_address:
+                      address: "8.8.8.8"
+                      port_value: 53
+                dns_resolver_options:
+                  use_tcp_for_dns_lookups: true
+                  no_default_search_domain: true
+      transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+          common_tls_context:
+            validation_context:
+              trusted_ca: { filename: /etc/ssl/certs/ca-certificates.crt }
+    - name: tcp_dynamic_forward_proxy_cluster
+      lb_policy: CLUSTER_PROVIDED
+      cluster_type:
+        name: envoy.clusters.dynamic_forward_proxy
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.clusters.dynamic_forward_proxy.v3.ClusterConfig
+          dns_cache_config:
+            name: dynamic_forward_proxy_cache_config
+            dns_lookup_family: V4_ONLY
+            typed_dns_resolver_config:
+              name: envoy.network.dns_resolver.cares
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.network.dns_resolver.cares.v3.CaresDnsResolverConfig
+                resolvers:
+                  - socket_address:
+                      address: "8.8.8.8"
+                      port_value: 53
+                dns_resolver_options:
+                  use_tcp_for_dns_lookups: true
+                  no_default_search_domain: true
