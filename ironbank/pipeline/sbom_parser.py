@@ -6,7 +6,7 @@ from .utils import logger
 from .utils.types import Package, FileParser
 from dataclasses import dataclass
 
-log = logger.setup(name="sbom_parser", format="| %(levelname)-5s | %(message)s")
+log = logger.setup(name="sbom_parser")
 
 
 @dataclass
