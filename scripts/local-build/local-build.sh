@@ -9,9 +9,9 @@ set -euo pipefail
 # }
 
 cleanup() {
-    ! docker logs proxy
-    ! docker rm -f proxy
-    ! docker network rm proxy-network
+  ! docker logs proxy
+  ! docker rm -f proxy
+  ! docker network rm proxy-network
 }
 trap cleanup EXIT
 
@@ -34,36 +34,36 @@ sleep 10
 
 # This works!
 ! docker run --rm -it \
-    --network=proxy-network \
-    -e http_proxy="http://172.19.0.100:10000" \
-    curlimages/curl \
-        http://example.com/
+  --network=proxy-network \
+  -e http_proxy="http://172.19.0.100:10000" \
+  curlimages/curl \
+  http://example.com/
 
 # Buildah is a little dumb: it still does a DNS resolution even if it uses a proxy to pull images
 # Add registries to DNS with add-host and a nonsense 127.0.0.1 address
 ! docker run --rm -it \
-    --network=proxy-network \
-    --add-host=registry-1.docker.io:10.0.0.1 \
-    --add-host=auth.docker.io:10.0.0.2 \
-    -e BUILDAH_ISOLATION=chroot \
-    -e http_proxy="http://172.19.0.100:10000" \
-    -e HTTP_PROXY="http://172.19.0.100:10000" \
-    -e https_proxy="http://172.19.0.100:10000" \
-    -e HTTPS_PROXY="http://172.19.0.100:10000" \
-    --security-opt=seccomp=unconfined \
-    --workdir /workspace \
-    --privileged \
-    -v "${PWD}:/workspace:ro" \
-    -v "${PWD}/registries.conf:/etc/containers/registries.conf:ro" \
-    -v "${HOME}/.docker/:/root/.docker/:ro" \
-    -v "${PWD}/dnf/mounts.conf:/root/.config/containers/mounts.conf:ro" \
-    -v "${PWD}/dnf/:/root/dnf/:ro" \
-    quay.io/buildah/stable:v1.23.3 buildah \
-            --default-mounts-file=/root/.config/containers/mounts.conf \
-            --storage-driver=vfs \
-            --build-arg=http_proxy="http://172.19.0.100:10000" \
-            --build-arg=GOPROXY="proxy.golang.org" \
-            --build-arg=GOSUMDB="sum.golang.org" \
-            bud -f Dockerfile
+  --network=proxy-network \
+  --add-host=registry-1.docker.io:10.0.0.1 \
+  --add-host=auth.docker.io:10.0.0.2 \
+  -e BUILDAH_ISOLATION=chroot \
+  -e http_proxy="http://172.19.0.100:10000" \
+  -e HTTP_PROXY="http://172.19.0.100:10000" \
+  -e https_proxy="http://172.19.0.100:10000" \
+  -e HTTPS_PROXY="http://172.19.0.100:10000" \
+  --security-opt=seccomp=unconfined \
+  --workdir /workspace \
+  --privileged \
+  -v "${PWD}:/workspace:ro" \
+  -v "${PWD}/registries.conf:/etc/containers/registries.conf:ro" \
+  -v "${HOME}/.docker/:/root/.docker/:ro" \
+  -v "${PWD}/dnf/mounts.conf:/root/.config/containers/mounts.conf:ro" \
+  -v "${PWD}/dnf/:/root/dnf/:ro" \
+  quay.io/buildah/stable:v1.23.3 buildah \
+  --default-mounts-file=/root/.config/containers/mounts.conf \
+  --storage-driver=vfs \
+  --build-arg=http_proxy="http://172.19.0.100:10000" \
+  --build-arg=GOPROXY="proxy.golang.org" \
+  --build-arg=GOSUMDB="sum.golang.org" \
+  bud -f Dockerfile
 
 sleep 5
