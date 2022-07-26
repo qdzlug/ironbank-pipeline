@@ -126,6 +126,13 @@ For more information on this stage, please refer to the [build job readme](https
 
 #### create tar
 
+Uses `skopeo` to create a `docker-archive` tarball of the built image.
+This tarball can be tested locally by running `docker load -i <path-to-tar>`.
+
+Job artifacts:
+
+- image tar, output as a `docker-archive`
+
 #### generate sbom
 
 With the use of `syft`, the pipeline generates four separate software bill of materials (SBOM).
