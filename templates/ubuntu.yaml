@@ -3,7 +3,7 @@ include:
 
   - local: stages/lint/lint.yaml
 
-  - local: stages/lint/trufflehog.yaml
+  - local: stages/trufflehog/trufflehog.yaml
 
   - local: stages/import-artifacts/base.yaml
 

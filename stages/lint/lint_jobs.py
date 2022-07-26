@@ -9,6 +9,7 @@ import pipeline_auth_status
 import sys
 
 from ironbank.pipeline.utils import logger  # noqa E402
+from ironbank.pipeline.utils.exceptions import SymlinkFoundError
 
 log = logger.setup("lint_jobs")
 
@@ -25,6 +26,9 @@ def handle_system_exit(func):
                 system_exits[se.code] if system_exits.get(se.code) else []
             )
             system_exits[se.code].append(func.__module__)
+        except SymlinkFoundError as sfe:
+            log.error(sfe)
+            sys.exit(1)
 
     return _handle_system_exit
 

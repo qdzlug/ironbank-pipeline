@@ -21,7 +21,7 @@ trufflehog:
     GIT_DEPTH: 0
   script:
     - python3 -m pip install --user .
-    - python3 stages/lint/trufflehog.py
+    - python3 stages/trufflehog/trufflehog.py
 
 shellcheck:
   needs: []

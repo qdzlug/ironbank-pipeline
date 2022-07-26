@@ -12,6 +12,12 @@ stages:
   # - executor image with Python 3.x installed
   - lint
 
+  ### secret-scanning stage
+  # trufflehog scan
+  # Requirements:
+  # -executor image with trufflehog3 installed
+  - secret-scanning
+
   ### pre-build stage
   # download artifacts/clamav scan
   # Requirements:
