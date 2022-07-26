@@ -1,5 +1,5 @@
 trufflehog:
-  stage: lint
+  stage: trufflehog
   image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.5
   variables:
     # This forces the trufflehog job to NOT perform a shallow clone
