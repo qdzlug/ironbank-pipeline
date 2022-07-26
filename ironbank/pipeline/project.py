@@ -6,12 +6,13 @@ from dataclasses import dataclass
 from typing import Optional
 
 from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.exceptions import SymlinkFoundError
 
 
 @dataclass
 class Project:
     log = logger.setup(name="Project")
-    project_path: Optional[str] = Path(os.environ.get("CI_PROJECT_PATH"))
+    project_path: Optional[str] = Path(os.environ.get("CI_PROJECT_PATH", "."))
 
 
 @dataclass
@@ -36,27 +37,12 @@ class DsopProject(Project):
         self.validate_dockerfile()
 
     def validate_no_symlinked_files(self) -> None:
-        assert (
-            not self.project_path.is_symlink()
-        ), "Symlink found for project_path, failing pipeline"
-        assert (
-            not self.hardening_manifest_path.is_symlink()
-        ), "Symlink found for hardening_manifest, failing pipeline"
-        assert (
-            not self.license_path.is_symlink()
-        ), "Symlink found for license_path, failing pipeline"
-        assert (
-            not self.readme_path.is_symlink()
-        ), "Symlink found for readme_path, failing pipeline"
-        assert (
-            not self.dockerfile_path.is_symlink()
-        ), "Symlink found for dockerfile_path, failing pipeline"
-        assert (
-            not self.trufflehog_conf_path.is_symlink()
-        ), "Symlink found for trufflehog_conf_path, failing pipeline"
-        assert (
-            not self.clamav_wl_path.is_symlink()
-        ), "Symlink found for clamav_wl_path, failing pipeline"
+        for key, path_obj in self.__dict__.items():
+            if isinstance(path_obj, Path):
+                if path_obj.is_symlink():
+                    raise SymlinkFoundError(
+                        f"Symlink found for {key}, failing pipeline"
+                    )
 
     def validate_files_exist(self) -> None:
         assert self.license_path.exists(), "LICENSE not found"
