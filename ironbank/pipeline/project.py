@@ -11,7 +11,7 @@ from ironbank.pipeline.utils import logger
 @dataclass
 class Project:
     log = logger.setup(name="Project")
-    project_path: Optional[str] = os.environ.get("CI_PROJECT_PATH")
+    project_path: Optional[str] = Path(os.environ.get("CI_PROJECT_PATH"))
 
 
 @dataclass
