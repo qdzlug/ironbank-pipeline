@@ -14,10 +14,8 @@ async def main():
     dsop_project = DsopProject()
 
     try:
-        dsop_project.validate_files_exist()
-        dsop_project.validate_clamav_whitelist_config()
-        dsop_project.validate_trufflehog_config()
-        dsop_project.validate_dockerfile()
+        dsop_project.validate()
+        log.info("Folder structure validated")
     except AssertionError as ae:
         log.error(f"Assertion Error: {ae}")
         sys.exit(1)

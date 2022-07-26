@@ -28,6 +28,36 @@ class DsopProject(Project):
     )
     clamav_wl_path: Path = Path("clamav-whitelist")
 
+    def validate(self) -> None:
+        self.validate_no_symlinked_files()
+        self.validate_files_exist()
+        self.validate_clamav_whitelist_config()
+        self.validate_trufflehog_config()
+        self.validate_dockerfile()
+
+    def validate_no_symlinked_files(self) -> None:
+        assert (
+            not self.project_path.is_symlink()
+        ), "Symlink found for project_path, failing pipeline"
+        assert (
+            not self.hardening_manifest_path.is_symlink()
+        ), "Symlink found for hardening_manifest, failing pipeline"
+        assert (
+            not self.license_path.is_symlink()
+        ), "Symlink found for license_path, failing pipeline"
+        assert (
+            not self.readme_path.is_symlink()
+        ), "Symlink found for readme_path, failing pipeline"
+        assert (
+            not self.dockerfile_path.is_symlink()
+        ), "Symlink found for dockerfile_path, failing pipeline"
+        assert (
+            not self.trufflehog_conf_path.is_symlink()
+        ), "Symlink found for trufflehog_conf_path, failing pipeline"
+        assert (
+            not self.clamav_wl_path.is_symlink()
+        ), "Symlink found for clamav_wl_path, failing pipeline"
+
     def validate_files_exist(self) -> None:
         assert self.license_path.exists(), "LICENSE not found"
         assert self.readme_path.exists(), "README.md not found"
