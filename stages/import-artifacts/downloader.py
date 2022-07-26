@@ -7,7 +7,6 @@ from botocore.exceptions import ClientError
 from requests.exceptions import HTTPError
 
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.decorators import request_retry
 from ironbank.pipeline.utils.exceptions import InvalidURLList
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.hardening_manifest import HardeningManifest
@@ -21,7 +20,6 @@ from ironbank.pipeline.artifacts import (
 
 log = logger.setup("import_artifacts")
 
-@request_retry(1)
 def main():
 
     # Read hardening_manifest.yaml file
