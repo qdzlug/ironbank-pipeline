@@ -20,6 +20,7 @@ from ironbank.pipeline.artifacts import (
 
 log = logger.setup("import_artifacts")
 
+
 def main():
 
     # Read hardening_manifest.yaml file
