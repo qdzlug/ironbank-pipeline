@@ -5,7 +5,7 @@ include:
 
   - local: stages/artifacts-secrets/trufflehog.yaml
 
-  - local: stages/artifacts-secrets/base.yaml
+  - local: stages/artifacts-secrets/import-artifacts.yaml
 
   - local: stages/build/base.yaml
 
