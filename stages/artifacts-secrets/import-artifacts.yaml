@@ -1,5 +1,5 @@
 import-artifacts:
-  stage: import-artifacts
+  stage: artifacts-secrets
   dependencies:
     - load-scripts
     - lint
