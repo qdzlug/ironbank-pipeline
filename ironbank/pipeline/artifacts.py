@@ -163,6 +163,59 @@ class ContainerArtifact(AbstractArtifact):
 
 
 @dataclass
+class ORASArtifact(AbstractArtifact):
+    log: logger = logger.setup("ORASArtifact")
+
+    def find_sbom(self) -> str:
+        triangulate_cmd = [
+            "cosign",
+            "triangulate",
+            "--type",
+            "sbom",
+            f"{os.environ['REGISTRY1_URL']}/ironbank/{os.environ['IMAGE_NAME']}",
+        ]
+
+        try:
+            previous_sbom = subprocess.run(
+                triangulate_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding="utf-8",
+                check=True,
+            )
+            return previous_sbom.stdout
+        except subprocess.SubprocessError:
+            self.log.error(
+                f"Could not locate SBOM for {os.environ['REGISTRY1_URL']}/ironbank/{os.environ['IMAGE_NAME']}"
+            )
+
+    def get_credentials(self) -> None:
+        pass
+
+    @request_retry(3)
+    def download(self):
+        previous_sbom = self.gather_sbom_list()
+
+        pull_cmd = [
+            "oras",
+            "pull",
+            "--allow-all",
+            previous_sbom,
+        ]
+
+        try:
+            subprocess.run(
+                pull_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding="utf-8",
+                check=True,
+            )
+        except subprocess.SubprocessError:
+            self.log.error("Could not ORAS pull.")
+
+
+@dataclass
 class GithubArtifact(ContainerArtifact):
     log: logger = logger.setup("GithubArtifact")
 
