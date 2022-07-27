@@ -3,9 +3,9 @@ include:
 
   - local: stages/lint/lint.yaml
 
-  - local: stages/trufflehog/trufflehog.yaml
+  - local: stages/artifacts-secrets/trufflehog.yaml
 
-  - local: stages/import-artifacts/base.yaml
+  - local: stages/artifacts-secrets/import-artifacts.yaml
 
   - local: stages/build/base.yaml
 
