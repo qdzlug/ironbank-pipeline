@@ -16,7 +16,7 @@ stages:
   # download artifacts/clamav scan
   # Requirements:
   # - executor image with Python 3.x installed
-  - import-artifacts
+  - artifacts-secrets
 
   ### build stage
   # build image w version tag and create tar file
@@ -26,8 +26,9 @@ stages:
   # container archive output
   - post-build
 
-  # SBOM and Access Log Parsing
-  - sbom-access-log
+  ### rescan-or-rebuild stage
+  # Image verification and sbom/access log diff
+  - rescan-or-rebuild
 
   ### scanning stage
   # twistlock, oscap, and anchore scans

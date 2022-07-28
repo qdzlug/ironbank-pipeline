@@ -17,7 +17,7 @@ from .utils.package_parser import (
     NullPackage,
 )
 
-log = logger.setup(name="package_parser", format="| %(levelname)-5s | %(message)s")
+log = logger.setup(name="package_parser")
 
 
 class AccessLogFileParser(FileParser):
@@ -74,7 +74,6 @@ class AccessLogFileParser(FileParser):
 
                 if package:
                     packages.append(package)
-                    log.info(f"Parsed package: {package}")
 
         log.info("Access log successfully parsed")
         return packages
@@ -102,7 +101,6 @@ class SbomFileParser(FileParser):
 
                 if package:
                     packages.append(package)
-                    log.info(f"Parsed package: {package}")
 
             log.info("SBOM successfully parsed")
         return packages

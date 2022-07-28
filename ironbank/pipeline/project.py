@@ -6,12 +6,13 @@ from dataclasses import dataclass
 from typing import Optional
 
 from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.exceptions import SymlinkFoundError
 
 
 @dataclass
 class Project:
     log = logger.setup(name="Project")
-    project_path: Optional[str] = os.environ.get("CI_PROJECT_PATH")
+    project_path: Optional[str] = Path(os.environ.get("CI_PROJECT_PATH", "."))
 
 
 @dataclass
@@ -27,6 +28,21 @@ class DsopProject(Project):
         else Path("trufflehog-config.yml")
     )
     clamav_wl_path: Path = Path("clamav-whitelist")
+
+    def validate(self) -> None:
+        self.validate_no_symlinked_files()
+        self.validate_files_exist()
+        self.validate_clamav_whitelist_config()
+        self.validate_trufflehog_config()
+        self.validate_dockerfile()
+
+    def validate_no_symlinked_files(self) -> None:
+        for key, path_obj in self.__dict__.items():
+            if isinstance(path_obj, Path):
+                if path_obj.is_symlink():
+                    raise SymlinkFoundError(
+                        f"Symlink found for {key}, failing pipeline"
+                    )
 
     def validate_files_exist(self) -> None:
         assert self.license_path.exists(), "LICENSE not found"

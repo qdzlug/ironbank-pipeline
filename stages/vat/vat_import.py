@@ -278,11 +278,16 @@ def generate_twistlock_jobs(twistlock_cve_path):
             # get associated justification if one exists
             identifiers = []
             identifiers.append(v_d["id"])
+            severity = (
+                "low"
+                if v_d["severity"].lower() == "unimportant"
+                else v_d["severity"].lower()
+            )
             try:
                 cves.append(
                     {
                         "finding": v_d["id"],
-                        "severity": v_d["severity"].lower(),
+                        "severity": severity,
                         "description": v_d.get("description"),
                         "link": v_d.get("link"),
                         "score": v_d.get("cvss"),
@@ -345,8 +350,8 @@ def create_api_call():
         "jobId": args.job_id,
         "digest": args.digest.replace("sha256:", ""),
         "timestamp": args.timestamp,
-        "scan_date": args.scan_date,
-        "build_date": args.build_date,
+        "scanDate": args.scan_date,
+        "buildDate": args.build_date,
         "repo": {
             "url": args.repo_link,
             "commit": args.commit_hash,

@@ -27,17 +27,20 @@ class MockPath:
     def exists(self):
         return False
 
+    def is_symlink(self):
+        return False
+
 
 @dataclass
 class MockProject(DsopProject):
-
-    example: str = MockPath("example_str")
-    hardening_manifest_path: str = MockPath("example_path")
-    license_path: str = MockPath("license")
-    readme_path: str = MockPath("readme")
-    dockerfile_path: str = MockPath("dockerfile")
-    trufflehog_conf_path: str = MockPath("trufflehog")
-    clamav_wl_path: str = MockPath("clamav")
+    example: MockPath = MockPath("example_str")
+    project_path: MockPath = MockPath(".")
+    hardening_manifest_path: MockPath = MockPath("example_path")
+    license_path: MockPath = MockPath("license")
+    readme_path: MockPath = MockPath("readme")
+    dockerfile_path: MockPath = MockPath("dockerfile")
+    trufflehog_conf_path: MockPath = MockPath("trufflehog")
+    clamav_wl_path: MockPath = MockPath("clamav")
 
 
 @dataclass

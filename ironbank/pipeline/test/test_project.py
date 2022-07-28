@@ -1,8 +1,32 @@
 import pytest
 import pathlib
 from unittest.mock import mock_open
-
+from ironbank.pipeline.utils.exceptions import SymlinkFoundError
+from pathlib import Path
 from mocks.mock_classes import MockProject, MockPath
+
+
+def test_validate(monkeypatch):
+    mock_project = MockProject()
+    monkeypatch.setattr(MockProject, "validate_no_symlinked_files", lambda self: None)
+    monkeypatch.setattr(MockProject, "validate_files_exist", lambda self: None)
+    monkeypatch.setattr(
+        MockProject, "validate_clamav_whitelist_config", lambda self: None
+    )
+    monkeypatch.setattr(MockProject, "validate_trufflehog_config", lambda self: None)
+    monkeypatch.setattr(MockProject, "validate_dockerfile", lambda self: None)
+    mock_project.validate()
+
+
+def test_validate_no_symlinked_files(monkeypatch):
+    mock_project = MockProject(dockerfile_path=Path("exampleDockerfile"))
+    mock_project.validate_no_symlinked_files()
+
+    monkeypatch.setattr(Path, "is_symlink", lambda self: True)
+    with pytest.raises(SymlinkFoundError) as sfe:
+        mock_project.validate_no_symlinked_files()
+
+    assert "Symlink found for dockerfile_path, failing pipeline" == sfe.value.args[0]
 
 
 def test_validate_files_exist(monkeypatch):

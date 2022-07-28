@@ -104,7 +104,7 @@ Job artifacts:
 - (if provided) - external resources provided in `hardening_manifest.yaml` such as binaries, tarballs, RPMs, etc.
 - (if provided) - images - a tar format of images pulled from public registries, as provided in `hardening_manifest.yaml`.
 
-For more information on this stage, please refer to the [import-artifacts readme](https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/-/blob/master/stages/import-artifacts/README.md).
+For more information on this stage, please refer to the [import-artifacts readme](https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/-/blob/master/stages/artifacts-secrets/README.md).
 
 ### build
 

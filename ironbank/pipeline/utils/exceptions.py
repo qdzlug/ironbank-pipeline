@@ -4,3 +4,7 @@ class InvalidURLList(Exception):
 
 class DockerfileParseError(Exception):
     pass
+
+
+class SymlinkFoundError(Exception):
+    pass
