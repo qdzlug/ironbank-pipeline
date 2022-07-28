@@ -120,7 +120,7 @@ set -x
 
 buildah tag --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" "${IMAGE_FULLTAG}"
 
-buildah push --storage-driver=vfs --authfile staging_auth.json --digestfile="${ARTIFACT_DIR}/digest" "${IMAGE_FULLTAG}"
+buildah push --registries-conf=${PIPELINE_REPO_DIR}/stages/build/registries.conf --storage-driver=vfs --authfile staging_auth.json --digestfile="${ARTIFACT_DIR}/digest" "${IMAGE_FULLTAG}"
 
 BUILD_DATE=$(date --utc '+%FT%TZ')
 
@@ -130,7 +130,7 @@ function push_tags() {
   test -f "$tags_file"
   while IFS= read -r tag; do
     buildah tag --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" "${IMAGE_REGISTRY_REPO}:${tag}"
-    buildah push --storage-driver=vfs --authfile staging_auth.json "${IMAGE_REGISTRY_REPO}:${tag}"
+    buildah push --registries-conf=${PIPELINE_REPO_DIR}/stages/build/registries.conf --storage-driver=vfs --authfile staging_auth.json "${IMAGE_REGISTRY_REPO}:${tag}"
   done <"$tags_file"
 }
 
