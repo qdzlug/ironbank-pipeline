@@ -109,6 +109,7 @@ env -i BUILDAH_ISOLATION=chroot PATH="$PATH" buildah bud \
   --log-level=warn \
   --default-mounts-file="${HOME}"/.config/containers/mounts.conf \
   --storage-driver=vfs \
+  --registries-conf=${PIPELINE_REPO_DIR}/stages/build/registries.conf \
   -t "${IMAGE_REGISTRY_REPO}" \
   .
 IFS=$old_ifs
