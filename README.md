@@ -152,6 +152,7 @@ The `scanning` stage is comprised of multiple image scanning jobs which run in p
 #### anchore scan
 
 The Anchore scan will generate CVE and compliance-related findings.
+This job also utilizes Anchore's ClamAV integration, to run a malware scan on the image.
 
 Job artifacts:
 
@@ -205,35 +206,12 @@ Job artifacts:
 
 ### check cves
 
-The `check cves` stage is configured to prevent the publishing of images which do not have whitelisted vulnerabilities.
-This stage checks the `dccscr-whitelists` repository to retrieve the whitelist for the image and will verify that the scan results generated from the `csv-output` stage do not contain any findings which have not been justified/whitelisted.
-This prevents the image from being published to the Iron Bank website or the Harbor registry with security vulnerabilities we are not aware of or have been justified and approved.
+The `check cves` stage is configured to notify users of new unjustified or unreviewed findings.
+This job uses the `vat_response.json` file from the `vat` stage, to display any findings that the user should be aware of.
 
-In time, this stage will utilize the VAT tool to compare the whitelisted vulnerabilities instead of the whitelists.
-
-#### Stage Dependencies
-
-- load-scripts
-- anchore-scan
-- anchore-scan
-- hardening-manifest
-- build
-
-#### Required Artifacts
-
-#### Generated Artifacts
-
-Artifacts are placed in the directory: ${ARTIFACT_STORAGE}/allowlists.
-The `ARTIFACT_STORAGE` variable is a variable in the pipeline.
-The value will not be documented as variables by their nature may change.
-
-#### Required Python Libraries
-
-Refer to [pyproject.toml](https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/blob/master/pyproject.toml) for all required python libraries.
+The following stages will only run on master branches.
 
 ### documentation
-
-This stage will only run on master branches.
 
 The `documentation` stage consists of two jobs.
 
