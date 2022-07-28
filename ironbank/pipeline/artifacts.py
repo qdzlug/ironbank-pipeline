@@ -37,6 +37,7 @@ class S3Artifact(AbstractFileArtifact):
         return username, password, region
 
     # TODO: Allow parameters to be passed to this function for url, auth etc.
+    @request_retry(1)
     def download(self):
         self.validate_filename()
         parsed_url = urlparse(self.url, allow_fragments=False)
@@ -94,6 +95,7 @@ class HttpArtifact(AbstractFileArtifact):
         return HTTPBasicAuth(username, password)
 
     # TODO: Allow parameters to be passed to this function for url, auth etc.
+    @request_retry(1)
     def download(self) -> Union[int, None]:
         # Validate filename doesn't do anything nefarious
         self.validate_filename()

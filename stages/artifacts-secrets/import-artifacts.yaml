@@ -15,4 +15,3 @@ import-artifacts:
     paths:
       - "${ARTIFACT_DIR}/"
     expire_in: 1 week
-  retry: 1
