@@ -166,42 +166,66 @@ class ContainerArtifact(AbstractArtifact):
 class ORASArtifact(AbstractArtifact):
     log: logger = logger.setup("ORASArtifact")
 
-    def find_sbom(self) -> str:
+    def __post_init__(self):
+        pass
+
+    def get_credentials(self) -> None:
+        pass
+
+    def find_sbom(self, path: pathlib.Path) -> str:
         triangulate_cmd = [
             "cosign",
             "triangulate",
             "--type",
             "sbom",
-            f"{os.environ['REGISTRY1_URL']}/ironbank/{os.environ['IMAGE_NAME']}",
+            f"{path}",
         ]
-
+        self.log.info(triangulate_cmd)
         try:
-            previous_sbom = subprocess.run(
+            prev_sbom = subprocess.run(
                 triangulate_cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 encoding="utf-8",
                 check=True,
             )
-            return previous_sbom.stdout
+            return prev_sbom.stdout
         except subprocess.SubprocessError:
-            self.log.error(
-                f"Could not locate SBOM for {os.environ['REGISTRY1_URL']}/ironbank/{os.environ['IMAGE_NAME']}"
-            )
+            self.log.error(f"Could not locate SBOM for {path}")
 
-    def get_credentials(self) -> None:
-        pass
+    def verify(self, prev_sbom: str):
+        verify_cmd = [
+            "cosign",
+            "verify",
+            "--cert",
+            f"{os.environ.get('PIPELINE_REPO_DIR')}/scripts/cosign/cosign-certificate.pem",
+            f"{prev_sbom}",
+        ]
+        self.log.info(verify_cmd)
+        try:
+            subprocess.run(
+                verify_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding="utf-8",
+                check=True,
+            )
+        except subprocess.SubprocessError:
+            self.log.error(f"Could not verify signature for {prev_sbom}")
 
     @request_retry(3)
-    def download(self):
-        previous_sbom = self.gather_sbom_list()
+    def download(self, path: pathlib.Path):
+        prev_sbom = self.find_sbom(path).strip()
+
+        self.verify(prev_sbom)
 
         pull_cmd = [
             "oras",
             "pull",
             "--allow-all",
-            previous_sbom,
+            prev_sbom,
         ]
+        self.log.info(pull_cmd)
 
         try:
             subprocess.run(

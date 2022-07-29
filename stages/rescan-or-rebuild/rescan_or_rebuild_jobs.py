@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import shutil
 import package_compare
 import image_verify
 from pathlib import Path
@@ -32,17 +33,20 @@ def main():
 
     if old_img:
         log.info("SBOM diff required to determine rescan or rebuild")
-        # tmp_path = Path(package_compare.download_artifacts(old_img))
+        tmp_dir = Path(package_compare.download_artifacts(old_img))
 
-        # TODO: Future ticket
-        # log.info("Parsing old packages")
-        # old_pkgs = package_compare.parse_packages(
-        #     Path(tmp_path, "sbom-json.json"), Path(tmp_path, "access_log")
-        # )
+        log.info("Parsing old packages")
+        old_pkgs = package_compare.parse_packages(
+            Path(tmp_dir, "sbom-json.json"), Path(tmp_dir, "access_log")
+        )
 
-        # if not package_compare.compare_equal(new_pkgs, old_pkgs):
-        #     log.info("Rebuild required!")
+        if not package_compare.compare_equal(new_pkgs, old_pkgs):
+            log.info("Rebuild required!")
+
         # TODO: Future - set env var REBUILD_REQUIRED=true
+
+        # Cleanup temp directory
+        shutil.rmtree(tmp_dir)
     else:
         log.info("No SBOM diff required. Must rebuild image")
 
