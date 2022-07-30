@@ -1,9 +1,9 @@
 rescan-or-rebuild:
   stage: rescan-or-rebuild
   # TODO: Remove when final testing of SBOMs is complete
-  rules:
-    - when: never
-      allow_failure: true
+  # rules:
+  #   - when: never
+  #     allow_failure: true
   dependencies:
     - load-scripts
     - build
