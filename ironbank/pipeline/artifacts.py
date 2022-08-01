@@ -172,13 +172,13 @@ class ORASArtifact(AbstractArtifact):
     def get_credentials(self) -> None:
         pass
 
-    def find_sbom(self, path: pathlib.Path) -> str:
+    def find_sbom(self, img_path: str) -> str:
         triangulate_cmd = [
             "cosign",
             "triangulate",
             "--type",
             "sbom",
-            f"{path}",
+            f"{img_path}",
         ]
         self.log.info(triangulate_cmd)
         try:
@@ -191,7 +191,7 @@ class ORASArtifact(AbstractArtifact):
             )
             return prev_sbom.stdout
         except subprocess.SubprocessError:
-            self.log.error(f"Could not locate SBOM for {path}")
+            self.log.error(f"Could not locate SBOM for {img_path}")
 
     def verify(self, prev_sbom: str):
         verify_cmd = [
@@ -214,8 +214,8 @@ class ORASArtifact(AbstractArtifact):
             self.log.error(f"Could not verify signature for {prev_sbom}")
 
     @request_retry(3)
-    def download(self, path: pathlib.Path):
-        prev_sbom = self.find_sbom(path).strip()
+    def download(self, img_path: str, output_dir: str):
+        prev_sbom = self.find_sbom(img_path).strip()
 
         self.verify(prev_sbom)
 
@@ -234,6 +234,7 @@ class ORASArtifact(AbstractArtifact):
                 stderr=subprocess.PIPE,
                 encoding="utf-8",
                 check=True,
+                cwd=output_dir,
             )
         except subprocess.SubprocessError:
             self.log.error("Could not ORAS pull.")

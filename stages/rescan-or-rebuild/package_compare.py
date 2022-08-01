@@ -30,7 +30,7 @@ def download_artifacts(img_path: str) -> str:
     os.chdir(tmp_dir)
 
     # Download old artifacts to tmp directory
-    ORASArtifact().download(img_path)
+    ORASArtifact().download(img_path, tmp_dir)
 
     # Change back to previous dir
     os.chdir(prev_dir)
