@@ -2,7 +2,7 @@
 # See https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
 # Note that environment variables can be set in several places
 # See https://docs.gitlab.com/ee/ci/variables/#priority-of-environment-variables
-image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.6.0"
+image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.6.4"
 
 stages:
   - secret-scanning
@@ -74,6 +74,7 @@ pylama:
     - ironbank-tools
   stage: lint
   script:
+    - pip install --user pyflakes==2.4.0
     - pip install --user pylama
     - pylama
 ## ignore line errors as blacks has been ran against code.
