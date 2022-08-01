@@ -74,6 +74,7 @@ pylama:
     - ironbank-tools
   stage: lint
   script:
+    - pip install --user pyflakes==2.4.0
     - pip install --user pylama
     - pylama
 ## ignore line errors as blacks has been ran against code.
