@@ -1,6 +1,8 @@
 # IMPORTANT: The name of this stage/job is must not be changed from "build" without first reconfiguring runners in the bootstrap
 build:
   stage: build
+  tags:
+    - ironbank-dsop-build
   dependencies:
     - import-artifacts
     - load-scripts
