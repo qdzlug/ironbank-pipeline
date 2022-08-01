@@ -87,12 +87,16 @@ Job artifacts:
 
 - base_image.json which contains the base image digest
 
+### artifact-secrets
+
+This stage runs the trufflehog secret scan, as well as importing artifacts listed in the hardening manifest.
+
 #### trufflehog
 
 Scans for secrets and keys in commits pushed to the remote.
 If there is a finding, a command is logged to demonstrate how to run the scan locally, in order to see the finding(s).
 
-### import artifacts
+#### import artifacts
 
 The `import artifacts` stage will import any external resources (resources from the internet) provided in the `hardening_manifest.yaml` file for use during the container build.
 The `import artifacts` stage will download the external resources and validate that the checksums calculated upon download match the checksums provided in the `hardening_manifest.yaml` file.
