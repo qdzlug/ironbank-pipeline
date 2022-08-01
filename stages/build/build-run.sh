@@ -69,9 +69,9 @@ fi
 echo "${PWD}/${PIPELINE_REPO_DIR}/stages/build/ruby/.ironbank-gemrc:.ironbank-gemrc" >>"${HOME}"/.config/containers/mounts.conf
 echo "${PWD}/${PIPELINE_REPO_DIR}/stages/build/ruby/bundler-conf:.bundle/config" >>"${HOME}"/.config/containers/mounts.conf
 
-# Set up ARG(s) in Dockerfile to recieve the buildah bud --build-arg so that the container owner won't have to deal with it.
+# Set up ARG(s) in Dockerfile to recieve the podman build --build-arg so that the container owner won't have to deal with it.
 # These will not persist and will only be available to the build process.
-# buildah bud ignores this requirement for http/ftp/no proxy envvars, but we're required to do this for anything else.
+# podman build ignores this requirement for http/ftp/no proxy envvars, but we're required to do this for anything else.
 cp "${PIPELINE_REPO_DIR}"/stages/build/build-args.txt .
 sed -i '/^FROM /r build-args.txt' Dockerfile
 
@@ -87,7 +87,7 @@ if [ ! -z "${BASE_IMAGE:-}" ]; then
 fi
 # Intentional wordsplitting:
 # shellcheck disable=SC2086
-env -i BUILDAH_ISOLATION=chroot PATH="$PATH" buildah bud \
+env -i BUILDAH_ISOLATION=chroot PATH="$PATH" podman build \
   $args_parameters \
   --build-arg=BASE_REGISTRY="${BASE_REGISTRY}" \
   --build-arg=http_proxy="http://localhost:3128" \
@@ -117,9 +117,9 @@ echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
 
 set -x
 
-buildah tag --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" "${IMAGE_FULLTAG}"
+podman tag --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" "${IMAGE_FULLTAG}"
 
-buildah push --storage-driver=vfs --authfile staging_auth.json --digestfile="${ARTIFACT_DIR}/digest" "${IMAGE_FULLTAG}"
+podman push --storage-driver=vfs --authfile staging_auth.json --digestfile="${ARTIFACT_DIR}/digest" "${IMAGE_FULLTAG}"
 
 BUILD_DATE=$(date --utc '+%FT%TZ')
 
@@ -128,8 +128,8 @@ function push_tags() {
   tags_file="${ARTIFACT_STORAGE}/lint/tags.txt"
   test -f "$tags_file"
   while IFS= read -r tag; do
-    buildah tag --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" "${IMAGE_REGISTRY_REPO}:${tag}"
-    buildah push --storage-driver=vfs --authfile staging_auth.json "${IMAGE_REGISTRY_REPO}:${tag}"
+    podman tag --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" "${IMAGE_REGISTRY_REPO}:${tag}"
+    podman push --storage-driver=vfs --authfile staging_auth.json "${IMAGE_REGISTRY_REPO}:${tag}"
   done <"$tags_file"
 }
 
