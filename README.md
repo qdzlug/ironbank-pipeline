@@ -127,7 +127,7 @@ For more information on this stage, please refer to the [build job readme](https
 
 ### post build
 
-#### create tar
+#### create-tar
 
 Uses `skopeo` to create a `docker-archive` tarball of the built image.
 This tarball can be tested locally by running `docker load -i <path-to-tar>`.
@@ -136,7 +136,7 @@ Job artifacts:
 
 - image tar, output as a `docker-archive`
 
-#### generate sbom
+#### create-sbom
 
 With the use of `syft`, the pipeline generates four separate software bill of materials (SBOM).
 The formats are:
@@ -147,6 +147,11 @@ The formats are:
 | spdx-tag-value | txt       |
 | spdx-json      | json      |
 | json           | json      |
+
+### rescan-or-rebuild
+
+This job will perform a comparison of the SBOM and access log created in the current pipeline, and the artifacts stored in Registry1.
+The intent is to determine the image that should be scanned, and if the image deployed to Registry1, should be updated, or just the scan artifacts.
 
 ### scanning
 
