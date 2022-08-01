@@ -18,22 +18,14 @@ def parse_packages(sbom_path: Path, access_log_path: Path) -> set:
 
 def download_artifacts(img_path: str) -> str:
     log.info(f"Downloading artifacts for image: {img_path}")
-    # Store cwd for later
-    prev_dir = Path.cwd()
 
     # Make tmp dir
     tmp_dir = tempfile.mkdtemp(
         dir=os.environ.get("PIPELINE_REPO_DIR"), prefix="ORASArtifact-"
     )
 
-    # Change to tmp dir
-    os.chdir(tmp_dir)
-
     # Download old artifacts to tmp directory
     ORASArtifact().download(img_path, tmp_dir)
-
-    # Change back to previous dir
-    os.chdir(prev_dir)
 
     log.info(f"Artifacts downloaded to temp directory: {tmp_dir}")
 
