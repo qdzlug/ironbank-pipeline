@@ -182,24 +182,24 @@ class ORASArtifact(AbstractArtifact):
         ]
         self.log.info(triangulate_cmd)
         try:
-            prev_sbom = subprocess.run(
+            sbom = subprocess.run(
                 triangulate_cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 encoding="utf-8",
                 check=True,
             )
-            return prev_sbom.stdout
+            return sbom.stdout
         except subprocess.SubprocessError:
             self.log.error(f"Could not locate SBOM for {img_path}")
 
-    def verify(self, prev_sbom: str):
+    def verify(self, sbom: str):
         verify_cmd = [
             "cosign",
             "verify",
             "--cert",
             f"{os.environ.get('PIPELINE_REPO_DIR')}/scripts/cosign/cosign-certificate.pem",
-            f"{prev_sbom}",
+            f"{sbom}",
         ]
         self.log.info(verify_cmd)
         try:
@@ -211,19 +211,19 @@ class ORASArtifact(AbstractArtifact):
                 check=True,
             )
         except subprocess.SubprocessError:
-            self.log.error(f"Could not verify signature for {prev_sbom}")
+            self.log.error(f"Could not verify signature for {sbom}")
 
     @request_retry(3)
     def download(self, img_path: str, output_dir: str):
-        prev_sbom = self.find_sbom(img_path).strip()
+        sbom = self.find_sbom(img_path).strip()
 
-        self.verify(prev_sbom)
+        self.verify(sbom)
 
         pull_cmd = [
             "oras",
             "pull",
             "--allow-all",
-            prev_sbom,
+            sbom,
         ]
         self.log.info(pull_cmd)
 
