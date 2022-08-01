@@ -1,4 +1,4 @@
-image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.6.3
+image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.6.4
 stages:
   ### preprocess stage
   # clone down the templates directory for use in later stages
