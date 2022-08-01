@@ -165,6 +165,84 @@ class ContainerArtifact(AbstractArtifact):
 
 
 @dataclass
+class ORASArtifact(AbstractArtifact):
+    log: logger = logger.setup("ORASArtifact")
+
+    def __post_init__(self):
+        pass
+
+    def get_credentials(self) -> None:
+        pass
+
+    def find_sbom(self, img_path: str) -> str:
+        triangulate_cmd = [
+            "cosign",
+            "triangulate",
+            "--type",
+            "sbom",
+            f"{img_path}",
+        ]
+        self.log.info(triangulate_cmd)
+        try:
+            sbom = subprocess.run(
+                triangulate_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding="utf-8",
+                check=True,
+            )
+            return sbom.stdout
+        except subprocess.SubprocessError:
+            self.log.error(f"Could not locate SBOM for {img_path}")
+
+    def verify(self, sbom: str):
+        verify_cmd = [
+            "cosign",
+            "verify",
+            "--cert",
+            f"{os.environ.get('PIPELINE_REPO_DIR')}/scripts/cosign/cosign-certificate.pem",
+            f"{sbom}",
+        ]
+        self.log.info(verify_cmd)
+        try:
+            subprocess.run(
+                verify_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding="utf-8",
+                check=True,
+            )
+        except subprocess.SubprocessError:
+            self.log.error(f"Could not verify signature for {sbom}")
+
+    @request_retry(3)
+    def download(self, img_path: str, output_dir: str):
+        sbom = self.find_sbom(img_path).strip()
+
+        self.verify(sbom)
+
+        pull_cmd = [
+            "oras",
+            "pull",
+            "--allow-all",
+            sbom,
+        ]
+        self.log.info(pull_cmd)
+
+        try:
+            subprocess.run(
+                pull_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding="utf-8",
+                check=True,
+                cwd=output_dir,
+            )
+        except subprocess.SubprocessError:
+            self.log.error("Could not ORAS pull.")
+
+
+@dataclass
 class GithubArtifact(ContainerArtifact):
     log: logger = logger.setup("GithubArtifact")
 
