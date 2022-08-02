@@ -51,7 +51,7 @@ def parent_digest_equal(img_json: dict, manifest: HardeningManifest) -> bool:
         log.info("Parent image label does not exist")
         return False
 
-    with pathlib.Path(os.environ["ARTIFACT_DIR"], "base_image.json").open("w") as f:
+    with pathlib.Path(os.environ["ARTIFACT_STORAGE"], "lint/base_image.json").open("w") as f:
         base_sha = json.load(f)["BASE_SHA"]
 
     old_parent = img_json["Labels"]["mil.dso.ironbank.image.parent"]

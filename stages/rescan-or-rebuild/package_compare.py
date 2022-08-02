@@ -21,7 +21,7 @@ def download_artifacts(img_path: str) -> str:
 
     # Make tmp dir
     tmp_dir = tempfile.mkdtemp(
-        dir=os.environ.get("PIPELINE_REPO_DIR"), prefix="ORASArtifact-"
+        dir=os.environ["PIPELINE_REPO_DIR"], prefix="ORASArtifact-"
     )
 
     # Download old artifacts to tmp directory
