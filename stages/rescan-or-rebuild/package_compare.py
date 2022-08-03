@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import os
 import tempfile
 from pathlib import Path
 from ironbank.pipeline.utils import logger
@@ -20,9 +19,7 @@ def download_artifacts(img_path: str) -> str:
     log.info(f"Downloading artifacts for image: {img_path}")
 
     # Make tmp dir
-    tmp_dir = tempfile.mkdtemp(
-        dir=os.environ["PIPELINE_REPO_DIR"], prefix="ORASArtifact-"
-    )
+    tmp_dir = tempfile.mkdtemp(prefix="ORASArtifact-")
 
     # Download old artifacts to tmp directory
     ORASArtifact().download(img_path, tmp_dir)
