@@ -27,7 +27,7 @@ async def main():
         log.info("Inspect base image")
 
         try:
-            base_img_inspect = Skopeo().inspect(
+            base_img_inspect = Skopeo.inspect(
                 manifest.base_image_name, manifest.base_image_tag
             )
         except subprocess.CalledProcessError as e:

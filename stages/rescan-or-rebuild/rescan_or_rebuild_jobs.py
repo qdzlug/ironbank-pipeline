@@ -18,7 +18,9 @@ def main():
 
     log.info("Parsing new packages")
     new_pkgs = package_compare.parse_packages(sbom_path, access_log_path)
-    log.info(f"New packages parsed: {new_pkgs}")
+    log.info(f"New packages parsed:")
+    for pkg in new_pkgs:
+        log.info(f"  {pkg}")
 
     # TODO: Future - flush out logic for forced rebuild
     if os.getenv("FORCE_REBUILD"):
@@ -39,7 +41,9 @@ def main():
         old_pkgs = package_compare.parse_packages(
             Path(tmp_dir, "sbom-json.json"), Path(tmp_dir, "access_log")
         )
-        log.info(f"Old packages parsed: {old_pkgs}")
+        log.info(f"Old packages parsed:")
+        for pkg in old_pkgs:
+            log.info(f"  {pkg}")
 
         if not package_compare.compare_equal(new_pkgs, old_pkgs):
             log.info("Rebuild required")

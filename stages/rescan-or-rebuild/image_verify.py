@@ -13,11 +13,11 @@ log = logger.setup("image_verify")
 
 def inspect_old_image(manifest: HardeningManifest) -> Optional[dict]:
     try:
-        return Skopeo().inspect(manifest.image_name, manifest.image_tag)
+        return Skopeo.inspect(manifest.image_name, manifest.image_tag)
 
     except subprocess.CalledProcessError:
         log.info(
-            f"Failed to inspect old image: {manifest.image_name}:{manifest.image_name}"
+            f"Failed to inspect old image (expected if '{manifest.image_tag}' is new tag): {manifest.image_name}:{manifest.image_tag}"
         )
         return None
 
@@ -51,17 +51,15 @@ def parent_digest_equal(img_json: dict, manifest: HardeningManifest) -> bool:
         log.info("Parent image label does not exist")
         return False
 
-    with pathlib.Path(os.environ["ARTIFACT_STORAGE"], "lint/base_image.json").open(
-        "w"
-    ) as f:
-        base_sha = json.load(f)["BASE_SHA"]
-
     old_parent = img_json["Labels"]["mil.dso.ironbank.image.parent"]
-    new_parent = (
-        f"{os.environ['BASE_REGISTRY']}/{manifest.base_image_name}:{manifest.base_image_tag}@{base_sha}"
-        if manifest.base_image_name
-        else ""
-    )
+
+    if manifest.base_image_name:
+        with pathlib.Path(os.environ["ARTIFACT_STORAGE"], "lint", "base_image.json").open() as f:
+            base_sha = json.load(f)["BASE_SHA"]
+
+        new_parent = f"{os.environ['BASE_REGISTRY']}/{manifest.base_image_name}:{manifest.base_image_tag}@{base_sha}"
+    else:
+        new_parent = ""
 
     if old_parent == new_parent:
         return True

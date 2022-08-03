@@ -96,7 +96,7 @@ class NpmPackage(ParsedURLPackage):
             return None
 
         match = re.match(
-            r"^(?P<name>[^/]+)/-/\1-(?P<version>.*)\.tgz$",
+            r"^(?P<name>(?:@[^/]+/)?([^/]+))/-/\2-(?P<version>.*)\.tgz$",
             url,
         )
 
