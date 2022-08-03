@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import os
 import tempfile
 from pathlib import Path
 from ironbank.pipeline.utils import logger

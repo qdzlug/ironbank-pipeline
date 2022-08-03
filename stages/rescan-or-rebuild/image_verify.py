@@ -54,7 +54,9 @@ def parent_digest_equal(img_json: dict, manifest: HardeningManifest) -> bool:
     old_parent = img_json["Labels"]["mil.dso.ironbank.image.parent"]
 
     if manifest.base_image_name:
-        with pathlib.Path(os.environ["ARTIFACT_STORAGE"], "lint", "base_image.json").open() as f:
+        with pathlib.Path(
+            os.environ["ARTIFACT_STORAGE"], "lint", "base_image.json"
+        ).open() as f:
             base_sha = json.load(f)["BASE_SHA"]
 
         new_parent = f"{os.environ['BASE_REGISTRY']}/{manifest.base_image_name}:{manifest.base_image_tag}@{base_sha}"

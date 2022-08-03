@@ -18,7 +18,7 @@ def main():
 
     log.info("Parsing new packages")
     new_pkgs = package_compare.parse_packages(sbom_path, access_log_path)
-    log.info(f"New packages parsed:")
+    log.info("New packages parsed:")
     for pkg in new_pkgs:
         log.info(f"  {pkg}")
 
@@ -41,7 +41,7 @@ def main():
         old_pkgs = package_compare.parse_packages(
             Path(tmp_dir, "sbom-json.json"), Path(tmp_dir, "access_log")
         )
-        log.info(f"Old packages parsed:")
+        log.info("Old packages parsed:")
         for pkg in old_pkgs:
             log.info(f"  {pkg}")
 
