@@ -4,6 +4,7 @@ rescan-or-rebuild:
   allow_failure: true
   dependencies:
     - load-scripts
+    - lint
     - build
     - create-sbom
   script:
