@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 
+from base64 import b64decode
 import os
-import shutil
+import pathlib
+import tempfile
 import package_compare
 import image_verify
 from pathlib import Path
 
 from ironbank.pipeline.utils import logger
+from ironbank.pipeline.artifacts import ORASArtifact
 
 log = logger.setup("rescan_or_rebuild_jobs")
 
@@ -27,33 +30,42 @@ def main():
         log.info("Force Rebuild Set")
         return
 
-    old_img = image_verify.diff_needed()
+    with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config:
 
-    # TODO: Future - Might need to make diff_needed return old_img creation date label
-    # If reusing old img for scanning, propagate old date
-    # else propagate new date
+        auth_file = pathlib.Path(docker_config, "prod_pull_auth.json")
+        # Grab staging docker auth
+        pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("UTF-8")
+        auth_file.write_text(pull_auth)
 
-    if old_img:
-        log.info("SBOM diff required to determine rescan or rebuild")
-        tmp_dir = Path(package_compare.download_artifacts(old_img))
+        old_img = image_verify.diff_needed(docker_config)
 
-        log.info("Parsing old packages")
-        old_pkgs = package_compare.parse_packages(
-            Path(tmp_dir, "sbom-json.json"), Path(tmp_dir, "access_log")
-        )
-        log.info("Old packages parsed:")
-        for pkg in old_pkgs:
-            log.info(f"  {pkg}")
+        # TODO: Future - Might need to make diff_needed return old_img creation date label
+        # If reusing old img for scanning, propagate old date
+        # else propagate new date
 
-        if not package_compare.compare_equal(new_pkgs, old_pkgs):
-            log.info("Rebuild required")
+        if old_img:
+            log.info("SBOM diff required to determine rescan or rebuild")
 
-        # TODO: Future - set env var REBUILD_REQUIRED=true
+            with tempfile.TemporaryDirectory(prefix="ORAS-") as oras_download:
 
-        # Cleanup temp directory
-        shutil.rmtree(tmp_dir)
-    else:
-        log.info("No SBOM diff required. Rebuild required")
+                ORASArtifact.download(old_img, oras_download, docker_config)
+
+                log.info("Parsing old packages")
+                old_pkgs = package_compare.parse_packages(
+                    Path(oras_download, "sbom-json.json"),
+                    Path(oras_download, "access_log"),
+                )
+                log.info("Old packages parsed:")
+                for pkg in old_pkgs:
+                    log.info(f"  {pkg}")
+
+            if not package_compare.compare_equal(new_pkgs, old_pkgs):
+                log.info("Rebuild required")
+
+            # TODO: Future - set env var REBUILD_REQUIRED=true
+
+        else:
+            log.info("No SBOM diff required. Rebuild required")
 
 
 if __name__ == "__main__":

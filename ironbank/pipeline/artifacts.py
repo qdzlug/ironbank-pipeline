@@ -174,7 +174,8 @@ class ORASArtifact(AbstractArtifact):
     def get_credentials(self) -> None:
         pass
 
-    def find_sbom(self, img_path: str) -> str:
+    @classmethod
+    def find_sbom(cls, img_path: str, docker_config_dir: str) -> str:
         triangulate_cmd = [
             "cosign",
             "triangulate",
@@ -182,44 +183,64 @@ class ORASArtifact(AbstractArtifact):
             "sbom",
             f"{img_path}",
         ]
-        self.log.info(triangulate_cmd)
+        cls.log.info(triangulate_cmd)
         try:
             sbom = subprocess.run(
                 triangulate_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
                 encoding="utf-8",
                 check=True,
+                env={
+                    "PATH": os.environ["PATH"],
+                    "DOCKER_CONFIG": docker_config_dir,
+                },
             )
             return sbom.stdout
-        except subprocess.SubprocessError:
-            self.log.error(f"Could not locate SBOM for {img_path}")
+        except subprocess.SubprocessError as e:
+            cls.log.error(f"Could not locate SBOM for {img_path}")
+            raise e
 
-    def verify(self, sbom: str):
-        verify_cmd = [
-            "cosign",
-            "verify",
-            "--cert",
-            f"{os.environ.get('PIPELINE_REPO_DIR')}/scripts/cosign/cosign-certificate.pem",
-            f"{sbom}",
-        ]
-        self.log.info(verify_cmd)
+    @classmethod
+    def verify(cls, sbom: str, docker_config_dir: str):
         try:
+            cert = pathlib.Path(
+                os.environ.get("PIPELINE_REPO_DIR"),
+                "scripts",
+                "cosign",
+                "cosign-certificate.pem",
+            )
+            if not cert.is_file():
+                raise FileNotFoundError
+
+            verify_cmd = [
+                "cosign",
+                "verify",
+                "--cert",
+                cert,
+                sbom,
+            ]
+            cls.log.info(verify_cmd)
             subprocess.run(
                 verify_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
                 encoding="utf-8",
                 check=True,
+                env={
+                    "PATH": os.environ["PATH"],
+                    "DOCKER_CONFIG": docker_config_dir,
+                },
             )
-        except subprocess.SubprocessError:
-            self.log.error(f"Could not verify signature for {sbom}")
+        except subprocess.SubprocessError as e:
+            cls.log.error(f"Could not verify signature for {sbom}")
+            raise e
+        except FileNotFoundError as e:
+            cls.log.error(f"Verify failed - could not find cert file: {cert}")
+            raise e
 
+    @classmethod
     @request_retry(3)
-    def download(self, img_path: str, output_dir: str):
-        sbom = self.find_sbom(img_path).strip()
+    def download(cls, img_path: str, output_dir: str, docker_config_dir: str):
+        sbom = cls.find_sbom(img_path, docker_config_dir).strip()
 
-        self.verify(sbom)
+        cls.verify(sbom, docker_config_dir)
 
         pull_cmd = [
             "oras",
@@ -227,19 +248,22 @@ class ORASArtifact(AbstractArtifact):
             "--allow-all",
             sbom,
         ]
-        self.log.info(pull_cmd)
+        cls.log.info(pull_cmd)
 
         try:
             subprocess.run(
                 pull_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
                 encoding="utf-8",
                 check=True,
                 cwd=output_dir,
+                env={
+                    "PATH": os.environ["PATH"],
+                    "DOCKER_CONFIG": docker_config_dir,
+                },
             )
-        except subprocess.SubprocessError:
-            self.log.error("Could not ORAS pull.")
+        except subprocess.SubprocessError as e:
+            cls.log.error("Could not ORAS pull.")
+            raise e
 
 
 @dataclass
