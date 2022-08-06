@@ -32,7 +32,7 @@ def main():
 
     with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config:
 
-        auth_file = pathlib.Path(docker_config, "prod_pull_auth.json")
+        auth_file = pathlib.Path(docker_config, "config.json")
         # Grab staging docker auth
         pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("UTF-8")
         auth_file.write_text(pull_auth)
