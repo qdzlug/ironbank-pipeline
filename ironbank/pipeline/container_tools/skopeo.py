@@ -13,7 +13,7 @@ class Skopeo:
         cmd = [
             "skopeo",
             "inspect",
-            f"docker://registry1.dso.mil/{image}",
+            f"docker://{image}",
         ]
         log.info(f"Run inspect cmd: {cmd}")
         # if skopeo inspect fails, because IMAGE value doesn't match a registry1 container name
