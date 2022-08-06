@@ -15,20 +15,6 @@ def parse_packages(sbom_path: Path, access_log_path: Path) -> set:
     return set(pkgs)
 
 
-def download_artifacts(img_path: str) -> str:
-    log.info(f"Downloading artifacts for image: {img_path}")
-
-    # Make tmp dir
-    tmp_dir = tempfile.mkdtemp(prefix="ORASArtifact-")
-
-    # Download old artifacts to tmp directory
-    ORASArtifact().download(img_path, tmp_dir)
-
-    log.info(f"Artifacts downloaded to temp directory: {tmp_dir}")
-
-    return tmp_dir
-
-
 def compare_equal(new_pkgs, old_pkgs) -> bool:
     # Check for package differences
     if new_pkgs.symmetric_difference(old_pkgs):

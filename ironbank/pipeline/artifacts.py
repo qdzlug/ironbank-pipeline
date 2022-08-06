@@ -188,6 +188,7 @@ class ORASArtifact(AbstractArtifact):
             sbom = subprocess.run(
                 triangulate_cmd,
                 encoding="utf-8",
+                stdout=subprocess.PIPE,
                 check=True,
                 env={
                     "PATH": os.environ["PATH"],
@@ -215,7 +216,7 @@ class ORASArtifact(AbstractArtifact):
                 "cosign",
                 "verify",
                 "--cert",
-                cert,
+                cert.as_posix(),
                 sbom,
             ]
             cls.log.info(verify_cmd)

@@ -48,7 +48,9 @@ def main():
 
             with tempfile.TemporaryDirectory(prefix="ORAS-") as oras_download:
 
+                log.info(f"Downloading artifacts for image: {old_img}")
                 ORASArtifact.download(old_img, oras_download, docker_config)
+                log.info(f"Artifacts downloaded to temp directory: {oras_download}")
 
                 log.info("Parsing old packages")
                 old_pkgs = package_compare.parse_packages(
