@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 
-import tempfile
 from pathlib import Path
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
-from ironbank.pipeline.artifacts import ORASArtifact
 
 log = logger.setup(name="package_compare")
 
