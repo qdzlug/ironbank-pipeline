@@ -30,14 +30,14 @@ def main():
         log.info("Force Rebuild Set")
         return
 
-    with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config:
+    with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
 
-        auth_file = pathlib.Path(docker_config, "config.json")
+        docker_config = pathlib.Path(docker_config_dir, "config.json")
         # Grab staging docker auth
         pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("UTF-8")
-        auth_file.write_text(pull_auth)
+        docker_config.write_text(pull_auth)
 
-        old_img = image_verify.diff_needed(docker_config)
+        old_img = image_verify.diff_needed(docker_config_dir)
 
         # TODO: Future - Might need to make diff_needed return old_img creation date label
         # If reusing old img for scanning, propagate old date
@@ -49,7 +49,7 @@ def main():
             with tempfile.TemporaryDirectory(prefix="ORAS-") as oras_download:
 
                 log.info(f"Downloading artifacts for image: {old_img}")
-                ORASArtifact.download(old_img, oras_download, docker_config)
+                ORASArtifact.download(old_img, oras_download, docker_config_dir)
                 log.info(f"Artifacts downloaded to temp directory: {oras_download}")
 
                 log.info("Parsing old packages")

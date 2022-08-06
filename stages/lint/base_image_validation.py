@@ -28,28 +28,26 @@ async def main():
     if manifest.base_image_name:
         log.info("Inspect base image")
 
-        with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as tmp_dir:
+        with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
 
+            docker_config = pathlib.Path(docker_config_dir, "config.json")
             if os.environ.get("STAGING_BASE_IMAGE"):
-                auth_file = pathlib.Path(tmp_dir, "staging_pull_auth.json")
-                # Grab prod pull docker auth
+                # Grab staging pull docker auth
                 pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_STAGING"]).decode(
                     "UTF-8"
                 )
-                auth_file.write_text(pull_auth)
                 registry = os.environ["REGISTRY_URL_STAGING"]
             else:
-                auth_file = pathlib.Path(tmp_dir, "prod_pull_auth.json")
-                # Grab staging docker auth
+                # Grab prod docker auth
                 pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode(
                     "UTF-8"
                 )
-                auth_file.write_text(pull_auth)
                 registry = os.environ["REGISTRY_URL_PROD"]
+            docker_config.write_text(pull_auth)
             try:
                 base_img_inspect = Skopeo.inspect(
                     f"{registry}/{manifest.base_image_name}:{manifest.base_image_tag}",
-                    tmp_dir,
+                    docker_config_dir,
                 )
             except subprocess.CalledProcessError as e:
                 log.error(
