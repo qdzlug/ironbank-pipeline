@@ -18,9 +18,9 @@ class AbstractArtifact(ABC):
     log: logger = logger.setup("Artifact")
     dest_path: pathlib.Path = None
 
-    def __post_init__(self):
+    def __post_init__(self, dest_dir=None):
         self.dest_path = self.dest_path or pathlib.Path(
-            f"{os.environ.get('ARTIFACT_DIR')}"
+            f"{os.environ.get('ARTIFACT_DIR')}/{dest_dir}"
         )
         self.artifact_path = pathlib.Path(self.dest_path, self.filename or self.tag)
 
@@ -52,8 +52,8 @@ class AbstractArtifact(ABC):
 @dataclass
 class AbstractFileArtifact(AbstractArtifact):
     def __post_init__(self):
-        super().__post_init__()
-        self.dest_path = pathlib.Path(self.dest_path, "external-resources")
+        super().__post_init__("external-resources")
+        self.dest_path = pathlib.Path(self.dest_path)
         self.artifact_path = pathlib.Path(self.dest_path, self.filename)
 
     def validate_checksum(self):

@@ -127,8 +127,8 @@ class ContainerArtifact(AbstractArtifact):
     authfile: pathlib.Path = pathlib.Path("tmp", "prod_auth.json")
 
     def __post_init__(self):
-        super().__post_init__()
-        self.dest_path = pathlib.Path(self.dest_path, "images")
+        super().__post_init__("images")
+        self.dest_path = pathlib.Path(self.dest_path)
         self.__tar_name = self.tag.replace("/", "-").replace(":", "-")
         self.artifact_path = pathlib.Path(self.dest_path, f"{self.__tar_name}.tar")
 
