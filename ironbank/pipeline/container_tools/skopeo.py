@@ -19,7 +19,7 @@ class Skopeo:
         # if skopeo inspect fails, because IMAGE value doesn't match a registry1 container name
         #   fail back to using existing functionality
 
-        sha_value = subprocess.run(
+        inspect_result = subprocess.run(
             args=cmd,
             stdout=subprocess.PIPE,
             check=True,
@@ -29,4 +29,4 @@ class Skopeo:
                 "DOCKER_CONFIG": docker_config_dir,
             },
         )
-        return json.loads(sha_value.stdout)
+        return json.loads(inspect_result.stdout)
