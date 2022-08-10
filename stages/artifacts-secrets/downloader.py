@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import os
 import pathlib
 import sys
 from subprocess import CalledProcessError
