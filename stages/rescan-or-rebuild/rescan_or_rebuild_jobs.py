@@ -9,6 +9,7 @@ import image_verify
 from pathlib import Path
 
 from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.exceptions import ORASDownloadError
 from ironbank.pipeline.artifacts import ORASArtifact
 
 log = logger.setup("rescan_or_rebuild_jobs")
@@ -47,10 +48,12 @@ def main():
             log.info("SBOM diff required to determine rescan or rebuild")
 
             with tempfile.TemporaryDirectory(prefix="ORAS-") as oras_download:
-
-                log.info(f"Downloading artifacts for image: {old_img}")
-                ORASArtifact.download(old_img, oras_download, docker_config_dir)
-                log.info(f"Artifacts downloaded to temp directory: {oras_download}")
+                try:
+                    log.info(f"Downloading artifacts for image: {old_img}")
+                    ORASArtifact.download(old_img, oras_download, docker_config_dir)
+                    log.info(f"Artifacts downloaded to temp directory: {oras_download}")
+                except ORASDownloadError as e:
+                    log.error(e)
 
                 log.info("Parsing old packages")
                 old_pkgs = package_compare.parse_packages(

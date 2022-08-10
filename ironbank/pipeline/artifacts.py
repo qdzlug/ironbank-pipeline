@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from base64 import b64decode
 from typing import Union
 from .utils.decorators import request_retry
-from .utils.exceptions import InvalidURLList
+from .utils.exceptions import InvalidURLList, ORASDownloadError
 from .abstract_artifacts import (
     AbstractArtifact,
     AbstractFileArtifact,
@@ -197,8 +197,7 @@ class ORASArtifact(AbstractArtifact):
             )
             return sbom.stdout
         except subprocess.SubprocessError as e:
-            cls.log.error(f"Could not locate SBOM for {img_path}")
-            raise e
+            raise ORASDownloadError(f"Cosign Triangulate Failed | Could not locate SBOM for {img_path}")
 
     @classmethod
     def verify(cls, sbom: str, docker_config_dir: str):
@@ -230,10 +229,9 @@ class ORASArtifact(AbstractArtifact):
                 },
             )
         except subprocess.SubprocessError as e:
-            cls.log.error(f"Could not verify signature for {sbom}")
-            raise e
+            raise ORASDownloadError(f"Cosign Verify Failed | Could not verify signature for {sbom}")
         except FileNotFoundError as e:
-            cls.log.error(f"Verify failed - could not find cert file: {cert}")
+            cls.log.error(f"Cosign Verify Failed | Could not find cert file: {cert}")
             raise e
 
     @classmethod
@@ -263,8 +261,7 @@ class ORASArtifact(AbstractArtifact):
                 },
             )
         except subprocess.SubprocessError as e:
-            cls.log.error("Could not ORAS pull.")
-            raise e
+            raise ORASDownloadError("Could not ORAS pull.")
 
 
 @dataclass
