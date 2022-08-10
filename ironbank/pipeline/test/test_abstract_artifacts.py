@@ -87,8 +87,8 @@ def mock_file_artifact_bad_validation(monkeypatch):
 
 
 def test_artifact_init(mock_artifact, mock_artifact_with_dir):
-    assert mock_artifact.dest_path == pathlib.Path("None/None")
-    assert mock_artifact_with_dir.dest_path == pathlib.Path("example/None")
+    assert mock_artifact.dest_path == pathlib.Path("None")
+    assert mock_artifact_with_dir.dest_path == pathlib.Path("example")
 
 
 def test_artifact_delete(monkeypatch, caplog, mock_artifact):

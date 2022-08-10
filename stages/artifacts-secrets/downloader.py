@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import os
+import pathlib
 import sys
 from subprocess import CalledProcessError
 from urllib.parse import urlparse
@@ -59,15 +61,22 @@ def main():
                 artifact = GithubArtifact(**resource)
             elif "docker" in scheme:
                 artifact = ContainerArtifact(**resource)
+                artifact.dest_path = pathlib.Path(artifact.dest_path, "/images")
             elif "http" in scheme:
                 artifact = HttpArtifact(**resource)
+                artifact.dest_path = pathlib.Path(artifact.dest_path, "/external-resources")
             else:
                 log.error(f"Invalid scheme {scheme} for artifact {resource['url']}")
                 sys.exit(1)
 
+            if file_artifact := isinstance(artifact, AbstractFileArtifact):
+                artifact.dest_path = pathlib.Path(artifact.dest_path, "/external-resources")
+            elif isinstance(artifact, ContainerArtifact):
+                artifact.dest_path = pathlib.Path(artifact.dest_path, "/images")
+
             # download also gathers any relevant auth and runs any pre download validation
             artifact.download()
-            if isinstance(artifact, AbstractFileArtifact):
+            if file_artifact:
                 artifact.validate_checksum()
             log.info("")
         # all resources are downloaded successfully

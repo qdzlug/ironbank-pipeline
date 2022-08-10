@@ -128,7 +128,6 @@ class ContainerArtifact(AbstractArtifact):
 
     def __post_init__(self):
         super().__post_init__("images")
-        self.dest_path = pathlib.Path(self.dest_path)
         self.__tar_name = self.tag.replace("/", "-").replace(":", "-")
         self.artifact_path = pathlib.Path(self.dest_path, f"{self.__tar_name}.tar")
 
