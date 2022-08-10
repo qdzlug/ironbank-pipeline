@@ -234,7 +234,7 @@ class ORASArtifact(AbstractArtifact):
             raise ORASDownloadError(
                 f"Cosign Verify Failed | Could not verify signature for {sbom}"
             )
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             raise ORASDownloadError(
                 f"Cosign Verify Failed | Could not find cert file: {cert}"
             )
