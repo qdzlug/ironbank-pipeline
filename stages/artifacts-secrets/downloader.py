@@ -64,13 +64,17 @@ def main():
                 artifact.dest_path = pathlib.Path(artifact.dest_path, "/images")
             elif "http" in scheme:
                 artifact = HttpArtifact(**resource)
-                artifact.dest_path = pathlib.Path(artifact.dest_path, "/external-resources")
+                artifact.dest_path = pathlib.Path(
+                    artifact.dest_path, "/external-resources"
+                )
             else:
                 log.error(f"Invalid scheme {scheme} for artifact {resource['url']}")
                 sys.exit(1)
 
             if file_artifact := isinstance(artifact, AbstractFileArtifact):
-                artifact.dest_path = pathlib.Path(artifact.dest_path, "/external-resources")
+                artifact.dest_path = pathlib.Path(
+                    artifact.dest_path, "/external-resources"
+                )
             elif isinstance(artifact, ContainerArtifact):
                 artifact.dest_path = pathlib.Path(artifact.dest_path, "/images")
 
