@@ -235,8 +235,9 @@ class ORASArtifact(AbstractArtifact):
                 f"Cosign Verify Failed | Could not verify signature for {sbom}"
             )
         except FileNotFoundError as e:
-            cls.log.error(f"Cosign Verify Failed | Could not find cert file: {cert}")
-            raise e
+            raise ORASDownloadError(
+                f"Cosign Verify Failed | Could not find cert file: {cert}"
+            )
 
     @classmethod
     @request_retry(3)
