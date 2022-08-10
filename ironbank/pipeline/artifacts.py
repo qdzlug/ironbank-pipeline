@@ -196,8 +196,10 @@ class ORASArtifact(AbstractArtifact):
                 },
             )
             return sbom.stdout
-        except subprocess.SubprocessError as e:
-            raise ORASDownloadError(f"Cosign Triangulate Failed | Could not locate SBOM for {img_path}")
+        except subprocess.SubprocessError:
+            raise ORASDownloadError(
+                f"Cosign Triangulate Failed | Could not locate SBOM for {img_path}"
+            )
 
     @classmethod
     def verify(cls, sbom: str, docker_config_dir: str):
@@ -228,8 +230,10 @@ class ORASArtifact(AbstractArtifact):
                     "DOCKER_CONFIG": docker_config_dir,
                 },
             )
-        except subprocess.SubprocessError as e:
-            raise ORASDownloadError(f"Cosign Verify Failed | Could not verify signature for {sbom}")
+        except subprocess.SubprocessError:
+            raise ORASDownloadError(
+                f"Cosign Verify Failed | Could not verify signature for {sbom}"
+            )
         except FileNotFoundError as e:
             cls.log.error(f"Cosign Verify Failed | Could not find cert file: {cert}")
             raise e
@@ -260,7 +264,7 @@ class ORASArtifact(AbstractArtifact):
                     "DOCKER_CONFIG": docker_config_dir,
                 },
             )
-        except subprocess.SubprocessError as e:
+        except subprocess.SubprocessError:
             raise ORASDownloadError("Could not ORAS pull.")
 
 
