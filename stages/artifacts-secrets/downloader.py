@@ -60,26 +60,22 @@ def main():
                 artifact = GithubArtifact(**resource)
             elif "docker" in scheme:
                 artifact = ContainerArtifact(**resource)
-                artifact.dest_path = pathlib.Path(artifact.dest_path, "/images")
             elif "http" in scheme:
                 artifact = HttpArtifact(**resource)
-                artifact.dest_path = pathlib.Path(
-                    artifact.dest_path, "/external-resources"
-                )
             else:
                 log.error(f"Invalid scheme {scheme} for artifact {resource['url']}")
                 sys.exit(1)
 
-            if file_artifact := isinstance(artifact, AbstractFileArtifact):
-                artifact.dest_path = pathlib.Path(
-                    artifact.dest_path, "/external-resources"
-                )
+            if isinstance(artifact, AbstractFileArtifact):
+                artifact.dest_path = pathlib.Path(artifact.dest_path / "external-resources")
+                artifact.artifact_path = pathlib.Path(artifact.dest_path, artifact.filename or artifact.tag)
             elif isinstance(artifact, ContainerArtifact):
-                artifact.dest_path = pathlib.Path(artifact.dest_path, "/images")
+                artifact.dest_path = pathlib.Path(artifact.dest_path / "images")
+                artifact.artifact_path = pathlib.Path(artifact.dest_path, artifact.filename or artifact.tag)
 
             # download also gathers any relevant auth and runs any pre download validation
             artifact.download()
-            if file_artifact:
+            if isinstance(artifact, AbstractFileArtifact):
                 artifact.validate_checksum()
             log.info("")
         # all resources are downloaded successfully
