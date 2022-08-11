@@ -8,3 +8,7 @@ class DockerfileParseError(Exception):
 
 class SymlinkFoundError(Exception):
     pass
+
+
+class ORASDownloadError(Exception):
+    pass
