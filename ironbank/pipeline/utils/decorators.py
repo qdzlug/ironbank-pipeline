@@ -25,8 +25,20 @@ def request_retry(retry_count):
     return decorate
 
 
+def nvd_exception_handler(func):
+    def decorate(self, *args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except KeyError as ke:
+            self.log.debug(f"KeyError: No key for {ke.args[0]}")
+        except IndexError as ie:
+            self.log.debug(f"IndexError: {ie.args[0]}")
+
+    return decorate
+
+
 def request_error_handler(func):
-    def _request_error_handler(self, image_name: str = "", *args, **kwargs):
+    def decorate(self, image_name: str = "", *args, **kwargs):
         try:
             return func(self, image_name, *args, **kwargs)
         except requests.exceptions.HTTPError:
@@ -53,4 +65,4 @@ def request_error_handler(func):
         except RuntimeError as runerr:
             self.log.warning(f"Unexpected exception thrown {runerr}")
 
-    return _request_error_handler
+    return decorate
