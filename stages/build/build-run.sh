@@ -26,7 +26,8 @@ echo "Load any images used in Dockerfile build"
 # Load any images used in Dockerfile build
 for file in "${ARTIFACT_STORAGE}"/import-artifacts/images/*; do
   echo "loading image $file"
-  podman load -i "$file" --storage-driver=vfs
+  image_name=$(tar -xf "$file" -O manifest.json | jq -r '.[].RepoTags[]')
+  skopeo copy docker-archive:"$file" containers-storage:"$image_name"
 done
 
 echo "Load HTTP and S3 external resources"
