@@ -30,42 +30,42 @@ def _vulnerability_record(fulltag, justifications, vuln):
     vuln_record["url"] = vuln["url"]
     vuln_record["inherited"] = vuln.get("inherited_from_base") or "no_data"
 
-    try:
-        vuln_record["description"] = vuln["extra"]["description"]
-    except Exception:
-        vuln_record["description"] = "none"
+    # try:
+    #     vuln_record["description"] = vuln["extra"]["description"]
+    # except Exception:
+    #     vuln_record["description"] = "none"
 
-    key = "nvd_cvss_v2_vector"
-    vuln_record[key] = ""
-    try:
-        vuln_record[key] = vuln["extra"]["nvd_data"][0]["cvss_v2"]["vector_string"]
-    except Exception:
-        logging.debug(f"no {key}")
+    # key = "nvd_cvss_v2_vector"
+    # vuln_record[key] = ""
+    # try:
+    #     vuln_record[key] = vuln["extra"]["nvd_data"][0]["cvss_v2"]["vector_string"]
+    # except Exception:
+    #     logging.debug(f"no {key}")
 
-    key = "nvd_cvss_v3_vector"
-    vuln_record[key] = ""
-    try:
-        vuln_record[key] = vuln["extra"]["nvd_data"][0]["cvss_v3"]["vector_string"]
-    except Exception:
-        logging.debug(f"no {key}")
+    # key = "nvd_cvss_v3_vector"
+    # vuln_record[key] = ""
+    # try:
+    #     vuln_record[key] = vuln["extra"]["nvd_data"][0]["cvss_v3"]["vector_string"]
+    # except Exception:
+    #     logging.debug(f"no {key}")
 
-    key = "vendor_cvss_v2_vector"
-    vuln_record[key] = ""
-    try:
-        for d in vuln["extra"]["vendor_data"]:
-            if d["cvss_v2"] and d["cvss_v2"]["vector_string"]:
-                vuln_record[key] = d["cvss_v2"]["vector_string"]
-    except Exception:
-        logging.debug(f"no {key}")
+    # key = "vendor_cvss_v2_vector"
+    # vuln_record[key] = ""
+    # try:
+    #     for d in vuln["extra"]["vendor_data"]:
+    #         if d["cvss_v2"] and d["cvss_v2"]["vector_string"]:
+    #             vuln_record[key] = d["cvss_v2"]["vector_string"]
+    # except Exception:
+    #     logging.debug(f"no {key}")
 
-    key = "vendor_cvss_v3_vector"
-    vuln_record[key] = ""
-    try:
-        for d in vuln["extra"]["vendor_data"]:
-            if d["cvss_v3"] and d["cvss_v3"]["vector_string"]:
-                vuln_record[key] = d["cvss_v3"]["vector_string"]
-    except Exception:
-        logging.debug(f"no {key}")
+    # key = "vendor_cvss_v3_vector"
+    # vuln_record[key] = ""
+    # try:
+    #     for d in vuln["extra"]["vendor_data"]:
+    #         if d["cvss_v3"] and d["cvss_v3"]["vector_string"]:
+    #             vuln_record[key] = d["cvss_v3"]["vector_string"]
+    # except Exception:
+    #     logging.debug(f"no {key}")
 
     vuln_record["Justification"] = ""
     id = (
