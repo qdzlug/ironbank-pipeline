@@ -11,9 +11,14 @@ from ironbank.pipeline.container_tools.skopeo import Skopeo
 log = logger.setup("image_verify")
 
 
-def inspect_old_image(manifest: HardeningManifest) -> Optional[dict]:
+def inspect_old_image(
+    manifest: HardeningManifest, docker_config_dir: str
+) -> Optional[dict]:
     try:
-        return Skopeo.inspect(manifest.image_name, manifest.image_tag)
+        return Skopeo.inspect(
+            f"{os.environ['REGISTRY_URL_PROD']}/{manifest.image_name}:{manifest.image_tag}",
+            docker_config_dir,
+        )
 
     except subprocess.CalledProcessError:
         log.info(
@@ -72,12 +77,12 @@ def parent_digest_equal(img_json: dict, manifest: HardeningManifest) -> bool:
         return False
 
 
-def diff_needed() -> Optional[str]:
+def diff_needed(docker_config_dir: str) -> Optional[str]:
     dsop_project = DsopProject()
     manifest = HardeningManifest(dsop_project.hardening_manifest_path)
 
     log.info("Inspecting old image")
-    old_img_json = inspect_old_image(manifest)
+    old_img_json = inspect_old_image(manifest, docker_config_dir)
 
     log.info("Verifying image properties")
     if not (

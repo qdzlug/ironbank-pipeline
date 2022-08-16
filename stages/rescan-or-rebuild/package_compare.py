@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 
-import tempfile
 from pathlib import Path
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
-from ironbank.pipeline.artifacts import ORASArtifact
 
 log = logger.setup(name="package_compare")
 
@@ -13,20 +11,6 @@ def parse_packages(sbom_path: Path, access_log_path: Path) -> set:
     pkgs = AccessLogFileParser.parse(access_log_path)
     pkgs += SbomFileParser.parse(sbom_path)
     return set(pkgs)
-
-
-def download_artifacts(img_path: str) -> str:
-    log.info(f"Downloading artifacts for image: {img_path}")
-
-    # Make tmp dir
-    tmp_dir = tempfile.mkdtemp(prefix="ORASArtifact-")
-
-    # Download old artifacts to tmp directory
-    ORASArtifact().download(img_path, tmp_dir)
-
-    log.info(f"Artifacts downloaded to temp directory: {tmp_dir}")
-
-    return tmp_dir
 
 
 def compare_equal(new_pkgs, old_pkgs) -> bool:
