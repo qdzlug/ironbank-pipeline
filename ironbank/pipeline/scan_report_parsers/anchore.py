@@ -59,6 +59,20 @@ class AnchoreVuln:
 
     # def get_justification():
 
+    def get_truncated_url(self):
+        link_string = ""
+        if isinstance(self.url, list):
+            for url in self.url:
+                url_text = f"{url['source']}:{url['url']}\n"
+                if len(url_text + link_string) > 65535:
+                    link_string += url_text
+                else:
+                    self.log.warning(
+                        "Unable to add all reference URLs to API POST. Please refer to anchore_security.json for more info."
+                    )
+                    break
+            self.url = link_string
+
     def sort_fix(self):
         fix_version_re = "([A-Za-z0-9][-.0-~]*)"
         fix_list = re.findall(fix_version_re, self.fix)
