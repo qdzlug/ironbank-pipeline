@@ -1,6 +1,7 @@
 import os
 import requests
 import subprocess
+import functools
 
 
 def request_retry(retry_count):
@@ -10,6 +11,7 @@ def request_retry(retry_count):
 
     def decorate(func):
         # self, args and kwargs are passed to allow this decorator to work on any method
+        @functools.wraps(func)
         def wrapper(self, *args, **kwargs):
             for retry_num in range(1, retry_count + 1):
                 try:
@@ -25,8 +27,9 @@ def request_retry(retry_count):
     return decorate
 
 
-def nvd_exception_handler(func):
-    def decorate(self, *args, **kwargs):
+def key_index_error_handler(func):
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
         try:
             return func(*args, **kwargs)
         except KeyError as ke:
@@ -34,11 +37,12 @@ def nvd_exception_handler(func):
         except IndexError as ie:
             self.log.debug(f"IndexError: {ie.args[0]}")
 
-    return decorate
+    return wrapper
 
 
 def request_error_handler(func):
-    def decorate(self, image_name: str = "", *args, **kwargs):
+    @functools.wraps(func)
+    def wrapper(self, image_name: str = "", *args, **kwargs):
         try:
             return func(self, image_name, *args, **kwargs)
         except requests.exceptions.HTTPError:
@@ -65,4 +69,4 @@ def request_error_handler(func):
         except RuntimeError as runerr:
             self.log.warning(f"Unexpected exception thrown {runerr}")
 
-    return decorate
+    return wrapper

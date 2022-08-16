@@ -5,7 +5,7 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.decorators import nvd_exception_handler
+from ironbank.pipeline.utils.decorators import key_index_error_handler
 
 
 @dataclass
@@ -37,7 +37,7 @@ class AnchoreVuln:
     def __post_init__(self):
         self.description = self.extra["description"] or self.description
 
-    @nvd_exception_handler
+    @key_index_error_handler
     def get_nvd_scores(self):
         for ver in self.nvd_versions:
             setattr(
@@ -46,7 +46,7 @@ class AnchoreVuln:
                 self.extra["nvd_data"][0][f"cvss_{ver}"]["vector_string"],
             )
 
-    @nvd_exception_handler
+    @key_index_error_handler
     def get_vendor_nvd_scores(self):
         for ver in self.nvd_versions:
             for d in self.extra["vendor_data"]:
