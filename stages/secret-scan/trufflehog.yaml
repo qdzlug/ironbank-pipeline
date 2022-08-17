@@ -1,6 +1,9 @@
 trufflehog:
   stage: artifacts-secrets
   image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.5
+  needs:
+    - load-scripts
+    - lint
   variables:
     # This forces the trufflehog job to NOT perform a shallow clone
     GIT_DEPTH: 0
