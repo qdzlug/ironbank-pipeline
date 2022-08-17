@@ -129,8 +129,7 @@ function push_tags() {
   tags_file="${ARTIFACT_STORAGE}/lint/tags.txt"
   test -f "$tags_file"
   while IFS= read -r tag; do
-    buildah tag --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" "${IMAGE_REGISTRY_REPO}:${tag}"
-    buildah push --storage-driver=vfs --authfile staging_auth.json "${IMAGE_REGISTRY_REPO}:${tag}"
+    skopeo copy containers-storage:"${IMAGE_REGISTRY_REPO}" --dest-authfile staging_auth.json docker://"${IMAGE_REGISTRY_REPO}:${tag}"
   done <"$tags_file"
 }
 
@@ -138,7 +137,7 @@ if [[ -n "${STAGING_BASE_IMAGE}" || "${CI_COMMIT_BRANCH}" == "development" ]]; t
   push_tags
 fi
 
-IMAGE_ID=sha256:$(podman inspect --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" --format '{{.Id}}')
+IMAGE_ID=sha256:$(buildah inspect --storage-driver=vfs --format '{{ .FromImageID }}' "${IMAGE_REGISTRY_REPO}")
 {
   echo "IMAGE_ID=${IMAGE_ID}"
 
