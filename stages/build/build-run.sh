@@ -28,12 +28,13 @@ for file in "${ARTIFACT_STORAGE}"/import-artifacts/images/*; do
   echo "loading image $file"
   image_name=$(tar -xf "$file" -O manifest.json | jq -r '.[].RepoTags[]')
   skopeo copy docker-archive:"$file" containers-storage:"$image_name"
+  rm "$file"
 done
 
 echo "Load HTTP and S3 external resources"
 # Load HTTP and S3 external resources
 for file in "${ARTIFACT_STORAGE}"/import-artifacts/external-resources/*; do
-  cp -v "$file" .
+  mv -v "$file" .
 done
 
 shopt -u nullglob # Disallow images/* and external-resources/* to match nothing
