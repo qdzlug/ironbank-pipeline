@@ -9,4 +9,4 @@ trufflehog:
     GIT_DEPTH: 0
   script:
     - 'pip install --user "${PIPELINE_REPO_DIR}"'
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/artifacts-secrets/trufflehog.py"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/secret-scan/trufflehog.py"'
