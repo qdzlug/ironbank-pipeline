@@ -1,6 +1,6 @@
 import-artifacts:
   stage: artifacts-secrets
-  dependencies:
+  needs:
     - load-scripts
     - lint
   variables:
