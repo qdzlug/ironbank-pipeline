@@ -104,7 +104,7 @@ def main() -> None:
     )
     default_truffle_config = Path(
         pipeline_repo_dir,
-        "stages/artifacts-secrets/default-trufflehog-config.yaml",
+        "stages/secret-scan/default-trufflehog-config.yaml",
     )
 
     project_origin = os.environ.get("TRUFFLEHOG_TARGET", "cht")
