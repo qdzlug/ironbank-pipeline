@@ -89,7 +89,7 @@ if [ ! -z "${BASE_IMAGE:-}" ]; then
 fi
 # Intentional wordsplitting:
 # shellcheck disable=SC2086
-env -i BUILDAH_ISOLATION=chroot PATH="$PATH" buildah bud \
+env -i BUILDAH_ISOLATION=chroot PATH="$PATH" buildah build \
   $args_parameters \
   --build-arg=BASE_REGISTRY="${BASE_REGISTRY}" \
   --build-arg=http_proxy="http://localhost:3128" \
@@ -119,11 +119,7 @@ echo "${DOCKER_AUTH_CONFIG_STAGING}" | base64 -d >>staging_auth.json
 
 set -x
 
-buildah tag --storage-driver=vfs "${IMAGE_REGISTRY_REPO}" "${IMAGE_FULLTAG}"
-
-buildah push --storage-driver=vfs --authfile staging_auth.json --digestfile="${ARTIFACT_DIR}/digest" "${IMAGE_FULLTAG}"
-
-BUILD_DATE=$(date --utc '+%FT%TZ')
+skopeo copy --digestfile="${ARTIFACT_DIR}/digest" containers-storage:"${IMAGE_REGISTRY_REPO}" --dest-authfile staging_auth.json docker://"${IMAGE_FULLTAG}"
 
 function push_tags() {
   echo "Read the tags"
@@ -149,7 +145,7 @@ IMAGE_ID=sha256:$(buildah inspect --storage-driver=vfs --format '{{ .FromImageID
 
   echo "IMAGE_NAME=${IMAGE_NAME}"
 
-  echo "BUILD_DATE=${BUILD_DATE}"
+  echo "BUILD_DATE=$(date --utc '+%FT%TZ')"
 } >>build.env
 
 echo "Archive the proxy access log"
