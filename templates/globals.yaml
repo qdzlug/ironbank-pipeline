@@ -12,11 +12,11 @@ stages:
   # - executor image with Python 3.x installed
   - lint
 
-  ### pre-build stage
-  # download artifacts/clamav scan
-  # Requirements:
-  # - executor image with Python 3.x installed
-  - artifacts-secrets
+  ### Import Artifacts
+  - import-artifacts
+
+  ### Secret Scan
+  - secret-scan
 
   ### build stage
   # build image w version tag and create tar file
