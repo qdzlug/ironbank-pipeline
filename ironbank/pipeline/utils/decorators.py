@@ -31,11 +31,11 @@ def key_index_error_handler(func):
     @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
         try:
-            return func(*args, **kwargs)
+            return func(self, *args, **kwargs)
         except KeyError as ke:
-            self.log.debug(f"KeyError: No key for {ke.args[0]}")
+            self._log.debug(f"KeyError: No key for {ke.args[0]}")
         except IndexError as ie:
-            self.log.debug(f"IndexError: {ie.args[0]}")
+            self._log.debug(f"IndexError: {ie.args[0]}")
 
     return wrapper
 
