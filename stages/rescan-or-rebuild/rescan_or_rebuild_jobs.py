@@ -34,7 +34,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
 
         docker_config = pathlib.Path(docker_config_dir, "config.json")
-        # Grab staging docker auth
+        # Save docker auth to config file
         pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("UTF-8")
         docker_config.write_text(pull_auth)
 
@@ -54,6 +54,7 @@ def main():
                     log.info(f"Artifacts downloaded to temp directory: {oras_download}")
                 except ORASDownloadError as e:
                     log.error(e)
+                    exit(1)
 
                 log.info("Parsing old packages")
                 old_pkgs = package_compare.parse_packages(
