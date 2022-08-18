@@ -28,6 +28,7 @@ class AnchoreVuln:
     vendor_data: list = field(default_factory=lambda: [])
     # values are parsed form key paths in anchore report
     identifiers: list[str] = field(default_factory=lambda: [])
+    cve: str = None
     description: str = "none"
     nvd_cvss_v2_vector: str = None
     nvd_cvss_v3_vector: str = None
@@ -39,11 +40,16 @@ class AnchoreVuln:
     _log: logger = logger.setup("AnchoreVulnParser")
 
     def __post_init__(self):
+        # allow for multiple names for vuln, allows vat/csv_gen to use different names and parse __dict__ for an AnchoreVuln object
+        vuln_id_aliases = ["finding", "cve"]
+        for v_id in vuln_id_aliases:
+            setattr(self, v_id, self.vuln)
+
         self.identifiers.append(self.vuln)
         self.description = self.extra["description"] or self.description
         for ver in self._nvd_versions:
             self.get_nvd_scores(ver)
-            # self.get_vendor_nvd_scores(ver)
+            self.get_vendor_nvd_scores(ver)
         self.get_identifiers()
 
     @classmethod
@@ -66,11 +72,11 @@ class AnchoreVuln:
     @key_index_error_handler
     def get_vendor_nvd_scores(self, version):
         for d in self.extra["vendor_data"]:
-            if d.get(f"cvss_{version}", "").get("vector_string"):
+            if d.get(f"cvss_{version}") and d.get(f"cvss_{version}").get("vector_string"):
                 setattr(
                     self,
                     f"vendor_cvss_{version}_vector",
-                    d[f"cvss_{version}"]["vendor_string"],
+                    d[f"cvss_{version}"]["vector_string"],
                 )
 
     # def get_justification():
