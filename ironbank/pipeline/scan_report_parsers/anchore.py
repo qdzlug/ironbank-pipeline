@@ -72,7 +72,9 @@ class AnchoreVuln:
     @key_index_error_handler
     def get_vendor_nvd_scores(self, version):
         for d in self.extra["vendor_data"]:
-            if d.get(f"cvss_{version}") and d.get(f"cvss_{version}").get("vector_string"):
+            if d.get(f"cvss_{version}") and d.get(f"cvss_{version}").get(
+                "vector_string"
+            ):
                 setattr(
                     self,
                     f"vendor_cvss_{version}_vector",
