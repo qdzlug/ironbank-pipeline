@@ -1,5 +1,5 @@
-rescan-or-rebuild:
-  stage: rescan-or-rebuild
+scan-logic:
+  stage: scan-logic
   # TODO: Remove when final testing of SBOMs is complete
   allow_failure: true
   dependencies:
@@ -9,7 +9,7 @@ rescan-or-rebuild:
     - create-sbom
   script:
     - 'pip install --user "${PIPELINE_REPO_DIR}"'
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/rescan-or-rebuild/rescan_or_rebuild_jobs.py"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/scan-logic/scan_logic_jobs.py"'
   retry:
     max: 2
     when: runner_system_failure
