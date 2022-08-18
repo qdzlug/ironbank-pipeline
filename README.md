@@ -148,7 +148,7 @@ The formats are:
 | spdx-json      | json      |
 | json           | json      |
 
-### rescan-or-rebuild
+### scan-logic
 
 This job will perform a comparison of the SBOM and access log created in the current pipeline, and the artifacts stored in Registry1.
 The intent is to determine the image that should be scanned, and if the image deployed to Registry1, should be updated, or just the scan artifacts.
