@@ -249,7 +249,6 @@ class ORASArtifact(AbstractArtifact):
         pull_cmd = [
             "oras",
             "pull",
-            "--allow-all",
             sbom,
         ]
         cls.log.info(pull_cmd)
