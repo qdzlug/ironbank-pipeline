@@ -9,9 +9,9 @@ class AbstractVuln:
     # will be used for typing until we can start tying similarities between vulns
     pass
 
+
 @dataclass
 class ReportParser:
-
     @classmethod
     def get_justification(self, vuln: AbstractVuln, justifications: dict):
         id = (
