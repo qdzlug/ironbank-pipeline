@@ -6,10 +6,11 @@ from dataclasses import dataclass, field, fields
 from pathlib import Path
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.decorators import key_index_error_handler
+from report_parser import AbstractVuln, ReportParser
 
 
 @dataclass
-class AnchoreVuln:
+class AnchoreVuln(AbstractVuln):
     # keys match anchore severity report, passed as kwargs
     tag: str
     vuln: str
@@ -137,7 +138,7 @@ class AnchoreVuln:
 
 
 @dataclass
-class AnchoreSecurityParser:
+class AnchoreSecurityParser(ReportParser):
     log: logger = logger.setup("AnchoreSecurityParser")
 
     @classmethod
