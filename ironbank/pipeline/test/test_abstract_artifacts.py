@@ -112,10 +112,8 @@ def test_username_password(mock_artifact_with_basic_auth):
 
 
 def test_file_artifact_init(mock_file_artifact):
-    assert mock_file_artifact.dest_path == pathlib.Path("example/external-resources")
-    assert mock_file_artifact.artifact_path == pathlib.Path(
-        "example/external-resources/abc"
-    )
+    assert mock_file_artifact.dest_path == pathlib.Path("example")
+    assert mock_file_artifact.artifact_path == pathlib.Path("example/abc")
 
 
 def test_validate_checksum(
