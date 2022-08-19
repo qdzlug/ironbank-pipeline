@@ -4,8 +4,6 @@
 import json
 from ironbank.pipeline.scan_report_parsers.anchore import AnchoreSecurityParser
 
-from scanners.helper import write_csv_from_dict_list
-
 
 def vulnerability_report(csv_dir, anchore_security_json, justifications):
     """
