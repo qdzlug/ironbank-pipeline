@@ -33,10 +33,10 @@ def vulnerability_report(csv_dir, anchore_security_json, justifications):
         "url",
         "inherited",
         "description",
-        "nvd_cvss_v3_vector",
         "nvd_cvss_v2_vector",
-        "vendor_cvss_v3_vector",
+        "nvd_cvss_v3_vector",
         "vendor_cvss_v2_vector",
+        "vendor_cvss_v3_vector",
         "Justification",
     ]
 
@@ -53,7 +53,7 @@ def vulnerability_report(csv_dir, anchore_security_json, justifications):
 
     write_csv_from_dict_list(
         csv_dir=csv_dir,
-        dict_list=vulns,
+        dict_list=vuln_dict_list,
         fieldnames=fieldnames,
         filename="anchore_security.csv",
     )

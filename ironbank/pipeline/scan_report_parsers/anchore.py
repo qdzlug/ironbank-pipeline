@@ -41,16 +41,38 @@ class AnchoreVuln:
 
     def __post_init__(self):
         # allow for multiple names for vuln, allows vat/csv_gen to use different names and parse __dict__ for an AnchoreVuln object
-        vuln_id_aliases = ["finding", "cve"]
-        for v_id in vuln_id_aliases:
-            setattr(self, v_id, self.vuln)
-
         self.identifiers.append(self.vuln)
         self.description = self.extra["description"] or self.description
         for ver in self._nvd_versions:
             self.get_nvd_scores(ver)
             self.get_vendor_nvd_scores(ver)
         self.get_identifiers()
+
+    # add alias from inherited -> inherited_from_base
+    @property
+    def inherited(self):
+        return self.inherited_from_base
+
+    # We might want to add accessors/mutators for these properties in the future
+    # For now, we'll only be using these properties as aliases for other initialized/updated attributes of this class
+    # If we decide to use these, we can uncomment the following lines for "inherited"
+    # @inherited.setter
+    # def inherited(self, new_assignment):
+    #     self.inherited_from_base = new_assignment
+
+    # @inherited.deleter
+    # def inherited(self):
+    #     del self.inherited_from_base
+
+    # add alias from finding -> vuln
+    @property
+    def finding(self):
+        return self.vuln
+
+    # add alias from cve -> vuln
+    @property
+    def cve(self):
+        return self.vuln
 
     @classmethod
     def from_dict(cls, vuln_data):
