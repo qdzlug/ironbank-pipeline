@@ -3,6 +3,7 @@
 from base64 import b64decode
 import os
 import pathlib
+import sys
 import tempfile
 import image_verify
 from pathlib import Path
@@ -21,6 +22,10 @@ def main():
     access_log_path = Path(os.environ["ARTIFACT_STORAGE"], "build/access_log")
 
     log.info("Parsing new packages")
+
+    if not sbom_path.exists():
+        log.info("SBOM for new image not found - Exiting")
+        sys.exit(1)
     new_pkgs = set(SbomFileParser.parse(sbom_path))
     if access_log_path.exists():
         new_pkgs += set(AccessLogFileParser.parse(access_log_path))
@@ -64,6 +69,9 @@ def main():
                     old_access_log = Path(oras_download, "access_log")
 
                     log.info("Parsing old packages")
+                    if not old_sbom.exists():
+                        log.info("SBOM for old image not found - Exiting")
+                        sys.exit(1)
                     old_pkgs = set(SbomFileParser.parse(old_sbom))
                     if old_access_log.exists():
                         old_pkgs += set(AccessLogFileParser.parse(old_access_log))
