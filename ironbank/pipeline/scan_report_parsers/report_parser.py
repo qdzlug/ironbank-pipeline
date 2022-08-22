@@ -16,11 +16,11 @@ class ReportParser:
     @classmethod
     def get_justification(cls, vuln: AbstractVuln, justifications: dict):
         id = (
-            (vuln.cve, vuln.package, vuln.package_path)
-            if vuln.package_path != "pkgdb"
-            else None
+            vuln.cve,
+            vuln.package,
+            vuln.package_path if vuln.package_path != "pkgdb" else None,
         )
-        return justifications[id] if () in justifications else None
+        return justifications[id] if id in justifications else None
 
     @classmethod
     def write_csv_from_dict_list(cls, csv_dir, dict_list, fieldnames, filename):
