@@ -21,14 +21,14 @@ def main():
     access_log_path = Path(os.environ["ARTIFACT_STORAGE"], "build/access_log")
 
     log.info("Parsing new packages")
-    new_pkgs = set(
-        AccessLogFileParser.parse(access_log_path) + SbomFileParser.parse(sbom_path)
-    )
+    new_pkgs = set(SbomFileParser.parse(sbom_path))
+    if access_log_path.exists():
+        new_pkgs += set(AccessLogFileParser.parse(access_log_path))
     log.info("New packages parsed:")
     for pkg in new_pkgs:
         log.info(f"  {pkg}")
 
-    # TODO: Future - flush out logic for forced rescan
+    # TODO: Future - flush out logic for forced scan of new image
     if os.getenv("FORCE_SCAN"):
         log.info("Force scan new image")
         return
@@ -64,14 +64,9 @@ def main():
                     old_access_log = Path(oras_download, "access_log")
 
                     log.info("Parsing old packages")
+                    old_pkgs = set(SbomFileParser.parse(old_sbom))
                     if old_access_log.exists():
-                        old_pkgs = set(
-                            AccessLogFileParser.parse(old_access_log)
-                            + SbomFileParser.parse(old_sbom)
-                        )
-                    else:
-                        log.info("Access log doesn't exist - parsing SBOM only")
-                        old_pkgs = set(SbomFileParser.parse(old_sbom))
+                        old_pkgs += set(AccessLogFileParser.parse(old_access_log))
                     log.info("Old packages parsed:")
                     for pkg in old_pkgs:
                         log.info(f"  {pkg}")
