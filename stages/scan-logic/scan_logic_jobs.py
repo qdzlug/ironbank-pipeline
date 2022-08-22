@@ -58,9 +58,7 @@ def main():
                 old_sbom = Path(oras_download, "sbom-json.json")
                 old_access_log = Path(oras_download, "access_log")
 
-                skip_pkg_comp = not old_access_log.exists()
-
-                if not skip_pkg_comp:
+                if old_access_log.exists():
                     log.info("Parsing old packages")
                     old_pkgs = package_compare.parse_packages(
                         old_sbom,
