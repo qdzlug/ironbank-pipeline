@@ -4,13 +4,13 @@ from base64 import b64decode
 import os
 import pathlib
 import tempfile
-import package_compare
 import image_verify
 from pathlib import Path
 
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.exceptions import ORASDownloadError
 from ironbank.pipeline.artifacts import ORASArtifact
+from ironbank.pipeline.utils.exceptions import ORASDownloadError
+from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
 
 log = logger.setup("scan_logic_jobs")
 
@@ -21,7 +21,9 @@ def main():
     access_log_path = Path(os.environ["ARTIFACT_STORAGE"], "build/access_log")
 
     log.info("Parsing new packages")
-    new_pkgs = package_compare.parse_packages(sbom_path, access_log_path)
+    new_pkgs = set(
+        AccessLogFileParser.parse(access_log_path) + SbomFileParser.parse(sbom_path)
+    )
     log.info("New packages parsed:")
     for pkg in new_pkgs:
         log.info(f"  {pkg}")
@@ -48,32 +50,40 @@ def main():
             log.info("SBOM diff required to determine image to scan")
 
             with tempfile.TemporaryDirectory(prefix="ORAS-") as oras_download:
+                parse_old_pkgs = True
                 try:
                     log.info(f"Downloading artifacts for image: {old_img}")
                     ORASArtifact.download(old_img, oras_download, docker_config_dir)
                     log.info(f"Artifacts downloaded to temp directory: {oras_download}")
                 except ORASDownloadError as e:
+                    parse_old_pkgs = False
                     log.error(e)
 
-                old_sbom = Path(oras_download, "sbom-json.json")
-                old_access_log = Path(oras_download, "access_log")
+                if parse_old_pkgs:
+                    old_sbom = Path(oras_download, "sbom-json.json")
+                    old_access_log = Path(oras_download, "access_log")
 
-                if old_access_log.exists():
                     log.info("Parsing old packages")
-                    old_pkgs = package_compare.parse_packages(
-                        old_sbom,
-                        old_access_log,
-                    )
+                    if old_access_log.exists():
+                        old_pkgs = set(
+                            AccessLogFileParser.parse(old_access_log)
+                            + SbomFileParser.parse(old_sbom)
+                        )
+                    else:
+                        log.info("Access log doesn't exist - parsing SBOM only")
+                        old_pkgs = set(SbomFileParser.parse(old_sbom))
                     log.info("Old packages parsed:")
                     for pkg in old_pkgs:
                         log.info(f"  {pkg}")
 
-                    if package_compare.compare_equal(new_pkgs, old_pkgs):
-                        log.info("Package lists match - Able to scan old image")
-                    else:
+                    if new_pkgs.symmetric_difference(old_pkgs):
+                        log.info(f"Packages added: {new_pkgs - old_pkgs}")
+                        log.info(f"Packages removed: {old_pkgs - new_pkgs}")
                         log.info("Package(s) difference detected - Must scan new image")
+                    else:
+                        log.info("Package lists match - Able to scan old image")
                 else:
-                    log.info("Skipped package compare - must scan new image")
+                    log.info("ORAS download failed - Must scan new image")
 
             # TODO: Future - set env var RESCAN_REQUIRED=true
 
