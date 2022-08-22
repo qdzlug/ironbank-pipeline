@@ -134,10 +134,12 @@ class AnchoreVuln(AbstractVuln):
 
     def get_truncated_url(self, max_url_len: int = 65535):
         link_string = ""
+        # The following should always evaluate to false since we no longer use vulndb as a data source for anchore
+        # Keeping this logic in case this issue occurs again or we start using vulndb again
         if isinstance(self.url, list):
             for url in self.url:
                 url_text = f"{url['source']}:{url['url']}\n"
-                if len(url_text + link_string) > max_url_len:
+                if (len(url_text) + len(link_string)) < max_url_len:
                     link_string += url_text
                 else:
                     self._log.warning(
