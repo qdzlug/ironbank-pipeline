@@ -1,9 +1,7 @@
 # maybe security and gate parsers should be separate
 
-import json
 import re
 from dataclasses import dataclass, field, fields
-from pathlib import Path
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.decorators import key_index_error_handler
 from ironbank.pipeline.scan_report_parsers.report_parser import (

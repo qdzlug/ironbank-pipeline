@@ -2,7 +2,10 @@
 
 
 import json
-from ironbank.pipeline.scan_report_parsers.anchore import AnchoreSecurityParser
+from ironbank.pipeline.scan_report_parsers.anchore import (
+    AnchoreSecurityParser,
+    ReportParser,
+)
 
 
 def vulnerability_report(csv_dir, anchore_security_json, justifications):
@@ -133,7 +136,7 @@ def compliance_report(csv_dir, anchore_gates_json, justifications):
         "Justification",
     ]
 
-    write_csv_from_dict_list(
+    ReportParser.write_csv_from_dict_list(
         dict_list=gates,
         fieldnames=fieldnames,
         filename="anchore_gates.csv",

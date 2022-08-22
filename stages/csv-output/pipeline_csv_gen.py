@@ -10,7 +10,7 @@ import logging
 import xml.etree.ElementTree as etree
 
 from scanners import anchore
-from scanners.helper import write_csv_from_dict_list
+from ironbank.pipeline.scan_report_parsers.report_parser import ReportParser
 
 from ironbank.pipeline.vat_container_status import sort_justifications
 
@@ -349,7 +349,7 @@ def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
         "Justification",
     ]
 
-    write_csv_from_dict_list(
+    ReportParser.write_csv_from_dict_list(
         dict_list=cves, fieldnames=fieldnames, filename="tl.csv", csv_dir=csv_dir
     )
 

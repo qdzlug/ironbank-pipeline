@@ -10,6 +10,7 @@ class AbstractVuln:
     pass
 
 
+# make this an abstract class once all inheriting classes are defined
 @dataclass
 class ReportParser:
     @classmethod
