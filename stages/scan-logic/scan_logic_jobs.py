@@ -27,8 +27,8 @@ def main():
         log.info(f"  {pkg}")
 
     # TODO: Future - flush out logic for forced rescan
-    if os.getenv("FORCE_RESCAN"):
-        log.info("Force Re-scan set")
+    if os.getenv("FORCE_SCAN"):
+        log.info("Force scan new image")
         return
 
     with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
@@ -45,7 +45,7 @@ def main():
         # else propagate new date
 
         if old_img:
-            log.info("SBOM diff required to determine re-scan")
+            log.info("SBOM diff required to determine image to scan")
 
             with tempfile.TemporaryDirectory(prefix="ORAS-") as oras_download:
                 try:
@@ -54,26 +54,33 @@ def main():
                     log.info(f"Artifacts downloaded to temp directory: {oras_download}")
                 except ORASDownloadError as e:
                     log.error(e)
-                    exit(1)
 
-                log.info("Parsing old packages")
-                old_pkgs = package_compare.parse_packages(
-                    Path(oras_download, "sbom-json.json"),
-                    Path(oras_download, "access_log"),
-                )
-                log.info("Old packages parsed:")
-                for pkg in old_pkgs:
-                    log.info(f"  {pkg}")
+                old_sbom = Path(oras_download, "sbom-json.json")
+                old_access_log = Path(oras_download, "access_log")
 
-            if package_compare.compare_equal(new_pkgs, old_pkgs):
-                log.info("Re-scan not required")
-            else:
-                log.info("Re-scan required")
+                skip_pkg_comp = not old_access_log.exists()
+
+                if not skip_pkg_comp:
+                    log.info("Parsing old packages")
+                    old_pkgs = package_compare.parse_packages(
+                        old_sbom,
+                        old_access_log,
+                    )
+                    log.info("Old packages parsed:")
+                    for pkg in old_pkgs:
+                        log.info(f"  {pkg}")
+
+                    if package_compare.compare_equal(new_pkgs, old_pkgs):
+                        log.info("Package lists match - Able to scan old image")
+                    else:
+                        log.info("Package(s) difference detected - Must scan new image")
+                else:
+                    log.info("Skipped package compare - must scan new image")
 
             # TODO: Future - set env var RESCAN_REQUIRED=true
 
         else:
-            log.info("Re-scan required")
+            log.info("Image verify failed - Must scan new image")
 
 
 if __name__ == "__main__":
