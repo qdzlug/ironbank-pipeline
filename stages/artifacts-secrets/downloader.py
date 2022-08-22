@@ -65,6 +65,16 @@ def main():
                 log.error(f"Invalid scheme {scheme} for artifact {resource['url']}")
                 sys.exit(1)
 
+            if isinstance(artifact, AbstractFileArtifact):
+                artifact.dest_path = artifact.dest_path / "external-resources"
+                artifact.artifact_path = artifact.dest_path / artifact.filename
+            elif isinstance(artifact, ContainerArtifact):
+                artifact.dest_path = artifact.dest_path / "images"
+                artifact.artifact_path = (
+                    artifact.dest_path
+                    / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar"
+                )
+
             # download also gathers any relevant auth and runs any pre download validation
             artifact.download()
             if isinstance(artifact, AbstractFileArtifact):

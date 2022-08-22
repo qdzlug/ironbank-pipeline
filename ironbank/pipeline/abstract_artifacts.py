@@ -53,7 +53,6 @@ class AbstractArtifact(ABC):
 class AbstractFileArtifact(AbstractArtifact):
     def __post_init__(self):
         super().__post_init__()
-        self.dest_path = pathlib.Path(self.dest_path, "external-resources")
         self.artifact_path = pathlib.Path(self.dest_path, self.filename)
 
     def validate_checksum(self):
