@@ -28,7 +28,7 @@ def main():
         sys.exit(1)
     new_pkgs = set(SbomFileParser.parse(sbom_path))
     if access_log_path.exists():
-        new_pkgs += set(AccessLogFileParser.parse(access_log_path))
+        new_pkgs = new_pkgs.update(AccessLogFileParser.parse(access_log_path))
     log.info("New packages parsed:")
     for pkg in new_pkgs:
         log.info(f"  {pkg}")
@@ -74,7 +74,7 @@ def main():
                         sys.exit(1)
                     old_pkgs = set(SbomFileParser.parse(old_sbom))
                     if old_access_log.exists():
-                        old_pkgs += set(AccessLogFileParser.parse(old_access_log))
+                        old_pkgs = old_pkgs.update(AccessLogFileParser.parse(old_access_log))
                     log.info("Old packages parsed:")
                     for pkg in old_pkgs:
                         log.info(f"  {pkg}")
