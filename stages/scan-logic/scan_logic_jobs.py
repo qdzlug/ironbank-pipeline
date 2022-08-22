@@ -74,7 +74,9 @@ def main():
                         sys.exit(1)
                     old_pkgs = set(SbomFileParser.parse(old_sbom))
                     if old_access_log.exists():
-                        old_pkgs = old_pkgs.update(AccessLogFileParser.parse(old_access_log))
+                        old_pkgs = old_pkgs.update(
+                            AccessLogFileParser.parse(old_access_log)
+                        )
                     log.info("Old packages parsed:")
                     for pkg in old_pkgs:
                         log.info(f"  {pkg}")
