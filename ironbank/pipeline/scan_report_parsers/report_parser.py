@@ -13,7 +13,7 @@ class AbstractVuln:
 @dataclass
 class ReportParser:
     @classmethod
-    def get_justification(self, vuln: AbstractVuln, justifications: dict):
+    def get_justification(cls, vuln: AbstractVuln, justifications: dict):
         id = (
             (vuln.cve, vuln.package, vuln.package_path)
             if vuln.package_path != "pkgdb"
@@ -22,7 +22,7 @@ class ReportParser:
         return justifications[id] if () in justifications else None
 
     @classmethod
-    def write_csv_from_dict_list(csv_dir, dict_list, fieldnames, filename):
+    def write_csv_from_dict_list(cls, csv_dir, dict_list, fieldnames, filename):
         """
         Create csv file based off prepared data. The data must be provided as a list
         of dictionaries and the rest will be taken care of.

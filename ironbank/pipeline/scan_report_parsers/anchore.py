@@ -6,7 +6,10 @@ from dataclasses import dataclass, field, fields
 from pathlib import Path
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.decorators import key_index_error_handler
-from report_parser import AbstractVuln, ReportParser
+from ironbank.pipeline.scan_report_parsers.report_parser import (
+    AbstractVuln,
+    ReportParser,
+)
 
 
 @dataclass
@@ -29,8 +32,8 @@ class AnchoreVuln(AbstractVuln):
     vendor_data: list = field(default_factory=lambda: [])
     # values are parsed form key paths in anchore report
     identifiers: list[str] = field(default_factory=lambda: [])
-    cve: str = None
     description: str = "none"
+    scan_source: str = "anchore_cve"
     nvd_cvss_v2_vector: str = None
     nvd_cvss_v3_vector: str = None
     vendor_cvss_v2_vector: str = None
@@ -42,12 +45,14 @@ class AnchoreVuln(AbstractVuln):
 
     def __post_init__(self):
         # allow for multiple names for vuln, allows vat/csv_gen to use different names and parse __dict__ for an AnchoreVuln object
+        self.sort_fix()
         self.identifiers.append(self.vuln)
         self.description = self.extra["description"] or self.description
         for ver in self._nvd_versions:
             self.get_nvd_scores(ver)
             self.get_vendor_nvd_scores(ver)
         self.get_identifiers()
+        self.inherited_from_base = self.inherited_from_base or "no_data"
 
     # add alias from inherited -> inherited_from_base
     @property
@@ -74,6 +79,18 @@ class AnchoreVuln(AbstractVuln):
     @property
     def cve(self):
         return self.vuln
+
+    @property
+    def packagePath(self):
+        return self.package_path
+
+    @property
+    def scanSource(self):
+        return self.scan_source
+
+    @property
+    def link(self):
+        return self.url
 
     @classmethod
     def from_dict(cls, vuln_data):
@@ -130,11 +147,23 @@ class AnchoreVuln(AbstractVuln):
                     )
                     break
             self.url = link_string
+        # else, skip truncation
 
     def sort_fix(self):
         fix_version_re = "([A-Za-z0-9][-.0-~]*)"
         fix_list = re.findall(fix_version_re, self.fix)
         self.fix = ", ".join(sorted(fix_list))
+
+    def dict(self):
+        return {
+            "finding": self.finding,
+            "cve": self.cve,
+            **self.__dict__,
+            "packagePath": self.packagePath,
+            "link": self.link,
+            "inherited": self.inherited,
+            "scanSource": self.scanSource,
+        }
 
 
 @dataclass

@@ -9,6 +9,7 @@ from pathlib import Path
 import requests
 from requests.structures import CaseInsensitiveDict
 
+from ironbank.pipeline.scan_report_parsers.anchore import AnchoreSecurityParser
 from ironbank.pipeline.get_oscap_failures import generate_oscap_jobs
 from ironbank.pipeline.hardening_manifest import (
     source_values,
@@ -138,68 +139,29 @@ def generate_anchore_cve_jobs(anchore_sec_path):
     sorted_fix and fix_version_re needed for sorting fix string
     in case of duplicate cves with different sorts for the list of fix versions
     """
-    as_path = Path(anchore_sec_path)
-    with as_path.open(mode="r", encoding="utf-8") as f:
+
+    with Path(anchore_sec_path).open(mode="r", encoding="utf-8") as f:
         json_data = json.load(f)
-
+    vulns = AnchoreSecurityParser.get_vulnerabilities(json_data)
     cves = []
-    for v_d in json_data["vulnerabilities"]:
-        try:
-            description = v_d["extra"]["description"]
-        except KeyError:
-            logging.info(f"Vulnerability description does not exist for {v_d['vuln']}")
-            description = "none"
+    fieldnames = [
+        "finding",
+        "severity",
+        "description",
+        "link",
+        "score",
+        "package",
+        "packagePath",
+        "scanSource",
+        "identifiers",
+    ]
 
-        link_string = ""
-        # check to make sure the vulnerability's url value is a list
-        if isinstance(v_d["url"], list):
-            for url in v_d["url"]:
-                url_text = f"{url['source']}:{url['url']}\n"
-                # Check to make sure that adding the current url to the link_string will not overflow the DB's column limit
-                # If this value isn't checked and it is too large, the VAT API post will fail with a 500 error
-                if len(url_text) + len(link_string) < 65535:
-                    link_string += url_text
-                else:
-                    logging.warning(
-                        "Unable to add all reference URLs to API POST. Please refer to anchore_security.json for more info."
-                    )
-                    break
-        # vulnerability's url value is NOT a list. Just use the string value provided
-        else:
-            link_string = v_d["url"]
-        identifiers = []
-        identifiers.append(v_d["vuln"])
-        if v_d["nvd_data"]:
-            search_key = "nvd_data"
-        else:
-            search_key = "vendor_data"
-        # nvd_data is one of the two possible data types
-        try:
-            # There is no additional vendor_data provided, append the vuln identifier to the indentifiers array
-            if v_d[search_key][0]:
-                # If only the CVE or GHSA is available, append it to the identifiers array
-                if v_d[search_key][0]["id"] != v_d["vuln"]:
-                    identifiers.append(v_d[search_key][0]["id"])
-            # NVD data is not an array.
-            else:
-                # If only the CVE or GHSA is available, append it to the identifiers array
-                if v_d[search_key]["id"] != v_d["vuln"]:
-                    identifiers.append(v_d[search_key]["id"])
-        except IndexError:
-            logging.info("Index out of range. No vendor data available. Continuing.")
-        cve = {
-            "finding": v_d["vuln"],
-            "severity": v_d["severity"].lower(),
-            "description": description,
-            "link": link_string,
-            "score": "",
-            "package": v_d["package"],
-            "packagePath": v_d["package_path"]
-            if v_d["package_path"] != "pkgdb"
-            else None,
-            "scanSource": "anchore_cve",
-            "identifiers": identifiers,
-        }
+    for vuln in vulns:
+        vuln.get_truncated_url()
+        vuln.package_path = vuln.package_path if vuln.package_path != "pkgdb" else None
+        vuln.severity = vuln.severity.lower()
+        cve = {k: v for k, v in vuln.dict().items() if k in fieldnames}
+        cve["score"] = ""
         if cve not in cves:
             cves.append(cve)
 

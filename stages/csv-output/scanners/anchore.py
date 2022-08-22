@@ -41,7 +41,7 @@ def vulnerability_report(csv_dir, anchore_security_json, justifications):
     for vuln in vulns:
         # get justification id
 
-        vuln_dict = {k: v for k, v in vuln.__dict__.items() if k in fieldnames}
+        vuln_dict = {k: v for k, v in vuln.dict().items() if k in fieldnames}
         # get justification if exists
         vuln_dict["Justification"] = AnchoreSecurityParser.get_justification(
             vuln=vuln, justifications=justifications
@@ -49,12 +49,12 @@ def vulnerability_report(csv_dir, anchore_security_json, justifications):
 
         vuln_dict_list.append(vuln_dict)
 
-        AnchoreSecurityParser.write_csv_from_dict_list(
-            csv_dir=csv_dir,
-            dict_list=vuln_dict_list,
-            fieldnames=fieldnames,
-            filename="anchore_security.csv",
-        )
+    AnchoreSecurityParser.write_csv_from_dict_list(
+        csv_dir=csv_dir,
+        dict_list=vuln_dict_list,
+        fieldnames=fieldnames,
+        filename="anchore_security.csv",
+    )
 
     return len(vulns)
 
