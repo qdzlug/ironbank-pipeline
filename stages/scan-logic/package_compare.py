@@ -20,10 +20,10 @@ def compare_equal(new_pkgs, old_pkgs) -> bool:
         log.info(f"Packages added: {new_pkgs - old_pkgs}")
         log.info(f"Packages removed: {old_pkgs - new_pkgs}")
 
-        log.info("SBOM difference(s) detected!")
+        log.info("Package difference(s) detected")
         # scan new image
         return False
     else:
-        log.info("No difference detected!")
+        log.info("No package difference(s) detected")
         # rescan old image
         return True

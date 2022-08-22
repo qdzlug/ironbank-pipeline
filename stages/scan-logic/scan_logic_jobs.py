@@ -12,7 +12,7 @@ from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.exceptions import ORASDownloadError
 from ironbank.pipeline.artifacts import ORASArtifact
 
-log = logger.setup("rescan_or_rebuild_jobs")
+log = logger.setup("scan_logic_jobs")
 
 
 def main():
@@ -26,15 +26,15 @@ def main():
     for pkg in new_pkgs:
         log.info(f"  {pkg}")
 
-    # TODO: Future - flush out logic for forced rebuild
-    if os.getenv("FORCE_REBUILD"):
-        log.info("Force Rebuild Set")
+    # TODO: Future - flush out logic for forced rescan
+    if os.getenv("FORCE_RESCAN"):
+        log.info("Force Re-scan set")
         return
 
     with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
 
         docker_config = pathlib.Path(docker_config_dir, "config.json")
-        # Grab staging docker auth
+        # Save docker auth to config file
         pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("UTF-8")
         docker_config.write_text(pull_auth)
 
@@ -45,7 +45,7 @@ def main():
         # else propagate new date
 
         if old_img:
-            log.info("SBOM diff required to determine rescan or rebuild")
+            log.info("SBOM diff required to determine re-scan")
 
             with tempfile.TemporaryDirectory(prefix="ORAS-") as oras_download:
                 try:
@@ -54,6 +54,7 @@ def main():
                     log.info(f"Artifacts downloaded to temp directory: {oras_download}")
                 except ORASDownloadError as e:
                     log.error(e)
+                    exit(1)
 
                 log.info("Parsing old packages")
                 old_pkgs = package_compare.parse_packages(
@@ -64,13 +65,15 @@ def main():
                 for pkg in old_pkgs:
                     log.info(f"  {pkg}")
 
-            if not package_compare.compare_equal(new_pkgs, old_pkgs):
-                log.info("Rebuild required")
+            if package_compare.compare_equal(new_pkgs, old_pkgs):
+                log.info("Re-scan not required")
+            else:
+                log.info("Re-scan required")
 
-            # TODO: Future - set env var REBUILD_REQUIRED=true
+            # TODO: Future - set env var RESCAN_REQUIRED=true
 
         else:
-            log.info("No SBOM diff required. Rebuild required")
+            log.info("Re-scan required")
 
 
 if __name__ == "__main__":

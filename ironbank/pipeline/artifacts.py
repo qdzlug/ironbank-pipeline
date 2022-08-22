@@ -128,7 +128,6 @@ class ContainerArtifact(AbstractArtifact):
 
     def __post_init__(self):
         super().__post_init__()
-        self.dest_path = pathlib.Path(self.dest_path, "images")
         self.__tar_name = self.tag.replace("/", "-").replace(":", "-")
         self.artifact_path = pathlib.Path(self.dest_path, f"{self.__tar_name}.tar")
 
@@ -249,7 +248,6 @@ class ORASArtifact(AbstractArtifact):
         pull_cmd = [
             "oras",
             "pull",
-            "--allow-all",
             sbom,
         ]
         cls.log.info(pull_cmd)

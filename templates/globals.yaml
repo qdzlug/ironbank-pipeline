@@ -26,9 +26,9 @@ stages:
   # container archive output
   - post-build
 
-  ### rescan-or-rebuild stage
+  ### scan-logic stage
   # Image verification and sbom/access log diff
-  - rescan-or-rebuild
+  - scan-logic
 
   ### scanning stage
   # twistlock, oscap, and anchore scans

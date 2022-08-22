@@ -65,8 +65,10 @@ This command will produce one file per layer of the SBOM artifact.
 
 Oras can be installed by following [these instructions](https://oras.land/cli/).
 
+**Note:** ORAS releases prior to **v0.13.0** require addition of the `--allow-all` flag.
+
 ```bash
 artifact=$(cosign triangulate --type sbom registry1.dso.mil/ironbank/docker/scratch:ironbank)
 cosign verify --cert https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-certificate.pem "${artifact}"
-oras pull --allow-all "${artifact}"
+oras pull "${artifact}"
 ```

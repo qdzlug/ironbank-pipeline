@@ -11,7 +11,7 @@ include:
 
   - local: stages/post-build/base.yaml
 
-  - local: stages/rescan-or-rebuild/base.yaml
+  - local: stages/scan-logic/base.yaml
 
   # scanning stage jobs
   - local: stages/scanning/anchore/anchore.yaml
