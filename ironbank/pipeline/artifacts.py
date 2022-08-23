@@ -111,11 +111,11 @@ class HttpArtifact(AbstractFileArtifact):
                 # exception will be caught in main
                 # need unit tests for multiple response statuses
                 # skip response.raise_for_status() to prevent raising exception (allow for retry on other urls)
-                response.raise_for_status()
-                with self.artifact_path.open(mode="wb") as f:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        f.write(chunk)
-                return response.status_code
+                if response.status_code == 200:
+                    with self.artifact_path.open(mode="wb") as f:
+                        for chunk in response.iter_content(chunk_size=8192):
+                            f.write(chunk)
+                    return response.status_code
         # if we haven't returned at this point, we need to raise an exception
         raise InvalidURLList(
             f"No valid urls provided for {self.filename}. Please ensure the url(s) for this resource exists and is not password protected. If you require basic authentication to download this resource, please open a ticket in this repository."
