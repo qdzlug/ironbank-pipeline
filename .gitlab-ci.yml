@@ -88,6 +88,16 @@ prettier:
   script:
     - npx prettier -c .
 
+pylint:
+  needs: []
+  tags:
+    - ironbank-tools
+  stage: lint
+  allow_failure: true
+  script:
+    - pip install --user pylint
+    - pylint ironbank/ stages/
+
 shfmt:
   needs: []
   tags:

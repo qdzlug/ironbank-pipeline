@@ -12,7 +12,6 @@ htmlcov/
 .DS_Store
 .mypy_cache/
 mypy.ini
-.pylintrc
 libs/*
 test_projects/
 report.xml
