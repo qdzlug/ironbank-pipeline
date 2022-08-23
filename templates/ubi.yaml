@@ -3,9 +3,9 @@ include:
 
   - local: stages/lint/lint.yaml
 
-  - local: stages/artifacts-secrets/trufflehog.yaml
+  - local: stages/secret-scan/trufflehog.yaml
 
-  - local: stages/artifacts-secrets/import-artifacts.yaml
+  - local: stages/import-artifacts/import-artifacts.yaml
 
   - local: stages/build/base.yaml
 
@@ -28,7 +28,10 @@ include:
 
   - local: stages/harbor/harbor.yaml
 
-  - local: stages/s3/upload-to-s3-other.yaml
+  - local: stages/s3/upload-to-s3.yaml
+
+  - local: stages/stargate/stargate.yaml
 
 variables:
-  DISTROLESS: "1"
+  DISTRO_REPO_DIR: "ubi-repos"
+  DISTRO_REPO_MOUNT: "/etc/yum.repos.d"

@@ -1,6 +1,6 @@
 import-artifacts:
-  stage: artifacts-secrets
-  dependencies:
+  stage: import-artifacts
+  needs:
     - load-scripts
     - lint
   variables:
@@ -9,7 +9,7 @@ import-artifacts:
   script:
     - 'echo "${REQUESTS_CA_BUNDLE}"'
     - 'pip install --user "${PIPELINE_REPO_DIR}"'
-    - '"${PIPELINE_REPO_DIR}/stages/artifacts-secrets/import-run.sh"'
+    - '"${PIPELINE_REPO_DIR}/stages/import-artifacts/import-run.sh"'
   artifacts:
     when: always
     paths:

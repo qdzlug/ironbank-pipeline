@@ -3,14 +3,15 @@
 from base64 import b64decode
 import os
 import pathlib
+import sys
 import tempfile
-import package_compare
 import image_verify
 from pathlib import Path
 
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.exceptions import ORASDownloadError
 from ironbank.pipeline.artifacts import ORASArtifact
+from ironbank.pipeline.utils.exceptions import ORASDownloadError
+from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
 
 log = logger.setup("scan_logic_jobs")
 
@@ -21,14 +22,20 @@ def main():
     access_log_path = Path(os.environ["ARTIFACT_STORAGE"], "build/access_log")
 
     log.info("Parsing new packages")
-    new_pkgs = package_compare.parse_packages(sbom_path, access_log_path)
+
+    if not sbom_path.exists():
+        log.info("SBOM for new image not found - Exiting")
+        sys.exit(1)
+    new_pkgs = set(SbomFileParser.parse(sbom_path))
+    if access_log_path.exists():
+        new_pkgs.update(AccessLogFileParser.parse(access_log_path))
     log.info("New packages parsed:")
     for pkg in new_pkgs:
         log.info(f"  {pkg}")
 
-    # TODO: Future - flush out logic for forced rescan
-    if os.getenv("FORCE_RESCAN"):
-        log.info("Force Re-scan set")
+    # TODO: Future - flush out logic for forced scan of new image
+    if os.getenv("FORCE_SCAN"):
+        log.info("Force scan new image")
         return
 
     with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
@@ -45,35 +52,46 @@ def main():
         # else propagate new date
 
         if old_img:
-            log.info("SBOM diff required to determine re-scan")
+            log.info("SBOM diff required to determine image to scan")
 
             with tempfile.TemporaryDirectory(prefix="ORAS-") as oras_download:
+                parse_old_pkgs = True
                 try:
                     log.info(f"Downloading artifacts for image: {old_img}")
                     ORASArtifact.download(old_img, oras_download, docker_config_dir)
                     log.info(f"Artifacts downloaded to temp directory: {oras_download}")
                 except ORASDownloadError as e:
+                    parse_old_pkgs = False
                     log.error(e)
-                    exit(1)
 
-                log.info("Parsing old packages")
-                old_pkgs = package_compare.parse_packages(
-                    Path(oras_download, "sbom-json.json"),
-                    Path(oras_download, "access_log"),
-                )
-                log.info("Old packages parsed:")
-                for pkg in old_pkgs:
-                    log.info(f"  {pkg}")
+                if parse_old_pkgs:
+                    old_sbom = Path(oras_download, "sbom-json.json")
+                    old_access_log = Path(oras_download, "access_log")
 
-            if package_compare.compare_equal(new_pkgs, old_pkgs):
-                log.info("Re-scan not required")
-            else:
-                log.info("Re-scan required")
+                    log.info("Parsing old packages")
+                    if not old_sbom.exists():
+                        log.info("SBOM for old image not found - Exiting")
+                        sys.exit(1)
+                    old_pkgs = set(SbomFileParser.parse(old_sbom))
+                    if old_access_log.exists():
+                        old_pkgs.update(AccessLogFileParser.parse(old_access_log))
+                    log.info("Old packages parsed:")
+                    for pkg in old_pkgs:
+                        log.info(f"  {pkg}")
+
+                    if new_pkgs.symmetric_difference(old_pkgs):
+                        log.info(f"Packages added: {new_pkgs - old_pkgs}")
+                        log.info(f"Packages removed: {old_pkgs - new_pkgs}")
+                        log.info("Package(s) difference detected - Must scan new image")
+                    else:
+                        log.info("Package lists match - Able to scan old image")
+                else:
+                    log.info("ORAS download failed - Must scan new image")
 
             # TODO: Future - set env var RESCAN_REQUIRED=true
 
         else:
-            log.info("Re-scan required")
+            log.info("Image verify failed - Must scan new image")
 
 
 if __name__ == "__main__":
