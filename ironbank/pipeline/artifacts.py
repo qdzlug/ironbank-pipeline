@@ -112,7 +112,9 @@ class HttpArtifact(AbstractFileArtifact):
                 # need unit tests for multiple response statuses
                 # skip response.raise_for_status() to prevent raising exception (allow for retry on other urls)
                 if response.status_code == 200:
-                    self.artifact_path.write_bytes(response.content)
+                    with self.artifact_path.open(mode="wb") as f:
+                        for chunk in response.iter_content(chunk_size=8192):
+                            f.write(chunk)
                     return response.status_code
         # if we haven't returned at this point, we need to raise an exception
         raise InvalidURLList(

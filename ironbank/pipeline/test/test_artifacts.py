@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import boto3
 import pathlib
 import subprocess
 import pytest
@@ -7,7 +8,7 @@ import requests
 from dataclasses import dataclass
 from requests.auth import HTTPBasicAuth
 from subprocess import CalledProcessError
-import boto3
+from unittest.mock import mock_open
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.exceptions import InvalidURLList
 from ironbank.pipeline.utils.testing import raise_
@@ -175,7 +176,7 @@ def test_http_artifact_download(
     monkeypatch, mock_http_artifact, mock_responses  # noqa W0404
 ):
 
-    monkeypatch.setattr(pathlib.Path, "write_bytes", lambda self, x: "no")
+    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data=b"example"))
     monkeypatch.setattr(HttpArtifact, "get_credentials", lambda self: "example")
 
     status_code = None
