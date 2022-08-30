@@ -8,19 +8,24 @@ import pathlib
 import shutil
 import subprocess
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 # https://github.com/anchore/syft#output-formats
 
 # Defines a map of SBOM output formats provided by syft to their corresponding mediatypes
-mime_types = {
+# TODO match these up with available predicate types (slsaprovenance|link|spdx|spdxjson|cyclonedx|vuln|custom)
+predicate_types = {
     "sbom-json.json": "application/vnd.syft+json",
-    "sbom-cyclonedx.xml": "application/vnd.cyclonedx+xml",
+    "sbom-cyclonedx.xml": "cyclonedx",
     "sbom-cyclonedx-json.json": "application/vnd.cyclonedx+json",
-    "sbom-spdx.xml": "text/spdx",
-    "sbom-spdx-json.json": "application/spdx+json",
+    "sbom-spdx.xml": "spdx",
+    "sbom-spdx-json.json": "spdxjson",
     "sbom-spdx-tag-value.txt": "text/plain",
-    "access_log": "text/plain",
+    "access_log": "text/plain",  # TBD custom type? Link?
+    "README.md": "text/plain",  # TBD custom type? Link?
+    "LICENSE": "text/plain",  # TBD custom type? Link?
+    "hardening_manifest.yaml": "text/plain",  # TBD custom type? Link?
+    "vat_response.json": "https://vat.dso.mil/api/p1/predicate/beta1",
 }
 
 
@@ -33,6 +38,7 @@ class Image:
     name: str
     registry: str
     digest: str
+    tags: list[str] = field(default_factory=lambda: [])
 
 
 class Cosign:
@@ -169,58 +175,6 @@ class Cosign:
             sys.exit(1)
 
 
-def push_oras(image: Image) -> None:
-    """
-    Perform image SBOM push with Oras
-    """
-
-    logging.info("Push SBOM")
-    access_log_path = pathlib.Path(os.environ["ACCESS_LOG_DIR"], "access_log")
-    sbom_access_log_path = pathlib.Path(os.environ["SBOM_DIR"], "access_log")
-    if access_log_path.stat().st_size:
-        try:
-            shutil.copy(
-                access_log_path,
-                sbom_access_log_path,
-            )
-            logging.info("File copied successfully.")
-        except shutil.SameFileError:
-            logging.error("Source and destination represents the same file.")
-            sys.exit(1)
-        except PermissionError:
-            logging.error("Permission denied.")
-            sys.exit(1)
-    os.chdir(os.environ["SBOM_DIR"])
-    sboms = [f"{file}:{mime_types[file]}" for file in os.listdir(os.getcwd())]
-    logging.info(sboms)
-    formatted_digest = image.digest.split(":")[1]
-    logging.info(f"Pushing SBOM for {image.registry}/{image.name}@{image.digest}")
-    sign_cmd = [
-        "oras",
-        "push",
-        "--config",
-        "/tmp/config.json",
-        f"{image.registry}/{image.name}:sha256-{formatted_digest}.sbom",
-        *sboms,
-    ]
-
-    logging.info(" ".join(sign_cmd))
-    try:
-        subprocess.run(
-            args=sign_cmd,
-            check=True,
-            encoding="utf-8",
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        os.chdir(os.environ["CI_PROJECT_DIR"])
-    except subprocess.CalledProcessError:
-        logging.error(
-            f"Failed to push SBOM for {image.registry}/{image.name}@{image.digest}"
-        )
-        sys.exit(1)
-
-
 def compare_digests(image: Image) -> None:
     """
     Pull down image manifest to compare digest to digest from build environment
@@ -267,40 +221,35 @@ def promote_tags(staging_image: Image, production_image: Image) -> None:
     tagging it according the the tags defined in tags.txt
     """
 
-    with pathlib.Path(os.environ["ARTIFACT_STORAGE"], "lint", "tags.txt").open(
-        mode="r"
-    ) as f:
-        for tag in f:
-            tag = tag.strip()
-
-            logging.info(
-                f"Copy from staging to {production_image.registry}/{production_image.name}:{tag}"
+    for tag in production_image.tags:
+        logging.info(
+            f"Copy from staging to {production_image.registry}/{production_image.name}:{tag}"
+        )
+        cmd = [
+            "skopeo",
+            "copy",
+            "--src-authfile",
+            "staging_auth.json",
+            "--dest-authfile",
+            "/tmp/config.json",
+            f"docker://{staging_image.registry}/{staging_image.name}@{staging_image.digest}",
+            f"docker://{production_image.registry}/{production_image.name}:{tag}",
+        ]
+        try:
+            subprocess.run(
+                args=cmd,
+                check=True,
+                encoding="utf-8",
             )
-            cmd = [
-                "skopeo",
-                "copy",
-                "--src-authfile",
-                "staging_auth.json",
-                "--dest-authfile",
-                "/tmp/config.json",
-                f"docker://{staging_image.registry}/{staging_image.name}@{staging_image.digest}",
-                f"docker://{production_image.registry}/{production_image.name}:{tag}",
-            ]
-            try:
-                subprocess.run(
-                    args=cmd,
-                    check=True,
-                    encoding="utf-8",
-                )
-            except subprocess.CalledProcessError:
-                logging.error(
-                    f"""
-                    Failed to copy
-                    {staging_image.registry}/{staging_image.name}@{staging_image.digest}
-                    to {production_image.registry}/{production_image.name}:{tag}
-                    """
-                )
-                sys.exit(1)
+        except subprocess.CalledProcessError:
+            logging.error(
+                f"""
+                Failed to copy
+                {staging_image.registry}/{staging_image.name}@{staging_image.digest}
+                to {production_image.registry}/{production_image.name}:{tag}
+                """
+            )
+            sys.exit(1)
 
 
 def main():
@@ -349,10 +298,18 @@ def main():
         os.environ["IMAGE_PODMAN_SHA"],
     )
 
+    tags = []
+    with pathlib.Path(os.environ["ARTIFACT_STORAGE"], "lint", "tags.txt").open(
+        mode="r"
+    ) as f:
+        for tag in f:
+            tags.append(tag.strip())
+
     production_image = Image(
         os.environ["IMAGE_NAME"],
         os.environ["REGISTRY_URL_PROD"],
         os.environ["IMAGE_PODMAN_SHA"],
+        tags,
     )
 
     cosign = Cosign(
@@ -373,18 +330,24 @@ def main():
     # Sign image in registry with Cosign
     cosign.sign_image()
 
-    # Create combined SBOM from SBOMs contained in the SBOM_DIR
-    push_oras(production_image)
+    # TODO delete preexisting .att tag from image (if there is one, ignore 404 if not)
 
-    # Push VAT response file as attestation
-    cosign.add_attestation(
-        os.environ["VAT_RESPONSE"],
-        "https://vat.dso.mil/api/p1/predicate/beta1",
+    predicates = [
+        pathlib.Path(os.environ["SBOM_DIR"], file)
+        for file in os.listdir(os.environ["SBOM_DIR"])
+    ]
+    predicates.extend(
+        [
+            pathlib.Path(os.environ["CI_PROJECT_DIR"], "LICENSE"),
+            pathlib.Path(os.environ["CI_PROJECT_DIR"], "README.md"),
+            pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.yaml"),
+            pathlib.Path(os.environ["ACCESS_LOG_DIR"], "access_log"),
+            pathlib.Path(os.environ["VAT_RESPONSE"]),
+        ]
     )
 
-    logging.info("Signing SBOM")
-    cosign.sign_image_attachment("sbom")
-
+    for predicate in predicates:
+      cosign.add_attestation(predicate.as_posix(), predicate_types[predicate.name])
 
 if __name__ == "__main__":
     main()
