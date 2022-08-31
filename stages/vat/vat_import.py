@@ -329,15 +329,14 @@ def create_api_call():
 
 
 def main():
+    vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
     if not args.use_json:
         large_data = create_api_call()
-        with open(f"{os.environ['ARTIFACT_DIR']}/vat_request.json", "w") as outfile:
+        with vat_request_json.open("w") as outfile:
             json.dump(large_data, outfile)
     else:
-        with open(
-            f"{os.environ['ARTIFACT_DIR']}/vat_request.json", encoding="utf-8"
-        ) as o_f:
-            large_data = json.loads(o_f.read())
+        with vat_request_json.open() as infile:
+            large_data = json.load(infile)
 
     headers = CaseInsensitiveDict()
     headers["Content-Type"] = "application/json"
@@ -347,7 +346,9 @@ def main():
         resp.raise_for_status()
         logging.debug(f"API Response:\n{resp.text}")
         logging.debug(f"POST Response: {resp.status_code}")
-        with open(f"{os.environ['ARTIFACT_DIR']}/vat_response.json", "w") as outfile:
+        with Path(f"{os.environ['ARTIFACT_DIR']}/vat_response.json").open(
+            "w"
+        ) as outfile:
             json.dump(resp.json(), outfile)
     except RuntimeError:
         logging.exception("RuntimeError: API Call Failed")
