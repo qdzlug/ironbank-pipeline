@@ -6,6 +6,7 @@ from typing import Optional
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.utils import logger
+from ironbank.pipeline.image import Image
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 
 log = logger.setup("image_verify")
@@ -15,10 +16,13 @@ def inspect_old_image(
     manifest: HardeningManifest, docker_config_dir: str
 ) -> Optional[dict]:
     try:
-        return Skopeo.inspect(
-            f"{os.environ['REGISTRY_URL_PROD']}/{manifest.image_name}:{manifest.image_tag}",
-            docker_config_dir,
+        skopeo = Skopeo(docker_config_dir=docker_config_dir)
+        old_image = Image(
+            registry=os.environ["REGISTRY_URL_PROD"],
+            name=manifest.image_name,
+            tag=manifest.image_tag,
         )
+        return skopeo.inspect(old_image)
 
     except subprocess.CalledProcessError:
         log.info(

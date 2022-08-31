@@ -12,6 +12,7 @@ import tempfile
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.utils import logger
+from ironbank.pipeline.image import Image
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 
 log = logger.setup(name="lint.base_image_validation")
@@ -45,10 +46,13 @@ async def main():
                 registry = os.environ["REGISTRY_URL_PROD"]
             docker_config.write_text(pull_auth)
             try:
-                base_img_inspect = Skopeo.inspect(
-                    f"{registry}/{manifest.base_image_name}:{manifest.base_image_tag}",
-                    docker_config_dir,
+                skopeo = Skopeo(docker_config_dir=docker_config_dir)
+                base_image = Image(
+                    registry=registry,
+                    name=manifest.base_image_name,
+                    tag=manifest.base_image_tag,
                 )
+                base_img_inspect = skopeo.inspect(base_image)
             except subprocess.CalledProcessError as e:
                 log.error(
                     "Failed to inspect IMAGE:TAG provided in hardening_manifest. \

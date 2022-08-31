@@ -8,7 +8,8 @@ import pathlib
 import shutil
 import subprocess
 import sys
-from dataclasses import dataclass
+
+from ironbank.pipeline.image import Image
 
 # https://github.com/anchore/syft#output-formats
 
@@ -22,17 +23,6 @@ mime_types = {
     "sbom-spdx-tag-value.txt": "text/plain",
     "access_log": "text/plain",
 }
-
-
-@dataclass
-class Image:
-    """
-    The Image Dataclass contains commonly used image attributes
-    """
-
-    name: str
-    registry: str
-    digest: str
 
 
 class Cosign:
@@ -234,7 +224,7 @@ def compare_digests(image: Image) -> None:
         "--authfile",
         "staging_auth.json",
         "--raw",
-        f"docker://{image.registry}/{image.name}@{image.digest}",
+        f"docker://{image}",
     ]
     logging.info(" ".join(cmd))
     with manifest_file.open(mode="w") as f:
@@ -273,9 +263,8 @@ def promote_tags(staging_image: Image, production_image: Image) -> None:
         for tag in f:
             tag = tag.strip()
 
-            logging.info(
-                f"Copy from staging to {production_image.registry}/{production_image.name}:{tag}"
-            )
+            logging.info(f"Copy from staging to {production_image.tag_str()}")
+            production_image.tag = tag
             cmd = [
                 "skopeo",
                 "copy",
@@ -283,8 +272,8 @@ def promote_tags(staging_image: Image, production_image: Image) -> None:
                 "staging_auth.json",
                 "--dest-authfile",
                 "/tmp/config.json",
-                f"docker://{staging_image.registry}/{staging_image.name}@{staging_image.digest}",
-                f"docker://{production_image.registry}/{production_image.name}:{tag}",
+                f"docker://{staging_image.digest_str()}",
+                f"docker://{production_image.tag_str()}",
             ]
             try:
                 subprocess.run(
@@ -296,8 +285,8 @@ def promote_tags(staging_image: Image, production_image: Image) -> None:
                 logging.error(
                     f"""
                     Failed to copy
-                    {staging_image.registry}/{staging_image.name}@{staging_image.digest}
-                    to {production_image.registry}/{production_image.name}:{tag}
+                    {staging_image.digest_str()}
+                    to {production_image.tag_str()}
                     """
                 )
                 sys.exit(1)
@@ -344,15 +333,15 @@ def main():
     pathlib.Path("/tmp/config.json").write_text(dest_auth)
 
     staging_image = Image(
-        os.environ["IMAGE_NAME"],
-        os.environ["REGISTRY_URL_STAGING"],
-        os.environ["IMAGE_PODMAN_SHA"],
+        registry=os.environ["REGISTRY_URL_STAGING"],
+        name=os.environ["IMAGE_NAME"],
+        digest=os.environ["IMAGE_PODMAN_SHA"],
     )
 
     production_image = Image(
-        os.environ["IMAGE_NAME"],
-        os.environ["REGISTRY_URL_PROD"],
-        os.environ["IMAGE_PODMAN_SHA"],
+        registry=os.environ["REGISTRY_URL_PROD"],
+        name=os.environ["IMAGE_NAME"],
+        digest=os.environ["IMAGE_PODMAN_SHA"],
     )
 
     cosign = Cosign(

@@ -3,17 +3,31 @@ import json
 import subprocess
 
 from ironbank.pipeline.utils import logger
+from ironbank.pipeline.image import Image
+from dataclasses import dataclass
+from abc import ABC
 
 log = logger.setup(name="skopeo")
 
 
-class Skopeo:
-    @classmethod
-    def inspect(cls, image, docker_config_dir) -> dict:
+@dataclass
+class ContainerTool(ABC):
+    authfile: str = None
+    docker_config_dir: str = None
+    src_authfile: str = None
+    dest_authfile: str = None
+
+
+@dataclass
+class Skopeo(ContainerTool):
+    def inspect(self, image: Image) -> dict:
+        # use tag by default, else use digest
         cmd = [
             "skopeo",
             "inspect",
-            f"docker://{image}",
+            f"docker://{image.tag_str()}"
+            if image.tag
+            else f"docker://{image.digest_str()}",
         ]
         log.info(f"Run inspect cmd: {cmd}")
         # if skopeo inspect fails, because IMAGE value doesn't match a registry1 container name
@@ -26,7 +40,7 @@ class Skopeo:
             encoding="utf-8",
             env={
                 "PATH": os.environ["PATH"],
-                "DOCKER_CONFIG": docker_config_dir,
+                "DOCKER_CONFIG": self.docker_config_dir or "",
             },
         )
         return json.loads(inspect_result.stdout)
