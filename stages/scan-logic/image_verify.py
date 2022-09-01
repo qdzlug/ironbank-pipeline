@@ -21,6 +21,7 @@ def inspect_old_image(
             registry=os.environ["REGISTRY_URL_PROD"],
             name=manifest.image_name,
             tag=manifest.image_tag,
+            transport="docker://",
         )
         return skopeo.inspect(old_image)
 

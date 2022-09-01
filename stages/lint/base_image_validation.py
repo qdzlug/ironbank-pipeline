@@ -51,6 +51,7 @@ async def main():
                     registry=registry,
                     name=manifest.base_image_name,
                     tag=manifest.base_image_tag,
+                    transport="docker://",
                 )
                 base_img_inspect = skopeo.inspect(base_image)
             except subprocess.CalledProcessError as e:

@@ -28,9 +28,7 @@ class Skopeo(ContainerTool):
         cmd = [
             "skopeo",
             "inspect",
-            f"docker://{image.tag_str()}"
-            if image.tag
-            else f"docker://{image.digest_str()}",
+            f"{image}",
         ]
         log.info(f"Run inspect cmd: {cmd}")
         # if skopeo inspect fails, because IMAGE value doesn't match a registry1 container name
@@ -72,7 +70,6 @@ class Skopeo(ContainerTool):
         cmd += [f"{src}"]
         cmd += ["--dest-authfile", dest_authfile] if dest_authfile else []
         cmd += [f"{dest}"]
-
         copy_result = subprocess.run(
             args=cmd,
             capture_output=True,

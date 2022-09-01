@@ -16,7 +16,7 @@ class Image:
 
     name: str
     # no registry needed for local paths
-    registry: str = ""
+    registry: str = None
     digest: str = None
     tag: str = None
     # skopeo cares about transport (e.g. docker://, container-storage:, etc.)
@@ -28,12 +28,16 @@ class Image:
         # both may be defined
         if not self.digest and not self.tag:
             raise MissingTagAndDigestError
-        self.registry_path = f"{self.registry}/{self.name}"
+        self.registry_path = (
+            f"{self.registry}/{self.name}" if self.registry else self.name
+        )
 
     def tag_str(self):
+        # TODO: potentially move the transport formatting to skopeo, since it's the only tool that cares about transport
         return f"{self.transport}{self.registry_path}:{self.tag}"
 
     def digest_str(self):
+        # TODO: potentially move the transport formatting to skopeo, since it's the only tool that cares about transport
         return f"{self.transport}{self.registry_path}@{self.digest}"
 
     def __str__(self):
@@ -49,7 +53,12 @@ class ImageFile:
     transport: str = ""
 
     def __post_init__(self):
-        file_path = Path(file_path) if not isinstance(file_path, Path) else file_path
+        self.file_path = (
+            Path(self.file_path)
+            if not isinstance(self.file_path, Path)
+            else self.file_path
+        )
 
     def __str__(self):
+        # TODO: potentially move the transport formatting to skopeo, since it's the only tool that cares about transport
         return f"{self.transport}{self.file_path}"
