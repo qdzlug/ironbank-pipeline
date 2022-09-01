@@ -4,7 +4,7 @@ import subprocess
 from pathlib import Path
 
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.image import Image
+from ironbank.pipeline.image import Image, ImageFile
 from dataclasses import dataclass
 from abc import ABC
 
@@ -51,8 +51,8 @@ class Skopeo(ContainerTool):
     @classmethod
     def copy(
         cls,
-        src: Image,
-        dest: Image,
+        src: Image | ImageFile,
+        dest: Image | ImageFile,
         digestfile: Path = None,
         src_authfile: Path = None,
         dest_authfile: Path = None,
@@ -69,9 +69,9 @@ class Skopeo(ContainerTool):
         cmd = ["skopeo", "copy"]
         cmd += ["--digestfile", digestfile] if digestfile else []
         cmd += ["--src-authfile", src_authfile] if src_authfile else []
-        cmd += [f"{src.transport}{src}"]
+        cmd += [f"{src}"]
         cmd += ["--dest-authfile", dest_authfile] if dest_authfile else []
-        cmd += [f"{dest.transport}{dest}"]
+        cmd += [f"{dest}"]
 
         copy_result = subprocess.run(
             args=cmd,
