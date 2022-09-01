@@ -17,6 +17,9 @@ class Image:
     name: str
     digest: str = None
     tag: str = None
+    # skopeo cares about transport (e.g. docker://, container-storage:, etc.)
+    # skopeo supported transports: containers-storage, dir, docker, docker-archive, docker-daemon, oci, oci-archive, ostree, tarball
+    transport: str = None
 
     def __post_init__(self):
         # enforce at least one of digest/tag is defined
@@ -30,3 +33,7 @@ class Image:
 
     def digest_str(self):
         return f"{self.registry_path}@{self.digest}"
+
+    def __str__(self):
+        # default to tag, else use digest
+        return self.tag_str() if self.tag else self.digest_str()
