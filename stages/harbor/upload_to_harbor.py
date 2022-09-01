@@ -2,6 +2,8 @@
 
 import base64
 import hashlib
+from importlib.resources import path
+import json
 import logging
 import os
 import pathlib
@@ -9,6 +11,8 @@ import shutil
 import subprocess
 import sys
 from dataclasses import dataclass, field
+import time
+import yaml
 
 # https://github.com/anchore/syft#output-formats
 
@@ -26,6 +30,7 @@ predicate_types = {
     "LICENSE": "text/plain",  # TBD custom type? Link?
     "hardening_manifest.yaml": "text/plain",  # TBD custom type? Link?
     "vat_response.json": "https://vat.dso.mil/api/p1/predicate/beta1",
+    "hardening_manifest.json": "application/vnd.hardening_manifest+json",
 }
 
 
@@ -148,7 +153,7 @@ class Cosign:
             "--predicate",
             predicate_path,
             "--type",
-            predicate_type,
+            f"https://repo1.dso.mil/dsop/dccscr.git/{predicate_type}",
             "--key",
             self.kms_key_arn,
             "--cert",
@@ -170,8 +175,9 @@ class Cosign:
                     **os.environ,
                 },
             )
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as exception:
             logging.error(f"Failed to add attestation {predicate_path}")
+            logging.error(exception)
             sys.exit(1)
 
 
@@ -250,6 +256,22 @@ def promote_tags(staging_image: Image, production_image: Image) -> None:
                 """
             )
             sys.exit(1)
+
+def convert_artifacts_to_hardening_manifest(predicates: list, hardening_manifest: pathlib.Path):
+
+    hm_object = yaml.safe_load(hardening_manifest.read_text())
+
+    for item in predicates:
+        item_name = item.stem
+        if "sbom" in item_name:
+            pass
+        else:
+            hm_object[item_name] = ""
+            with open(item, 'r') as f:
+                hm_object[item_name] = f.read()
+
+    with open(pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json"), 'w') as f:
+        json.dump(hm_object, f)
 
 
 def main():
@@ -340,13 +362,21 @@ def main():
         [
             pathlib.Path(os.environ["CI_PROJECT_DIR"], "LICENSE"),
             pathlib.Path(os.environ["CI_PROJECT_DIR"], "README.md"),
-            pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.yaml"),
             pathlib.Path(os.environ["ACCESS_LOG_DIR"], "access_log"),
             pathlib.Path(os.environ["VAT_RESPONSE"]),
         ]
     )
+    convert_artifacts_to_hardening_manifest(predicates, pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.yaml"))
 
-    for predicate in predicates:
+    final_predicates = [
+        pathlib.Path(os.environ["SBOM_DIR"], file)
+        for file in os.listdir(os.environ["SBOM_DIR"])
+    ]
+    final_predicates.append(pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json"))
+    final_predicates.remove(pathlib.Path(os.environ["SBOM_DIR"], "sbom-spdx-tag-value.txt"))
+    final_predicates.remove(pathlib.Path(os.environ["SBOM_DIR"], "sbom-cyclonedx.xml"))
+
+    for predicate in final_predicates:
       cosign.add_attestation(predicate.as_posix(), predicate_types[predicate.name])
 
 if __name__ == "__main__":
