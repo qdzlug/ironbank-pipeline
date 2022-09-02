@@ -4,21 +4,15 @@ import subprocess
 from pathlib import Path
 
 from ironbank.pipeline.utils import logger
+from ironbank.pipeline.container_tools.container_tool import ContainerTool
 from ironbank.pipeline.image import Image, ImageFile
 from dataclasses import dataclass
-from abc import ABC
 
 log = logger.setup(name="skopeo")
 
 
 class CopyException(Exception):
     pass
-
-
-@dataclass
-class ContainerTool(ABC):
-    authfile: str = None
-    docker_config_dir: str = None
 
 
 @dataclass
