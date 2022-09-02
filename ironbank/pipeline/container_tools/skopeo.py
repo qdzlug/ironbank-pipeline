@@ -17,7 +17,7 @@ class CopyException(Exception):
 
 @dataclass
 class Skopeo(ContainerTool):
-    def inspect(self, image: Image) -> dict:
+    def inspect(self, image: Image | ImageFile) -> dict:
         # use tag by default, else use digest
         cmd = [
             "skopeo",
