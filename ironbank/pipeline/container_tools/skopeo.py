@@ -49,7 +49,7 @@ class Skopeo(ContainerTool):
         src_authfile: Path = None,
         dest_authfile: Path = None,
         remove_signatures: bool = False,
-        additional_tags: list[str] = False,
+        additional_tags: str | list[str] = [],
         src_creds: str = None,
         dest_creds: str = None,
     ) -> None:
@@ -67,7 +67,12 @@ class Skopeo(ContainerTool):
         cmd += ["--authfile", cls.authfile] if cls.authfile else []
         cmd += ["--remove-signatures"] if remove_signatures else []
         # get additional tags
-        cmd += cls.__generate_arg_list_from_list(additional_tags)
+        tags = ["--additional-tag", additional_tags]
+        cmd += (
+            tags
+            if type(additional_tags) == str
+            else cls._generate_arg_list_from_list(*tags)
+        )
         cmd += ["--src-creds", src_creds] if src_creds else []
         cmd += ["--dest-creds", dest_creds] if dest_creds else []
         cmd += ["--src-authfile", src_authfile] if src_authfile else []

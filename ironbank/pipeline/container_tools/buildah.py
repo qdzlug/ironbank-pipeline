@@ -17,15 +17,17 @@ class Buildah(ContainerTool):
 
     def build(
         self,
-        context: dict = ".",
+        context: Path | str = ".",
         build_args: dict = {},
         labels: dict = {},
         image_format: str = None,
         log_level: str = None,
         default_mounts_file: Path | str = None,
         storage_driver: str = None,
+        # convert this to image object
         name_tag: str = None,
     ):
+        context = context if isinstance(context, Path) else Path(context)
         cmd = [
             "env",
             "-i",
@@ -35,9 +37,9 @@ class Buildah(ContainerTool):
             "build",
         ]
         # add build_args
-        cmd += self.__generate_arg_list_from_env("--build-args", build_args)
+        cmd += self._generate_arg_list_from_env("--build-args", build_args)
         # add labels
-        cmd += self.__generate_arg_list_from_env("--label", labels)
+        cmd += self._generate_arg_list_from_env("--label", labels)
         cmd += ["--authfile", self.authfile] if self.authfile else []
         cmd += ["--format", image_format] if image_format else []
         cmd += ["--log-level", log_level] if log_level else []

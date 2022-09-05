@@ -33,7 +33,7 @@ class Image:
     def __post_init__(self):
         # enforce at least one of digest/tag is defined
         # both may be defined
-        if not self.name:
+        if self.name:
             if not self.digest and not self.tag:
                 raise MissingTagAndDigestError(
                     "Missing tag and digest for Image type with name defined"
@@ -57,7 +57,7 @@ class Image:
     def __str__(self):
         # default to tag, else use digest
         if self.url:
-            return f"{self.transport}/{self.url}"
+            return f"{self.transport}{self.url}"
         elif self.tag:
             return self.tag_str()
         elif self.digest:
