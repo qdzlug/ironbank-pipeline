@@ -15,14 +15,6 @@ class Buildah(ContainerTool):
     def inspect(self, image: Image):
         pass
 
-    # get sub lists of [flag, k=v] and flatten list
-    def __generate_arg_list_from_env(flag: str, env_vars: dict) -> list[str]:
-        return [
-            element
-            for sub_list in [[flag, f"{k}={v}"] for k, v in env_vars.items()]
-            for element in sub_list
-        ]
-
     def build(
         self,
         context: dict = ".",

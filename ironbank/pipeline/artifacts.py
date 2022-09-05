@@ -15,6 +15,8 @@ from .abstract_artifacts import (
     AbstractArtifact,
     AbstractFileArtifact,
 )
+from ironbank.pipeline.image import Image, ImageFile
+from ironbank.pipeline.container_tools import Skopeo
 
 
 @dataclass
@@ -146,22 +148,19 @@ class ContainerArtifact(AbstractArtifact):
             self.delete_artifact()
 
         self.log.info(f"Pulling {self.url}")
-        pull_cmd = [
-            "skopeo",
-            "copy",
-        ]
-        # authfile may not exist when testing locally
-        pull_cmd += [f"--authfile={self.authfile}"] if self.authfile.exists() else []
-        pull_cmd += ["--remove-signatures", "--additional-tag", self.tag]
-        pull_cmd += ["--src-creds", self.get_credentials()] if self.auth else []
-        # add src and dest
-        pull_cmd += [self.url, f"docker-archive:{self.artifact_path}"]
-        subprocess.run(
-            args=pull_cmd,
-            stdout=subprocess.PIPE,
-            stdin=subprocess.PIPE,
-            check=True,
+
+        src = Image(url=self.url)
+        dest = ImageFile(file_path=self.artifact_path, transport="docker-archive:")
+
+        skopeo = Skopeo(authfile=self.authfile)
+        skopeo.copy(
+            src=src,
+            dest=dest,
+            remove_signatures=True,
+            additional_tags=[self.tag],
+            src_creds=self.get_credentials(),
         )
+
         self.log.info("Successfully pulled")
 
 

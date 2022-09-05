@@ -12,6 +12,9 @@ from botocore.exceptions import ClientError
 
 from .utils import logger  # noqa: E402
 
+from ironbank.pipeline.image import Image, ImageFile
+from ironbank.pipeline.container_tools.skopeo import Skopeo
+
 log = logger.setup(name="stargate.artifact_push")
 
 
@@ -103,18 +106,18 @@ class Stargate:
             registry1_path,
             dir_path,
         ]
-
-        try:
-            subprocess.run(
-                add_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                encoding="utf-8",
-                check=True,
-            )
-        except subprocess.SubprocessError:
-            log.exception("Could not skopeo copy.")
-            sys.exit(1)
+        skopeo = Skopeo(authfile="staging-auth.json")
+        src = Image(
+            registry=os.environ["REGISTRY_URL_STAGING"],
+            name=os.environ["IMAGE_NAME"],
+            digest=os.environ["IMAGE_PODMAN_SHA"],
+            transport="docker://",
+        )
+        dest = ImageFile(
+            file_path=f"{self.image_dir}/{image_title}:{os.environ['IMAGE_VERSION']}",
+            transport="oci:",
+        )
+        skopeo.copy(src, dest)
 
     def create_archive(self) -> None:
         """
