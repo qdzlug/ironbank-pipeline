@@ -16,7 +16,7 @@ from .abstract_artifacts import (
     AbstractFileArtifact,
 )
 from ironbank.pipeline.image import Image, ImageFile
-from ironbank.pipeline.container_tools import Skopeo
+from ironbank.pipeline.container_tools.skopeo import Skopeo
 
 
 @dataclass
@@ -149,7 +149,7 @@ class ContainerArtifact(AbstractArtifact):
 
         self.log.info(f"Pulling {self.url}")
 
-        src = Image(url=self.url)
+        src = Image(url=self.url, transport="docker://")
         dest = ImageFile(file_path=self.artifact_path, transport="docker-archive:")
 
         skopeo = Skopeo(authfile=self.authfile)
@@ -158,7 +158,7 @@ class ContainerArtifact(AbstractArtifact):
             dest=dest,
             remove_signatures=True,
             additional_tags=[self.tag],
-            src_creds=self.get_credentials(),
+            src_creds=self.get_credentials() if self.auth else None,
         )
 
         self.log.info("Successfully pulled")

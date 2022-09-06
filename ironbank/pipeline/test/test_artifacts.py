@@ -204,7 +204,13 @@ def test_container_artifact_download(monkeypatch, caplog, mock_container_artifac
         AbstractArtifact, "delete_artifact", lambda self: log.info("deleting artifact")
     )
     monkeypatch.setattr(
-        subprocess, "run", lambda args, stdout, stdin, check: log.info(args)
+        subprocess,
+        "run",
+        lambda args, capture_output, check: type(
+            "MockSubprocessResponse",
+            (),
+            {"stdout": "exampleout", "stderr": "exampleerr"},
+        ),
     )
     mock_container_artifact.download()
     assert "Successfully pulled" in caplog.text
@@ -219,7 +225,7 @@ def test_container_artifact_download(monkeypatch, caplog, mock_container_artifac
     monkeypatch.setattr(
         subprocess,
         "run",
-        lambda args, stdout, stdin, check: raise_(CalledProcessError(1, ["example"])),
+        lambda args, capture_output, check: raise_(CalledProcessError(1, ["example"])),
     )
     with pytest.raises(CalledProcessError):
         mock_container_artifact.download()
