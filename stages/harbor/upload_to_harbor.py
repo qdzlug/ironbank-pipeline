@@ -102,6 +102,36 @@ class Cosign:
             )
             sys.exit(1)
 
+    def remove_existing_att(self) -> None:
+        """
+        Remove existing signnatures on the image.
+        """
+        logging.info(
+            f"Removing existing signatures from image: {self.image.registry}/{self.image.name}@{self.image.digest}"
+        )
+        sign_cmd = [
+            "cosign",
+            "clean",
+            f"{self.image.registry}/{self.image.name}@{self.image.digest}",
+        ]
+        logging.info(" ".join(sign_cmd))
+        try:
+            subprocess.run(
+                args=sign_cmd,
+                check=True,
+                encoding="utf-8",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env={
+                    "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
+                    "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
+                    "AWS_REGION": "us-gov-west-1",
+                    **os.environ,
+                },
+            )
+        except subprocess.CalledProcessError:
+            pass
+
     def sign_image_attachment(self, attachment_type) -> None:
         """
         Perform cosign image attachment signature
@@ -257,7 +287,10 @@ def promote_tags(staging_image: Image, production_image: Image) -> None:
             )
             sys.exit(1)
 
-def convert_artifacts_to_hardening_manifest(predicates: list, hardening_manifest: pathlib.Path):
+
+def convert_artifacts_to_hardening_manifest(
+    predicates: list, hardening_manifest: pathlib.Path
+):
 
     hm_object = yaml.safe_load(hardening_manifest.read_text())
 
@@ -267,10 +300,12 @@ def convert_artifacts_to_hardening_manifest(predicates: list, hardening_manifest
             pass
         else:
             hm_object[item_name] = ""
-            with open(item, 'r') as f:
+            with open(item, "r") as f:
                 hm_object[item_name] = f.read()
 
-    with open(pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json"), 'w') as f:
+    with open(
+        pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json"), "w"
+    ) as f:
         json.dump(hm_object, f)
 
 
@@ -348,6 +383,8 @@ def main():
     # Transfer image from staging project to production project and tag
     promote_tags(staging_image, production_image)
 
+    cosign.remove_existing_att()
+
     logging.info("Signing image")
     # Sign image in registry with Cosign
     cosign.sign_image()
@@ -366,18 +403,26 @@ def main():
             pathlib.Path(os.environ["VAT_RESPONSE"]),
         ]
     )
-    convert_artifacts_to_hardening_manifest(predicates, pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.yaml"))
+    convert_artifacts_to_hardening_manifest(
+        predicates,
+        pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.yaml"),
+    )
 
     final_predicates = [
         pathlib.Path(os.environ["SBOM_DIR"], file)
         for file in os.listdir(os.environ["SBOM_DIR"])
     ]
-    final_predicates.append(pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json"))
-    final_predicates.remove(pathlib.Path(os.environ["SBOM_DIR"], "sbom-spdx-tag-value.txt"))
+    final_predicates.append(
+        pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json")
+    )
+    final_predicates.remove(
+        pathlib.Path(os.environ["SBOM_DIR"], "sbom-spdx-tag-value.txt")
+    )
     final_predicates.remove(pathlib.Path(os.environ["SBOM_DIR"], "sbom-cyclonedx.xml"))
 
     for predicate in final_predicates:
-      cosign.add_attestation(predicate.as_posix(), predicate_types[predicate.name])
+        cosign.add_attestation(predicate.as_posix(), predicate_types[predicate.name])
+
 
 if __name__ == "__main__":
     main()
