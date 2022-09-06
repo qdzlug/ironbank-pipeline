@@ -18,17 +18,17 @@ class Image:
     At least one of digest or tag must be defined at init
     """
 
-    # name can be excluded if url is present
-    name: str = None
     # no registry needed for local paths
     registry: str = None
+    # name can be excluded if url is present
+    name: str = None
     digest: str = None
     tag: str = None
+    # url should contain registry, name and tag/digest
+    url: str = None
     # skopeo cares about transport (e.g. docker://, container-storage:, etc.)
     # skopeo supported transports: containers-storage, dir, docker, docker-archive, docker-daemon, oci, oci-archive, ostree, tarball
     transport: str = ""
-    # url should contain registry, name and tag/digest
-    url: str = None
 
     def __post_init__(self):
         # enforce at least one of digest/tag is defined
