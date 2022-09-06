@@ -19,19 +19,18 @@ import yaml
 # Defines a map of SBOM output formats provided by syft to their corresponding mediatypes
 # TODO match these up with available predicate types (slsaprovenance|link|spdx|spdxjson|cyclonedx|vuln|custom)
 predicate_types = {
-    "sbom-json.json": "application/vnd.syft+json",
     "sbom-cyclonedx.xml": "cyclonedx",
-    "sbom-cyclonedx-json.json": "application/vnd.cyclonedx+json",
     "sbom-spdx.xml": "spdx",
     "sbom-spdx-json.json": "spdxjson",
-    "sbom-spdx-tag-value.txt": "text/plain",
-    "access_log": "text/plain",  # TBD custom type? Link?
-    "README.md": "text/plain",  # TBD custom type? Link?
-    "LICENSE": "text/plain",  # TBD custom type? Link?
-    "hardening_manifest.yaml": "text/plain",  # TBD custom type? Link?
     "vat_response.json": "https://vat.dso.mil/api/p1/predicate/beta1",
-    "hardening_manifest.json": "application/vnd.hardening_manifest+json",
+    "hardening_manifest.json": "https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md",
 }
+
+unattached_predicates = [
+    "sbom-spdx-tag-value.txt",
+    "sbom-json.json",
+    "sbom-cyclonedx-json.json"
+]
 
 
 @dataclass
@@ -183,7 +182,7 @@ class Cosign:
             "--predicate",
             predicate_path,
             "--type",
-            f"https://repo1.dso.mil/dsop/dccscr.git/{predicate_type}",
+            f"{predicate_type}",
             "--key",
             self.kms_key_arn,
             "--cert",
@@ -295,13 +294,9 @@ def convert_artifacts_to_hardening_manifest(
     hm_object = yaml.safe_load(hardening_manifest.read_text())
 
     for item in predicates:
-        item_name = item.stem
-        if "sbom" in item_name:
-            pass
-        else:
-            hm_object[item_name] = ""
-            with open(item, "r") as f:
-                hm_object[item_name] = f.read()
+        hm_object[item.name] = ""
+        with open(item, "r") as f:
+            hm_object[item.name] = f.read()
 
     with open(
         pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json"), "w"
@@ -391,36 +386,28 @@ def main():
 
     # TODO delete preexisting .att tag from image (if there is one, ignore 404 if not)
 
-    predicates = [
-        pathlib.Path(os.environ["SBOM_DIR"], file)
-        for file in os.listdir(os.environ["SBOM_DIR"])
-    ]
-    predicates.extend(
-        [
+    hm_resources = [
             pathlib.Path(os.environ["CI_PROJECT_DIR"], "LICENSE"),
             pathlib.Path(os.environ["CI_PROJECT_DIR"], "README.md"),
             pathlib.Path(os.environ["ACCESS_LOG_DIR"], "access_log"),
-            pathlib.Path(os.environ["VAT_RESPONSE"]),
         ]
-    )
     convert_artifacts_to_hardening_manifest(
-        predicates,
+        hm_resources,
         pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.yaml"),
     )
 
-    final_predicates = [
+    predicates = [
         pathlib.Path(os.environ["SBOM_DIR"], file)
-        for file in os.listdir(os.environ["SBOM_DIR"])
+        for file in os.listdir(os.environ["SBOM_DIR"]) if file.name not in unattached_predicates
     ]
-    final_predicates.append(
+    predicates.append(
         pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json")
     )
-    final_predicates.remove(
-        pathlib.Path(os.environ["SBOM_DIR"], "sbom-spdx-tag-value.txt")
+    predicates.append(
+        pathlib.Path(os.environ["VAT_RESPONSE"])
     )
-    final_predicates.remove(pathlib.Path(os.environ["SBOM_DIR"], "sbom-cyclonedx.xml"))
 
-    for predicate in final_predicates:
+    for predicate in predicates:
         cosign.add_attestation(predicate.as_posix(), predicate_types[predicate.name])
 
 
