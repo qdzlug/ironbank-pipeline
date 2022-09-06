@@ -398,7 +398,7 @@ def main():
 
     predicates = [
         pathlib.Path(os.environ["SBOM_DIR"], file)
-        for file in os.listdir(os.environ["SBOM_DIR"]) if file.name not in unattached_predicates
+        for file in os.listdir(os.environ["SBOM_DIR"]) if file not in unattached_predicates
     ]
     predicates.append(
         pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json")
