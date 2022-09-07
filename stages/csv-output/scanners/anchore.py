@@ -95,13 +95,6 @@ def compliance_report(csv_dir, anchore_gates_json, justifications):
             gate["whitelist_id"] = ""
             gate["whitelist_name"] = ""
 
-        # try:
-        #     gate["inherited"] = ad[9]
-        #     if gate["gate"] == "dockerfile":
-        #         gate["inherited"] = False
-        # except IndexError:
-        #     gate["inherited"] = "no_data"
-
         cve_justification = ""
         # ad[2] is trigger_id -- e.g. CVE-2020-####
         id = (ad[2], None, None)
