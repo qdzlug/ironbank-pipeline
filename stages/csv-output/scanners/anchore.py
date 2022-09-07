@@ -32,7 +32,6 @@ def vulnerability_report(csv_dir, anchore_security_json, justifications):
         "package_version",
         "fix",
         "url",
-        "inherited",
         "description",
         "nvd_cvss_v2_vector",
         "nvd_cvss_v3_vector",
@@ -96,12 +95,12 @@ def compliance_report(csv_dir, anchore_gates_json, justifications):
             gate["whitelist_id"] = ""
             gate["whitelist_name"] = ""
 
-        try:
-            gate["inherited"] = ad[9]
-            if gate["gate"] == "dockerfile":
-                gate["inherited"] = False
-        except IndexError:
-            gate["inherited"] = "no_data"
+        # try:
+        #     gate["inherited"] = ad[9]
+        #     if gate["gate"] == "dockerfile":
+        #         gate["inherited"] = False
+        # except IndexError:
+        #     gate["inherited"] = "no_data"
 
         cve_justification = ""
         # ad[2] is trigger_id -- e.g. CVE-2020-####
@@ -132,7 +131,6 @@ def compliance_report(csv_dir, anchore_gates_json, justifications):
         "matched_rule_id",
         "whitelist_id",
         "whitelist_name",
-        "inherited",
         "Justification",
     ]
 
