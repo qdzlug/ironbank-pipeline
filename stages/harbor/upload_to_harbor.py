@@ -29,7 +29,7 @@ predicate_types = {
 unattached_predicates = [
     "sbom-spdx-tag-value.txt",
     "sbom-json.json",
-    "sbom-cyclonedx.xml"
+    "sbom-cyclonedx.xml",
 ]
 
 
@@ -387,10 +387,10 @@ def main():
     # TODO delete preexisting .att tag from image (if there is one, ignore 404 if not)
 
     hm_resources = [
-            pathlib.Path(os.environ["CI_PROJECT_DIR"], "LICENSE"),
-            pathlib.Path(os.environ["CI_PROJECT_DIR"], "README.md"),
-            pathlib.Path(os.environ["ACCESS_LOG_DIR"], "access_log"),
-        ]
+        pathlib.Path(os.environ["CI_PROJECT_DIR"], "LICENSE"),
+        pathlib.Path(os.environ["CI_PROJECT_DIR"], "README.md"),
+        pathlib.Path(os.environ["ACCESS_LOG_DIR"], "access_log"),
+    ]
     convert_artifacts_to_hardening_manifest(
         hm_resources,
         pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.yaml"),
@@ -398,14 +398,13 @@ def main():
 
     predicates = [
         pathlib.Path(os.environ["SBOM_DIR"], file)
-        for file in os.listdir(os.environ["SBOM_DIR"]) if file not in unattached_predicates
+        for file in os.listdir(os.environ["SBOM_DIR"])
+        if file not in unattached_predicates
     ]
     predicates.append(
         pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json")
     )
-    predicates.append(
-        pathlib.Path(os.environ["VAT_RESPONSE"])
-    )
+    predicates.append(pathlib.Path(os.environ["VAT_RESPONSE"]))
 
     for predicate in predicates:
         cosign.add_attestation(predicate.as_posix(), predicate_types[predicate.name])
