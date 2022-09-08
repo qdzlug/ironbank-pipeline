@@ -19,7 +19,7 @@ import yaml
 # Defines a map of SBOM output formats provided by syft to their corresponding mediatypes
 # TODO match these up with available predicate types (slsaprovenance|link|spdx|spdxjson|cyclonedx|vuln|custom)
 predicate_types = {
-    "sbom-cyclonedx.json": "cyclonedx",
+    "sbom-cyclonedx-json.json": "cyclonedx",
     "sbom-spdx.xml": "spdx",
     "sbom-spdx-json.json": "spdxjson",
     "vat_response.json": "https://vat.dso.mil/api/p1/predicate/beta1",
