@@ -14,7 +14,6 @@ import yaml
 # https://github.com/anchore/syft#output-formats
 
 # Defines a map of SBOM output formats provided by syft to their corresponding mediatypes
-# TODO match these up with available predicate types (slsaprovenance|link|spdx|spdxjson|cyclonedx|vuln|custom)
 predicate_types = {
     "sbom-cyclonedx-json.json": "cyclonedx",
     "sbom-spdx.xml": "spdx",
