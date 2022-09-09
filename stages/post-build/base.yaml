@@ -28,6 +28,6 @@ create-sbom:
     paths:
       - "${SBOM_DIR}/"
     expire_in: 1 week
-  image: "registry1.dso.mil/ironbank/anchore/engine/engine:1.0.0"
+  image: "registry1.dso.mil/ironbank/anchore/enterprise/enterprise:4.1.0"
   script:
     - python3 "${PIPELINE_REPO_DIR}/stages/post-build/generate_sbom.py"
