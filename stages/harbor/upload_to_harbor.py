@@ -2,16 +2,13 @@
 
 import base64
 import hashlib
-from importlib.resources import path
 import json
 import logging
 import os
 import pathlib
-import shutil
 import subprocess
 import sys
 from dataclasses import dataclass, field
-import time
 import yaml
 
 # https://github.com/anchore/syft#output-formats
