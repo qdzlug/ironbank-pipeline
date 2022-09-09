@@ -29,8 +29,7 @@ securityGuide=$(echo "${oscap_container}" | grep -o '"securityGuide": "[^"]*' | 
 echo "profile: ${profile}"
 echo "securityGuide: ${securityGuide}"
 oscap-podman "${DOCKER_IMAGE_PATH}" xccdf eval --verbose ERROR --fetch-remote-resources --profile "${profile}" --stig-viewer compliance_output_report_stigviewer.xml --results compliance_output_report.xml --report report.html "${SCAP_CONTENT}/${securityGuide}" || true
-ls compliance_output_report.xml
-ls report.html
+ls compliance_output_report.xml compliance_output_report_stigviewer.xml report.html
 rm -rf "${SCAP_CONTENT}"
 echo "${OSCAP_VERSION}" >>"${OSCAP_SCANS}/oscap-version.txt"
 cp report.html "${OSCAP_SCANS}/report.html"
