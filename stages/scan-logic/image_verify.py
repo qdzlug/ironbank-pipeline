@@ -96,5 +96,7 @@ def diff_needed(docker_config_dir: str) -> Optional[str]:
         return None
 
     return (
-        f"{os.environ['BASE_REGISTRY']}/{manifest.image_name}@{old_img_json['Digest']}"
+        manifest.image_name,
+        old_img_json["Digest"],
+        old_img_json["Labels"]["build-date"],
     )
