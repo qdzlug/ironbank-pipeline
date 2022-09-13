@@ -34,7 +34,7 @@ def parse_packages(sbom_path: Path, access_log_path: Path) -> list[Package]:
 
 
 def main():
-
+    image_name = os.environ["IMAGE_NAME"]
     new_sbom = Path(os.environ["ARTIFACT_STORAGE"], "sbom/sbom-json.json")
     new_access_log = Path(os.environ["ARTIFACT_STORAGE"], "build/access_log")
 
@@ -54,11 +54,12 @@ def main():
             pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("UTF-8")
             docker_config.write_text(pull_auth)
 
-            image_name, old_img_digest, old_img_build_date = image_verify.diff_needed(
-                docker_config_dir
-            )
+            old_image_details = image_verify.diff_needed(docker_config_dir)
 
-            if image_name:
+            if old_image_details:
+                # Unpack returned tuple into variables
+                (old_img_digest, old_img_build_date) = old_image_details
+
                 log.info("SBOM diff required to determine image to scan")
 
                 with tempfile.TemporaryDirectory(prefix="ORAS-") as oras_download:
