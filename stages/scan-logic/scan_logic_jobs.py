@@ -101,8 +101,8 @@ def main():
         if scan_new_image:
             f.writelines(
                 [
-                    f"IMAGE_TO_SCAN={image_name}",
-                    f'DIGEST_TO_SCAN={os.environ["IMAGE_PODMAN_SHA"]}',
+                    f"IMAGE_TO_SCAN={image_name}\n",
+                    f'DIGEST_TO_SCAN={os.environ["IMAGE_PODMAN_SHA"]}\n',
                     f'BUILD_DATE_TO_SCAN={os.environ["BUILD_DATE"]}',
                 ]
             )
@@ -110,12 +110,13 @@ def main():
         else:
             f.writelines(
                 [
-                    f"IMAGE_TO_SCAN={image_name}",
-                    f"DIGEST_TO_SCAN={old_img_digest}",
+                    f"IMAGE_TO_SCAN={image_name}\n",
+                    f"DIGEST_TO_SCAN={old_img_digest}\n",
                     f"BUILD_DATE_TO_SCAN={old_img_build_date}",
                 ]
             )
             log.info("Old image digest and build date saved")
+
 
 if __name__ == "__main__":
     main()
