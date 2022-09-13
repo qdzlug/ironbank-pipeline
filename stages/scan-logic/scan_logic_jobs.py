@@ -97,7 +97,7 @@ def main():
                 log.info("Image verify failed - Must scan new image")
 
     log.info("Writing env variables to file")
-    with open(Path(os.environ["SCAN_LOGIC_DIR"], "scan_logic.env"), "w") as f:
+    with open("scan_logic.env", "w") as f:
         if scan_new_image:
             f.writelines(
                 [

@@ -7,16 +7,11 @@ scan-logic:
     - lint
     - build
     - create-sbom
-  variables:
-    SCAN_LOGIC_DIR: "${ARTIFACT_STORAGE}/scan-logic"
   script:
     - 'pip install --user "${PIPELINE_REPO_DIR}"'
-    - 'mkdir -p "${SCAN_LOGIC_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/scan-logic/scan_logic_jobs.py"'
   artifacts:
     when: always
-    paths:
-      - "${SCAN_LOGIC_DIR}/"
     expire_in: 1 week
     reports:
       dotenv: scan_logic.env
