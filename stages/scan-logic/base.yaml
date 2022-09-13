@@ -11,6 +11,7 @@ scan-logic:
     SCAN_LOGIC_DIR: "${ARTIFACT_STORAGE}/scan-logic"
   script:
     - 'pip install --user "${PIPELINE_REPO_DIR}"'
+    - 'mkdir -p "${SCAN_LOGIC_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/scan-logic/scan_logic_jobs.py"'
   artifacts:
     when: always
