@@ -96,10 +96,9 @@ def main():
             else:
                 log.info("Image verify failed - Must scan new image")
 
-    # Write env variables for future stages to use
-    with open("scan_logic.env", "w") as f:
+    log.info("Writing env variables to file")
+    with open(Path(os.environ["SCAN_LOGIC_DIR"], "scan_logic.env"), "w") as f:
         if scan_new_image:
-            # Propagate new image digest and build date forward
             f.writelines(
                 [
                     f"IMAGE_TO_SCAN={image_name}",
@@ -107,8 +106,8 @@ def main():
                     f'BUILD_DATE={os.environ["BUILD_DATE"]}',
                 ]
             )
+            log.info("New image digest and build date saved")
         else:
-            # Update digest and build date to reflect old img
             f.writelines(
                 [
                     f"IMAGE_TO_SCAN={image_name}",
@@ -116,7 +115,7 @@ def main():
                     f"BUILD_DATE={old_img_build_date}",
                 ]
             )
-
+            log.info("Old image digest and build date saved")
 
 if __name__ == "__main__":
     main()
