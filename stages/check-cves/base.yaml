@@ -16,3 +16,16 @@ check-cves:
   retry:
     max: 2
     when: runner_system_failure
+
+check-findings:
+  variables:
+    TRIGGERING_PROJECT_ID: $CI_PROJECT_ID
+    ROBOTNIK_COMMAND: projectfindings
+    ROBOTNIK_SUBCOMMAND: check
+  stage: check-cves
+  allow_failure: true
+  dependencies:
+    - check-cves
+  trigger: 
+    project: ironbank-tools/robotnik
+    branch: main
