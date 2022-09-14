@@ -26,6 +26,6 @@ check-findings:
   allow_failure: true
   dependencies:
     - check-cves
-  trigger: 
+  trigger:
     project: ironbank-tools/robotnik
     branch: main
