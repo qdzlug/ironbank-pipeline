@@ -27,8 +27,9 @@ check-findings:
   only:
     variables:
       - $CHECK_FINDINGS_ENABLED
-  dependencies:
-    - check-cves
+  needs:
+    - job: vat
+      artifacts: false
   trigger:
     project: ironbank-tools/robotnik
     branch: main
