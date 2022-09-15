@@ -23,7 +23,10 @@ check-findings:
     ROBOTNIK_COMMAND: projectfindings
     ROBOTNIK_SUBCOMMAND: check
   stage: check-cves
-  allow_failure: true
+  allow_failure: true  
+  only:
+    variables:
+      - $CHECK_FINDINGS_ENABLED
   dependencies:
     - check-cves
   trigger:
