@@ -82,7 +82,6 @@ class Skopeo(ContainerTool):
 
         copy_result = subprocess.run(
             args=cmd,
-            capture_output=True,
             check=True,
         )
 

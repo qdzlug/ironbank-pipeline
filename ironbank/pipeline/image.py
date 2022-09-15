@@ -25,6 +25,7 @@ class Image:
     digest: str = None
     tag: str = None
     # url should contain registry, name and tag/digest
+    # TODO: pick a better name than url for this purpose
     url: str = None
     # skopeo cares about transport (e.g. docker://, container-storage:, etc.)
     # skopeo supported transports: containers-storage, dir, docker, docker-archive, docker-daemon, oci, oci-archive, ostree, tarball
