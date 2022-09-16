@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import argparse
 import subprocess
 from pathlib import Path
@@ -37,6 +38,15 @@ def load_resources(
             sys.exit(1)
 
 
+def start_squid(squid_conf: Path):
+    parse_cmd = ["squid", "-k", "parse", "-f", squid_conf]
+    start_cmd = ["squid", "-f", squid_conf]
+    for cmd in [parse_cmd, start_cmd]:
+        subprocess.run(cmd)
+    # squid will not start properly without this
+    time.sleep(5)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Script used for building ironbank images"
@@ -72,10 +82,27 @@ def main():
         pull_creds = os.environ["DOCKER_AUTH_CONFIG_STAGING"]
 
     # gather files and subpaths
+    log.info("Load any images used in Dockerfile build")
     load_resources(resource_dir=image_dir, resource_type="image", skopeo=skopeo)
+    log.info("Load HTTP and S3 external resources")
     load_resources(resource_dir=resource_dir)
 
-    log.info("Load any images used in Dockerfile build")
+    full_build_path = Path(
+        os.environ["PIPELINE_REPO_DIR"], "stages", "build"
+    ).absolute()
+    mounts = []
+    if os.environ.get("DISTRO_REPO_DIR"):
+        mounts.append(
+            full_build_path
+            / f"{os.environ['DISTRO_REPO_DIR']}:{os.environ['DISTRO_REPO_MOUNT']}"
+        )
+    mounts.append(full_build_path / "ruby" / ".ironbank-gemrc:.ironbank-gemrc")
+    mounts.append(full_build_path / "ruby" / "bundler-conf:.bundle/config")
+    with Path().home().joinpath(Path(".config", "containers", "mounts.conf")).open(
+        "a+"
+    ) as f:
+        for mount in mounts:
+            f.write(f"{mount}\n")
 
 
 if __name__ == "__main__":
