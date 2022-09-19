@@ -9,7 +9,7 @@ pre-check:
       echo "Searching for ci-artifacts dir"
       files_found=$(find . -name "ci-artifacts" -type d)
       echo "Searching for symlinks"
-      links_found=$(find -type l)
+      links_found=$(find . -type l)
       echo "Validating symlinks"
       if [[ $links_found != "" ]]; then exit 1; fi
       echo "Validating files"
