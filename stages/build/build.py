@@ -1,6 +1,9 @@
 import os
+import re
 import sys
+import json
 import time
+import datetime
 import argparse
 import subprocess
 from pathlib import Path
@@ -8,6 +11,7 @@ from pathlib import Path
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.container_tools.skopeo import Skopeo
+from ironbank.pipeline.container_tools.buildah import Buildah
 from ironbank.pipeline.image import Image, ImageFile
 from ironbank.pipeline.utils import logger
 
@@ -68,9 +72,11 @@ def main():
         name=os.environ["IMAGE_NAME"],
         tag=f"ibci-{os.environ['CI_PIPELINE_ID']}",
     )
+    buildah = Buildah()
     skopeo = Skopeo()
     base_registry = os.environ["BASE_REGISTRY"]
     pull_creds = None
+    parent_label = None
     image_dir = Path(f"{args.imports_path}/images")
     resource_dir = Path(f"{args.imports_path}/external_resources")
 
@@ -90,6 +96,8 @@ def main():
     full_build_path = Path(
         os.environ["PIPELINE_REPO_DIR"], "stages", "build"
     ).absolute()
+
+    # add mounts to mounts.conf
     mounts = []
     if os.environ.get("DISTRO_REPO_DIR"):
         mounts.append(
@@ -98,11 +106,57 @@ def main():
         )
     mounts.append(full_build_path / "ruby" / ".ironbank-gemrc:.ironbank-gemrc")
     mounts.append(full_build_path / "ruby" / "bundler-conf:.bundle/config")
-    with Path().home().joinpath(Path(".config", "containers", "mounts.conf")).open(
-        "a+"
-    ) as f:
+    with Path().home().joinpath(".config", "containers", "mounts.conf").open("a+") as f:
         for mount in mounts:
             f.write(f"{mount}\n")
+
+    # sed -i '/^FROM /r'
+    dockerfile_cmd_list = []
+    first_from_found = False
+    with Path(full_build_path / "build-args.json").open("r") as f:
+        build_args = json.load(f)
+        dockerfile_args = "\n".join([f"ARG {k}" for k in build_args.keys()])
+
+    with Path("Dockerfile").open("r+") as f:
+        dockerfile = f.read()
+        re.sub(r"(FROM.*\n)", rf"\1{dockerfile_args}", dockerfile, count=1)
+        # replace all file content with updated content
+        f.seek(0)
+        f.truncate()
+        f.write(dockerfile_cmd_list)
+
+    if hardening_manifest.base_image_name:
+        with Path(os.environ["ARTIFACT_STORAGE"], "lint", "base_image.json").open(
+            "r"
+        ) as f:
+            base_sha = json.load(f)["BASE_SHA"]
+        parent_label = f"{base_registry}/{hardening_manifest.base_image_name}:{hardening_manifest.base_image_tag}@{base_sha}"
+
+    http_proxies = {
+        "http_proxy": "http://localhost:3128",
+        "HTTP_PROXY": "http://localhost:3128",
+    }
+
+    ib_labels = {
+        "maintainer": "ironbank@dsop.io",
+        "org.opencontainers.image.created": datetime.datetime.utcnow(),
+        "org.opencontainers.image.source": os.environ["CI_PROJECT_URL"],
+        "org.opencontainers.image.revision": os.environ["CI_COMMIT_SHA"],
+        "mil.dso.ironbank.image.parent": os.environ["PARENT_LABEL"],
+    }
+
+    buildah.build(
+        context=".",
+        build_args={
+            "BASE_REGISTRY": base_registry,
+            **hardening_manifest.args,
+            **http_proxies,
+            **build_args,
+        },
+        labels={
+            **hardening_manifest.labels,
+        },
+    )
 
 
 if __name__ == "__main__":
