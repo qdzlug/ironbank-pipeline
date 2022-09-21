@@ -57,6 +57,20 @@ The following script will pipe stdout to jq to access the `.predicate`, and save
 cosign verify-attestation --output-file cosign-attestation.json --cert https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-certificate.pem registry1.dso.mil/ironbank/docker/scratch:ironbank
 jq '.payload | @base64d | fromjson | .predicate' cosign-attestation.json >vat-response.json
 ```
+#### Downloading and Parsing Attestations
+
+The attestations for any given image in Registry1 contain a body of evidence including access logs, SBOMs, LICENSE files, and the hardening_manifest. In order to download and parse these, use the following script. This script will cycle through all found attestations, decodes them, and stores them, as separate files on disk. Please export the image you wish to download attestations for as the environment variable `REGISTRY1_IMAGE`. NOTE: image url must be in the format `registry1.dso.mil/ironbank/<repository-name>/<image-name>@<sha256-digest>`
+
+```bash
+count=0;
+for att in $(cosign \
+    download \
+    attestation \
+    $REGISTRY1_IMAGE \
+    | jq .payload -r); do
+    count=$((count+1)); echo $att | base64 --decode | jq > "att-$count.json";
+done
+```
 
 ## SBOM
 
