@@ -7,6 +7,7 @@ import datetime
 import argparse
 import subprocess
 from pathlib import Path
+from base64 import b64decode
 
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.hardening_manifest import HardeningManifest
@@ -50,6 +51,14 @@ def start_squid(squid_conf: Path):
     # squid will not start properly without this
     time.sleep(5)
 
+# decode technically isn't a keyword, but it is a method of str
+# using PEP8 convention for avoiding builtin conflicts
+def generate_auth_file(auth: str, file_path: Path | str, decode_: function = None):
+    assert isinstance(file_path, Path)
+    auth = decode_(auth) if decode_ else auth
+
+    with file_path.open("a+") as f:
+        f.write(auth)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -72,9 +81,11 @@ def main():
         name=os.environ["IMAGE_NAME"],
         tag=f"ibci-{os.environ['CI_PIPELINE_ID']}",
     )
-    buildah = Buildah()
+
     skopeo = Skopeo()
     base_registry = os.environ["BASE_REGISTRY"]
+    prod_auth_path = Path('/tmp/prod_auth.json')
+    staging_auth_path = Path('/tmp/staging_auth.json')
     pull_creds = None
     parent_label = None
     image_dir = Path(f"{args.imports_path}/images")
@@ -86,6 +97,16 @@ def main():
     if os.environ.get("STAGING_BASE_IMAGE"):
         base_registry += "-staging"
         pull_creds = os.environ["DOCKER_AUTH_CONFIG_STAGING"]
+    else:
+        pull_creds = os.environ["DOCKER_AUTH_CONFIG_PULL"]
+
+    # generate read only auth file for prod registry
+    generate_auth_file(auth=pull_creds, file_path=prod_auth_path, decode_=b64decode)
+
+    # generate read write auth file for staging registry
+    generate_auth_file(auth=os.environ['DOCKER_AUTH_CONFIG_STAGING'], file_path=staging_auth_path, decode_=b64decode)
+
+    buildah = Buildah(authfile=prod_auth_path)
 
     # gather files and subpaths
     log.info("Load any images used in Dockerfile build")
@@ -99,6 +120,7 @@ def main():
 
     # add mounts to mounts.conf
     mounts = []
+    mount_conf_path = Path().home().joinpath(".config", "containers", "mounts.conf")
     if os.environ.get("DISTRO_REPO_DIR"):
         mounts.append(
             full_build_path
@@ -106,7 +128,7 @@ def main():
         )
     mounts.append(full_build_path / "ruby" / ".ironbank-gemrc:.ironbank-gemrc")
     mounts.append(full_build_path / "ruby" / "bundler-conf:.bundle/config")
-    with Path().home().joinpath(".config", "containers", "mounts.conf").open("a+") as f:
+    with mount_conf_path.open("a+") as f:
         for mount in mounts:
             f.write(f"{mount}\n")
 
@@ -139,24 +161,44 @@ def main():
 
     ib_labels = {
         "maintainer": "ironbank@dsop.io",
-        "org.opencontainers.image.created": datetime.datetime.utcnow(),
+        # provide time in format YYYY-MM-DD HH:mm:SS+00:00 where +00:00 is the utc delta
+        # .now() with tz passed provides an aware object whereas .utcnow() provides a naive object
+        "org.opencontainers.image.created": datetime.datetime.now(datetime.timezone.utc).isoformat(sep=' ', timespec='seconds'),
         "org.opencontainers.image.source": os.environ["CI_PROJECT_URL"],
         "org.opencontainers.image.revision": os.environ["CI_COMMIT_SHA"],
-        "mil.dso.ironbank.image.parent": os.environ["PARENT_LABEL"],
     }
+    if parent_label:
+        ib_labels["mil.dso.ironbank.image.parent"] = parent_label
 
     buildah.build(
         context=".",
         build_args={
-            "BASE_REGISTRY": base_registry,
             **hardening_manifest.args,
+            "BASE_REGISTRY": base_registry,
             **http_proxies,
             **build_args,
         },
         labels={
+            **ib_labels,
             **hardening_manifest.labels,
         },
+        format='oci',
+        log_level='warn',
+        default_mounts_file=mount_conf_path,
+        storage_driver='vfs',
+        name_tag=staging_image
     )
+
+    # Instantiate new objects from existing staging image attributes
+    src = Image.from_image(staging_image, transport='container-storage:')
+    dest = Image.from_image(staging_image, transport='docker://')
+
+    skopeo.copy(src=src, dest=dest, dest_authfile=staging_auth_path)
+
+
+    for t in hardening_manifest.image_tags:
+        dest = Image.from_image(dest, tag=t)
+        skopeo.copy(src, dest, dest_authfile=staging_auth_path)
 
 
 if __name__ == "__main__":

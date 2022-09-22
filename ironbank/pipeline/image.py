@@ -17,6 +17,7 @@ class Image:
 
     At least one of digest or tag must be defined at init
     """
+
     # no registry needed for local paths
     registry: str = None
     # name can be excluded if url is present
@@ -50,12 +51,12 @@ class Image:
     def from_image(cls, image, **kwargs):
         # prioritize passed args
         return Image(
-            registry = kwargs.get('registry') or image.registry,
-            name = kwargs.get('name') or image.name,
-            digest = kwargs.get('digest') or image.digest,
-            tag = kwargs.get('tag') or image.tag,
-            url = kwargs.get('url') or image.url,
-            transport = kwargs.get('transport') or image.transport
+            registry=kwargs.get("registry") or image.registry,
+            name=kwargs.get("name") or image.name,
+            digest=kwargs.get("digest") or image.digest,
+            tag=kwargs.get("tag") or image.tag,
+            url=kwargs.get("url") or image.url,
+            transport=kwargs.get("transport") or image.transport,
         )
 
     def tag_str(self):
