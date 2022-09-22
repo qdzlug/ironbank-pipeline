@@ -24,8 +24,7 @@ class Buildah(ContainerTool):
         log_level: str = None,
         default_mounts_file: Path | str = None,
         storage_driver: str = None,
-        # convert this to image object
-        name_tag: str = None,
+        tag: Image | str = None,
     ):
         context = context if isinstance(context, Path) else Path(context)
         cmd = [
@@ -49,7 +48,8 @@ class Buildah(ContainerTool):
             else []
         )
         cmd += ["--storage-driver", storage_driver] if storage_driver else []
-        cmd += ["-t", name_tag] if name_tag else []
+        # tag can either be a string or an Image object, cast to string to support both types
+        cmd += ["-t", str(tag)] if tag else []
         cmd += [context]
 
         proc = subprocess.Popen(args=cmd)
