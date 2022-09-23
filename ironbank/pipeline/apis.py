@@ -62,8 +62,8 @@ class VatAPI(API):
         self.log.info(f"Checking access to {image_name}")
         self.log.info(f"{self.url}{self.import_access_route}/?name={image_name}")
         self.response = requests.get(
-            f"{self.url}{self.import_access_route}/?name={image_name}",
-            params={"createRequest": create_request},
+            f"{self.url}{self.import_access_route}",
+            params={"name": image_name, "createRequest": create_request},
             headers={
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {os.environ['CI_JOB_JWT_V2']}",
