@@ -40,6 +40,7 @@ class VatAPI(API):
     import_access_route: str = f"{import_route}/check-access"
     import_artifacts_route: str = f"{import_route}/artifacts"
 
+    # Not used in pipeline, added to potentially support outside tools
     @request_error_handler
     def get_image(self, image_name, image_tag) -> dict:
         self.log.info("Getting image information from vat api")
@@ -59,7 +60,7 @@ class VatAPI(API):
     @request_error_handler
     def check_access(self, image_name, create_request=False) -> None:
         self.log.info(f"Checking access to {image_name}")
-        self.log.info(f"{self.url}{self.import_access_route}/{image_name}")
+        self.log.info(f"{self.url}{self.import_access_route}/?name={image_name}")
         self.response = requests.get(
             f"{self.url}{self.import_access_route}/?name={image_name}",
             params={"createRequest": create_request},
