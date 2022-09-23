@@ -20,7 +20,7 @@ class Buildah(ContainerTool):
         context: Path | str = ".",
         build_args: dict = {},
         labels: dict = {},
-        image_format: str = None,
+        format_: str = None,
         log_level: str = None,
         default_mounts_file: Path | str = None,
         storage_driver: str = None,
@@ -36,11 +36,11 @@ class Buildah(ContainerTool):
             "build",
         ]
         # add build_args
-        cmd += self._generate_arg_list_from_env("--build-args", build_args)
+        cmd += self._generate_arg_list_from_env("--build-arg", build_args)
         # add labels
         cmd += self._generate_arg_list_from_env("--label", labels)
         cmd += ["--authfile", self.authfile] if self.authfile else []
-        cmd += ["--format", image_format] if image_format else []
+        cmd += ["--format", format_] if format_ else []
         cmd += ["--log-level", log_level] if log_level else []
         cmd += (
             ["--default-mounts-file", default_mounts_file]

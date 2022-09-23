@@ -82,7 +82,6 @@ def main():
         tag=f"ibci-{os.environ['CI_PIPELINE_ID']}",
     )
 
-    skopeo = Skopeo()
     base_registry = os.environ["BASE_REGISTRY"]
     prod_auth_path = Path('/tmp/prod_auth.json')
     staging_auth_path = Path('/tmp/staging_auth.json')
@@ -107,6 +106,8 @@ def main():
     generate_auth_file(auth=os.environ['DOCKER_AUTH_CONFIG_STAGING'], file_path=staging_auth_path, decode_=b64decode)
 
     buildah = Buildah(authfile=prod_auth_path)
+    skopeo = Skopeo()
+
 
     # gather files and subpaths
     log.info("Load any images used in Dockerfile build")
@@ -182,11 +183,11 @@ def main():
             **ib_labels,
             **hardening_manifest.labels,
         },
-        format='oci',
+        format_='oci',
         log_level='warn',
         default_mounts_file=mount_conf_path,
         storage_driver='vfs',
-        name_tag=staging_image
+        tag=staging_image
     )
 
     # Instantiate new objects from existing staging image attributes
@@ -195,10 +196,12 @@ def main():
 
     skopeo.copy(src=src, dest=dest, dest_authfile=staging_auth_path)
 
+    # TODO: decide if we need to push tags on staging_base_image or development
+    if os.environ['STAGING_BASE_IMAGE'] or os.environ['CI_COMMIT_BRANCH'] == "development":
+        for t in hardening_manifest.image_tags:
+            dest = Image.from_image(dest, tag=t)
+            skopeo.copy(src, dest, dest_authfile=staging_auth_path)
 
-    for t in hardening_manifest.image_tags:
-        dest = Image.from_image(dest, tag=t)
-        skopeo.copy(src, dest, dest_authfile=staging_auth_path)
 
 
 if __name__ == "__main__":
