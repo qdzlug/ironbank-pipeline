@@ -238,29 +238,34 @@ def sort_justifications(vat_resp_dict) -> tuple[dict, dict, dict, dict]:
 
         oscap, twistlock, anchore cve, anchore compliance
     """
+
+    # use new scan source formats for vat report parsing
     sources: dict[str, dict] = {
-        "anchore_cve": {},
-        "anchore_comp": {},
-        "oscap_comp": {},
-        "twistlock_cve": {},
+        "Anchore CVE": {},
+        "Anchore Compliance": {},
+        "OSCAP Compliance": {},
+        "Twistlock CVE": {},
     }
 
-    for finding in vat_resp_dict["findings"]:
-        if finding["findingsState"] in ("approved", "conditionally approved"):
+    for finding in vat_resp_dict["image"]["findings"]:
+        if finding["state"]["findingStatus"].lower() in (
+            "approved",
+            "conditionally approved",
+        ):
             search_id = (
                 finding["identifier"],
-                finding["package"] if "package" in finding else None,
-                finding["packagePath"] if "packagePath" in finding else None,
+                finding.get("package", None),
+                finding.get("packagePath", None),
             )
-            sources[finding["source"]][search_id] = (
-                finding["contributor"]["justification"]
+            sources[finding["scannerName"]][search_id] = (
+                finding["justificationGate"]["justification"]
                 if not finding["inheritsFrom"]
                 else "Inherited from base image."
             )
 
     return (
-        sources["oscap_comp"],
-        sources["twistlock_cve"],
-        sources["anchore_cve"],
-        sources["anchore_comp"],
+        sources["Anchore CVE"],
+        sources["Anchore Compliance"],
+        sources["OSCAP Compliance"],
+        sources["Twistlock CVE"],
     )

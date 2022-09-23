@@ -65,7 +65,7 @@ def main():
 
     logging.info("Gathering list of all justifications...")
 
-    j_openscap, j_twistlock, j_anchore_cve, j_anchore_comp = sort_justifications(
+    j_anchore_cve, j_anchore_comp, j_openscap, j_twistlock = sort_justifications(
         vat_findings
     )
 

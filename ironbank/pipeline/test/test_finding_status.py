@@ -32,7 +32,7 @@ def mock_vat_resp_findings():
         },
         {
             "identifier": "CCE-13141516",
-            "source": "oscap_comp",
+            "source": "OSCAP Compliance",
             "severity": "Medium",
             "findingsState": "notapproved",
             "fastTrackEligibility": ["FT01"],
@@ -44,7 +44,7 @@ def mock_vat_resp_findings():
         },
         {
             "identifier": "CCE-131516",
-            "source": "oscap_comp",
+            "source": "OSCAP Compliance",
             "severity": "Medium",
             "findingsState": "approved",
             "fastTrackEligibility": ["FT01"],

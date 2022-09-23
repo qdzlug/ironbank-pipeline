@@ -222,6 +222,7 @@ def generate_anchore_comp_jobs(anchore_comp_path):
                 "score": "",
                 "package": None,
                 "packagePath": None,
+                # use old format for scan report parsing
                 "scanSource": "anchore_comp",
             }
             acomps.append(vuln_rec)
@@ -255,6 +256,7 @@ def generate_twistlock_jobs(twistlock_cve_path):
                         "score": v_d.get("cvss"),
                         "package": v_d["packageName"] + "-" + v_d["packageVersion"],
                         "packagePath": None,
+                        # use old format for scan report parsing
                         "scanSource": "twistlock_cve",
                         "reportDate": v_d.get("publishedDate"),
                         "identifiers": identifiers,

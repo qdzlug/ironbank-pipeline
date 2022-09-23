@@ -89,6 +89,7 @@ def generate_oscap_jobs(oscap_path):
                     "score": "",
                     "package": None,
                     "packagePath": None,
+                    # use old format for scan report parsing
                     "scanSource": "oscap_comp",
                 }
                 cces.append(ret)
@@ -133,6 +134,7 @@ def get_oval_findings(finding_name, finding_href, severity):
             "score": "",
             "package": None,
             "packagePath": None,
+            # use old format for scan report parsing
             "scanSource": "oscap_comp",
         }
         oval_cves.append(cve_dict)
