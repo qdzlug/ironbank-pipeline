@@ -484,11 +484,16 @@ def test_get_source_keys_values(monkeypatch):
 @patch("ironbank.pipeline.hardening_manifest.Path", new=MockPath)
 def test_get_approval_status(monkeypatch):
     mock_approval_object = {
-        "accreditation": "Approved",
-        "accreditationComment": "Test approval",
+        "image": {
+            "state": {
+                "imageStatus": "Approved",
+                "reason": "Test reason"
+            }
+        },
+
     }
     monkeypatch.setattr(MockPath, "exists", lambda x: True)
     monkeypatch.setattr(json, "load", lambda x: mock_approval_object)
     mock_approval_status, mock_approval_text = get_approval_status("")
-    assert mock_approval_status == mock_approval_object["accreditation"]
-    assert mock_approval_text == mock_approval_object["accreditationComment"]
+    assert mock_approval_status == mock_approval_object['image']['state']['imageStatus']
+    assert mock_approval_text == mock_approval_object['image']['state']['reason']
