@@ -88,7 +88,10 @@ def _is_accredited(vat_image: dict) -> bool:
         False indicates not accredited.
     """
     # Check accreditation
-    return vat_image["image"]["state"]["imageStatus"] in ("Conditionally Approved", "Approved")
+    return vat_image["image"]["state"]["imageStatus"] in (
+        "Conditionally Approved",
+        "Approved",
+    )
 
 
 def _check_expiration(vat_image: dict) -> bool:

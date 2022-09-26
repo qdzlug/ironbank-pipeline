@@ -30,7 +30,7 @@ def mock_vat_resp_findings():
             },
             "state": {
                 "findingStatus": "needs_review",
-            }
+            },
         },
         {
             "identifier": "CCE-13141516",
@@ -44,7 +44,7 @@ def mock_vat_resp_findings():
             },
             "state": {
                 "findingStatus": "needs_review",
-            }
+            },
         },
         {
             "identifier": "CCE-131516",
@@ -58,7 +58,7 @@ def mock_vat_resp_findings():
             },
             "state": {
                 "findingStatus": "needs_review",
-            }
+            },
         },
         {
             "identifier": "CVE-9101112",
@@ -72,14 +72,14 @@ def mock_vat_resp_findings():
             },
             "state": {
                 "findingStatus": "has_justification",
-            }
+            },
         },
     ]
 
 
 @pytest.fixture
 def mock_vat_response():
-    return{
+    return {
         "image": {
             "imageName": "",
             "tag": "",
@@ -87,15 +87,11 @@ def mock_vat_response():
             "state": {
                 "imageStatus": "Approved",
                 "reason": "Auto Approval example",
-                "factors": {
-                    "caReview": {
-                        "value": "Approved"
-                    }
-                }
-            }
-            
+                "factors": {"caReview": {"value": "Approved"}},
+            },
         }
     }
+
 
 @pytest.fixture
 def bad_mock_vat_response():
@@ -107,14 +103,11 @@ def bad_mock_vat_response():
             "state": {
                 "imageStatus": "Not Accredited",
                 "reason": "It bad",
-                "factors": {
-                    "caReview": {
-                        "expiration": "2021-09-16T04:00:00.000Z"
-                    }
-                }
-            }
+                "factors": {"caReview": {"expiration": "2021-09-16T04:00:00.000Z"}},
+            },
         }
     }
+
 
 @mock.patch.dict(os.environ, {"CI_COMMIT_BRANCH": "example"})
 def test_is_approved(monkeypatch, mock_vat_response, bad_mock_vat_response):
@@ -123,7 +116,9 @@ def test_is_approved(monkeypatch, mock_vat_response, bad_mock_vat_response):
     monkeypatch.setattr(vat_container_status, "_is_accredited", lambda x: True)
     monkeypatch.setattr(vat_container_status, "_check_expiration", lambda x: True)
     monkeypatch.setattr(vat_container_status, "_check_findings", lambda x: ([], []))
-    monkeypatch.setattr(vat_container_status, "_get_approval_status", lambda x,y,z,a,b,c: True)
+    monkeypatch.setattr(
+        vat_container_status, "_get_approval_status", lambda x, y, z, a, b, c: True
+    )
     assert is_approved(mock_vat_response, None) == (
         True,
         0,
@@ -135,7 +130,9 @@ def test_is_approved(monkeypatch, mock_vat_response, bad_mock_vat_response):
     monkeypatch.setattr(vat_container_status, "_check_expiration", lambda x: True)
     monkeypatch.setattr(vat_container_status, "_check_findings", lambda x: ([], []))
     # this mock overrides the result of _is_accredited
-    monkeypatch.setattr(vat_container_status, "_get_approval_status", lambda x,y,z,a,b,c: False)
+    monkeypatch.setattr(
+        vat_container_status, "_get_approval_status", lambda x, y, z, a, b, c: False
+    )
     assert is_approved(bad_mock_vat_response, None) == (
         False,
         100,
