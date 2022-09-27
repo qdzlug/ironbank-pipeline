@@ -88,7 +88,7 @@ def _is_accredited(vat_image: dict) -> bool:
         False indicates not accredited.
     """
     # Check accreditation
-    return vat_image["image"]["state"]["imageStatus"] in (
+    return vat_image["state"]["imageStatus"] in (
         "Conditionally Approved",
         "Approved",
     )
@@ -104,7 +104,7 @@ def _check_expiration(vat_image: dict) -> bool:
         False indicates container's accreditation has expired
     """
     # Check earliest expiration
-    approval_factors = vat_image["image"]["state"]["factors"]
+    approval_factors = vat_image["state"]["factors"]
     if "expiration" in approval_factors.get("caReview", {}):
         expiration_date = dateutil.parser.parse(
             approval_factors["caReview"]["expiration"]

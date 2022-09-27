@@ -143,13 +143,13 @@ def test_is_approved(monkeypatch, mock_vat_response, bad_mock_vat_response):
 
 
 def test_is_accredited(mock_vat_response, bad_mock_vat_response):
-    assert _is_accredited(mock_vat_response) == True  # noqa E712
-    assert _is_accredited(bad_mock_vat_response) == False  # noqa E712
+    assert _is_accredited(mock_vat_response["image"]) == True  # noqa E712
+    assert _is_accredited(bad_mock_vat_response["image"]) == False  # noqa E712
 
 
 def test_check_expiration(mock_vat_response, bad_mock_vat_response):
-    assert _check_expiration(mock_vat_response) == True  # noqa E712
-    assert _check_expiration(bad_mock_vat_response) == False  # noqa E712
+    assert _check_expiration(mock_vat_response["image"]) == True  # noqa E712
+    assert _check_expiration(bad_mock_vat_response["image"]) == False  # noqa E712
 
 
 def test_get_approval_status():
