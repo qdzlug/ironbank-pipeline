@@ -97,9 +97,9 @@ class Cosign:
             )
             sys.exit(1)
 
-    def remove_existing_att(self) -> None:
+    def remove_existing_signatures(self) -> None:
         """
-        Remove existing signnatures on the image.
+        Remove existing signatures from the image.
         """
         logging.info(
             f"Removing existing signatures from image: {self.image.registry}/{self.image.name}@{self.image.digest}"
@@ -175,6 +175,7 @@ class Cosign:
         cmd = [
             "cosign",
             "attest",
+            "--replace",
             "--predicate",
             predicate_path,
             "--type",
@@ -374,21 +375,18 @@ def main():
     # Transfer image from staging project to production project and tag
     promote_tags(staging_image, production_image)
 
-    cosign.remove_existing_att()
-
     logging.info("Signing image")
     # Sign image in registry with Cosign
     cosign.sign_image()
-
-    # TODO delete preexisting .att tag from image (if there is one, ignore 404 if not)
 
     hm_resources = [
         pathlib.Path(os.environ["CI_PROJECT_DIR"], "LICENSE"),
         pathlib.Path(os.environ["CI_PROJECT_DIR"], "README.md"),
         pathlib.Path(os.environ["ACCESS_LOG_DIR"], "access_log"),
     ]
+    # Convert non-empty artifacts to hardening manifest
     convert_artifacts_to_hardening_manifest(
-        hm_resources,
+        [res for res in hm_resources if res.stat().st_size != 0],
         pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.yaml"),
     )
 
