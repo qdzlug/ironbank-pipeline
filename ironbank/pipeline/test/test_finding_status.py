@@ -2,15 +2,16 @@
 
 import pytest
 import os
-import json
 import pathlib
 from unittest import mock
 from ironbank.pipeline import vat_container_status
-from ironbank.pipeline.vat_container_status import _check_findings
-from ironbank.pipeline.vat_container_status import is_approved
-from ironbank.pipeline.vat_container_status import _is_accredited
-from ironbank.pipeline.vat_container_status import _check_expiration
-from ironbank.pipeline.vat_container_status import _get_approval_status
+from ironbank.pipeline.vat_container_status import (
+    _check_findings,
+    is_approved,
+    _is_accredited,
+    _check_expiration,
+    _get_approval_status,
+)
 
 mock_path = pathlib.Path(pathlib.Path(__file__).absolute().parent, "mocks")
 
