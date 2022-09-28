@@ -93,10 +93,9 @@ The attestations for any given image in Registry1 contain a body of evidence inc
 
 ```bash
 #!/bin/bash
-
 image=registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.6
 
-declare -a predicate_types=("https://vat.dso.mil/api/p1/predicate/beta1" "https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md" "spdx" "spdxjson" "cyclonedx")
+declare -a predicate_types=("https://vat.dso.mil/api/p1/predicate/beta1" "https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md" "https://spdx.dev/Document" "https://cyclonedx.org/schema")
 
 for predicate_type in "${predicate_types[@]}"; do
   echo $predicate_type
@@ -107,17 +106,17 @@ for predicate_type in "${predicate_types[@]}"; do
     'https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md')
       filename=hardening_manifest.json
       ;;
-    'spdx')
-      filename=spdx.xml
-      ;;
-    'spdxjson')
+    'https://spdx.dev/Document')
       filename=spdx.json
       ;;
-    'cyclonedx')
+    'https://cyclonedx.org/schema')
       filename=cyclonedx.json
       ;;
   esac
-  cosign download attestation $image | jq .payload -r | base64 --decode | jq -c 'select( .predicateType == "'$predicate_type'")' > "att_$filename";
+  cosign download attestation $image | \
+    jq -r '(.payload | @base64d)' | \
+    jq -c 'select( .predicateType == "'$predicate_type'")' | \
+    jq > $filename;
 done
 ```
 
