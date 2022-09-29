@@ -1,6 +1,23 @@
 include:
   - local: stages/preprocess/base.yaml
 
+pre-check:
+  extends: .preprocess
+  cache: {}
+  script:
+    - |
+      echo "Searching for ci-artifacts dir"
+      files_found=$(find . -name "ci-artifacts" -type d)
+      echo "Searching for symlinks"
+      links_found=$(find . -type l)
+      echo "Validating symlinks"
+      if [[ $links_found != "" ]]; then exit 1; fi
+      echo "Validating files"
+      if [[ $files_found != "" ]]; then echo "${files_found} was found"; fi
+  except:
+    variables:
+      - $STAGING_PIPELINE
+
 # clone templates repo as an artifact so it can be used with other jobs
 load-scripts:
   extends: .preprocess

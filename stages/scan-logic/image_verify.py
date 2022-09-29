@@ -82,7 +82,7 @@ def parent_digest_equal(img_json: dict, manifest: HardeningManifest) -> bool:
         return False
 
 
-def diff_needed(docker_config_dir: str) -> Optional[str]:
+def diff_needed(docker_config_dir: str) -> Optional[tuple]:
     dsop_project = DsopProject()
     manifest = HardeningManifest(dsop_project.hardening_manifest_path)
 
@@ -101,5 +101,6 @@ def diff_needed(docker_config_dir: str) -> Optional[str]:
         return None
 
     return (
-        f"{os.environ['BASE_REGISTRY']}/{manifest.image_name}@{old_img_json['Digest']}"
+        old_img_json["Digest"],
+        old_img_json["Labels"]["build-date"],
     )
