@@ -255,6 +255,6 @@ def get_approval_status(source_file) -> tuple[str, str]:
         with Path(source_file).open("r") as sf:
             approval_object = json.load(sf)
     # TODO: Add error handling if file does not exist
-    approval_status = approval_object["accreditation"]
-    approval_text = approval_object.get("accreditationComment")
+    approval_status = approval_object["image"]["state"]["imageStatus"]
+    approval_text = approval_object["image"]["state"].get("reason", "")
     return approval_status, approval_text

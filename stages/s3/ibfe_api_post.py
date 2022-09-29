@@ -17,8 +17,8 @@ def post_artifact_data_vat():
             "Authorization": f"Bearer {os.environ['CI_JOB_JWT_V2']}",
         },
         json={
-            "containerName": os.environ["IMAGE_NAME"],
-            "containerVersion": os.environ["IMAGE_VERSION"],
+            "imageName": os.environ["IMAGE_NAME"],
+            "tag": os.environ["IMAGE_VERSION"],
             "publishedTimestamp": os.environ["directory_date"],
             "readme": os.environ["README_PATH_SHORT"],
             "license": os.environ["LICENSE_PATH_SHORT"],
