@@ -135,7 +135,6 @@ def main():
 
     # sed -i '/^FROM /r'
     dockerfile_cmd_list = []
-    first_from_found = False
     with Path(full_build_path / "build-args.json").open("r") as f:
         build_args = json.load(f)
         dockerfile_args = "\n".join([f"ARG {k}" for k in build_args.keys()])
@@ -201,6 +200,24 @@ def main():
         for t in hardening_manifest.image_tags:
             dest = Image.from_image(dest, tag=t)
             skopeo.copy(src, dest, dest_authfile=staging_auth_path)
+
+    local_image_details = json.loads(buildah.inspect(image=src, storage_driver='vfs'))
+
+    with Path('build.env').open('a+') as f:
+        f.writelines(
+            [
+
+                f"IMAGE_ID={local_image_details['FromImageID']}",
+                f"IMAGE_PODMAN_SHA={}",
+                f"IMAGE_FULLTAG={staging_image}",
+                f"IMAGE_NAME={os.environ['IMAGE_NAME']}",
+                # using utcnow because we want to use the naive format (i.e. no tz delta of +00:00)
+                f"BUILD_DATE={datetime.datetime.utcnow().isoformat(sep='T', timespec='seconds')}Z"
+            ]
+        )
+    # requires octal format of 644 to convert to decimal
+    # functionally equivalent to int('644', base=8)
+    Path('access.log').chmod(0o644, follow_symlinks=False)
 
 
 

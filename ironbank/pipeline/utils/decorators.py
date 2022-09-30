@@ -1,4 +1,5 @@
 import os
+import sys
 import requests
 import subprocess
 import functools
@@ -38,6 +39,24 @@ def key_index_error_handler(func):
             self._log.debug(f"IndexError: {ie.args[0]}")
 
     return wrapper
+
+
+def subprocess_error_handler(logging_message: str):
+    def decorate(func):
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+            try:
+                return func(self, *args, **kwargs)
+            except subprocess.SubprocessError:
+                self.log.error(logging_message)
+                sys.exit(1)
+            except subprocess.CalledProcessError:
+                self.log.error(logging_message)
+                sys.exit(1)
+
+        return wrapper
+
+    return decorate
 
 
 def request_error_handler(func):

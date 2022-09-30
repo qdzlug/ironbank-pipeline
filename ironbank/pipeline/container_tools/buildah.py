@@ -12,9 +12,17 @@ log = logger.setup(name="buildah")
 
 
 class Buildah(ContainerTool):
-    def inspect(self, image: Image):
-        pass
+    def inspect(self, image: Image, storage_driver: str = "vfs", format: str = None):
+        cmd = [
+            "buildah",
+            "inspect",
+        ]
+        cmd += ["--storage-driver", storage_driver] if storage_driver else []
+        cmd += ["--format", format] if format else []
+        cmd += [str(image)]
+        return subprocess.run(args=cmd, check=True, capture_output=True).stdout
 
+    # TODO: add subprocess exception
     def build(
         self,
         context: Path | str = ".",
@@ -52,25 +60,23 @@ class Buildah(ContainerTool):
         cmd += ["-t", str(tag)] if tag else []
         cmd += [context]
 
-        proc = subprocess.Popen(args=cmd)
+        return subprocess.run(args=cmd, check=True)
 
-        def handler(signum, frame):
-            log.error("Terminating build process")
-            proc.terminate()
-            sys.exit(1)
+        # def handler(signum, frame):
+        #     log.error("Terminating build process")
+        #     proc.terminate()
+        #     sys.exit(1)
 
-        # handle ctrl+c for local testing
-        signal.signal(signal.SIGINT, handler)
+        # # handle ctrl+c for local testing
+        # signal.signal(signal.SIGINT, handler)
 
-        # block subprocess until finished
-        while proc.poll() is None:
-            pass
+        # # block subprocess until finished
+        # while proc.poll() is None:
+        #     pass
 
-        if proc.returncode != 0:
-            log.error(f"Buildah failed to build the image. Exit code {proc.returncode}")
-            sys.exit(1)
-
-        return proc
+        # if proc.returncode != 0:
+        #     log.error(f"Buildah failed to build the image. Exit code {proc.returncode}")
+        #     sys.exit(1)
 
     # list images
     # list containers
