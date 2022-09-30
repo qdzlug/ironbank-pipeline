@@ -1,8 +1,7 @@
 import os
-import signal
+import json
 import subprocess
 from pathlib import Path
-import sys
 from ironbank.pipeline.container_tools.container_tool import ContainerTool
 from ironbank.pipeline.image import Image
 from ironbank.pipeline.utils import logger
@@ -20,7 +19,9 @@ class Buildah(ContainerTool):
         cmd += ["--storage-driver", storage_driver] if storage_driver else []
         cmd += ["--format", format] if format else []
         cmd += [str(image)]
-        return subprocess.run(args=cmd, check=True, capture_output=True).stdout
+        return json.loads(
+            subprocess.run(args=cmd, check=True, capture_output=True).stdout
+        )
 
     # TODO: add subprocess exception
     def build(
@@ -62,6 +63,7 @@ class Buildah(ContainerTool):
 
         return subprocess.run(args=cmd, check=True)
 
+        #
         # def handler(signum, frame):
         #     log.error("Terminating build process")
         #     proc.terminate()

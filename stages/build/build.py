@@ -3,6 +3,7 @@ import re
 import sys
 import json
 import time
+import shutil
 import datetime
 import argparse
 import subprocess
@@ -89,8 +90,9 @@ def main():
     parent_label = None
     image_dir = Path(f"{args.imports_path}/images")
     resource_dir = Path(f"{args.imports_path}/external_resources")
+    artifact_dir = Path(os.environ["ARTIFACT_DIR"])
 
-    os.makedirs(Path(os.environ["ARTIFACT_DIR"]))
+    os.makedirs(artifact_dir)
 
     log.info("Determine source registry based on branch")
     if os.environ.get("STAGING_BASE_IMAGE"):
@@ -193,7 +195,7 @@ def main():
     src = Image.from_image(staging_image, transport='container-storage:')
     dest = Image.from_image(staging_image, transport='docker://')
 
-    skopeo.copy(src=src, dest=dest, dest_authfile=staging_auth_path)
+    skopeo.copy(src=src, dest=dest, digestfile=Path(artifact_dir/"digest"), dest_authfile=staging_auth_path)
 
     # TODO: decide if we need to push tags on staging_base_image or development
     if os.environ['STAGING_BASE_IMAGE'] or os.environ['CI_COMMIT_BRANCH'] == "development":
@@ -201,14 +203,14 @@ def main():
             dest = Image.from_image(dest, tag=t)
             skopeo.copy(src, dest, dest_authfile=staging_auth_path)
 
-    local_image_details = json.loads(buildah.inspect(image=src, storage_driver='vfs'))
+    local_image_details = buildah.inspect(image=src, storage_driver='vfs')
 
     with Path('build.env').open('a+') as f:
         f.writelines(
             [
 
                 f"IMAGE_ID={local_image_details['FromImageID']}",
-                f"IMAGE_PODMAN_SHA={}",
+                f"IMAGE_PODMAN_SHA={skopeo.inspect(src)['Digest']}",
                 f"IMAGE_FULLTAG={staging_image}",
                 f"IMAGE_NAME={os.environ['IMAGE_NAME']}",
                 # using utcnow because we want to use the naive format (i.e. no tz delta of +00:00)
@@ -217,7 +219,9 @@ def main():
         )
     # requires octal format of 644 to convert to decimal
     # functionally equivalent to int('644', base=8)
-    Path('access.log').chmod(0o644, follow_symlinks=False)
+    access_log = Path('access.log')
+    access_log.chmod(0o644, follow_symlinks=False)
+    shutil.copy(access_log, Path(artifact_dir, access_log))
 
 
 
