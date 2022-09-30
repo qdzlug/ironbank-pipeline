@@ -31,6 +31,7 @@ class AnchoreVuln(AbstractVuln):
     # values are parsed form key paths in anchore report
     identifiers: list[str] = field(default_factory=lambda: [])
     description: str = "none"
+    # use old format for scan report parsing
     scan_source: str = "anchore_cve"
     nvd_cvss_v2_vector: str = None
     nvd_cvss_v3_vector: str = None
