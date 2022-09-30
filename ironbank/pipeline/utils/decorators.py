@@ -1,5 +1,4 @@
 import os
-import sys
 import requests
 import subprocess
 import functools
@@ -21,7 +20,7 @@ def request_retry(retry_count):
             for retry_num in range(1, retry_count + 1):
                 try:
                     return func(self, *args, **kwargs)
-                except subprocess.CalledProcessError as e:
+                except subprocess.CalledProcessError:
                     if retry_num >= retry_count:
                         raise MaxRetriesException()
                     else:

@@ -9,6 +9,7 @@ import argparse
 import subprocess
 from pathlib import Path
 from base64 import b64decode
+from typing import Callable
 
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.hardening_manifest import HardeningManifest
@@ -18,6 +19,7 @@ from ironbank.pipeline.image import Image, ImageFile
 from ironbank.pipeline.utils import logger
 
 log = logger.setup("build")
+
 
 # resource_type set to file by default so image is explicitly set
 # resource_type is not used unless value = image, but it is set to file for clarity of purpose
@@ -52,14 +54,16 @@ def start_squid(squid_conf: Path):
     # squid will not start properly without this
     time.sleep(5)
 
+
 # decode technically isn't a keyword, but it is a method of str
 # using PEP8 convention for avoiding builtin conflicts
-def generate_auth_file(auth: str, file_path: Path | str, decode_: function = None):
+def generate_auth_file(auth: str, file_path: Path | str, decode_: Callable = None):
     assert isinstance(file_path, Path)
     auth = decode_(auth) if decode_ else auth
 
     with file_path.open("a+") as f:
         f.write(auth)
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -84,8 +88,8 @@ def main():
     )
 
     base_registry = os.environ["BASE_REGISTRY"]
-    prod_auth_path = Path('/tmp/prod_auth.json')
-    staging_auth_path = Path('/tmp/staging_auth.json')
+    prod_auth_path = Path("/tmp/prod_auth.json")
+    staging_auth_path = Path("/tmp/staging_auth.json")
     pull_creds = None
     parent_label = None
     image_dir = Path(f"{args.imports_path}/images")
@@ -105,11 +109,14 @@ def main():
     generate_auth_file(auth=pull_creds, file_path=prod_auth_path, decode_=b64decode)
 
     # generate read write auth file for staging registry
-    generate_auth_file(auth=os.environ['DOCKER_AUTH_CONFIG_STAGING'], file_path=staging_auth_path, decode_=b64decode)
+    generate_auth_file(
+        auth=os.environ["DOCKER_AUTH_CONFIG_STAGING"],
+        file_path=staging_auth_path,
+        decode_=b64decode,
+    )
 
     buildah = Buildah(authfile=prod_auth_path)
     skopeo = Skopeo()
-
 
     # gather files and subpaths
     log.info("Load any images used in Dockerfile build")
@@ -165,7 +172,9 @@ def main():
         "maintainer": "ironbank@dsop.io",
         # provide time in format YYYY-MM-DD HH:mm:SS+00:00 where +00:00 is the utc delta
         # .now() with tz passed provides an aware object whereas .utcnow() provides a naive object
-        "org.opencontainers.image.created": datetime.datetime.now(datetime.timezone.utc).isoformat(sep=' ', timespec='seconds'),
+        "org.opencontainers.image.created": datetime.datetime.now(
+            datetime.timezone.utc
+        ).isoformat(sep=" ", timespec="seconds"),
         "org.opencontainers.image.source": os.environ["CI_PROJECT_URL"],
         "org.opencontainers.image.revision": os.environ["CI_COMMIT_SHA"],
     }
@@ -184,45 +193,51 @@ def main():
             **ib_labels,
             **hardening_manifest.labels,
         },
-        format_='oci',
-        log_level='warn',
+        format_="oci",
+        log_level="warn",
         default_mounts_file=mount_conf_path,
-        storage_driver='vfs',
-        tag=staging_image
+        storage_driver="vfs",
+        tag=staging_image,
     )
 
     # Instantiate new objects from existing staging image attributes
-    src = Image.from_image(staging_image, transport='container-storage:')
-    dest = Image.from_image(staging_image, transport='docker://')
+    src = Image.from_image(staging_image, transport="container-storage:")
+    dest = Image.from_image(staging_image, transport="docker://")
 
-    skopeo.copy(src=src, dest=dest, digestfile=Path(artifact_dir/"digest"), dest_authfile=staging_auth_path)
+    skopeo.copy(
+        src=src,
+        dest=dest,
+        digestfile=Path(artifact_dir / "digest"),
+        dest_authfile=staging_auth_path,
+    )
 
     # TODO: decide if we need to push tags on staging_base_image or development
-    if os.environ['STAGING_BASE_IMAGE'] or os.environ['CI_COMMIT_BRANCH'] == "development":
+    if (
+        os.environ["STAGING_BASE_IMAGE"]
+        or os.environ["CI_COMMIT_BRANCH"] == "development"
+    ):
         for t in hardening_manifest.image_tags:
             dest = Image.from_image(dest, tag=t)
             skopeo.copy(src, dest, dest_authfile=staging_auth_path)
 
-    local_image_details = buildah.inspect(image=src, storage_driver='vfs')
+    local_image_details = buildah.inspect(image=src, storage_driver="vfs")
 
-    with Path('build.env').open('a+') as f:
+    with Path("build.env").open("a+") as f:
         f.writelines(
             [
-
                 f"IMAGE_ID={local_image_details['FromImageID']}",
                 f"IMAGE_PODMAN_SHA={skopeo.inspect(src)['Digest']}",
                 f"IMAGE_FULLTAG={staging_image}",
                 f"IMAGE_NAME={os.environ['IMAGE_NAME']}",
                 # using utcnow because we want to use the naive format (i.e. no tz delta of +00:00)
-                f"BUILD_DATE={datetime.datetime.utcnow().isoformat(sep='T', timespec='seconds')}Z"
+                f"BUILD_DATE={datetime.datetime.utcnow().isoformat(sep='T', timespec='seconds')}Z",
             ]
         )
     # requires octal format of 644 to convert to decimal
     # functionally equivalent to int('644', base=8)
-    access_log = Path('access.log')
+    access_log = Path("access.log")
     access_log.chmod(0o644, follow_symlinks=False)
     shutil.copy(access_log, Path(artifact_dir, access_log))
-
 
 
 if __name__ == "__main__":
