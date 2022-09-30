@@ -2,7 +2,7 @@
 
 import os
 from typing import Optional
-import dateutil
+from dateutil import parser as dateparser
 from datetime import datetime, timezone
 
 
@@ -106,9 +106,7 @@ def _check_expiration(vat_image: dict) -> bool:
     # Check earliest expiration
     approval_factors = vat_image["state"]["factors"]
     if "expiration" in approval_factors.get("caReview", {}):
-        expiration_date = dateutil.parser.parse(
-            approval_factors["caReview"]["expiration"]
-        )
+        expiration_date = dateparser.parse(approval_factors["caReview"]["expiration"])
         return datetime.now(timezone.utc) < expiration_date
     else:
         return True
