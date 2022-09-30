@@ -3,6 +3,10 @@ import sys
 import requests
 import subprocess
 import functools
+from ironbank.pipeline.utils.exceptions import (
+    GenericSubprocessError,
+    MaxRetriesException,
+)
 
 
 def request_retry(retry_count):
@@ -19,7 +23,7 @@ def request_retry(retry_count):
                     return func(self, *args, **kwargs)
                 except subprocess.CalledProcessError as e:
                     if retry_num >= retry_count:
-                        raise subprocess.CalledProcessError(e.returncode, e.cmd)
+                        raise MaxRetriesException()
                     else:
                         self.log.warning("Resource failed to pull, retrying...")
 
@@ -49,10 +53,10 @@ def subprocess_error_handler(logging_message: str):
                 return func(self, *args, **kwargs)
             except subprocess.SubprocessError:
                 self.log.error(logging_message)
-                sys.exit(1)
+                raise GenericSubprocessError()
             except subprocess.CalledProcessError:
                 self.log.error(logging_message)
-                sys.exit(1)
+                raise GenericSubprocessError()
 
         return wrapper
 

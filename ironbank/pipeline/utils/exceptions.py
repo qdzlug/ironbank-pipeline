@@ -14,5 +14,9 @@ class ORASDownloadError(Exception):
     pass
 
 
-class SubprocException(Exception):
+class MaxRetriesException(Exception):
+    pass
+
+
+class GenericSubprocessError(Exception):
     pass
