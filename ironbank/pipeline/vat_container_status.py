@@ -107,7 +107,7 @@ def _check_expiration(vat_image: dict) -> bool:
     approval_factors = vat_image["state"]["factors"]
     if "expiration" in approval_factors.get("caReview", {}):
         expiration_date = dateparser.parse(approval_factors["caReview"]["expiration"])
-        return datetime.now(timezone.utc) < expiration_date
+        return datetime.now(timezone.utc) < expiration_date.replace(tzinfo=timezone.utc)
     else:
         return True
 
