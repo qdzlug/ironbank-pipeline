@@ -21,6 +21,34 @@ from ironbank.pipeline.utils import logger
 log = logger.setup("build")
 
 
+def write_dockerfile_args(dockerfile_args: list['str']):
+    with Path("Dockerfile").open("r+") as f:
+        dockerfile_content = []
+        from_found = False
+        for line in f.readlines():
+            dockerfile_content.append(line)
+            if re.match(r"^FROM", line) and not from_found:
+                from_found = True
+                dockerfile_content += dockerfile_args
+        # replace all file content with updated content
+        f.seek(0)
+        f.truncate()
+        f.writelines(dockerfile_content)
+
+def create_mounts(mount_conf_path: Path, full_build_path: Path):
+    mounts = []
+    if os.environ.get("DISTRO_REPO_DIR"):
+        mounts.append(
+            full_build_path
+            / f"{os.environ['DISTRO_REPO_DIR']}:{os.environ['DISTRO_REPO_MOUNT']}"
+        )
+    mounts.append(full_build_path / "ruby" / ".ironbank-gemrc:.ironbank-gemrc")
+    mounts.append(full_build_path / "ruby" / "bundler-conf:.bundle/config")
+    with mount_conf_path.open("a+") as f:
+        for mount in mounts:
+            f.write(f"{mount}\n")
+    return mounts
+
 # resource_type set to file by default so image is explicitly set
 # resource_type is not used unless value = image, but it is set to file for clarity of purpose
 # TODO: consider passing a true "type" for resource_type (i.e. resource_type = Image or resource_type = Path)
@@ -65,6 +93,20 @@ def generate_auth_file(auth: str, file_path: Path | str, decode_: Callable = Non
         f.write(auth)
 
 
+def generate_build_env(image_details: dict, image: Image, skopeo: Skopeo):
+    with Path("build.env").open("a+") as f:
+        f.writelines(
+            [
+                f"IMAGE_ID={image_details['FromImageID']}",
+                f"IMAGE_PODMAN_SHA={skopeo.inspect(image)['Digest']}",
+                f"IMAGE_FULLTAG={image}",
+                f"IMAGE_NAME={os.environ['IMAGE_NAME']}",
+                # using utcnow because we want to use the naive format (i.e. no tz delta of +00:00)
+                f"BUILD_DATE={datetime.datetime.utcnow().isoformat(sep='T', timespec='seconds')}Z",
+            ]
+        )
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Script used for building ironbank images"
@@ -79,6 +121,7 @@ def main():
 
     args = parser.parse_args()
 
+    # define vars
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     staging_image = Image(
@@ -86,7 +129,6 @@ def main():
         name=os.environ["IMAGE_NAME"],
         tag=f"ibci-{os.environ['CI_PIPELINE_ID']}",
     )
-
     base_registry = os.environ["BASE_REGISTRY"]
     prod_auth_path = Path("/tmp/prod_auth.json")
     staging_auth_path = Path("/tmp/staging_auth.json")
@@ -95,6 +137,7 @@ def main():
     image_dir = Path(f"{args.imports_path}/images")
     resource_dir = Path(f"{args.imports_path}/external_resources")
     artifact_dir = Path(os.environ["ARTIFACT_DIR"])
+    mount_conf_path = Path().home().joinpath(".config", "containers", "mounts.conf")
 
     os.makedirs(artifact_dir)
 
@@ -105,6 +148,8 @@ def main():
     else:
         pull_creds = os.environ["DOCKER_AUTH_CONFIG_PULL"]
 
+
+    # get read only auth files
     # generate read only auth file for prod registry
     generate_auth_file(auth=pull_creds, file_path=prod_auth_path, decode_=b64decode)
 
@@ -129,32 +174,14 @@ def main():
     ).absolute()
 
     # add mounts to mounts.conf
-    mounts = []
-    mount_conf_path = Path().home().joinpath(".config", "containers", "mounts.conf")
-    if os.environ.get("DISTRO_REPO_DIR"):
-        mounts.append(
-            full_build_path
-            / f"{os.environ['DISTRO_REPO_DIR']}:{os.environ['DISTRO_REPO_MOUNT']}"
-        )
-    mounts.append(full_build_path / "ruby" / ".ironbank-gemrc:.ironbank-gemrc")
-    mounts.append(full_build_path / "ruby" / "bundler-conf:.bundle/config")
-    with mount_conf_path.open("a+") as f:
-        for mount in mounts:
-            f.write(f"{mount}\n")
+    create_mounts(full_build_path=full_build_path)
 
     # sed -i '/^FROM /r'
-    dockerfile_cmd_list = []
     with Path(full_build_path / "build-args.json").open("r") as f:
         build_args = json.load(f)
-        dockerfile_args = "\n".join([f"ARG {k}" for k in build_args.keys()])
+        dockerfile_args = [f"ARG {k}" for k in build_args.keys()]
 
-    with Path("Dockerfile").open("r+") as f:
-        dockerfile = f.read()
-        re.sub(r"(FROM.*\n)", rf"\1{dockerfile_args}", dockerfile, count=1)
-        # replace all file content with updated content
-        f.seek(0)
-        f.truncate()
-        f.write(dockerfile_cmd_list)
+    write_dockerfile_args(dockerfile_args=dockerfile_args)
 
     if hardening_manifest.base_image_name:
         with Path(os.environ["ARTIFACT_STORAGE"], "lint", "base_image.json").open(
@@ -222,17 +249,9 @@ def main():
 
     local_image_details = buildah.inspect(image=src, storage_driver="vfs")
 
-    with Path("build.env").open("a+") as f:
-        f.writelines(
-            [
-                f"IMAGE_ID={local_image_details['FromImageID']}",
-                f"IMAGE_PODMAN_SHA={skopeo.inspect(src)['Digest']}",
-                f"IMAGE_FULLTAG={staging_image}",
-                f"IMAGE_NAME={os.environ['IMAGE_NAME']}",
-                # using utcnow because we want to use the naive format (i.e. no tz delta of +00:00)
-                f"BUILD_DATE={datetime.datetime.utcnow().isoformat(sep='T', timespec='seconds')}Z",
-            ]
-        )
+
+    generate_build_env(image_details=local_image_details, image=staging_image, skopeo=skopeo)
+
     # requires octal format of 644 to convert to decimal
     # functionally equivalent to int('644', base=8)
     access_log = Path("access.log")

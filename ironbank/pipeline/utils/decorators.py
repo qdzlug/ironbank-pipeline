@@ -50,10 +50,10 @@ def subprocess_error_handler(logging_message: str):
         def wrapper(self, *args, **kwargs):
             try:
                 return func(self, *args, **kwargs)
-            except subprocess.SubprocessError:
+            except subprocess.CalledProcessError:
                 self.log.error(logging_message)
                 raise GenericSubprocessError()
-            except subprocess.CalledProcessError:
+            except subprocess.SubprocessError:
                 self.log.error(logging_message)
                 raise GenericSubprocessError()
 
