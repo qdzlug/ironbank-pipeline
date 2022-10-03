@@ -292,7 +292,7 @@ def convert_artifacts_to_hardening_manifest(
 
     for item in predicates:
         hm_object[item.name] = ""
-        with open(item, "r") as f:
+        with open(item, "r", errors="replace") as f:
             hm_object[item.name] = f.read()
 
     with open(
