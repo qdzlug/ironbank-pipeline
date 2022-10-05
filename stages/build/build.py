@@ -17,6 +17,7 @@ from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.container_tools.buildah import Buildah
 from ironbank.pipeline.image import Image, ImageFile
 from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.decorators import subprocess_error_handler
 
 log = logger.setup("build")
 
@@ -36,15 +37,15 @@ def write_dockerfile_args(dockerfile_args: list["str"]):
         f.writelines(dockerfile_content)
 
 
-def create_mounts(mount_conf_path: Path, full_build_path: Path):
+def create_mounts(mount_conf_path: Path, pipeline_build_dir: Path):
     mounts = []
     if os.environ.get("DISTRO_REPO_DIR"):
         mounts.append(
-            full_build_path
+            pipeline_build_dir
             / f"{os.environ['DISTRO_REPO_DIR']}:{os.environ['DISTRO_REPO_MOUNT']}"
         )
-    mounts.append(full_build_path / "ruby" / ".ironbank-gemrc:.ironbank-gemrc")
-    mounts.append(full_build_path / "ruby" / "bundler-conf:.bundle/config")
+    mounts.append(pipeline_build_dir / "ruby" / ".ironbank-gemrc:.ironbank-gemrc")
+    mounts.append(pipeline_build_dir / "ruby" / "bundler-conf:.bundle/config")
     with mount_conf_path.open("a+") as f:
         for mount in mounts:
             f.write(f"{mount}\n")
@@ -68,6 +69,7 @@ def load_resources(
                 )
                 manifest_json = json.loads(manifest.stdout)
                 image_url = manifest_json[0]["RepoTags"][0]
+                log.info(f"loading image {resource_file_obj}")
                 skopeo.copy(
                     ImageFile(file_path=resource_file_obj, transport="docker-archive:"),
                     Image(url=image_url, transport="containers-storage:"),
@@ -77,6 +79,17 @@ def load_resources(
         else:
             log.error("Resource type is invalid")
             sys.exit(1)
+
+
+def get_parent_label(
+    artifact_storage_dir: Path,
+    hardening_manifest: HardeningManifest,
+    base_registry: str,
+):
+    if hardening_manifest.base_image_name:
+        with Path(artifact_storage_dir, "lint", "base_image.json").open("r") as f:
+            base_sha = json.load(f)["BASE_SHA"]
+        return f"{base_registry}/{hardening_manifest.base_image_name}:{hardening_manifest.base_image_tag}@{base_sha}"
 
 
 def start_squid(squid_conf: Path):
@@ -114,18 +127,9 @@ def generate_build_env(
         )
 
 
+# decorate main to capture all subprocess errors
+@subprocess_error_handler(logging_message="Unexpected subprocess error caught")
 def main():
-    parser = argparse.ArgumentParser(
-        description="Script used for building ironbank images"
-    )
-    parser.add_argument(
-        "--imports-path",
-        default=Path(f"{os.environ['ARTIFACT_STORAGE']}", "import-artifacts"),
-        type=str,
-        help="path to imported binaries and images",
-    )
-
-    args = parser.parse_args()
 
     # define vars
     dsop_project = DsopProject()
@@ -140,12 +144,17 @@ def main():
     staging_auth_path = Path("/tmp/staging_auth.json")
     pull_creds = None
     parent_label = None
-    image_dir = Path(f"{args.imports_path}/images")
-    resource_dir = Path(f"{args.imports_path}/external-resources")
-    artifact_dir = Path(os.environ["ARTIFACT_DIR"])
+    artifact_storage_dir = Path(os.environ["ARTIFACT_STORAGE"])
+    build_artifact_dir = Path(os.environ["ARTIFACT_DIR"])
+    imports_dir = artifact_storage_dir / "import-artifacts"
+    image_dir = imports_dir / "images"
+    resource_dir = imports_dir / "external-resources"
+    pipeline_build_dir = Path(
+        os.environ["PIPELINE_REPO_DIR"], "stages", "build"
+    ).absolute()
     mount_conf_path = Path().home().joinpath(".config", "containers", "mounts.conf")
 
-    os.makedirs(artifact_dir)
+    os.makedirs(build_artifact_dir)
 
     log.info("Determine source registry based on branch")
     if os.environ.get("STAGING_BASE_IMAGE"):
@@ -156,9 +165,11 @@ def main():
 
     # get read only auth files
     # generate read only auth file for prod registry
+    log.debug("Generating pull auth file")
     generate_auth_file(auth=pull_creds, file_path=prod_auth_path, decode_=b64decode)
 
     # generate read write auth file for staging registry
+    log.debug("Generating staging read/write auth file")
     generate_auth_file(
         auth=os.environ["DOCKER_AUTH_CONFIG_STAGING"],
         file_path=staging_auth_path,
@@ -174,32 +185,13 @@ def main():
     log.info("Load HTTP and S3 external resources")
     load_resources(resource_dir=resource_dir)
 
-    full_build_path = Path(
-        os.environ["PIPELINE_REPO_DIR"], "stages", "build"
-    ).absolute()
-
-    # add mounts to mounts.conf
-    create_mounts(mount_conf_path=mount_conf_path, full_build_path=full_build_path)
-
     log.info("Converting labels from hardening manifest into command line args")
-    # sed -i '/^FROM /r'
-    with Path(full_build_path / "build-args.json").open("r") as f:
-        build_args = json.load(f)
-        dockerfile_args = [f"ARG {k}" for k in build_args.keys()]
 
-    write_dockerfile_args(dockerfile_args=dockerfile_args)
-
-    if hardening_manifest.base_image_name:
-        with Path(os.environ["ARTIFACT_STORAGE"], "lint", "base_image.json").open(
-            "r"
-        ) as f:
-            base_sha = json.load(f)["BASE_SHA"]
-        parent_label = f"{base_registry}/{hardening_manifest.base_image_name}:{hardening_manifest.base_image_tag}@{base_sha}"
-
-    http_proxies = {
-        "http_proxy": "http://localhost:3128",
-        "HTTP_PROXY": "http://localhost:3128",
-    }
+    parent_label = get_parent_label(
+        artifact_storage_dir=artifact_storage_dir,
+        hardening_manifest=hardening_manifest,
+        base_registry=base_registry,
+    )
 
     ib_labels = {
         "maintainer": "ironbank@dsop.io",
@@ -214,6 +206,30 @@ def main():
     if parent_label:
         ib_labels["mil.dso.ironbank.image.parent"] = parent_label
 
+    log.info("Converting build args from hardening manifest into command line args")
+    http_proxies = {
+        "http_proxy": "http://localhost:3128",
+        "HTTP_PROXY": "http://localhost:3128",
+    }
+
+    start_squid(squid_conf=Path(pipeline_build_dir, "squid.conf"))
+
+    log.info("Adding the ironbank.repo to the container via mount.conf")
+    # add mounts to mounts.conf
+    create_mounts(
+        mount_conf_path=mount_conf_path, pipeline_build_dir=pipeline_build_dir
+    )
+
+    # sed -i '/^FROM /r'
+    with Path(pipeline_build_dir / "build-args.json").open("r") as f:
+        build_args = json.load(f)
+        # create list of lists, with each sublist containing an arg
+        # sublist needed for f.writelines() on arg substitution in Dockerfile
+        dockerfile_args = [f"ARG {k}\n" for k in build_args.keys()]
+
+    write_dockerfile_args(dockerfile_args=dockerfile_args)
+
+    log.info("Build the image")
     buildah.build(
         context=".",
         build_args={
@@ -241,7 +257,7 @@ def main():
     skopeo.copy(
         src=src,
         dest=dest,
-        digestfile=Path(artifact_dir / "digest"),
+        digestfile=Path(build_artifact_dir / "digest"),
         dest_authfile=staging_auth_path,
     )
 
@@ -256,13 +272,18 @@ def main():
 
     local_image_details = buildah.inspect(image=src, storage_driver="vfs")
 
-    generate_build_env(image_details=local_image_details, image_name=hardening_manifest.image_name, image=staging_image, skopeo=skopeo)
+    generate_build_env(
+        image_details=local_image_details,
+        image_name=hardening_manifest.image_name,
+        image=staging_image,
+        skopeo=skopeo,
+    )
 
     # requires octal format of 644 to convert to decimal
     # functionally equivalent to int('644', base=8)
     access_log = Path("access.log")
     access_log.chmod(0o644, follow_symlinks=False)
-    shutil.copy(access_log, Path(artifact_dir, access_log))
+    shutil.copy(access_log, Path(build_artifact_dir, access_log))
 
 
 if __name__ == "__main__":

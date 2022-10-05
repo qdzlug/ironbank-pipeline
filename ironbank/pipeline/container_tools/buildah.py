@@ -5,6 +5,7 @@ from pathlib import Path
 from ironbank.pipeline.container_tools.container_tool import ContainerTool
 from ironbank.pipeline.image import Image
 from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.decorators import subprocess_error_handler
 
 
 log = logger.setup(name="buildah")
@@ -24,6 +25,7 @@ class Buildah(ContainerTool):
         )
 
     # TODO: add subprocess exception
+    @subprocess_error_handler(logging_message="Unexpected subprocess error caught")
     def build(
         self,
         context: Path | str = ".",
