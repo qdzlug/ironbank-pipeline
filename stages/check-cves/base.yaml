@@ -24,9 +24,10 @@ check-findings:
     ROBOTNIK_SUBCOMMAND: check
   stage: check-cves
   allow_failure: true
-  only:
-    variables:
-      - $CHECK_FINDINGS_ENABLED
+  rules:
+    - if: $SKIP_FINDINGS_TRIGGER
+      when: never
+    - if: $CI_COMMIT_BRANCH == "master"
   needs:
     - job: vat
       artifacts: false
