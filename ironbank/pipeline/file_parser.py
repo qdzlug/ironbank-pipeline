@@ -11,6 +11,7 @@ from .utils.exceptions import DockerfileParseError
 from .utils.package_parser import (
     GoPackage,
     YumPackage,
+    AptPackage,
     PypiPackage,
     NpmPackage,
     RubyGemPackage,
@@ -71,7 +72,8 @@ class AccessLogFileParser(FileParser):
                         package = NpmPackage.parse((re_match.group("url")))
                     case "rubygem":
                         package = RubyGemPackage.parse((re_match.group("url")))
-
+                    case "apt":
+                        package = AptPackage.parse((re_match.group("url")))
                 if package:
                     packages.append(package)
 
