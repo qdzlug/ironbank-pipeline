@@ -54,6 +54,7 @@ class Skopeo(ContainerTool):
         dest_creds: str = None,
     ) -> None:
         if not src or not dest:
+            # TODO: Figure out why it isn't logging
             raise CopyException(
                 f"Missing {'source' if not src else 'destination'} from copy command"
             )

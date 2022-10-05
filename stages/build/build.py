@@ -21,7 +21,7 @@ from ironbank.pipeline.utils import logger
 log = logger.setup("build")
 
 
-def write_dockerfile_args(dockerfile_args: list['str']):
+def write_dockerfile_args(dockerfile_args: list["str"]):
     with Path("Dockerfile").open("r+") as f:
         dockerfile_content = []
         from_found = False
@@ -34,6 +34,7 @@ def write_dockerfile_args(dockerfile_args: list['str']):
         f.seek(0)
         f.truncate()
         f.writelines(dockerfile_content)
+
 
 def create_mounts(mount_conf_path: Path, full_build_path: Path):
     mounts = []
@@ -49,6 +50,7 @@ def create_mounts(mount_conf_path: Path, full_build_path: Path):
             f.write(f"{mount}\n")
     return mounts
 
+
 # resource_type set to file by default so image is explicitly set
 # resource_type is not used unless value = image, but it is set to file for clarity of purpose
 # TODO: consider passing a true "type" for resource_type (i.e. resource_type = Image or resource_type = Path)
@@ -57,15 +59,18 @@ def load_resources(
 ):
     for resource_file in os.listdir(resource_dir):
         resource_file_obj = Path(resource_dir, resource_file)
-        if resource_file_obj.isfile() and not resource_file_obj.is_symlink():
+        if resource_file_obj.is_file() and not resource_file_obj.is_symlink():
             if resource_type == "image" and skopeo:
-                manifest_json = subprocess.run(
-                    ["tar", "-xf", resource_file_obj.as_posix(), "-O", "manifest.json"]
+                manifest = subprocess.run(
+                    ["tar", "-xf", resource_file_obj.as_posix(), "-O", "manifest.json"],
+                    capture_output=True,
+                    check=True,
                 )
-                image_name = manifest_json[0]["RepoTags"]
+                manifest_json = json.loads(manifest.stdout)
+                image_url = manifest_json[0]["RepoTags"][0]
                 skopeo.copy(
                     ImageFile(file_path=resource_file_obj, transport="docker-archive:"),
-                    Image(url=image_name, transport="containers-storage:"),
+                    Image(url=image_url, transport="containers-storage:"),
                 )
             else:
                 os.rename(resource_file_obj, Path(resource_file))
@@ -88,19 +93,21 @@ def start_squid(squid_conf: Path):
 def generate_auth_file(auth: str, file_path: Path | str, decode_: Callable = None):
     assert isinstance(file_path, Path)
     auth = decode_(auth) if decode_ else auth
-
+    auth = auth.decode() if type(auth) == bytes else auth
     with file_path.open("a+") as f:
         f.write(auth)
 
 
-def generate_build_env(image_details: dict, image: Image, skopeo: Skopeo):
+def generate_build_env(
+    image_details: dict, image_name: str, image: Image, skopeo: Skopeo
+):
     with Path("build.env").open("a+") as f:
         f.writelines(
             [
                 f"IMAGE_ID={image_details['FromImageID']}",
                 f"IMAGE_PODMAN_SHA={skopeo.inspect(image)['Digest']}",
                 f"IMAGE_FULLTAG={image}",
-                f"IMAGE_NAME={os.environ['IMAGE_NAME']}",
+                f"IMAGE_NAME={image_name}",
                 # using utcnow because we want to use the naive format (i.e. no tz delta of +00:00)
                 f"BUILD_DATE={datetime.datetime.utcnow().isoformat(sep='T', timespec='seconds')}Z",
             ]
@@ -112,7 +119,6 @@ def main():
         description="Script used for building ironbank images"
     )
     parser.add_argument(
-        "--imported-artifacts-path",
         "--imports-path",
         default=Path(f"{os.environ['ARTIFACT_STORAGE']}", "import-artifacts"),
         type=str,
@@ -126,7 +132,7 @@ def main():
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     staging_image = Image(
         registry=os.environ["REGISTRY_URL_STAGING"],
-        name=os.environ["IMAGE_NAME"],
+        name=hardening_manifest.image_name,
         tag=f"ibci-{os.environ['CI_PIPELINE_ID']}",
     )
     base_registry = os.environ["BASE_REGISTRY"]
@@ -135,7 +141,7 @@ def main():
     pull_creds = None
     parent_label = None
     image_dir = Path(f"{args.imports_path}/images")
-    resource_dir = Path(f"{args.imports_path}/external_resources")
+    resource_dir = Path(f"{args.imports_path}/external-resources")
     artifact_dir = Path(os.environ["ARTIFACT_DIR"])
     mount_conf_path = Path().home().joinpath(".config", "containers", "mounts.conf")
 
@@ -147,7 +153,6 @@ def main():
         pull_creds = os.environ["DOCKER_AUTH_CONFIG_STAGING"]
     else:
         pull_creds = os.environ["DOCKER_AUTH_CONFIG_PULL"]
-
 
     # get read only auth files
     # generate read only auth file for prod registry
@@ -174,8 +179,9 @@ def main():
     ).absolute()
 
     # add mounts to mounts.conf
-    create_mounts(full_build_path=full_build_path)
+    create_mounts(mount_conf_path=mount_conf_path, full_build_path=full_build_path)
 
+    log.info("Converting labels from hardening manifest into command line args")
     # sed -i '/^FROM /r'
     with Path(full_build_path / "build-args.json").open("r") as f:
         build_args = json.load(f)
@@ -231,6 +237,7 @@ def main():
     src = Image.from_image(staging_image, transport="container-storage:")
     dest = Image.from_image(staging_image, transport="docker://")
 
+    # TODO: skip the following skopeo copies on local build, maybe change the copy to local dir?
     skopeo.copy(
         src=src,
         dest=dest,
@@ -249,8 +256,7 @@ def main():
 
     local_image_details = buildah.inspect(image=src, storage_driver="vfs")
 
-
-    generate_build_env(image_details=local_image_details, image=staging_image, skopeo=skopeo)
+    generate_build_env(image_details=local_image_details, image_name=hardening_manifest.image_name, image=staging_image, skopeo=skopeo)
 
     # requires octal format of 644 to convert to decimal
     # functionally equivalent to int('644', base=8)

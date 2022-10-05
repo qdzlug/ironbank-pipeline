@@ -132,6 +132,7 @@ class ContainerArtifact(AbstractArtifact):
 
     def __post_init__(self):
         super().__post_init__()
+        self.url = self.url.replace("docker://", "")
         self.__tar_name = self.tag.replace("/", "-").replace(":", "-")
         self.artifact_path = pathlib.Path(self.dest_path, f"{self.__tar_name}.tar")
 
@@ -149,6 +150,8 @@ class ContainerArtifact(AbstractArtifact):
 
         self.log.info(f"Pulling {self.url}")
 
+        # transport should already be included
+        # TODO: check for existing transport
         src = Image(url=self.url, transport="docker://")
         dest = ImageFile(file_path=self.artifact_path, transport="docker-archive:")
 
