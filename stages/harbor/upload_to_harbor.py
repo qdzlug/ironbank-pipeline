@@ -13,6 +13,8 @@ from ironbank.pipeline.image import Image
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 import yaml
 
+from ironbank.pipeline.utils.exceptions import GenericSubprocessError
+
 # https://github.com/anchore/syft#output-formats
 
 # Defines a map of SBOM output formats provided by syft to their corresponding mediatypes
@@ -202,33 +204,22 @@ def compare_digests(image: Image) -> None:
     Pull down image manifest to compare digest to digest from build environment
     """
 
-    manifest_file = pathlib.Path("manifest.json")
-    logging.info(f"Pulling {manifest_file} with skopeo")
-    cmd = [
-        "skopeo",
-        "inspect",
-        "--authfile",
-        "staging_auth.json",
-        "--raw",
-        f"docker://{image}",
-    ]
-    logging.info(" ".join(cmd))
-    with manifest_file.open(mode="w") as f:
-        try:
-            subprocess.run(
-                args=cmd,
-                stdout=f,
-                check=True,
-                encoding="utf-8",
-            )
-        except subprocess.CalledProcessError:
-            logging.error(
-                f"Failed to retrieve manifest for {image.registry}/{image.name}@{image.digest}"
-            )
-            sys.exit(1)
+    logging.info("Pulling manifest_file with skopeo")
+    skopeo = Skopeo("staging_auth.json")
+
+    try:
+        logging.info("Inspecting image in registry")
+        remote_inspect_raw = skopeo.inspect(
+            Image.from_image(image, transport="docker://"), raw=True
+        )
+    except GenericSubprocessError:
+        logging.error(
+            f"Failed to retrieve manifest for {image.registry}/{image.name}@{image.digest}"
+        )
+        sys.exit(1)
 
     digest = os.environ["IMAGE_PODMAN_SHA"].split(":")[-1]
-    manifest = hashlib.sha256(manifest_file.read_bytes())
+    manifest = hashlib.sha256(remote_inspect_raw.encode())
 
     if digest == manifest.hexdigest():
         logging.info("Digests match")

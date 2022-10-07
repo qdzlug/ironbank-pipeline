@@ -12,6 +12,7 @@ log = logger.setup(name="buildah")
 
 
 class Buildah(ContainerTool):
+    @subprocess_error_handler(logging_message="Buildah.inspect failed")
     def inspect(self, image: Image, storage_driver: str = "vfs", format: str = None):
         cmd = [
             "buildah",
@@ -25,7 +26,7 @@ class Buildah(ContainerTool):
         )
 
     # TODO: add subprocess exception
-    @subprocess_error_handler(logging_message="Unexpected subprocess error caught")
+    @subprocess_error_handler(logging_message="Buildah.build failed")
     def build(
         self,
         context: Path | str = ".",

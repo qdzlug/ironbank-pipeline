@@ -6,6 +6,7 @@ from pathlib import Path
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.container_tools.container_tool import ContainerTool
 from ironbank.pipeline.image import Image, ImageFile
+from ironbank.pipeline.utils.decorators import subprocess_error_handler
 from dataclasses import dataclass
 
 log = logger.setup(name="skopeo")
@@ -17,13 +18,19 @@ class CopyException(Exception):
 
 @dataclass
 class Skopeo(ContainerTool):
-    def inspect(self, image: Image | ImageFile) -> dict:
+    @subprocess_error_handler(logging_message="Skopeo.inspect failed")
+    def inspect(self, image: Image | ImageFile, raw: bool = False) -> dict:
         # use tag by default, else use digest
         cmd = [
             "skopeo",
             "inspect",
+        ]
+        cmd += ["--authfile"] if self.authfile else []
+        cmd += ["--raw"] if raw else []
+        cmd += [
             f"{image}",
         ]
+
         log.info(f"Run inspect cmd: {cmd}")
         # if skopeo inspect fails, because IMAGE value doesn't match a registry1 container name
         #   fail back to using existing functionality
@@ -38,8 +45,9 @@ class Skopeo(ContainerTool):
                 "DOCKER_CONFIG": self.docker_config_dir or "",
             },
         )
-        return json.loads(inspect_result.stdout)
+        return json.loads(inspect_result.stdout) if not raw else inspect_result.stdout
 
+    @subprocess_error_handler(logging_message="Skopeo.copy failed")
     @classmethod
     def copy(
         cls,
