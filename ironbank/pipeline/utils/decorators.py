@@ -1,5 +1,4 @@
 import os
-import sys
 import requests
 import subprocess
 import functools
@@ -55,7 +54,7 @@ def subprocess_error_handler(logging_message: str):
         def wrapper(self, *args, **kwargs):
             try:
                 return func(self, *args, **kwargs)
-            except subprocess.CalledProcessError as e:
+            except subprocess.CalledProcessError:
                 log.error(logging_message)
                 # prevent exception chaining by using from None
                 raise GenericSubprocessError() from None

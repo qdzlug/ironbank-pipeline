@@ -13,5 +13,3 @@ export DOCKER_AUTH_CONFIG_STAGING='e30='
 export PIPELINE_REPO_DIR='../ib-pipeline'
 export CI_PROJECT_URL='test.test.test'
 export CI_COMMIT_SHA='1d0dd9790b4ef8ed1a871fd634071a15770f83a7228029e19b3b056ee831666c'
-
-
