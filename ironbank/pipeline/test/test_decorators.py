@@ -8,8 +8,8 @@ from subprocess import CalledProcessError
 from unittest import mock
 from ironbank.pipeline.apis import API
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.decorators import request_retry
-from ironbank.pipeline.utils.decorators import request_error_handler
+from ironbank.pipeline.utils.decorators import request_retry, request_error_handler
+from ironbank.pipeline.utils.exceptions import MaxRetriesException
 from mocks.mock_responses import mock_responses  # noqa W0611
 
 log = logger.setup("test_decorators")
@@ -43,7 +43,7 @@ class MockApiSubclass(API):
 
 def test_request_retry(caplog, mock_class):
     mock_class.mock_func()
-    with pytest.raises(CalledProcessError):
+    with pytest.raises(MaxRetriesException):
         mock_class.mock_failing_func()
 
 

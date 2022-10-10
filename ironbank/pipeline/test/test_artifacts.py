@@ -10,7 +10,7 @@ from requests.auth import HTTPBasicAuth
 from subprocess import CalledProcessError
 from unittest.mock import mock_open
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.exceptions import InvalidURLList
+from ironbank.pipeline.utils.exceptions import GenericSubprocessError, InvalidURLList
 from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.abstract_artifacts import AbstractArtifact
 from ironbank.pipeline.artifacts import (
@@ -206,7 +206,7 @@ def test_container_artifact_download(monkeypatch, caplog, mock_container_artifac
     monkeypatch.setattr(
         subprocess,
         "run",
-        lambda args, capture_output, check: type(
+        lambda args, check: type(
             "MockSubprocessResponse",
             (),
             {"stdout": "exampleout", "stderr": "exampleerr"},
@@ -225,9 +225,9 @@ def test_container_artifact_download(monkeypatch, caplog, mock_container_artifac
     monkeypatch.setattr(
         subprocess,
         "run",
-        lambda args, capture_output, check: raise_(CalledProcessError(1, ["example"])),
+        lambda args, check: raise_(CalledProcessError(1, ["example"])),
     )
-    with pytest.raises(CalledProcessError):
+    with pytest.raises(GenericSubprocessError):
         mock_container_artifact.download()
     assert "Successfully pulled" not in caplog.text
 
