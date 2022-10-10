@@ -10,7 +10,7 @@ build:
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
   script:
-    - '"${PIPELINE_REPO_DIR}/stages/build/build-run.sh"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/build/build.py"'
   artifacts:
     when: always
     paths:
