@@ -47,8 +47,9 @@ class Skopeo(ContainerTool):
         )
         return json.loads(inspect_result.stdout) if not raw else inspect_result.stdout
 
-    @subprocess_error_handler(logging_message="Skopeo.copy failed")
+    # the order of these decorators matters, the classmethod descriptor should exist at the top of the list of decorators (i.e. should be applied last)
     @classmethod
+    @subprocess_error_handler(logging_message="Skopeo.copy failed")
     def copy(
         cls,
         src: Image | ImageFile,
