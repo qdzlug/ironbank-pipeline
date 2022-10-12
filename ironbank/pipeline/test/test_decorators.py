@@ -8,7 +8,7 @@ from subprocess import CalledProcessError
 from unittest import mock
 from ironbank.pipeline.apis import API
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.decorators import request_retry, request_error_handler
+from ironbank.pipeline.utils.decorators import request_retry, vat_request_error_handler
 from ironbank.pipeline.utils.exceptions import MaxRetriesException
 from mocks.mock_responses import mock_responses  # noqa W0611
 
@@ -35,7 +35,7 @@ def mock_class():
 
 @dataclass
 class MockApiSubclass(API):
-    @request_error_handler
+    @vat_request_error_handler
     def mock_wrapped_func(self, mock_response):
         self.response = mock_response(self.url)
         self.response.raise_for_status()

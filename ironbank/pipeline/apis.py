@@ -3,7 +3,7 @@ import requests
 import os
 
 from .utils import logger
-from .utils.decorators import request_error_handler
+from .utils.decorators import vat_request_error_handler
 
 
 @dataclass
@@ -41,7 +41,7 @@ class VatAPI(API):
     import_artifacts_route: str = f"{import_route}/artifacts"
 
     # Not used in pipeline, added to potentially support outside tools
-    @request_error_handler
+    @vat_request_error_handler
     def get_image(self, image_name, image_tag) -> dict:
         self.log.info("Getting image information from vat api")
         self.response = requests.get(
@@ -57,7 +57,7 @@ class VatAPI(API):
         self.log.info("Fetched data from vat successfully")
         return self.response.json() if self.response.status_code == 200 else None
 
-    @request_error_handler
+    @vat_request_error_handler
     def check_access(self, image_name, create_request=False) -> None:
         self.log.info(f"Checking access to {image_name}")
         self.log.info(f"{self.url}{self.import_access_route}/?name={image_name}")
