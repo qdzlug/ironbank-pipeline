@@ -118,7 +118,7 @@ def generate_build_env(
             [
                 f"IMAGE_ID={image_details['FromImageID']}\n",
                 f"IMAGE_PODMAN_SHA={skopeo.inspect(image)['Digest']}\n",
-                f"IMAGE_FULLTAG={image.from_image(image, transport=None)}\n",
+                f"IMAGE_FULLTAG={image.from_image(transport=None)}\n",
                 f"IMAGE_NAME={image_name}\n",
                 # using utcnow because we want to use the naive format (i.e. no tz delta of +00:00)
                 f"BUILD_DATE={datetime.datetime.utcnow().isoformat(sep='T', timespec='seconds')}Z\n",
@@ -249,8 +249,8 @@ def main():
     )
 
     # Instantiate new objects from existing staging image attributes
-    src = Image.from_image(staging_image, transport="containers-storage:")
-    dest = Image.from_image(staging_image, transport="docker://")
+    src = staging_image.from_image(transport="containers-storage:")
+    dest = staging_image.from_image(transport="docker://")
 
     # TODO: skip the following skopeo copies on local build, maybe change the copy to local dir?
     skopeo.copy(
@@ -266,7 +266,7 @@ def main():
         or os.environ["CI_COMMIT_BRANCH"] == "development"
     ):
         for t in hardening_manifest.image_tags:
-            dest = Image.from_image(dest, tag=t)
+            dest = dest.from_image(tag=t)
             skopeo.copy(src, dest, dest_authfile=staging_auth_path)
 
     local_image_details = buildah.inspect(image=src, storage_driver="vfs")

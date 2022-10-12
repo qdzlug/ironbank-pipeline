@@ -47,17 +47,16 @@ class Image:
             f"{self.registry}/{self.name}" if self.registry else self.name
         )
 
-    @classmethod
-    def from_image(cls, image, **kwargs):
+    def from_image(self, **kwargs):
         # prioritize passed args
         # TODO: Should work with both self for instance and passed in image
         return Image(
-            registry=kwargs.get("registry") or image.registry,
-            name=kwargs.get("name") or image.name,
-            digest=kwargs.get("digest") or image.digest,
-            tag=kwargs.get("tag") or image.tag,
-            url=kwargs.get("url") or image.url,
-            transport=kwargs.get("transport") or image.transport,
+            registry=kwargs.get("registry") or self.registry,
+            name=kwargs.get("name") or self.name,
+            digest=kwargs.get("digest") or self.digest,
+            tag=kwargs.get("tag") or self.tag,
+            url=kwargs.get("url") or self.url,
+            transport=kwargs.get("transport") or self.transport,
         )
 
     def tag_str(self):

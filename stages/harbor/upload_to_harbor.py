@@ -210,7 +210,7 @@ def compare_digests(image: Image) -> None:
     try:
         logging.info("Inspecting image in registry")
         remote_inspect_raw = skopeo.inspect(
-            Image.from_image(image, transport="docker://"), raw=True
+            image.from_image(transport="docker://"), raw=True
         )
     except GenericSubprocessError:
         logging.error(
