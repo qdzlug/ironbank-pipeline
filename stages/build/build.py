@@ -278,10 +278,12 @@ def main():
         skopeo=skopeo,
     )
 
-    # requires octal format of 644 to convert to decimal
-    # functionally equivalent to int('644', base=8)
     access_log = Path("access.log")
-    access_log.lchmod(0o644)
+    # - requires octal format of 644 to convert to decimal
+    #   functionally equivalent to int('644', base=8)
+    # - We receive "follow_symlinks is unavailable on this platform" if follow_symlinks flag is passed to chmod.
+    #   Should we check for symlinks, even though we are creating this file?
+    access_log.chmod(0o644)
     shutil.copy(access_log, Path(build_artifact_dir, access_log))
 
 
