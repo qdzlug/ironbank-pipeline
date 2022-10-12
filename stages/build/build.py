@@ -116,7 +116,7 @@ def generate_build_env(
     with Path("build.env").open("a+") as f:
         f.writelines(
             [
-                f"IMAGE_ID={image_details['FromImageID']}\n",
+                f"IMAGE_ID=sha256:{image_details['FromImageID']}\n",
                 f"IMAGE_PODMAN_SHA={skopeo.inspect(image)['Digest']}\n",
                 f"IMAGE_FULLTAG={image.from_image(transport='')}\n",
                 f"IMAGE_NAME={image_name}\n",
