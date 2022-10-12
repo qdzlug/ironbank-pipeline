@@ -116,12 +116,12 @@ def generate_build_env(
     with Path("build.env").open("a+") as f:
         f.writelines(
             [
-                f"IMAGE_ID={image_details['FromImageID']}",
-                f"IMAGE_PODMAN_SHA={skopeo.inspect(image)['Digest']}",
-                f"IMAGE_FULLTAG={image}",
-                f"IMAGE_NAME={image_name}",
+                f"IMAGE_ID={image_details['FromImageID']}\n",
+                f"IMAGE_PODMAN_SHA={skopeo.inspect(image)['Digest']}\n",
+                f"IMAGE_FULLTAG={image}\n",
+                f"IMAGE_NAME={image_name}\n",
                 # using utcnow because we want to use the naive format (i.e. no tz delta of +00:00)
-                f"BUILD_DATE={datetime.datetime.utcnow().isoformat(sep='T', timespec='seconds')}Z",
+                f"BUILD_DATE={datetime.datetime.utcnow().isoformat(sep='T', timespec='seconds')}Z\n",
             ]
         )
 
