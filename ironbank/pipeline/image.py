@@ -50,6 +50,7 @@ class Image:
     @classmethod
     def from_image(cls, image, **kwargs):
         # prioritize passed args
+        # TODO: Should work with both self for instance and passed in image
         return Image(
             registry=kwargs.get("registry") or image.registry,
             name=kwargs.get("name") or image.name,
