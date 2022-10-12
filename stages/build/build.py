@@ -281,7 +281,7 @@ def main():
     # requires octal format of 644 to convert to decimal
     # functionally equivalent to int('644', base=8)
     access_log = Path("access.log")
-    access_log.chmod(0o644, follow_symlinks=False)
+    access_log.lchmod(0o644)
     shutil.copy(access_log, Path(build_artifact_dir, access_log))
 
 
