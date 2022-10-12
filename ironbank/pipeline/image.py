@@ -50,13 +50,17 @@ class Image:
     def from_image(self, **kwargs):
         # prioritize passed args
         # TODO: Should work with both self for instance and passed in image
+        passed_keys = list(kwargs.keys())
+
         return Image(
-            registry=kwargs.get("registry") or self.registry,
-            name=kwargs.get("name") or self.name,
-            digest=kwargs.get("digest") or self.digest,
-            tag=kwargs.get("tag") or self.tag,
-            url=kwargs.get("url") or self.url,
-            transport=kwargs.get("transport") or self.transport,
+            registry=kwargs["registry"] if "registry" in passed_keys else self.registry,
+            name=kwargs["name"] if "name" in passed_keys else self.name,
+            digest=kwargs["digest"] if "digest" in passed_keys else self.digest,
+            tag=kwargs["tag"] if "tag" in passed_keys else self.tag,
+            url=kwargs["url"] if "url" in passed_keys else self.url,
+            transport=kwargs["transport"]
+            if "transport" in passed_keys
+            else self.transport,
         )
 
     def tag_str(self):
