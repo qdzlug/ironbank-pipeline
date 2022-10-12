@@ -249,7 +249,7 @@ def main():
     )
 
     # Instantiate new objects from existing staging image attributes
-    src = Image.from_image(staging_image, transport="container-storage:")
+    src = Image.from_image(staging_image, transport="containers-storage:")
     dest = Image.from_image(staging_image, transport="docker://")
 
     # TODO: skip the following skopeo copies on local build, maybe change the copy to local dir?
