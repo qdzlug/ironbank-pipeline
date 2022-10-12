@@ -274,7 +274,7 @@ def main():
     generate_build_env(
         image_details=local_image_details,
         image_name=hardening_manifest.image_name,
-        image=dest,
+        image=src,
         skopeo=skopeo,
     )
 
