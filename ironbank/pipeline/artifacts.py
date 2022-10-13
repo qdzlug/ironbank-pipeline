@@ -160,7 +160,7 @@ class ContainerArtifact(AbstractArtifact):
             src=src,
             dest=dest,
             remove_signatures=True,
-            additional_tags=[self.tag],
+            additional_tags=self.tag,
             src_creds=self.get_credentials() if self.auth else None,
         )
 
