@@ -14,6 +14,7 @@ from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.image import Image
 from ironbank.pipeline.container_tools.skopeo import Skopeo
+from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 
 log = logger.setup(name="lint.base_image_validation")
 
@@ -54,15 +55,14 @@ async def main():
                     transport="docker://",
                 )
                 base_img_inspect = skopeo.inspect(base_image)
-            except subprocess.CalledProcessError as e:
+            except GenericSubprocessError:
                 log.error(
                     "Failed to inspect IMAGE:TAG provided in hardening_manifest. \
                         Please validate this image exists in the registry1.dso.mil/ironbank project."
                 )
                 log.error(
-                    f"Failed 'skopeo inspect' of image: {manifest.base_image_name}, {manifest.base_image_tag}"
+                    f"Failed 'skopeo inspect' of image: {base_image}"
                 )
-                log.error(f"Return code: {e.returncode}")
                 sys.exit(1)
 
             base_image_info = {"BASE_SHA": base_img_inspect["Digest"]}
