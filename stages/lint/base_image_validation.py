@@ -5,7 +5,6 @@ import os
 import json
 import asyncio
 import pathlib
-import subprocess
 import sys
 import tempfile
 
@@ -60,9 +59,7 @@ async def main():
                     "Failed to inspect IMAGE:TAG provided in hardening_manifest. \
                         Please validate this image exists in the registry1.dso.mil/ironbank project."
                 )
-                log.error(
-                    f"Failed 'skopeo inspect' of image: {base_image}"
-                )
+                log.error(f"Failed 'skopeo inspect' of image: {base_image}")
                 sys.exit(1)
 
             base_image_info = {"BASE_SHA": base_img_inspect["Digest"]}
