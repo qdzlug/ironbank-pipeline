@@ -104,7 +104,7 @@ class Stargate:
             transport="docker://",
         )
         dest = ImageFile(
-            file_path=f"{self.image_dir}/{image_title}:{os.environ['IMAGE_VERSION']}",
+            file_path=Path(self.image_dir, f"{image_title}:{os.environ['IMAGE_VERSION']}"),
             transport="oci:",
         )
         skopeo.copy(src, dest)
