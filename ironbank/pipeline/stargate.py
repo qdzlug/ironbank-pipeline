@@ -10,6 +10,8 @@ from base64 import b64decode
 import boto3
 from botocore.exceptions import ClientError
 
+from ironbank.pipeline.utils.exceptions import GenericSubprocessError
+
 from .utils import logger  # noqa: E402
 
 from ironbank.pipeline.image import Image, ImageFile
@@ -104,10 +106,16 @@ class Stargate:
             transport="docker://",
         )
         dest = ImageFile(
-            file_path=Path(self.image_dir, f"{image_title}:{os.environ['IMAGE_VERSION']}"),
+            file_path=Path(
+                self.image_dir, f"{image_title}:{os.environ['IMAGE_VERSION']}"
+            ),
             transport="oci:",
         )
-        skopeo.copy(src, dest)
+        try:
+            skopeo.copy(src, dest)
+        except GenericSubprocessError:
+            log.error("Could not skopeo copy.")
+            sys.exit(1)
 
     def create_archive(self) -> None:
         """

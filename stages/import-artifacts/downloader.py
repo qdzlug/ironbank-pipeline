@@ -7,7 +7,7 @@ from botocore.exceptions import ClientError
 from requests.exceptions import HTTPError
 
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.exceptions import InvalidURLList
+from ironbank.pipeline.utils.exceptions import GenericSubprocessError, InvalidURLList
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.abstract_artifacts import AbstractFileArtifact
@@ -96,7 +96,7 @@ def main():
         )
     except ClientError:
         log.error("S3 client error occurred")
-    except CalledProcessError:
+    except (CalledProcessError, GenericSubprocessError):
         log.error(
             "Resource failed to pull, please check hardening_manifest.yaml configuration"
         )

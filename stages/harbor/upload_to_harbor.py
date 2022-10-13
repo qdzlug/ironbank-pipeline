@@ -240,13 +240,16 @@ def promote_tags(
         production_image = production_image.from_image(tag=tag)
 
         logging.info(f"Copy from staging to {production_image}")
-
-        Skopeo.copy(
-            staging_image,
-            production_image,
-            src_authfile="staging_auth.json",
-            dest_authfile="/tmp/config.json",
-        )
+        try:
+            Skopeo.copy(
+                staging_image,
+                production_image,
+                src_authfile="staging_auth.json",
+                dest_authfile="/tmp/config.json",
+            )
+        except GenericSubprocessError:
+            logging.error(f"Failed to copy {staging_image} to {production_image}")
+            sys.exit(1)
 
 
 def convert_artifacts_to_hardening_manifest(
