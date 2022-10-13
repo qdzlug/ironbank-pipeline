@@ -15,10 +15,11 @@ class Image:
     """
     The Image Dataclass contains commonly used image attributes
 
-    At least one of digest or tag must be defined at init
+    Either name and tag/digest must be provided or url
     """
 
-    # no registry needed for local paths
+    # no registry needed for local paths in docker
+    # localhost/ needed for local paths in buildah
     registry: str = None
     # name can be excluded if url is present
     name: str = None
