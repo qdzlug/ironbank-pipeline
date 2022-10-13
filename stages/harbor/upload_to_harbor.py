@@ -237,7 +237,7 @@ def promote_tags(
     """
 
     for tag in tags:
-        production_image.tag = tag
+        production_image = production_image.from_image(tag=tag)
 
         logging.info(f"Copy from staging to {production_image}")
 
