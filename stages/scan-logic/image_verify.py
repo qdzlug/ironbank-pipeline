@@ -97,5 +97,6 @@ def diff_needed(docker_config_dir: str) -> Optional[tuple]:
 
     return (
         old_img_json["Digest"],
-        old_img_json["Labels"]["build-date"],
+        # Label created in build stage - should be available
+        old_img_json["Labels"]["org.opencontainers.image.created"],
     )
