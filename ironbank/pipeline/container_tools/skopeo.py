@@ -25,7 +25,7 @@ class Skopeo(ContainerTool):
             "skopeo",
             "inspect",
         ]
-        cmd += ["--authfile"] if self.authfile else []
+        cmd += ["--authfile", self.authfile] if self.authfile else []
         cmd += ["--raw"] if raw else []
         cmd += [
             f"{image}",
