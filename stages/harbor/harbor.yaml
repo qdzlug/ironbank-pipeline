@@ -14,6 +14,7 @@ harbor:
     VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/vat_response.json
     ACCESS_LOG_DIR: ${ARTIFACT_STORAGE}/build
   script:
+    - 'pip install --user "${PIPELINE_REPO_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/harbor/upload_to_harbor.py"'
   retry:
     max: 2
