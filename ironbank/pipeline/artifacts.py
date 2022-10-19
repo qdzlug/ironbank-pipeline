@@ -15,6 +15,8 @@ from .abstract_artifacts import (
     AbstractArtifact,
     AbstractFileArtifact,
 )
+from ironbank.pipeline.image import Image, ImageFile
+from ironbank.pipeline.container_tools.skopeo import Skopeo
 
 
 @dataclass
@@ -130,6 +132,7 @@ class ContainerArtifact(AbstractArtifact):
 
     def __post_init__(self):
         super().__post_init__()
+        self.url = self.url.replace("docker://", "")
         self.__tar_name = self.tag.replace("/", "-").replace(":", "-")
         self.artifact_path = pathlib.Path(self.dest_path, f"{self.__tar_name}.tar")
 
@@ -146,22 +149,21 @@ class ContainerArtifact(AbstractArtifact):
             self.delete_artifact()
 
         self.log.info(f"Pulling {self.url}")
-        pull_cmd = [
-            "skopeo",
-            "copy",
-        ]
-        # authfile may not exist when testing locally
-        pull_cmd += [f"--authfile={self.authfile}"] if self.authfile.exists() else []
-        pull_cmd += ["--remove-signatures", "--additional-tag", self.tag]
-        pull_cmd += ["--src-creds", self.get_credentials()] if self.auth else []
-        # add src and dest
-        pull_cmd += [self.url, f"docker-archive:{self.artifact_path}"]
-        subprocess.run(
-            args=pull_cmd,
-            stdout=subprocess.PIPE,
-            stdin=subprocess.PIPE,
-            check=True,
+
+        # transport should already be included
+        # TODO: check for existing transport
+        src = Image(url=self.url, transport="docker://")
+        dest = ImageFile(file_path=self.artifact_path, transport="docker-archive:")
+
+        skopeo = Skopeo(authfile=self.authfile)
+        skopeo.copy(
+            src=src,
+            dest=dest,
+            remove_signatures=True,
+            additional_tags=self.tag,
+            src_creds=self.get_credentials() if self.auth else None,
         )
+
         self.log.info("Successfully pulled")
 
 

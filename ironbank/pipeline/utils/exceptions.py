@@ -12,3 +12,11 @@ class SymlinkFoundError(Exception):
 
 class ORASDownloadError(Exception):
     pass
+
+
+class MaxRetriesException(Exception):
+    pass
+
+
+class GenericSubprocessError(Exception):
+    pass

@@ -10,7 +10,12 @@ from base64 import b64decode
 import boto3
 from botocore.exceptions import ClientError
 
+from ironbank.pipeline.utils.exceptions import GenericSubprocessError
+
 from .utils import logger  # noqa: E402
+
+from ironbank.pipeline.image import Image, ImageFile
+from ironbank.pipeline.container_tools.skopeo import Skopeo
 
 log = logger.setup(name="stargate.artifact_push")
 
@@ -83,8 +88,6 @@ class Stargate:
         Returns a tuple of the name of the image dir and image description
         """
         log.info("Creating image directory")
-        registry1_path = f"docker://{os.environ['REGISTRY_URL_STAGING']}/{os.environ['IMAGE_NAME']}@{os.environ['IMAGE_PODMAN_SHA']}"
-        dir_path = f"oci:{self.image_dir}/{image_title}:{os.environ['IMAGE_VERSION']}"
         # create authfile for skopeo to pull from staging project
         staging_auth = (
             b64decode(os.environ["DOCKER_AUTH_CONFIG_STAGING"])
@@ -95,25 +98,23 @@ class Stargate:
         with Path("staging-auth.json").open(mode="w") as f:
             json.dump(auth_data, f)
 
-        add_cmd = [
-            "skopeo",
-            "copy",
-            "--authfile",
-            "staging-auth.json",
-            registry1_path,
-            dir_path,
-        ]
-
+        skopeo = Skopeo(authfile="staging-auth.json")
+        src = Image(
+            registry=os.environ["REGISTRY_URL_STAGING"],
+            name=os.environ["IMAGE_NAME"],
+            digest=os.environ["IMAGE_PODMAN_SHA"],
+            transport="docker://",
+        )
+        dest = ImageFile(
+            file_path=Path(
+                self.image_dir, f"{image_title}:{os.environ['IMAGE_VERSION']}"
+            ),
+            transport="oci:",
+        )
         try:
-            subprocess.run(
-                add_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                encoding="utf-8",
-                check=True,
-            )
-        except subprocess.SubprocessError:
-            log.exception("Could not skopeo copy.")
+            skopeo.copy(src, dest)
+        except GenericSubprocessError:
+            log.error("Could not skopeo copy.")
             sys.exit(1)
 
     def create_archive(self) -> None:

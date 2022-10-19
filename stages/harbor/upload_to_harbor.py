@@ -8,8 +8,12 @@ import os
 import pathlib
 import subprocess
 import sys
-from dataclasses import dataclass, field
+
+from ironbank.pipeline.image import Image
+from ironbank.pipeline.container_tools.skopeo import Skopeo
 import yaml
+
+from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 
 # https://github.com/anchore/syft#output-formats
 
@@ -27,18 +31,6 @@ unattached_predicates = [
     "sbom-json.json",
     "sbom-cyclonedx.xml",
 ]
-
-
-@dataclass
-class Image:
-    """
-    The Image Dataclass contains commonly used image attributes
-    """
-
-    name: str
-    registry: str
-    digest: str
-    tags: list[str] = field(default_factory=lambda: [])
 
 
 class Cosign:
@@ -212,33 +204,22 @@ def compare_digests(image: Image) -> None:
     Pull down image manifest to compare digest to digest from build environment
     """
 
-    manifest_file = pathlib.Path("manifest.json")
-    logging.info(f"Pulling {manifest_file} with skopeo")
-    cmd = [
-        "skopeo",
-        "inspect",
-        "--authfile",
-        "staging_auth.json",
-        "--raw",
-        f"docker://{image.registry}/{image.name}@{image.digest}",
-    ]
-    logging.info(" ".join(cmd))
-    with manifest_file.open(mode="w") as f:
-        try:
-            subprocess.run(
-                args=cmd,
-                stdout=f,
-                check=True,
-                encoding="utf-8",
-            )
-        except subprocess.CalledProcessError:
-            logging.error(
-                f"Failed to retrieve manifest for {image.registry}/{image.name}@{image.digest}"
-            )
-            sys.exit(1)
+    logging.info("Pulling manifest_file with skopeo")
+    skopeo = Skopeo("staging_auth.json")
+
+    try:
+        logging.info("Inspecting image in registry")
+        remote_inspect_raw = skopeo.inspect(
+            image.from_image(transport="docker://"), raw=True
+        )
+    except GenericSubprocessError:
+        logging.error(
+            f"Failed to retrieve manifest for {image.registry}/{image.name}@{image.digest}"
+        )
+        sys.exit(1)
 
     digest = os.environ["IMAGE_PODMAN_SHA"].split(":")[-1]
-    manifest = hashlib.sha256(manifest_file.read_bytes())
+    manifest = hashlib.sha256(remote_inspect_raw.encode())
 
     if digest == manifest.hexdigest():
         logging.info("Digests match")
@@ -247,40 +228,27 @@ def compare_digests(image: Image) -> None:
         sys.exit(1)
 
 
-def promote_tags(staging_image: Image, production_image: Image) -> None:
+def promote_tags(
+    staging_image: Image, production_image: Image, tags: list[str]
+) -> None:
     """
     Promote image from staging project to production project,
     tagging it according the the tags defined in tags.txt
     """
 
-    for tag in production_image.tags:
-        logging.info(
-            f"Copy from staging to {production_image.registry}/{production_image.name}:{tag}"
-        )
-        cmd = [
-            "skopeo",
-            "copy",
-            "--src-authfile",
-            "staging_auth.json",
-            "--dest-authfile",
-            "/tmp/config.json",
-            f"docker://{staging_image.registry}/{staging_image.name}@{staging_image.digest}",
-            f"docker://{production_image.registry}/{production_image.name}:{tag}",
-        ]
+    for tag in tags:
+        production_image = production_image.from_image(tag=tag)
+
+        logging.info(f"Copy from staging to {production_image}")
         try:
-            subprocess.run(
-                args=cmd,
-                check=True,
-                encoding="utf-8",
+            Skopeo.copy(
+                staging_image,
+                production_image,
+                src_authfile="staging_auth.json",
+                dest_authfile="/tmp/config.json",
             )
-        except subprocess.CalledProcessError:
-            logging.error(
-                f"""
-                Failed to copy
-                {staging_image.registry}/{staging_image.name}@{staging_image.digest}
-                to {production_image.registry}/{production_image.name}:{tag}
-                """
-            )
+        except GenericSubprocessError:
+            logging.error(f"Failed to copy {staging_image} to {production_image}")
             sys.exit(1)
 
 
@@ -342,9 +310,10 @@ def main():
     pathlib.Path("/tmp/config.json").write_text(dest_auth)
 
     staging_image = Image(
-        os.environ["IMAGE_NAME"],
-        os.environ["REGISTRY_URL_STAGING"],
-        os.environ["IMAGE_PODMAN_SHA"],
+        registry=os.environ["REGISTRY_URL_STAGING"],
+        name=os.environ["IMAGE_NAME"],
+        digest=os.environ["IMAGE_PODMAN_SHA"],
+        transport="docker://",
     )
 
     tags = []
@@ -355,10 +324,10 @@ def main():
             tags.append(tag.strip())
 
     production_image = Image(
-        os.environ["IMAGE_NAME"],
-        os.environ["REGISTRY_URL_PROD"],
-        os.environ["IMAGE_PODMAN_SHA"],
-        tags,
+        registry=os.environ["REGISTRY_URL_PROD"],
+        name=os.environ["IMAGE_NAME"],
+        digest=os.environ["IMAGE_PODMAN_SHA"],
+        transport="docker://",
     )
 
     cosign = Cosign(
@@ -373,7 +342,7 @@ def main():
     compare_digests(staging_image)
 
     # Transfer image from staging project to production project and tag
-    promote_tags(staging_image, production_image)
+    promote_tags(staging_image, production_image, tags)
 
     logging.info("Signing image")
     # Sign image in registry with Cosign
