@@ -17,6 +17,18 @@ from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
 log = logger.setup("scan_logic_jobs")
 
 
+def write_env_vars(image: str, digest: str, build_date: str):
+    log.info("Writing env variables to file")
+    with open("scan_logic.env", "w") as f:
+        f.writelines(
+            [
+                f"IMAGE_TO_SCAN={image}\n",
+                f"DIGEST_TO_SCAN={digest}\n",
+                f"BUILD_DATE_TO_SCAN={build_date}",
+            ]
+        )
+
+
 def parse_packages(sbom_path: Path, access_log_path: Path) -> list[Package]:
     """
     Verify sbom and access log files exist and parse packages accordingly
@@ -96,26 +108,14 @@ def main():
             else:
                 log.info("Image verify failed - Must scan new image")
 
-    log.info("Writing env variables to file")
-    with open("scan_logic.env", "w") as f:
-        if scan_new_image:
-            f.writelines(
-                [
-                    f"IMAGE_TO_SCAN={image_name}\n",
-                    f'DIGEST_TO_SCAN={os.environ["IMAGE_PODMAN_SHA"]}\n',
-                    f'BUILD_DATE_TO_SCAN={os.environ["BUILD_DATE"]}',
-                ]
-            )
-            log.info("New image digest and build date saved")
-        else:
-            f.writelines(
-                [
-                    f"IMAGE_TO_SCAN={image_name}\n",
-                    f"DIGEST_TO_SCAN={old_img_digest}\n",
-                    f"BUILD_DATE_TO_SCAN={old_img_build_date}",
-                ]
-            )
-            log.info("Old image digest and build date saved")
+    if scan_new_image:
+        write_env_vars(
+            image_name, os.environ["IMAGE_PODMAN_SHA"], os.environ["BUILD_DATE"]
+        )
+        log.info("New image digest and build date saved")
+    else:
+        write_env_vars(image_name, old_img_digest, old_img_build_date)
+        log.info("Old image digest and build date saved")
 
 
 if __name__ == "__main__":
