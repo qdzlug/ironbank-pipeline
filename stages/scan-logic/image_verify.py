@@ -3,11 +3,12 @@ import os
 import pathlib
 import subprocess
 from typing import Optional
-from ironbank.pipeline.project import DsopProject
-from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.image import Image
+from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.container_tools.skopeo import Skopeo
+from ironbank.pipeline.hardening_manifest import HardeningManifest
+from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 
 log = logger.setup("image_verify")
 
@@ -25,7 +26,7 @@ def inspect_old_image(
         )
         return skopeo.inspect(old_image)
 
-    except subprocess.CalledProcessError:
+    except GenericSubprocessError:
         log.info(
             f"Failed to inspect old image (expected if '{manifest.image_tag}' is new tag): {manifest.image_name}:{manifest.image_tag}"
         )
