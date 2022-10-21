@@ -1,7 +1,6 @@
 import json
 import os
 import pathlib
-import subprocess
 from typing import Optional
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.image import Image
