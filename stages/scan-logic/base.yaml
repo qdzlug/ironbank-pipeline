@@ -28,6 +28,8 @@ skip-logic:
   extends: .scan-logic
   except:
     - master
+  variables:
+    FORCE_SCAN_NEW_IMAGE: "True"
   script:
     - 'pip install --user "${PIPELINE_REPO_DIR}"'
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/scan-logic/skip_logic.py"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/scan-logic/scan_logic_jobs.py"'
