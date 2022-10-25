@@ -1,5 +1,5 @@
-import subprocess
 import os
+import subprocess
 from dataclasses import dataclass
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.image import Image, ImageFile
