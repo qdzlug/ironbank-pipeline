@@ -1,4 +1,5 @@
 import subprocess
+import os
 from dataclasses import dataclass
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.image import Image, ImageFile
@@ -43,6 +44,7 @@ class Cosign(ContainerTool):
                 "AWS_ACCESS_KEY_ID": self.aws_access_key_id or "",
                 "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key or "",
                 "AWS_REGION": self.aws_region,
+                **os.environ,
             },
         )
 
@@ -66,6 +68,7 @@ class Cosign(ContainerTool):
                 "AWS_ACCESS_KEY_ID": self.aws_access_key_id or "",
                 "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key or "",
                 "AWS_REGION": self.aws_region,
+                **os.environ,
             },
         )
 
@@ -96,5 +99,6 @@ class Cosign(ContainerTool):
                 "AWS_ACCESS_KEY_ID": self.aws_access_key_id or "",
                 "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key or "",
                 "AWS_REGION": self.aws_region,
+                **os.environ,
             },
         )
