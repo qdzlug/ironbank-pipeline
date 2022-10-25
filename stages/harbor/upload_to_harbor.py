@@ -6,11 +6,12 @@ import json
 import logging
 import os
 import pathlib
-import subprocess
+# import subprocess
 import sys
 
 from ironbank.pipeline.image import Image
 from ironbank.pipeline.container_tools.skopeo import Skopeo
+from ironbank.pipeline.container_tools.cosign import Cosign
 import yaml
 
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
@@ -33,170 +34,170 @@ unattached_predicates = [
 ]
 
 
-class Cosign:
-    """
-    Perform cosign operations
-    """
+# class Cosign:
+#     """
+#     Perform cosign operations
+#     """
 
-    def __init__(
-        self,
-        image: Image,
-        cosign_cert: str,
-        kms_key_arn: str,
-        aws_access_key_id: str,
-        aws_secret_access_key: str,
-    ):
-        self.image = image
-        self.cosign_cert = cosign_cert
-        self.kms_key_arn = kms_key_arn
-        self.aws_access_key_id = aws_access_key_id
-        self.aws_secret_access_key = aws_secret_access_key
+#     def __init__(
+#         self,
+#         image: Image,
+#         cosign_cert: str,
+#         kms_key_arn: str,
+#         aws_access_key_id: str,
+#         aws_secret_access_key: str,
+#     ):
+#         self.image = image
+#         self.cosign_cert = cosign_cert
+#         self.kms_key_arn = kms_key_arn
+#         self.aws_access_key_id = aws_access_key_id
+#         self.aws_secret_access_key = aws_secret_access_key
 
-    def sign_image(self) -> None:
-        """
-        Perform cosign image signature
-        """
-        logging.info(
-            f"Signing image: {self.image.registry}/{self.image.name}@{self.image.digest}"
-        )
-        sign_cmd = [
-            "cosign",
-            "sign",
-            "--key",
-            self.kms_key_arn,
-            "--cert",
-            self.cosign_cert,
-            f"{self.image.registry}/{self.image.name}@{self.image.digest}",
-        ]
-        logging.info(" ".join(sign_cmd))
-        try:
-            subprocess.run(
-                args=sign_cmd,
-                check=True,
-                encoding="utf-8",
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                env={
-                    "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
-                    "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
-                    "AWS_REGION": "us-gov-west-1",
-                    **os.environ,
-                },
-            )
-        except subprocess.CalledProcessError:
-            logging.error(
-                f"Failed to sign image: {self.image.registry}/{self.image.name}@{self.image.digest}"
-            )
-            sys.exit(1)
+#     def sign_image(self) -> None:
+#         """
+#         Perform cosign image signature
+#         """
+#         logging.info(
+#             f"Signing image: {self.image.registry}/{self.image.name}@{self.image.digest}"
+#         )
+#         sign_cmd = [
+#             "cosign",
+#             "sign",
+#             "--key",
+#             self.kms_key_arn,
+#             "--cert",
+#             self.cosign_cert,
+#             f"{self.image.registry}/{self.image.name}@{self.image.digest}",
+#         ]
+#         logging.info(" ".join(sign_cmd))
+#         try:
+#             subprocess.run(
+#                 args=sign_cmd,
+#                 check=True,
+#                 encoding="utf-8",
+#                 stdout=subprocess.PIPE,
+#                 stderr=subprocess.PIPE,
+#                 env={
+#                     "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
+#                     "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
+#                     "AWS_REGION": "us-gov-west-1",
+#                     **os.environ,
+#                 },
+#             )
+#         except subprocess.CalledProcessError:
+#             logging.error(
+#                 f"Failed to sign image: {self.image.registry}/{self.image.name}@{self.image.digest}"
+#             )
+#             sys.exit(1)
 
-    def remove_existing_signatures(self) -> None:
-        """
-        Remove existing signatures from the image.
-        """
-        logging.info(
-            f"Removing existing signatures from image: {self.image.registry}/{self.image.name}@{self.image.digest}"
-        )
-        sign_cmd = [
-            "cosign",
-            "clean",
-            f"{self.image.registry}/{self.image.name}@{self.image.digest}",
-        ]
-        logging.info(" ".join(sign_cmd))
-        try:
-            subprocess.run(
-                args=sign_cmd,
-                check=True,
-                encoding="utf-8",
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                env={
-                    "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
-                    "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
-                    "AWS_REGION": "us-gov-west-1",
-                    **os.environ,
-                },
-            )
-        except subprocess.CalledProcessError:
-            pass
+#     def remove_existing_signatures(self) -> None:
+#         """
+#         Remove existing signatures from the image.
+#         """
+#         logging.info(
+#             f"Removing existing signatures from image: {self.image.registry}/{self.image.name}@{self.image.digest}"
+#         )
+#         sign_cmd = [
+#             "cosign",
+#             "clean",
+#             f"{self.image.registry}/{self.image.name}@{self.image.digest}",
+#         ]
+#         logging.info(" ".join(sign_cmd))
+#         try:
+#             subprocess.run(
+#                 args=sign_cmd,
+#                 check=True,
+#                 encoding="utf-8",
+#                 stdout=subprocess.PIPE,
+#                 stderr=subprocess.PIPE,
+#                 env={
+#                     "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
+#                     "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
+#                     "AWS_REGION": "us-gov-west-1",
+#                     **os.environ,
+#                 },
+#             )
+#         except subprocess.CalledProcessError:
+#             pass
 
-    def sign_image_attachment(self, attachment_type) -> None:
-        """
-        Perform cosign image attachment signature
-        """
-        logging.info(
-            f"Signing {attachment_type}: {self.image.registry}/{self.image.name}@{self.image.digest}"
-        )
-        sign_cmd = [
-            "cosign",
-            "sign",
-            "--key",
-            self.kms_key_arn,
-            "--cert",
-            self.cosign_cert,
-            f"--attachment={attachment_type}",
-            f"{self.image.registry}/{self.image.name}@{self.image.digest}",
-        ]
-        logging.info(" ".join(sign_cmd))
-        try:
-            subprocess.run(
-                args=sign_cmd,
-                check=True,
-                encoding="utf-8",
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                env={
-                    "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
-                    "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
-                    "AWS_REGION": "us-gov-west-1",
-                    **os.environ,
-                },
-            )
-        except subprocess.CalledProcessError:
-            logging.error(
-                f"Failed to sign {attachment_type}: {self.image.registry}/{self.image.name}@{self.image.digest}"
-            )
-            sys.exit(1)
+#     def sign_image_attachment(self, attachment_type) -> None:
+#         """
+#         Perform cosign image attachment signature
+#         """
+#         logging.info(
+#             f"Signing {attachment_type}: {self.image.registry}/{self.image.name}@{self.image.digest}"
+#         )
+#         sign_cmd = [
+#             "cosign",
+#             "sign",
+#             "--key",
+#             self.kms_key_arn,
+#             "--cert",
+#             self.cosign_cert,
+#             f"--attachment={attachment_type}",
+#             f"{self.image.registry}/{self.image.name}@{self.image.digest}",
+#         ]
+#         logging.info(" ".join(sign_cmd))
+#         try:
+#             subprocess.run(
+#                 args=sign_cmd,
+#                 check=True,
+#                 encoding="utf-8",
+#                 stdout=subprocess.PIPE,
+#                 stderr=subprocess.PIPE,
+#                 env={
+#                     "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
+#                     "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
+#                     "AWS_REGION": "us-gov-west-1",
+#                     **os.environ,
+#                 },
+#             )
+#         except subprocess.CalledProcessError:
+#             logging.error(
+#                 f"Failed to sign {attachment_type}: {self.image.registry}/{self.image.name}@{self.image.digest}"
+#             )
+#             sys.exit(1)
 
-    def add_attestation(self, predicate_path: str, predicate_type: str) -> None:
-        """
-        Add attestation
-        """
-        logging.info(
-            f"Pushing attestation {predicate_path} with type of {predicate_type}"
-        )
-        cmd = [
-            "cosign",
-            "attest",
-            "--replace",
-            "--predicate",
-            predicate_path,
-            "--type",
-            f"{predicate_type}",
-            "--key",
-            self.kms_key_arn,
-            "--cert",
-            self.cosign_cert,
-            f"{self.image.registry}/{self.image.name}@{self.image.digest}",
-        ]
-        logging.info(" ".join(cmd))
-        try:
-            subprocess.run(
-                args=cmd,
-                check=True,
-                encoding="utf-8",
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                env={
-                    "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
-                    "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
-                    "AWS_REGION": "us-gov-west-1",
-                    **os.environ,
-                },
-            )
-        except subprocess.CalledProcessError as exception:
-            logging.error(f"Failed to add attestation {predicate_path}")
-            logging.error(exception)
-            sys.exit(1)
+#     def add_attestation(self, predicate_path: str, predicate_type: str) -> None:
+#         """
+#         Add attestation
+#         """
+#         logging.info(
+#             f"Pushing attestation {predicate_path} with type of {predicate_type}"
+#         )
+#         cmd = [
+#             "cosign",
+#             "attest",
+#             "--replace",
+#             "--predicate",
+#             predicate_path,
+#             "--type",
+#             f"{predicate_type}",
+#             "--key",
+#             self.kms_key_arn,
+#             "--cert",
+#             self.cosign_cert,
+#             f"{self.image.registry}/{self.image.name}@{self.image.digest}",
+#         ]
+#         logging.info(" ".join(cmd))
+#         try:
+#             subprocess.run(
+#                 args=cmd,
+#                 check=True,
+#                 encoding="utf-8",
+#                 stdout=subprocess.PIPE,
+#                 stderr=subprocess.PIPE,
+#                 env={
+#                     "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
+#                     "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
+#                     "AWS_REGION": "us-gov-west-1",
+#                     **os.environ,
+#                 },
+#             )
+#         except subprocess.CalledProcessError as exception:
+#             logging.error(f"Failed to add attestation {predicate_path}")
+#             logging.error(exception)
+#             sys.exit(1)
 
 
 def compare_digests(image: Image) -> None:
@@ -330,12 +331,19 @@ def main():
         transport="docker://",
     )
 
+    # cosign = Cosign(
+    #     production_image,
+    #     os.environ["COSIGN_CERT"],
+    #     os.environ["KMS_KEY_SHORT_ARN"],
+    #     os.environ["COSIGN_AWS_ACCESS_KEY_ID"],
+    #     os.environ["COSIGN_AWS_SECRET_ACCESS_KEY"],
+    # )
+
     cosign = Cosign(
-        production_image,
-        os.environ["COSIGN_CERT"],
-        os.environ["KMS_KEY_SHORT_ARN"],
-        os.environ["COSIGN_AWS_ACCESS_KEY_ID"],
-        os.environ["COSIGN_AWS_SECRET_ACCESS_KEY"],
+        cosign_cert=os.environ["COSIGN_CERT"],
+        kms_key_arn=os.environ["KMS_KEY_SHORT_ARN"],
+        aws_access_key_id=os.environ["COSIGN_AWS_ACCESS_KEY_ID"],
+        aws_secret_access_key=os.environ["COSIGN_AWS_SECRET_ACCESS_KEY"],
     )
 
     # Compare digests to ensure image integrity
@@ -346,7 +354,7 @@ def main():
 
     logging.info("Signing image")
     # Sign image in registry with Cosign
-    cosign.sign_image()
+    cosign.sign(production_image)
 
     hm_resources = [
         pathlib.Path(os.environ["CI_PROJECT_DIR"], "LICENSE"),
@@ -370,7 +378,7 @@ def main():
     predicates.append(pathlib.Path(os.environ["VAT_RESPONSE"]))
 
     for predicate in predicates:
-        cosign.add_attestation(predicate.as_posix(), predicate_types[predicate.name])
+        cosign.attest(production_image, predicate.as_posix(), predicate_types[predicate.name])
 
 
 if __name__ == "__main__":
