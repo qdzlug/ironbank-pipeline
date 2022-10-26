@@ -164,12 +164,7 @@ def main():
         transport="docker://",
     )
 
-    cosign = Cosign(
-        cosign_cert=os.environ["COSIGN_CERT"],
-        kms_key_arn=os.environ["KMS_KEY_SHORT_ARN"],
-        aws_access_key_id=os.environ["COSIGN_AWS_ACCESS_KEY_ID"],
-        aws_secret_access_key=os.environ["COSIGN_AWS_SECRET_ACCESS_KEY"],
-    )
+    cosign = Cosign()
 
     # Compare digests to ensure image integrity
     compare_digests(staging_image)
