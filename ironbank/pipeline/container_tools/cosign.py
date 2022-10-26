@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os
 import subprocess
 from dataclasses import dataclass
@@ -34,7 +36,7 @@ class Cosign(ContainerTool):
         cmd += ["--cert", self.cosign_cert] if self.cosign_cert else []
         cmd += ["--attachment", attachment] if attachment else []
         cmd += [f"{image.registry}/{image.name}@{image.digest}"]
-        log.info(f"Run Cosign.sign cmd: {cmd}")
+        log.info("Run Cosign.sign cmd: %s", cmd)
         subprocess.run(
             args=cmd,
             capture_output=True,
@@ -58,7 +60,7 @@ class Cosign(ContainerTool):
             "clean",
         ]
         cmd += [f"{image.registry}/{image.name}@{image.digest}"]
-        log.info(f"Run Cosign.clean cmd: {cmd}")
+        log.info("Run Cosign.clean cmd: %s", cmd)
         subprocess.run(
             args=cmd,
             capture_output=True,
@@ -89,7 +91,7 @@ class Cosign(ContainerTool):
         cmd += ["--key", self.kms_key_arn] if self.kms_key_arn else []
         cmd += ["--cert", self.cosign_cert] if self.cosign_cert else []
         cmd += [f"{image.registry}/{image.name}@{image.digest}"]
-        log.info(f"Run Cosign.attest cmd: {cmd}")
+        log.info("Run Cosign.attest cmd: %s", cmd)
         subprocess.run(
             args=cmd,
             capture_output=True,
