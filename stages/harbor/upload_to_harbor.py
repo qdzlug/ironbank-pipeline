@@ -210,7 +210,10 @@ def main():
     for predicate in predicates:
         try:
             cosign.attest(
-                production_image, predicate.as_posix(), predicate_types[predicate.name]
+                image=production_image,
+                predicate_path=predicate.as_posix(),
+                predicate_type=predicate_types[predicate.name],
+                replace=True,
             )
         except GenericSubprocessError:
             logging.error(f"Failed to add attestation {predicate.as_posix()}")

@@ -2,6 +2,7 @@
 
 import os
 import subprocess
+from typing import Union
 from dataclasses import dataclass
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.image import Image, ImageFile
@@ -24,7 +25,7 @@ class Cosign(ContainerTool):
     aws_region: str = "us-gov-west-1"
 
     @subprocess_error_handler(logging_message="Cosign.sign failed")
-    def sign(self, image: Image | ImageFile, attachment=None) -> None:
+    def sign(self, image: Union[Image, ImageFile], attachment=None) -> None:
         """
         Perform cosign image or image attachment signature
         """
@@ -51,7 +52,7 @@ class Cosign(ContainerTool):
         )
 
     @subprocess_error_handler(logging_message="Cosign.clean failed")
-    def clean(self, image: Image | ImageFile) -> None:
+    def clean(self, image: Union[Image, ImageFile]) -> None:
         """
         Remove existing signatures from the image.
         """
@@ -76,7 +77,11 @@ class Cosign(ContainerTool):
 
     @subprocess_error_handler(logging_message="Cosign.attest failed")
     def attest(
-        self, image: Image | ImageFile, predicate_path: str, predicate_type: str
+        self,
+        image: Union[Image, ImageFile],
+        predicate_path: str,
+        predicate_type: str,
+        replace: bool,
     ) -> None:
         """
         Add attestation
@@ -85,7 +90,7 @@ class Cosign(ContainerTool):
             "cosign",
             "attest",
         ]
-        cmd += ["--replace"]
+        cmd += ["--replace"] if replace else []
         cmd += ["--predicate", predicate_path]
         cmd += ["--type", predicate_type]
         cmd += ["--key", self.kms_key_arn] if self.kms_key_arn else []
