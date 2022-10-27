@@ -1,5 +1,5 @@
 twistlock-scan:
-  image: registry1.dso.mil/ironbank-apps/rootless-twistcli:22.01.880
+  image: registry1.dso.mil/ironbank-apps/rootless-twistcli:22.06.197
   stage: scanning
 
   # Load in the IMAGE_VERSION variable from load-scripts env
