@@ -1,0 +1,25 @@
+twistcli-package-paths:
+  stage: post-scan
+
+  # Load in the IMAGE_VERSION variable from load-scripts env
+  dependencies:
+    - twistlock-scan
+  variables:
+    # put all scan outputs in the scan-results folder
+    TWISTLOCK_SCANS: "${ARTIFACT_STORAGE}/scan-results/twistlock"
+    CVE_FILE: "${TWISTLOCK_SCANS}/twistlock_cve.json"
+    OUTPUT_JSON: "${TWISTLOCK_SCANS}/output.json"
+
+  script:
+    - 'pip install --user "${PIPELINE_REPO_DIR}"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/scanning/twistlock/twistcli-package-paths.py" "${CVE_FILE}" > "${OUTPUT_JSON}"'
+
+
+  artifacts:
+    when: always
+    paths:
+      - "${TWISTLOCK_SCANS}/"
+    expire_in: 1 week
+  retry:
+    max: 2
+    when: always
