@@ -21,6 +21,8 @@ twistlock-scan:
     - 'twistcli images scan --address "${TWISTLOCK_SERVER_ADDRESS}" --podman-path podman --custom-labels --output-file "${CVE_FILE}" --details "${IMAGE_FULLTAG}" | tee "${DETAIL_FILE}"'
     - 'ls "${CVE_FILE}"'
     - 'chmod 0644 "${CVE_FILE}"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/scanning/twistlock/twistcli-package-paths.py" "${CVE_FILE}" > "${TWISTLOCK_SCANS}/twistcli-package-paths-output.json"'
+
 
   artifacts:
     when: always
