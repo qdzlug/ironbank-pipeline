@@ -3,6 +3,9 @@ twistcli-package-paths:
 
   # Load in the IMAGE_VERSION variable from load-scripts env
   dependencies:
+    - load-scripts
+    - lint
+    - build
     - twistlock-scan
   variables:
     # put all scan outputs in the scan-results folder
