@@ -15,7 +15,7 @@ twistcli-package-paths:
 
   script:
     - 'pip install --user "${PIPELINE_REPO_DIR}"'
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/scanning/twistlock/twistcli-package-paths.py" "${CVE_FILE}" > "${OUTPUT_JSON}"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/post-scan/twistcli-package-paths.py" "${CVE_FILE}" > "${OUTPUT_JSON}"'
 
 
   artifacts:
