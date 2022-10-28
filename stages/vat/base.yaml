@@ -13,7 +13,7 @@ vat:
     - lint
     - anchore-scan
     - openscap-compliance
-    - twistlock-scan
+    - twistcli-package-paths
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/vat"
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: vat

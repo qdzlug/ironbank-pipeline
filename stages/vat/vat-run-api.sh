@@ -24,6 +24,6 @@ python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
   --comp_link "${OSCAP_COMPLIANCE_URL:-''}" \
   --repo_link "${CI_PROJECT_URL}" \
   --oscap "${ARTIFACT_STORAGE}/scan-results/openscap/compliance_output_report.xml" \
-  --twistlock "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json" \
+  --twistlock "${ARTIFACT_STORAGE}/scan-results/twistlock/output.json" \
   --anchore-sec "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json" \
   --anchore-gates "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json"

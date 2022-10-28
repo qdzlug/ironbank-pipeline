@@ -2,6 +2,7 @@ import sys
 import json
 from itertools import groupby
 
+
 def get_package_paths(twistlock_data):
     """
     Return a dict of (package_name, package_path) mapped to a list of paths.
@@ -22,6 +23,7 @@ def get_package_paths(twistlock_data):
         k: {p.get("path", None) for p in packages}
         for k, packages in groupby(sorted(packages(), key=keyfunc), key=keyfunc)
     }
+
 
 def get_vulnerabilities(twistlock_data):
     """
@@ -44,7 +46,8 @@ def get_vulnerabilities(twistlock_data):
                 "scan_source": "twistlock_cve",
             }
 
-twistlock_cve_path = sys.argv[1] # twistlock_cve.json
+
+twistlock_cve_path = sys.argv[1]  # twistlock_cve.json
 with open(twistlock_cve_path) as f:
     twistlock_data = json.load(f)["results"][0]
 
