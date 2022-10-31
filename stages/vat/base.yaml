@@ -13,13 +13,9 @@ vat:
     - lint
     - anchore-scan
     - openscap-compliance
-    - twistcli-package-paths
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/vat"
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: vat
-    ANCHORE_ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/anchore/"
-    TWISTLOCK_ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/openscap/"
-    OPENSCAP_ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/twistlock/"
   script:
     - 'mkdir -p "${ARTIFACT_DIR}"'
     - 'pip install --user "${PIPELINE_REPO_DIR}"'

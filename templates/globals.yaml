@@ -34,8 +34,6 @@ stages:
   # twistlock, oscap, and anchore scans
   - scanning
 
-  - post-scan
-
   ### VAT stage
   - vat
 
