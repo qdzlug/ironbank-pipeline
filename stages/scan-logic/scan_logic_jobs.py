@@ -17,9 +17,9 @@ from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
 log = logger.setup("scan_logic_jobs")
 
 
-def write_env_vars(image: str, digest: str, build_date: str):
+def write_env_vars(image: str, digest: str, build_date: str) -> None:
     log.info("Writing env variables to file")
-    with open("scan_logic.env", "w") as f:
+    with pathlib.Path("scan_logic.env").open("w") as f:
         f.writelines(
             [
                 f"IMAGE_TO_SCAN={image}\n",
