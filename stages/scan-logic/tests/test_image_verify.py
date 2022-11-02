@@ -8,6 +8,7 @@ import sys
 from ironbank.pipeline.test.mocks.mock_classes import (
     MockHardeningManifest,
     MockImage,
+    MockProject,
     MockSkopeo,
 )
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
@@ -74,7 +75,6 @@ def test_commit_sha_equal(monkeypatch, caplog):
     caplog.clear()
 
 
-@pytest.mark.only
 def test_parent_digest_equal(monkeypatch, caplog, mock_hm):
     log.info("Test parent_digest_equal returns false on missing label")
     img_json = {"Labels": {"example": 1}}
@@ -111,3 +111,41 @@ def test_parent_digest_equal(monkeypatch, caplog, mock_hm):
     ] = f"{base_registry}/{mock_hm.base_image_name}:{mock_hm.base_image_tag}@{mock_sha}"
     digests_equal = image_verify.parent_digest_equal(img_json, mock_hm)
     assert digests_equal is True
+
+
+@patch("image_verify.DsopProject", new=MockProject)
+@patch("image_verify.HardeningManifest", new=MockHardeningManifest)
+def test_diff_needed(monkeypatch):
+
+    log.info("Test Digest and Label values are returned on no diff")
+    mock_old_img_json = {
+        "Extra Key": "something",
+        "Digest": mock_sha,
+        "Labels": {"org.opencontainers.image.created": "sure"},
+    }
+    monkeypatch.setattr(
+        image_verify, "inspect_old_image", lambda x, y: mock_old_img_json
+    )
+    monkeypatch.setattr(image_verify, "commit_sha_equal", lambda x: True)
+    monkeypatch.setattr(image_verify, "parent_digest_equal", lambda x, y: True)
+    diff_needed = image_verify.diff_needed(".")
+    assert diff_needed == (
+        mock_old_img_json["Digest"],
+        mock_old_img_json["Labels"]["org.opencontainers.image.created"],
+    )
+
+    log.info("Test None is returned on empty old img inspect")
+    monkeypatch.setattr(image_verify, "inspect_old_image", lambda x, y: {})
+    assert image_verify.diff_needed(".") is None
+
+    log.info("Test None is returned on mismatched commit shas")
+    monkeypatch.setattr(
+        image_verify, "inspect_old_image", lambda x, y: mock_old_img_json
+    )
+    monkeypatch.setattr(image_verify, "commit_sha_equal", lambda x: False)
+    assert image_verify.diff_needed(".") is None
+
+    log.info("Test None is returned on mismatched parent digests")
+    monkeypatch.setattr(image_verify, "commit_sha_equal", lambda x: True)
+    monkeypatch.setattr(image_verify, "parent_digest_equal", lambda x, y: False)
+    assert image_verify.diff_needed(".") is None
