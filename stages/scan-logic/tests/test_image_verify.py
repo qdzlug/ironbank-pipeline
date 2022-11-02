@@ -48,8 +48,21 @@ def test_inspect_old_image(monkeypatch, mock_hm):
 
 
 @pytest.mark.only
-def test_commit_sha_equal(caplog):
-    revision_label_missing = image_verify.commit_sha_equal({"Labels": {"example": 1}})
+def test_commit_sha_equal(monkeypatch, caplog):
+    img_json = {"Labels": {"example": 1}}
+    revision_label_missing = image_verify.commit_sha_equal(img_json)
     assert "Image revision label does not exist" in caplog.text
     assert revision_label_missing == False
+    caplog.clear()
+
+    mock_sha = "abcdefg123"
+    img_json['Labels'] = {'org.opencontainers.image.revision': mock_sha}
+    monkeypatch.setenv("CI_COMMIT_SHA", mock_sha)
+    shas_match = image_verify.commit_sha_equal(img_json)
+    assert shas_match == True
+
+    monkeypatch.setenv("CI_COMMIT_SHA", "different_sha")
+    shas_match = image_verify.commit_sha_equal(img_json)
+    assert shas_match == False
+    assert "Git commit SHA difference detected" in caplog.text
     caplog.clear()
