@@ -17,12 +17,15 @@ class Cosign(ContainerTool):
     Perform cosign operations
     """
 
-    cosign_cert: str = field(default_factory=lambda : os.environ["COSIGN_CERT"])
-    kms_key_arn: str = field(default_factory=lambda : os.environ["KMS_KEY_SHORT_ARN"])
-    aws_access_key_id: str = field(default_factory=lambda : os.environ["COSIGN_AWS_ACCESS_KEY_ID"])
-    aws_secret_access_key: str = field(default_factory=lambda : os.environ["COSIGN_AWS_SECRET_ACCESS_KEY"])
+    cosign_cert: str = field(default_factory=lambda: os.environ["COSIGN_CERT"])
+    kms_key_arn: str = field(default_factory=lambda: os.environ["KMS_KEY_SHORT_ARN"])
+    aws_access_key_id: str = field(
+        default_factory=lambda: os.environ["COSIGN_AWS_ACCESS_KEY_ID"]
+    )
+    aws_secret_access_key: str = field(
+        default_factory=lambda: os.environ["COSIGN_AWS_SECRET_ACCESS_KEY"]
+    )
     aws_region: str = "us-gov-west-1"
-
 
     @subprocess_error_handler(logging_message="Cosign.sign failed")
     def sign(self, image: Image | ImageFile, attachment=None) -> None:
