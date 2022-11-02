@@ -19,9 +19,9 @@ class MockOpen:
         pass
 
 
-@dataclass
 class MockPath:
-    path: str = "changeme"
+    def __init__(self, path="", *args):
+        self.path: str = f"{path}/{'/'.join(args)}"
 
     def open(self, mode):
         return MockOpen(mode)
