@@ -6,9 +6,12 @@ from unittest import mock
 from unittest.mock import mock_open, patch
 import pytest
 from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
+from ironbank.pipeline.artifacts import ORASArtifact
 from ironbank.pipeline.test.test_artifacts import mock_s3_artifact
+from ironbank.pipeline.utils.exceptions import ORASDownloadError
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.test.mocks.mock_classes import MockPath
+from ironbank.pipeline.utils.testing import raise_
+from ironbank.pipeline.test.mocks.mock_classes import MockPath, MockSet
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import image_verify
@@ -56,7 +59,6 @@ def test_parse_packages(monkeypatch, caplog):
     pkgs = scan_logic_jobs.parse_packages(mock_sbom_path, mock_access_log_path)
     assert pkgs == set(mock_sbom_pkgs + mock_access_log_pkgs)
 
-
 @pytest.mark.only
 @patch("scan_logic_jobs.Path", new=MockPath)
 def test_main(monkeypatch, caplog):
@@ -87,3 +89,28 @@ def test_main(monkeypatch, caplog):
     monkeypatch.setattr(image_verify, "diff_needed", lambda x: None)
     scan_logic_jobs.main()
     assert "Image verify failed - Must scan new image" in caplog.text
+    caplog.clear()
+
+    log.info("Testing diff needed and ORAS download failed")
+    monkeypatch.setenv("BASE_REGISTRY", "example-registry")
+    monkeypatch.setattr(image_verify, "diff_needed", lambda x: ("test-digest", "test-date"))
+    monkeypatch.setattr(ORASArtifact, "download", lambda self, *args: raise_(ORASDownloadError("Test ORAS download failed")))
+    scan_logic_jobs.main()
+    assert "SBOM diff required to determine image to scan" in caplog.text
+    assert "Downloading artifacts for image: example-registry/example/test@test-digest" in caplog.text
+    assert "ORAS download failed - Must scan new image" in caplog.text
+    caplog.clear()
+
+    log.info("Test old image and new image package lists match")
+    monkeypatch.setattr(ORASArtifact, "download", lambda self, *args: True)
+    scan_logic_jobs.main()
+    assert "Package lists match - Able to scan old image" in caplog.text
+
+    log.info("Test old image and new image package lists do not match")
+    monkeypatch.setattr(
+        scan_logic_jobs,
+        "parse_packages",
+        lambda x, y: MockSet,
+    )
+    scan_logic_jobs.main()
+    assert "Package lists match - Able to scan old image" in caplog.text
