@@ -3,7 +3,9 @@
 from dataclasses import dataclass, field
 
 from ironbank.pipeline.hardening_manifest import HardeningManifest
+from ironbank.pipeline.image import Image, ImageFile
 from ironbank.pipeline.project import DsopProject
+from ironbank.pipeline.container_tools.skopeo import Skopeo
 
 
 @dataclass
@@ -56,3 +58,24 @@ class MockHardeningManifest(HardeningManifest):
     )
     resources: list[str] = field(default_factory=list)
     maintainers: list[str] = field(default_factory=list)
+
+
+@dataclass
+class MockImage(Image):
+    registry: str = "registry.example.com"
+    name: str = "example1/example"
+    tag: str = "1.0"
+    transport: str = "nah://"
+
+    def __post_init__(*args, **kwargs):
+        pass
+
+
+@dataclass
+class MockSkopeo(Skopeo):
+    # TODO: update these functions to log
+    def inspect(self, image: Image | ImageFile, raw: bool = False):
+        return str(image) if raw else image.__dict__
+
+    def copy(*args, **kwargs):
+        return ("stdout", "stderr")
