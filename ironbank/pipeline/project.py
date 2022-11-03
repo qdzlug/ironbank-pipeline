@@ -76,7 +76,7 @@ class DsopProject(Project):
 
     # TODO: Consider moving this to a separate "Dockerfile" module
     def validate_dockerfile(self) -> None:
-        with self.dockerfile_path.open("r") as f:
+        with self.dockerfile_path.open(mode="r", encoding="utf-8") as f:
             for line in f.readlines():
                 assert not re.findall(
                     r"^\s*LABEL", line
