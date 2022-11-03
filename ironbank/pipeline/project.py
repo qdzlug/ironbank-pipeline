@@ -32,7 +32,6 @@ class DsopProject(Project):
     def validate(self) -> None:
         self.validate_no_symlinked_files()
         self.validate_files_exist()
-        self.validate_clamav_whitelist_config()
         self.validate_trufflehog_config()
         self.validate_dockerfile()
 
@@ -62,18 +61,6 @@ class DsopProject(Project):
         assert not Path(
             "download.json"
         ).exists(), "download.json found, this file is no longer supported"
-
-    def validate_clamav_whitelist_config(self) -> None:
-        if os.environ.get("CLAMAV_WHITELIST") and not self.clamav_wl_path.exists():
-            self.log.error(
-                "CLAMAV_WHITELIST CI variable exists but clamav-whitelist file not found"
-            )
-            sys.exit(1)
-        if self.clamav_wl_path.exists() and not os.environ.get("CLAMAV_WHITELIST"):
-            self.log.error(
-                "clamav-whitelist file found but CLAMAV_WHITELIST CI variable does not exist"
-            )
-            sys.exit(1)
 
     def validate_trufflehog_config(self) -> None:
         assert not Path(
