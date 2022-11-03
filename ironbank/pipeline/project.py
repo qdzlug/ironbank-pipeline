@@ -12,7 +12,7 @@ from ironbank.pipeline.utils.exceptions import SymlinkFoundError
 @dataclass
 class Project:
     log = logger.setup(name="Project")
-    project_path: Optional[str] = Path(os.environ.get("CI_PROJECT_PATH", "."))
+    project_path: Optional[Path] = Path(os.environ.get("CI_PROJECT_PATH", "."))
 
 
 @dataclass
