@@ -7,9 +7,11 @@ from ironbank.pipeline.image import Image, ImageFile
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 
-class MockSet():
+
+class MockSet:
     def symmetric_difference(self):
         return False
+
 
 @dataclass
 class MockOpen:

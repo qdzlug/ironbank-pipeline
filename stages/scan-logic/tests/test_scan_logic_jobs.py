@@ -59,6 +59,7 @@ def test_parse_packages(monkeypatch, caplog):
     pkgs = scan_logic_jobs.parse_packages(mock_sbom_path, mock_access_log_path)
     assert pkgs == set(mock_sbom_pkgs + mock_access_log_pkgs)
 
+
 @pytest.mark.only
 @patch("scan_logic_jobs.Path", new=MockPath)
 def test_main(monkeypatch, caplog):
@@ -93,11 +94,20 @@ def test_main(monkeypatch, caplog):
 
     log.info("Testing diff needed and ORAS download failed")
     monkeypatch.setenv("BASE_REGISTRY", "example-registry")
-    monkeypatch.setattr(image_verify, "diff_needed", lambda x: ("test-digest", "test-date"))
-    monkeypatch.setattr(ORASArtifact, "download", lambda self, *args: raise_(ORASDownloadError("Test ORAS download failed")))
+    monkeypatch.setattr(
+        image_verify, "diff_needed", lambda x: ("test-digest", "test-date")
+    )
+    monkeypatch.setattr(
+        ORASArtifact,
+        "download",
+        lambda self, *args: raise_(ORASDownloadError("Test ORAS download failed")),
+    )
     scan_logic_jobs.main()
     assert "SBOM diff required to determine image to scan" in caplog.text
-    assert "Downloading artifacts for image: example-registry/example/test@test-digest" in caplog.text
+    assert (
+        "Downloading artifacts for image: example-registry/example/test@test-digest"
+        in caplog.text
+    )
     assert "ORAS download failed - Must scan new image" in caplog.text
     caplog.clear()
 
