@@ -238,11 +238,10 @@ def get_package_paths(twistlock_data):
 
     def packages():
         # Often go versions of binaries are in "applications"
-        if "applications" in twistlock_data:
-            yield from twistlock_data["applications"]
+        yield from twistlock_data.get("applications", [])
 
         # Python/RPM/Go/etc package versions are in "packages"
-        yield from twistlock_data["packages"]
+        yield from twistlock_data.get("packages", [])
 
     # Sort and group by name and version
     keyfunc = lambda x: (x["name"], x["version"])  # noqa E731
