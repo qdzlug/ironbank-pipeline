@@ -266,7 +266,7 @@ def get_vulnerabilities(twistlock_data):
     packages = get_package_paths(twistlock_data)
 
     try:
-        for v in twistlock_data["vulnerabilities"]:
+        for v in twistlock_data.get("vulnerabilities", []):
             key = v["packageName"], v["packageVersion"]
             severity = (
                 "low"
