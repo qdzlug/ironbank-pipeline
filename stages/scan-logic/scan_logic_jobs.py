@@ -47,7 +47,7 @@ def parse_packages(sbom_path: Path, access_log_path: Path) -> list[Package]:
 
 def main():
     image_name = os.environ["IMAGE_NAME"]
-    new_sbom = Path(os.environ["ARTIFACT_STORAGE"], "sbom/sbom-json.json")
+    new_sbom = Path(os.environ["ARTIFACT_STORAGE"], "sbom/sbom-syft-json.json")
     new_access_log = Path(os.environ["ARTIFACT_STORAGE"], "build/access_log")
 
     log.info("Parsing new packages")
