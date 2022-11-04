@@ -1,21 +1,18 @@
-import base64
 import os
 import pathlib
 import sys
-from unittest import mock
 from unittest.mock import mock_open, patch
 import pytest
 from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
 from ironbank.pipeline.artifacts import ORASArtifact
-from ironbank.pipeline.test.test_artifacts import mock_s3_artifact
 from ironbank.pipeline.utils.exceptions import ORASDownloadError
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.test.mocks.mock_classes import MockPath, MockSet
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import image_verify
-import scan_logic_jobs
+import image_verify  # noqa E402
+import scan_logic_jobs  # noqa E402
 
 log = logger.setup("test_scan_logic_jobs")
 
