@@ -99,6 +99,9 @@ pylint:
   script:
     - pip install --user pylint
     - pylint ironbank/ stages/
+  cache:
+    paths:
+      - ./ironbank_1.stats
 
 shfmt:
   needs: []
