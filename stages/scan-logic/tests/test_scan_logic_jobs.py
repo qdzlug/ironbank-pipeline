@@ -112,15 +112,16 @@ def test_main(monkeypatch, caplog):
     caplog.clear()
 
     log.info("Test old image and new image package lists match")
+    monkeypatch.setattr(
+        scan_logic_jobs,
+        "parse_packages",
+        lambda x, y: MockSet(),
+    )
     monkeypatch.setattr(ORASArtifact, "download", lambda self, *args: True)
     scan_logic_jobs.main()
     assert "Package lists match - Able to scan old image" in caplog.text
 
     log.info("Test old image and new image package lists do not match")
-    monkeypatch.setattr(
-        scan_logic_jobs,
-        "parse_packages",
-        lambda x, y: MockSet,
-    )
+    monkeypatch.setattr(MockSet, "symmetric_difference", lambda self, x: True)
     scan_logic_jobs.main()
     assert "Package lists match - Able to scan old image" in caplog.text

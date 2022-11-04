@@ -8,9 +8,13 @@ from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 
 
-class MockSet:
-    def symmetric_difference(self):
+class MockSet(set):
+    def symmetric_difference(self, other):
         return False
+
+    # overload subtraction, not needed but might be useful
+    # def __sub__(self, other):
+    #     return ['Example diff']
 
 
 @dataclass
