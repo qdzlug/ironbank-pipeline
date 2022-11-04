@@ -94,6 +94,8 @@ pylint:
     - ironbank-tools
   stage: lint
   allow_failure: true
+  variables:
+    PYLINTHOME: $CI_PROJECT_DIR
   script:
     - pip install --user pylint
     - pylint ironbank/ stages/
