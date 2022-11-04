@@ -76,8 +76,8 @@ class MockImage(Image):
     tag: str = "1.0"
     transport: str = "nah://"
 
-    def __post_init__(*args, **kwargs):
-        pass
+    # def __post_init__(*args, **kwargs):
+    #     pass
 
 
 @dataclass
