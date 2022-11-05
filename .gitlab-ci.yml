@@ -106,6 +106,10 @@ pylint:
   artifacts:
     paths:
       - ./pylint/
+  cache:
+    key: pylint-cache
+    paths:
+      - ./ironbank_1.stats
 
 shfmt:
   needs: []
