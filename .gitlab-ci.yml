@@ -93,6 +93,7 @@ pylint:
   tags:
     - ironbank-tools
   stage: lint
+  allow_failure: true
   variables:
     PYLINTHOME: $CI_PROJECT_DIR
   before_script:
