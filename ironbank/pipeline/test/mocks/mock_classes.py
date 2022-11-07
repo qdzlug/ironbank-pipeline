@@ -8,6 +8,15 @@ from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 
 
+class MockSet(set):
+    def symmetric_difference(self, other):
+        return False
+
+    # overload subtraction, not needed but might be useful
+    # def __sub__(self, other):
+    #     return ['Example diff']
+
+
 @dataclass
 class MockOpen:
     mode: str = "r"
@@ -19,9 +28,9 @@ class MockOpen:
         pass
 
 
-@dataclass
 class MockPath:
-    path: str = "changeme"
+    def __init__(self, path="", *args):
+        self.path: str = f"{path}/{'/'.join(args)}"
 
     def open(self, mode):
         return MockOpen(mode)
@@ -67,8 +76,8 @@ class MockImage(Image):
     tag: str = "1.0"
     transport: str = "nah://"
 
-    def __post_init__(*args, **kwargs):
-        pass
+    # def __post_init__(*args, **kwargs):
+    #     pass
 
 
 @dataclass
