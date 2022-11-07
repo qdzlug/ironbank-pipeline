@@ -28,7 +28,6 @@ def test_skopeo_init():
     skopeo.docker_config_dir = None
 
 
-@pytest.mark.only
 def test_inspect(monkeypatch, caplog):
     mock_image = MockImage(registry="example.com", name="example/test", tag="1.0")
     skopeo = Skopeo()
@@ -63,7 +62,6 @@ def test_inspect(monkeypatch, caplog):
     caplog.clear()
 
 
-@pytest.mark.only
 def test_copy(monkeypatch, caplog):
     skopeo = Skopeo()
     mock_src = mock_image.from_image()
@@ -82,9 +80,31 @@ def test_copy(monkeypatch, caplog):
         skopeo.copy(mock_src, None)
     assert "Missing destination from copy command" in e.value.args
 
+    log.info("Test missing transport raises exception")
     with pytest.raises(CopyException) as e:
         skopeo.copy(mock_src.from_image(transport=None), mock_dest)
     assert "Missing transport for source" in e.value.args
     with pytest.raises(CopyException) as e:
         skopeo.copy(mock_src, mock_dest.from_image(transport=None))
     assert "Missing transport for destination" in e.value.args
+
+    mock_subprocess_response = type(
+        "MockSubprocessResponse", (), {"stdout": "Successful Copy", "stderr": ""}
+    )
+    monkeypatch.setattr(
+        subprocess, "run", lambda *args, **kwargs: mock_subprocess_response
+    )
+    log.info("Test successful copy with additional tags")
+    result = skopeo.copy(mock_src, mock_dest, additional_tags=["--test", "abc"])
+    assert result == ("Successful Copy", "")
+
+    log.info(
+        "Test SubprocessError is caught by decorator and GenericSubprocessError is thrown"
+    )
+    monkeypatch.setattr(
+        subprocess, "run", lambda *args, **kwargs: raise_(subprocess.SubprocessError)
+    )
+    with pytest.raises(GenericSubprocessError):
+        result = skopeo.copy(mock_src, mock_dest)
+    assert "Skopeo.copy failed" in caplog.text
+    caplog.clear()

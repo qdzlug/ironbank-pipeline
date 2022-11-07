@@ -57,7 +57,6 @@ def test_parse_packages(monkeypatch, caplog):
     assert pkgs == set(mock_sbom_pkgs + mock_access_log_pkgs)
 
 
-@pytest.mark.only
 @patch("scan_logic_jobs.Path", new=MockPath)
 def test_main(monkeypatch, caplog):
     # avoid actually creating env var file for all tests
