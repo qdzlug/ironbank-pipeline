@@ -1,4 +1,3 @@
-import pytest
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.container_tools.container_tool import ContainerTool
 
