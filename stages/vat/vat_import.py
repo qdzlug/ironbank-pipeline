@@ -277,7 +277,7 @@ def get_vulnerabilities(twistlock_data):
                     "finding": v["id"],
                     "severity": severity,
                     "description": v.get("description"),
-                    "link": v["link"],
+                    "link": v.get("link"),
                     "score": v.get("cvss"),
                     "package": f"{v['packageName']}-{v['packageVersion']}",
                     "packagePath": path,
