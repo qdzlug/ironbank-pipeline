@@ -241,8 +241,7 @@ def get_oscap_full(oscap_file, justifications):
                     "SKIPPING: rule %s - OVAL check repeats and this finding is checked elsewhere", rule_id
                 )
                 continue
-            else:
-                patches_up_to_date_dupe = True
+            patches_up_to_date_dupe = True
         # Get the <rule> that corresponds to the <rule-result>
         # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
         rule = root.find(f".//xccdf:Rule[@id='{rule_id}']", ns)
@@ -266,7 +265,7 @@ def get_oscap_full(oscap_file, justifications):
             if ref_title is not None:
                 assert ref_identifier is not None
                 return f"{ref_title.text}: {ref_identifier.text}"
-            elif href:
+            if href:
                 return f"{href} {ref.text}"
 
             return ref.text
