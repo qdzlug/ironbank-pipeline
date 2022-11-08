@@ -10,6 +10,9 @@ from ironbank.pipeline.vat_container_status import is_approved
 
 
 def main():
+    """
+    Calls is_approved method in ironbank.pipeline.vat_container_status
+    """
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
     if loglevel == "DEBUG":
