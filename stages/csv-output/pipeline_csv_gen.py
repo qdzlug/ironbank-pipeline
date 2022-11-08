@@ -238,7 +238,8 @@ def get_oscap_full(oscap_file, justifications):
         if rule_id == "xccdf_org.ssgproject.content_rule_security_patches_up_to_date":
             if patches_up_to_date_dupe:
                 logging.debug(
-                    "SKIPPING: rule %s - OVAL check repeats and this finding is checked elsewhere", rule_id
+                    "SKIPPING: rule %s - OVAL check repeats and this finding is checked elsewhere",
+                    rule_id,
                 )
                 continue
             patches_up_to_date_dupe = True
@@ -332,7 +333,11 @@ def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
                 # get associated justification if one exists
                 cve_justification = ""
                 # if d["description"]:
-                identifier = (vuln["id"], f"{vuln['packageName']}-{vuln['packageVersion']}", None)
+                identifier = (
+                    vuln["id"],
+                    f"{vuln['packageName']}-{vuln['packageVersion']}",
+                    None,
+                )
                 # id = d["cve"] + "-" + d["description"]
                 # else:
                 #     id = d["cve"]
