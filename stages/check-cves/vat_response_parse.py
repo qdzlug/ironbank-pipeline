@@ -42,11 +42,15 @@ def main():
     if exit_code != 0:
         logging.debug("Error: This pipeline failed the Check CVEs job")
         if os.environ["CI_COMMIT_BRANCH"] == "master":
-            subprocess.run(
-                [
-                    f"{os.environ['PIPELINE_REPO_DIR']}/stages/check-cves/mattermost-failure-webhook.sh"
-                ]
-            )
+            try:
+                subprocess.run(
+                    [
+                        f"{os.environ['PIPELINE_REPO_DIR']}/stages/check-cves/mattermost-failure-webhook.sh"
+                    ],
+                    check=True,
+                )
+            except subprocess.CalledProcessError:
+                logging.error("Failed to call ChatOps webhook for CVE failure")
     sys.exit(exit_code)
 
 
