@@ -36,9 +36,9 @@ def main():
     _, exit_code, accreditation_status, accreditation_comments = is_approved(
         vat_response, True
     )
-    logging.debug(f"EXIT CODE returned from is_approved function: {exit_code}")
-    logging.debug(f"Accreditation Status: {accreditation_status}")
-    logging.debug(f"Accreditation Comments: {accreditation_comments}")
+    logging.debug("EXIT CODE returned from is_approved function: %s", exit_code)
+    logging.debug("Accreditation Status: %s", accreditation_status)
+    logging.debug("Accreditation Comments: %s", accreditation_comments)
     if exit_code != 0:
         logging.debug("Error: This pipeline failed the Check CVEs job")
         if os.environ["CI_COMMIT_BRANCH"] == "master":
