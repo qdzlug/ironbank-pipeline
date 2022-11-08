@@ -180,6 +180,10 @@ def generate_summary_report(csv_dir, osc, tlf, anchore_num_cves, anchore_complia
 
 # Generate csv for OSCAP findings with justifications
 def generate_oscap_report(oscap, justifications, csv_dir):
+    """
+    Writes the OSCAP CSV.
+    Calls the get_oscap_full function to first parse the OSCAP XML report.
+    """
     oscap_cves = get_oscap_full(oscap, justifications)
     with open(csv_dir + "oscap.csv", mode="w", encoding="utf-8") as f:
         csv_writer = csv.writer(f)
@@ -207,6 +211,10 @@ def generate_oscap_report(oscap, justifications, csv_dir):
 
 # Get full OSCAP report with justifications for csv export
 def get_oscap_full(oscap_file, justifications):
+    """
+    Parses the OSCAP XML report, and converts the finding into a list of dictionaries.
+    This list will be used to create an OSCAP CSV.
+    """
     root = etree.parse(oscap_file)
     ns = {
         "xccdf": "http://checklists.nist.gov/xccdf/1.2",
@@ -314,6 +322,9 @@ def get_oscap_full(oscap_file, justifications):
 
 # Get results from Twistlock report for csv export
 def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
+    """
+    Writes the Twistlock CVE report to CSV
+    """
     with open(twistlock_cve_json, mode="r", encoding="utf-8") as f:
         json_data = json.load(f)
         cves = []
