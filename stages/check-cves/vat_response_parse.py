@@ -23,7 +23,11 @@ def main():
         logging.info("Log level set to info")
 
     vat_response = {}
-    with open(f"{os.environ['ARTIFACT_STORAGE']}/vat/vat_response.json", "r") as f:
+    with open(
+        f"{os.environ['ARTIFACT_STORAGE']}/vat/vat_response.json",
+        mode="r",
+        encoding="utf-8",
+    ) as f:
         vat_response = json.load(f)
 
     _, exit_code, accreditation_status, accreditation_comments = is_approved(
