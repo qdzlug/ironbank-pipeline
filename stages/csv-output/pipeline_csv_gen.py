@@ -325,33 +325,29 @@ def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
         json_data = json.load(f)
         cves = []
         if "vulnerabilities" in json_data["results"][0]:
-            for vuln in json_data["results"][0]["vulnerabilities"]:
+            for d in json_data["results"][0]["vulnerabilities"]:
                 # get associated justification if one exists
                 cve_justification = ""
                 # if d["description"]:
-                identifier = (
-                    vuln["id"],
-                    f"{vuln['packageName']}-{vuln['packageVersion']}",
-                    None,
-                )
+                id = (d["id"], f"{d['packageName']}-{d['packageVersion']}", None)
                 # id = d["cve"] + "-" + d["description"]
                 # else:
                 #     id = d["cve"]
-                if identifier in justifications.keys():
-                    cve_justification = justifications[identifier]
+                if id in justifications.keys():
+                    cve_justification = justifications[id]
                 # else cve_justification is ""
                 try:
                     cves.append(
                         {
-                            "id": vuln["id"],
-                            "cvss": vuln.get("cvss"),
-                            "desc": vuln.get("description"),
-                            "link": vuln.get("link"),
-                            "packageName": vuln["packageName"],
-                            "packageVersion": vuln["packageVersion"],
-                            "severity": vuln["severity"],
-                            "status": vuln.get("status"),
-                            "vecStr": vuln.get("vector"),
+                            "id": d["id"],
+                            "cvss": d.get("cvss"),
+                            "desc": d.get("description"),
+                            "link": d.get("link"),
+                            "packageName": d["packageName"],
+                            "packageVersion": d["packageVersion"],
+                            "severity": d["severity"],
+                            "status": d.get("status"),
+                            "vecStr": d.get("vector"),
                             "Justification": cve_justification,
                         }
                     )
