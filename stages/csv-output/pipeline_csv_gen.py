@@ -57,7 +57,7 @@ def main():
     vat_findings_file = pathlib.Path(artifacts_path, "vat", "vat_response.json")
     # load vat_findings.json file
     try:
-        with vat_findings_file.open(mode="r") as f:
+        with vat_findings_file.open(mode="r", encoding="utf-8") as f:
             vat_findings = json.load(f)
     except Exception:
         logging.exception("Error reading findings file.")
@@ -107,84 +107,101 @@ def main():
 
 # Blank OSCAP Report
 def generate_blank_oscap_report(csv_dir):
-    oscap_report = open(csv_dir + "oscap.csv", "w", encoding="utf-8")
-    csv_writer = csv.writer(oscap_report)
-    csv_writer.writerow(
-        ["OpenSCAP Scan Skipped Due to Base Image Used", "", "", "", "", "", "", "", ""]
-    )
-    oscap_report.close()
+    """
+    Creates an empty oscap report, used when the OpenSCAP scan was skipped.
+    """
+    with open(
+        csv_dir + "oscap.csv",
+        mode="w",
+        encoding="utf-8",
+    ) as f:
+        csv_writer = csv.writer(f)
+        csv_writer.writerow(
+            [
+                "OpenSCAP Scan Skipped Due to Base Image Used",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+            ]
+        )
 
 
 # SUMMARY REPORT
 def generate_summary_report(csv_dir, osc, tlf, anchore_num_cves, anchore_compliance):
-    sum_data = open(csv_dir + "summary.csv", "w", encoding="utf-8")
-    csv_writer = csv.writer(sum_data)
+    """
+    Creates a summary CSV with the finding totals from each scan
+    """
+    with open(csv_dir + "summary.csv", "w", encoding="utf-8") as f:
+        csv_writer = csv.writer(f)
 
-    header = ["Scan", "Automated Findings", "Manual Checks", "Total"]
+        header = ["Scan", "Automated Findings", "Manual Checks", "Total"]
 
-    # if the osc arg type is an int, the scan was skipped so output zero values
-    if type(osc) == int:
-        osl = ["OpenSCAP - DISA Compliance", 0, 0, 0]
-    # osc arg is a tuple, meaning the generate_oscap_report function was run
-    else:
-        osl = ["OpenSCAP - DISA Compliance", osc[0], osc[1], osc[0] + osc[1]]
+        # if the osc arg type is an int, the scan was skipped so output zero values
+        if isinstance(osc, int):
+            osl = ["OpenSCAP - DISA Compliance", 0, 0, 0]
+        # osc arg is a tuple, meaning the generate_oscap_report function was run
+        else:
+            osl = ["OpenSCAP - DISA Compliance", osc[0], osc[1], osc[0] + osc[1]]
 
-    anchore_vulns = ["Anchore CVE Results", anchore_num_cves, 0, anchore_num_cves]
-    anchore_comps = [
-        "Anchore Compliance Results",
-        anchore_compliance["stop_count"],
-        0,
-        anchore_compliance["stop_count"],
-    ]
-    twl = ["Twistlock Vulnerability Results", int(tlf or 0), 0, int(tlf or 0)]
-
-    csv_writer.writerow(header)
-    csv_writer.writerow(osl)
-    csv_writer.writerow(twl)
-    csv_writer.writerow(anchore_vulns)
-    csv_writer.writerow(anchore_comps)
-    csv_writer.writerow(
-        [
-            "Totals",
-            osl[1] + anchore_vulns[1] + anchore_comps[1] + twl[1],
-            osl[2] + anchore_vulns[2] + anchore_comps[2] + twl[2],
-            osl[3] + anchore_vulns[3] + anchore_comps[3] + twl[3],
+        anchore_vulns = ["Anchore CVE Results", anchore_num_cves, 0, anchore_num_cves]
+        anchore_comps = [
+            "Anchore Compliance Results",
+            anchore_compliance["stop_count"],
+            0,
+            anchore_compliance["stop_count"],
         ]
-    )
+        twl = ["Twistlock Vulnerability Results", int(tlf or 0), 0, int(tlf or 0)]
 
-    csv_writer.writerow("")
-    # date_str = 'Scans performed on: ' + str(osc[2])
-    # csv_writer.writerow(['Scans performed on:', ]) # need date scanned
-    sha_str = f"Scans performed on container layer sha256: {anchore_compliance['image_id']},,,"
-    csv_writer.writerow([sha_str])
-    sum_data.close()
+        csv_writer.writerow(header)
+        csv_writer.writerow(osl)
+        csv_writer.writerow(twl)
+        csv_writer.writerow(anchore_vulns)
+        csv_writer.writerow(anchore_comps)
+        csv_writer.writerow(
+            [
+                "Totals",
+                osl[1] + anchore_vulns[1] + anchore_comps[1] + twl[1],
+                osl[2] + anchore_vulns[2] + anchore_comps[2] + twl[2],
+                osl[3] + anchore_vulns[3] + anchore_comps[3] + twl[3],
+            ]
+        )
+
+        csv_writer.writerow("")
+        # date_str = 'Scans performed on: ' + str(osc[2])
+        # csv_writer.writerow(['Scans performed on:', ]) # need date scanned
+        sha_str = f"Scans performed on container layer sha256: {anchore_compliance['image_id']},,,"
+        csv_writer.writerow([sha_str])
 
 
 # Generate csv for OSCAP findings with justifications
 def generate_oscap_report(oscap, justifications, csv_dir):
     oscap_cves = get_oscap_full(oscap, justifications)
-    oscap_data = open(csv_dir + "oscap.csv", "w", encoding="utf-8")
-    csv_writer = csv.writer(oscap_data)
-    count = 0
-    fail_count = 0
-    nc_count = 0
-    scanned = ""
-    for line in oscap_cves:
-        if count == 0:
-            header = line.keys()
-            csv_writer.writerow(header)
-            count += 1
-        if line["result"] == "fail":
-            fail_count += 1
-        elif line["result"] == "notchecked":
-            nc_count += 1
-        scanned = line["scanned_date"]
-        try:
-            csv_writer.writerow(line.values())
-        except Exception as e:
-            logging.error(f"problem writing line: {line.values()}")
-            raise e
-    oscap_data.close()
+    with open(csv_dir + "oscap.csv", mode="w", encoding="utf-8") as f:
+        csv_writer = csv.writer(f)
+        count = 0
+        fail_count = 0
+        nc_count = 0
+        scanned = ""
+        for line in oscap_cves:
+            if count == 0:
+                header = line.keys()
+                csv_writer.writerow(header)
+                count += 1
+            if line["result"] == "fail":
+                fail_count += 1
+            elif line["result"] == "notchecked":
+                nc_count += 1
+            scanned = line["scanned_date"]
+            try:
+                csv_writer.writerow(line.values())
+            except Exception as e:
+                logging.error("problem writing line: %s", line.values())
+                raise e
     return fail_count, nc_count, scanned
 
 
