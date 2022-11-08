@@ -97,7 +97,7 @@ pylint:
   variables:
     PYLINTHOME: $CI_PROJECT_DIR
   before_script:
-    - pip install --user pylint pylint-exit anybadge
+    - python3 -m pip install --user pylint pylint-exit anybadge
     - python3 -m pip install --user .
   script:
     - mkdir ./pylint
