@@ -170,8 +170,6 @@ def generate_summary_report(csv_dir, osc, tlf, anchore_num_cves, anchore_complia
         )
 
         csv_writer.writerow("")
-        # date_str = 'Scans performed on: ' + str(osc[2])
-        # csv_writer.writerow(['Scans performed on:', ]) # need date scanned
         sha_str = f"Scans performed on container layer sha256: {anchore_compliance['image_id']},,,"
         csv_writer.writerow([sha_str])
 
@@ -328,18 +326,13 @@ def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
             for d in json_data["results"][0]["vulnerabilities"]:
                 # get associated justification if one exists
                 cve_justification = ""
-                # if d["description"]:
                 identifier = (
                     d["id"],
                     f"{d['packageName']}-{d['packageVersion']}",
                     None,
                 )
-                # id = d["cve"] + "-" + d["description"]
-                # else:
-                #     id = d["cve"]
                 if identifier in justifications.keys():
                     cve_justification = justifications[identifier]
-                # else cve_justification is ""
                 try:
                     cves.append(
                         {
