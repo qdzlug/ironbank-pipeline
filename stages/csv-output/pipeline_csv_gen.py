@@ -105,7 +105,6 @@ def main():
     )
 
 
-# Blank OSCAP Report
 def generate_blank_oscap_report(csv_dir):
     """
     Creates an empty oscap report, used when the OpenSCAP scan was skipped.
@@ -131,7 +130,6 @@ def generate_blank_oscap_report(csv_dir):
         )
 
 
-# SUMMARY REPORT
 def generate_summary_report(csv_dir, osc, tlf, anchore_num_cves, anchore_compliance):
     """
     Creates a summary CSV with the finding totals from each scan
@@ -178,10 +176,9 @@ def generate_summary_report(csv_dir, osc, tlf, anchore_num_cves, anchore_complia
         csv_writer.writerow([sha_str])
 
 
-# Generate csv for OSCAP findings with justifications
 def generate_oscap_report(oscap, justifications, csv_dir):
     """
-    Writes the OSCAP CSV.
+    Generate csv for OSCAP findings with justifications
     Calls the get_oscap_full function to first parse the OSCAP XML report.
     """
     oscap_cves = get_oscap_full(oscap, justifications)
@@ -209,9 +206,9 @@ def generate_oscap_report(oscap, justifications, csv_dir):
     return fail_count, nc_count, scanned
 
 
-# Get full OSCAP report with justifications for csv export
 def get_oscap_full(oscap_file, justifications):
     """
+    Get full OSCAP report with justifications for csv export
     Parses the OSCAP XML report, and converts the finding into a list of dictionaries.
     This list will be used to create an OSCAP CSV.
     """
@@ -320,10 +317,9 @@ def get_oscap_full(oscap_file, justifications):
     return cces
 
 
-# Get results from Twistlock report for csv export
 def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
     """
-    Writes the Twistlock CVE report to CSV
+    Get results from Twistlock report for csv export
     """
     with open(twistlock_cve_json, mode="r", encoding="utf-8") as f:
         json_data = json.load(f)
@@ -389,4 +385,4 @@ def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
 
 
 if __name__ == "__main__":
-    main()  # with if
+    main()
