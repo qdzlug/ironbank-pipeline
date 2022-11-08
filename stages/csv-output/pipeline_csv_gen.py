@@ -230,15 +230,15 @@ def get_oscap_full(oscap_file, justifications):
         severity = rule_result.attrib["severity"]
         date_scanned = rule_result.attrib["time"]
         result = rule_result.find("xccdf:result", ns).text
-        logging.debug(f"{rule_id}")
+        logging.debug("Rule ID: %s", rule_id)
         if result == "notselected":
-            logging.debug(f"SKIPPING: 'notselected' rule {rule_id} ")
+            logging.debug("SKIPPING: 'notselected' rule %s", rule_id)
             continue
 
         if rule_id == "xccdf_org.ssgproject.content_rule_security_patches_up_to_date":
             if patches_up_to_date_dupe:
                 logging.debug(
-                    f"SKIPPING: rule {rule_id} - OVAL check repeats and this finding is checked elsewhere"
+                    "SKIPPING: rule %s - OVAL check repeats and this finding is checked elsewhere", rule_id
                 )
                 continue
             else:
@@ -255,7 +255,7 @@ def get_oscap_full(oscap_file, justifications):
             identifiers = [rule_id]
         # We never expect to get more than one identifier
         assert len(identifiers) == 1
-        logging.debug(f"{identifiers}")
+        logging.debug("Identifiers: %s", identifiers)
         identifier = identifiers[0]
         # Revisit this if we ever switch UBI from ComplianceAsCode to DISA content
 
