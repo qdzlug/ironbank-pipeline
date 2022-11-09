@@ -9,10 +9,10 @@ import pathlib
 import logging
 import xml.etree.ElementTree as etree
 
+from scanners import anchore
+
 from ironbank.pipeline.scan_report_parsers.report_parser import ReportParser
 from ironbank.pipeline.vat_container_status import sort_justifications
-
-from .scanners import anchore
 
 
 def main():
