@@ -34,7 +34,7 @@ class MockResponse:
 @dataclass
 class MockInvalidJson(MockResponse):
     def json(self):
-        raise requests.JSONDecodeError
+        raise requests.JSONDecodeError("message", "document", "position")
 
 
 @pytest.fixture(scope="module")

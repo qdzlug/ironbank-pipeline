@@ -87,6 +87,7 @@ def compliance_data_resp():
 
 
 def test_get_anchore_api(monkeypatch, mock_responses, caplog):  # noqa W0404
+
     monkeypatch.setattr(requests, "get", mock_responses["200"])
     anchore_object = Anchore(
         url="http://test.anchore.dso.mil",
@@ -94,28 +95,33 @@ def test_get_anchore_api(monkeypatch, mock_responses, caplog):  # noqa W0404
         password="test",
         verify=False,
     )
+    log.info("Test successful anchore api json request")
     assert anchore_object._get_anchore_api_json("", "", False) == {
         "status_code": 200,
         "text": "successful_request",
     }
 
+    log.info("Test 404 from anchore throws exception if ignore is False")
     with pytest.raises(Exception) as e:
         monkeypatch.setattr(requests, "get", mock_responses["404"])
         anchore_object._get_anchore_api_json("", "", False)
     assert "Non-200 response from Anchore 404 - not_found" in e.value.args
     caplog.clear()
 
+    log.info("Test 404 with ignore set to True doesn't throw an exception")
     monkeypatch.setattr(requests, "get", mock_responses["404"])
     assert anchore_object._get_anchore_api_json("", "", True) == None  # noqa E711
     assert "No ancestry detected" in caplog.text
     caplog.clear()
 
+    log.info("Test request exception results has expected output")
     with pytest.raises(requests.RequestException):
         monkeypatch.setattr(requests, "get", mock_responses["requestException"])
         anchore_object._get_anchore_api_json("", "", False)
     assert "Failed to connect with Anchore" in caplog.text
     caplog.clear()
 
+    log.info("Test json decode error raises base exception")
     with pytest.raises(Exception) as e:
         monkeypatch.setattr(requests, "get", mock_responses["jsonDecodeError"])
         anchore_object._get_anchore_api_json("", "", False)
@@ -123,6 +129,7 @@ def test_get_anchore_api(monkeypatch, mock_responses, caplog):  # noqa W0404
 
 
 def test_get_parent_sha(monkeypatch):
+
     monkeypatch.setattr(
         Anchore,
         "_get_anchore_api_json",
@@ -134,15 +141,11 @@ def test_get_parent_sha(monkeypatch):
         password="test",
         verify=False,
     )
+    log.info("Test successful parent sha retrieval")
     assert anchore_object._get_parent_sha("12345") == "12345"
 
     monkeypatch.setattr(Anchore, "_get_anchore_api_json", lambda *args, **kwargs: None)
-    anchore_object = Anchore(
-        url="http://test.anchore.dso.mil",
-        username="test",
-        password="test",
-        verify=False,
-    )
+    log.info("Test None is returned on no ancestry")
     assert anchore_object._get_parent_sha("12345") == None  # noqa E711
 
 
