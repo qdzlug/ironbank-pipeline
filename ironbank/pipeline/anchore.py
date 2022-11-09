@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os
-import re
 import sys
 import json
 import pathlib
@@ -145,19 +144,6 @@ class Anchore:
 
         vuln_dict = self._get_anchore_api_json(url)
         vuln_dict["imageFullTag"] = image
-
-        for vulnerability in vuln_dict["vulnerabilities"]:
-            # If VulnDB record found, retrive set of reference URLs associated with the record.
-            # TODO: VulnDB is no longer a part of Anchore. This code can be removed.
-            if vulnerability["feed_group"] == "vulndb:vulnerabilities":
-                # "http://anchore-anchore-engine-api:8228/v1" or URL to replace may
-                #  need to be modified when changes to the Anchore installation occur
-                vulndb_request_url = re.sub(
-                    "http://([a-z-_0-9:]*)/v1", self.url, vulnerability["url"]
-                )
-                vulndb_dict = self._get_anchore_api_json(vulndb_request_url)
-                for vulndb_vuln in vulndb_dict["vulnerabilities"]:
-                    vulnerability["url"] = vulndb_vuln["references"]
 
         filename = pathlib.Path(artifacts_path, "anchore_api_security_full.json")
         logging.debug(f"Writing to {filename}")
