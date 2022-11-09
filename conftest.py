@@ -29,10 +29,15 @@ class MockResponse:
         return {"status_code": self.status_code, "text": self.text}
 
 
+class MockJsonDecodeError(requests.JSONDecodeError):
+    def __init__(self):
+        pass
+
+
 @dataclass
 class MockInvalidJson(MockResponse):
     def json(self):
-        raise requests.JSONDecodeError("message", "document", "position")
+        raise MockJsonDecodeError()
 
 
 @pytest.fixture(scope="module")

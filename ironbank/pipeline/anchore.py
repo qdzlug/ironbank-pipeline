@@ -7,7 +7,6 @@ import pathlib
 import logging
 import requests
 import subprocess
-from json.decoder import JSONDecodeError
 
 
 class Anchore:
@@ -55,7 +54,7 @@ class Anchore:
         logging.debug("Got response from Anchore. Testing if valid json")
         try:
             return r.json()
-        except JSONDecodeError:
+        except requests.JSONDecodeError:
             raise Exception("Got 200 response but is not valid JSON")
 
     def _get_parent_sha(self, digest):
