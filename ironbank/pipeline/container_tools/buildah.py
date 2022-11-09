@@ -13,7 +13,13 @@ log = logger.setup(name="buildah")
 
 class Buildah(ContainerTool):
     @subprocess_error_handler(logging_message="Buildah.inspect failed")
-    def inspect(self, image: Image, storage_driver: str = "vfs", format: str = None):
+    def inspect(
+        self,
+        image: Image,
+        storage_driver: str = "vfs",
+        format: str = None,
+        log_cmd: bool = False,
+    ):
         cmd = [
             "buildah",
             "inspect",
@@ -21,6 +27,8 @@ class Buildah(ContainerTool):
         cmd += ["--storage-driver", storage_driver] if storage_driver else []
         cmd += ["--format", format] if format else []
         cmd += [str(image)]
+        if log_cmd:
+            log.info(cmd)
         return json.loads(
             subprocess.run(args=cmd, check=True, capture_output=True).stdout
         )
@@ -37,6 +45,7 @@ class Buildah(ContainerTool):
         default_mounts_file: Path | str = None,
         storage_driver: str = None,
         tag: Image | str = None,
+        log_cmd: bool = False,
     ):
         context = context if isinstance(context, Path) else Path(context)
         cmd = [
@@ -63,7 +72,8 @@ class Buildah(ContainerTool):
         # tag can either be a string or an Image object, cast to string to support both types
         cmd += ["-t", str(tag)] if tag else []
         cmd += [context]
-
+        if log_cmd:
+            log.info(cmd)
         return subprocess.run(args=cmd, check=True)
 
         #

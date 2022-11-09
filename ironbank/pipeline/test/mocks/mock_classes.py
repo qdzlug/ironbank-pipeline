@@ -83,7 +83,9 @@ class MockImage(Image):
 @dataclass
 class MockSkopeo(Skopeo):
     # TODO: update these functions to log
-    def inspect(self, image: Image | ImageFile, raw: bool = False):
+    def inspect(
+        self, image: Image | ImageFile, raw: bool = False, log_cmd: bool = False
+    ):
         return str(image) if raw else image.__dict__
 
     def copy(*args, **kwargs):
