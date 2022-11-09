@@ -70,7 +70,7 @@ def mock_responses():
         raise RuntimeError
 
     def mockJsonDecodeError(*args, **kwargs):
-        return MockInvalidJson(200, "")
+        return MockInvalidJson(status_code=200, text="")
 
     return {
         "200": mock200,

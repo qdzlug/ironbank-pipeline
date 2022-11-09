@@ -99,10 +99,10 @@ def test_get_anchore_api(monkeypatch, mock_responses, caplog):  # noqa W0404
         "text": "successful_request",
     }
 
-    with pytest.raises(Exception):
+    with pytest.raises(Exception) as e:
         monkeypatch.setattr(requests, "get", mock_responses["404"])
         anchore_object._get_anchore_api_json("", "", False)
-        assert "Non-200 response from Anchore" in caplog.text
+    assert "Non-200 response from Anchore 404 - not_found" in e.value.args
     caplog.clear()
 
     monkeypatch.setattr(requests, "get", mock_responses["404"])
@@ -113,13 +113,13 @@ def test_get_anchore_api(monkeypatch, mock_responses, caplog):  # noqa W0404
     with pytest.raises(requests.RequestException):
         monkeypatch.setattr(requests, "get", mock_responses["requestException"])
         anchore_object._get_anchore_api_json("", "", False)
-        assert "Failed to connect with Anchore" in caplog.text
+    assert "Failed to connect with Anchore" in caplog.text
     caplog.clear()
 
-    with pytest.raises(Exception):
+    with pytest.raises(Exception) as e:
         monkeypatch.setattr(requests, "get", mock_responses["jsonDecodeError"])
         anchore_object._get_anchore_api_json("", "", False)
-        assert "Got 200 response but is not valid JSON" in caplog.text
+    assert "Got 200 response but is not valid JSON" in e.value.args
 
 
 def test_get_parent_sha(monkeypatch):
