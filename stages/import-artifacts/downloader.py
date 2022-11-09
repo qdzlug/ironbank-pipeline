@@ -30,7 +30,7 @@ def main():
     # we probably don't need this, but maybe we want to validate it in case it somehow changes state before import?
     # hardening_manifest.validate()
     if not hardening_manifest.resources:
-        log.info(f"No resources in {hardening_manifest.resources}")
+        log.info("No resources in %s", hardening_manifest.resources)
         sys.exit(0)
     exit_code = 1
     artifact = None
@@ -62,7 +62,11 @@ def main():
             elif "http" in scheme:
                 artifact = HttpArtifact(**resource)
             else:
-                log.error(f"Invalid scheme {scheme} for artifact {resource['url']}")
+                log.error(
+                    "Invalid scheme %s for artifact %s",
+                    scheme,
+                    resource["url"],
+                )
                 sys.exit(1)
 
             if isinstance(artifact, AbstractFileArtifact):
@@ -83,16 +87,19 @@ def main():
         # all resources are downloaded successfully
         exit_code = 0
     except KeyError as ke:
-        log.error(f"The following key does not have a value: {ke}")
+        log.error("The following key does not have a value: %s", ke)
     except AssertionError as ae:
-        log.error(f"Assertion Error: {ae}")
+        log.error("Assertion Error: %s", ae)
     except InvalidURLList:
         log.error(
-            f"No valid urls provided for {artifact.filename}. Please ensure the url(s) for this resource exists and is not password protected. If you require basic authentication to download this resource, please open a ticket in this repository."
+            "No valid urls provided for %s. Please ensure the url(s) for this resource exists and is not password protected. If you require basic authentication to download this resource, please open a ticket in this repository.",
+            artifact.filename,
         )
     except HTTPError as he:
         log.error(
-            f"Error downloading {artifact.url}, Status code: {he.response.status_code}"
+            "Error downloading %s, Status code: %s",
+            artifact.url,
+            he.response.status_code,
         )
     except ClientError:
         log.error("S3 client error occurred")
@@ -103,7 +110,7 @@ def main():
     except RuntimeError:
         log.error("Unexpected runtime error occurred.")
     except Exception as e:
-        log.error(f"Unexpected error occurred. Exception class: {e.__class__}")
+        log.error("Unexpected error occurred. Exception class: %s", e.__class__)
     finally:
         if artifact is not None and exit_code == 1:
             artifact.delete_artifact()
