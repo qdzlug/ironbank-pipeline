@@ -1,8 +1,6 @@
-#!/usr/bin/env python3
-
-from dataclasses import dataclass
-import requests
 import pytest
+import requests
+from dataclasses import dataclass
 
 
 @dataclass

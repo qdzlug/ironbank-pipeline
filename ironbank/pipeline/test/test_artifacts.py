@@ -19,7 +19,6 @@ from ironbank.pipeline.artifacts import (
     ContainerArtifact,
     GithubArtifact,
 )
-from mocks.mock_responses import mock_responses  # noqa W0611
 
 
 log = logger.setup("test_artifacts")

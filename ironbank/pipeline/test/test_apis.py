@@ -6,7 +6,7 @@ import requests
 from unittest import mock
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.apis import API, VatAPI
-from mocks.mock_responses import mock_responses  # noqa W0611
+
 
 log = logger.setup("test_apis")
 
