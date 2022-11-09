@@ -48,9 +48,9 @@ async def main():
         log.warning("Skipping pipeline auth status due to prior failure")
 
     for error_code, stages in system_exits.items():
-        log.error(f"The following stages returned error code: {error_code}")
+        log.error("The following stages returned error code: %s", error_code)
         for stage in stages:
-            log.error(f"\t- {stage}")
+            log.error("\t- %s", stage)
 
     if HARD_FAIL_CODE in system_exits.keys():
         log.error("Failing pipeline")

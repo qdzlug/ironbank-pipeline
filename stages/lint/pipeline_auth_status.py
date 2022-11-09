@@ -24,8 +24,8 @@ async def main() -> None:
         sys.exit(1)
 
     log.info("Retrieve Auth Status from VAT")
-    log.info(f"Response: {vat_api.response.text}")
-    log.debug(f"JSON Response:\n{vat_api.response.json}")
+    log.info("Response: %s", vat_api.response.text)
+    log.debug("JSON Response:\n%s", vat_api.response.json)
 
 
 if __name__ == "__main__":
