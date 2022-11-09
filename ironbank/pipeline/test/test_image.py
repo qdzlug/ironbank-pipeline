@@ -26,7 +26,7 @@ def test_image_init(caplog):
 
     log.info("Test init image with url")
     image = Image(url="A/B@C")
-    assert image.registry_path == None
+    assert image.registry_path is None
     assert str(image) == "A/B@C"
 
     log.info("Test init throws MissingTagAndDigestError")

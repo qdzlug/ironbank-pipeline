@@ -24,8 +24,8 @@ def test_skopeo_init():
 
     log.info("Test init container without params results in None as default")
     skopeo = Skopeo()
-    skopeo.authfile = None
-    skopeo.docker_config_dir = None
+    assert skopeo.authfile is None
+    assert skopeo.docker_config_dir is None
 
 
 def test_inspect(monkeypatch, caplog):
