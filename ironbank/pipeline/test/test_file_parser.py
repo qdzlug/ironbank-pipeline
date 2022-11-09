@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 
-import pathlib
 import pytest
+import pathlib
 import dockerfile
-
+from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.file_parser import DockerfileParser
 from ironbank.pipeline.utils.exceptions import DockerfileParseError
 
 mock_path = pathlib.Path(pathlib.Path(__file__).absolute().parent, "mocks")
+
+log = logger.setup("test_file_parser")
 
 
 @pytest.fixture
