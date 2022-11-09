@@ -3,11 +3,11 @@
 import os
 import sys
 import json
-import yaml
 import base64
 import hashlib
 import logging
 import pathlib
+import yaml
 
 from ironbank.pipeline.image import Image
 from ironbank.pipeline.container_tools.skopeo import Skopeo
