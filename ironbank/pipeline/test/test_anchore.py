@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 
 import json
-import subprocess
-import pathlib
 import pytest
+import pathlib
 import requests
+import subprocess
 from unittest.mock import mock_open
-
+from ironbank.pipeline.utils import logger
 from ironbank.pipeline.anchore import Anchore
 from mocks.mock_responses import mock_responses  # noqa W0611
+
+log = logger.setup("test_anchore")
 
 
 @pytest.fixture(autouse=True)

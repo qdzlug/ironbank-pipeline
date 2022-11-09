@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 
 import boto3
-import pathlib
-import subprocess
 import pytest
+import pathlib
 import requests
+import subprocess
 from dataclasses import dataclass
+from unittest.mock import mock_open
 from requests.auth import HTTPBasicAuth
 from subprocess import CalledProcessError
-from unittest.mock import mock_open
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.exceptions import GenericSubprocessError, InvalidURLList
 from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.abstract_artifacts import AbstractArtifact
+from ironbank.pipeline.utils.exceptions import GenericSubprocessError, InvalidURLList
 from ironbank.pipeline.artifacts import (
     S3Artifact,
     HttpArtifact,
@@ -22,7 +22,7 @@ from ironbank.pipeline.artifacts import (
 from mocks.mock_responses import mock_responses  # noqa W0611
 
 
-log = logger.setup("test_abstract_artifacts")
+log = logger.setup("test_artifacts")
 
 mock_http_url = "http://example.com/example.txt"
 mock_s3_url = "s3://example-test/example.txt"

@@ -1,9 +1,9 @@
-import json
-import pathlib
 import os
-from unittest.mock import mock_open, patch
-import pytest
 import sys
+import json
+import pytest
+import pathlib
+from unittest.mock import mock_open, patch
 
 from ironbank.pipeline.test.mocks.mock_classes import (
     MockHardeningManifest,

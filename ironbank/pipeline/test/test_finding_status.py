@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-import pytest
 import os
+import pytest
 import pathlib
 from unittest import mock
+from ironbank.pipeline.utils import logger
 from ironbank.pipeline import vat_container_status
 from ironbank.pipeline.vat_container_status import (
     _check_findings,
@@ -14,6 +15,8 @@ from ironbank.pipeline.vat_container_status import (
 )
 
 mock_path = pathlib.Path(pathlib.Path(__file__).absolute().parent, "mocks")
+
+log = logger.setup("test_finding_status")
 
 
 @pytest.fixture
