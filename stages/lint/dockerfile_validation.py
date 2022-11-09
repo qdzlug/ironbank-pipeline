@@ -30,7 +30,7 @@ async def main():
         log.info("Failed to validate dockerfile")
         sys.exit(1)
     except Exception as e:
-        log.info(f"Unexpected exception occurred. {e.__class__}")
+        log.info("Unexpected exception occurred. %s", e.__class__)
         sys.exit(1)
 
     log.info("Dockerfile is validated.")
