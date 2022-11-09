@@ -36,7 +36,7 @@ init-hook=
 
 # Use multiple processes to speed up Pylint. Specifying 0 will auto-detect the
 # number of processors available to use.
-jobs=0
+jobs=1
 
 # Control the amount of potential inferred values when inferring a single
 # object. This can help the performance when dealing with large functions or
@@ -88,7 +88,7 @@ disable=raw-checker-failed,
         use-symbolic-message-instead,
         C0114, # missing-module-docstring
         C0301, # line-too-long
-        C0103 # invalid-name
+        C0103  # invalid-name
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -394,8 +394,6 @@ good-names=e,
            j,
            k,
            ex,
-           wb,
-           ws,
            Run,
            _
 
