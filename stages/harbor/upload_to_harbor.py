@@ -109,7 +109,8 @@ def convert_artifacts_to_hardening_manifest(
             hm_object[item.name] = f.read()
 
     with pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json").open(
-        "w"
+        mode="w",
+        encoding="utf-8",
     ) as f:
         json.dump(hm_object, f)
 
@@ -142,7 +143,10 @@ def main():
     staging_auth = base64.b64decode(os.environ["DOCKER_AUTH_CONFIG_STAGING"]).decode(
         "utf-8"
     )
-    pathlib.Path("staging_auth.json").write_text(staging_auth)
+    pathlib.Path("staging_auth.json").write_text(
+        staging_auth,
+        encoding="utf-8",
+    )
 
     # Grab ironbank/ironbank-testing docker auth
     test_auth = os.environ.get("DOCKER_AUTH_CONFIG_TEST", "").strip()
@@ -152,7 +156,10 @@ def main():
         dest_auth = base64.b64decode(os.environ["DOCKER_AUTH_CONFIG_PROD"]).decode(
             "utf-8"
         )
-    pathlib.Path("/tmp/config.json").write_text(dest_auth)
+    pathlib.Path("/tmp/config.json").write_text(
+        dest_auth,
+        encoding="utf-8",
+    )
 
     staging_image = Image(
         registry=os.environ["REGISTRY_URL_STAGING"],
@@ -163,7 +170,8 @@ def main():
 
     tags = []
     with pathlib.Path(os.environ["ARTIFACT_STORAGE"], "lint", "tags.txt").open(
-        mode="r"
+        mode="r",
+        encoding="utf-8",
     ) as f:
         for tag in f:
             tags.append(tag.strip())
