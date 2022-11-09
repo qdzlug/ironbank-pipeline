@@ -19,11 +19,11 @@ log = logger.setup(name="lint.base_image_validation")
 
 
 async def main():
-    #
-    # Hardening manifest is expected for all of the current repos that are being processed.
-    # At the very least the hardening_manifest.yaml should be generated if it has not been
-    # merged in yet.
-    #
+    """
+    Hardening manifest is expected for all of the current repos that are being processed.
+    At the very least the hardening_manifest.yaml should be generated if it has not been
+    merged in yet.
+    """
     dsop_project = DsopProject()
     manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     if manifest.base_image_name:
