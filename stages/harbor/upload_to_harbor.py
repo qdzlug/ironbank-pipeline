@@ -48,7 +48,10 @@ def compare_digests(image: Image) -> None:
         )
     except GenericSubprocessError:
         logging.error(
-            f"Failed to retrieve manifest for {image.registry}/{image.name}@{image.digest}"
+            "Failed to retrieve manifest for %s/%s@%s",
+            image.registry,
+            image.name,
+            image.digest,
         )
         sys.exit(1)
 
@@ -58,7 +61,11 @@ def compare_digests(image: Image) -> None:
     if digest == manifest.hexdigest():
         logging.info("Digests match")
     else:
-        logging.error(f"Digests do not match {digest}  {manifest.hexdigest()}")
+        logging.error(
+            "Digests do not match %s  %s",
+            digest,
+            manifest.hexdigest(),
+        )
         sys.exit(1)
 
 
@@ -73,7 +80,7 @@ def promote_tags(
     for tag in tags:
         production_image = production_image.from_image(tag=tag)
 
-        logging.info(f"Copy from staging to {production_image}")
+        logging.info("Copy from staging to %s", production_image)
         try:
             Skopeo.copy(
                 staging_image,
@@ -82,7 +89,11 @@ def promote_tags(
                 dest_authfile="/tmp/config.json",
             )
         except GenericSubprocessError:
-            logging.error(f"Failed to copy {staging_image} to {production_image}")
+            logging.error(
+                "Failed to copy %s to %s",
+                staging_image,
+                production_image,
+            )
             sys.exit(1)
 
 
@@ -177,7 +188,10 @@ def main():
         cosign.sign(production_image)
     except GenericSubprocessError:
         logging.error(
-            f"Failed to sign image: {production_image.registry}/{production_image.name}@{production_image.digest}"
+            "Failed to sign image: %s/%s@%s",
+            production_image.registry,
+            production_image.name,
+            production_image.digest,
         )
 
     hm_resources = [
@@ -211,7 +225,7 @@ def main():
                 replace=True,
             )
         except GenericSubprocessError:
-            logging.error(f"Failed to add attestation {predicate.as_posix()}")
+            logging.error("Failed to add attestation %s", predicate.as_posix())
             sys.exit(1)
 
 
