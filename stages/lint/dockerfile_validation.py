@@ -17,6 +17,7 @@ async def main():
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     log.debug("Validating dockerfile contents")
+    # pylint: disable=broad-except
     try:
         if hardening_manifest.base_image_name or hardening_manifest.base_image_tag:
             invalid_from = DockerfileParser.parse("Dockerfile")
