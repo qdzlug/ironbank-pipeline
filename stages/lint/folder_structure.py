@@ -17,7 +17,7 @@ async def main():
         dsop_project.validate()
         log.info("Folder structure validated")
     except AssertionError as ae:
-        log.error(f"Assertion Error: {ae}")
+        log.error("Assertion Error: %s", ae)
         sys.exit(1)
 
 
