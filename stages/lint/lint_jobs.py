@@ -42,7 +42,7 @@ async def main():
     await handle_system_exit(hardening_manifest_validation.main)()
     await handle_system_exit(dockerfile_validation.main)()
     await handle_system_exit(base_image_validation.main)()
-    if HARD_FAIL_CODE not in system_exits.keys():
+    if HARD_FAIL_CODE not in system_exits:
         await handle_system_exit(pipeline_auth_status.main)()
     else:
         log.warning("Skipping pipeline auth status due to prior failure")
@@ -52,10 +52,10 @@ async def main():
         for stage in stages:
             log.error("\t- %s", stage)
 
-    if HARD_FAIL_CODE in system_exits.keys():
+    if HARD_FAIL_CODE in system_exits:
         log.error("Failing pipeline")
         sys.exit(HARD_FAIL_CODE)
-    elif SOFT_FAIL_CODE in system_exits.keys():
+    elif SOFT_FAIL_CODE in system_exits:
         log.warning("Failing pipeline")
         sys.exit(SOFT_FAIL_CODE)
     else:
