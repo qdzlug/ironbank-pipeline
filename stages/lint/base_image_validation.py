@@ -44,7 +44,10 @@ async def main():
                     "UTF-8"
                 )
                 registry = os.environ["REGISTRY_URL_PROD"]
-            docker_config.write_text(pull_auth)
+            docker_config.write_text(
+                pull_auth,
+                encoding="utf-8",
+            )
             try:
                 skopeo = Skopeo(docker_config_dir=docker_config_dir)
                 base_image = Image(
@@ -65,7 +68,8 @@ async def main():
             base_image_info = {"BASE_SHA": base_img_inspect["Digest"]}
             log.info("Dump SHA to file")
             with pathlib.Path(os.environ["ARTIFACT_DIR"], "base_image.json").open(
-                "w"
+                mode="w",
+                encoding="utf-8",
             ) as f:
                 json.dump(base_image_info, f)
 
