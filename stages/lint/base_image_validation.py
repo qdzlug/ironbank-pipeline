@@ -62,7 +62,7 @@ async def main():
                     "Failed to inspect IMAGE:TAG provided in hardening_manifest. \
                         Please validate this image exists in the registry1.dso.mil/ironbank project."
                 )
-                log.error(f"Failed 'skopeo inspect' of image: {base_image}")
+                log.error("Failed 'skopeo inspect' of image: %s", base_image)
                 sys.exit(1)
 
             base_image_info = {"BASE_SHA": base_img_inspect["Digest"]}
