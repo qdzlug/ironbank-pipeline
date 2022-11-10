@@ -210,9 +210,7 @@ def test_get_vulns(
     anchore_object,
 ):
     parent_sha = "sha256-123456789012345"
-    monkeypatch.setattr(
-        Anchore, "_get_parent_sha", lambda self, x: "sha256-123456789012345"
-    )
+    monkeypatch.setattr(Anchore, "_get_parent_sha", lambda self, x: parent_sha)
 
     urls = []
     monkeypatch.setattr(
