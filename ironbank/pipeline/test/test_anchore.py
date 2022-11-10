@@ -114,7 +114,7 @@ def test_get_anchore_api(monkeypatch, caplog, mock_responses, mock_anchore_objec
 
     log.info("Test 404 with ignore set to True doesn't throw an exception")
     monkeypatch.setattr(requests, "get", mock_responses["404"])
-    assert mock_anchore_object._get_anchore_api_json("", "", True) == None  # noqa E711
+    assert mock_anchore_object._get_anchore_api_json("", "", True) is None
     assert "No ancestry detected" in caplog.text
     caplog.clear()
 
@@ -144,7 +144,7 @@ def test_get_parent_sha(monkeypatch, mock_anchore_object):
 
     monkeypatch.setattr(Anchore, "_get_anchore_api_json", lambda *args, **kwargs: None)
     log.info("Test None is returned on no ancestry")
-    assert mock_anchore_object._get_parent_sha("12345") == None  # noqa E711
+    assert mock_anchore_object._get_parent_sha("12345") is None
 
 
 def test_get_version(monkeypatch, caplog, mock_anchore_object):
@@ -155,7 +155,7 @@ def test_get_version(monkeypatch, caplog, mock_anchore_object):
     )
     monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data="data"))
 
-    log.info("")
+    log.info("Test successfully gather version info")
     mock_anchore_object.get_version("./test-artifacts")
     assert "Anchore Enterprise Version: 4.0.2" in caplog.text
     caplog.clear
@@ -174,6 +174,7 @@ def test_get_extra_vuln_data(
         lambda *args, **kwargs: mock_vulnerability_resp,
     )
 
+    log.info("Test successfully gather extra vuln data with description")
     assert mock_anchore_object._get_extra_vuln_data(mock_vulnerability) == {
         "vuln_data": mock_vulnerability_resp["vulnerabilities"][0]
     }
@@ -183,6 +184,7 @@ def test_get_extra_vuln_data(
         "_get_anchore_api_json",
         lambda *args, **kwargs: mock_vulnerability_resp_no_desc,
     )
+    log.info("Test successfully gather extra vuln data without description")
     assert mock_anchore_object._get_extra_vuln_data(mock_vulnerability) == {
         "vuln_data": mock_vulnerability_resp_no_desc["vulnerabilities"][0]
     }
@@ -194,39 +196,50 @@ def test_get_vulns(
     extra_data_vulnerability_resp,
     mock_anchore_object,
 ):
+    parent_sha = "sha256-123456789012345"
     monkeypatch.setattr(
         Anchore, "_get_parent_sha", lambda self, x: "sha256-123456789012345"
     )
+
+    urls = []
     monkeypatch.setattr(
         Anchore,
         "_get_anchore_api_json",
-        lambda *args, **kwargs: full_mock_vulnerability_resp,
+        # using the or to allow the append to execute and then return the full mock data
+        lambda self, url: urls.append(url) or full_mock_vulnerability_resp,
     )
     monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data="data"))
-    monkeypatch.setattr(json, "dump", lambda x, y: None)
+    vuln_data = []
+    monkeypatch.setattr(json, "dump", lambda x, y: vuln_data.append(x))
     monkeypatch.setattr(
         Anchore, "_get_extra_vuln_data", lambda self, x: extra_data_vulnerability_resp
     )
 
+    log.info("Test successfully get vulns with parent data")
+    args = ["sha256-104237896510837456108", "registry1.dso.mil", "./test-artifacts"]
+    mock_anchore_object.get_vulns(*args)
+    assert len(vuln_data) == 2
+    assert vuln_data[-1]["imageFullTag"] == args[1]
     assert (
-        mock_anchore_object.get_vulns(
-            "sha256-104237896510837456108", "registry1.dso.mil", "./test-artifacts"
-        )
-        == None  # noqa E711
+        vuln_data[-1]["vulnerabilities"][0]["extra"]
+        == extra_data_vulnerability_resp["vuln_data"]
     )
 
-    monkeypatch.setattr(Anchore, "_get_parent_sha", lambda self, x: None)
-    assert (
-        mock_anchore_object.get_vulns(
-            "sha256-104237896510837456108", "registry1.dso.mil", "./test-artifacts"
-        )
-        == None  # noqa E711
-    )
+    log.info("Verify parent digest sets correct url")
+    assert f"?base_digest={parent_sha}" in urls[-1]
 
-    monkeypatch.setattr(Anchore, "_get_extra_vuln_data", lambda *args, **kwargs: {})
-    mock_anchore_object.get_vulns(
-        "sha256-104237896510837456108", "registry1.dso.mil", "./test-artifacts"
-    ) == None  # noqa E711
+    log.info("Test no parent digest sets correct url")
+    monkeypatch.setattr(Anchore, "_get_parent_sha", lambda self, x: "")
+    vuln_data = []
+    urls = []
+    mock_anchore_object.get_vulns(*args)
+    assert f"?base_digest={parent_sha}" not in urls[-1]
+
+    # monkeypatch.setattr(Anchore, "_get_parent_sha", lambda self, x: None)
+    # assert mock_anchore_object.get_vulns(*args) is None
+
+    # monkeypatch.setattr(Anchore, "_get_extra_vuln_data", lambda *args, **kwargs: {})
+    # assert mock_anchore_object.get_vulns(*args) is None
 
 
 def test_get_compliance(monkeypatch, compliance_data_resp, mock_anchore_object):
@@ -245,7 +258,7 @@ def test_get_compliance(monkeypatch, compliance_data_resp, mock_anchore_object):
             "registry1.dso.mil/ironbank-staging/google/distroless/static:ibci-873812",
             "./test-artifacts",
         )
-        == None  # noqa E711
+        is None
     )
 
     monkeypatch.setattr(Anchore, "_get_parent_sha", lambda self, x: None)
@@ -255,7 +268,7 @@ def test_get_compliance(monkeypatch, compliance_data_resp, mock_anchore_object):
             "registry1.dso.mil/ironbank-staging/google/distroless/static:ibci-873812",
             "./test-artifacts",
         )
-        == None  # noqa E711
+        is None
     )
 
 
@@ -294,6 +307,9 @@ def test_image_add(monkeypatch, caplog, mock_responses, mock_anchore_object):
         mock_anchore_object.image_add("image.dso.mil/imagename/tag")
         assert "canned_error" in caplog.text
     caplog.clear()
+
+
+# def test_image_wait(monkeypatch, mock_anchore_object):
 
 
 def test_generate_sbom(monkeypatch, caplog, mock_anchore_object):
