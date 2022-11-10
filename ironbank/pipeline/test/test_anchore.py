@@ -6,7 +6,9 @@ import pathlib
 import requests
 import subprocess
 from unittest.mock import mock_open
+from ironbank.pipeline.test.mocks.mock_classes import MockPopen
 from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.anchore import Anchore
 
 
@@ -81,7 +83,7 @@ def extra_data_vulnerability_resp():
 
 
 @pytest.fixture
-def compliance_data_resp():
+def mock_compliance_data_resp():
     return [
         {
             "abc123": {
@@ -244,33 +246,35 @@ def test_get_vulns(
     assert f"?base_digest={parent_sha}" not in urls[-1]
 
 
-def test_get_compliance(monkeypatch, compliance_data_resp, anchore_object):
+def test_get_compliance(monkeypatch, mock_compliance_data_resp, anchore_object):
     parent_digest = "sha256-123456789012345"
     monkeypatch.setattr(Anchore, "_get_parent_sha", lambda self, x: parent_digest)
     urls = []
     monkeypatch.setattr(
         Anchore,
         "_get_anchore_api_json",
-        lambda self, url: urls.append(url) or compliance_data_resp,
+        lambda self, url: urls.append(url) or mock_compliance_data_resp,
     )
     monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data="data"))
     results_data = []
     monkeypatch.setattr(json, "dump", lambda x, y: results_data.append(x))
-    digest = list(compliance_data_resp[0].keys())[0]
-    image = list(compliance_data_resp[0][digest].keys())[0]
+    mock_digest = list(mock_compliance_data_resp[0].keys())[0]
+    mock_image = list(mock_compliance_data_resp[0][mock_digest].keys())[0]
     args = [
-        digest,
-        image,
+        mock_digest,
+        mock_image,
         "./test-artifacts",
     ]
     log.info("Test expected result is written to file")
     anchore_object.get_compliance(*args)
-    image_id = compliance_data_resp[0][digest][image][0]["detail"]["result"]["image_id"]
+    image_id = mock_compliance_data_resp[0][mock_digest][mock_image][0]["detail"][
+        "result"
+    ]["image_id"]
     assert (
         results_data[-1][image_id]
-        == compliance_data_resp[0][digest][image][0]["detail"]["result"]["result"][
-            image_id
-        ]
+        == mock_compliance_data_resp[0][mock_digest][mock_image][0]["detail"]["result"][
+            "result"
+        ][image_id]
     )
 
     log.info("Verify correct url is set when parent exists")
@@ -286,40 +290,83 @@ def test_get_compliance(monkeypatch, compliance_data_resp, anchore_object):
 
 def test_image_add(monkeypatch, caplog, mock_responses, anchore_object):
     monkeypatch.setattr(pathlib.Path, "is_file", lambda _: True)
+    mock_image = "image.dso.mil/imagename/tag"
+    mock_digest = "sha256-12345678910"
+    log.info("Test subprocess call returns 0 on successful image add")
     monkeypatch.setattr(subprocess, "run", mock_responses["0"])
     monkeypatch.setattr(
-        json, "loads", lambda *args, **kwargs: [{"imageDigest": "sha256-12345678910"}]
+        json, "loads", lambda *args, **kwargs: [{"imageDigest": mock_digest}]
     )
 
-    assert (
-        anchore_object.image_add("image.dso.mil/imagename/tag") == "sha256-12345678910"
-    )
+    assert anchore_object.image_add(mock_image) == mock_digest
 
+    log.info("Test subprocess call returns 1 on image already exists in anchore")
     monkeypatch.setattr(subprocess, "run", mock_responses["1"])
     monkeypatch.setattr(
         json,
         "loads",
-        lambda *args, **kwargs: {"detail": {"digest": "sha256-12345678910"}},
+        lambda *args, **kwargs: {"detail": {"digest": mock_digest}},
     )
-    assert (
-        anchore_object.image_add("image.dso.mil/imagename/tag") == "sha256-12345678910"
-    )
+    assert anchore_object.image_add(mock_image) == mock_digest
     assert "already exists in Anchore. Pulling current scan data." in caplog.text
     caplog.clear()
 
+    log.info("Test subprocess error is captured and raises SystemExit")
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda *args, **kwargs: raise_(subprocess.CalledProcessError(100, [], "")),
+    )
+    with pytest.raises(SystemExit):
+        anchore_object.image_add(mock_image)
+    assert "Could not add image to Anchore" in caplog.text
+    caplog.clear()
+
+    log.info("Test image add raises SystemExit on non 0/1 return code")
     with pytest.raises(SystemExit):
         monkeypatch.setattr(subprocess, "run", mock_responses["2"])
         monkeypatch.setattr(
             json,
             "loads",
-            lambda *args, **kwargs: {"detail": {"digest": "sha256-12345678910"}},
+            lambda *args, **kwargs: {"detail": {"digest": mock_digest}},
         )
-        anchore_object.image_add("image.dso.mil/imagename/tag")
-        assert "canned_error" in caplog.text
+        anchore_object.image_add(mock_image)
+    assert "canned_error" in caplog.text
     caplog.clear()
 
 
-# def test_image_wait(monkeypatch, anchore_object):
+def test_image_wait(monkeypatch, caplog, anchore_object):
+    mock_digest = "sha256-12345678910"
+
+    log.info("Test successful wait")
+    mock_success_proc = MockPopen()
+    monkeypatch.setattr(subprocess, "Popen", lambda *args, **kwargs: mock_success_proc)
+    anchore_object.image_wait(mock_digest)
+    assert mock_success_proc.stdout.readline().strip() in caplog.text
+    caplog.clear()
+
+    log.info("Test system exit is raised after subprocess error")
+    with pytest.raises(SystemExit):
+        monkeypatch.setattr(
+            subprocess,
+            "Popen",
+            lambda *args, **kwargs: raise_(subprocess.SubprocessError([])),
+        )
+        anchore_object.image_wait(mock_digest)
+    assert "Failed while waiting for Anchore to scan image" in caplog.text
+    assert "data1" not in caplog.text
+    caplog.clear()
+
+    log.info("Test system exit is raised when returncode != 0")
+    mock_failed_proc = MockPopen(returncode=50)
+    with pytest.raises(SystemExit) as se:
+        monkeypatch.setattr(
+            subprocess, "Popen", lambda *args, **kwargs: mock_failed_proc
+        )
+        anchore_object.image_wait(mock_digest)
+    assert 50 in se.value.args
+    assert mock_failed_proc.stdout.read() in caplog.text
+    assert mock_failed_proc.stderr.read() in caplog.text
 
 
 def test_generate_sbom(monkeypatch, caplog, anchore_object):

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from dataclasses import dataclass, field
+import subprocess
 
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.image import Image, ImageFile
@@ -15,6 +16,55 @@ class MockSet(set):
     # overload subtraction, not needed but might be useful
     # def __sub__(self, other):
     #     return ['Example diff']
+
+
+@dataclass
+class MockOutput:
+    mock_data: list[str] = field(default_factory=lambda: ["data1\n", "data2\n"])
+
+    def read(self):
+        return "".join(self.mock_data)
+
+    def readline(self):
+        return self.mock_data[0]
+
+    def readlines(self):
+        return self.mock_data
+
+    def __repr__(self):
+        return self.read()
+
+    def __str__(self):
+        return self.read()
+
+
+@dataclass
+class MockPopen(subprocess.Popen):
+    stdout: str = MockOutput()
+    stderr: str = MockOutput(mock_data=["err1\n", "err2\n"])
+    returncode: int = 0
+    mock_counter: int = 5
+    poll_value: int = None
+
+    def poll(self):
+        # allow poll to run multiple times without getting stuck in while loop
+        self.mock_counter -= 1
+        return self.poll_value if self.mock_counter >= 0 else 0
+
+
+@dataclass
+class MockProcess:
+    alive: bool = True
+    exitcode: int = 0
+
+    def start(self):
+        return None
+
+    def is_alive(self):
+        return self.alive
+
+    def terminate(self):
+        self.alive = False
 
 
 @dataclass

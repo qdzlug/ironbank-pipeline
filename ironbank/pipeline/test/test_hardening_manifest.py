@@ -13,7 +13,7 @@ from mocks import mock_classes
 from dataclasses import dataclass
 from ironbank.pipeline.utils import logger
 from unittest.mock import patch, mock_open, Mock
-from mocks.mock_classes import MockHardeningManifest, MockPath
+from mocks.mock_classes import MockHardeningManifest, MockPath, MockProcess
 from ironbank.pipeline.hardening_manifest import (
     HardeningManifest,
     source_values,
@@ -34,21 +34,6 @@ class MockConnection:
 
     def recv(self):
         logging.info("message received")
-
-
-@dataclass
-class MockProcess:
-    alive: bool = True
-    exitcode: int = 0
-
-    def start(self):
-        return None
-
-    def is_alive(self):
-        return self.alive
-
-    def terminate(self):
-        self.alive = False
 
 
 class MockJsonschema(Mock):
