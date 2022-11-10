@@ -190,7 +190,7 @@ class Anchore:
         imageid = body_json[0][digest][image][0]["detail"]["result"]["image_id"]
 
         # Grab the subset of data used in anchore_gates.json
-        results_dict = dict()
+        results_dict = {}
         results_dict[imageid] = results[imageid]
 
         filename = pathlib.Path(artifacts_path, "anchore_gates.json")
