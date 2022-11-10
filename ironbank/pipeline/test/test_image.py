@@ -43,7 +43,7 @@ def test_image_init(caplog):
 
 
 def test_image_from_image():
-    log.info("Test some class variables can be updated but not others")
+    log.info("Test `from_image` will override any variables passed as params")
     old_image = Image(registry="A", name="B", digest="C", transport="test:")
     new_image = old_image.from_image(registry="D", name="E", digest="F")
     assert new_image.registry_path == "D/E"
