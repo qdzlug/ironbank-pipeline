@@ -327,5 +327,5 @@ class Anchore:
                     stdout=f,
                 )
             except subprocess.SubprocessError:
-                logging.exception("Could not generate sbom of image")
+                logging.error("Could not generate sbom of image")
                 sys.exit(1)
