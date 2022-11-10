@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
 import os
+import re
 import sys
 import json
 import pathlib
 import logging
 import requests
 import subprocess
+from json.decoder import JSONDecodeError
 
 
 class Anchore:
@@ -54,7 +56,7 @@ class Anchore:
         logging.debug("Got response from Anchore. Testing if valid json")
         try:
             return r.json()
-        except requests.JSONDecodeError:
+        except JSONDecodeError:
             raise Exception("Got 200 response but is not valid JSON")
 
     def _get_parent_sha(self, digest):
@@ -144,6 +146,19 @@ class Anchore:
         vuln_dict = self._get_anchore_api_json(url)
         vuln_dict["imageFullTag"] = image
 
+        for vulnerability in vuln_dict["vulnerabilities"]:
+            # If VulnDB record found, retrive set of reference URLs associated with the record.
+            # TODO: VulnDB is no longer a part of Anchore. This code can be removed.
+            if vulnerability["feed_group"] == "vulndb:vulnerabilities":
+                # "http://anchore-anchore-engine-api:8228/v1" or URL to replace may
+                #  need to be modified when changes to the Anchore installation occur
+                vulndb_request_url = re.sub(
+                    "http://([a-z-_0-9:]*)/v1", self.url, vulnerability["url"]
+                )
+                vulndb_dict = self._get_anchore_api_json(vulndb_request_url)
+                for vulndb_vuln in vulndb_dict["vulnerabilities"]:
+                    vulnerability["url"] = vulndb_vuln["references"]
+
         filename = pathlib.Path(artifacts_path, "anchore_api_security_full.json")
         logging.debug(f"Writing to {filename}")
         with filename.open(mode="w") as f:
@@ -152,7 +167,10 @@ class Anchore:
         # Add the extra vuln details
         for i in range(len(vuln_dict["vulnerabilities"])):
             extra = self._get_extra_vuln_data(vuln_dict["vulnerabilities"][i])
-            vuln_dict["vulnerabilities"][i]["extra"] = extra.get("vuln_data", {})
+            try:
+                vuln_dict["vulnerabilities"][i]["extra"] = extra["vuln_data"]
+            except KeyError:
+                vuln_dict["vulnerabilities"][i]["extra"] = dict()
 
         # Create json report called anchore_security.json
         filename = pathlib.Path(artifacts_path, "anchore_security.json")
@@ -190,7 +208,7 @@ class Anchore:
         imageid = body_json[0][digest][image][0]["detail"]["result"]["image_id"]
 
         # Grab the subset of data used in anchore_gates.json
-        results_dict = {}
+        results_dict = dict()
         results_dict[imageid] = results[imageid]
 
         filename = pathlib.Path(artifacts_path, "anchore_gates.json")
@@ -290,8 +308,9 @@ class Anchore:
                     logging.info(line)
             os.environ["PYTHONUNBUFFERED"] = "0"
 
-        except subprocess.SubprocessError:
-            logging.error("Failed while waiting for Anchore to scan image")
+        except subprocess.SubprocessError as e:
+            logging.error(e)
+            logging.exception("Failed while waiting for Anchore to scan image")
             sys.exit(1)
 
         # Check return code
@@ -327,5 +346,5 @@ class Anchore:
                     stdout=f,
                 )
             except subprocess.SubprocessError:
-                logging.error("Could not generate sbom of image")
+                logging.exception("Could not generate sbom of image")
                 sys.exit(1)
