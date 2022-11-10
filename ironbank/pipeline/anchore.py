@@ -290,9 +290,8 @@ class Anchore:
                     logging.info(line)
             os.environ["PYTHONUNBUFFERED"] = "0"
 
-        except subprocess.SubprocessError as e:
-            logging.error(e)
-            logging.exception("Failed while waiting for Anchore to scan image")
+        except subprocess.SubprocessError:
+            logging.error("Failed while waiting for Anchore to scan image")
             sys.exit(1)
 
         # Check return code
