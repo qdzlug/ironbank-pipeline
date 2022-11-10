@@ -5,8 +5,8 @@ import pytest
 import pathlib
 import requests
 import subprocess
-from unittest.mock import mock_open
-from ironbank.pipeline.test.mocks.mock_classes import MockPopen
+from unittest.mock import mock_open, patch
+from ironbank.pipeline.test.mocks.mock_classes import MockPath, MockPopen
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.anchore import Anchore
@@ -369,11 +369,32 @@ def test_image_wait(monkeypatch, caplog, anchore_object):
     assert mock_failed_proc.stderr.read() in caplog.text
 
 
+@patch("pathlib.Path", new=MockPath)
 def test_generate_sbom(monkeypatch, caplog, anchore_object):
-    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data="data"))
+    log.info("Test write sbom to default filename")
     monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: None)
-    monkeypatch.setattr(pathlib.Path, "mkdir", lambda *args, **kwargs: None)
-    anchore_object.generate_sbom(
-        "image.dso.mil/imagename/tag", "./test-artifacts", "spdx", "json"
-    )
+    args = ["image.dso.mil/imagename/tag", "./test-artifacts", "spdx", "json"]
+    anchore_object.generate_sbom(*args)
+    assert "sbom-spdx.json" in caplog.text
     assert "syft image.dso.mil/imagename/tag" in caplog.text
+    caplog.clear()
+
+    log.info("Test write sbom to provided filename")
+    anchore_object.generate_sbom(
+        *args,
+        "example-filename",
+    )
+    assert "sbom-example-filename-spdx.json" in caplog.text
+    assert "syft image.dso.mil/imagename/tag" in caplog.text
+    caplog.clear()
+
+    log.info("Test subprocess error raises system exit")
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda *args, **kwargs: raise_(subprocess.SubprocessError([])),
+    )
+    with pytest.raises(SystemExit):
+        anchore_object.generate_sbom(*args)
+    assert "Could not generate sbom of image" in caplog.text
+    caplog.clear()

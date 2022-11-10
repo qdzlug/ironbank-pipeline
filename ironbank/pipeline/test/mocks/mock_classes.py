@@ -7,6 +7,7 @@ from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.image import Image, ImageFile
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.container_tools.skopeo import Skopeo
+from ironbank.pipeline.utils import logger
 
 
 class MockSet(set):
@@ -74,13 +75,16 @@ class MockOpen:
     def __enter__(self):
         return []
 
-    def __exit__(self, values, something, somethingelse):
+    def __exit__(self, *args, **kwargs):
         pass
 
 
 class MockPath:
+    # TODO: remove this log message from init and provide a better way to inspect path on mock/patch
     def __init__(self, path="", *args):
-        self.path: str = f"{path}/{'/'.join(args)}"
+        self.path: str = f"{path}{''.join((f'/{a}' for a in args))}"
+        self.log = logger.setup(name="MockPath")
+        self.log.info(self.path)
 
     def open(self, mode):
         return MockOpen(mode)
@@ -88,8 +92,21 @@ class MockPath:
     def exists(self):
         return False
 
+    def mkdir(self, *args, **kwargs):
+        pass
+
     def is_symlink(self):
         return False
+
+    def __str__(self):
+        return self.path
+
+    def __repr__(self):
+        return self.path
+
+    # overload div (/)
+    def __truediv__(self, other):
+        return MockPath(self, other)
 
 
 @dataclass
