@@ -154,6 +154,8 @@ class RubyGemPackage(ParsedURLPackage):
 
 @dataclass(slots=True, frozen=True)
 class NullPackage(ParsedURLPackage):
+    kind: str = field(init=False, default=None)
+
     @classmethod
     def parse(cls, url) -> None:
         return None

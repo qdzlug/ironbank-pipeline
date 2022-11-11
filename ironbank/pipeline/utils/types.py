@@ -6,16 +6,16 @@ from abc import ABC, abstractmethod
 from typing import TextIO
 
 
+@dataclass(slots=True, frozen=True)
+class Package:
+    name: str
+    version: str
+    kind: str = field(init=False, default=None)
+    url: str = field(compare=False, default=None)
+
+
 class FileParser(ABC):
     @classmethod
     @abstractmethod
-    def parse(cls, file: TextIO) -> [Package]:
+    def parse(cls, file: TextIO) -> list[Package]:
         pass
-
-
-@dataclass(slots=True, frozen=True)
-class Package:
-    kind: str
-    name: str
-    version: str
-    url: str = field(compare=False, default=None)
