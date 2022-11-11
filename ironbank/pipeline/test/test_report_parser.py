@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
-import pytest
+import csv
 from pathlib import Path
+from io import TextIOWrapper
 from dataclasses import dataclass
-from unittest.mock import patch, mock_open
 from ironbank.pipeline.utils import logger
+from unittest.mock import mock_open
 from ironbank.pipeline.scan_report_parsers.report_parser import (
     ReportParser,
     AbstractVuln,
@@ -18,6 +19,19 @@ class MockAbstractVuln(AbstractVuln):
     cve: str = None
     package: str = None
     package_path: str = None
+
+
+@dataclass
+class MockDictWriter:
+    file_: TextIOWrapper = None
+    fieldnames: list[str] = None
+    rows: list[dict] = None
+
+    def writeheader(self):
+        pass
+
+    def writerows(self, dict_list: list[dict]):
+        self.rows = dict_list
 
 
 def test_get_justification():
@@ -48,10 +62,7 @@ def test_get_justification():
     assert just is None
 
 
-@pytest.mark.only
-@patch("csv.writer")
-def test_write_csv_from_dict_list(monkeypatch, csv_writer_mock):
-
+def test_write_csv_from_dict_list(monkeypatch):
     test_dict_list = [
         {
             "id": "id1",
@@ -66,12 +77,15 @@ def test_write_csv_from_dict_list(monkeypatch, csv_writer_mock):
         "id",
         "desc",
     ]
-    mopen = mock_open()
-    monkeypatch.setattr(Path, "open", mopen)
+    monkeypatch.setattr(Path, "open", mock_open())
+    mock_dict_writer = MockDictWriter()
+    monkeypatch.setattr(csv, "DictWriter", lambda *args, **kwargs: mock_dict_writer)
+
+    log.info("Test successful initialization and function calls")
     ReportParser.write_csv_from_dict_list(
         csv_dir="csv_dir",
         dict_list=test_dict_list,
         fieldnames=test_fieldnames,
         filename="test.csv",
     )
-    assert mopen.assert_called_with(test_dict_list)
+    assert mock_dict_writer.rows == test_dict_list
