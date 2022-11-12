@@ -101,7 +101,6 @@ def test_init_all_package_types(package_classes):
 
 
 def test_all_successful_parse_methods(package_classes):
-    # log.info("Test all successful cases for parsing packages")
     for pkg_type, obj in package_classes.items():
         PackageType = getattr(package_parser, pkg_type)
         log.info(f"Test URLs for {pkg_type}")
