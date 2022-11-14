@@ -103,9 +103,8 @@ def test_init_all_package_types(package_classes):
 def test_all_successful_parse_methods(package_classes):
     for pkg_type, obj in package_classes.items():
         PackageType = getattr(package_parser, pkg_type)
-        log.info(f"Test URLs for {pkg_type}")
         if not inspect.isabstract(PackageType):
-            log.info(f"GOOD: {obj['good_url']}")
+            log.info("Test %s successfully parses %s", pkg_type, obj["good_url"])
             pkg = PackageType.parse(obj["good_url"])
             assert pkg is None or (pkg.name == obj.get("name"))
             assert pkg is None or (pkg.version == obj.get("version"))
@@ -113,10 +112,10 @@ def test_all_successful_parse_methods(package_classes):
             if obj.get("bad_urls"):
                 for bad_url in obj["bad_urls"]:
                     with pytest.raises(ValueError):
-                        log.info(f"BAD: {bad_url}")
+                        log.info("Test %s throws ValueError on %s", pkg_type, bad_url)
                         pkg = PackageType.parse(bad_url)
 
             if obj.get("skip_url"):
-                log.info(f"SKIP: {obj['skip_url']}")
+                log.info("Test %s skips %s", pkg_type, obj["skip_url"])
                 pkg = PackageType.parse(obj["skip_url"])
                 assert pkg is None
