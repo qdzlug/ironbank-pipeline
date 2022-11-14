@@ -7,11 +7,12 @@ import sys
 import tempfile
 import image_verify
 from pathlib import Path
+from ironbank.pipeline.image import Image
 
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.types import Package
-from ironbank.pipeline.artifacts import ORASArtifact
-from ironbank.pipeline.utils.exceptions import ORASDownloadError
+from ironbank.pipeline.artifacts import CosignArtifact
+from ironbank.pipeline.utils.exceptions import CosignDownloadError
 from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
 
 log = logger.setup("scan_logic_jobs")
@@ -74,16 +75,22 @@ def main():
 
                 log.info("SBOM diff required to determine image to scan")
 
-                with tempfile.TemporaryDirectory(prefix="ORAS-") as oras_download:
+                with tempfile.TemporaryDirectory(prefix="COSIGN-") as oras_download:
                     parse_old_pkgs = True
                     try:
-                        old_img = f"{os.environ['BASE_REGISTRY']}/{image_name}@{old_img_digest}"
+                        old_img = Image(
+                            register=os.environ["BASE_REGISTRY"],
+                            name=image_name,
+                            digest=old_img_digest,
+                        )
                         log.info(f"Downloading artifacts for image: {old_img}")
-                        ORASArtifact.download(old_img, oras_download, docker_config_dir)
+                        CosignArtifact.download(
+                            old_img, oras_download, docker_config_dir
+                        )
                         log.info(
                             f"Artifacts downloaded to temp directory: {oras_download}"
                         )
-                    except ORASDownloadError as e:
+                    except CosignDownloadError as e:
                         parse_old_pkgs = False
                         log.error(e)
 
