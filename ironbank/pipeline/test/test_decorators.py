@@ -10,7 +10,7 @@ from subprocess import CalledProcessError
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.exceptions import MaxRetriesException
 from ironbank.pipeline.utils.decorators import request_retry, vat_request_error_handler
-from mocks.mock_responses import mock_responses  # noqa W0611
+
 
 log = logger.setup("test_decorators")
 
