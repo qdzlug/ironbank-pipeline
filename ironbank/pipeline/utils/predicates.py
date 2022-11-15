@@ -11,7 +11,7 @@ def get_predicate_types():
 
 
 def get_predicate_files():
-    return {v: k for k, v in get_predicate_types.items()}
+    return {v: k for k, v in get_predicate_types().items()}
 
 
 def get_unattached_predicates():

@@ -172,7 +172,7 @@ class ContainerArtifact(AbstractArtifact):
 
 @dataclass
 class CosignArtifact(AbstractArtifact):
-    log: logger = logger.setup("ORASArtifact")
+    log: logger = logger.setup("CosignArtifact")
     predicate_files: dict = field(default_factory=get_predicate_files)
 
     def __post_init__(self):
@@ -200,7 +200,7 @@ class CosignArtifact(AbstractArtifact):
             proc = subprocess.Popen(
                 pull_cmd,
                 encoding="utf-8",
-                check=True,
+                # check=True,
                 cwd=output_dir,
                 env={
                     "PATH": os.environ["PATH"],
