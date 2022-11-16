@@ -109,11 +109,9 @@ def generate_blank_oscap_report(csv_dir):
     """
     Creates an empty oscap report, used when the OpenSCAP scan was skipped.
     """
-    with open(
+    with Path(
         csv_dir + "oscap.csv",
-        mode="w",
-        encoding="utf-8",
-    ) as f:
+    ).open(mode="w", encoding="utf-8") as f:
         csv_writer = csv.writer(f)
         csv_writer.writerow(
             [
@@ -134,7 +132,7 @@ def generate_summary_report(csv_dir, osc, tlf, anchore_num_cves, anchore_complia
     """
     Creates a summary CSV with the finding totals from each scan
     """
-    with Path(csv_dir + "summary.csv").open("w", encoding="utf-8") as f:
+    with Path(csv_dir + "summary.csv").open(mode="w", encoding="utf-8") as f:
         csv_writer = csv.writer(f)
 
         header = ["Scan", "Automated Findings", "Manual Checks", "Total"]
@@ -319,7 +317,7 @@ def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
     """
     Get results from Twistlock report for csv export
     """
-    with open(twistlock_cve_json, mode="r", encoding="utf-8") as f:
+    with Path(twistlock_cve_json).open(mode="r", encoding="utf-8") as f:
         json_data = json.load(f)
         cves = []
         if "vulnerabilities" in json_data["results"][0]:
