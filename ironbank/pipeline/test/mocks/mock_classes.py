@@ -140,8 +140,8 @@ class MockHardeningManifest(HardeningManifest):
 class MockImage(Image):
     registry: str = "registry.example.com"
     name: str = "example1/example"
-    tag: str = "1.0"
-    transport: str = "nah://"
+    tag: str = ""
+    transport: str = ""
 
     # def __post_init__(*args, **kwargs):
     #     pass

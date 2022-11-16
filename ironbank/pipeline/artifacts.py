@@ -221,7 +221,7 @@ class CosignArtifact(AbstractArtifact):
                         break
 
         except subprocess.SubprocessError:
-            raise CosignDownloadError("Could not ORAS pull.")
+            raise CosignDownloadError("Could not cosign download.")
 
 
 @dataclass

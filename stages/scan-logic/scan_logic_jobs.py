@@ -75,28 +75,28 @@ def main():
 
                 log.info("SBOM diff required to determine image to scan")
 
-                with tempfile.TemporaryDirectory(prefix="COSIGN-") as oras_download:
+                with tempfile.TemporaryDirectory(prefix="COSIGN-") as cosign_download:
                     parse_old_pkgs = True
                     try:
                         old_img = Image(
-                            register=os.environ["BASE_REGISTRY"],
+                            registry=os.environ["BASE_REGISTRY"],
                             name=image_name,
                             digest=old_img_digest,
                         )
                         log.info(f"Downloading artifacts for image: {old_img}")
                         CosignArtifact.download(
-                            old_img, oras_download, docker_config_dir
+                            old_img, cosign_download, docker_config_dir
                         )
                         log.info(
-                            f"Artifacts downloaded to temp directory: {oras_download}"
+                            f"Artifacts downloaded to temp directory: {cosign_download}"
                         )
                     except CosignDownloadError as e:
                         parse_old_pkgs = False
                         log.error(e)
 
                     if parse_old_pkgs:
-                        old_sbom = Path(oras_download, "sbom-json.json")
-                        old_access_log = Path(oras_download, "access_log")
+                        old_sbom = Path(cosign_download, "sbom-json.json")
+                        old_access_log = Path(cosign_download, "access_log")
 
                         log.info("Parsing old packages")
                         old_pkgs = parse_packages(old_sbom, old_access_log)
@@ -111,7 +111,7 @@ def main():
                             log.info("Package lists match - Able to scan old image")
                             scan_new_image = False
                     else:
-                        log.info("ORAS download failed - Must scan new image")
+                        log.info("cosign download failed - Must scan new image")
             else:
                 log.info("Image verify failed - Must scan new image")
 

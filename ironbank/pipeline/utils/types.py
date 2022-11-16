@@ -10,7 +10,7 @@ from typing import TextIO
 class Package:
     name: str
     version: str
-    kind: str = field(init=False, default=None)
+    kind: str = field(default=None)
     url: str = field(compare=False, default=None)
 
 

@@ -4,11 +4,11 @@ import sys
 from unittest.mock import mock_open, patch
 import pytest
 from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
-from ironbank.pipeline.artifacts import ORASArtifact
-from ironbank.pipeline.utils.exceptions import ORASDownloadError
+from ironbank.pipeline.artifacts import CosignArtifact
+from ironbank.pipeline.utils.exceptions import CosignDownloadError
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.testing import raise_
-from ironbank.pipeline.test.mocks.mock_classes import MockPath, MockSet
+from ironbank.pipeline.test.mocks.mock_classes import MockPath, MockSet, MockImage
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import image_verify  # noqa E402
@@ -58,6 +58,7 @@ def test_parse_packages(monkeypatch, caplog):
 
 
 @patch("scan_logic_jobs.Path", new=MockPath)
+@patch("scan_logic_jobs.Image", new=MockImage)
 def test_main(monkeypatch, caplog):
     # avoid actually creating env var file for all tests
     monkeypatch.setattr(scan_logic_jobs, "write_env_vars", lambda *args, **kwargs: None)
@@ -88,15 +89,15 @@ def test_main(monkeypatch, caplog):
     assert "Image verify failed - Must scan new image" in caplog.text
     caplog.clear()
 
-    log.info("Testing diff needed and ORAS download failed")
+    log.info("Testing diff needed and Cosign download failed")
     monkeypatch.setenv("BASE_REGISTRY", "example-registry")
     monkeypatch.setattr(
         image_verify, "diff_needed", lambda x: ("test-digest", "test-date")
     )
     monkeypatch.setattr(
-        ORASArtifact,
+        CosignArtifact,
         "download",
-        lambda self, *args: raise_(ORASDownloadError("Test ORAS download failed")),
+        lambda self, *args: raise_(CosignDownloadError("Test Cosign download failed")),
     )
     scan_logic_jobs.main()
     assert "SBOM diff required to determine image to scan" in caplog.text
@@ -104,7 +105,7 @@ def test_main(monkeypatch, caplog):
         "Downloading artifacts for image: example-registry/example/test@test-digest"
         in caplog.text
     )
-    assert "ORAS download failed - Must scan new image" in caplog.text
+    assert "cosign download failed - Must scan new image" in caplog.text
     caplog.clear()
 
     log.info("Test old image and new image package lists match")
@@ -113,7 +114,7 @@ def test_main(monkeypatch, caplog):
         "parse_packages",
         lambda x, y: MockSet(),
     )
-    monkeypatch.setattr(ORASArtifact, "download", lambda self, *args: True)
+    monkeypatch.setattr(CosignArtifact, "download", lambda self, *args: True)
     scan_logic_jobs.main()
     assert "Package lists match - Able to scan old image" in caplog.text
 
