@@ -12,8 +12,6 @@ from ironbank.pipeline.utils.decorators import subprocess_error_handler
 from ironbank.pipeline.container_tools.container_tool import ContainerTool
 from ironbank.pipeline.utils.predicates import get_predicate_files
 
-log = logger.setup(name="cosign")
-
 
 @dataclass
 class Cosign(ContainerTool):
@@ -21,6 +19,7 @@ class Cosign(ContainerTool):
     Perform cosign operations
     """
 
+    log = logger.setup(name="cosign")
     cosign_cert: str = field(default_factory=lambda: os.environ["COSIGN_CERT"])
     kms_key_arn: str = field(default_factory=lambda: os.environ["KMS_KEY_SHORT_ARN"])
     aws_access_key_id: str = field(
@@ -47,7 +46,7 @@ class Cosign(ContainerTool):
         cmd += ["--attachment", attachment] if attachment else []
         cmd += [f"{image.registry}/{image.name}@{image.digest}"]
         if log_cmd:
-            log.info(cmd)
+            self.log.info(cmd)
         subprocess.run(
             args=cmd,
             capture_output=True,
@@ -72,7 +71,7 @@ class Cosign(ContainerTool):
         ]
         cmd += [f"{image.registry}/{image.name}@{image.digest}"]
         if log_cmd:
-            log.info(cmd)
+            self.log.info(cmd)
         subprocess.run(
             args=cmd,
             capture_output=True,
@@ -109,7 +108,7 @@ class Cosign(ContainerTool):
         cmd += ["--cert", self.cosign_cert] if self.cosign_cert else []
         cmd += [f"{image.registry}/{image.name}@{image.digest}"]
         if log_cmd:
-            log.info(cmd)
+            self.log.info(cmd)
         subprocess.run(
             args=cmd,
             capture_output=True,
