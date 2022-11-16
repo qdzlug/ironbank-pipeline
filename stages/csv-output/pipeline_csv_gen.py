@@ -5,7 +5,7 @@ import sys
 import json
 import os
 import argparse
-import pathlib
+from pathlib import Path
 import logging
 import xml.etree.ElementTree as etree
 
@@ -50,11 +50,11 @@ def main():
     args = parser.parse_args()
 
     # Create the csv directory if not present
-    pathlib.Path(args.output_dir).mkdir(parents=True, exist_ok=True)
+    Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 
     artifacts_path = os.environ["ARTIFACT_STORAGE"]
     # get cves and justifications from VAT
-    vat_findings_file = pathlib.Path(artifacts_path, "vat", "vat_response.json")
+    vat_findings_file = Path(artifacts_path, "vat", "vat_response.json")
     # load vat_findings.json file
     try:
         with vat_findings_file.open(mode="r", encoding="utf-8") as f:
