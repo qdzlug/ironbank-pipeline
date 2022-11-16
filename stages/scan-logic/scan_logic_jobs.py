@@ -11,7 +11,7 @@ from ironbank.pipeline.image import Image
 
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.types import Package
-from ironbank.pipeline.artifacts import CosignArtifact
+from ironbank.pipeline.container_tools.cosign import Cosign
 from ironbank.pipeline.utils.exceptions import CosignDownloadError
 from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
 
@@ -84,7 +84,7 @@ def main():
                             digest=old_img_digest,
                         )
                         log.info(f"Downloading artifacts for image: {old_img}")
-                        CosignArtifact.download(
+                        Cosign.download(
                             old_img,
                             cosign_download,
                             docker_config_dir,

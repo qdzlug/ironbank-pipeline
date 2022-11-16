@@ -4,7 +4,7 @@ import sys
 from unittest.mock import mock_open, patch
 import pytest
 from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
-from ironbank.pipeline.artifacts import CosignArtifact
+from ironbank.pipeline.container_tools.cosign import Cosign
 from ironbank.pipeline.utils.exceptions import CosignDownloadError
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.testing import raise_
@@ -95,7 +95,7 @@ def test_main(monkeypatch, caplog):
         image_verify, "diff_needed", lambda x: ("test-digest", "test-date")
     )
     monkeypatch.setattr(
-        CosignArtifact,
+        Cosign,
         "download",
         lambda self, *args: raise_(CosignDownloadError("Test Cosign download failed")),
     )
@@ -114,7 +114,7 @@ def test_main(monkeypatch, caplog):
         "parse_packages",
         lambda x, y: MockSet(),
     )
-    monkeypatch.setattr(CosignArtifact, "download", lambda self, *args: True)
+    monkeypatch.setattr(Cosign, "download", lambda self, *args: True)
     scan_logic_jobs.main()
     assert "Package lists match - Able to scan old image" in caplog.text
 

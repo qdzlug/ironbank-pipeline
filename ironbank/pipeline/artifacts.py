@@ -1,24 +1,21 @@
-import json
 import os
 import pathlib
-import subprocess
 import requests
 import boto3
 from urllib.parse import urlparse
 from requests.auth import HTTPBasicAuth
 from .utils import logger
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from base64 import b64decode
 from typing import Union
 from .utils.decorators import request_retry
-from .utils.exceptions import InvalidURLList, CosignDownloadError
+from .utils.exceptions import InvalidURLList
 from .abstract_artifacts import (
     AbstractArtifact,
     AbstractFileArtifact,
 )
 from ironbank.pipeline.image import Image, ImageFile
 from ironbank.pipeline.container_tools.skopeo import Skopeo
-from ironbank.pipeline.utils.predicates import get_predicate_files
 
 
 @dataclass
@@ -168,60 +165,6 @@ class ContainerArtifact(AbstractArtifact):
         )
 
         self.log.info("Successfully pulled")
-
-
-@dataclass
-class CosignArtifact(AbstractArtifact):
-    log: logger = logger.setup("CosignArtifact")
-    predicate_files: dict = field(default_factory=get_predicate_files)
-
-    def __post_init__(self):
-        pass
-
-    def get_credentials(self) -> None:
-        pass
-
-    @classmethod
-    @request_retry(3)
-    def download(
-        cls, image: Image, output_dir: str, docker_config_dir: str, predicate_type: str
-    ):
-        # predicate types/files can be found in ironbank/pipeline/utils/predicates.py
-
-        pull_cmd = [
-            "cosign",
-            "download",
-            "attestation",
-            str(image),
-        ]
-        cls.log.info(pull_cmd)
-
-        try:
-            proc = subprocess.Popen(
-                pull_cmd,
-                encoding="utf-8",
-                # check=True,
-                cwd=output_dir,
-                env={
-                    "PATH": os.environ["PATH"],
-                    "DOCKER_CONFIG": docker_config_dir,
-                },
-            )
-            for line in iter(proc.stdout.readline, ""):
-                payload = json.loads(line.decode())["payload"]
-                predicate = json.loads(b64decode(payload))
-                # payload can take up a lot of memory, delete after decoding and converting to dict object
-                del payload
-                if predicate["predicateType"] == predicate_type:
-                    with pathlib.Path(cls.predicate_files[predicate_type]).open(
-                        "w+"
-                    ) as f:
-                        json.dump(predicate["predicate"], f, indent=4)
-                    if proc.poll() is not None:
-                        break
-
-        except subprocess.SubprocessError:
-            raise CosignDownloadError("Could not cosign download.")
 
 
 @dataclass

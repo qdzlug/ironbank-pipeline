@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 
+from base64 import b64decode
+import json
 import os
+from pathlib import Path
 import subprocess
 from dataclasses import dataclass, field
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.image import Image, ImageFile
 from ironbank.pipeline.utils.decorators import subprocess_error_handler
 from ironbank.pipeline.container_tools.container_tool import ContainerTool
+from ironbank.pipeline.utils.predicates import get_predicate_files
 
 log = logger.setup(name="cosign")
 
@@ -118,3 +122,38 @@ class Cosign(ContainerTool):
                 **os.environ,
             },
         )
+
+    @classmethod
+    @subprocess_error_handler("Could not cosign download.")
+    def download(
+        cls, image: Image, output_dir: str, docker_config_dir: str, predicate_type: str
+    ):
+        # predicate types/files can be found in ironbank/pipeline/utils/predicates.py
+        predicate_files = get_predicate_files()
+        pull_cmd = [
+            "cosign",
+            "download",
+            "attestation",
+            str(image),
+        ]
+        cls.log.info(pull_cmd)
+        proc = subprocess.Popen(
+            pull_cmd,
+            encoding="utf-8",
+            # check=True,
+            cwd=output_dir,
+            env={
+                "PATH": os.environ["PATH"],
+                "DOCKER_CONFIG": docker_config_dir,
+            },
+        )
+        for line in iter(proc.stdout.readline, ""):
+            payload = json.loads(line.decode())["payload"]
+            predicate = json.loads(b64decode(payload))
+            # payload can take up a lot of memory, delete after decoding and converting to dict object
+            del payload
+            if predicate["predicateType"] == predicate_type:
+                with Path(predicate_files[predicate_type]).open("w+") as f:
+                    json.dump(predicate["predicate"], f, indent=4)
+                if proc.poll() is not None:
+                    break
