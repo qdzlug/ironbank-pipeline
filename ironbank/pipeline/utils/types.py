@@ -8,9 +8,9 @@ from typing import TextIO
 
 @dataclass(slots=True, frozen=True)
 class Package:
+    kind: str
     name: str
     version: str
-    kind: str = field(init=False, default=None)
     url: str = field(compare=False, default=None)
 
 
