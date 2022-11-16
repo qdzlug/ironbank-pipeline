@@ -116,7 +116,7 @@ def get_oval_findings(finding_name, finding_href, severity):
         logging.error("OVAL findings found for non-ubi based image")
         sys.exit(1)
 
-    url = f"https://www.redhat.com/security/data/oval/com.redhat.rhsa-RHEL{version}.xml"
+    url = f"https://www.redhat.com/security/data/oval/com.redhat.rhsa-RHEL{version}.xml.bz2"
     root = get_redhat_oval_definitions(url)
 
     n_set = {
