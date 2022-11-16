@@ -139,7 +139,7 @@ class Cosign(ContainerTool):
         proc = subprocess.Popen(
             pull_cmd,
             encoding="utf-8",
-            # check=True,
+            check=True,
             cwd=output_dir,
             env={
                 "PATH": os.environ["PATH"],
