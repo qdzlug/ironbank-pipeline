@@ -134,7 +134,7 @@ def generate_summary_report(csv_dir, osc, tlf, anchore_num_cves, anchore_complia
     """
     Creates a summary CSV with the finding totals from each scan
     """
-    with open(csv_dir + "summary.csv", "w", encoding="utf-8") as f:
+    with Path(csv_dir + "summary.csv").open("w", encoding="utf-8") as f:
         csv_writer = csv.writer(f)
 
         header = ["Scan", "Automated Findings", "Manual Checks", "Total"]
