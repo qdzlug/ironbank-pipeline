@@ -180,7 +180,7 @@ def generate_oscap_report(oscap, justifications, csv_dir):
     Calls the get_oscap_full function to first parse the OSCAP XML report.
     """
     oscap_cves = get_oscap_full(oscap, justifications)
-    with open(csv_dir + "oscap.csv", mode="w", encoding="utf-8") as f:
+    with Path(csv_dir + "oscap.csv").open(mode="w", encoding="utf-8") as f:
         csv_writer = csv.writer(f)
         count = 0
         fail_count = 0
