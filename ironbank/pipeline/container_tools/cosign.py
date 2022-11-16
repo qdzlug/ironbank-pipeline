@@ -28,7 +28,9 @@ class Cosign(ContainerTool):
     aws_region: str = "us-gov-west-1"
 
     @subprocess_error_handler(logging_message="Cosign.sign failed")
-    def sign(self, image: Image | ImageFile, attachment=None) -> None:
+    def sign(
+        self, image: Image | ImageFile, attachment=None, log_cmd: bool = False
+    ) -> None:
         """
         Perform cosign image or image attachment signature
         """
@@ -40,7 +42,8 @@ class Cosign(ContainerTool):
         cmd += ["--cert", self.cosign_cert] if self.cosign_cert else []
         cmd += ["--attachment", attachment] if attachment else []
         cmd += [f"{image.registry}/{image.name}@{image.digest}"]
-        log.info("Run Cosign.sign cmd: %s", cmd)
+        if log_cmd:
+            log.info(cmd)
         subprocess.run(
             args=cmd,
             capture_output=True,
@@ -55,7 +58,7 @@ class Cosign(ContainerTool):
         )
 
     @subprocess_error_handler(logging_message="Cosign.clean failed")
-    def clean(self, image: Image | ImageFile) -> None:
+    def clean(self, image: Image | ImageFile, log_cmd: bool = False) -> None:
         """
         Remove existing signatures from the image.
         """
@@ -64,7 +67,8 @@ class Cosign(ContainerTool):
             "clean",
         ]
         cmd += [f"{image.registry}/{image.name}@{image.digest}"]
-        log.info("Run Cosign.clean cmd: %s", cmd)
+        if log_cmd:
+            log.info(cmd)
         subprocess.run(
             args=cmd,
             capture_output=True,
@@ -85,6 +89,7 @@ class Cosign(ContainerTool):
         predicate_path: str,
         predicate_type: str,
         replace: bool,
+        log_cmd: bool = False,
     ) -> None:
         """
         Add attestation
@@ -99,7 +104,8 @@ class Cosign(ContainerTool):
         cmd += ["--key", self.kms_key_arn] if self.kms_key_arn else []
         cmd += ["--cert", self.cosign_cert] if self.cosign_cert else []
         cmd += [f"{image.registry}/{image.name}@{image.digest}"]
-        log.info("Run Cosign.attest cmd: %s", cmd)
+        if log_cmd:
+            log.info(cmd)
         subprocess.run(
             args=cmd,
             capture_output=True,

@@ -1,8 +1,6 @@
-#!/usr/bin/env python3
-
-from dataclasses import dataclass
-import requests
 import pytest
+import requests
+from dataclasses import dataclass
 
 
 @dataclass
@@ -31,10 +29,15 @@ class MockResponse:
         return {"status_code": self.status_code, "text": self.text}
 
 
+class MockJsonDecodeError(requests.JSONDecodeError):
+    def __init__(self):
+        pass
+
+
 @dataclass
 class MockInvalidJson(MockResponse):
     def json(self):
-        raise requests.JSONDecodeError
+        raise MockJsonDecodeError()
 
 
 @pytest.fixture(scope="module")
@@ -70,7 +73,7 @@ def mock_responses():
         raise RuntimeError
 
     def mockJsonDecodeError(*args, **kwargs):
-        return MockInvalidJson(200, "")
+        return MockInvalidJson(status_code=200, text="")
 
     return {
         "200": mock200,

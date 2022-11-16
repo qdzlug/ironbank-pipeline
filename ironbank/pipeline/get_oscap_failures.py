@@ -106,7 +106,9 @@ def generate_oscap_jobs(oscap_path):
 
 
 def get_oval_findings(finding_name, finding_href, severity):
-    if "RHEL8" in finding_href:
+    if "RHEL9" in finding_href:
+        version = 9
+    elif "RHEL8" in finding_href:
         version = 8
     elif "RHEL7" in finding_href:
         version = 7
@@ -114,7 +116,7 @@ def get_oval_findings(finding_name, finding_href, severity):
         logging.error("OVAL findings found for non-ubi based image")
         sys.exit(1)
 
-    url = f"https://www.redhat.com/security/data/oval/com.redhat.rhsa-RHEL{version}.xml"
+    url = f"https://www.redhat.com/security/data/oval/com.redhat.rhsa-RHEL{version}.xml.bz2"
     root = get_redhat_oval_definitions(url)
 
     n_set = {

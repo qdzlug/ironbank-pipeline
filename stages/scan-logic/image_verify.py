@@ -23,7 +23,7 @@ def inspect_old_image(
             tag=manifest.image_tag,
             transport="docker://",
         )
-        return skopeo.inspect(old_image)
+        return skopeo.inspect(old_image, log_cmd=True)
 
     except GenericSubprocessError:
         log.info(

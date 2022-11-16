@@ -44,7 +44,7 @@ def compare_digests(image: Image) -> None:
     try:
         logging.info("Inspecting image in registry")
         remote_inspect_raw = skopeo.inspect(
-            image.from_image(transport="docker://"), raw=True
+            image.from_image(transport="docker://"), raw=True, log_cmd=True
         )
     except GenericSubprocessError:
         logging.error(
@@ -80,6 +80,7 @@ def promote_tags(
                 production_image,
                 src_authfile="staging_auth.json",
                 dest_authfile="/tmp/config.json",
+                log_cmd=True,
             )
         except GenericSubprocessError:
             logging.error(f"Failed to copy {staging_image} to {production_image}")
@@ -174,7 +175,7 @@ def main():
 
     logging.info("Signing image")
     try:
-        cosign.sign(production_image)
+        cosign.sign(production_image, log_cmd=True)
     except GenericSubprocessError:
         logging.error(
             f"Failed to sign image: {production_image.registry}/{production_image.name}@{production_image.digest}"
@@ -209,6 +210,7 @@ def main():
                 predicate_path=predicate.as_posix(),
                 predicate_type=predicate_types[predicate.name],
                 replace=True,
+                log_cmd=True,
             )
         except GenericSubprocessError:
             logging.error(f"Failed to add attestation {predicate.as_posix()}")

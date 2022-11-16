@@ -36,7 +36,7 @@ def test_cosign_sign(monkeypatch, caplog):
 
     log.info("Test sign successful")
     monkeypatch.setattr(subprocess, "run", mock_subprocess_run)
-    cosign.sign(image)
+    cosign.sign(image, log_cmd=True)
     assert (
         "['cosign', 'sign', '--key', 'kmsKey', '--cert', 'cert', 'testRegistry/testName@testDigest']"
         in caplog.text
@@ -44,7 +44,7 @@ def test_cosign_sign(monkeypatch, caplog):
     caplog.clear()
 
     log.info("Test sign attachment")
-    cosign.sign(image, attachment="testAttachment")
+    cosign.sign(image, attachment="testAttachment", log_cmd=True)
     assert (
         "['cosign', 'sign', '--key', 'kmsKey', '--cert', 'cert', '--attachment', 'testAttachment', 'testRegistry/testName@testDigest']"
         in caplog.text
@@ -70,7 +70,7 @@ def test_cosign_clean(monkeypatch, caplog):
 
     log.info("Test clean successful")
     monkeypatch.setattr(subprocess, "run", mock_subprocess_run)
-    cosign.clean(image)
+    cosign.clean(image, log_cmd=True)
     assert "['cosign', 'clean', 'testRegistry/testName@testDigest']" in caplog.text
     caplog.clear()
 
@@ -94,7 +94,11 @@ def test_cosign_attest(monkeypatch, caplog):
     log.info("Test attest successful")
     monkeypatch.setattr(subprocess, "run", mock_subprocess_run)
     cosign.attest(
-        image=image, predicate_path="testPath", predicate_type="testType", replace=False
+        image=image,
+        predicate_path="testPath",
+        predicate_type="testType",
+        replace=False,
+        log_cmd=True,
     )
     assert (
         "['cosign', 'attest', '--predicate', 'testPath', '--type', 'testType', '--key', 'kmsKey', '--cert', 'cert', 'testRegistry/testName@testDigest']"
@@ -105,7 +109,11 @@ def test_cosign_attest(monkeypatch, caplog):
     log.info("Test attest replace")
     monkeypatch.setattr(subprocess, "run", mock_subprocess_run)
     cosign.attest(
-        image=image, predicate_path="testPath", predicate_type="testType", replace=True
+        image=image,
+        predicate_path="testPath",
+        predicate_type="testType",
+        replace=True,
+        log_cmd=True,
     )
     assert (
         "['cosign', 'attest', '--replace', '--predicate', 'testPath', '--type', 'testType', '--key', 'kmsKey', '--cert', 'cert', 'testRegistry/testName@testDigest']"
