@@ -87,6 +87,8 @@ def get_parent_label(
     if hardening_manifest.base_image_name:
         base_image = Image(registry=base_registry, name=hardening_manifest.base_image_name, tag=hardening_manifest.base_image_tag)
         return f"{base_image}@{skopeo.inspect(base_image.from_image(transport='docker://'))['Digest']}"
+    # if no base image, return empty string instead of None
+    return ""
 
 
 def start_squid(squid_conf: Path):
