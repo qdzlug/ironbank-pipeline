@@ -80,8 +80,6 @@ class Image:
             return self.tag_str()
         elif self.digest:
             return self.digest_str()
-        else:
-            return None
 
 
 @dataclass

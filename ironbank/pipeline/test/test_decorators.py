@@ -3,14 +3,14 @@
 import os
 import pytest
 import logging
-from dataclasses import dataclass
-from subprocess import CalledProcessError
 from unittest import mock
+from dataclasses import dataclass
 from ironbank.pipeline.apis import API
+from subprocess import CalledProcessError
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.decorators import request_retry, vat_request_error_handler
 from ironbank.pipeline.utils.exceptions import MaxRetriesException
-from mocks.mock_responses import mock_responses  # noqa W0611
+from ironbank.pipeline.utils.decorators import request_retry, vat_request_error_handler
+
 
 log = logger.setup("test_decorators")
 

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
+import os
 import git
 import sys
-import os
 import yaml
-import logging
-import pathlib
 import pytest
+import pathlib
 from unittest.mock import mock_open
+from ironbank.pipeline.utils import logger
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import trufflehog  # noqa E402
@@ -17,7 +17,7 @@ from trufflehog import (
     get_config,
 )  # noqa E402
 
-logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
+log = logger.setup("test_trufflehog")
 
 mock_path = pathlib.Path(
     pathlib.Path(__file__).absolute().parent.parent.parent.parent,
@@ -58,7 +58,7 @@ def test_get_history(test_projects):
         diff_branch = "origin/master"
         commit_diff = get_commit_diff(repo_dir, diff_branch)
         history_cmd = get_history_cmd(commit_diff)
-        logging.info(history_cmd)
+        log.info(history_cmd)
         assert (history_cmd[0] == "--since" and history_cmd[1] != "") or history_cmd[
             0
         ] == "--no-history"

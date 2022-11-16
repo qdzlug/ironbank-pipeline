@@ -162,6 +162,7 @@ class ContainerArtifact(AbstractArtifact):
             remove_signatures=True,
             additional_tags=self.tag,
             src_creds=self.get_credentials() if self.auth else None,
+            log_cmd=True,
         )
 
         self.log.info("Successfully pulled")

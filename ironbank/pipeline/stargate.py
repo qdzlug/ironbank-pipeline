@@ -112,7 +112,7 @@ class Stargate:
             transport="oci:",
         )
         try:
-            skopeo.copy(src, dest)
+            skopeo.copy(src, dest, log_cmd=True)
         except GenericSubprocessError:
             log.error("Could not skopeo copy.")
             sys.exit(1)
