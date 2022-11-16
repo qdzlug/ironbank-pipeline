@@ -85,7 +85,10 @@ def main():
                         )
                         log.info(f"Downloading artifacts for image: {old_img}")
                         CosignArtifact.download(
-                            old_img, cosign_download, docker_config_dir
+                            old_img,
+                            cosign_download,
+                            docker_config_dir,
+                            "sbom-syft-json.json",
                         )
                         log.info(
                             f"Artifacts downloaded to temp directory: {cosign_download}"
