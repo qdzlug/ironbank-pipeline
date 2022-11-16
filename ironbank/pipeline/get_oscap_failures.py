@@ -106,7 +106,9 @@ def generate_oscap_jobs(oscap_path):
 
 
 def get_oval_findings(finding_name, finding_href, severity):
-    if "RHEL8" in finding_href:
+    if "RHEL9" in finding_href:
+        version = 9
+    elif "RHEL8" in finding_href:
         version = 8
     elif "RHEL7" in finding_href:
         version = 7
