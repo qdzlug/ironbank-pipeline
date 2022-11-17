@@ -139,13 +139,14 @@ class Cosign(ContainerTool):
         proc = subprocess.Popen(
             pull_cmd,
             encoding="utf-8",
-            check=True,
             cwd=output_dir,
             env={
                 "PATH": os.environ["PATH"],
                 "DOCKER_CONFIG": docker_config_dir,
             },
         )
+        if proc.poll() is not None and proc.stdout is None:
+            raise subprocess.CalledProcessError(proc.returncode, pull_cmd)
         for line in iter(proc.stdout.readline, ""):
             payload = json.loads(line.decode())["payload"]
             predicate = json.loads(b64decode(payload))
