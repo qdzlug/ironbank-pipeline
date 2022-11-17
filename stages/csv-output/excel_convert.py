@@ -83,7 +83,7 @@ def _get_column_index(sheet, value):
             break
 
     if not justification_column:
-        logging.error(f"Could not find '{value}' column")
+        logging.error("Could not find '%s' column", value)
         sys.exit(1)
 
     return justification_column
