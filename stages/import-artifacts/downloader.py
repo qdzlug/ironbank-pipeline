@@ -22,6 +22,7 @@ log = logger.setup("import_artifacts")
 
 
 def main():
+    """Main function"""
 
     # Read hardening_manifest.yaml file
     dsop_project = DsopProject()
@@ -62,11 +63,7 @@ def main():
             elif "http" in scheme:
                 artifact = HttpArtifact(**resource)
             else:
-                log.error(
-                    "Invalid scheme %s for artifact %s",
-                    scheme,
-                    resource["url"],
-                )
+                log.error("Invalid scheme %s for artifact %s", scheme, resource["url"])
                 sys.exit(1)
 
             if isinstance(artifact, AbstractFileArtifact):
@@ -109,14 +106,12 @@ def main():
         )
     except RuntimeError:
         log.error("Unexpected runtime error occurred.")
-    except Exception as e:
+    except Exception as e:  # pylint:  disable=broad-except
         log.error("Unexpected error occurred. Exception class: %s", e.__class__)
     finally:
         if artifact is not None and exit_code == 1:
             artifact.delete_artifact()
         sys.exit(exit_code)
-
-    # more exceptions
 
 
 if __name__ == "__main__":
