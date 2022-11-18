@@ -132,7 +132,11 @@ def main():
                 # Unpack returned tuple into variables
                 (old_img_digest, old_img_build_date) = old_image_details
 
-                old_pkgs = get_old_pkgs()
+                old_pkgs = get_old_pkgs(
+                    image_name=image_name,
+                    image_digest=old_img_digest,
+                    docker_config_dir=docker_config_dir,
+                )
 
                 if not old_pkgs:
                     if new_pkgs.symmetric_difference(old_pkgs):
@@ -155,6 +159,7 @@ def main():
     else:
         write_env_vars(image_name, old_img_digest, old_img_build_date)
         log.info("Old image digest and build date saved")
+
 
 if __name__ == "__main__":
     main()
