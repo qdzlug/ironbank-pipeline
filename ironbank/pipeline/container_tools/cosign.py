@@ -125,7 +125,11 @@ class Cosign(ContainerTool):
     @classmethod
     @subprocess_error_handler("Could not cosign download.")
     def download(
-        cls, image: Image, output_dir: str, docker_config_dir: str, predicate_type: str
+        cls,
+        image: Image,
+        output_dir: str,
+        docker_config_dir: str,
+        predicate_types: list[str],
     ):
         # predicate types/files can be found in ironbank/pipeline/utils/predicates.py
         predicate_files = get_predicate_files()
@@ -154,8 +158,11 @@ class Cosign(ContainerTool):
             predicate = json.loads(b64decode(payload))
             # payload can take up a lot of memory, delete after decoding and converting to dict object
             del payload
-            if predicate["predicateType"] == predicate_type:
-                with Path(predicate_files[predicate_type]).open("w+") as f:
-                    json.dump(predicate["predicate"], f, indent=4)
-                if proc.poll() is not None:
-                    break
+            for predicate_type in predicate_types:
+                if predicate["predicateType"] == predicate_type:
+                    with Path(output_dir, predicate_files[predicate_type]).open(
+                        "w+"
+                    ) as f:
+                        json.dump(predicate["predicate"], f, indent=4)
+                    if proc.poll() is not None:
+                        break

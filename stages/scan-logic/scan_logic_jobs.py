@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os
-import sys
 import json
 import pathlib
 import tempfile
@@ -31,16 +30,15 @@ def write_env_vars(image: str, digest: str, build_date: str) -> None:
         )
 
 
-def parse_packages(sbom_path: Path, access_log_path: Path) -> list[Package]:
+def parse_packages(sbom: Path | dict, access_log: Path | list[str]) -> list[Package]:
     """
     Verify sbom and access log files exist and parse packages accordingly
     """
-    if not sbom_path.exists():
-        log.info("SBOM not found - Exiting")
-        sys.exit(1)
-    pkgs = set(SbomFileParser.parse(sbom_path))
-    if access_log_path.exists():
-        pkgs.update(AccessLogFileParser.parse(access_log_path))
+    pkgs = set(SbomFileParser.parse(sbom))
+    try:
+        pkgs.update(AccessLogFileParser.parse(access_log))
+    except FileNotFoundError:
+        log.info("Access log does not exist")
     log.info("Packages parsed:")
     for pkg in pkgs:
         log.info(f"  {pkg}")
@@ -50,19 +48,15 @@ def parse_packages(sbom_path: Path, access_log_path: Path) -> list[Package]:
 def download_attestations(image: Image, output_dir: Path, docker_config_dir: Path):
     try:
         log.info(f"Downloading artifacts for image: {image}")
-        # Download SYFT SBOM JSON
+        # Download SYFT SBOM JSON & Hardening Manifest JSON
         Cosign.download(
             image,
             output_dir,
             docker_config_dir,
-            "https://github.com/anchore/syft#output-formats",
-        )
-        # Download Hardening Manifest JSON
-        Cosign.download(
-            image,
-            output_dir,
-            docker_config_dir,
-            "https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md",
+            [
+                "https://github.com/anchore/syft#output-formats",
+                "https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md",
+            ],
         )
         log.info(f"Artifacts downloaded to temp directory: {output_dir}")
     except CosignDownloadError as e:
@@ -85,14 +79,9 @@ def get_old_pkgs(image_name: str, image_digest: str, docker_config_dir: Path):
             docker_config_dir=docker_config_dir,
         ):
             old_sbom = Path(cosign_download, "sbom-syft-json.json")
-            old_access_log = Path(cosign_download, "access_log")
 
-            # Parse Access Log from HM
-            hm = Path(cosign_download, "hardening_manifest.json").open("r")
-            with old_access_log.open("w", encoding="utf-8") as f:
-                with hm:
-                    data = json.load(hm)["access_log"]
-                    f.write(data)
+            with Path(cosign_download, "hardening_manifest.json").open("r") as hm:
+                old_access_log = json.load(hm)["access_log"]
 
             log.info("Parsing old packages")
             return parse_packages(old_sbom, old_access_log)
