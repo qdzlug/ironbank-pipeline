@@ -141,8 +141,6 @@ def main():
                         log.info("Package(s) difference detected - Must scan new image")
                     else:
                         log.info("Package lists match - Able to scan old image")
-                        write_env_vars(image_name, old_img_digest, old_img_build_date)
-                        log.info("Old image digest and build date saved")
                         scan_new_image = False
                 else:
                     log.info("No old pkgs to compare - Must scan new image")
@@ -154,7 +152,9 @@ def main():
             image_name, os.environ["IMAGE_PODMAN_SHA"], os.environ["BUILD_DATE"]
         )
         log.info("New image digest and build date saved")
-
+    else:
+        write_env_vars(image_name, old_img_digest, old_img_build_date)
+        log.info("Old image digest and build date saved")
 
 if __name__ == "__main__":
     main()
