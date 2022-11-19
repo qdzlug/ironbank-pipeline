@@ -90,15 +90,15 @@ def diff_needed(docker_config_dir: str) -> Optional[tuple]:
     old_img_json = inspect_old_image(manifest, docker_config_dir)
 
     log.info("Verifying image properties")
-    # if not (
-    #     # If manifest exists (not a new tag), return true
-    #     old_img_json
-    #     # If no diff in git commit SHA, return true
-    #     and commit_sha_equal(old_img_json)
-    #     # If no diff in parent digest, return true
-    #     and parent_digest_equal(old_img_json, manifest)
-    # ):
-    #     return None
+    if not (
+        # If manifest exists (not a new tag), return true
+        old_img_json
+        # If no diff in git commit SHA, return true
+        and commit_sha_equal(old_img_json)
+        # If no diff in parent digest, return true
+        and parent_digest_equal(old_img_json, manifest)
+    ):
+        return None
 
     return (
         old_img_json["Digest"],
