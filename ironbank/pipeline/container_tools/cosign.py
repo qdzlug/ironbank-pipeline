@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 
-from base64 import b64decode
-import json
 import os
-from pathlib import Path
+import json
 import subprocess
+from pathlib import Path
+from base64 import b64decode
 from dataclasses import dataclass, field
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.image import Image, ImageFile
+from ironbank.pipeline.utils.predicates import get_predicate_files
 from ironbank.pipeline.utils.decorators import subprocess_error_handler
 from ironbank.pipeline.container_tools.container_tool import ContainerTool
-from ironbank.pipeline.utils.predicates import get_predicate_files
 
 
 @dataclass
@@ -130,18 +130,20 @@ class Cosign(ContainerTool):
         output_dir: str,
         docker_config_dir: str,
         predicate_types: list[str],
-    ):
+        log_cmd: bool = False,
+    ) -> None:
         # predicate types/files can be found in ironbank/pipeline/utils/predicates.py
         predicate_files = get_predicate_files()
-        pull_cmd = [
+        cmd = [
             "cosign",
             "download",
             "attestation",
             str(image),
         ]
-        cls.log.info(pull_cmd)
+        if log_cmd:
+            cls.log.info(cmd)
         proc = subprocess.Popen(
-            pull_cmd,
+            cmd,
             encoding="utf-8",
             cwd=output_dir,
             stdout=subprocess.PIPE,
@@ -152,12 +154,16 @@ class Cosign(ContainerTool):
         )
         # Check if child process has terminated and no data piped to stdout
         if proc.poll() is not None and proc.stdout is None:
-            raise subprocess.CalledProcessError(proc.returncode, pull_cmd)
+            raise subprocess.CalledProcessError(proc.returncode, cmd)
+
         for line in iter(proc.stdout.readline, ""):
             payload = json.loads(line)["payload"]
             predicate = json.loads(b64decode(payload))
+
             # payload can take up a lot of memory, delete after decoding and converting to dict object
             del payload
+
+            # Write predicates to their respective files
             for predicate_type in predicate_types:
                 if predicate["predicateType"] == predicate_type:
                     with Path(output_dir, predicate_files[predicate_type]).open(

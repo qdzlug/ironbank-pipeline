@@ -80,7 +80,6 @@ class AccessLogFileParser(FileParser):
 class SbomFileParser(FileParser):
     @classmethod
     def parse(cls, sbom: dict | Path) -> list[Package]:
-
         packages: list[Package] = []
 
         for artifact in cls.handle_file_obj(sbom)["artifacts"]:

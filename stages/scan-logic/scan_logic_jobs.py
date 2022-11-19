@@ -34,6 +34,7 @@ def parse_packages(sbom: Path | dict, access_log: Path | list[str]) -> list[Pack
     """
     Verify sbom and access log files exist and parse packages accordingly
     """
+    # Want pipeline to fail if sbom does not exist (exception not caught)
     pkgs = set(SbomFileParser.parse(sbom))
     try:
         pkgs.update(AccessLogFileParser.parse(access_log))
@@ -45,10 +46,13 @@ def parse_packages(sbom: Path | dict, access_log: Path | list[str]) -> list[Pack
     return pkgs
 
 
-def download_attestations(image: Image, output_dir: Path, docker_config_dir: Path):
+def download_artifacts(image: Image, output_dir: Path, docker_config_dir: Path) -> bool:
+    """
+    Download cosign attestation and save predicates for sbom & hardening manifest to files
+    """
     try:
         log.info(f"Downloading artifacts for image: {image}")
-        # Download SYFT SBOM JSON & Hardening Manifest JSON
+        # Download syft sbom (json) & hardening manifest (json)
         Cosign.download(
             image,
             output_dir,
@@ -57,6 +61,7 @@ def download_attestations(image: Image, output_dir: Path, docker_config_dir: Pat
                 "https://github.com/anchore/syft#output-formats",
                 "https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md",
             ],
+            log_cmd=True,
         )
         log.info(f"Artifacts downloaded to temp directory: {output_dir}")
     except CosignDownloadError as e:
@@ -65,7 +70,12 @@ def download_attestations(image: Image, output_dir: Path, docker_config_dir: Pat
     return True
 
 
-def get_old_pkgs(image_name: str, image_digest: str, docker_config_dir: Path):
+def get_old_pkgs(
+    image_name: str, image_digest: str, docker_config_dir: Path
+) -> list[Package]:
+    """
+    Return list of packages parsed from old image sbom & access log
+    """
     old_img = Image(
         registry=os.environ["BASE_REGISTRY"],
         name=image_name,
@@ -73,13 +83,14 @@ def get_old_pkgs(image_name: str, image_digest: str, docker_config_dir: Path):
     )
 
     with tempfile.TemporaryDirectory(prefix="COSIGN-") as cosign_download:
-        if download_attestations(
+        if download_artifacts(
             image=old_img,
             output_dir=cosign_download,
             docker_config_dir=docker_config_dir,
         ):
             old_sbom = Path(cosign_download, "sbom-syft-json.json")
 
+            # Parse access log from hardening manifest
             with Path(cosign_download, "hardening_manifest.json").open("r") as hm:
                 old_access_log = json.load(hm)["access_log"]
 
