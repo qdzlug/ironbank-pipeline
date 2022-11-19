@@ -34,7 +34,7 @@ def parse_packages(sbom: Path | dict, access_log: Path | list[str]) -> list[Pack
     """
     Verify sbom and access log files exist and parse packages accordingly
     """
-    # Want pipeline to fail if sbom does not exist (exception not caught)
+    # Pipeline should fail if sbom does not exist (exception not caught)
     pkgs = set(SbomFileParser.parse(sbom))
     try:
         pkgs.update(AccessLogFileParser.parse(access_log))
@@ -138,7 +138,7 @@ def main():
                     docker_config_dir=docker_config_dir,
                 )
 
-                if not old_pkgs:
+                if old_pkgs:
                     if new_pkgs.symmetric_difference(old_pkgs):
                         log.info(f"Packages added: {new_pkgs - old_pkgs}")
                         log.info(f"Packages removed: {old_pkgs - new_pkgs}")
