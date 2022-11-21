@@ -1,12 +1,18 @@
+import json
 import os
 import sys
 import pathlib
-from unittest.mock import mock_open
+import tempfile
+from unittest.mock import mock_open, patch
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.container_tools.cosign import Cosign
 from ironbank.pipeline.utils.exceptions import CosignDownloadError
-from ironbank.pipeline.test.mocks.mock_classes import MockPath, MockImage
+from ironbank.pipeline.test.mocks.mock_classes import (
+    MockPath,
+    MockImage,
+    MockTempDirectory,
+)
 from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -92,7 +98,19 @@ def test_get_old_pkgs(monkeypatch, caplog):
     caplog.clear()
 
     log.info("Test download artifacts fails")
-    # TODO - Finish testing this function
+
+    log.info("Test download artifacts succeeds")
+    monkeypatch.setattr(scan_logic_jobs, "download_artifacts", lambda **kwargs: True)
+    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data=""))
+    monkeypatch.setattr(json, "load", lambda x: {"access_log": "example"})
+    monkeypatch.setattr(
+        scan_logic_jobs, "parse_packages", lambda old_sbom, old_al: old_al
+    )
+    with patch("tempfile.TemporaryDirectory", new=MockTempDirectory):
+        res = scan_logic_jobs.get_old_pkgs(
+            image_name=img_name, image_digest=img_dig, docker_config_dir=mock_dock
+        )
+        assert res == "example"
 
 
 def test_main(monkeypatch, caplog):

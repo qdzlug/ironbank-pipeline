@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 import subprocess
+import tempfile
 
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.image import Image, ImageFile
@@ -107,6 +108,17 @@ class MockPath:
     # overload div (/)
     def __truediv__(self, other):
         return MockPath(self, other)
+
+
+@dataclass
+class MockTempDirectory(tempfile.TemporaryDirectory):
+    prefix: str
+
+    def __enter__(self):
+        return f"{self.prefix}/"
+
+    def __exit__(self, *args):
+        pass
 
 
 @dataclass
