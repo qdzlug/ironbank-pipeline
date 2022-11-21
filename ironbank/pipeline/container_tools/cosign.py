@@ -147,14 +147,13 @@ class Cosign(ContainerTool):
             encoding="utf-8",
             cwd=output_dir,
             stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             env={
                 "PATH": os.environ["PATH"],
                 "DOCKER_CONFIG": docker_config_dir,
             },
         )
         # Check if child process has terminated and no data piped to stdout
-        if proc.poll() is not None and proc.stdout is None:
-            raise subprocess.CalledProcessError(proc.returncode, cmd)
 
         for line in iter(proc.stdout.readline, ""):
             payload = json.loads(line)["payload"]
@@ -170,5 +169,7 @@ class Cosign(ContainerTool):
                         "w+"
                     ) as f:
                         json.dump(predicate["predicate"], f, indent=4)
-                    if proc.poll() is not None:
-                        break
+            if proc.poll() is not None:
+                break
+        if proc.returncode != 0:
+            raise subprocess.CalledProcessError(proc.returncode, cmd)

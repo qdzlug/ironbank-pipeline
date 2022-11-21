@@ -2,7 +2,6 @@ import json
 import os
 import sys
 import pathlib
-import tempfile
 from unittest.mock import mock_open, patch
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.testing import raise_
