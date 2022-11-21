@@ -2,9 +2,9 @@
 
 import os
 import json
+import base64
 import subprocess
 from pathlib import Path
-from base64 import b64decode
 from dataclasses import dataclass, field
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.image import Image, ImageFile
@@ -123,7 +123,7 @@ class Cosign(ContainerTool):
         )
 
     @classmethod
-    @subprocess_error_handler("Could not cosign download.")
+    @subprocess_error_handler("Failed to download attestation")
     def download(
         cls,
         image: Image,
@@ -157,7 +157,7 @@ class Cosign(ContainerTool):
 
         for line in iter(proc.stdout.readline, ""):
             payload = json.loads(line)["payload"]
-            predicate = json.loads(b64decode(payload))
+            predicate = json.loads(base64.b64decode(payload))
 
             # payload can take up a lot of memory, delete after decoding and converting to dict object
             del payload
@@ -169,7 +169,5 @@ class Cosign(ContainerTool):
                         "w+"
                     ) as f:
                         json.dump(predicate["predicate"], f, indent=4)
-            if proc.poll() is not None:
-                break
-        if proc.returncode != 0:
+        if proc.poll() != 0:
             raise subprocess.CalledProcessError(proc.returncode, cmd)

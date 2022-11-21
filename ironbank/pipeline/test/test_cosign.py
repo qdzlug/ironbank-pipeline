@@ -1,9 +1,18 @@
 #!/usr/bin/env python3
 
+import base64
+import json
+from unittest.mock import patch
 import pytest
 import subprocess
 from dataclasses import dataclass
 from ironbank.pipeline.image import Image
+from ironbank.pipeline.test.mocks.mock_classes import (
+    MockImage,
+    MockOutput,
+    MockPath,
+    MockPopen,
+)
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.container_tools.cosign import Cosign
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
@@ -131,4 +140,80 @@ def test_cosign_attest(monkeypatch, caplog):
             replace=False,
         )
     assert "Cosign.attest failed" in caplog.text
+    caplog.clear()
+
+
+mock_predicate = {"https://hardening_manifest.eg/test/docs": "hardening_manifest.test"}
+
+
+@patch("ironbank.pipeline.container_tools.cosign.Path", new=MockPath)
+# patch instead of monkeypatch to avoid direct import of cosign module
+@patch(
+    "ironbank.pipeline.container_tools.cosign.get_predicate_files",
+    new=lambda: mock_predicate,
+)
+def test_cosign_download(caplog, monkeypatch):
+    log.info("Test failed download")
+    mock_output_dir = MockPath("./example")
+    mock_docker_conf_dir = MockPath("./")
+
+    mock_image = MockImage(registry="registry1.example", name="example/test", tag="1.0")
+
+    monkeypatch.setattr(
+        subprocess,
+        "Popen",
+        lambda *args, **kwargs: MockPopen(
+            stdout=MockOutput(mock_data=[]), poll_counter=0, returncode=1
+        ),
+    )
+    monkeypatch.setattr(json, "loads", lambda x: x)
+    monkeypatch.setattr(base64, "b64decode", lambda x: x)
+    with pytest.raises(GenericSubprocessError):
+        Cosign.download(
+            image=mock_image,
+            output_dir=mock_output_dir,
+            docker_config_dir=mock_docker_conf_dir,
+            predicate_types=list(mock_predicate.keys()),
+        )
+    assert "Failed to download attestation" in caplog.text
+    caplog.clear()
+
+    log.info("Test successful download")
+    monkeypatch.setattr(
+        subprocess,
+        "Popen",
+        lambda *args, **kwargs: MockPopen(
+            stdout=MockOutput(
+                mock_data=[
+                    {
+                        "payload": {
+                            "predicateType": list(mock_predicate.keys())[0],
+                            "predicate": "exampletext",
+                        }
+                    },
+                    {
+                        "payload": {
+                            "predicateType": "skipped_predicate_type_example",
+                            "predicate": "skipped_predicate_example",
+                        }
+                    },
+                ]
+            ),
+            poll_counter=0,
+        ),
+    )
+    found_predicates = []
+    monkeypatch.setattr(
+        json, "dump", lambda x, *args, **kwargs: found_predicates.append(x)
+    )
+
+    Cosign.download(
+        image=mock_image,
+        output_dir=mock_output_dir,
+        docker_config_dir=mock_docker_conf_dir,
+        predicate_types=list(mock_predicate.keys()),
+        log_cmd=True,
+    )
+    assert found_predicates == ["exampletext"]
+    assert str(["cosign", "download", "attestation", str(mock_image)]) in caplog.text
     caplog.clear()

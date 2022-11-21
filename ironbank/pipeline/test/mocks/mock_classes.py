@@ -22,13 +22,25 @@ class MockSet(set):
 
 @dataclass
 class MockOutput:
-    mock_data: list[str] = field(default_factory=lambda: ["data1\n", "data2\n"])
+    mock_data: list[str] = field(
+        default_factory=lambda: [
+            "data1\n",
+            "data2\n",
+        ]
+    )
+    line_num: int = 0
 
     def read(self):
         return "".join(self.mock_data)
 
     def readline(self):
-        return self.mock_data[0]
+        # return MockReadline(self.mock_data)
+        self.line_num += 1
+        return (
+            self.mock_data[self.line_num - 1]
+            if self.line_num <= len(self.mock_data)
+            else ""
+        )
 
     def readlines(self):
         return self.mock_data
@@ -44,14 +56,15 @@ class MockOutput:
 class MockPopen(subprocess.Popen):
     stdout: str = MockOutput()
     stderr: str = MockOutput(mock_data=["err1\n", "err2\n"])
+    encoding: str = "UTF-10000"
     returncode: int = 0
-    mock_counter: int = 5
+    poll_counter: int = 5
     poll_value: int = None
 
     def poll(self):
         # allow poll to run multiple times without getting stuck in while loop
-        self.mock_counter -= 1
-        return self.poll_value if self.mock_counter >= 0 else 0
+        self.poll_counter -= 1
+        return None if self.poll_counter >= 0 else self.returncode
 
 
 @dataclass
