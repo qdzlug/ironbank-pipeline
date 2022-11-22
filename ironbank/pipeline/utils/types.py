@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-
-from dataclasses import dataclass, field
-from abc import ABC, abstractmethod
 import json
 from pathlib import Path
-from typing import TextIO
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 
 
 @dataclass(slots=True, frozen=True)
@@ -19,7 +17,7 @@ class Package:
 class FileParser(ABC):
     @classmethod
     @abstractmethod
-    def parse(cls, file: TextIO) -> list[Package]:
+    def parse(cls, file: any) -> list[Package]:
         pass
 
     @classmethod
