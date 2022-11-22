@@ -87,7 +87,7 @@ class MockOpen:
     mode: str = "r"
 
     def __enter__(self):
-        return []
+        return MockOutput()
 
     def __exit__(self, *args, **kwargs):
         pass
@@ -108,6 +108,9 @@ class MockPath:
 
     def mkdir(self, *args, **kwargs):
         pass
+
+    def as_posix(self):
+        return self.path
 
     def is_symlink(self):
         return False
