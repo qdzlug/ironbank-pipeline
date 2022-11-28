@@ -169,3 +169,31 @@ def test_get_identifiers(mock_vuln_data):
         mock_anchore_vuln_ident.vuln,
         mock_new_vuln_id,
     ]
+
+
+@pytest.mark.only
+def test_get_truncated_url(caplog, mock_anchore_vuln, mock_vuln_data):
+    log.info("Test url is not a list")
+    prior_url = mock_anchore_vuln.url
+    mock_anchore_vuln.get_truncated_url()
+    assert mock_anchore_vuln.url == prior_url
+
+    mock_urls = [{"source": f"{i}", "url": f"{i}"} for i in range(50)]
+    expected_iterations = lambda x: "".join(  # noqa E731
+        [f"{i}:{i}\n" for i in range(x)]
+    )
+
+    log.info("Test url is a list and url will not be truncated")
+    mock_anchore_vuln_short_url = MockAnchoreVuln(
+        **{**mock_vuln_data, "url": mock_urls}
+    )
+    mock_anchore_vuln_short_url.get_truncated_url()
+    assert mock_anchore_vuln_short_url.url == expected_iterations(50)
+
+    log.info("Test url is a list and url will be truncated")
+    mock_anchore_vuln_short_url = MockAnchoreVuln(
+        **{**mock_vuln_data, "url": mock_urls}
+    )
+    mock_anchore_vuln_short_url.get_truncated_url(5)
+    assert mock_anchore_vuln_short_url.url == expected_iterations(1)
+    assert "Unable to add all reference URLs to API POST" in caplog.text
