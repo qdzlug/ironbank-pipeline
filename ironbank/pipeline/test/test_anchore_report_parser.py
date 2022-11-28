@@ -1,7 +1,6 @@
 import pytest
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.scan_report_parsers.anchore import (
-    AnchoreSecurityParser,
     AnchoreVuln,
 )
 
@@ -32,6 +31,12 @@ def mock_vuln_data():
 
 
 class MockAnchoreVuln(AnchoreVuln):
+    def __post_init__(self):
+        # add vuln to mock expected data
+        self.identifiers.append(self.vuln)
+
+
+class MAVPostInitPatches(AnchoreVuln):
     def sort_fix(self):
         self.fix = "sorted_fix"
 
@@ -51,15 +56,16 @@ def mock_anchore_vuln(mock_vuln_data):
 
 
 @pytest.mark.only
-def test_anchore_vuln_post_init(mock_anchore_vuln):
+def test_anchore_vuln_post_init(mock_vuln_data):
     log.info("Validate post init")
-    assert mock_anchore_vuln.fix == "sorted_fix"
-    assert mock_anchore_vuln.description == "new_description"
-    assert mock_anchore_vuln.identifiers == [mock_anchore_vuln.vuln, "CVE-456-DEF"]
-    assert mock_anchore_vuln.nvd_cvss_v2_vector == "mock_nvd_score"
-    assert mock_anchore_vuln.nvd_cvss_v3_vector == "mock_nvd_score"
-    assert mock_anchore_vuln.vendor_cvss_v2_vector == "mock_vendor_score"
-    assert mock_anchore_vuln.vendor_cvss_v3_vector == "mock_vendor_score"
+    mav = MAVPostInitPatches(**mock_vuln_data)
+    assert mav.fix == "sorted_fix"
+    assert mav.description == "new_description"
+    assert mav.identifiers == [mav.vuln, "CVE-456-DEF"]
+    assert mav.nvd_cvss_v2_vector == "mock_nvd_score"
+    assert mav.nvd_cvss_v3_vector == "mock_nvd_score"
+    assert mav.vendor_cvss_v2_vector == "mock_vendor_score"
+    assert mav.vendor_cvss_v3_vector == "mock_vendor_score"
 
 
 @pytest.mark.only
@@ -85,23 +91,42 @@ def test_from_dict(mock_anchore_vuln, mock_vuln_data):
 
 
 @pytest.mark.only
-def test_get_nvd_score(monkeypatch, mock_vuln_data):
+def test_get_nvd_score(mock_anchore_vuln):
     log.info("Test nvd score is set correctly")
-    # undo mock
-    monkeypatch.setattr(MockAnchoreVuln, "get_nvd_scores", AnchoreVuln.get_nvd_scores)
-    mock_anchore_vuln_nvd = MockAnchoreVuln(**mock_vuln_data)
-    mock_anchore_vuln_nvd.get_nvd_scores("v2")
-    assert mock_anchore_vuln_nvd.nvd_cvss_v2_vector == "mock_nvd_vector"
-    assert mock_anchore_vuln_nvd.nvd_cvss_v3_vector == None
+    mock_anchore_vuln.get_nvd_scores("v2")
+    assert mock_anchore_vuln.nvd_cvss_v2_vector == "mock_nvd_vector"
+    assert mock_anchore_vuln.nvd_cvss_v3_vector is None
 
 
 @pytest.mark.only
-def test_get_vendor_score(monkeypatch, mock_vuln_data):
+def test_get_vendor_score(mock_anchore_vuln):
     log.info("Test vendor score is set correctly")
-    monkeypatch.setattr(
-        MockAnchoreVuln, "get_vendor_nvd_scores", AnchoreVuln.get_vendor_nvd_scores
+    mock_anchore_vuln.get_vendor_nvd_scores("v2")
+    assert mock_anchore_vuln.vendor_cvss_v2_vector == "mock_vendor_vector"
+    assert mock_anchore_vuln.vendor_cvss_v3_vector is None
+
+
+@pytest.mark.only
+def test_get_identifiers(mock_vuln_data):
+    mock_new_vuln_id = "CVE-EXAMPLE-111"
+    log.info("Test no nvd data available")
+    mock_anchore_vuln_ident = MockAnchoreVuln(**mock_vuln_data)
+    mock_anchore_vuln_ident.get_identifiers()
+    assert mock_anchore_vuln_ident.identifiers == [mock_anchore_vuln_ident.vuln]
+
+    log.info("Test no nvd data and vendor data includes existing cve")
+    mock_anchore_vuln_ident = MockAnchoreVuln(
+        **{**mock_vuln_data, "vendor_data": [{"id": mock_vuln_data["vuln"]}]}
     )
-    mock_anchore_vuln_vendor = MockAnchoreVuln(**mock_vuln_data)
-    mock_anchore_vuln_vendor.get_vendor_nvd_scores("v2")
-    assert mock_anchore_vuln_vendor.vendor_cvss_v2_vector == "mock_vendor_vector"
-    assert mock_anchore_vuln_vendor.vendor_cvss_v3_vector == None
+    mock_anchore_vuln_ident.get_identifiers()
+    assert mock_anchore_vuln_ident.identifiers == [mock_anchore_vuln_ident.vuln]
+
+    log.info("test no nvd data available and vendor data produces new vuln id")
+    mock_anchore_vuln_ident = MockAnchoreVuln(
+        **{**mock_vuln_data, "vendor_data": [{"id": mock_new_vuln_id}]}
+    )
+    mock_anchore_vuln_ident.get_identifiers()
+    assert mock_anchore_vuln_ident.identifiers == [
+        mock_anchore_vuln_ident.vuln,
+        mock_new_vuln_id,
+    ]
