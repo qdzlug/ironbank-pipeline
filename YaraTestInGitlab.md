@@ -7,6 +7,7 @@ This MR tests a solution that would use Deepfence's YaraHunter to scan IronBank'
 
 ## Requirements
 [] Scan built container for known malware signatures
+
 [] Send scan output to VAT
 
 ## Background
