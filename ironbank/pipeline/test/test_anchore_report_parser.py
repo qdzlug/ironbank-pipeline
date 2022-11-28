@@ -121,9 +121,48 @@ def test_get_identifiers(mock_vuln_data):
     mock_anchore_vuln_ident.get_identifiers()
     assert mock_anchore_vuln_ident.identifiers == [mock_anchore_vuln_ident.vuln]
 
-    log.info("test no nvd data available and vendor data produces new vuln id")
+    log.info("Test no nvd data available and vendor data produces new vuln id")
     mock_anchore_vuln_ident = MockAnchoreVuln(
         **{**mock_vuln_data, "vendor_data": [{"id": mock_new_vuln_id}]}
+    )
+    mock_anchore_vuln_ident.get_identifiers()
+    assert mock_anchore_vuln_ident.identifiers == [
+        mock_anchore_vuln_ident.vuln,
+        mock_new_vuln_id,
+    ]
+
+    # TODO: consider looping through these checks to remove duplicate code
+    log.info("Test nvd data is available, is not a list, and includes existing cve")
+    mock_anchore_vuln_ident = MockAnchoreVuln(
+        **{**mock_vuln_data, "nvd_data": {"id": mock_vuln_data["vuln"]}}
+    )
+    mock_anchore_vuln_ident.get_identifiers()
+    assert mock_anchore_vuln_ident.identifiers == [
+        mock_anchore_vuln_ident.vuln,
+    ]
+
+    log.info("Test nvd data is available, is not a list, and includes new cve")
+    mock_anchore_vuln_ident = MockAnchoreVuln(
+        **{**mock_vuln_data, "nvd_data": {"id": mock_new_vuln_id}}
+    )
+    mock_anchore_vuln_ident.get_identifiers()
+    assert mock_anchore_vuln_ident.identifiers == [
+        mock_anchore_vuln_ident.vuln,
+        mock_new_vuln_id,
+    ]
+
+    log.info("Test nvd data is available, is a list, and includes new cve")
+    mock_anchore_vuln_ident = MockAnchoreVuln(
+        **{**mock_vuln_data, "nvd_data": [{"id": mock_vuln_data["vuln"]}]}
+    )
+    mock_anchore_vuln_ident.get_identifiers()
+    assert mock_anchore_vuln_ident.identifiers == [
+        mock_anchore_vuln_ident.vuln,
+    ]
+
+    log.info("Test nvd data is available, is a list, and includes new cve")
+    mock_anchore_vuln_ident = MockAnchoreVuln(
+        **{**mock_vuln_data, "nvd_data": [{"id": mock_new_vuln_id}]}
     )
     mock_anchore_vuln_ident.get_identifiers()
     assert mock_anchore_vuln_ident.identifiers == [
