@@ -47,7 +47,7 @@ class AnchoreVuln(AbstractVuln):
         self.sort_fix()
         self.identifiers.append(self.vuln)
         # intentionally throw key error if description doesn't exist
-        # or evaluates on extra["description"] is some falsey value
+        # "or" evaluates on extra["description"] is some falsey value
         self.description = self.extra["description"] or self.description
         for ver in self._nvd_versions:
             self.get_nvd_scores(ver)
