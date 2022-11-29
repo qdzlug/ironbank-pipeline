@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 import subprocess
+import tempfile
 
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.image import Image, ImageFile
@@ -21,13 +22,25 @@ class MockSet(set):
 
 @dataclass
 class MockOutput:
-    mock_data: list[str] = field(default_factory=lambda: ["data1\n", "data2\n"])
+    mock_data: list[str] = field(
+        default_factory=lambda: [
+            "data1\n",
+            "data2\n",
+        ]
+    )
+    line_num: int = 0
 
     def read(self):
         return "".join(self.mock_data)
 
     def readline(self):
-        return self.mock_data[0]
+        # return MockReadline(self.mock_data)
+        self.line_num += 1
+        return (
+            self.mock_data[self.line_num - 1]
+            if self.line_num <= len(self.mock_data)
+            else ""
+        )
 
     def readlines(self):
         return self.mock_data
@@ -43,14 +56,15 @@ class MockOutput:
 class MockPopen(subprocess.Popen):
     stdout: str = MockOutput()
     stderr: str = MockOutput(mock_data=["err1\n", "err2\n"])
+    encoding: str = "UTF-10000"
     returncode: int = 0
-    mock_counter: int = 5
+    poll_counter: int = 5
     poll_value: int = None
 
     def poll(self):
         # allow poll to run multiple times without getting stuck in while loop
-        self.mock_counter -= 1
-        return self.poll_value if self.mock_counter >= 0 else 0
+        self.poll_counter -= 1
+        return None if self.poll_counter >= 0 else self.returncode
 
 
 @dataclass
@@ -73,7 +87,7 @@ class MockOpen:
     mode: str = "r"
 
     def __enter__(self):
-        return []
+        return MockOutput()
 
     def __exit__(self, *args, **kwargs):
         pass
@@ -95,6 +109,9 @@ class MockPath:
     def mkdir(self, *args, **kwargs):
         pass
 
+    def as_posix(self):
+        return self.path
+
     def is_symlink(self):
         return False
 
@@ -107,6 +124,17 @@ class MockPath:
     # overload div (/)
     def __truediv__(self, other):
         return MockPath(self, other)
+
+
+@dataclass
+class MockTempDirectory(tempfile.TemporaryDirectory):
+    prefix: str
+
+    def __enter__(self):
+        return f"{self.prefix}/"
+
+    def __exit__(self, *args):
+        pass
 
 
 @dataclass
@@ -140,8 +168,8 @@ class MockHardeningManifest(HardeningManifest):
 class MockImage(Image):
     registry: str = "registry.example.com"
     name: str = "example1/example"
-    tag: str = "1.0"
-    transport: str = "nah://"
+    tag: str = ""
+    transport: str = ""
 
     # def __post_init__(*args, **kwargs):
     #     pass

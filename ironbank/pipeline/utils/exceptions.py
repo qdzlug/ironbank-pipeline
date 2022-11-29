@@ -10,7 +10,7 @@ class SymlinkFoundError(Exception):
     pass
 
 
-class ORASDownloadError(Exception):
+class CosignDownloadError(Exception):
     pass
 
 
