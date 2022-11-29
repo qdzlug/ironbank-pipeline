@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from dataclasses import dataclass
 import pytest
 import pathlib
 import dockerfile
@@ -13,95 +14,47 @@ mock_path = pathlib.Path(pathlib.Path(__file__).absolute().parent, "mocks")
 log = logger.setup("test_file_parser")
 
 
-@pytest.fixture
-def first_good_from_list():
-    return [
-        dockerfile.Command(
-            cmd="FROM",
-            sub_cmd=None,
-            json=False,
-            original="FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}",
-            start_line=5,
-            end_line=5,
-            flags=(),
-            value=("${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}",),
-        )
-    ]
+@dataclass
+class MockDockerfile:
+    value: list[str] = "mock_value"
+    cmd: str = "mock_cmd"
 
 
-@pytest.fixture
-def second_good_from_list():
-    return [
-        dockerfile.Command(
-            cmd="FROM",
-            sub_cmd=None,
-            json=False,
-            original="FROM $BASE_REGISTRY/$BASE_IMAGE:$BASE_TAG",
-            start_line=5,
-            end_line=5,
-            flags=(),
-            value=("$BASE_REGISTRY/$BASE_IMAGE:$BASE_TAG",),
-        )
-    ]
+def test_parse(monkeypatch):
+    monkeypatch.setattr(DockerfileParser, "parse_dockerfile", lambda x: x)
+    monkeypatch.setattr(DockerfileParser, "remove_non_from_statements", lambda x: x)
+    monkeypatch.setattr(DockerfileParser, "validate_final_from", lambda x: x)
+    mock_result = DockerfileParser.parse("mock_filepath")
+    assert mock_result == "mock_filepath"
 
 
-@pytest.fixture
-def bad_from_list():
-    return [
-        dockerfile.Command(
-            cmd="FROM",
-            sub_cmd=None,
-            json=False,
-            original="FROM ubuntu:20.04",
-            start_line=5,
-            end_line=5,
-            flags=(),
-            value=("ubuntu:20.04",),
-        )
-    ]
-
-
-@pytest.fixture
-def dockerfile_tuple():
-    return (
-        dockerfile.Command(
-            cmd="FROM",
-            sub_cmd=None,
-            json=False,
-            original="FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}",
-            start_line=5,
-            end_line=5,
-            flags=(),
-            value=("${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}",),
-        ),
+def test_remove_non_from_statements():
+    log.info("Test non from statements are filtered from tuple")
+    mock_from_cmd = MockDockerfile(cmd="From")
+    mock_dockerfile_tuple = (
+        MockDockerfile(cmd="RUN"),
+        mock_from_cmd,
+        MockDockerfile(cmd="example"),
     )
+    filtered_dockerfile_cmds = DockerfileParser.remove_non_from_statements(
+        mock_dockerfile_tuple
+    )
+    assert filtered_dockerfile_cmds == [mock_from_cmd]
 
 
-def test_remove_non_from_statements(dockerfile_tuple):
-    assert DockerfileParser.remove_non_from_statements(dockerfile_tuple) == [
-        dockerfile.Command(
-            cmd="FROM",
-            sub_cmd=None,
-            json=False,
-            original="FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}",
-            start_line=5,
-            end_line=5,
-            flags=(),
-            value=("${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}",),
-        )
-    ]
-
-
-def test_validate_final_from(
-    first_good_from_list, second_good_from_list, bad_from_list
-):
+def test_validate_final_from():
+    log.info("Test final from in Dockerfile is valid")
+    mock_from_stmts = ["${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}"]
     assert (
-        DockerfileParser.validate_final_from(first_good_from_list) == False
-    )  # noqa E712
+        DockerfileParser.validate_final_from([MockDockerfile(value=mock_from_stmts)])
+        is False
+    )
+    log.info("Test final from in Dockefile is invalid")
+    mock_from_stmts = ["invalid_image:1.0"]
     assert (
-        DockerfileParser.validate_final_from(second_good_from_list) == False
-    )  # noqa E712
-    assert DockerfileParser.validate_final_from(bad_from_list) == True  # noqa E712
+        DockerfileParser.validate_final_from([MockDockerfile(value=mock_from_stmts)])
+        is True
+    )
 
 
 def test_parse_dockerfile(monkeypatch):
