@@ -1,3 +1,4 @@
+import inspect
 import pytest
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.scan_report_parsers.anchore import (
@@ -19,7 +20,7 @@ def mock_vuln_data():
         "package_path": "/usr/local/bin/mock_package",
         "package_type": "python",
         "package_version": "1.0",
-        "fix": "example_fix",
+        "fix": "1.0.0",
         "url": "https://pypi.example/mock_package",
         "extra": {
             "description": "new_description",
@@ -197,3 +198,31 @@ def test_get_truncated_url(caplog, mock_anchore_vuln, mock_vuln_data):
     mock_anchore_vuln_short_url.get_truncated_url(5)
     assert mock_anchore_vuln_short_url.url == expected_iterations(1)
     assert "Unable to add all reference URLs to API POST" in caplog.text
+
+
+@pytest.mark.only
+def test_sort_fix(mock_vuln_data):
+    log.info("Test sort is successful")
+    mock_fix_versions = f"{mock_vuln_data['fix']},5.0.0,1.2.3,4.5.1,2.0.3"
+    mock_anchore_vuln_fix = MockAnchoreVuln(
+        **{**mock_vuln_data, "fix": mock_fix_versions}
+    )
+    mock_anchore_vuln_fix.sort_fix()
+    assert mock_anchore_vuln_fix.fix == ", ".join(sorted(mock_fix_versions.split(",")))
+
+
+@pytest.mark.only
+def test_dict(mock_anchore_vuln):
+    log.info("Test dict returns expected keys/values")
+    # filter out user-defined methods and built-in functions
+    mock_anchore_vuln_attrs = inspect.getmembers(
+        mock_anchore_vuln, lambda x: not inspect.isroutine(x)
+    )
+    # filter out magic methods
+    mock_anchore_vuln_attrs = [
+        attr[0] for attr in mock_anchore_vuln_attrs if (not attr[0].endswith("__"))
+    ]
+    mock_anchore_vuln_dict = mock_anchore_vuln.dict()
+    assert sorted(mock_anchore_vuln_attrs) == sorted(
+        list(mock_anchore_vuln_dict.keys())
+    )
