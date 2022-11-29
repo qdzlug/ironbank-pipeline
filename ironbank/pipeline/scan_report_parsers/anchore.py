@@ -51,6 +51,7 @@ class AnchoreVuln(AbstractVuln):
             self.get_nvd_scores(ver)
             self.get_vendor_nvd_scores(ver)
         self.get_identifiers()
+        self.inherited_from_base = self.inherited_from_base or "no_data"
 
     # add alias from inherited -> inherited_from_base
     @property
