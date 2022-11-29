@@ -226,6 +226,7 @@ def test_dict(mock_anchore_vuln):
 
 
 def test_get_vulnerabilities(monkeypatch, mock_vulns):
+    log.info("Test vulnerabilites are parsed from scan report")
     mock_anchore_security_parser = AnchoreSecurityParser()
     monkeypatch.setattr(AnchoreVuln, "from_dict", lambda vuln_data: vuln_data)
     vulns = mock_anchore_security_parser.get_vulnerabilities(mock_vulns)
