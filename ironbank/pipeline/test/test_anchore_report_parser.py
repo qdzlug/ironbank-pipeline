@@ -37,12 +37,14 @@ def mock_vulns(mock_vuln_data):
     return {"vulnerabilities": [mock_vuln_data], "imageFullTag": "mock_full_tag"}
 
 
+# used for all method testing except __post_init__ (need to mock post init functionality to prevent unexpected state change after initialization)
 class MockAnchoreVuln(AnchoreVuln):
     def __post_init__(self):
         # add vuln to mock expected data
         self.identifiers.append(self.vuln)
 
 
+# used for testing __post_init__ (mock all methods used by __post_init__)
 class MAVPostInitPatches(AnchoreVuln):
     def sort_fix(self):
         self.fix = "sorted_fix"
@@ -98,6 +100,7 @@ def test_get_nvd_score(mock_anchore_vuln):
     log.info("Test nvd score is set correctly")
     mock_anchore_vuln.get_nvd_scores("v2")
     assert mock_anchore_vuln.nvd_cvss_v2_vector == "mock_nvd_vector"
+    mock_anchore_vuln.get_nvd_scores("v3")
     assert mock_anchore_vuln.nvd_cvss_v3_vector is None
 
 
@@ -105,6 +108,7 @@ def test_get_vendor_score(mock_anchore_vuln):
     log.info("Test vendor score is set correctly")
     mock_anchore_vuln.get_vendor_nvd_scores("v2")
     assert mock_anchore_vuln.vendor_cvss_v2_vector == "mock_vendor_vector"
+    mock_anchore_vuln.get_vendor_nvd_scores("v3")
     assert mock_anchore_vuln.vendor_cvss_v3_vector is None
 
 
@@ -152,7 +156,7 @@ def test_get_identifiers(mock_vuln_data):
         mock_new_vuln_id,
     ]
 
-    log.info("Test nvd data is available, is a list, and includes new cve")
+    log.info("Test nvd data is available, is a list, and includes existing cve")
     mock_anchore_vuln_ident = MockAnchoreVuln(
         **{**mock_vuln_data, "nvd_data": [{"id": mock_vuln_data["vuln"]}]}
     )

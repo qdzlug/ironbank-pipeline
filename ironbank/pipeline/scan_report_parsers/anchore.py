@@ -96,6 +96,7 @@ class AnchoreVuln(AbstractVuln):
 
     @classmethod
     def from_dict(cls, vuln_data):
+        # only use keys from vuln_data supported by the AnchoreVuln class init
         return cls(
             **{k: v for k, v in vuln_data.items() if k in [f.name for f in fields(cls)]}
         )
