@@ -2,6 +2,7 @@ import inspect
 import pytest
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.scan_report_parsers.anchore import (
+    AnchoreSecurityParser,
     AnchoreVuln,
 )
 
@@ -31,6 +32,11 @@ def mock_vuln_data():
     }
 
 
+@pytest.fixture
+def mock_vulns(mock_vuln_data):
+    return {"vulnerabilities": [mock_vuln_data], "imageFullTag": "mock_full_tag"}
+
+
 class MockAnchoreVuln(AnchoreVuln):
     def __post_init__(self):
         # add vuln to mock expected data
@@ -56,7 +62,6 @@ def mock_anchore_vuln(mock_vuln_data):
     return MockAnchoreVuln(**mock_vuln_data)
 
 
-@pytest.mark.only
 def test_anchore_vuln_post_init(mock_vuln_data):
     log.info("Validate post init")
     mav = MAVPostInitPatches(**mock_vuln_data)
@@ -69,7 +74,6 @@ def test_anchore_vuln_post_init(mock_vuln_data):
     assert mav.vendor_cvss_v3_vector == "mock_vendor_score"
 
 
-@pytest.mark.only
 def test_anchore_vuln_properties(mock_anchore_vuln):
     log.info("Validate properties")
     assert mock_anchore_vuln.inherited == mock_anchore_vuln.inherited_from_base
@@ -80,7 +84,6 @@ def test_anchore_vuln_properties(mock_anchore_vuln):
     assert mock_anchore_vuln.link == mock_anchore_vuln.url
 
 
-@pytest.mark.only
 def test_from_dict(mock_anchore_vuln, mock_vuln_data):
     log.info("Test initializing class from dictionary with additional keys")
     mock_vuln_data_extra_vals = {
@@ -91,7 +94,6 @@ def test_from_dict(mock_anchore_vuln, mock_vuln_data):
     assert mock_anchore_vuln.from_dict(mock_vuln_data_extra_vals) == mock_anchore_vuln
 
 
-@pytest.mark.only
 def test_get_nvd_score(mock_anchore_vuln):
     log.info("Test nvd score is set correctly")
     mock_anchore_vuln.get_nvd_scores("v2")
@@ -99,7 +101,6 @@ def test_get_nvd_score(mock_anchore_vuln):
     assert mock_anchore_vuln.nvd_cvss_v3_vector is None
 
 
-@pytest.mark.only
 def test_get_vendor_score(mock_anchore_vuln):
     log.info("Test vendor score is set correctly")
     mock_anchore_vuln.get_vendor_nvd_scores("v2")
@@ -107,7 +108,6 @@ def test_get_vendor_score(mock_anchore_vuln):
     assert mock_anchore_vuln.vendor_cvss_v3_vector is None
 
 
-@pytest.mark.only
 def test_get_identifiers(mock_vuln_data):
     mock_new_vuln_id = "CVE-EXAMPLE-111"
     log.info("Test no nvd data available")
@@ -172,7 +172,6 @@ def test_get_identifiers(mock_vuln_data):
     ]
 
 
-@pytest.mark.only
 def test_get_truncated_url(caplog, mock_anchore_vuln, mock_vuln_data):
     log.info("Test url is not a list")
     prior_url = mock_anchore_vuln.url
@@ -200,7 +199,6 @@ def test_get_truncated_url(caplog, mock_anchore_vuln, mock_vuln_data):
     assert "Unable to add all reference URLs to API POST" in caplog.text
 
 
-@pytest.mark.only
 def test_sort_fix(mock_vuln_data):
     log.info("Test sort is successful")
     mock_fix_versions = f"{mock_vuln_data['fix']},5.0.0,1.2.3,4.5.1,2.0.3"
@@ -211,7 +209,6 @@ def test_sort_fix(mock_vuln_data):
     assert mock_anchore_vuln_fix.fix == ", ".join(sorted(mock_fix_versions.split(",")))
 
 
-@pytest.mark.only
 def test_dict(mock_anchore_vuln):
     log.info("Test dict returns expected keys/values")
     # filter out user-defined methods and built-in functions
@@ -226,3 +223,12 @@ def test_dict(mock_anchore_vuln):
     assert sorted(mock_anchore_vuln_attrs) == sorted(
         list(mock_anchore_vuln_dict.keys())
     )
+
+
+def test_get_vulnerabilities(monkeypatch, mock_vulns):
+    mock_anchore_security_parser = AnchoreSecurityParser()
+    monkeypatch.setattr(AnchoreVuln, "from_dict", lambda vuln_data: vuln_data)
+    vulns = mock_anchore_security_parser.get_vulnerabilities(mock_vulns)
+    assert vulns == [
+        {**mock_vulns["vulnerabilities"][0], "tag": mock_vulns["imageFullTag"]}
+    ]
