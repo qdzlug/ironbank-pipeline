@@ -9,6 +9,7 @@ from ironbank.pipeline.image import Image, ImageFile
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.types import Package
 
 
 class MockSet(set):
@@ -162,6 +163,14 @@ class MockHardeningManifest(HardeningManifest):
     )
     resources: list[str] = field(default_factory=list)
     maintainers: list[str] = field(default_factory=list)
+
+
+@dataclass(slots=True, frozen=True)
+class MockPackage(Package):
+    kind: str = "mock_kind"
+    name: str = "mock_name"
+    version: str = "mock_version"
+    url: str = "mock_url"
 
 
 @dataclass

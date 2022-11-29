@@ -69,8 +69,7 @@ class AccessLogFileParser(FileParser):
                     package = RubyGemPackage.parse((re_match.group("url")))
                 case "apt":
                     package = AptPackage.parse((re_match.group("url")))
-            if package:
-                packages.append(package)
+            packages += [package] if package else []
 
         log.info("Access log successfully parsed")
         return packages
@@ -84,15 +83,13 @@ class SbomFileParser(FileParser):
 
         for artifact in cls.handle_file_obj(sbom)["artifacts"]:
 
-            package = Package(
-                kind=artifact["type"],
-                name=artifact["name"],
-                version=artifact["version"].split(".el")[0],
+            packages.append(
+                Package(
+                    kind=artifact["type"],
+                    name=artifact["name"],
+                    version=artifact["version"].split(".el")[0],
+                )
             )
-
-            if package:
-                packages.append(package)
-
         log.info("SBOM successfully parsed")
         return packages
 
