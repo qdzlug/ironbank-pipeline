@@ -50,16 +50,21 @@ class MockRE:
 @pytest.mark.only
 @patch("ironbank.pipeline.file_parser.Path", new=MockPath)
 def test_access_log_file_parser(monkeypatch):
-
-    valid_repos = ["moke_repo1", "moke_repo2"]
+    log.info("Test non 200 is skipped") 
+    valid_repos = ["mock_repo1", "mock_repo2"]
     monkeypatch.setenv("ACCESS_LOG_REPOS", "mock_value")
     monkeypatch.setattr(json, "load", lambda x: valid_repos)
     monkeypatch.setattr(re, "compile", MockRE.compile)
     # monkeypatch.setattr(re,"escape", lambda x: x)
     monkeypatch.setattr(AccessLogFileParser, "handle_file_obj", lambda x: x)
     assert AccessLogFileParser.parse(["500 example\n"]) == []
-
-
+    monkeypatch.setattr(MockRE, "match", lambda self, x: False)
+    with pytest.raises(ValueError) as ve:
+        assert AccessLogFileParser.parse(["200 example\n"]) == []
+        assert "Could not parse" in ve.value.args[0]
+    
+    monkeypatch.setattr(MockRE, "match", lambda self, x: MockRE.match)
+ 
 @pytest.mark.only
 @patch("ironbank.pipeline.file_parser.Package", new=MockPackage)
 def test_sbom_file_parser(monkeypatch):
