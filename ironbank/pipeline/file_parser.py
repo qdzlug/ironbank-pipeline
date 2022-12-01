@@ -24,7 +24,8 @@ log = logger.setup(name="package_parser")
 class AccessLogFileParser(FileParser):
     @classmethod
     def parse(cls, access_log: list[str] | Path) -> list[Package]:
-        repos = json.load(open(os.environ["ACCESS_LOG_REPOS"], "r"))
+        with Path(os.environ["ACCESS_LOG_REPOS"]).open("r") as f:
+            repos = json.load(f)
         packages: list[Package] = []
         # TODO make this an environment variable
         nexus_host = "http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/"

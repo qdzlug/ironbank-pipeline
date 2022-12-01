@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
 from dataclasses import dataclass
+import json
+import re
 from unittest.mock import patch
 import pytest
 import pathlib
 import dockerfile
-from ironbank.pipeline.test.mocks.mock_classes import MockPackage
+from ironbank.pipeline.test.mocks.mock_classes import MockPackage, MockPath
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.file_parser import DockerfileParser, SbomFileParser
@@ -14,6 +16,32 @@ from ironbank.pipeline.utils.exceptions import DockerfileParseError
 mock_path = pathlib.Path(pathlib.Path(__file__).absolute().parent, "mocks")
 
 log = logger.setup("test_file_parser")
+
+@dataclass
+class MockRE ():
+    compiled_pattern: str = None
+    @classmethod
+    def compile(cls,pattern:str):
+        return cls(pattern)
+     
+    @staticmethod
+    def escape(unformatted:str):
+        return unformatted
+
+    def match()
+        return 
+
+    def group(group_item:str):
+        return
+
+@patch("ironbank.pipeline.file_parser.Path",new=MockPath)
+def test_access_log_file_parser (monkeypatch):
+
+    valid_repos=["moke_repo1", "moke_repo2"]
+    monkeypatch.setattr(json,"load",lambda x: valid_repos)
+    monkeypatch.setattr(re,"compile", lambda x: x)
+    monkeypatch.setattr(re,"escape", lambda x: x)
+    monkeypatch.setattr(AccessLogFileParser,"handle_file_obj", lambda x: x)
 
 
 @pytest.mark.only
