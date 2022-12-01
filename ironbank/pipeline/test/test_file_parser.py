@@ -10,38 +10,54 @@ import dockerfile
 from ironbank.pipeline.test.mocks.mock_classes import MockPackage, MockPath
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.testing import raise_
-from ironbank.pipeline.file_parser import DockerfileParser, SbomFileParser
+from ironbank.pipeline.file_parser import (
+    AccessLogFileParser,
+    DockerfileParser,
+    SbomFileParser,
+)
 from ironbank.pipeline.utils.exceptions import DockerfileParseError
 
 mock_path = pathlib.Path(pathlib.Path(__file__).absolute().parent, "mocks")
 
 log = logger.setup("test_file_parser")
 
+
 @dataclass
-class MockRE ():
+class MockRE:
     compiled_pattern: str = None
+    match_obj: str = None
+    group_name: str = None
+
     @classmethod
-    def compile(cls,pattern:str):
-        return cls(pattern)
-     
+    def compile(cls, pattern: str):
+        return cls(compiled_pattern=pattern)
+
     @staticmethod
-    def escape(unformatted:str):
+    def escape(unformatted: str):
         return unformatted
 
-    def match()
-        return 
+    def match(self, match_obj):
+        return MockRE(compiled_pattern=self.compiled_pattern, match_obj=match_obj)
 
-    def group(group_item:str):
-        return
+    def group(self, group_item: str):
+        return MockRE(
+            compiled_pattern=self.compiled_pattern,
+            match_obj=self.match_obj,
+            group_name=group_item,
+        )
 
-@patch("ironbank.pipeline.file_parser.Path",new=MockPath)
-def test_access_log_file_parser (monkeypatch):
 
-    valid_repos=["moke_repo1", "moke_repo2"]
-    monkeypatch.setattr(json,"load",lambda x: valid_repos)
-    monkeypatch.setattr(re,"compile", lambda x: x)
-    monkeypatch.setattr(re,"escape", lambda x: x)
-    monkeypatch.setattr(AccessLogFileParser,"handle_file_obj", lambda x: x)
+@pytest.mark.only
+@patch("ironbank.pipeline.file_parser.Path", new=MockPath)
+def test_access_log_file_parser(monkeypatch):
+
+    valid_repos = ["moke_repo1", "moke_repo2"]
+    monkeypatch.setenv("ACCESS_LOG_REPOS", "mock_value")
+    monkeypatch.setattr(json, "load", lambda x: valid_repos)
+    monkeypatch.setattr(re, "compile", MockRE.compile)
+    # monkeypatch.setattr(re,"escape", lambda x: x)
+    monkeypatch.setattr(AccessLogFileParser, "handle_file_obj", lambda x: x)
+    assert AccessLogFileParser.parse(["500 example\n"]) == []
 
 
 @pytest.mark.only

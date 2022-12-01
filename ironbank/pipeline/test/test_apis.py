@@ -49,7 +49,7 @@ def test_check_access(monkeypatch, caplog, mock_vat_api, mock_responses):  # noq
     # for record in caplog.records:
     #     assert record.levelname != "WARNING"
     # caplog.clear()
- 
+
     # monkeypatch.setattr(requests, "get", mock_responses["403"])
     # mock_vat_api.check_access("example/example/example")
     # assert "is not authorized to use the image name of:" in caplog.text
