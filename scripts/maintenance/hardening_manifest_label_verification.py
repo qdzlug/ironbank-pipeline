@@ -110,7 +110,7 @@ def main():
             logging.error(f"Generic exception {e}")
             # sys.exit(1)
 
-    with open("failures.json", "w", encoding="utf-8") as f:
+    with Path("failures.json").open("w") as f:
         json.dump(bad_hm, f)
 
 
