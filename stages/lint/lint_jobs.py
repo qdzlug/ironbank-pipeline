@@ -6,6 +6,7 @@ import folder_structure
 import dockerfile_validation
 import base_image_validation
 import pipeline_auth_status
+import renovate_json_validation
 import sys
 
 from ironbank.pipeline.utils import logger  # noqa E402
@@ -14,7 +15,6 @@ from ironbank.pipeline.utils.exceptions import SymlinkFoundError
 log = logger.setup("lint_jobs")
 
 system_exits: dict = {}
-
 
 # Proper planning prevents painfully poor performance
 def handle_system_exit(func):
@@ -42,6 +42,7 @@ async def main():
     await handle_system_exit(hardening_manifest_validation.main)()
     await handle_system_exit(dockerfile_validation.main)()
     await handle_system_exit(base_image_validation.main)()
+    await handle_system_exit(renovate_json_validation.main)()
     if HARD_FAIL_CODE not in system_exits.keys():
         await handle_system_exit(pipeline_auth_status.main)()
     else:
