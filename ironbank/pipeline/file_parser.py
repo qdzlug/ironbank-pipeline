@@ -51,7 +51,7 @@ class AccessLogFileParser(FileParser):
             # get repository from list
             if repo_type not in repos:
                 raise RepoTypeNotSupported(
-                        f"Repository type not supported: {repos[repo_type]}"
+                    f"Repository type not supported: {repo_type}"
                 )
             # call desired parser function
             match repos[repo_type]:

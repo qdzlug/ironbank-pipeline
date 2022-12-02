@@ -86,6 +86,7 @@ class MockProcess:
 @dataclass
 class MockOpen:
     mode: str = "r"
+    encoding: str = "utf-8"
 
     def __enter__(self):
         return MockOutput()
@@ -100,8 +101,8 @@ class MockPath:
         self.path: str = f"{path}{''.join((f'/{a}' for a in args))}"
         self.log = logger.setup(name="MockPath")
 
-    def open(self, mode):
-        return MockOpen(mode)
+    def open(self, mode, encoding="utf-8"):
+        return MockOpen(mode, encoding)
 
     def exists(self):
         return False

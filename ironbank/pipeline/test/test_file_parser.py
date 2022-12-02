@@ -65,15 +65,15 @@ def test_access_log_file_parser(monkeypatch, mock_packages):
         assert AccessLogFileParser.parse(["200  \n"]) == []
     assert "Could not parse" in ve.value.args[0]
 
-    with pytest.raises(ValueError) as ve:
+    with pytest.raises(RepoTypeNotSupported) as e:
         assert AccessLogFileParser.parse(
             [f"200 {mock_nexus_host}unsupported/unsupported\n"]
         )
-    assert "Repository type not supported" in ve.value.args[0]
+    assert "Repository type not supported" in e.value.args[0]
 
-    with pytest.raises(RepoTypeNotSupported) as ve:
+    with pytest.raises(RepoTypeNotSupported) as e:
         assert AccessLogFileParser.parse([f"200 {mock_url}\n"]) == []
-    assert f"Repo type not supported: {mock_pkg}" in ve.value.args
+    assert f"Repository type not supported: {mock_pkg}" in e.value.args
 
     test_cases = {
         "gosum": "NullPackage",
