@@ -48,12 +48,10 @@ class AccessLogFileParser(FileParser):
                 raise ValueError(f"Could not parse URL: {url}")
 
             repo_type = re_match.group("repo_type")
-            log.info(re_match)
             # get repository from list
             if repo_type not in repos:
                 raise ValueError(f"Repository type not supported: {repo_type}")
             # call desired parser function
-            log.info(repos[repo_type])
             match repos[repo_type]:
                 case "gosum":
                     package = NullPackage.parse(re_match.group("url"))
