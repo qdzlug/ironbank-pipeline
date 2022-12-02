@@ -24,7 +24,7 @@ log = logger.setup(name="package_parser")
 class AccessLogFileParser(FileParser):
     @classmethod
     def parse(cls, access_log: list[str] | Path) -> list[Package]:
-        with Path(os.environ["ACCESS_LOG_REPOS"]).open("r") as f:
+        with Path(os.environ["ACCESS_LOG_REPOS"]).open(mode="r", encoding="utf-8") as f:
             repos = json.load(f)
         packages: list[Package] = []
         nexus_host = os.environ["NEXUS_HOST"]
@@ -50,7 +50,9 @@ class AccessLogFileParser(FileParser):
             repo_type = re_match.group("repo_type")
             # get repository from list
             if repo_type not in repos:
-                raise ValueError(f"Repository type not supported: {repo_type}")
+                raise RepoTypeNotSupported(
+                        f"Repository type not supported: {repos[repo_type]}"
+                )
             # call desired parser function
             match repos[repo_type]:
                 case "gosum":
@@ -69,7 +71,7 @@ class AccessLogFileParser(FileParser):
                     package = AptPackage.parse((re_match.group("url")))
                 case _:
                     raise RepoTypeNotSupported(
-                        f"Repo type not supported: {repos[repo_type]}"
+                        f"Repository type not supported: {repos[repo_type]}"
                     )
             packages += [package] if package else []
 
