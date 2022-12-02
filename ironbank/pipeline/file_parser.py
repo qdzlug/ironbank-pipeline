@@ -7,7 +7,7 @@ from .utils import logger
 from pathlib import Path
 from dataclasses import dataclass
 from .utils.types import FileParser, Package
-from .utils.exceptions import DockerfileParseError
+from .utils.exceptions import DockerfileParseError, RepoTypeNotSupported
 from .utils.package_parser import (
     GoPackage,
     YumPackage,
@@ -27,8 +27,7 @@ class AccessLogFileParser(FileParser):
         with Path(os.environ["ACCESS_LOG_REPOS"]).open("r") as f:
             repos = json.load(f)
         packages: list[Package] = []
-        # TODO make this an environment variable
-        nexus_host = "http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/"
+        nexus_host = os.environ["NEXUS_HOST"]
         nexus_re = re.compile(
             f"({re.escape(nexus_host)})(?P<repo_type>[^/]+)/(?P<url>.*)"
         )
@@ -49,12 +48,12 @@ class AccessLogFileParser(FileParser):
                 raise ValueError(f"Could not parse URL: {url}")
 
             repo_type = re_match.group("repo_type")
-
+            log.info(re_match)
             # get repository from list
             if repo_type not in repos:
                 raise ValueError(f"Repository type not supported: {repo_type}")
-
             # call desired parser function
+            log.info(repos[repo_type])
             match repos[repo_type]:
                 case "gosum":
                     package = NullPackage.parse(re_match.group("url"))
@@ -70,6 +69,10 @@ class AccessLogFileParser(FileParser):
                     package = RubyGemPackage.parse((re_match.group("url")))
                 case "apt":
                     package = AptPackage.parse((re_match.group("url")))
+                case _:
+                    raise RepoTypeNotSupported(
+                        f"Repo type not supported: {repos[repo_type]}"
+                    )
             packages += [package] if package else []
 
         log.info("Access log successfully parsed")

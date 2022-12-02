@@ -99,7 +99,6 @@ class MockPath:
     def __init__(self, path="", *args):
         self.path: str = f"{path}{''.join((f'/{a}' for a in args))}"
         self.log = logger.setup(name="MockPath")
-        self.log.info(self.path)
 
     def open(self, mode):
         return MockOpen(mode)

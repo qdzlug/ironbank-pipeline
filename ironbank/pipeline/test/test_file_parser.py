@@ -2,69 +2,96 @@
 
 from dataclasses import dataclass
 import json
-import re
 from unittest.mock import patch
 import pytest
 import pathlib
 import dockerfile
 from ironbank.pipeline.test.mocks.mock_classes import MockPackage, MockPath
 from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.package_parser import (
+    NullPackage,
+    GoPackage,
+    YumPackage,
+    PypiPackage,
+    NpmPackage,
+    RubyGemPackage,
+    AptPackage,
+)
 from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.file_parser import (
     AccessLogFileParser,
     DockerfileParser,
     SbomFileParser,
 )
-from ironbank.pipeline.utils.exceptions import DockerfileParseError
+from ironbank.pipeline.utils.exceptions import (
+    DockerfileParseError,
+    RepoTypeNotSupported,
+)
 
 mock_path = pathlib.Path(pathlib.Path(__file__).absolute().parent, "mocks")
 
 log = logger.setup("test_file_parser")
 
 
-@dataclass
-class MockRE:
-    compiled_pattern: str = None
-    match_obj: str = None
-    group_name: str = None
-
-    @classmethod
-    def compile(cls, pattern: str):
-        return cls(compiled_pattern=pattern)
-
-    @staticmethod
-    def escape(unformatted: str):
-        return unformatted
-
-    def match(self, match_obj):
-        return MockRE(compiled_pattern=self.compiled_pattern, match_obj=match_obj)
-
-    def group(self, group_item: str):
-        return MockRE(
-            compiled_pattern=self.compiled_pattern,
-            match_obj=self.match_obj,
-            group_name=group_item,
-        )
+@pytest.fixture
+def mock_packages(monkeypatch):
+    monkeypatch.setattr(NullPackage, "parse", lambda x: "NullPackage")
+    monkeypatch.setattr(GoPackage, "parse", lambda x: "GoPackage")
+    monkeypatch.setattr(YumPackage, "parse", lambda x: "YumPackage")
+    monkeypatch.setattr(PypiPackage, "parse", lambda x: "PypiPackage")
+    monkeypatch.setattr(NpmPackage, "parse", lambda x: "NpmPackage")
+    monkeypatch.setattr(RubyGemPackage, "parse", lambda x: "RubyGemPackage")
+    monkeypatch.setattr(AptPackage, "parse", lambda x: "AptPackage")
 
 
 @pytest.mark.only
 @patch("ironbank.pipeline.file_parser.Path", new=MockPath)
-def test_access_log_file_parser(monkeypatch):
-    log.info("Test non 200 is skipped") 
-    valid_repos = ["mock_repo1", "mock_repo2"]
+def test_access_log_file_parser(monkeypatch, mock_packages):
+    log.info("Test non 200 is skipped")
+    mock_nexus_host = "https://nexus-example.com/"
+    mock_repo = "example_repo"
+    mock_pkg = "example_pkg"
+    mock_url = f"{mock_nexus_host}{mock_repo}/{mock_pkg}"
+    valid_repos = {mock_repo: mock_pkg}
+
+    monkeypatch.setenv("NEXUS_HOST", mock_nexus_host)
     monkeypatch.setenv("ACCESS_LOG_REPOS", "mock_value")
+
     monkeypatch.setattr(json, "load", lambda x: valid_repos)
-    monkeypatch.setattr(re, "compile", MockRE.compile)
-    # monkeypatch.setattr(re,"escape", lambda x: x)
     monkeypatch.setattr(AccessLogFileParser, "handle_file_obj", lambda x: x)
-    assert AccessLogFileParser.parse(["500 example\n"]) == []
-    monkeypatch.setattr(MockRE, "match", lambda self, x: False)
+    assert AccessLogFileParser.parse([f"500 {mock_url}\n"]) == []
+
     with pytest.raises(ValueError) as ve:
-        assert AccessLogFileParser.parse(["200 example\n"]) == []
-        assert "Could not parse" in ve.value.args[0]
-    
-    monkeypatch.setattr(MockRE, "match", lambda self, x: MockRE.match)
- 
+        assert AccessLogFileParser.parse(["200  \n"]) == []
+    assert "Could not parse" in ve.value.args[0]
+
+    with pytest.raises(ValueError) as ve:
+        assert AccessLogFileParser.parse(
+            [f"200 {mock_nexus_host}unsupported/unsupported\n"]
+        )
+    assert "Repository type not supported" in ve.value.args[0]
+
+    with pytest.raises(RepoTypeNotSupported) as ve:
+        assert AccessLogFileParser.parse([f"200 {mock_url}\n"]) == []
+    assert f"Repo type not supported: {mock_pkg}" in ve.value.args
+
+    test_cases = {
+        "gosum": "NullPackage",
+        "go": "GoPackage",
+        "yum": "YumPackage",
+        "pypi": "PypiPackage",
+        "npm": "NpmPackage",
+        "rubygem": "RubyGemPackage",
+        "apt": "AptPackage",
+    }
+
+    for repo_type, pkg_type in test_cases.items():
+        valid_repos[f"{mock_repo}"] = repo_type
+        mock_url = f"{mock_nexus_host}{mock_repo}/{repo_type}"
+        log.info(mock_url)
+        assert AccessLogFileParser.parse([f"200 {mock_url}\n"]) == [pkg_type]
+
+
 @pytest.mark.only
 @patch("ironbank.pipeline.file_parser.Package", new=MockPackage)
 def test_sbom_file_parser(monkeypatch):

@@ -367,10 +367,17 @@ def test_image_wait(monkeypatch, caplog, anchore_object):
     assert mock_failed_proc.stderr.read() in caplog.text
 
 
+@pytest.mark.only
 @patch("pathlib.Path", new=MockPath)
 def test_generate_sbom(monkeypatch, caplog, anchore_object):
     log.info("Test write sbom to default filename")
     monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: None)
+
+    def log_filename(self, other):
+        self.log.info(other)
+        return MockPath(self, other)
+
+    monkeypatch.setattr(MockPath, "__truediv__", log_filename)
     args = ["image.dso.mil/imagename/tag", "./test-artifacts", "spdx", "json"]
     anchore_object.generate_sbom(*args)
     assert "sbom-spdx.json" in caplog.text
