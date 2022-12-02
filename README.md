@@ -58,7 +58,7 @@ The `lint` scripts run, include:
 
 #### folder-structure
 
-The `folder_structure` function will check for the required files, and validate some of these as well, excluding the hardening manifest, as a separate functions will check this.
+The `folder_structure` function will check for the required files, and validate some of these as well, excluding the hardening manifest as a separate functions will check this.
 
 - validate_files_exist
 - validate_clamav_whitelist_config
