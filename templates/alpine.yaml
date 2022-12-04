@@ -35,3 +35,4 @@ include:
 variables:
   DISTRO_REPO_DIR: "apk-repos/repositories"
   DISTRO_REPO_MOUNT: "/etc/apk/repositories"
+  DISTROLESS: "1"
