@@ -52,7 +52,7 @@ class AccessLogFileParser(FileParser):
             # get repository from list
             if repo_type not in repos:
                 raise ValueError(f"Repository type not supported: {repo_type}")
-
+            package = None
             # call desired parser function
             match repos[repo_type]:
                 case "gosum":
