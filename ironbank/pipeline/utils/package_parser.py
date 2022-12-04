@@ -60,6 +60,28 @@ class AptPackage(ParsedURLPackage):
 
 
 @dataclass(slots=True, frozen=True)
+class ApkPackage(ParsedURLPackage):
+    kind: str = field(init=False, default="rpm")
+
+    @classmethod
+    def parse(cls, url) -> Optional[Package]:
+        if url.startswith("APKINDEX"):
+            return None
+
+        match = re.match(
+            r"(?:^|.+/)(?P<name>[^/]+)-(?P<version>[^/]*)-[^/]+.apk",
+            url,
+        )
+
+        if not match:
+            raise ValueError(f"Could not parse apk URL: {url}")
+
+        return ApkPackage(
+            name=match.group("name"), version=match.group("version"), url=url
+        )
+
+
+@dataclass(slots=True, frozen=True)
 class GoPackage(ParsedURLPackage):
     kind: str = field(init=False, default="go")
 
