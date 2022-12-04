@@ -61,7 +61,7 @@ class AptPackage(ParsedURLPackage):
 
 @dataclass(slots=True, frozen=True)
 class ApkPackage(ParsedURLPackage):
-    kind: str = field(init=False, default="rpm")
+    kind: str = field(init=False, default="apk")
 
     @classmethod
     def parse(cls, url) -> Optional[Package]:
