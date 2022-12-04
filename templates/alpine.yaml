@@ -33,5 +33,5 @@ include:
   - local: stages/stargate/stargate.yaml
 
 variables:
-  DISTRO_REPO_DIR: "apk-repos"
+  DISTRO_REPO_DIR: "apk-repos/repositories"
   DISTRO_REPO_MOUNT: "/etc/apk/repositories"
