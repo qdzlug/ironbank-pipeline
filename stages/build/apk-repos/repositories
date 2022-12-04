@@ -1,0 +1,2 @@
+https://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/main
+https://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/community
