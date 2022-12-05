@@ -85,6 +85,7 @@ def test_access_log_file_parser(monkeypatch, mock_packages):
         "apt": "AptPackage",
     }
 
+    log.info("Test successfully parsed package type and matched")
     for repo_type, pkg_type in test_cases.items():
         valid_repos[f"{mock_repo}"] = repo_type
         mock_url = f"{mock_nexus_host}{mock_repo}/{repo_type}"
