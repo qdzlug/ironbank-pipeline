@@ -120,6 +120,7 @@ def test_diff_needed(monkeypatch):
     log.info("Test Digest and Label values are returned on no diff")
     mock_old_img_json = {
         "Extra Key": "something",
+        "Tag": image_tag,
         "Digest": mock_sha,
         "Labels": {"org.opencontainers.image.created": "sure"},
     }
@@ -130,6 +131,7 @@ def test_diff_needed(monkeypatch):
     monkeypatch.setattr(image_verify, "parent_digest_equal", lambda x, y: True)
     diff_needed = image_verify.diff_needed(".")
     assert diff_needed == (
+        mock_old_img_json["Tag"],
         mock_old_img_json["Digest"],
         mock_old_img_json["Labels"]["org.opencontainers.image.created"],
     )

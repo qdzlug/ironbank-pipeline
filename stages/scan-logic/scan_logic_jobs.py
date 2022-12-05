@@ -18,13 +18,13 @@ from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
 log = logger.setup("scan_logic_jobs")
 
 
-def write_env_vars(image: str, digest: str, build_date: str) -> None:
+def write_env_vars(image_name_tag: str, digest: str, build_date: str) -> None:
     log.info("Writing env variables to file")
     with pathlib.Path("scan_logic.env").open("w") as f:
         f.writelines(
             [
-                f"IMAGE_TO_SCAN={image}\n",
-                f"DIGEST_TO_SCAN={digest}\n",
+                f"IMAGE_TO_SCAN={image_name_tag}\n",
+                f"IMAGE_DIGEST={digest}\n",
                 f"BUILD_DATE_TO_SCAN={build_date}",
             ]
         )
@@ -92,7 +92,7 @@ def get_old_pkgs(
 
             # Parse access log from hardening manifest
             with Path(cosign_download, "hardening_manifest.json").open("r") as hm:
-                old_access_log = json.load(hm)["access_log"]
+                old_access_log = json.load(hm)["access_log"].split("\n")
 
             log.info("Parsing old packages")
             return parse_packages(old_sbom, old_access_log)
@@ -103,6 +103,7 @@ def get_old_pkgs(
 
 def main():
     image_name = os.environ["IMAGE_NAME"]
+    image_name_tag = os.environ["IMAGE_FULLTAG"]
     new_sbom = Path(os.environ["ARTIFACT_STORAGE"], "sbom/sbom-syft-json.json")
     new_access_log = Path(os.environ["ARTIFACT_STORAGE"], "build/access_log")
 
@@ -111,9 +112,11 @@ def main():
 
     scan_new_image = True
 
-    if os.environ.get("FORCE_SCAN_NEW_IMAGE"):
-        # Leave scan_new_image set to True and log
-        log.info("Force scan new image")
+    # TODO: Remove 'True' case when feature is ready
+    if True or os.environ.get("FORCE_SCAN_NEW_IMAGE"):
+        log.info("Skip Logic: Force scan new image")
+    elif os.environ["CI_COMMIT_BRANCH"] != "master":
+        log.info("Skip Logic: Non-master branch")
     else:
         with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
 
@@ -130,7 +133,7 @@ def main():
             if old_image_details:
                 log.info("SBOM diff required to determine image to scan")
                 # Unpack returned tuple into variables
-                (old_img_digest, old_img_build_date) = old_image_details
+                (old_img_tag, old_img_digest, old_img_build_date) = old_image_details
 
                 old_pkgs = get_old_pkgs(
                     image_name=image_name,
@@ -146,6 +149,10 @@ def main():
                     else:
                         log.info("Package lists match - Able to scan old image")
                         scan_new_image = False
+                        # Override image to scan with old tag
+                        image_name_tag = (
+                            f"{os.environ['BASE_REGISTRY']}/{image_name}:{old_img_tag}"
+                        )
                 else:
                     log.info("No old pkgs to compare - Must scan new image")
             else:
@@ -153,12 +160,12 @@ def main():
 
     if scan_new_image:
         write_env_vars(
-            image_name, os.environ["IMAGE_PODMAN_SHA"], os.environ["BUILD_DATE"]
+            image_name_tag, os.environ["IMAGE_PODMAN_SHA"], os.environ["BUILD_DATE"]
         )
-        log.info("New image digest and build date saved")
+        log.info("New image name, tag, digest, and build date saved")
     else:
-        write_env_vars(image_name, old_img_digest, old_img_build_date)
-        log.info("Old image digest and build date saved")
+        write_env_vars(image_name_tag, old_img_digest, old_img_build_date)
+        log.info("Old image name, tag, digest, and build date saved")
 
 
 if __name__ == "__main__":

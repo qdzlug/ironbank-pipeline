@@ -101,6 +101,7 @@ def diff_needed(docker_config_dir: str) -> Optional[tuple]:
         return None
 
     return (
+        manifest.image_tag,
         old_img_json["Digest"],
         # Label created in build stage - should be available
         old_img_json["Labels"]["org.opencontainers.image.created"],
