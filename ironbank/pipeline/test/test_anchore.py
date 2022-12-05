@@ -367,7 +367,6 @@ def test_image_wait(monkeypatch, caplog, anchore_object):
     assert mock_failed_proc.stderr.read() in caplog.text
 
 
-@pytest.mark.only
 @patch("pathlib.Path", new=MockPath)
 def test_generate_sbom(monkeypatch, caplog, anchore_object):
     log.info("Test write sbom to default filename")

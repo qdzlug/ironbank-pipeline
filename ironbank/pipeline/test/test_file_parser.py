@@ -44,7 +44,6 @@ def mock_packages(monkeypatch):
     monkeypatch.setattr(AptPackage, "parse", lambda x: "AptPackage")
 
 
-@pytest.mark.only
 @patch("ironbank.pipeline.file_parser.Path", new=MockPath)
 def test_access_log_file_parser(monkeypatch, mock_packages):
     log.info("Test non 200 is skipped")
@@ -61,16 +60,19 @@ def test_access_log_file_parser(monkeypatch, mock_packages):
     monkeypatch.setattr(AccessLogFileParser, "handle_file_obj", lambda x: x)
     assert AccessLogFileParser.parse([f"500 {mock_url}\n"]) == []
 
+    log.info("Test value error raised on unparseable url")
     with pytest.raises(ValueError) as ve:
         assert AccessLogFileParser.parse(["200  \n"]) == []
     assert "Could not parse" in ve.value.args[0]
 
+    log.info("Test repo type not supported raised on key missing from repos")
     with pytest.raises(RepoTypeNotSupported) as e:
         assert AccessLogFileParser.parse(
             [f"200 {mock_nexus_host}unsupported/unsupported\n"]
         )
     assert "Repository type not supported" in e.value.args[0]
 
+    log.info("Test repo type not supported raised on default match case")
     with pytest.raises(RepoTypeNotSupported) as e:
         assert AccessLogFileParser.parse([f"200 {mock_url}\n"]) == []
     assert f"Repository type not supported: {mock_pkg}" in e.value.args
@@ -93,7 +95,6 @@ def test_access_log_file_parser(monkeypatch, mock_packages):
         assert AccessLogFileParser.parse([f"200 {mock_url}\n"]) == [pkg_type]
 
 
-@pytest.mark.only
 @patch("ironbank.pipeline.file_parser.Package", new=MockPackage)
 def test_sbom_file_parser(monkeypatch):
     mock_package = {"type": "apt", "name": "example", "version": "1.0"}
