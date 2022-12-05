@@ -97,6 +97,7 @@ def test_access_log_file_parser(monkeypatch, mock_packages):
 
 @patch("ironbank.pipeline.file_parser.Package", new=MockPackage)
 def test_sbom_file_parser(monkeypatch):
+    log.info("Test SBOM is successfully parsed")
     mock_package = {"type": "apt", "name": "example", "version": "1.0"}
     monkeypatch.setattr(SbomFileParser, "handle_file_obj", lambda x: x)
     parsed_packages = SbomFileParser.parse({"artifacts": [mock_package]})
@@ -148,10 +149,13 @@ def test_dockerfile_validate_final_from():
 
 
 def test_dockerfile_parse_dockerfile(monkeypatch):
+
+    log.info("Test dockerfile is successfully parsed")
     monkeypatch.setattr(dockerfile, "parse_file", lambda x: x)
     parsed_file = DockerfileParser.parse_dockerfile("example")
     assert parsed_file == "example"
 
+    log.info("Test GoIOError raises DockerfileParseError")
     monkeypatch.setattr(
         dockerfile, "parse_file", lambda x: raise_(dockerfile.GoIOError)
     )
@@ -159,6 +163,7 @@ def test_dockerfile_parse_dockerfile(monkeypatch):
         parsed_file = DockerfileParser.parse_dockerfile("example")
     assert se.type == DockerfileParseError
 
+    log.info("Test GoParseError raises DockerfileParseError")
     monkeypatch.setattr(
         dockerfile, "parse_file", lambda x: raise_(dockerfile.GoParseError)
     )
