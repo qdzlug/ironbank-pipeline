@@ -1,4 +1,4 @@
-.scan-logic:
+run-logic:
   stage: scan-logic
   # TODO: Remove when final testing of SBOMs is complete
   allow_failure: true
@@ -12,24 +12,9 @@
     expire_in: 1 week
     reports:
       dotenv: scan_logic.env
+  script:
+    - 'pip install --user "${PIPELINE_REPO_DIR}"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/scan-logic/scan_logic_jobs.py"'
   retry:
     max: 2
     when: runner_system_failure
-
-run-logic:
-  extends: .scan-logic
-  only:
-    - master
-  script:
-    - 'pip install --user "${PIPELINE_REPO_DIR}"'
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/scan-logic/scan_logic_jobs.py"'
-
-skip-logic:
-  extends: .scan-logic
-  except:
-    - master
-  variables:
-    FORCE_SCAN_NEW_IMAGE: "True"
-  script:
-    - 'pip install --user "${PIPELINE_REPO_DIR}"'
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/scan-logic/scan_logic_jobs.py"'
