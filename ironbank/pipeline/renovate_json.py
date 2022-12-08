@@ -14,7 +14,9 @@ log = logger.setup(name="renovate_json")
 
 # Not using dataclass because post_init is required for file load and parameter initialization
 class RenovateJson:
-    def __init__(self, renovate_path: str, schema_path: str = "./", validate: bool = False):
+    def __init__(
+        self, renovate_path: str, schema_path: str = "./", validate: bool = False
+    ):
         self.renovate_path: Path = Path(renovate_path)
         self.schema_path: Path = Path(schema_path)
         if validate:
