@@ -19,9 +19,7 @@ async def main():
         ).as_posix(),
         validate=True,
     )
-    # renovate_json.validate_schema()
-    ############
-
+    renovate_json.validate_schema()
     log.info("Renovate.json is validated")
 
 

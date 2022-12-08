@@ -20,11 +20,9 @@ class RenovateJson:
         if validate:
             self.validate()
 
-
     def validate(self):
         self.validate_schema()
         log.info("Checking renovate.json schema")
-
 
     def validate_schema(self, conn: multiprocessing.Pipe) -> None:
         log.info("Validating schema")
@@ -38,4 +36,4 @@ class RenovateJson:
             jsonschema.Draft201909Validator(schema_content).validate(renovate_content)
         except jsonschema.ValidationError as ex:
             conn.send(ex.message)
-            sys.exit(1)
+            sys.exit(100)
