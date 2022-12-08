@@ -16,6 +16,7 @@ log = logger.setup("lint_jobs")
 
 system_exits: dict = {}
 
+
 # Proper planning prevents painfully poor performance
 def handle_system_exit(func):
     async def _handle_system_exit(*args, **kwargs):
