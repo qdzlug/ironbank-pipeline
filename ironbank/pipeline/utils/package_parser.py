@@ -65,7 +65,7 @@ class ApkPackage(ParsedURLPackage):
 
     @classmethod
     def parse(cls, url) -> Optional[Package]:
-        if url.startswith("APKINDEX"):
+        if "APKINDEX" in url:
             return None
 
         match = re.match(
