@@ -3,6 +3,7 @@
 import os
 import json
 import pathlib
+import sys
 import tempfile
 import image_verify
 from pathlib import Path
@@ -116,6 +117,7 @@ def main():
         write_env_vars(
             image_name_tag, os.environ["IMAGE_PODMAN_SHA"], os.environ["BUILD_DATE"]
         )
+        sys.exit(1)
 
     scan_new_image = True
 
