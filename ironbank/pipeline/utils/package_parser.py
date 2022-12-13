@@ -96,7 +96,7 @@ class PypiPackage(ParsedURLPackage):
             return None
 
         match = re.match(
-            r"^packages/(?P<name>[^/]+)/(?P<version>[^/]+)/(?P<filename>[^/]+)\.(?P<ext>tar\.gz|whl|tar\.gz\.asc|whl\.asc|\.zip)$",
+            r"^packages/(?P<name>[^/]+)/(?P<version>[^/]+)/(?P<filename>[^/]+)\.(?P<ext>tar\.gz|whl|tar\.gz\.asc|whl\.asc|zip)$",
             url,
         )
 
