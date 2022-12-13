@@ -31,6 +31,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="DCCSCR processing of CVE reports from various sources"
     )
+    parser.add_argument("--report_artifact_path", help="report artifact path")
     parser.add_argument("--twistlock", help="location of the twistlock JSON scan file")
     parser.add_argument("--oscap", help="location of the oscap scan XML file")
     parser.add_argument(
@@ -51,6 +52,16 @@ def main():
 
     # Create the csv directory if not present
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
+
+    env_filepath = open("csv_output.env", "w")
+    if "DISTROLESS" in os.environ:
+        n = env_filepath.write("OSCAP_COMPLIANCE_URL=''")
+    elif args.report_artifact_path:
+        oscap_compliance_url = os.environ["OSCAP_COMPLIANCE_URL"]
+        n = env_filepath.write(f"OSCAP_COMPLIANCE_URL={oscap_compliance_url}{args.report_artifact_path}")
+    else:
+        logging.info("report_artifact_path argument not provided and DISTROLESS environment variable not set or null")
+    env_filepath.close()
 
     artifacts_path = os.environ["ARTIFACT_STORAGE"]
     # get cves and justifications from VAT
@@ -73,7 +84,7 @@ def main():
     twist_fail_count = 0
     anchore_num_cves = 0
     anchore_compliance = 0
-    if args.oscap:
+    if args.oscap and "DISTROLESS" not in os.environ:
         oscap_fail_count = generate_oscap_report(
             args.oscap, j_openscap, csv_dir=args.output_dir
         )
