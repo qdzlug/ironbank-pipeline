@@ -58,7 +58,9 @@ def main():
         try:
             n = env_filepath.write("OSCAP_COMPLIANCE_URL=''")
         except Exception as err_file_write:
-            logging.error(f"Unable to write to {env_filepath}, output: {n}. Error: {err_file_write}")
+            logging.error(
+                f"Unable to write to {env_filepath}, output: {n}. Error: {err_file_write}"
+            )
     elif args.report_artifact_path:
         oscap_compliance_url = os.environ["OSCAP_COMPLIANCE_URL"]
         try:
@@ -66,7 +68,9 @@ def main():
                 f"OSCAP_COMPLIANCE_URL={oscap_compliance_url}{args.report_artifact_path}"
             )
         except Exception as err_file_write:
-            logging.error(f"Unable to write to {env_filepath}, output: {n}. Error: {err_file_write}")
+            logging.error(
+                f"Unable to write to {env_filepath}, output: {n}. Error: {err_file_write}"
+            )
     else:
         logging.info(
             "report_artifact_path argument not provided and DISTROLESS environment variable not set or null"
