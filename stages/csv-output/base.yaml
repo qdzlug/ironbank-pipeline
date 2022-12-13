@@ -15,7 +15,6 @@ csv-output:
     env_filename: "csv_output.env"
   script:
     - 'pip install --user "${PIPELINE_REPO_DIR}"'
-    #    - '"${PIPELINE_REPO_DIR}/stages/csv-output/csv-output.sh"'
     - python3 "${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py" \
       --report_artifact_path "${report_artifact_path}" \
       --oscap "${ARTIFACT_STORAGE}/scan-results/openscap/compliance_output_report.xml" \
