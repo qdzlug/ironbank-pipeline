@@ -3,6 +3,7 @@
 import os
 import json
 import pathlib
+import sys
 import tempfile
 import image_verify
 from pathlib import Path
@@ -107,8 +108,16 @@ def main():
     new_sbom = Path(os.environ["ARTIFACT_STORAGE"], "sbom/sbom-syft-json.json")
     new_access_log = Path(os.environ["ARTIFACT_STORAGE"], "build/access_log")
 
-    log.info("Parsing new packages")
-    new_pkgs = parse_packages(new_sbom, new_access_log)
+    try:
+        log.info("Parsing new packages")
+        new_pkgs = parse_packages(new_sbom, new_access_log)
+    except ValueError as ve:
+        log.info("Failed to parse packages. Force scan new image")
+        log.info(ve)
+        write_env_vars(
+            image_name_tag, os.environ["IMAGE_PODMAN_SHA"], os.environ["BUILD_DATE"]
+        )
+        sys.exit(1)
 
     scan_new_image = True
 
