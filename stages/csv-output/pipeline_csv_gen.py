@@ -6,27 +6,29 @@ import json
 import os
 import argparse
 from pathlib import Path
-import logging
+#import logging
 import xml.etree.ElementTree as etree
 
 from scanners import anchore
 from ironbank.pipeline.scan_report_parsers.report_parser import ReportParser
+from ironbank.pipeline.utils import logger
 
 from ironbank.pipeline.vat_container_status import sort_justifications
+log = logger.setup("csv_gen")
 
 
 def main():
     # Get logging level, set manually when running pipeline
-    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
-    if loglevel == "DEBUG":
-        logging.basicConfig(
-            level=loglevel,
-            format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
-        )
-        logging.debug("Log level set to debug")
-    else:
-        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
-        logging.info("Log level set to info")
+#    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
+#    if loglevel == "DEBUG":
+#        logging.basicConfig(
+#            level=loglevel,
+#            format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
+#        )
+#        logging.debug("Log level set to debug")
+#    else:
+#        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
+#        logging.info("Log level set to info")
 
     parser = argparse.ArgumentParser(
         description="DCCSCR processing of CVE reports from various sources"
@@ -58,7 +60,7 @@ def main():
         try:
             n = env_filepath.write("OSCAP_COMPLIANCE_URL=''")
         except Exception as err_file_write:
-            logging.error(
+            log.error(
                 f"Unable to write to {env_filepath}, output: {n}. Error: {err_file_write}"
             )
     elif args.report_artifact_path:
@@ -68,11 +70,11 @@ def main():
                 f"OSCAP_COMPLIANCE_URL={oscap_compliance_url}{args.report_artifact_path}"
             )
         except Exception as err_file_write:
-            logging.error(
+            log.error(
                 f"Unable to write to {env_filepath}, output: {n}. Error: {err_file_write}"
             )
     else:
-        logging.info(
+        log.warning(
             "report_artifact_path argument not provided and DISTROLESS environment variable not set or null"
         )
     env_filepath.close()
@@ -85,10 +87,10 @@ def main():
         with vat_findings_file.open(mode="r", encoding="utf-8") as f:
             vat_findings = json.load(f)
     except Exception:
-        logging.exception("Error reading findings file.")
+        log.exception("Error reading findings file.")
         sys.exit(1)
 
-    logging.info("Gathering list of all justifications...")
+    log.info("Gathering list of all justifications...")
 
     j_anchore_cve, j_anchore_comp, j_openscap, j_twistlock = sort_justifications(
         vat_findings
@@ -222,7 +224,7 @@ def generate_oscap_report(oscap, justifications, csv_dir):
             try:
                 csv_writer.writerow(line.values())
             except Exception as e:
-                logging.error("problem writing line: %s", line.values())
+                log.error("problem writing line: %s", line.values())
                 raise e
     return fail_count, nc_count, scanned
 
@@ -248,14 +250,14 @@ def get_oscap_full(oscap_file, justifications):
         severity = rule_result.attrib["severity"]
         date_scanned = rule_result.attrib["time"]
         result = rule_result.find("xccdf:result", ns).text
-        logging.debug("Rule ID: %s", rule_id)
+        log.debug("Rule ID: %s", rule_id)
         if result == "notselected":
-            logging.debug("SKIPPING: 'notselected' rule %s", rule_id)
+            log.debug("SKIPPING: 'notselected' rule %s", rule_id)
             continue
 
         if rule_id == "xccdf_org.ssgproject.content_rule_security_patches_up_to_date":
             if patches_up_to_date_dupe:
-                logging.debug(
+                log.debug(
                     "SKIPPING: rule %s - OVAL check repeats and this finding is checked elsewhere",
                     rule_id,
                 )
@@ -273,7 +275,7 @@ def get_oscap_full(oscap_file, justifications):
             identifiers = [rule_id]
         # We never expect to get more than one identifier
         assert len(identifiers) == 1
-        logging.debug("Identifiers: %s", identifiers)
+        log.debug("Identifiers: %s", identifiers)
         identifier = identifiers[0]
         # Revisit this if we ever switch UBI from ComplianceAsCode to DISA content
 
@@ -372,10 +374,10 @@ def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
                         }
                     )
                 except KeyError as e:
-                    logging.error(
+                    log.error(
                         "Missing key. Please contact the Iron Bank Pipeline and Ops (POPs) team"
                     )
-                    logging.error(e.args)
+                    log.error(e.args)
                     sys.exit(1)
         else:
             cves = []
