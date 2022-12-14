@@ -42,6 +42,13 @@ def package_classes():
             ],
             "skip_url": "dists/pool/main/o/openssl/openssl_1.1.1f-1ubuntu2.16_amd64.deb",
         },
+        "ApkPackage": {
+            "name": "libgcc",
+            "version": "12.2.1_git20220924-r4",
+            "good_url": "apk-main/x86_64/libgcc-12.2.1_git20220924-r4.apk",
+            "skip_url": "APKINDEX/x86_64/libgcc-12.2.1_git20220924-r4.apk",
+            "bad_urls": ["x86_64/libgcc-12.2.1_git20220924-r4"],
+        },
         "GoPackage": {
             "name": "goproxy/golang.org/x/tools",
             "version": "v0.0.0-20180917221912-90fa682c2a6e",
