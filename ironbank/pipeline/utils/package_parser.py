@@ -69,7 +69,7 @@ class ApkPackage(ParsedURLPackage):
             return None
 
         match = re.match(
-            r"(?:^|.+/)(?P<name>[^/]+)-(?P<version>[^/]*)[^/]+.apk",
+            r"(?:^|.+/)(?P<name>[^/]+)-(?P<version>[0-9][^/]*(-[a-z][0-9]+)?).apk",
             url,
         )
 
