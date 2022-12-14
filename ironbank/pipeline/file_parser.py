@@ -11,6 +11,7 @@ from .utils.exceptions import DockerfileParseError, RepoTypeNotSupported
 from .utils.package_parser import (
     GoPackage,
     YumPackage,
+    ApkPackage,
     AptPackage,
     PypiPackage,
     NpmPackage,
@@ -69,6 +70,8 @@ class AccessLogFileParser(FileParser):
                     package = RubyGemPackage.parse((re_match.group("url")))
                 case "apt":
                     package = AptPackage.parse((re_match.group("url")))
+                case "apk":
+                    package = ApkPackage.parse((re_match.group("url")))
                 case _:
                     raise RepoTypeNotSupported(
                         f"Repository type not supported: {repos[repo_type]}"
