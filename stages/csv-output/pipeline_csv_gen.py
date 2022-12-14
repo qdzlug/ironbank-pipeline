@@ -6,7 +6,8 @@ import json
 import os
 import argparse
 from pathlib import Path
-#import logging
+
+# import logging
 import xml.etree.ElementTree as etree
 
 from scanners import anchore
@@ -14,21 +15,22 @@ from ironbank.pipeline.scan_report_parsers.report_parser import ReportParser
 from ironbank.pipeline.utils import logger
 
 from ironbank.pipeline.vat_container_status import sort_justifications
+
 log = logger.setup("csv_gen")
 
 
 def main():
     # Get logging level, set manually when running pipeline
-#    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
-#    if loglevel == "DEBUG":
-#        logging.basicConfig(
-#            level=loglevel,
-#            format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
-#        )
-#        logging.debug("Log level set to debug")
-#    else:
-#        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
-#        logging.info("Log level set to info")
+    #    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
+    #    if loglevel == "DEBUG":
+    #        logging.basicConfig(
+    #            level=loglevel,
+    #            format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
+    #        )
+    #        logging.debug("Log level set to debug")
+    #    else:
+    #        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
+    #        logging.info("Log level set to info")
 
     parser = argparse.ArgumentParser(
         description="DCCSCR processing of CVE reports from various sources"
@@ -55,7 +57,7 @@ def main():
     # Create the csv directory if not present
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 
-    env_filepath = open(os.environ['ENV_FILENAME'], "w")
+    env_filepath = open(os.environ["ENV_FILENAME"], "w")
     if "DISTROLESS" in os.environ:
         try:
             n = env_filepath.write("OSCAP_COMPLIANCE_URL=''")
