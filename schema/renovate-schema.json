@@ -2566,5 +2566,6 @@
       "description": "Writes discovered repositories to a JSON file and then exit.",
       "type": "string"
     }
-  }
+  },
+  "required": ["assignees", "regexManagers", "baseBranches"]
 }
