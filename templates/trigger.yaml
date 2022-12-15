@@ -2,6 +2,7 @@ image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.9.1
 
 stages:
   - init
+  - test
   - pipeline
 
 os-type:
@@ -13,6 +14,12 @@ os-type:
     when: always
     reports:
       dotenv: template.env
+
+test:
+  stage: test
+  needs: os-type
+  script:
+    - echo $TEMPLATE
 
 trigger:
   stage: pipeline
