@@ -2,8 +2,24 @@ image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.9.1
 
 stages:
   - init
+  - pipeline
 
 os-type:
   stage: init
   script:
     - echo "Init job"
+    - echo "TEMPLATE=ubi" >template.env
+  artifacts:
+    when: always
+    reports:
+      dotenv: template.env
+
+trigger:
+  stage: pipeline
+  needs:
+    - os-type
+  trigger:
+    project: ironbank-tools/ironbank-pipeline
+    file: templates/${TEMPLATE}.yaml
+    branch: master
+
