@@ -25,4 +25,4 @@ trigger:
       - project: ironbank-tools/ironbank-pipeline
         file: 'templates/${TEMPLATE}.yaml'
         ref: test-trigger
-
+    strategy: depend
