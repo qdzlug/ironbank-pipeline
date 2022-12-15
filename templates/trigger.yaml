@@ -25,9 +25,11 @@ trigger:
   stage: pipeline
   needs:
     - os-type
+  variables:
+    TEMPLATE: $TEMPLATE
   trigger:
     include:
       - project: ironbank-tools/ironbank-pipeline
-        file: 'templates/"${TEMPLATE}".yaml'
+        file: 'templates/${TEMPLATE}.yaml'
         ref: master
 
