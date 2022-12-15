@@ -17,9 +17,9 @@ os-type:
 
 test:
   stage: test
-  needs: os-type
+  needs: [os-type]
   script:
-    - echo $TEMPLATE
+    - 'echo "Template: $TEMPLATE"'
 
 trigger:
   stage: pipeline
