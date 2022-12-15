@@ -24,7 +24,7 @@ csv-output:
       --sbom-dir "${ARTIFACT_STORAGE}/scan-results/anchore/sbom" \
       --output-dir "${CSV_REPORT}"/
     - python3 "${PIPELINE_REPO_DIR}"/stages/csv-output/excel_convert.py -i "${CSV_REPORT}"/ -o "${CSV_REPORT}"/"${CI_PROJECT_NAME}":"${IMAGE_VERSION}"-"${CI_PIPELINE_ID}"-justifications.xlsx
-    - echo "OSCAP_CVE_URL=''" >>"${env_filename}"
+    - echo "OSCAP_CVE_URL=''" >>"${ENV_FILENAME}"
   artifacts:
     when: always
     paths:
