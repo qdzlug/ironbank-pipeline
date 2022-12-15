@@ -21,6 +21,6 @@ trigger:
   trigger:
     include:
       - project: templates/${TEMPLATE}.yaml@ironbank-tools/ironbank-pipeline
-      - file: templates/${TEMPLATE}.yaml
-      - ref: master
+        file: templates/${TEMPLATE}.yaml
+        ref: master
 
