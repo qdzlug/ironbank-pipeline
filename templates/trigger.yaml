@@ -19,7 +19,8 @@ trigger:
   needs:
     - os-type
   trigger:
-    project: templates/${TEMPLATE}.yaml@ironbank-tools/ironbank-pipeline
-    # file: templates/${TEMPLATE}.yaml
-    branch: master
+    include:
+      - project: templates/${TEMPLATE}.yaml@ironbank-tools/ironbank-pipeline
+      - file: templates/${TEMPLATE}.yaml
+      - ref: master
 
