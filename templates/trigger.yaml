@@ -12,7 +12,7 @@ include:
 pipeline-trigger:
   stage: pipeline-trigger
   script:
-    - ${PIPELINE_REPO_DIR}/stages/pipeline-trigger/triggger.py
+    - ${PIPELINE_REPO_DIR}/stages/pipeline-trigger/trigger.py
 
 # os-type:
 #   stage: init
