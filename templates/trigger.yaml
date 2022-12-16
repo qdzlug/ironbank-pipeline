@@ -15,7 +15,7 @@ pipeline-trigger:
     - load-scripts
     - lint
   script:
-    - ${PIPELINE_REPO_DIR}/stages/pipeline-trigger/trigger.py
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/pipeline-trigger/trigger.py"'
 
 # os-type:
 #   stage: init
