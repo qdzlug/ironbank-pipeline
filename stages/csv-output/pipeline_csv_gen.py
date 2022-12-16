@@ -57,28 +57,21 @@ def main():
     # Create the csv directory if not present
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 
-    with Path(os.environ["ENV_FILENAME"]).open(mode="a", encoding="utf-8") as env_filepath:
-    if "DISTROLESS" in os.environ:
-        try:
-            n = env_filepath.write("OSCAP_COMPLIANCE_URL=''")
-        except Exception as err_file_write:
-            log.error(
-                f"Unable to write to {env_filepath}, output: {n}. Error: {err_file_write}"
-            )
-    elif args.report_artifact_path:
-        oscap_compliance_url = os.environ["OSCAP_COMPLIANCE_URL"]
-        try:
-            n = env_filepath.write(
+    with Path(os.environ["ENV_FILENAME"]).open(
+        mode="a", encoding="utf-8"
+    ) as env_filepath:
+        if "DISTROLESS" in os.environ:
+            env_filepath.write("OSCAP_COMPLIANCE_URL=''")
+        elif args.report_artifact_path:
+            oscap_compliance_url = os.environ["OSCAP_COMPLIANCE_URL"]
+            env_filepath.write(
                 f"OSCAP_COMPLIANCE_URL={oscap_compliance_url}{args.report_artifact_path}"
             )
-        except Exception as err_file_write:
+        else:
             log.error(
-                f"Unable to write to {env_filepath}, output: {n}. Error: {err_file_write}"
+                "report_artifact_path argument not provided and DISTROLESS environment variable not set or null"
             )
-    else:
-        log.warning(
-            "report_artifact_path argument not provided and DISTROLESS environment variable not set or null"
-        )
+            sys.exit(1)
 
     artifacts_path = os.environ["ARTIFACT_STORAGE"]
     # get cves and justifications from VAT
