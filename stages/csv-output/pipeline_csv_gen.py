@@ -79,7 +79,6 @@ def main():
         log.warning(
             "report_artifact_path argument not provided and DISTROLESS environment variable not set or null"
         )
-    env_filepath.close()
 
     artifacts_path = os.environ["ARTIFACT_STORAGE"]
     # get cves and justifications from VAT
