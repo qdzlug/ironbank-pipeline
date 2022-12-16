@@ -57,7 +57,7 @@ def main():
     # Create the csv directory if not present
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 
-    env_filepath = open(os.environ["ENV_FILENAME"], "w")
+    with Path(os.environ["ENV_FILENAME"]).open(mode="a", encoding="utf-8") as env_filepath:
     if "DISTROLESS" in os.environ:
         try:
             n = env_filepath.write("OSCAP_COMPLIANCE_URL=''")
