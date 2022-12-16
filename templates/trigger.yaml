@@ -1,29 +1,48 @@
 image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.9.1
 
 stages:
-  - init
-  - pipeline
+  - preprocess
+  - lint
+  - pipeline-trigger
 
-os-type:
-  stage: init
+include:
+  - local: stages/preprocess/load-scripts.yaml
+  - local: stages/lint/lint.yaml
+
+pipeline-trigger:
+  stage: pipeline-trigger
   script:
-    - echo "Init job"
-    - echo "TEMPLATE=alpine" >template.env
-  artifacts:
-    when: always
-    reports:
-      dotenv: template.env
+    - ${PIPELINE_REPO_DIR}/stages/pipeline-trigger/triggger.py
 
-trigger:
-  stage: pipeline
-  needs:
-    - os-type
-  variables:
-    TEMPLATE: $TEMPLATE
-    TARGET_BRANCH: $TARGET_BRANCH
-  trigger:
-    include:
-      - project: ironbank-tools/ironbank-pipeline
-        file: 'templates/${TEMPLATE}.yaml'
-        ref: test-trigger
-    strategy: depend
+# os-type:
+#   stage: init
+#   script:
+#     # create a script that gets the os-type for a given image
+#     - echo "TEMPLATE=alpine" >template.env
+#   artifacts:
+#     when: always
+#     reports:
+#       dotenv: template.env
+
+# trigger:
+#   stage: pipeline-trigger
+#   needs:
+#     - os-type
+#   variables:
+#     TEMPLATE: $TEMPLATE
+#     TARGET_BRANCH: $TARGET_BRANCH
+#   trigger:
+#     include:
+#       - project: ironbank-tools/ironbank-pipeline
+#         file: 'templates/${TEMPLATE}.yaml'
+#         ref: test-trigger
+#     strategy: depend
+
+variables:
+  # Gitlab CI vars
+  ARTIFACT_STORAGE: "ci-artifacts"
+  PIPELINE_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank_pipeline"
+  GIT_SSL_NO_VERIFY: "1"
+  TARGET_BRANCH: test-trigger
+  # Controls if ironbank-staging is the source registry for base images
+  STAGING_BASE_IMAGE: ""
