@@ -11,6 +11,9 @@ include:
 
 pipeline-trigger:
   stage: pipeline-trigger
+  needs:
+    - load-scripts
+    - lint
   script:
     - ${PIPELINE_REPO_DIR}/stages/pipeline-trigger/trigger.py
 
