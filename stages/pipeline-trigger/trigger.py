@@ -18,6 +18,14 @@ from ironbank.pipeline.hardening_manifest import (
 
 log = logger.setup("pipeline_trigger")
 
+template_dict = {
+    "alpine-container": "alpine.yaml",
+    "distroless-container": "distroless.yaml",
+    "scratch-container": "distroless.yaml",
+    "sle15-bci-container": "suse.yaml",
+    "ubi-container": "ubi.yaml",
+}
+
 artifact_storage = os.environ["ARTIFACT_STORAGE"]
 label_dict = get_source_keys_values(f"{artifact_storage}/lint/labels.env")
 os_type = label_dict.get("mil.dso.ironbank.os-type")
