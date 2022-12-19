@@ -62,5 +62,8 @@ if not os_type:
             )
             log.error("Failed 'skopeo inspect' of image: %s", base_image)
             sys.exit(1)
-        os_type = base_img_inspect["Labels"]["mil.dso.ironbank.os-type"]
+    os_type = base_img_inspect["Labels"].get("mil.dso.ironbank.os-type")
+    if not os_type:
+        log.error("Unknown os-type")
+        sys.exit(1)
 log.info("OS_TYPE: %s", os_type)
