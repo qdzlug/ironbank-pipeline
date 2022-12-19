@@ -54,6 +54,8 @@ def main():
     parser.add_argument("--sbom-dir", help="location of the anchore content directory")
     args = parser.parse_args()
 
+    return
+
     # Create the csv directory if not present
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 

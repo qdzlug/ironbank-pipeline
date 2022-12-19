@@ -15,7 +15,8 @@ csv-output:
     ENV_FILENAME: "csv_output.env"
   script:
     - 'pip install --user "${PIPELINE_REPO_DIR}"'
-    - python3 "${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py" \
+    - |
+      python3 "${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py" \
       --report_artifact_path "${REPORT_ARTIFACT_PATH}" \
       --oscap "${ARTIFACT_STORAGE}/scan-results/openscap/compliance_output_report.xml" \
       --twistlock "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json" \
