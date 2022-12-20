@@ -24,7 +24,10 @@ def template_type(os_type: str) -> None:
         "distroless-container": "distroless.yaml",
         "scratch-container": "distroless.yaml",
         "sle15-bci-container": "suse.yaml",
-        "ubi-container": "ubi.yaml",
+        "ubi9-container": "ubi.yaml",
+        "ubi8-container": "ubi.yaml",
+        "ubi7-container": "ubi.yaml",
+        "ubuntu2004-container": "ubuntu.yaml",
     }
     template = template_dict.get(os_type)
     if not template:
