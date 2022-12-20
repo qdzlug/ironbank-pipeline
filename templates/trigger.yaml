@@ -3,12 +3,15 @@ image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.9.1
 stages:
   - preprocess
   - lint
+  - secret-scan
   - os-type
   - pipeline-trigger
 
 include:
   - local: stages/preprocess/load-scripts.yaml
   - local: stages/lint/lint.yaml
+  - local: stages/secret-scan/trufflehog.yaml
+
 
 image-inspect:
   stage: os-type
@@ -28,8 +31,9 @@ trigger:
   needs:
     - image-inspect
   variables:
-    TEMPLATE: $TEMPLATE
     TARGET_BRANCH: $TARGET_BRANCH
+  script:
+    - 'echo "triggering pipeline template: ${TEMPLATE}"'
   trigger:
     include:
       - project: ironbank-tools/ironbank-pipeline
