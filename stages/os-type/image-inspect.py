@@ -35,7 +35,8 @@ def template_type(os_type: str) -> None:
         sys.exit(1)
     log.info("Using pipeline template: %s", template)
     with Path("template.env").open(mode="w", encoding="utf-8") as f:
-        f.write(f"TEMPLATE={template}")
+        f.write(f"TEMPLATE={template}\n")
+        f.write(f"TARGET_BRANCH={os.environ['TARGET_BRANCH']}")
 
 
 def get_registry_info() -> tuple[str, str]:
