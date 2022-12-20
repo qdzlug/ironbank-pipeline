@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import os
+import sys
 import json
 import pathlib
-import sys
 import tempfile
 import image_verify
 from pathlib import Path
@@ -19,13 +19,16 @@ from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
 log = logger.setup("scan_logic_jobs")
 
 
-def write_env_vars(image_name_tag: str, digest: str, build_date: str) -> None:
+def write_env_vars(
+    image_name_tag: str, commit_sha: str, digest: str, build_date: str
+) -> None:
     log.info("Writing env variables to file")
     with pathlib.Path("scan_logic.env").open("w") as f:
         f.writelines(
             [
                 f"IMAGE_TO_SCAN={image_name_tag}\n",
-                f"IMAGE_DIGEST={digest}\n",
+                f"COMMIT_SHA_TO_SCAN={commit_sha}\n",
+                f"DIGEST_TO_SCAN={digest}\n",
                 f"BUILD_DATE_TO_SCAN={build_date}",
             ]
         )
@@ -108,21 +111,18 @@ def main():
     new_sbom = Path(os.environ["ARTIFACT_STORAGE"], "sbom/sbom-syft-json.json")
     new_access_log = Path(os.environ["ARTIFACT_STORAGE"], "build/access_log")
 
-    try:
-        log.info("Parsing new packages")
-        new_pkgs = parse_packages(new_sbom, new_access_log)
-    except ValueError as ve:
-        log.info("Failed to parse packages. Force scan new image")
-        log.info(ve)
-        write_env_vars(
-            image_name_tag, os.environ["IMAGE_PODMAN_SHA"], os.environ["BUILD_DATE"]
-        )
-        sys.exit(1)
+    write_env_vars(
+        image_name_tag,
+        os.environ["CI_COMMIT_SHA"].lower(),
+        os.environ["IMAGE_PODMAN_SHA"],
+        os.environ["BUILD_DATE"],
+    )
+    log.info("New image name, tag, digest, and build date saved")
 
-    scan_new_image = True
+    log.info("Parsing new packages")
+    new_pkgs = parse_packages(new_sbom, new_access_log)
 
-    # TODO: Remove 'True' case when feature is ready
-    if True or os.environ.get("FORCE_SCAN_NEW_IMAGE"):
+    if os.environ.get("FORCE_SCAN_NEW_IMAGE"):
         log.info("Skip Logic: Force scan new image")
     elif os.environ["CI_COMMIT_BRANCH"] != "master":
         log.info("Skip Logic: Non-master branch")
@@ -138,43 +138,32 @@ def main():
             # ---------
 
             old_image_details = image_verify.diff_needed(docker_config_dir)
-
-            if old_image_details:
-                log.info("SBOM diff required to determine image to scan")
-                # Unpack returned tuple into variables
-                (old_img_tag, old_img_digest, old_img_build_date) = old_image_details
-
-                old_pkgs = get_old_pkgs(
-                    image_name=image_name,
-                    image_digest=old_img_digest,
-                    docker_config_dir=docker_config_dir,
-                )
-
-                if old_pkgs:
-                    if new_pkgs.symmetric_difference(old_pkgs):
-                        log.info(f"Packages added: {new_pkgs - old_pkgs}")
-                        log.info(f"Packages removed: {old_pkgs - new_pkgs}")
-                        log.info("Package(s) difference detected - Must scan new image")
-                    else:
-                        log.info("Package lists match - Able to scan old image")
-                        scan_new_image = False
-                        # Override image to scan with old tag
-                        image_name_tag = (
-                            f"{os.environ['BASE_REGISTRY']}/{image_name}:{old_img_tag}"
-                        )
-                else:
-                    log.info("No old pkgs to compare - Must scan new image")
-            else:
+            if not old_image_details:
                 log.info("Image verify failed - Must scan new image")
+                sys.exit(0)
 
-    if scan_new_image:
-        write_env_vars(
-            image_name_tag, os.environ["IMAGE_PODMAN_SHA"], os.environ["BUILD_DATE"]
-        )
-        log.info("New image name, tag, digest, and build date saved")
-    else:
-        write_env_vars(image_name_tag, old_img_digest, old_img_build_date)
-        log.info("Old image name, tag, digest, and build date saved")
+            log.info("SBOM diff required to determine image to scan")
+
+            old_pkgs = get_old_pkgs(
+                image_name=image_name,
+                image_digest=old_image_details["digest"],
+                docker_config_dir=docker_config_dir,
+            )
+            if not old_pkgs:
+                log.info("No old pkgs to compare - Must scan new image")
+                sys.exit(0)
+
+            if new_pkgs.symmetric_difference(old_pkgs):
+                log.info(f"Packages added: {new_pkgs - old_pkgs}")
+                log.info(f"Packages removed: {old_pkgs - new_pkgs}")
+                log.info("Package(s) difference detected - Must scan new image")
+            else:
+                log.info("Package lists match - Able to scan old image")
+                # TODO: Uncomment when feature is ready
+                # Override image to scan with old tag
+                # image_name_tag = f"{os.environ['BASE_REGISTRY']}/{image_name}:{old_image_details['tag']}"
+                # write_env_vars(image_name_tag, old_image_details['commit_sha'], old_image_details['digest'], old_image_details['build_date'])
+                # log.info("Old image name, tag, digest, and build date saved")
 
 
 if __name__ == "__main__":
