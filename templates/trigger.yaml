@@ -32,8 +32,6 @@ trigger:
     - image-inspect
   variables:
     TARGET_BRANCH: $TARGET_BRANCH
-  script:
-    - 'echo "triggering pipeline template: ${TEMPLATE}"'
   trigger:
     include:
       - project: ironbank-tools/ironbank-pipeline
