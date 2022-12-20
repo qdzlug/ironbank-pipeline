@@ -32,6 +32,7 @@ trigger:
     - job: trufflehog
       artifacts: false
   variables:
+    LOGLEVEL: $LOGLEVEL
     TARGET_BRANCH: $TARGET_BRANCH
     TEMPLATE: $TEMPLATE
   trigger:
