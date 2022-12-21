@@ -1,15 +1,16 @@
 from dataclasses import dataclass
 from abc import ABC
+from typing import Optional, Any
 
 
 @dataclass
 class ContainerTool(ABC):
-    authfile: str = None
-    docker_config_dir: str = None
+    authfile: Optional[str] = None
+    docker_config_dir: Optional[str] = None
 
     @classmethod
     # return list of [['example', '1'], ['2', '3'], ['a']] as ['example', '1', '2', '3', 'a']
-    def _flatten(cls, nested_list: list[any]):
+    def _flatten(cls, nested_list: list[Any]):
         return [element for sublist in nested_list for element in sublist]
 
     @classmethod
