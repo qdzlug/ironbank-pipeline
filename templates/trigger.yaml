@@ -6,12 +6,14 @@ workflow:
 
 stages:
   - preprocess
+  - lint
   - secret-scan
   - os-type
   - pipeline-trigger
 
 include:
   - local: stages/preprocess/load-scripts.yaml
+  - local: stages/lint/validate-hardening-manifest.yaml
   - local: stages/secret-scan/trufflehog.yaml
 
 pre-check:
