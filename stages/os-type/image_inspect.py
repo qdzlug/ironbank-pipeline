@@ -34,7 +34,7 @@ def template_type(os_type: str) -> None:
     with Path("template.env").open(mode="w", encoding="utf-8") as f:
         f.write(f"TEMPLATE={template}\n")
         f.write(f"TARGET_BRANCH={os.environ['TARGET_BRANCH']}\n")
-        f.write(f"LOGLEVEL={os.environ['LOGLEVEL']}")
+        f.write(f"LOGLEVEL={os.environ.get('LOGLEVEL', 'INFO')}")
 
 
 def get_registry_info() -> tuple[str, str]:
