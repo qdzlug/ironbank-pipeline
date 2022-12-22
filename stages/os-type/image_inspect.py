@@ -10,9 +10,6 @@ from ironbank.pipeline.utils import logger
 from ironbank.pipeline.image import Image
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
-from ironbank.pipeline.hardening_manifest import (
-    get_source_keys_values,
-)
 
 log = logger.setup("pipeline_trigger")
 
@@ -55,13 +52,12 @@ def get_registry_info() -> tuple[str, str]:
 
 def main():
     """image-inspect main method"""
-    artifact_storage = os.environ["ARTIFACT_STORAGE"]
-    label_dict = get_source_keys_values(f"{artifact_storage}/lint/labels.env")
-    os_type = label_dict.get("mil.dso.ironbank.os-type")
+    os_label = "mil.dso.ironbank.os-type"
+    dsop_project = DsopProject()
+    manifest = HardeningManifest(dsop_project.hardening_manifest_path)
+    os_type = manifest.labels.get(os_label)
     if not os_type:
-        dsop_project = DsopProject()
         pull_auth, registry = get_registry_info()
-        manifest = HardeningManifest(dsop_project.hardening_manifest_path)
         try:
             skopeo = Skopeo(pull_auth)
             base_image = Image(
@@ -78,7 +74,7 @@ def main():
             )
             log.error("Failed 'skopeo inspect' of image: %s", base_image)
             sys.exit(1)
-        os_type = base_img_inspect["Labels"].get("mil.dso.ironbank.os-type")
+        os_type = base_img_inspect["Labels"].get(os_label)
     if not os_type:
         log.error("Unknown os-type")
         sys.exit(1)
