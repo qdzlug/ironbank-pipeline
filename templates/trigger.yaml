@@ -6,14 +6,12 @@ workflow:
 
 stages:
   - preprocess
-  - lint
   - secret-scan
   - os-type
   - pipeline-trigger
 
 include:
   - local: stages/preprocess/load-scripts.yaml
-  - local: stages/lint/lint.yaml
   - local: stages/secret-scan/trufflehog.yaml
 
 pre-check:
@@ -37,7 +35,6 @@ image-inspect:
   stage: os-type
   needs:
     - load-scripts
-    - lint
   script:
     - 'pip install --user "${PIPELINE_REPO_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/os-type/image_inspect.py"'
