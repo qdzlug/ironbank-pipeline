@@ -1,5 +1,9 @@
 image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.9.1
 
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
 stages:
   - preprocess
   - lint
