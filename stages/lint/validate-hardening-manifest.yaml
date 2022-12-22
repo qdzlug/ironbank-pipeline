@@ -1,4 +1,4 @@
-lint:
+validate-hardening-manifest:
   stage: lint
   needs:
     - load-scripts
