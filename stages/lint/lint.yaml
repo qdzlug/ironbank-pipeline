@@ -26,6 +26,6 @@ lint:
         echo "Exiting"
         exit 1
       fi
-    - 'pip install --user "${PIPELINE_REPO_DIR}"'
+    - 'pip install --user --quiet "${PIPELINE_REPO_DIR}"'
     - set +e
     - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/lint_jobs.py"'

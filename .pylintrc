@@ -88,7 +88,6 @@ disable=raw-checker-failed,
         use-symbolic-message-instead,
         C0114, # missing-module-docstring
         C0301, # line-too-long
-        C0103  # invalid-name
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

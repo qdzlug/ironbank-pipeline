@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 
 class MissingTagAndDigestError(Exception):
@@ -20,14 +21,14 @@ class Image:
 
     # no registry needed for local paths in docker
     # localhost/ needed for local paths in buildah
-    registry: str = None
+    registry: Optional[str] = None
     # name can be excluded if url is present
-    name: str = None
-    digest: str = None
-    tag: str = None
+    name: Optional[str] = None
+    digest: Optional[str] = None
+    tag: Optional[str] = None
     # url should contain registry, name and tag/digest
     # TODO: pick a better name than url for this purpose
-    url: str = None
+    url: Optional[str] = None
     # skopeo cares about transport (e.g. docker://, container-storage:, etc.)
     # skopeo supported transports: containers-storage, dir, docker, docker-archive, docker-daemon, oci, oci-archive, ostree, tarball
     transport: str = ""
