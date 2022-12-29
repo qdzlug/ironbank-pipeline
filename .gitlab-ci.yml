@@ -20,7 +20,7 @@ trufflehog:
     # This forces the trufflehog job to NOT perform a shallow clone
     GIT_DEPTH: 0
   script:
-    - python3 -m pip install --user .
+    - python3 -m pip install --user --quiet .
     - python3 stages/secret-scan/trufflehog.py
 
 shellcheck:
@@ -65,7 +65,7 @@ black:
     - ironbank-tools
   stage: format
   script:
-    - pip install --user black
+    - pip install --user --quiet black
     - black --check --diff --color -t py310 .
 
 pylama:
@@ -74,8 +74,8 @@ pylama:
     - ironbank-tools
   stage: lint
   script:
-    - pip install --user pyflakes==2.4.0
-    - pip install --user pylama
+    - pip install --user --quiet pyflakes==2.4.0
+    - pip install --user --quiet pylama
     - pylama
 ## ignore line errors as blacks has been ran against code.
 
@@ -97,8 +97,8 @@ pylint:
   variables:
     PYLINTHOME: $CI_PROJECT_DIR
   before_script:
-    - python3 -m pip install --user pylint pylint-exit anybadge
-    - python3 -m pip install --user .
+    - python3 -m pip install --user --quiet pylint pylint-exit anybadge
+    - python3 -m pip install --user --quiet .
   script:
     - mkdir ./pylint
     - pylint stages/ ironbank/ | tee ./pylint/pylint.log || pylint-exit $?
@@ -131,8 +131,8 @@ unit-testing:
     - ironbank-tools
   stage: test
   script:
-    - python3 -m pip install --user pytest-cov
-    - python3 -m pip install --user .
+    - python3 -m pip install --user --quiet pytest-cov
+    - python3 -m pip install --user --quiet .
     - python3 -m pytest -m "not slow"
   coverage: '/^TOTAL.+?(\d+\%)$/'
   variables:
