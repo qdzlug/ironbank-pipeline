@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
-import hashlib
 import os
 import pytest
-from dataclasses import dataclass
 import pathlib
+import hashlib
+from dataclasses import dataclass
 from unittest.mock import mock_open
-from ironbank.pipeline.abstract_artifacts import AbstractArtifact, AbstractFileArtifact
 from ironbank.pipeline.utils import logger
+from ironbank.pipeline.abstract_artifacts import AbstractArtifact, AbstractFileArtifact
 
 log = logger.setup("test_abstract_artifacts")
 

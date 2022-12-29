@@ -10,27 +10,14 @@ import pathlib
 import yaml
 
 from ironbank.pipeline.image import Image
+from ironbank.pipeline.utils.predicates import (
+    get_predicate_types,
+    get_unattached_predicates,
+)
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.container_tools.cosign import Cosign
 
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
-
-# https://github.com/anchore/syft#output-formats
-
-# Defines a map of SBOM output formats provided by syft to their corresponding mediatypes
-predicate_types = {
-    "sbom-cyclonedx-json.json": "cyclonedx",
-    "sbom-spdx.xml": "spdx",
-    "sbom-spdx-json.json": "spdxjson",
-    "sbom-syft-json.json": "https://github.com/anchore/syft#output-formats",
-    "vat_response.json": "https://vat.dso.mil/api/p1/predicate/beta1",
-    "hardening_manifest.json": "https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md",
-}
-
-unattached_predicates = [
-    "sbom-spdx-tag-value.txt",
-    "sbom-cyclonedx.xml",
-]
 
 
 def compare_digests(image: Image) -> None:
@@ -44,7 +31,7 @@ def compare_digests(image: Image) -> None:
     try:
         logging.info("Inspecting image in registry")
         remote_inspect_raw = skopeo.inspect(
-            image.from_image(transport="docker://"), raw=True
+            image.from_image(transport="docker://"), raw=True, log_cmd=True
         )
     except GenericSubprocessError:
         logging.error(
@@ -87,6 +74,7 @@ def promote_tags(
                 production_image,
                 src_authfile="staging_auth.json",
                 dest_authfile="/tmp/config.json",
+                log_cmd=True,
             )
         except GenericSubprocessError:
             logging.error(
@@ -193,7 +181,7 @@ def main():
 
     logging.info("Signing image")
     try:
-        cosign.sign(production_image)
+        cosign.sign(production_image, log_cmd=True)
     except GenericSubprocessError:
         logging.error(
             "Failed to sign image: %s/%s@%s",
@@ -213,6 +201,7 @@ def main():
         pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.yaml"),
     )
 
+    unattached_predicates = get_unattached_predicates()
     predicates = [
         pathlib.Path(os.environ["SBOM_DIR"], file)
         for file in os.listdir(os.environ["SBOM_DIR"])
@@ -222,7 +211,7 @@ def main():
         pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json")
     )
     predicates.append(pathlib.Path(os.environ["VAT_RESPONSE"]))
-
+    predicate_types = get_predicate_types()
     logging.info("Adding attestations")
     for predicate in predicates:
         try:
@@ -231,6 +220,7 @@ def main():
                 predicate_path=predicate.as_posix(),
                 predicate_type=predicate_types[predicate.name],
                 replace=True,
+                log_cmd=True,
             )
         except GenericSubprocessError:
             logging.error("Failed to add attestation %s", predicate.as_posix())

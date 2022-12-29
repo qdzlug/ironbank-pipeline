@@ -1,6 +1,5 @@
 import os
 import pathlib
-import subprocess
 import requests
 import boto3
 from urllib.parse import urlparse
@@ -10,7 +9,7 @@ from dataclasses import dataclass
 from base64 import b64decode
 from typing import Union
 from .utils.decorators import request_retry
-from .utils.exceptions import InvalidURLList, ORASDownloadError
+from .utils.exceptions import InvalidURLList
 from .abstract_artifacts import (
     AbstractArtifact,
     AbstractFileArtifact,
@@ -162,113 +161,10 @@ class ContainerArtifact(AbstractArtifact):
             remove_signatures=True,
             additional_tags=self.tag,
             src_creds=self.get_credentials() if self.auth else None,
+            log_cmd=True,
         )
 
         self.log.info("Successfully pulled")
-
-
-@dataclass
-class ORASArtifact(AbstractArtifact):
-    log: logger = logger.setup("ORASArtifact")
-
-    def __post_init__(self):
-        pass
-
-    def get_credentials(self) -> None:
-        pass
-
-    @classmethod
-    def find_sbom(cls, img_path: str, docker_config_dir: str) -> str:
-        triangulate_cmd = [
-            "cosign",
-            "triangulate",
-            "--type",
-            "sbom",
-            f"{img_path}",
-        ]
-        cls.log.info(triangulate_cmd)
-        try:
-            sbom = subprocess.run(
-                triangulate_cmd,
-                encoding="utf-8",
-                stdout=subprocess.PIPE,
-                check=True,
-                env={
-                    "PATH": os.environ["PATH"],
-                    "DOCKER_CONFIG": docker_config_dir,
-                },
-            )
-            return sbom.stdout
-        except subprocess.SubprocessError:
-            raise ORASDownloadError(
-                f"Cosign Triangulate Failed | Could not locate SBOM for {img_path}"
-            )
-
-    @classmethod
-    def verify(cls, sbom: str, docker_config_dir: str):
-        try:
-            cert = pathlib.Path(
-                os.environ.get("PIPELINE_REPO_DIR"),
-                "scripts",
-                "cosign",
-                "cosign-certificate.pem",
-            )
-            if not cert.is_file():
-                raise FileNotFoundError
-
-            verify_cmd = [
-                "cosign",
-                "verify",
-                "--cert",
-                cert.as_posix(),
-                sbom,
-            ]
-            cls.log.info(verify_cmd)
-            subprocess.run(
-                verify_cmd,
-                encoding="utf-8",
-                check=True,
-                env={
-                    "PATH": os.environ["PATH"],
-                    "DOCKER_CONFIG": docker_config_dir,
-                },
-            )
-        except subprocess.SubprocessError:
-            raise ORASDownloadError(
-                f"Cosign Verify Failed | Could not verify signature for {sbom}"
-            )
-        except FileNotFoundError:
-            raise ORASDownloadError(
-                f"Cosign Verify Failed | Could not find cert file: {cert}"
-            )
-
-    @classmethod
-    @request_retry(3)
-    def download(cls, img_path: str, output_dir: str, docker_config_dir: str):
-        sbom = cls.find_sbom(img_path, docker_config_dir).strip()
-
-        cls.verify(sbom, docker_config_dir)
-
-        pull_cmd = [
-            "oras",
-            "pull",
-            sbom,
-        ]
-        cls.log.info(pull_cmd)
-
-        try:
-            subprocess.run(
-                pull_cmd,
-                encoding="utf-8",
-                check=True,
-                cwd=output_dir,
-                env={
-                    "PATH": os.environ["PATH"],
-                    "DOCKER_CONFIG": docker_config_dir,
-                },
-            )
-        except subprocess.SubprocessError:
-            raise ORASDownloadError("Could not ORAS pull.")
 
 
 @dataclass

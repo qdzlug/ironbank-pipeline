@@ -46,11 +46,14 @@ class AnchoreVuln(AbstractVuln):
         # allow for multiple names for vuln, allows vat/csv_gen to use different names and parse __dict__ for an AnchoreVuln object
         self.sort_fix()
         self.identifiers.append(self.vuln)
+        # intentionally throw key error if description doesn't exist
+        # "or" evaluates on extra["description"] is some falsey value
         self.description = self.extra["description"] or self.description
         for ver in self._nvd_versions:
             self.get_nvd_scores(ver)
             self.get_vendor_nvd_scores(ver)
         self.get_identifiers()
+        # no_data is set in the init by default, but if the value for inherited_from_base is "" or some other falsey value, update it to no_data
         self.inherited_from_base = self.inherited_from_base or "no_data"
 
     # add alias from inherited -> inherited_from_base
@@ -93,6 +96,7 @@ class AnchoreVuln(AbstractVuln):
 
     @classmethod
     def from_dict(cls, vuln_data):
+        # only use keys from vuln_data supported by the AnchoreVuln class init
         return cls(
             **{k: v for k, v in vuln_data.items() if k in [f.name for f in fields(cls)]}
         )

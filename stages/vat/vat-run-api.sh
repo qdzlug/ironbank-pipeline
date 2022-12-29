@@ -4,7 +4,7 @@ if echo "${CI_PROJECT_DIR}" | grep -q -F 'pipeline-test-project'; then
   echo "Skipping vat. Cannot push to VAT when working with pipeline test projects..."
   exit 0
 fi
-REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${CI_COMMIT_SHA}"
+REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${COMMIT_SHA_TO_SCAN}"
 export REMOTE_REPORT_DIRECTORY
 export VAT_API_URL="${VAT_BACKEND_SERVER_ADDRESS}/internal/import/scan"
 
@@ -14,11 +14,11 @@ python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
   --job_id "${CI_PIPELINE_ID}" \
   --timestamp "$(date --utc '+%FT%TZ')" \
   --scan_date "${BUILD_DATE}" \
-  --build_date "${BUILD_DATE}" \
-  --commit_hash "${CI_COMMIT_SHA}" \
+  --build_date "${BUILD_DATE_TO_SCAN}" \
+  --commit_hash "${COMMIT_SHA_TO_SCAN}" \
   --container "${IMAGE_NAME}" \
   --version "${IMAGE_VERSION}" \
-  --digest "${IMAGE_PODMAN_SHA}" \
+  --digest "${DIGEST_TO_SCAN}" \
   --parent "${BASE_IMAGE:-}" \
   --parent_version "${BASE_TAG:-}" \
   --comp_link "${OSCAP_COMPLIANCE_URL:-''}" \

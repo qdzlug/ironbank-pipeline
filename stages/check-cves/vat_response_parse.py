@@ -5,6 +5,7 @@ import json
 import sys
 import os
 import logging
+from pathlib import Path
 
 from ironbank.pipeline.vat_container_status import is_approved
 
@@ -26,10 +27,8 @@ def main():
         logging.info("Log level set to info")
 
     vat_response = {}
-    with open(
-        f"{os.environ['ARTIFACT_STORAGE']}/vat/vat_response.json",
-        mode="r",
-        encoding="utf-8",
+    with Path(f"{os.environ['ARTIFACT_STORAGE']}/vat/vat_response.json").open(
+        mode="r", encoding="utf-8"
     ) as f:
         vat_response = json.load(f)
 

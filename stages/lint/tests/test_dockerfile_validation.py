@@ -2,12 +2,12 @@
 
 import sys
 import os
-import logging
 import pytest
 import asyncio
 import pathlib
-from unittest.mock import patch
 import dockerfile
+from unittest.mock import patch
+from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.file_parser import DockerfileParser
 from ironbank.pipeline.utils.exceptions import DockerfileParseError
@@ -19,12 +19,12 @@ from ironbank.pipeline.test.mocks.mock_classes import (
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import dockerfile_validation  # noqa E402
 
+log = logger.setup("test_dockerfile_validation")
+
 mock_path = pathlib.Path(
     pathlib.Path(__file__).absolute().parent.parent.parent.parent,
     "ironbank/pipeline/test/mocks",
 )
-
-logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
 
 
 @pytest.fixture
@@ -46,15 +46,18 @@ def nonexistent_dockerfile_path():
 @patch("dockerfile_validation.HardeningManifest", new=MockHardeningManifest)
 def test_dockerfile_validation_main(monkeypatch, caplog):
 
+    log.info("Test successful validation")
     monkeypatch.setattr(DockerfileParser, "parse", lambda x: [])
     asyncio.run(dockerfile_validation.main())
     assert "Dockerfile is validated" in caplog.text
 
+    log.info("Test invalid FROM statement")
     monkeypatch.setattr(DockerfileParser, "parse", lambda x: x)
     with pytest.raises(SystemExit) as se:
         asyncio.run(dockerfile_validation.main())
     assert se.value.code == 100
 
+    log.info("Test raise DockerFileParseError")
     monkeypatch.setattr(
         DockerfileParser, "parse", lambda x: raise_(DockerfileParseError)
     )
@@ -62,6 +65,7 @@ def test_dockerfile_validation_main(monkeypatch, caplog):
         asyncio.run(dockerfile_validation.main())
     assert se.value.code == 1
 
+    log.info("Test raise general Exception")
     monkeypatch.setattr(DockerfileParser, "parse", lambda x: raise_(Exception))
     with pytest.raises(SystemExit) as se:
         asyncio.run(dockerfile_validation.main())

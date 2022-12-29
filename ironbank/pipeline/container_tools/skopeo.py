@@ -19,7 +19,9 @@ class CopyException(Exception):
 @dataclass
 class Skopeo(ContainerTool):
     @subprocess_error_handler(logging_message="Skopeo.inspect failed")
-    def inspect(self, image: Image | ImageFile, raw: bool = False) -> dict:
+    def inspect(
+        self, image: Image | ImageFile, raw: bool = False, log_cmd: bool = False
+    ) -> dict:
         # use tag by default, else use digest
         cmd = [
             "skopeo",
@@ -31,7 +33,8 @@ class Skopeo(ContainerTool):
             f"{image}",
         ]
 
-        log.info(f"Run inspect cmd: {cmd}")
+        if log_cmd:
+            log.info(cmd)
         # if skopeo inspect fails, because IMAGE value doesn't match a registry1 container name
         #   fail back to using existing functionality
 
@@ -61,6 +64,7 @@ class Skopeo(ContainerTool):
         additional_tags: str | list[str] = [],
         src_creds: str = None,
         dest_creds: str = None,
+        log_cmd: bool = False,
     ) -> None:
         if not src or not dest:
             # TODO: Figure out why it isn't logging
@@ -83,12 +87,15 @@ class Skopeo(ContainerTool):
             if type(additional_tags) == str
             else cls._generate_arg_list_from_list(*tags)
         )
-        cmd += ["--src-creds", src_creds] if src_creds else []
-        cmd += ["--dest-creds", dest_creds] if dest_creds else []
         cmd += ["--src-authfile", src_authfile] if src_authfile else []
         cmd += [f"{src}"]
         cmd += ["--dest-authfile", dest_authfile] if dest_authfile else []
         cmd += [f"{dest}"]
+        # Log cmd before adding creds
+        if log_cmd:
+            log.info(cmd)
+        cmd += ["--src-creds", src_creds] if src_creds else []
+        cmd += ["--dest-creds", dest_creds] if dest_creds else []
 
         copy_result = subprocess.run(
             args=cmd,
