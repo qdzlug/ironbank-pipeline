@@ -65,7 +65,7 @@ black:
     - ironbank-tools
   stage: format
   script:
-    - pip install --user black
+    - pip install --user --quiet black
     - black --check --diff --color -t py310 .
 
 pylama:
@@ -74,8 +74,8 @@ pylama:
     - ironbank-tools
   stage: lint
   script:
-    - pip install --user pyflakes==2.4.0
-    - pip install --user pylama
+    - pip install --user --quiet pyflakes==2.4.0
+    - pip install --user --quiet pylama
     - pylama
 ## ignore line errors as blacks has been ran against code.
 
