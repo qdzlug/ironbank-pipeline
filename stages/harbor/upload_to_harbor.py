@@ -3,11 +3,11 @@
 import os
 import sys
 import json
+import yaml
 import base64
 import hashlib
 import logging
 import pathlib
-import yaml
 
 from ironbank.pipeline.image import Image
 from ironbank.pipeline.utils.predicates import (
@@ -35,10 +35,7 @@ def compare_digests(image: Image) -> None:
         )
     except GenericSubprocessError:
         logging.error(
-            "Failed to retrieve manifest for %s/%s@%s",
-            image.registry,
-            image.name,
-            image.digest,
+            f"Failed to retrieve manifest for {image.registry}/{image.name}@{image.digest}"
         )
         sys.exit(1)
 
@@ -48,11 +45,7 @@ def compare_digests(image: Image) -> None:
     if digest == manifest.hexdigest():
         logging.info("Digests match")
     else:
-        logging.error(
-            "Digests do not match %s  %s",
-            digest,
-            manifest.hexdigest(),
-        )
+        logging.error(f"Digests do not match {digest}  {manifest.hexdigest()}")
         sys.exit(1)
 
 
@@ -67,7 +60,7 @@ def promote_tags(
     for tag in tags:
         production_image = production_image.from_image(tag=tag)
 
-        logging.info("Copy from staging to %s", production_image)
+        logging.info(f"Copy from staging to {production_image}")
         try:
             Skopeo.copy(
                 staging_image,
@@ -77,11 +70,7 @@ def promote_tags(
                 log_cmd=True,
             )
         except GenericSubprocessError:
-            logging.error(
-                "Failed to copy %s to %s",
-                staging_image,
-                production_image,
-            )
+            logging.error(f"Failed to copy {staging_image} to {production_image}")
             sys.exit(1)
 
 
@@ -97,8 +86,7 @@ def convert_artifacts_to_hardening_manifest(
             hm_object[item.name] = f.read()
 
     with pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json").open(
-        mode="w",
-        encoding="utf-8",
+        "w"
     ) as f:
         json.dump(hm_object, f)
 
@@ -131,10 +119,7 @@ def main():
     staging_auth = base64.b64decode(os.environ["DOCKER_AUTH_CONFIG_STAGING"]).decode(
         "utf-8"
     )
-    pathlib.Path("staging_auth.json").write_text(
-        staging_auth,
-        encoding="utf-8",
-    )
+    pathlib.Path("staging_auth.json").write_text(staging_auth)
 
     # Grab ironbank/ironbank-testing docker auth
     test_auth = os.environ.get("DOCKER_AUTH_CONFIG_TEST", "").strip()
@@ -144,10 +129,7 @@ def main():
         dest_auth = base64.b64decode(os.environ["DOCKER_AUTH_CONFIG_PROD"]).decode(
             "utf-8"
         )
-    pathlib.Path("/tmp/config.json").write_text(
-        dest_auth,
-        encoding="utf-8",
-    )
+    pathlib.Path("/tmp/config.json").write_text(dest_auth)
 
     staging_image = Image(
         registry=os.environ["REGISTRY_URL_STAGING"],
@@ -158,8 +140,7 @@ def main():
 
     tags = []
     with pathlib.Path(os.environ["ARTIFACT_STORAGE"], "lint", "tags.txt").open(
-        mode="r",
-        encoding="utf-8",
+        mode="r"
     ) as f:
         for tag in f:
             tags.append(tag.strip())
@@ -184,10 +165,7 @@ def main():
         cosign.sign(production_image, log_cmd=True)
     except GenericSubprocessError:
         logging.error(
-            "Failed to sign image: %s/%s@%s",
-            production_image.registry,
-            production_image.name,
-            production_image.digest,
+            f"Failed to sign image: {production_image.registry}/{production_image.name}@{production_image.digest}"
         )
 
     hm_resources = [
@@ -223,7 +201,7 @@ def main():
                 log_cmd=True,
             )
         except GenericSubprocessError:
-            logging.error("Failed to add attestation %s", predicate.as_posix())
+            logging.error(f"Failed to add attestation {predicate.as_posix()}")
             sys.exit(1)
 
 
