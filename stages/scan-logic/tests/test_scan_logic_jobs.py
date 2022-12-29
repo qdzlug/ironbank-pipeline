@@ -1,14 +1,19 @@
 import os
-import pathlib
 import sys
-from unittest.mock import mock_open, patch
+import json
 import pytest
-from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
-from ironbank.pipeline.artifacts import ORASArtifact
-from ironbank.pipeline.utils.exceptions import ORASDownloadError
+import pathlib
+from unittest.mock import mock_open, patch
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.testing import raise_
-from ironbank.pipeline.test.mocks.mock_classes import MockPath, MockSet
+from ironbank.pipeline.container_tools.cosign import Cosign
+from ironbank.pipeline.utils.exceptions import CosignDownloadError
+from ironbank.pipeline.test.mocks.mock_classes import (
+    MockPath,
+    MockImage,
+    MockTempDirectory,
+)
+from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import image_verify  # noqa E402
@@ -26,10 +31,12 @@ def test_write_env_vars(monkeypatch):
     monkeypatch.setattr(pathlib.Path, "open", m_open)
     mock_args = {
         "IMAGE_TO_SCAN": "a\n",
-        "DIGEST_TO_SCAN": "b\n",
-        "BUILD_DATE_TO_SCAN": "c",
+        "COMMIT_SHA_TO_SCAN": "b\n",
+        "DIGEST_TO_SCAN": "c\n",
+        "BUILD_DATE_TO_SCAN": "d",
     }
     scan_logic_jobs.write_env_vars(*[m_arg.strip() for m_arg in mock_args.values()])
+    # Add last remaining var that is generated
     m_open().writelines.assert_called_once_with(
         [f"{k}={v}" for k, v in mock_args.items()]
     )
@@ -39,30 +46,82 @@ def test_parse_packages(monkeypatch, caplog):
     mock_sbom_path = MockPath(path="mock_sbom.json")
     mock_access_log_path = MockPath(path="mock_access_log.json")
 
-    log.info("Test sys.exit is called on missing sbom path")
-    with pytest.raises(SystemExit):
-        scan_logic_jobs.parse_packages(mock_sbom_path, mock_access_log_path)
-    assert "SBOM not found - Exiting" in caplog.text
-
     log.info("Test access log packages are not added if access log path does not exist")
-    mock_sbom_path.exists = lambda: True
     monkeypatch.setattr(SbomFileParser, "parse", lambda path: mock_sbom_pkgs)
-    monkeypatch.setattr(AccessLogFileParser, "parse", lambda path: mock_access_log_pkgs)
+    monkeypatch.setattr(
+        AccessLogFileParser, "parse", lambda self, *args: raise_(FileNotFoundError)
+    )
     pkgs = scan_logic_jobs.parse_packages(mock_sbom_path, mock_access_log_path)
     assert pkgs == set(mock_sbom_pkgs)
 
     log.info("Test sbom and access log pkgs are combined when both exist")
-    mock_access_log_path.exists = lambda: True
+    monkeypatch.setattr(AccessLogFileParser, "parse", lambda path: mock_access_log_pkgs)
     pkgs = scan_logic_jobs.parse_packages(mock_sbom_path, mock_access_log_path)
     assert pkgs == set(mock_sbom_pkgs + mock_access_log_pkgs)
 
 
-@patch("scan_logic_jobs.Path", new=MockPath)
+def test_download_artifacts(monkeypatch):
+    img = MockImage(tag="test", digest="test")
+    mock_out = MockPath("testOut")
+    mock_dock = MockPath("testDock")
+
+    log.info("Test Cosign download fails")
+    monkeypatch.setattr(
+        Cosign,
+        "download",
+        lambda self, *args, **kwargs: raise_(CosignDownloadError),
+    )
+    res = scan_logic_jobs.download_artifacts(
+        image=img, output_dir=mock_out, docker_config_dir=mock_dock
+    )
+    assert res is False
+
+    log.info("Test Cosign download succeed")
+    monkeypatch.setattr(Cosign, "download", lambda self, *args, **kwargs: None)
+    res = scan_logic_jobs.download_artifacts(
+        image=img, output_dir=mock_out, docker_config_dir=mock_dock
+    )
+    assert res is True
+
+
+def test_get_old_pkgs(monkeypatch, caplog):
+    img_name = "testName"
+    img_dig = "testDig"
+    mock_dock = MockPath("testDock")
+    monkeypatch.setenv("BASE_REGISTRY", "example")
+
+    log.info("Test download artifacts fails")
+    monkeypatch.setattr(scan_logic_jobs, "download_artifacts", lambda **kwargs: False)
+    res = scan_logic_jobs.get_old_pkgs(
+        image_name=img_name, image_digest=img_dig, docker_config_dir=mock_dock
+    )
+    assert res == []
+    assert "Download attestations failed" in caplog.text
+    caplog.clear()
+
+    log.info("Test download artifacts fails")
+
+    log.info("Test download artifacts succeeds")
+    monkeypatch.setattr(scan_logic_jobs, "download_artifacts", lambda **kwargs: True)
+    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data=""))
+    monkeypatch.setattr(json, "load", lambda x: {"access_log": "example"})
+    monkeypatch.setattr(
+        scan_logic_jobs, "parse_packages", lambda old_sbom, old_al: old_al
+    )
+    with patch("tempfile.TemporaryDirectory", new=MockTempDirectory):
+        res = scan_logic_jobs.get_old_pkgs(
+            image_name=img_name, image_digest=img_dig, docker_config_dir=mock_dock
+        )
+        assert res == ["example"]
+
+
 def test_main(monkeypatch, caplog):
     # avoid actually creating env var file for all tests
     monkeypatch.setattr(scan_logic_jobs, "write_env_vars", lambda *args, **kwargs: None)
 
     monkeypatch.setenv("IMAGE_NAME", "example/test")
+    monkeypatch.setenv("IMAGE_FULLTAG", "example/test:1.0")
+    monkeypatch.setenv("BASE_REGISTRY", "example")
     monkeypatch.setenv("ARTIFACT_STORAGE", ".")
 
     log.info("Test FORCE_SCAN_NEW_IMAGE saves new digest and build date")
@@ -72,52 +131,59 @@ def test_main(monkeypatch, caplog):
         lambda x, y: set(mock_sbom_pkgs + mock_access_log_pkgs),
     )
     monkeypatch.setenv("FORCE_SCAN_NEW_IMAGE", "True")
+    monkeypatch.setenv("CI_COMMIT_SHA", "example")
     monkeypatch.setenv("IMAGE_PODMAN_SHA", "abcdefg123")
     monkeypatch.setenv("BUILD_DATE", "1-2-21")
     scan_logic_jobs.main()
-    assert "Force scan new image" in caplog.text
-    assert "New image digest and build date saved" in caplog.text
+    assert "Skip Logic: Force scan new image" in caplog.text
     caplog.clear()
 
-    log.info("Test unable to verify image saves new digest and build date")
+    log.info("Test CI_COMMIT_BRANCH not master")
     monkeypatch.setenv("FORCE_SCAN_NEW_IMAGE", "")
+    monkeypatch.setenv("CI_COMMIT_BRANCH", "test")
+    scan_logic_jobs.main()
+    assert "Skip Logic: Non-master branch" in caplog.text
+    caplog.clear()
+
+    log.info("Test unable to verify image")
+    monkeypatch.setenv("CI_COMMIT_BRANCH", "master")
     monkeypatch.setenv("DOCKER_AUTH_CONFIG_PULL", "example")
     monkeypatch.setattr(scan_logic_jobs, "b64decode", lambda x: x.encode())
     monkeypatch.setattr(image_verify, "diff_needed", lambda x: None)
-    scan_logic_jobs.main()
+    with pytest.raises(SystemExit):
+        scan_logic_jobs.main()
     assert "Image verify failed - Must scan new image" in caplog.text
     caplog.clear()
 
-    log.info("Testing diff needed and ORAS download failed")
-    monkeypatch.setenv("BASE_REGISTRY", "example-registry")
+    log.info("Test no old packages get returned")
     monkeypatch.setattr(
-        image_verify, "diff_needed", lambda x: ("test-digest", "test-date")
+        image_verify,
+        "diff_needed",
+        lambda x: {
+            "tag": "test-tag",
+            "commit_sha": "test-sha",
+            "digest": "test-digest",
+            "build-date": "test-date",
+        },
     )
-    monkeypatch.setattr(
-        ORASArtifact,
-        "download",
-        lambda self, *args: raise_(ORASDownloadError("Test ORAS download failed")),
-    )
-    scan_logic_jobs.main()
-    assert "SBOM diff required to determine image to scan" in caplog.text
-    assert (
-        "Downloading artifacts for image: example-registry/example/test@test-digest"
-        in caplog.text
-    )
-    assert "ORAS download failed - Must scan new image" in caplog.text
+    monkeypatch.setattr(scan_logic_jobs, "get_old_pkgs", lambda **kwargs: [])
+    with pytest.raises(SystemExit):
+        scan_logic_jobs.main()
+    assert "No old pkgs to compare - Must scan new image" in caplog.text
     caplog.clear()
 
     log.info("Test old image and new image package lists match")
     monkeypatch.setattr(
         scan_logic_jobs,
-        "parse_packages",
-        lambda x, y: MockSet(),
+        "get_old_pkgs",
+        lambda **kwargs: set(mock_sbom_pkgs + mock_access_log_pkgs),
     )
-    monkeypatch.setattr(ORASArtifact, "download", lambda self, *args: True)
     scan_logic_jobs.main()
     assert "Package lists match - Able to scan old image" in caplog.text
 
     log.info("Test old image and new image package lists do not match")
-    monkeypatch.setattr(MockSet, "symmetric_difference", lambda self, x: True)
+    monkeypatch.setattr(
+        scan_logic_jobs, "get_old_pkgs", lambda **kwargs: set(mock_sbom_pkgs)
+    )
     scan_logic_jobs.main()
-    assert "Package lists match - Able to scan old image" in caplog.text
+    assert "Package(s) difference detected - Must scan new image" in caplog.text

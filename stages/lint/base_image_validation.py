@@ -53,7 +53,7 @@ async def main():
                     tag=manifest.base_image_tag,
                     transport="docker://",
                 )
-                base_img_inspect = skopeo.inspect(base_image)
+                base_img_inspect = skopeo.inspect(base_image, log_cmd=True)
             except GenericSubprocessError:
                 log.error(
                     "Failed to inspect IMAGE:TAG provided in hardening_manifest. \
@@ -63,6 +63,7 @@ async def main():
                 sys.exit(1)
 
             base_image_info = {"BASE_SHA": base_img_inspect["Digest"]}
+            # TODO: Confirm whether we still need to add this digest to this file
             log.info("Dump SHA to file")
             with pathlib.Path(os.environ["ARTIFACT_DIR"], "base_image.json").open(
                 "w"

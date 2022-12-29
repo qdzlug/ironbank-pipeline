@@ -1,7 +1,7 @@
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.container_tools.container_tool import ContainerTool
 
-log = logger.setup("Test ContainerTool")
+log = logger.setup("test_container_tool")
 
 
 def test_container_tool_init():

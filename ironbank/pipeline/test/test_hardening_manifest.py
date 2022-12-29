@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 
-import multiprocessing
 import os
-import logging
-import pytest
-import pathlib
 import json
 import yaml
 import time
+import pytest
+import logging
+import pathlib
 import jsonschema
-from unittest.mock import patch, mock_open, Mock
+import multiprocessing
+from mocks import mock_classes
 from dataclasses import dataclass
+from ironbank.pipeline.utils import logger
+from unittest.mock import patch, mock_open, Mock
+from mocks.mock_classes import MockHardeningManifest, MockPath, MockProcess
 from ironbank.pipeline.hardening_manifest import (
     HardeningManifest,
     source_values,
@@ -18,12 +21,10 @@ from ironbank.pipeline.hardening_manifest import (
     get_approval_status,
 )
 
-from mocks.mock_classes import MockHardeningManifest, MockPath
-from mocks import mock_classes
-
-logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
 
 mock_path = pathlib.Path(pathlib.Path(__file__).absolute().parent, "mocks")
+
+log = logger.setup("test_hardening_manifest")
 
 
 @dataclass
@@ -33,21 +34,6 @@ class MockConnection:
 
     def recv(self):
         logging.info("message received")
-
-
-@dataclass
-class MockProcess:
-    alive: bool = True
-    exitcode: int = 0
-
-    def start(self):
-        return None
-
-    def is_alive(self):
-        return self.alive
-
-    def terminate(self):
-        self.alive = False
 
 
 class MockJsonschema(Mock):
