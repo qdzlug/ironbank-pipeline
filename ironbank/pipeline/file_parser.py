@@ -7,10 +7,11 @@ from .utils import logger
 from pathlib import Path
 from dataclasses import dataclass
 from .utils.types import FileParser, Package
-from .utils.exceptions import DockerfileParseError
+from .utils.exceptions import DockerfileParseError, RepoTypeNotSupported
 from .utils.package_parser import (
     GoPackage,
     YumPackage,
+    ApkPackage,
     AptPackage,
     PypiPackage,
     NpmPackage,
@@ -24,10 +25,10 @@ log = logger.setup(name="package_parser")
 class AccessLogFileParser(FileParser):
     @classmethod
     def parse(cls, access_log: list[str] | Path) -> list[Package]:
-        repos = json.load(open(os.environ["ACCESS_LOG_REPOS"], "r"))
+        with Path(os.environ["ACCESS_LOG_REPOS"]).open(mode="r", encoding="utf-8") as f:
+            repos = json.load(f)
         packages: list[Package] = []
-        # TODO make this an environment variable
-        nexus_host = "http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/"
+        nexus_host = os.environ["NEXUS_HOST"]
         nexus_re = re.compile(
             f"({re.escape(nexus_host)})(?P<repo_type>[^/]+)/(?P<url>.*)"
         )
@@ -48,11 +49,11 @@ class AccessLogFileParser(FileParser):
                 raise ValueError(f"Could not parse URL: {url}")
 
             repo_type = re_match.group("repo_type")
-
             # get repository from list
             if repo_type not in repos:
-                raise ValueError(f"Repository type not supported: {repo_type}")
-
+                raise RepoTypeNotSupported(
+                    f"Repository type not supported: {repo_type}"
+                )
             # call desired parser function
             match repos[repo_type]:
                 case "gosum":
@@ -69,8 +70,13 @@ class AccessLogFileParser(FileParser):
                     package = RubyGemPackage.parse((re_match.group("url")))
                 case "apt":
                     package = AptPackage.parse((re_match.group("url")))
-            if package:
-                packages.append(package)
+                case "apk":
+                    package = ApkPackage.parse((re_match.group("url")))
+                case _:
+                    raise RepoTypeNotSupported(
+                        f"Repository type not supported: {repos[repo_type]}"
+                    )
+            packages += [package] if package else []
 
         log.info("Access log successfully parsed")
         return packages
@@ -84,15 +90,13 @@ class SbomFileParser(FileParser):
 
         for artifact in cls.handle_file_obj(sbom)["artifacts"]:
 
-            package = Package(
-                kind=artifact["type"],
-                name=artifact["name"],
-                version=artifact["version"].split(".el")[0],
+            packages.append(
+                Package(
+                    kind=artifact["type"],
+                    name=artifact["name"],
+                    version=artifact["version"].split(".el")[0],
+                )
             )
-
-            if package:
-                packages.append(package)
-
         log.info("SBOM successfully parsed")
         return packages
 

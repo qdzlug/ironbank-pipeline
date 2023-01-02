@@ -14,6 +14,7 @@ vat:
     - anchore-scan
     - openscap-compliance
     - twistlock-scan
+    - run-logic
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/vat"
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: vat

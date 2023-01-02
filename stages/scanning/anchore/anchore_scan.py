@@ -40,7 +40,7 @@ def main() -> None:
     # Create the directory if it does not exist
     pathlib.Path(artifacts_path).mkdir(parents=True, exist_ok=True)
 
-    image = os.environ["IMAGE_FULLTAG"]
+    image = os.environ["IMAGE_TO_SCAN"]
 
     digest = anchore_scan.image_add(image)
     anchore_scan.image_wait(digest=digest)

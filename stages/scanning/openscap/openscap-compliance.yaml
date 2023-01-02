@@ -12,6 +12,7 @@ openscap-compliance:
   dependencies:
     - load-scripts
     - build
+    - run-logic
   script:
     - '"${PIPELINE_REPO_DIR}/stages/scanning/openscap/oscap-compliance-run.sh"'
   artifacts:
