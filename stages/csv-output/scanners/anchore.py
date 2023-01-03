@@ -2,6 +2,7 @@
 
 
 import json
+from pathlib import Path
 from ironbank.pipeline.scan_report_parsers.anchore import (
     AnchoreSecurityParser,
     ReportParser,

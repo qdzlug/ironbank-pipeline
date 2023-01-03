@@ -5,6 +5,7 @@ import os
 import boto3
 import logging
 from botocore.exceptions import ClientError
+from pathlib import Path
 import argparse
 
 from ironbank.pipeline.hardening_manifest import (
@@ -115,7 +116,7 @@ def main() -> None:
             json.dump(data, f, indent=4)
     else:
         with Path("repo_map.json").open("w") as f:
-            json.dump(new_data, outfile, indent=4, sort_keys=True)
+            json.dump(new_data, f, indent=4, sort_keys=True)
 
 
 if __name__ == "__main__":
