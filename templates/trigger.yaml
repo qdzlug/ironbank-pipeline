@@ -1,0 +1,74 @@
+image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.9.1
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
+stages:
+  - preprocess
+  - lint
+  - secret-scan
+  - os-type
+  - pipeline-trigger
+
+include:
+  - local: stages/preprocess/load-scripts.yaml
+  - local: stages/lint/validate-hardening-manifest.yaml
+  - local: stages/secret-scan/trufflehog.yaml
+
+pre-check:
+  stage: .pre
+  cache: {}
+  script:
+    - |
+      echo "Searching for ci-artifacts dir"
+      files_found=$(find . -name "ci-artifacts" -type d)
+      echo "Searching for symlinks"
+      links_found=$(find . -type l)
+      echo "Validating symlinks"
+      if [[ $links_found != "" ]]; then exit 1; fi
+      echo "Validating files"
+      if [[ $files_found != "" ]]; then echo "${files_found} was found"; fi
+  except:
+    variables:
+      - $STAGING_PIPELINE
+
+image-inspect:
+  stage: os-type
+  needs:
+    - load-scripts
+  script:
+    - 'pip install --user "${PIPELINE_REPO_DIR}"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/os-type/image_inspect.py"'
+  artifacts:
+    when: always
+    reports:
+      dotenv: template.env
+
+trigger:
+  stage: pipeline-trigger
+  needs:
+    - job: validate-hardening-manifest
+      artifacts: false
+    - job: trufflehog
+      artifacts: false
+    - image-inspect
+  variables:
+    LOGLEVEL: $LOGLEVEL
+    TARGET_BRANCH: $TARGET_BRANCH
+    TEMPLATE: $TEMPLATE
+  trigger:
+    include:
+      - project: ironbank-tools/ironbank-pipeline
+        file: "templates/${TEMPLATE}"
+        ref: $TARGET_BRANCH
+    strategy: depend
+
+variables:
+  # Gitlab CI vars
+  ARTIFACT_STORAGE: "ci-artifacts"
+  PIPELINE_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank_pipeline"
+  GIT_SSL_NO_VERIFY: "1"
+  TARGET_BRANCH: master
+  # Controls if ironbank-staging is the source registry for base images
+  STAGING_BASE_IMAGE: ""

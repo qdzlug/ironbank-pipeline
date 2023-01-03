@@ -1,0 +1,10 @@
+validate-hardening-manifest:
+  stage: lint
+  needs:
+    - load-scripts
+  retry:
+    max: 2
+    when: runner_system_failure
+  script:
+    - 'pip install --user "${PIPELINE_REPO_DIR}"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/validate_hardening_manifest.py"'
