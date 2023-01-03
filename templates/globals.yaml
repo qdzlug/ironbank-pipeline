@@ -15,6 +15,9 @@ stages:
   ### Import Artifacts
   - import-artifacts
 
+  ### Secret Scan
+  - secret-scan
+
   ### build stage
   # build image w version tag and create tar file
   - build
