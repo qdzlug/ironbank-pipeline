@@ -155,6 +155,10 @@ class MockHardeningManifest(HardeningManifest):
     image_tag: str = "1.0"
     base_image_name: str = "base_example"
     base_image_tag: str = "2.0"
+    validate: bool = False
+    invalid_labels = None
+    invalid_maintainers = None
+    invalid_image_sources = None
     args: dict = field(default_factory=lambda: {"a": "b", "c": "d"})
     labels: dict = field(default_factory=lambda: {"very": "cool", "wow": "awesome"})
     image_tags: list[str] = field(
@@ -162,6 +166,7 @@ class MockHardeningManifest(HardeningManifest):
     )
     resources: list[str] = field(default_factory=list)
     maintainers: list[str] = field(default_factory=list)
+
 
 
 @dataclass
