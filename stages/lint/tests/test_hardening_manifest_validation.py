@@ -54,3 +54,5 @@ def test_hardening_manifest_validation_main(monkeypatch, caplog):
     with pytest.raises(SystemExit) as se:
         asyncio.run(hardening_manifest_validation.main())
     assert se.value.code == 1
+
+
