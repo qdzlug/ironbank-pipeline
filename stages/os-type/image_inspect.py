@@ -10,9 +10,6 @@ from ironbank.pipeline.utils import logger
 from ironbank.pipeline.image import Image
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
-from ironbank.pipeline.hardening_manifest import (
-    get_source_keys_values,
-)
 
 log = logger.setup("pipeline_trigger")
 
@@ -20,13 +17,13 @@ log = logger.setup("pipeline_trigger")
 def template_type(os_type: str) -> None:
     """Writes the template type to an env file, based on the os_type var"""
     template_dict = {
-        "alpine-container": "alpine.yaml",
+        "alpine317-container": "alpine.yaml",
         "distroless-container": "distroless.yaml",
         "scratch-container": "distroless.yaml",
         "sle15-bci-container": "suse.yaml",
-        "ubi9-container": "ubi.yaml",
-        "ubi8-container": "ubi.yaml",
         "ubi7-container": "ubi.yaml",
+        "ubi8-container": "ubi.yaml",
+        "ubi9-container": "ubi.yaml",
         "ubuntu2004-container": "ubuntu.yaml",
     }
     template = template_dict.get(os_type)
@@ -37,7 +34,7 @@ def template_type(os_type: str) -> None:
     with Path("template.env").open(mode="w", encoding="utf-8") as f:
         f.write(f"TEMPLATE={template}\n")
         f.write(f"TARGET_BRANCH={os.environ['TARGET_BRANCH']}\n")
-        f.write(f"LOGLEVEL={os.environ['LOGLEVEL']}")
+        f.write(f"LOGLEVEL={os.environ.get('LOGLEVEL', 'INFO')}")
 
 
 def get_registry_info() -> tuple[str, str]:
@@ -55,13 +52,12 @@ def get_registry_info() -> tuple[str, str]:
 
 def main():
     """image-inspect main method"""
-    artifact_storage = os.environ["ARTIFACT_STORAGE"]
-    label_dict = get_source_keys_values(f"{artifact_storage}/lint/labels.env")
-    os_type = label_dict.get("mil.dso.ironbank.os-type")
+    os_label = "mil.dso.ironbank.os-type"
+    dsop_project = DsopProject()
+    manifest = HardeningManifest(dsop_project.hardening_manifest_path)
+    os_type = manifest.labels.get(os_label)
     if not os_type:
-        dsop_project = DsopProject()
         pull_auth, registry = get_registry_info()
-        manifest = HardeningManifest(dsop_project.hardening_manifest_path)
         try:
             skopeo = Skopeo(pull_auth)
             base_image = Image(
@@ -78,7 +74,7 @@ def main():
             )
             log.error("Failed 'skopeo inspect' of image: %s", base_image)
             sys.exit(1)
-        os_type = base_img_inspect["Labels"].get("mil.dso.ironbank.os-type")
+        os_type = base_img_inspect["Labels"].get(os_label)
     if not os_type:
         log.error("Unknown os-type")
         sys.exit(1)
