@@ -56,7 +56,6 @@ def test_base_image_validation_main(monkeypatch):
     )
     asyncio.run(base_image_validation.main())
 
-
     log.info("Test base image validation throws exception")
     monkeypatch.setattr(
         MockSkopeo, "inspect", lambda *args, **kwargs: raise_(GenericSubprocessError)
