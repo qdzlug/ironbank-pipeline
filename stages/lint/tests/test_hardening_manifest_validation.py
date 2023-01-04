@@ -2,15 +2,11 @@
 
 import sys
 import asyncio
-import sys
 import os
 import pytest
 import pathlib
 from unittest.mock import patch
-from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.testing import raise_
-from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.test.mocks.mock_classes import (
     MockProject,
     MockHardeningManifest,
@@ -54,5 +50,3 @@ def test_hardening_manifest_validation_main(monkeypatch, caplog):
     with pytest.raises(SystemExit) as se:
         asyncio.run(hardening_manifest_validation.main())
     assert se.value.code == 1
-
-

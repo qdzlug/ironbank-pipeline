@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 
-from dataclasses import dataclass
 import pathlib
 import sys
 import os
 from unittest.mock import patch
-from unittest.mock import mock_open
 import pytest
 import asyncio
 from ironbank.pipeline.test.mocks.mock_classes import (
@@ -26,6 +24,7 @@ mock_path = pathlib.Path(
     pathlib.Path(__file__).absolute().parent.parent.parent.parent,
     "ironbank/pipeline/test/mocks",
 )
+
 
 @patch("base_image_validation.DsopProject", new=MockProject)
 @patch("base_image_validation.Skopeo", new=MockSkopeo)

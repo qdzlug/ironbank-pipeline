@@ -8,7 +8,6 @@ import pathlib
 from unittest.mock import patch
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.test.mocks.mock_classes import (
-    MockProject,
     MockHardeningManifest,
 )
 
@@ -22,7 +21,6 @@ mock_path = pathlib.Path(
     "ironbank/pipeline/test/mocks",
 )
 
-@patch("pipeline_auth_status.DsopProject", new=MockProject)
 @patch("pipeline_auth_status.HardeningManifest", new=MockHardeningManifest)
 def test_pipeline_auth_status_main(monkeypatch, caplog):
     

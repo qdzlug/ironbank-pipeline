@@ -168,7 +168,6 @@ class MockHardeningManifest(HardeningManifest):
     maintainers: list[str] = field(default_factory=list)
 
 
-
 @dataclass
 class MockImage(Image):
     registry: str = "registry.example.com"
