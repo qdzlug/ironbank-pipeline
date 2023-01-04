@@ -12,6 +12,9 @@ stages:
   # - executor image with Python 3.x installed
   - lint
 
+  ### Secret Scan
+  - secret-scan
+
   ### Import Artifacts
   - import-artifacts
 
