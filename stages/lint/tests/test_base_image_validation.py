@@ -22,10 +22,15 @@ import base_image_validation  # noqa E402
 
 log = logger.setup("test_base_image_validation")
 
+mock_path = pathlib.Path(
+    pathlib.Path(__file__).absolute().parent.parent.parent.parent,
+    "ironbank/pipeline/test/mocks",
+)
+
 @patch("base_image_validation.DsopProject", new=MockProject)
 @patch("base_image_validation.Skopeo", new=MockSkopeo)
 @patch("base_image_validation.HardeningManifest", new=MockHardeningManifest)
-def test_base_image_validation_main(monkeypatch, caplog):
+def test_base_image_validation_main(monkeypatch):
     log.info("Test staging base image validation")
     monkeypatch.setenv("STAGING_BASE_IMAGE", "base")
     monkeypatch.setenv("DOCKER_AUTH_CONFIG_STAGING", "c3RhZ2luZy10ZXN0Cg==")  # staging-test -> base64 encoded value
@@ -42,8 +47,12 @@ def test_base_image_validation_main(monkeypatch, caplog):
     log.info("Test prod base image validation")
     monkeypatch.setenv("DOCKER_AUTH_CONFIG_PULL", "c3RhZ2luZy10ZXN0Cg==")
     monkeypatch.setenv("REGISTRY_URL_PROD", "http://prod.com")
-    with pytest.raises(KeyError) as ke:
-        asyncio.run(base_image_validation.main())
+    monkeypatch.setenv("ARTIFACT_DIR", mock_path)
+    monkeypatch.setattr(
+        MockSkopeo, "inspect", lambda *args, **kwargs: {"Digest": "1234qwer"}
+    )
+    
+    asyncio.run(base_image_validation.main())
 
 
     log.info("Test base image validation throws exception")

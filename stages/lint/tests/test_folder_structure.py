@@ -3,7 +3,6 @@
 import sys
 import os
 import asyncio
-import pathlib
 import pytest
 from unittest.mock import patch
 from ironbank.pipeline.utils import logger
