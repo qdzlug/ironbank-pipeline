@@ -28,7 +28,7 @@ distroless-upload-to-s3:
     - write-json-docs
     - vat
   script:
-    - 'pip install --user --quiet "${PIPELINE_REPO_DIR}"'
+    - 'pip install --user "${PIPELINE_REPO_DIR}"'
     - '"${PIPELINE_REPO_DIR}/stages/s3/upload-to-s3-run.sh"'
   retry:
     max: 2
