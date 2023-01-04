@@ -11,7 +11,7 @@ import asyncio
 from ironbank.pipeline.test.mocks.mock_classes import (
     MockProject,
     MockHardeningManifest,
-    MockSkopeo
+    MockSkopeo,
 )
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 from ironbank.pipeline.utils.testing import raise_
@@ -31,10 +31,12 @@ mock_path = pathlib.Path(
 @patch("base_image_validation.Skopeo", new=MockSkopeo)
 @patch("base_image_validation.HardeningManifest", new=MockHardeningManifest)
 def test_base_image_validation_main(monkeypatch):
-    
+
     log.info("Test staging base image validation")
     monkeypatch.setenv("STAGING_BASE_IMAGE", "base")
-    monkeypatch.setenv("DOCKER_AUTH_CONFIG_STAGING", "c3RhZ2luZy10ZXN0Cg==")  # staging-test -> base64 encoded value
+    monkeypatch.setenv(
+        "DOCKER_AUTH_CONFIG_STAGING", "c3RhZ2luZy10ZXN0Cg=="
+    )  # staging-test -> base64 encoded value
     monkeypatch.setenv("REGISTRY_URL_STAGING", "http://staging.com")
     monkeypatch.setenv("ARTIFACT_DIR", mock_path)
     monkeypatch.setattr(

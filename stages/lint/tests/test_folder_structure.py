@@ -26,9 +26,7 @@ def test_folder_structure_main(monkeypatch, caplog):
     assert "Folder structure validated" in caplog.text
 
     log.info("Test raise AssertionError")
-    monkeypatch.setattr(
-        DsopProject, "validate", lambda x: raise_(AssertionError)
-    )
+    monkeypatch.setattr(DsopProject, "validate", lambda x: raise_(AssertionError))
     with pytest.raises(SystemExit) as se:
         asyncio.run(folder_structure.main())
     assert se.value.code == 1

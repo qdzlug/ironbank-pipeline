@@ -36,7 +36,9 @@ def test_hardening_manifest_validation_main(monkeypatch, caplog):
     assert "Hardening manifest is validated" in caplog.text
 
     log.info("Test invalid image sources")
-    monkeypatch.setattr(MockHardeningManifest, "invalid_image_sources", "bad_image_source")
+    monkeypatch.setattr(
+        MockHardeningManifest, "invalid_image_sources", "bad_image_source"
+    )
     with pytest.raises(SystemExit) as se:
         asyncio.run(hardening_manifest_validation.main())
     assert se.value.code == 100
