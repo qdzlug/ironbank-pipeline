@@ -6,6 +6,7 @@ import tempfile
 
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.image import Image, ImageFile
+from ironbank.pipeline.apis import VatAPI
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.utils import logger
@@ -50,6 +51,12 @@ class MockOutput:
 
     def __str__(self):
         return self.read()
+
+
+@dataclass
+class MockJson():
+    def dump(*args, **kwargs):
+        pass
 
 
 @dataclass
@@ -115,6 +122,9 @@ class MockPath:
     def is_symlink(self):
         return False
 
+    def write_text(self, data, encoding=None, errors=None, newline=None):
+        return ""
+
     def __str__(self):
         return self.path
 
@@ -177,6 +187,12 @@ class MockImage(Image):
 
     # def __post_init__(*args, **kwargs):
     #     pass
+
+
+@dataclass
+class MockVatAPI(VatAPI):
+    def check_access(self, image_name, create_request=False) -> None:
+        return super().check_access(image_name, create_request)
 
 
 @dataclass

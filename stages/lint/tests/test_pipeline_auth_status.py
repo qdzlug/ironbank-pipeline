@@ -5,11 +5,11 @@ import sys
 import asyncio
 import pytest
 import requests
-import pathlib
 from unittest.mock import patch
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.test.mocks.mock_classes import (
     MockHardeningManifest,
+    MockVatAPI,
 )
 from ironbank.pipeline.apis import VatAPI
 
@@ -18,18 +18,14 @@ import pipeline_auth_status  # noqa E402
 
 log = logger.setup(name="test_pipeline_auth_status")
 
-mock_path = pathlib.Path(
-    pathlib.Path(__file__).absolute().parent.parent.parent.parent,
-    "ironbank/pipeline/test/mocks",
-)
-
 
 @pytest.fixture
 def mock_vat_api():
     return VatAPI(url="http://vat-local.example")
 
-
+#mock check access or mock vat api 
 @patch("pipeline_auth_status.HardeningManifest", new=MockHardeningManifest)
+@patch("pipeline_auth_status.VatAPI", new=MockVatAPI)
 def test_pipeline_auth_status_main(monkeypatch, mock_vat_api, mock_responses, caplog):
 
     log.info("Test no backend server address")
