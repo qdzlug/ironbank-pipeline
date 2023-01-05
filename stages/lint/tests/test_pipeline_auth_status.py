@@ -23,6 +23,7 @@ mock_path = pathlib.Path(
     "ironbank/pipeline/test/mocks",
 )
 
+
 @pytest.fixture
 def mock_vat_api():
     return VatAPI(url="http://vat-local.example")
