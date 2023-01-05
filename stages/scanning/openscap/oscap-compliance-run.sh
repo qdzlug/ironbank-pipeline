@@ -1,9 +1,9 @@
 #!/bin/bash
 set -Eeuxo pipefail
-# shellcheck source=./stages/scanning/openscap/base_image_type.sh
-source "${PIPELINE_REPO_DIR}/stages/scanning/openscap/base_image_type.sh"
 echo "Imported Base Image Type: ${BASE_IMAGE_TYPE}"
 mkdir -p "${OSCAP_SCANS}"
+podman pull --authfile $DOCKER_AUTH_CONFIG_FILE_STAGING "${IMAGE_TO_SCAN}"
+export DOCKER_IMAGE_PATH=$(podman images -q)
 echo "${DOCKER_IMAGE_PATH}"
 
 # If OSCAP_VERSION variable doesn't exist, create the variable
