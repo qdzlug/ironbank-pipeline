@@ -31,6 +31,7 @@ def test_pipeline_auth_status_main(monkeypatch, caplog):
     with pytest.raises(SystemExit) as se:
         asyncio.run(pipeline_auth_status.main())
     assert se.value.code == 1
+    assert "Failing Pipeline" in caplog.text
 
     log.info("Test successful auth status")
     monkeypatch.setenv("VAT_BACKEND_SERVER_ADDRESS", "http://vat-local.example")
