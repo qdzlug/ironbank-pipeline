@@ -10,7 +10,7 @@ from ironbank.pipeline.utils import logger
 from ironbank.pipeline.test.mocks.mock_classes import (
     MockProject,
     MockHardeningManifest,
-    MockPath
+    MockPath,
 )
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

@@ -54,7 +54,7 @@ class MockOutput:
 
 
 @dataclass
-class MockJson():
+class MockJson:
     def dump(*args, **kwargs):
         pass
 
