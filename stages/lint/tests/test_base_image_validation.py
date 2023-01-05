@@ -41,7 +41,10 @@ def test_base_image_validation_main(monkeypatch):
     monkeypatch.setattr(
         MockSkopeo, "inspect", lambda *args, **kwargs: {"Digest": "1234qwer"}
     )
+    with open(mock_path/"base_image.json", "w") as fp:
+        pass
     asyncio.run(base_image_validation.main())
+    os.remove(mock_path/"base_image.json")
 
     monkeypatch.delenv("STAGING_BASE_IMAGE")
     monkeypatch.delenv("DOCKER_AUTH_CONFIG_STAGING")
@@ -53,7 +56,10 @@ def test_base_image_validation_main(monkeypatch):
     monkeypatch.setattr(
         MockSkopeo, "inspect", lambda *args, **kwargs: {"Digest": "1234qwer"}
     )
+    with open(mock_path/"base_image.json", "w") as fp:
+        pass
     asyncio.run(base_image_validation.main())
+    os.remove(mock_path/"base_image.json")
 
     log.info("Test base image validation throws exception")
     monkeypatch.setattr(
