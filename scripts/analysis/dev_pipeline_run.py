@@ -14,6 +14,7 @@ import logging
 import glob
 import csv
 import time
+from pathlib import Path
 
 
 def get_vat_compare_failed(gl):
