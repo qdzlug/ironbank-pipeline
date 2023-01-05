@@ -20,6 +20,10 @@ image-inspect:
   stage: os-type
   needs:
     - load-scripts
+    - job: validate-hardening-manifest
+      artifacts: false
+    - job: trufflehog
+      artifacts: false
   script:
     - 'pip install --user "${PIPELINE_REPO_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/os-type/image_inspect.py"'
