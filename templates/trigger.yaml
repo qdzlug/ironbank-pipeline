@@ -16,27 +16,14 @@ include:
   - local: stages/lint/validate-hardening-manifest.yaml
   - local: stages/secret-scan/trufflehog.yaml
 
-pre-check:
-  stage: .pre
-  cache: {}
-  script:
-    - |
-      echo "Searching for ci-artifacts dir"
-      files_found=$(find . -name "ci-artifacts" -type d)
-      echo "Searching for symlinks"
-      links_found=$(find . -type l)
-      echo "Validating symlinks"
-      if [[ $links_found != "" ]]; then exit 1; fi
-      echo "Validating files"
-      if [[ $files_found != "" ]]; then echo "${files_found} was found"; fi
-  except:
-    variables:
-      - $STAGING_PIPELINE
-
 image-inspect:
   stage: os-type
   needs:
     - load-scripts
+    - job: validate-hardening-manifest
+      artifacts: false
+    - job: trufflehog
+      artifacts: false
   script:
     - 'pip install --user "${PIPELINE_REPO_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/os-type/image_inspect.py"'
@@ -48,13 +35,10 @@ image-inspect:
 trigger:
   stage: pipeline-trigger
   needs:
-    - job: validate-hardening-manifest
-      artifacts: false
-    - job: trufflehog
-      artifacts: false
     - image-inspect
   variables:
     LOGLEVEL: $LOGLEVEL
+    STAGING_PIPELINE: $STAGING_PIPELINE
     TARGET_BRANCH: $TARGET_BRANCH
     TEMPLATE: $TEMPLATE
   trigger:
