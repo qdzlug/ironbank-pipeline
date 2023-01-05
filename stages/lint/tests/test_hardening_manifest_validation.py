@@ -4,7 +4,6 @@ import sys
 import asyncio
 import os
 import pytest
-import pathlib
 from unittest.mock import patch
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.utils import logger

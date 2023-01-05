@@ -25,7 +25,7 @@ log = logger.setup("test_base_image_validation")
 @patch("base_image_validation.HardeningManifest", new=MockHardeningManifest)
 @patch("base_image_validation.pathlib.Path", new=MockPath)
 @patch("base_image_validation.json", new=MockJson)
-def test_base_image_validation_main(monkeypatch):
+def test_base_image_validation_main(monkeypatch, caplog):
 
     log.info("Test staging base image validation")
     monkeypatch.setenv("STAGING_BASE_IMAGE", "base")
@@ -38,6 +38,7 @@ def test_base_image_validation_main(monkeypatch):
         MockSkopeo, "inspect", lambda *args, **kwargs: {"Digest": "1234qwert"}
     )
     asyncio.run(base_image_validation.main())
+    assert "Dump SHA to file" in caplog.text
 
     monkeypatch.delenv("STAGING_BASE_IMAGE")
     monkeypatch.delenv("DOCKER_AUTH_CONFIG_STAGING")
@@ -50,6 +51,7 @@ def test_base_image_validation_main(monkeypatch):
         MockSkopeo, "inspect", lambda *args, **kwargs: {"Digest": "1234qwer"}
     )
     asyncio.run(base_image_validation.main())
+    assert "Dump SHA to file" in caplog.text
 
     log.info("Test base image validation throws exception")
     monkeypatch.setattr(

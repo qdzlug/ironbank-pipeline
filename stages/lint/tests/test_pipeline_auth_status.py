@@ -23,7 +23,7 @@ log = logger.setup(name="test_pipeline_auth_status")
 def mock_vat_api():
     return VatAPI(url="http://vat-local.example")
 
-#mock check access or mock vat api 
+
 @patch("pipeline_auth_status.HardeningManifest", new=MockHardeningManifest)
 @patch("pipeline_auth_status.VatAPI", new=MockVatAPI)
 def test_pipeline_auth_status_main(monkeypatch, mock_vat_api, mock_responses, caplog):
