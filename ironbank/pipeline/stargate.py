@@ -36,7 +36,9 @@ class Stargate:
         output labels from hardening-manifest into dictionary
         """
         labels_env: dict["str", "str"] = {}
-        with open(f"{os.environ['ARTIFACT_STORAGE']}/preflight/labels.env", "r") as f:
+        with Path(f"{os.environ['ARTIFACT_STORAGE']}/preflight/labels.env").open(
+            "r"
+        ) as f:
             for line in f:
                 if line.startswith("#") or not line.strip():
                     continue

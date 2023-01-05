@@ -14,6 +14,7 @@ import logging
 import glob
 import csv
 import time
+from pathlib import Path
 
 
 def get_vat_compare_failed(gl):
@@ -24,7 +25,7 @@ def get_vat_compare_failed(gl):
     files = glob.glob("finished_pipleines_*.{}".format(extension))
     vat_diff = {}
     for file in files:
-        with open(file, newline="") as csvfile:
+        with Path(file).open(newline="") as csvfile:
             csv_reader = csv.reader(csvfile, delimiter=",", quotechar="|")
             proj_pipeline_list = []
             for row in csv_reader:
@@ -91,6 +92,6 @@ rerun_list = get_pipeline_status(gl, proj_pipeline_list)
 proj_pipeline_list = rerun_pipelines(rerun_list)
 failed_vat_compare = get_pipeline_status(gl, proj_pipeline_list, rerun=True)
 print(failed_vat_compare)
-with open("failed_vat_compare.txt", "w") as f:
+with Path("failed_vat_compare.txt").open("w") as f:
     for failed in failed_vat_compare:
         f.write(f"{failed}\n")
