@@ -12,6 +12,7 @@ import shutil
 import glob
 import csv
 import json
+from pathlib import Path
 
 
 def get_project(gl, group, project):
