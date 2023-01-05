@@ -38,6 +38,7 @@ trigger:
     - image-inspect
   variables:
     LOGLEVEL: $LOGLEVEL
+    STAGING_PIPELINE: $STAGING_PIPELINE
     TARGET_BRANCH: $TARGET_BRANCH
     TEMPLATE: $TEMPLATE
   trigger:
