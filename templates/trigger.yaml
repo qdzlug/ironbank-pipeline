@@ -35,10 +35,6 @@ image-inspect:
 trigger:
   stage: pipeline-trigger
   needs:
-    - job: validate-hardening-manifest
-      artifacts: false
-    - job: trufflehog
-      artifacts: false
     - image-inspect
   variables:
     LOGLEVEL: $LOGLEVEL
