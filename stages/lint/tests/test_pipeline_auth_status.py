@@ -36,5 +36,7 @@ def test_pipeline_auth_status_main(monkeypatch, caplog):
     log.info("Test having backend server address")
     monkeypatch.setenv("VAT_BACKEND_SERVER_ADDRESS", "http://vat-local.example")
     monkeypatch.setenv("CI_JOB_JWT_V2", "http://vat-local.abcdefg")
-    asyncio.run(pipeline_auth_status.main())
+    with pytest.raises(SystemExit) as se:
+        asyncio.run(pipeline_auth_status.main())
+    assert se.value.code == 1
     assert "Failing Pipeline" in caplog.text
