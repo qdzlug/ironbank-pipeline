@@ -21,9 +21,10 @@ mock_path = pathlib.Path(
     "ironbank/pipeline/test/mocks",
 )
 
+
 @patch("pipeline_auth_status.HardeningManifest", new=MockHardeningManifest)
 def test_pipeline_auth_status_main(monkeypatch, caplog):
-    
+
     log.info("Test successful auth status")
     monkeypatch.setenv("VAT_BACKEND_SERVER_ADDRESS", "http://vat-local.example")
     monkeypatch.setenv("CI_JOB_JWT_V2", "http://vat-local.abcdefg")

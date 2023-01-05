@@ -22,6 +22,7 @@ mock_path = pathlib.Path(
 
 log = logger.setup("test_hardening_manifest_validation")
 
+
 @patch("hardening_manifest_validation.DsopProject", new=MockProject)
 @patch("hardening_manifest_validation.HardeningManifest", new=MockHardeningManifest)
 def test_hardening_manifest_validation_main(monkeypatch, caplog):
@@ -44,7 +45,7 @@ def test_hardening_manifest_validation_main(monkeypatch, caplog):
     with pytest.raises(SystemExit) as se:
         asyncio.run(hardening_manifest_validation.main())
     assert se.value.code == 1
-    
+
     log.info("Test invalid maintainers")
     monkeypatch.setattr(MockHardeningManifest, "invalid_maintainers", "bad_maintainer")
     with pytest.raises(SystemExit) as se:

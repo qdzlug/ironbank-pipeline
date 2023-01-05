@@ -17,9 +17,10 @@ import folder_structure  # noqa E402
 
 log = logger.setup("test_folder_structure")
 
+
 @patch("dockerfile_validation.DsopProject", new=MockProject)
 def test_folder_structure_main(monkeypatch, caplog):
-    
+
     log.info("Test successful validation")
     monkeypatch.setattr(DsopProject, "validate", lambda x: x)
     asyncio.run(folder_structure.main())
