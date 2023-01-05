@@ -41,7 +41,7 @@ def test_base_image_validation_main(monkeypatch):
     monkeypatch.setattr(
         MockSkopeo, "inspect", lambda *args, **kwargs: {"Digest": "1234qwer"}
     )
-    with open(mock_path/"base_image.json", "w") as fp:
+    with open(mock_path/"base_image.json", "w"):
         pass
     asyncio.run(base_image_validation.main())
     os.remove(mock_path/"base_image.json")
@@ -56,7 +56,7 @@ def test_base_image_validation_main(monkeypatch):
     monkeypatch.setattr(
         MockSkopeo, "inspect", lambda *args, **kwargs: {"Digest": "1234qwer"}
     )
-    with open(mock_path/"base_image.json", "w") as fp:
+    with open(mock_path/"base_image.json", "w"):
         pass
     asyncio.run(base_image_validation.main())
     os.remove(mock_path/"base_image.json")
