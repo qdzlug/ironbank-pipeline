@@ -25,14 +25,15 @@ mock_path = pathlib.Path(
 @patch("pipeline_auth_status.HardeningManifest", new=MockHardeningManifest)
 def test_pipeline_auth_status_main(monkeypatch, caplog):
 
+    log.info("Test failing pipeline")
+    monkeypatch.setenv("VAT_BACKEND_SERVER_ADDRESS", "")
+    monkeypatch.setenv("CI_JOB_JWT_V2", "http://vat-local.abcdefg")
+    with pytest.raises(SystemExit) as se:
+        asyncio.run(pipeline_auth_status.main())
+    assert se.value.code == 1
+
     log.info("Test successful auth status")
     monkeypatch.setenv("VAT_BACKEND_SERVER_ADDRESS", "http://vat-local.example")
     monkeypatch.setenv("CI_JOB_JWT_V2", "http://vat-local.abcdefg")
     asyncio.run(pipeline_auth_status.main())
     assert "Retrieve Auth Status from VAT" in caplog.text
-
-    log.info("Test failing pipeline")
-    monkeypatch.setenv("VAT_BACKEND_SERVER_ADDRESS", "")
-    with pytest.raises(SystemExit) as se:
-        asyncio.run(pipeline_auth_status.main())
-    assert se.value.code == 1
