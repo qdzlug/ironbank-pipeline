@@ -3,6 +3,7 @@
 from dataclasses import dataclass, field
 import subprocess
 import tempfile
+import requests
 
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.image import Image, ImageFile
@@ -57,6 +58,32 @@ class MockOutput:
 class MockJson:
     def dump(*args, **kwargs):
         pass
+
+
+@dataclass
+class MockResponse:
+    returncode: int = 1
+    status_code: int = 500
+    text: str = "example"
+    content: str = "example"
+    stderr: str = "canned_error"
+    stdout: str = "It broke"
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, mock1, mock2, mock3):
+        pass
+
+    def raise_for_status(self):
+        if self.status_code != 200:
+            raise requests.exceptions.HTTPError
+
+    def iter_content(self, chunk_size=2048):
+        return [b"abcdef", b"ghijkl", b"mnopqrs"]
+
+    def json(self):
+        return {"status_code": self.status_code, "text": self.text}
 
 
 @dataclass
@@ -191,9 +218,16 @@ class MockImage(Image):
 
 @dataclass
 class MockVatAPI(VatAPI):
-    def check_access(self, image_name, create_request=False) -> None:
-        return super().check_access(image_name, create_request)
+    response: requests.Response = None
 
+    def check_access(self, image_name, create_request=False) -> None:
+        self.response = MockResponse()
+
+class MockGoodResponse:
+    status_code: int = 200
+    text: str = "example"
+    def json(self):
+        return {"status_code": self.status_code, "text": self.text}
 
 @dataclass
 class MockSkopeo(Skopeo):
