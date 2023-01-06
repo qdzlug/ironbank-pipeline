@@ -16,12 +16,14 @@ from ironbank.pipeline.utils.exceptions import DockerfileParseError
 log = logger.setup(name="lint.dockerfile_validation")
 
 
-@subprocess_error_handler
 async def main():
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     log.debug("Validating dockerfile contents")
-    result = subprocess.run(
+    # TODO: move this decorator to main when/if we remove the async from the main func
+    result = subprocess_error_handler(logging_message="Running hadolint failed")(
+        subprocess.run
+    )(
         ["hadolint", "Dockerfile", "--no-fail"],
         check=True,
         capture_output=True,
