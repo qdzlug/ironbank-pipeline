@@ -111,10 +111,10 @@ class DockerfileParser(FileParser):
         return invalid_from
 
     @staticmethod
-    def remove_non_from_statements(dockerfile: tuple) -> list:
+    def remove_non_from_statements(dockerfile_lines: tuple) -> list:
         return [
             line.rstrip().replace('"', "")
-            for line in dockerfile
+            for line in dockerfile_lines
             if re.match(r"^FROM", line)
         ]
 
