@@ -30,6 +30,7 @@ async def main():
         text=True,
     )
     hadolint_results = result.stdout or "No hadolint findings found"
+    log.info("")
     log.info(f"Hadolint results:")
     for hl_result in hadolint_results.split("\n"):
         log.info(hl_result)
