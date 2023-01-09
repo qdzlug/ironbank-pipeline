@@ -28,6 +28,7 @@ def test_pipeline_auth_status_main(monkeypatch, caplog):
     def mock_check_access_bad(self, *args, **kwargs):
         self.response = MockResponse()
     
+
     monkeypatch.setenv("VAT_BACKEND_SERVER_ADDRESS", "")
     monkeypatch.setenv("CI_JOB_JWT_V2", "http://vat-local.abcdefg")
     monkeypatch.setattr(MockVatAPI, "check_access", mock_check_access_bad)
@@ -40,6 +41,7 @@ def test_pipeline_auth_status_main(monkeypatch, caplog):
 
     def mock_check_access_good(self, *args, **kwargs):
         self.response = MockGoodResponse()
+    
     
     monkeypatch.setenv("VAT_BACKEND_SERVER_ADDRESS", "http://vat-local.example")
     monkeypatch.setenv("CI_JOB_JWT_V2", "http://vat-local.abcdefg")
