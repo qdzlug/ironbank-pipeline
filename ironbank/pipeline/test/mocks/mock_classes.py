@@ -223,11 +223,14 @@ class MockVatAPI(VatAPI):
     def check_access(self, image_name, create_request=False) -> None:
         self.response = MockResponse()
 
+
 class MockGoodResponse:
     status_code: int = 200
     text: str = "example"
+
     def json(self):
         return {"status_code": self.status_code, "text": self.text}
+
 
 @dataclass
 class MockSkopeo(Skopeo):
