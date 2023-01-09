@@ -33,7 +33,7 @@ async def main():
     log.info("Hadolint results:")
     for hl_result in hadolint_results.split("\n"):
         log.info(hl_result)
-    if not re.match(r"^Dockerfile(:[0-9]+)+ (DL|SC)", result.stdout):
+    if not re.match(r"^Dockerfile(:[0-9]+)+ (DL|SC)", result.stdout) and result.stdout:
         log.warning("Unable to parse dockerfile")
         sys.exit(1)
     if hardening_manifest.base_image_name or hardening_manifest.base_image_tag:
