@@ -125,7 +125,6 @@ class DockerfileParser(FileParser):
         Returns whether the final FROM statement in the Dockerfile is valid, i.e.
         FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}
         """
-        print(content[-1].split(" ")[-1])
         return content[-1].split(" ")[-1] not in (
             "${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}",
             "$BASE_REGISTRY/$BASE_IMAGE:$BASE_TAG",

@@ -29,7 +29,10 @@ async def main():
         capture_output=True,
         text=True,
     )
-    log.info(result.stdout)
+    hadolint_results = result.stdout or "No hadolint findings found"
+    log.info(f"Hadolint results:")
+    for hl_result in hadolint_results.split("\n"):
+        log.info(hl_result)
     if not re.match(r"^Dockerfile(:[0-9]+)+ (DL|SC)", result.stdout):
         log.warning("Unable to parse dockerfile")
         sys.exit(1)
