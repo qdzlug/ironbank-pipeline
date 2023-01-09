@@ -62,25 +62,8 @@ class MockJson:
 
 @dataclass
 class MockResponse:
-    returncode: int = 1
     status_code: int = 500
     text: str = "example"
-    content: str = "example"
-    stderr: str = "canned_error"
-    stdout: str = "It broke"
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, mock1, mock2, mock3):
-        pass
-
-    def raise_for_status(self):
-        if self.status_code != 200:
-            raise requests.exceptions.HTTPError
-
-    def iter_content(self, chunk_size=2048):
-        return [b"abcdef", b"ghijkl", b"mnopqrs"]
 
     def json(self):
         return {"status_code": self.status_code, "text": self.text}
