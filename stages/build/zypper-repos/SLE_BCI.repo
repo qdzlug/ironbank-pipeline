@@ -1,0 +1,5 @@
+[SLE_BCI]
+enabled=1
+autorefresh=1
+baseurl=https://nexus.admin.dso.mil/repository/sle-bci-15-SP4/
+priority=100
