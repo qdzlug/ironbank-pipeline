@@ -11,7 +11,6 @@ from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.decorators import subprocess_error_handler
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.file_parser import DockerfileParser
-from ironbank.pipeline.utils.exceptions import DockerfileParseError
 
 log = logger.setup(name="lint.dockerfile_validation")
 
@@ -31,7 +30,7 @@ async def main():
     )
     hadolint_results = result.stdout or "No hadolint findings found"
     log.info("")
-    log.info(f"Hadolint results:")
+    log.info("Hadolint results:")
     for hl_result in hadolint_results.split("\n"):
         log.info(hl_result)
     if not re.match(r"^Dockerfile(:[0-9]+)+ (DL|SC)", result.stdout):

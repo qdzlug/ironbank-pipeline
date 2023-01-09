@@ -2,12 +2,11 @@ import re
 import os
 import json
 
-import dockerfile
 from .utils import logger
 from pathlib import Path
 from dataclasses import dataclass
 from .utils.types import FileParser, Package
-from .utils.exceptions import DockerfileParseError, RepoTypeNotSupported
+from .utils.exceptions import RepoTypeNotSupported
 from .utils.package_parser import (
     GoPackage,
     YumPackage,
