@@ -16,6 +16,7 @@ from ironbank.pipeline.utils.package_parser import (
     NpmPackage,
     RubyGemPackage,
     AptPackage,
+    ApkPackage,
 )
 from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.file_parser import (
@@ -41,6 +42,7 @@ def mock_packages(monkeypatch):
     monkeypatch.setattr(PypiPackage, "parse", lambda x: "PypiPackage")
     monkeypatch.setattr(NpmPackage, "parse", lambda x: "NpmPackage")
     monkeypatch.setattr(RubyGemPackage, "parse", lambda x: "RubyGemPackage")
+    monkeypatch.setattr(ApkPackage, "parse", lambda x: "ApkPackage")
     monkeypatch.setattr(AptPackage, "parse", lambda x: "AptPackage")
 
 
@@ -84,6 +86,7 @@ def test_access_log_file_parser(monkeypatch, mock_packages):
         "pypi": "PypiPackage",
         "npm": "NpmPackage",
         "rubygem": "RubyGemPackage",
+        "apk": "ApkPackage",
         "apt": "AptPackage",
     }
 

@@ -1,6 +1,7 @@
-import json
 import os
 import sys
+import json
+import pytest
 import pathlib
 from unittest.mock import mock_open, patch
 from ironbank.pipeline.utils import logger
@@ -30,8 +31,9 @@ def test_write_env_vars(monkeypatch):
     monkeypatch.setattr(pathlib.Path, "open", m_open)
     mock_args = {
         "IMAGE_TO_SCAN": "a\n",
-        "IMAGE_DIGEST": "b\n",
-        "BUILD_DATE_TO_SCAN": "c",
+        "COMMIT_SHA_TO_SCAN": "b\n",
+        "DIGEST_TO_SCAN": "c\n",
+        "BUILD_DATE_TO_SCAN": "d",
     }
     scan_logic_jobs.write_env_vars(*[m_arg.strip() for m_arg in mock_args.values()])
     # Add last remaining var that is generated
@@ -129,52 +131,59 @@ def test_main(monkeypatch, caplog):
         lambda x, y: set(mock_sbom_pkgs + mock_access_log_pkgs),
     )
     monkeypatch.setenv("FORCE_SCAN_NEW_IMAGE", "True")
+    monkeypatch.setenv("CI_COMMIT_SHA", "example")
     monkeypatch.setenv("IMAGE_PODMAN_SHA", "abcdefg123")
     monkeypatch.setenv("BUILD_DATE", "1-2-21")
     scan_logic_jobs.main()
-    assert "Force scan new image" in caplog.text
-    assert "New image name, tag, digest, and build date saved" in caplog.text
+    assert "Skip Logic: Force scan new image" in caplog.text
     caplog.clear()
 
-    # log.info("Test CI_COMMIT_BRANCH not master saves new digest and build date")
-    # monkeypatch.setenv("FORCE_SCAN_NEW_IMAGE", "")
-    # monkeypatch.setenv("CI_COMMIT_BRANCH", "test")
-    # monkeypatch.setenv("BUILD_DATE", "1-2-21")
-    # scan_logic_jobs.main()
-    # assert "Non-master branch" in caplog.text
-    # assert "New image name, tag, digest, and build date saved" in caplog.text
-    # caplog.clear()
+    log.info("Test CI_COMMIT_BRANCH not master")
+    monkeypatch.setenv("FORCE_SCAN_NEW_IMAGE", "")
+    monkeypatch.setenv("CI_COMMIT_BRANCH", "test")
+    scan_logic_jobs.main()
+    assert "Skip Logic: Non-master branch" in caplog.text
+    caplog.clear()
 
-    # log.info("Test unable to verify image saves new digest and build date")
-    # monkeypatch.setenv("CI_COMMIT_BRANCH", "master")
-    # monkeypatch.setenv("DOCKER_AUTH_CONFIG_PULL", "example")
-    # monkeypatch.setattr(scan_logic_jobs, "b64decode", lambda x: x.encode())
-    # monkeypatch.setattr(image_verify, "diff_needed", lambda x: None)
-    # scan_logic_jobs.main()
-    # assert "Image verify failed - Must scan new image" in caplog.text
-    # caplog.clear()
+    log.info("Test unable to verify image")
+    monkeypatch.setenv("CI_COMMIT_BRANCH", "master")
+    monkeypatch.setenv("DOCKER_AUTH_CONFIG_PULL", "example")
+    monkeypatch.setattr(scan_logic_jobs, "b64decode", lambda x: x.encode())
+    monkeypatch.setattr(image_verify, "diff_needed", lambda x: None)
+    with pytest.raises(SystemExit):
+        scan_logic_jobs.main()
+    assert "Image verify failed - Must scan new image" in caplog.text
+    caplog.clear()
 
-    # log.info("Test no old packages get returned")
-    # monkeypatch.setattr(
-    #     image_verify, "diff_needed", lambda x: ("test-tag", "test-digest", "test-date")
-    # )
-    # monkeypatch.setattr(scan_logic_jobs, "get_old_pkgs", lambda **kwargs: [])
-    # scan_logic_jobs.main()
-    # assert "No old pkgs to compare - Must scan new image" in caplog.text
-    # caplog.clear()
+    log.info("Test no old packages get returned")
+    monkeypatch.setattr(
+        image_verify,
+        "diff_needed",
+        lambda x: {
+            "tag": "test-tag",
+            "commit_sha": "test-sha",
+            "digest": "test-digest",
+            "build-date": "test-date",
+        },
+    )
+    monkeypatch.setattr(scan_logic_jobs, "get_old_pkgs", lambda **kwargs: [])
+    with pytest.raises(SystemExit):
+        scan_logic_jobs.main()
+    assert "No old pkgs to compare - Must scan new image" in caplog.text
+    caplog.clear()
 
-    # log.info("Test old image and new image package lists match")
-    # monkeypatch.setattr(
-    #     scan_logic_jobs,
-    #     "get_old_pkgs",
-    #     lambda **kwargs: set(mock_sbom_pkgs + mock_access_log_pkgs),
-    # )
-    # scan_logic_jobs.main()
-    # assert "Package lists match - Able to scan old image" in caplog.text
+    log.info("Test old image and new image package lists match")
+    monkeypatch.setattr(
+        scan_logic_jobs,
+        "get_old_pkgs",
+        lambda **kwargs: set(mock_sbom_pkgs + mock_access_log_pkgs),
+    )
+    scan_logic_jobs.main()
+    assert "Package lists match - Able to scan old image" in caplog.text
 
-    # log.info("Test old image and new image package lists do not match")
-    # monkeypatch.setattr(
-    #     scan_logic_jobs, "get_old_pkgs", lambda **kwargs: set(mock_sbom_pkgs)
-    # )
-    # scan_logic_jobs.main()
-    # assert "Package(s) difference detected - Must scan new image" in caplog.text
+    log.info("Test old image and new image package lists do not match")
+    monkeypatch.setattr(
+        scan_logic_jobs, "get_old_pkgs", lambda **kwargs: set(mock_sbom_pkgs)
+    )
+    scan_logic_jobs.main()
+    assert "Package(s) difference detected - Must scan new image" in caplog.text

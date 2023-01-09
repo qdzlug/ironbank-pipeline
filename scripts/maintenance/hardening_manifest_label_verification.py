@@ -6,6 +6,7 @@ import json
 import os
 import sys
 import logging
+from pathlib import Path
 
 
 def set_log_level():
@@ -110,7 +111,7 @@ def main():
             logging.error(f"Generic exception {e}")
             # sys.exit(1)
 
-    with open("failures.json", "w", encoding="utf-8") as f:
+    with Path("failures.json").open("w") as f:
         json.dump(bad_hm, f)
 
 
