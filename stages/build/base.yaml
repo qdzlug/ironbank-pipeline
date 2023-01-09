@@ -10,7 +10,7 @@ build:
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
   script:
-    - 'pip install --user "${PIPELINE_REPO_DIR}" --no-build-isolation'
+    - 'pip install --user --no-deps "${PIPELINE_REPO_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/build/build.py"'
   artifacts:
     when: always
