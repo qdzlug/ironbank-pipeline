@@ -28,7 +28,7 @@ async def main():
         capture_output=True,
         text=True,
     )
-    hadolint_results = result.stdout or "No hadolint findings found"
+    hadolint_results = result.stdout or "No hadolint findings found\n"
     log.info("")
     log.info("Hadolint results:")
     for hl_result in hadolint_results.split("\n"):
