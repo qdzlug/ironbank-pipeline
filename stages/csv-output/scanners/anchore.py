@@ -2,6 +2,7 @@
 
 
 import json
+from pathlib import Path
 from ironbank.pipeline.scan_report_parsers.anchore import (
     AnchoreSecurityParser,
     ReportParser,
@@ -13,7 +14,7 @@ def vulnerability_report(csv_dir, anchore_security_json, justifications):
     Generate the anchore vulnerability report
 
     """
-    with open(anchore_security_json, mode="r", encoding="utf-8") as f:
+    with Path(anchore_security_json).open("r") as f:
         json_data = json.load(f)
 
     vulns = AnchoreSecurityParser.get_vulnerabilities(json_data)
@@ -66,7 +67,7 @@ def compliance_report(csv_dir, anchore_gates_json, justifications):
     Get results of Anchore gates for csv export, becomes anchore compliance spreadsheet
 
     """
-    with open(anchore_gates_json, encoding="utf-8") as f:
+    with Path(anchore_gates_json).open(encoding="utf-8") as f:
         json_data = json.load(f)
         sha = list(json_data.keys())[0]
         anchore_data = json_data[sha]["result"]["rows"]

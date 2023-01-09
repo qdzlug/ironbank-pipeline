@@ -20,3 +20,7 @@ class MaxRetriesException(Exception):
 
 class GenericSubprocessError(Exception):
     pass
+
+
+class RepoTypeNotSupported(Exception):
+    pass

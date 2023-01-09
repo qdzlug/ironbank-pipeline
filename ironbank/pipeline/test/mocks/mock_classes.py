@@ -11,6 +11,7 @@ from ironbank.pipeline.apis import VatAPI
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.types import Package
 
 
 class MockSet(set):
@@ -71,8 +72,10 @@ class MockResponse:
 
 @dataclass
 class MockPopen(subprocess.Popen):
-    stdout: str = MockOutput()
-    stderr: str = MockOutput(mock_data=["err1\n", "err2\n"])
+    stdout: str = field(default_factory=lambda: MockOutput())
+    stderr: str = field(
+        default_factory=lambda: MockOutput(mock_data=["err1\n", "err2\n"])
+    )
     encoding: str = "UTF-10000"
     returncode: int = 0
     poll_counter: int = 5
@@ -102,6 +105,7 @@ class MockProcess:
 @dataclass
 class MockOpen:
     mode: str = "r"
+    encoding: str = "utf-8"
 
     def __enter__(self):
         return MockOutput()
@@ -115,10 +119,9 @@ class MockPath:
     def __init__(self, path="", *args):
         self.path: str = f"{path}{''.join((f'/{a}' for a in args))}"
         self.log = logger.setup(name="MockPath")
-        self.log.info(self.path)
 
-    def open(self, mode):
-        return MockOpen(mode)
+    def open(self, mode, encoding="utf-8"):
+        return MockOpen(mode, encoding)
 
     def exists(self):
         return False
@@ -186,6 +189,14 @@ class MockHardeningManifest(HardeningManifest):
     )
     resources: list[str] = field(default_factory=list)
     maintainers: list[str] = field(default_factory=list)
+
+
+@dataclass(slots=True, frozen=True)
+class MockPackage(Package):
+    kind: str = "mock_kind"
+    name: str = "mock_name"
+    version: str = "mock_version"
+    url: str = "mock_url"
 
 
 @dataclass

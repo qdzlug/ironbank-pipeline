@@ -84,7 +84,7 @@ class Skopeo(ContainerTool):
         tags = ["--additional-tag", additional_tags]
         cmd += (
             tags
-            if type(additional_tags) == str
+            if isinstance(additional_tags, str)
             else cls._generate_arg_list_from_list(*tags)
         )
         cmd += ["--src-authfile", src_authfile] if src_authfile else []

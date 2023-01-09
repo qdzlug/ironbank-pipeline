@@ -53,52 +53,35 @@ def test_inspect_old_image(monkeypatch, mock_hm):
     assert result is None
 
 
-def test_commit_sha_equal(monkeypatch, caplog):
-    log.info("Test commit_sha_equal returns False on missing label")
-    img_json = {"Labels": {"example": 1}}
-    revision_label_missing = image_verify.commit_sha_equal(img_json)
-    assert "Image revision label does not exist" in caplog.text
-    assert revision_label_missing is False
-    caplog.clear()
-
-    log.info("Test commit_sha_equal returns True on matching shas")
-    img_json["Labels"] = {"org.opencontainers.image.revision": mock_sha}
+def test_verify_image_properties(monkeypatch, caplog, mock_hm):
+    log.info("Test new parent digest set to empty on missing base_image_name")
+    mock_hm.base_image_name = ""
     monkeypatch.setenv("CI_COMMIT_SHA", mock_sha)
-    shas_match = image_verify.commit_sha_equal(img_json)
-    assert shas_match is True
+    img_json = {
+        "Labels": {
+            "mil.dso.ironbank.image.parent": mock_sha,
+            "org.opencontainers.image.revision": mock_sha,
+        }
+    }
+    verify_result = image_verify.verify_image_properties(img_json, mock_hm)
+    assert verify_result is False
+    assert "New parent digest: \n" in caplog.text
 
-    log.info("Test commit_sha_equal returns False on mismatched shas")
+    log.info("Test return False on mismatched shas")
     monkeypatch.setenv("CI_COMMIT_SHA", "different_sha")
-    shas_match = image_verify.commit_sha_equal(img_json)
+    shas_match = image_verify.verify_image_properties(img_json, mock_hm)
     assert shas_match is False
     assert "Git commit SHA difference detected" in caplog.text
     caplog.clear()
 
-
-def test_parent_digest_equal(monkeypatch, caplog, mock_hm):
-    log.info("Test parent_digest_equal returns false on missing label")
-    img_json = {"Labels": {"example": 1}}
-    digests_equal = image_verify.parent_digest_equal(img_json, mock_hm)
-    assert "Parent image label does not exist" in caplog.text
-    assert digests_equal is False
-    caplog.clear()
-
-    log.info(
-        "Test parent_digest_equal sets new parent digest to empty on missing base_image_name in manifest"
-    )
-    mock_hm.base_image_name = ""
-    img_json["Labels"] = {"mil.dso.ironbank.image.parent": mock_sha}
-    digests_equal = image_verify.parent_digest_equal(img_json, mock_hm)
-    assert digests_equal is False
-    assert "New parent digest: \n" in caplog.text
-
-    log.info("Test parent_digest_equal returns True if no parent for image")
+    log.info("Test return True if no parent for image")
+    monkeypatch.setenv("CI_COMMIT_SHA", mock_sha)
     # technically already done above, but included for clarity
-    mock_hm.base_image_name = ""
     img_json["Labels"]["mil.dso.ironbank.image.parent"] = ""
-    digests_equal = image_verify.parent_digest_equal(img_json, mock_hm)
+    verify_result = image_verify.verify_image_properties(img_json, mock_hm)
+    assert verify_result is True
 
-    log.info("Test parent_digest_equal returns True if parent exists and digests match")
+    log.info("Test return True if parent exists and commit shas/digests match")
     base_registry = "registry.example.com"
     monkeypatch.setenv("ARTIFACT_STORAGE", "ci-artifacts")
     monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data=""))
@@ -109,43 +92,53 @@ def test_parent_digest_equal(monkeypatch, caplog, mock_hm):
     img_json["Labels"][
         "mil.dso.ironbank.image.parent"
     ] = f"{base_registry}/{mock_hm.base_image_name}:{mock_hm.base_image_tag}@{mock_sha}"
-    digests_equal = image_verify.parent_digest_equal(img_json, mock_hm)
-    assert digests_equal is True
+    verify_result = image_verify.verify_image_properties(img_json, mock_hm)
+    assert verify_result is True
 
 
 @patch("image_verify.DsopProject", new=MockProject)
 @patch("image_verify.HardeningManifest", new=MockHardeningManifest)
-def test_diff_needed(monkeypatch):
+def test_diff_needed(monkeypatch, caplog):
 
     log.info("Test Digest and Label values are returned on no diff")
     mock_old_img_json = {
         "Extra Key": "something",
+        "Tag": image_tag,
+        "Commit": mock_sha,
         "Digest": mock_sha,
-        "Labels": {"org.opencontainers.image.created": "sure"},
+        "Labels": {
+            "org.opencontainers.image.created": "sure",
+            "org.opencontainers.image.revision": "abcdefg123",
+        },
     }
     monkeypatch.setattr(
         image_verify, "inspect_old_image", lambda x, y: mock_old_img_json
     )
-    monkeypatch.setattr(image_verify, "commit_sha_equal", lambda x: True)
-    monkeypatch.setattr(image_verify, "parent_digest_equal", lambda x, y: True)
+    monkeypatch.setattr(image_verify, "verify_image_properties", lambda x, y: True)
     diff_needed = image_verify.diff_needed(".")
-    assert diff_needed == (
-        mock_old_img_json["Digest"],
-        mock_old_img_json["Labels"]["org.opencontainers.image.created"],
-    )
+    assert diff_needed == {
+        "tag": mock_old_img_json["Tag"],
+        "commit_sha": mock_old_img_json["Commit"],
+        "digest": mock_old_img_json["Digest"],
+        "build_date": mock_old_img_json["Labels"]["org.opencontainers.image.created"],
+    }
 
     log.info("Test None is returned on empty old img inspect")
     monkeypatch.setattr(image_verify, "inspect_old_image", lambda x, y: {})
     assert image_verify.diff_needed(".") is None
 
-    log.info("Test None is returned on mismatched commit shas")
+    log.info("Test None is returned on mismatched commit shas or parent digests")
     monkeypatch.setattr(
         image_verify, "inspect_old_image", lambda x, y: mock_old_img_json
     )
-    monkeypatch.setattr(image_verify, "commit_sha_equal", lambda x: False)
+    monkeypatch.setattr(image_verify, "verify_image_properties", lambda x, y: False)
     assert image_verify.diff_needed(".") is None
 
-    log.info("Test None is returned on mismatched parent digests")
-    monkeypatch.setattr(image_verify, "commit_sha_equal", lambda x: True)
-    monkeypatch.setattr(image_verify, "parent_digest_equal", lambda x, y: False)
-    assert image_verify.diff_needed(".") is None
+    log.info("Test sys exit on key error")
+    monkeypatch.setattr(
+        image_verify, "verify_image_properties", lambda x, y: raise_(KeyError)
+    )
+    with pytest.raises(SystemExit):
+        image_verify.diff_needed(".")
+    assert "Digest or label missing for old image" in caplog.text
+    caplog.clear()

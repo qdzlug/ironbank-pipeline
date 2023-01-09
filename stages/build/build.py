@@ -226,6 +226,7 @@ def main():
     )
 
     # sed -i '/^FROM /r'
+    # TODO: use the NEXUS_HOST env variable for the values pulled from this file
     with Path(pipeline_build_dir, "build-args.json").open("r") as f:
         build_args = json.load(f)
         # create list of lists, with each sublist containing an arg

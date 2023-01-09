@@ -1,29 +1,30 @@
 include:
   - local: stages/preprocess/base.yaml
 
-pre-check:
-  extends: .preprocess
-  cache: {}
-  script:
-    - |
-      echo "Searching for ci-artifacts dir"
-      files_found=$(find . -name "ci-artifacts" -type d)
-      echo "Searching for symlinks"
-      links_found=$(find . -type l)
-      echo "Validating symlinks"
-      if [[ $links_found != "" ]]; then exit 1; fi
-      echo "Validating files"
-      if [[ $files_found != "" ]]; then echo "${files_found} was found"; fi
-  except:
-    variables:
-      - $STAGING_PIPELINE
-
 # clone templates repo as an artifact so it can be used with other jobs
 load-scripts:
   extends: .preprocess
   cache: {}
   script:
+    - |
+      if [[ -z "${STAGING_PIPELINE:-}" ]]; then
+        echo "Searching for ci-artifacts dir"
+        files_found=$(find . -name "ci-artifacts" -type d)
+        echo "Searching for symlinks"
+        links_found=$(find . -type l)
+        echo "Validating symlinks"
+        if [[ $links_found != "" ]]; then exit 1; fi
+        echo "Validating files"
+        if [[ $files_found != "" ]]; then echo "${files_found} was found"; fi
+      else
+        echo "STAGING_PIPELINE var exists, skipping pre-check"
+      fi
     - 'mkdir -p "${PIPELINE_REPO_DIR}"'
+    - |
+      if [[ ${LOGLEVEL:-} == "DEBUG" ]]; then
+        echo "Running pipeline for project branch: ${CI_COMMIT_BRANCH}";
+        echo "Cloning pipeline branch: ${TARGET_BRANCH}";
+      fi
     - 'git clone -q --depth 1 --branch "${TARGET_BRANCH}" "${CI_SERVER_URL}/ironbank-tools/ironbank-pipeline.git" "${PIPELINE_REPO_DIR}"'
     - 'rm -rf "${PIPELINE_REPO_DIR}/.git"'
   artifacts:
