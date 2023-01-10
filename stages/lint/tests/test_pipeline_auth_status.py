@@ -36,6 +36,8 @@ def test_pipeline_auth_status_main(monkeypatch, caplog):
     assert se.value.code == 1
     assert "Failing Pipeline" in caplog.text
 
+    log.info("Test successful auth status")
+
     def mock_check_access_good(self, *args, **kwargs):
         self.response = MockGoodResponse()
 
