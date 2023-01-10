@@ -149,9 +149,11 @@ def get_redhat_oval_definitions(url):
         return oval_definitions[url]
     r = requests.get(url)
     artifact_path = f"{os.environ['ARTIFACT_DIR']}/oval_definitions-{re.sub(r'[^a-z]', '-', url)}.xml"
-    open(artifact_path, "wb").write(r.content)
+    with Path(artifact_path).open("wb") as f:
+        f.write(r.content)
     data = bz2.BZ2File(artifact_path).read()
     data_string = str(data, "utf-8")
-    open(artifact_path, "w").write(data_string)
+    with Path(artifact_path).open("w") as f:
+        f.write(data_string)
     oval_definitions[url] = etree.parse(artifact_path)
     return oval_definitions[url]
