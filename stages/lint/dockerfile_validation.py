@@ -3,7 +3,6 @@
 import sys
 import asyncio
 
-
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.hardening_manifest import HardeningManifest

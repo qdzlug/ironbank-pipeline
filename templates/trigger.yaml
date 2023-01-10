@@ -37,6 +37,7 @@ trigger:
   needs:
     - image-inspect
   variables:
+    BASE_IMAGE_TYPE: $BASE_IMAGE_TYPE
     LOGLEVEL: $LOGLEVEL
     STAGING_PIPELINE: $STAGING_PIPELINE
     TARGET_BRANCH: $TARGET_BRANCH
