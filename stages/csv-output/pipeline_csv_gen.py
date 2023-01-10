@@ -74,6 +74,7 @@ def main():
                 "report_artifact_path argument not provided and DISTROLESS environment variable not set or null"
             )
             sys.exit(1)
+        env_filepath.write("OSCAP_COMPLIANCE_URL=''")
 
     artifacts_path = os.environ["ARTIFACT_STORAGE"]
     # get cves and justifications from VAT
