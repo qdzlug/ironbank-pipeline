@@ -13,7 +13,7 @@ csv-output:
     CSV_REPORT: "${ARTIFACT_STORAGE}/scan-results/csvs"
     ENV_FILENAME: "csv_output.env"
   script:
-    - 'pip install --user "${PIPELINE_REPO_DIR}"'
+    - 'pip install --user --no-deps "${PIPELINE_REPO_DIR}"'
     - |
       python3 "${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py" \
       --oscap "${ARTIFACT_STORAGE}/scan-results/openscap/compliance_output_report.xml" \

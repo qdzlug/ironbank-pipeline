@@ -13,7 +13,7 @@ run-logic:
     reports:
       dotenv: scan_logic.env
   script:
-    - 'pip install --user "${PIPELINE_REPO_DIR}"'
+    - 'pip install --user --no-deps "${PIPELINE_REPO_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/scan-logic/scan_logic_jobs.py"'
   retry:
     max: 2
