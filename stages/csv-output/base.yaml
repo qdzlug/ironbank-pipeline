@@ -11,15 +11,22 @@ csv-output:
   variables:
     # Put generated csv report in the scan-results folder
     CSV_REPORT: "${ARTIFACT_STORAGE}/scan-results/csvs"
+    ENV_FILENAME: "csv_output.env"
   script:
     - 'pip install --user --no-deps "${PIPELINE_REPO_DIR}"'
-    - '"${PIPELINE_REPO_DIR}/stages/csv-output/csv-output.sh"'
+    - |
+      python3 "${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py" \
+      --oscap "${ARTIFACT_STORAGE}/scan-results/openscap/compliance_output_report.xml" \
+      --twistlock "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json" \
+      --anchore-sec "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json" \
+      --anchore-gates "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json" \
+      --sbom-dir "${ARTIFACT_STORAGE}/scan-results/anchore/sbom" \
+      --output-dir "${CSV_REPORT}"/
+    - python3 "${PIPELINE_REPO_DIR}"/stages/csv-output/excel_convert.py -i "${CSV_REPORT}"/ -o "${CSV_REPORT}"/"${CI_PROJECT_NAME}":"${IMAGE_VERSION}"-"${CI_PIPELINE_ID}"-justifications.xlsx
   artifacts:
     when: always
     paths:
       - "${CSV_REPORT}"
-    reports:
-      dotenv: csv_output.env
     expire_in: 1 week
   retry:
     max: 2

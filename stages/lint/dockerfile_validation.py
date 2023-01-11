@@ -5,7 +5,6 @@ import subprocess
 import sys
 import asyncio
 
-
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.decorators import subprocess_error_handler
