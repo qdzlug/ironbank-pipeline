@@ -43,8 +43,6 @@ def main():
     parser.add_argument("--sbom-dir", help="location of the anchore content directory")
     args = parser.parse_args()
 
-    return
-
     # Create the csv directory if not present
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 
@@ -52,11 +50,11 @@ def main():
         mode="a", encoding="utf-8"
     ) as env_filepath:
         if "DISTROLESS" in os.environ:
-            env_filepath.write("OSCAP_COMPLIANCE_URL=''")
+            env_filepath.write("OSCAP_COMPLIANCE_URL=''\n")
         elif args.report_artifact_path:
             oscap_compliance_url = os.environ["OSCAP_COMPLIANCE_URL"]
             env_filepath.write(
-                f"OSCAP_COMPLIANCE_URL={oscap_compliance_url}{args.report_artifact_path}"
+                f"OSCAP_COMPLIANCE_URL={oscap_compliance_url}{args.report_artifact_path}\n"
             )
         else:
             log.error(
