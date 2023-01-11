@@ -104,7 +104,7 @@ class SbomFileParser(FileParser):
 class DockerfileParser(FileParser):
     @classmethod
     def parse(cls, filepath) -> None:
-        with Path(filepath).open("r") as f:
+        with Path(filepath).open("r", encoding="utf-8") as f:
             parsed_dockerfile = f.readlines()
         from_statement_list = cls.remove_non_from_statements(parsed_dockerfile)
         invalid_from = cls.validate_final_from(from_statement_list)
