@@ -111,7 +111,7 @@ def test_dockerfile_validation_main(monkeypatch, caplog):
         "run",
         lambda *args, **kwargs: raise_(subprocess.CalledProcessError(1, ["mock_cmd"])),
     )
-    with pytest.raises(GenericSubprocessError) as gse:
+    with pytest.raises(GenericSubprocessError):
         asyncio.run(dockerfile_validation.main())
     assert "Running hadolint failed" in caplog.text
     caplog.clear()
