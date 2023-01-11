@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
-from dataclasses import dataclass
 import json
-from unittest.mock import patch
 import pytest
 import pathlib
-import dockerfile
-from ironbank.pipeline.test.mocks.mock_classes import MockPackage, MockPath
+import random
+from unittest.mock import patch
+from ironbank.pipeline.test.mocks.mock_classes import MockOutput, MockPackage, MockPath
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.package_parser import (
     NullPackage,
@@ -18,14 +17,12 @@ from ironbank.pipeline.utils.package_parser import (
     AptPackage,
     ApkPackage,
 )
-from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.file_parser import (
     AccessLogFileParser,
     DockerfileParser,
     SbomFileParser,
 )
 from ironbank.pipeline.utils.exceptions import (
-    DockerfileParseError,
     RepoTypeNotSupported,
 )
 
@@ -107,69 +104,33 @@ def test_sbom_file_parser(monkeypatch):
     assert parsed_packages == [MockPackage(*list(mock_package.values()))]
 
 
-@dataclass
-class MockDockerfile:
-    value: list[str] = "mock_value"
-    cmd: str = "mock_cmd"
-
-
+@patch("ironbank.pipeline.file_parser.Path", new=MockPath)
 def test_dockerfile_parse(monkeypatch):
     log.info("Test dockerfile is successfully parsed")
-    monkeypatch.setattr(DockerfileParser, "parse_dockerfile", lambda x: x)
     monkeypatch.setattr(DockerfileParser, "remove_non_from_statements", lambda x: x)
     monkeypatch.setattr(DockerfileParser, "validate_final_from", lambda x: x)
     mock_result = DockerfileParser.parse("mock_filepath")
-    assert mock_result == "mock_filepath"
+    assert mock_result == MockOutput().mock_data
 
 
 def test_dockerfile_remove_non_from_statements():
     log.info("Test non from statements are filtered from tuple")
-    mock_from_cmd = MockDockerfile(cmd="From")
-    mock_dockerfile_tuple = (
-        MockDockerfile(cmd="RUN"),
-        mock_from_cmd,
-        MockDockerfile(cmd="example"),
-    )
+    mock_cmds = ["ENV abc", "ENTRYPOINT NONE", "ARG TEST", "RUN dnf install -y example"]
+    mock_from_cmds = ["FROM mock_from_1", "FROM mock_from_2", "FROM mock_from_3"]
+    mock_dockerfile = []
+    for from_cmds in mock_from_cmds:
+        mock_dockerfile.append(from_cmds)
+        mock_dockerfile += [random.choice(mock_cmds) for _ in range(3)]
     filtered_dockerfile_cmds = DockerfileParser.remove_non_from_statements(
-        mock_dockerfile_tuple
+        mock_dockerfile
     )
-    assert filtered_dockerfile_cmds == [mock_from_cmd]
+    assert filtered_dockerfile_cmds == mock_from_cmds
 
 
 def test_dockerfile_validate_final_from():
     log.info("Test final from in Dockerfile is valid")
-    mock_from_stmts = ["${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}"]
-    assert (
-        DockerfileParser.validate_final_from([MockDockerfile(value=mock_from_stmts)])
-        is False
-    )
+    mock_from_stmts = ["FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}"]
+    assert DockerfileParser.validate_final_from(mock_from_stmts) is False
     log.info("Test final from in Dockefile is invalid")
-    mock_from_stmts = ["invalid_image:1.0"]
-    assert (
-        DockerfileParser.validate_final_from([MockDockerfile(value=mock_from_stmts)])
-        is True
-    )
-
-
-def test_dockerfile_parse_dockerfile(monkeypatch):
-
-    log.info("Test dockerfile is successfully parsed")
-    monkeypatch.setattr(dockerfile, "parse_file", lambda x: x)
-    parsed_file = DockerfileParser.parse_dockerfile("example")
-    assert parsed_file == "example"
-
-    log.info("Test GoIOError raises DockerfileParseError")
-    monkeypatch.setattr(
-        dockerfile, "parse_file", lambda x: raise_(dockerfile.GoIOError)
-    )
-    with pytest.raises(DockerfileParseError) as se:
-        parsed_file = DockerfileParser.parse_dockerfile("example")
-    assert se.type == DockerfileParseError
-
-    log.info("Test GoParseError raises DockerfileParseError")
-    monkeypatch.setattr(
-        dockerfile, "parse_file", lambda x: raise_(dockerfile.GoParseError)
-    )
-    with pytest.raises(DockerfileParseError) as se:
-        parsed_file = DockerfileParser.parse_dockerfile("example")
-    assert se.type == DockerfileParseError
+    mock_from_stmts = ["FROM invalid_image:1.0"]
+    assert DockerfileParser.validate_final_from(mock_from_stmts) is True
