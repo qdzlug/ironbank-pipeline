@@ -18,6 +18,7 @@ def template_type(os_type: str) -> None:
     """Writes the template type to an env file, based on the os_type var"""
     template_dict = {
         "alpine317-container": "alpine.yaml",
+        "chainguard-container": "chainguard.yaml",
         "distroless-container": "distroless.yaml",
         "scratch-container": "distroless.yaml",
         "sle15-bci-container": "suse.yaml",
