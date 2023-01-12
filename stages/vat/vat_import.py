@@ -397,9 +397,10 @@ def main():
 
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
-    get_parent_vat_response(
-        output_dir=os.environ["ARTIFACT_DIR"], hardening_manifest=hardening_manifest
-    )
+    if hardening_manifest.base_image_name:
+        get_parent_vat_response(
+            output_dir=os.environ["ARTIFACT_DIR"], hardening_manifest=hardening_manifest
+        )
 
     vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
     if not args.use_json:
