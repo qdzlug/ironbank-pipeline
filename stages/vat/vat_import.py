@@ -3,19 +3,28 @@
 import sys
 import json
 import os
-import argparse
+import shutil
 import logging
+import tempfile
 import requests
+import argparse
 from pathlib import Path
+from base64 import b64decode
 from itertools import groupby
 from requests.structures import CaseInsensitiveDict
 
+from ironbank.pipeline.image import Image
+from ironbank.pipeline.project import DsopProject
+from ironbank.pipeline.container_tools.cosign import Cosign
+from ironbank.pipeline.utils.predicates import get_predicate_files
 from ironbank.pipeline.scan_report_parsers.anchore import AnchoreSecurityParser
 from ironbank.pipeline.get_oscap_failures import generate_oscap_jobs
 from ironbank.pipeline.hardening_manifest import (
+    HardeningManifest,
     source_values,
     get_source_keys_values,
 )
+
 
 parser = argparse.ArgumentParser(
     description="DCCSCR processing of CVE reports from various sources"
@@ -361,7 +370,37 @@ def create_api_call():
     return large_data
 
 
+def get_parent_vat_response(output_dir: str, hardening_manifest: HardeningManifest):
+    base_image = Image(
+        registry=os.environ["BASE_REGISTRY"],
+        name=hardening_manifest.base_image_name,
+        tag=hardening_manifest.base_image_tag,
+    )
+    vat_response_predicate = "https://vat.dso.mil/api/p1/predicate/beta1"
+    with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
+        docker_config = Path(docker_config_dir, "config.json")
+        pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("UTF-8")
+        docker_config.write_text(pull_auth)
+        Cosign.download(
+            base_image,
+            output_dir=output_dir,
+            docker_config_dir=docker_config_dir,
+            predicate_types=[vat_response_predicate],
+        )
+        output_dir = Path(output_dir)
+        predicate_path = output_dir / get_predicate_files()[vat_response_predicate]
+        parent_vat_path = output_dir / "parent_vat_response.json"
+        shutil.move(predicate_path, parent_vat_path)
+
+
 def main():
+
+    dsop_project = DsopProject()
+    hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
+    get_parent_vat_response(
+        output_dir=os.environ["ARTIFACT_DIR"], hardening_manifest=hardening_manifest
+    )
+
     vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
     if not args.use_json:
         large_data = create_api_call()
