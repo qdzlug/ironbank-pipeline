@@ -1,2 +1,2 @@
 [run]
-omit = */site-packages/*,*/tests/*,*/.eggs/*,./stages/vat/*
+omit = */site-packages/*,*/tests/*,*/.eggs/*
