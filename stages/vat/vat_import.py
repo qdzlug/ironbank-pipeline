@@ -370,7 +370,7 @@ def create_api_call():
     return large_data
 
 
-def get_parent_vat_response(output_dir: Path, hardening_manifest: HardeningManifest):
+def get_parent_vat_response(output_dir: str, hardening_manifest: HardeningManifest):
     base_image = Image(
         registry=os.environ["BASE_REGISTRY"],
         name=hardening_manifest.base_image_name,
@@ -387,9 +387,8 @@ def get_parent_vat_response(output_dir: Path, hardening_manifest: HardeningManif
             docker_config_dir=docker_config_dir,
             predicate_types=[vat_response_predicate],
         )
-        output_dir = Path(output_dir)
         predicate_path = output_dir / get_predicate_files()[vat_response_predicate]
-        parent_vat_path = output_dir / "parent_vat_response.json"
+        parent_vat_path = Path(output_dir, "parent_vat_response.json")
         shutil.move(predicate_path, parent_vat_path)
 
 
