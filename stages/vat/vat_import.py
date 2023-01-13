@@ -380,7 +380,7 @@ def get_parent_vat_response(output_dir: Path, hardening_manifest: HardeningManif
     with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
         docker_config = Path(docker_config_dir, "config.json")
         pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("UTF-8")
-        docker_config.write_text(pull_auth)
+        docker_config.write_text(pull_auth, encoding="utf-8")
         Cosign.download(
             base_image,
             output_dir=output_dir,
@@ -405,10 +405,10 @@ def main():
     vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
     if not args.use_json:
         large_data = create_api_call()
-        with vat_request_json.open("w") as outfile:
+        with vat_request_json.open("w", encoding="utf-8") as outfile:
             json.dump(large_data, outfile)
     else:
-        with vat_request_json.open() as infile:
+        with vat_request_json.open(encoding="utf-8") as infile:
             large_data = json.load(infile)
 
     headers = CaseInsensitiveDict()
@@ -420,7 +420,7 @@ def main():
         logging.debug("API Response:\n%s", resp.text)
         logging.debug("POST Response: %s", resp.status_code)
         with Path(f"{os.environ['ARTIFACT_DIR']}/vat_response.json").open(
-            "w"
+            "w", encoding="utf-8"
         ) as outfile:
             json.dump(resp.json(), outfile)
     except RuntimeError:
