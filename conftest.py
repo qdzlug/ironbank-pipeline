@@ -1,6 +1,7 @@
 import pytest
 import requests
 from dataclasses import dataclass
+from ironbank.pipeline.utils import logger
 
 
 @dataclass
@@ -88,3 +89,19 @@ def mock_responses():
         "runtimeError": mockRuntimeError,
         "jsonDecodeError": mockJsonDecodeError,
     }
+
+
+@pytest.fixture(scope="module")
+def mock_decorator():
+    decorator_log = logger.setup("mock_decorator")
+
+    def mocked_decorator_simple(func):
+        def wrapper(*args, **kwargs):
+            decorator_log.info(f"Decorator called for {func.__name__}")
+            return func(*args, **kwargs)
+
+    def mocked_decorator_with_arg(decorator_arg=""):
+        decorator_log.info(f"Args passed to decorator {decorator_arg}")
+        return mocked_decorator_simple
+
+    return {"simple": mocked_decorator_simple, "with_arg": mocked_decorator_with_arg}

@@ -2,12 +2,11 @@ import re
 import os
 import json
 
-import dockerfile
 from .utils import logger
 from pathlib import Path
 from dataclasses import dataclass
 from .utils.types import FileParser, Package
-from .utils.exceptions import DockerfileParseError, RepoTypeNotSupported
+from .utils.exceptions import RepoTypeNotSupported
 from .utils.package_parser import (
     GoPackage,
     YumPackage,
@@ -105,18 +104,19 @@ class SbomFileParser(FileParser):
 class DockerfileParser(FileParser):
     @classmethod
     def parse(cls, filepath) -> None:
-        parsed_dockerfile = cls.parse_dockerfile(filepath)
+        with Path(filepath).open("r", encoding="utf-8") as f:
+            parsed_dockerfile = f.readlines()
         from_statement_list = cls.remove_non_from_statements(parsed_dockerfile)
         invalid_from = cls.validate_final_from(from_statement_list)
         return invalid_from
 
     @staticmethod
-    def remove_non_from_statements(dockerfile_tuple: tuple) -> list:
-        from_list = []
-        for command in dockerfile_tuple:
-            if command.cmd.lower() == "from":
-                from_list.append(command)
-        return from_list
+    def remove_non_from_statements(dockerfile_lines: tuple) -> list:
+        return [
+            line.rstrip().replace('"', "")
+            for line in dockerfile_lines
+            if re.match(r"^FROM", line)
+        ]
 
     @staticmethod
     def validate_final_from(content: list):
@@ -124,22 +124,7 @@ class DockerfileParser(FileParser):
         Returns whether the final FROM statement in the Dockerfile is valid, i.e.
         FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}
         """
-        if content[-1].value[0] not in (
+        return content[-1].split(" ")[-1] not in (
             "${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}",
             "$BASE_REGISTRY/$BASE_IMAGE:$BASE_TAG",
-        ):
-            return True
-        else:
-            return False
-
-    @staticmethod
-    def parse_dockerfile(dockerfile_path: str):
-        try:
-            parsed_file = dockerfile.parse_file(dockerfile_path)
-            return parsed_file
-        except dockerfile.GoIOError:
-            log.error("The Dockerfile could not be opened.")
-            raise DockerfileParseError
-        except dockerfile.GoParseError:
-            log.error("The Dockerfile is not parseable.")
-            raise DockerfileParseError
+        )

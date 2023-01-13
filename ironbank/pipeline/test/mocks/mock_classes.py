@@ -72,8 +72,8 @@ class MockResponse:
 
 @dataclass
 class MockPopen(subprocess.Popen):
-    stdout: str = field(default_factory=lambda: MockOutput())
-    stderr: str = field(
+    stdout: MockOutput = field(default_factory=lambda: MockOutput())
+    stderr: MockOutput = field(
         default_factory=lambda: MockOutput(mock_data=["err1\n", "err2\n"])
     )
     encoding: str = "UTF-10000"
