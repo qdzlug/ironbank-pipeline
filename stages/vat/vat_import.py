@@ -332,19 +332,19 @@ def create_api_call():
     if args.oscap and not os.environ.get("DISTROLESS"):
         logging.debug("Importing oscap findings")
         os_jobs = generate_oscap_jobs(args.oscap)
-        logging.debug(f"oscap finding count: {len(os_jobs)}")
+        logging.debug("oscap finding count: %s", len(os_jobs))
     if args.anchore_sec:
         logging.debug("Importing anchore security findings")
         asec_jobs = generate_anchore_cve_jobs(args.anchore_sec)
-        logging.debug(f"Anchore security finding count: {len(asec_jobs)}")
+        logging.debug("Anchore security finding count: %s", len(asec_jobs))
     if args.anchore_gates:
         logging.debug("Importing importing anchore compliance findings")
         acomp_jobs = generate_anchore_comp_jobs(args.anchore_gates)
-        logging.debug(f"Anchore compliance finding count: {len(acomp_jobs)}")
+        logging.debug("Anchore compliance finding count: %s", len(acomp_jobs))
     if args.twistlock:
         logging.debug("Importing twistlock findings")
         tl_jobs = generate_twistlock_jobs(args.twistlock)
-        logging.debug(f"Twistlock finding count: {len(tl_jobs)}")
+        logging.debug("Twistlock finding count: %s", len(tl_jobs))
     all_jobs = tl_jobs + asec_jobs + acomp_jobs + os_jobs
     large_data = {
         "imageName": args.container,
@@ -417,8 +417,8 @@ def main():
     try:
         resp = requests.post(args.api_url, headers=headers, json=large_data)
         resp.raise_for_status()
-        logging.debug(f"API Response:\n{resp.text}")
-        logging.debug(f"POST Response: {resp.status_code}")
+        logging.debug("API Response:\n%s", resp.text)
+        logging.debug("POST Response: %s", resp.status_code)
         with Path(f"{os.environ['ARTIFACT_DIR']}/vat_response.json").open(
             "w"
         ) as outfile:
@@ -429,7 +429,7 @@ def main():
     except requests.exceptions.HTTPError:
         # only include errors provided by VAT endpoint
         if resp.text and resp.status_code != 500:
-            logging.error(f"API Response:\n{resp.text}")
+            logging.error("API Response:\n%s", resp.text)
         logging.exception("HTTP error")
         sys.exit(1)
     except requests.exceptions.RequestException:
