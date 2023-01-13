@@ -6,11 +6,11 @@ import os
 import shutil
 import logging
 import tempfile
-import requests
 import argparse
 from pathlib import Path
 from base64 import b64decode
 from itertools import groupby
+import requests
 from requests.structures import CaseInsensitiveDict
 
 from ironbank.pipeline.image import Image
