@@ -6,6 +6,7 @@ import json
 import yaml
 import base64
 import hashlib
+import tempfile
 from pathlib import Path
 
 from ironbank.pipeline.image import Image
@@ -20,6 +21,8 @@ from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 
 log = logger.setup("upload_to_harbor")
+
+
 
 def compare_digests(image: Image) -> None:
     """
@@ -58,21 +61,38 @@ def promote_tags(
     tagging it according the the tags defined in tags.txt
     """
 
-    for tag in tags:
-        production_image = production_image.from_image(tag=tag)
+    with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
+        # Grab staging docker auth
+        staging_auth = base64.b64decode(os.environ["DOCKER_AUTH_CONFIG_STAGING"]).decode(
+            "utf-8"
+        )
+        Path(docker_config_dir, "staging_auth.json").write_text(staging_auth)
 
-        log.info(f"Copy from staging to {production_image}")
-        try:
-            Skopeo.copy(
-                staging_image,
-                production_image,
-                src_authfile="staging_auth.json",
-                dest_authfile="/tmp/config.json",
-                log_cmd=True,
+        # Grab ironbank/ironbank-testing docker auth
+        test_auth = os.environ.get("DOCKER_AUTH_CONFIG_TEST", None).strip()
+        if test_auth:
+            dest_auth = base64.b64decode(test_auth).decode("utf-8")
+        else:
+            dest_auth = base64.b64decode(os.environ["DOCKER_AUTH_CONFIG_PROD"]).decode(
+                "utf-8"
             )
-        except GenericSubprocessError:
-            log.error(f"Failed to copy {staging_image} to {production_image}")
-            sys.exit(1)
+        Path(docker_config_dir, "config.json").write_text(dest_auth)
+
+        for tag in tags:
+            production_image = production_image.from_image(tag=tag)
+
+            log.info(f"Copy from staging to {production_image}")
+            try:
+                Skopeo.copy(
+                    staging_image,
+                    production_image,
+                    src_authfile="staging_auth.json",
+                    dest_authfile="/tmp/config.json",
+                    log_cmd=True,
+                )
+            except GenericSubprocessError:
+                log.error(f"Failed to copy {staging_image} to {production_image}")
+                sys.exit(1)
 
 
 def convert_artifacts_to_hardening_manifest(
@@ -119,22 +139,6 @@ def main():
             """
         )
         sys.exit(1)
-
-    # Grab staging docker auth
-    staging_auth = base64.b64decode(os.environ["DOCKER_AUTH_CONFIG_STAGING"]).decode(
-        "utf-8"
-    )
-    Path("staging_auth.json").write_text(staging_auth)
-
-    # Grab ironbank/ironbank-testing docker auth
-    test_auth = os.environ.get("DOCKER_AUTH_CONFIG_TEST", "").strip()
-    if test_auth:
-        dest_auth = base64.b64decode(test_auth).decode("utf-8")
-    else:
-        dest_auth = base64.b64decode(os.environ["DOCKER_AUTH_CONFIG_PROD"]).decode(
-            "utf-8"
-        )
-    Path("/tmp/config.json").write_text(dest_auth)
 
     staging_image = Image(
         registry=os.environ["REGISTRY_URL_STAGING"],
