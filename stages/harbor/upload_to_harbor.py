@@ -21,6 +21,7 @@ from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 
 log = logger.setup("upload_to_harbor")
 
+
 def compare_digests(image: Image) -> None:
     """
     Pull down image manifest to compare digest to digest from build environment
@@ -75,9 +76,7 @@ def promote_tags(
             sys.exit(1)
 
 
-def convert_artifacts_to_hardening_manifest(
-    predicates: list, hardening_manifest: Path
-):
+def convert_artifacts_to_hardening_manifest(predicates: list, hardening_manifest: Path):
 
     hm_object = yaml.safe_load(hardening_manifest.read_text())
 
@@ -86,27 +85,31 @@ def convert_artifacts_to_hardening_manifest(
         with item.open("r", errors="replace") as f:
             hm_object[item.name] = f.read()
 
-    with Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json").open(
-        "w"
-    ) as f:
+    with Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json").open("w") as f:
         json.dump(hm_object, f)
+
 
 def create_vat_response_attestation():
     # Load VAT response for this pipeline run, convert to list
     with Path(os.environ["VAT_RESPONSE"]).open("r") as f:
-      pipeline_vat_response = json.load(f)
+        pipeline_vat_response = json.load(f)
 
     # Initialize lineage_vat_response as a list, so we can append to it if parent_vat_response.json doesn't exist
     lineage_vat_response = []
-    if (parent_vat_response_file := Path(os.environ["ARTIFACT_DIR"], "parent_vat_response.json")).exists():
-      with parent_vat_response_file.open("r") as f:
-        lineage_vat_response = json.load(f)
-      # parent_vat_response.json will not be a list when we release this, make sure to convert it to one
-      if not isinstance(lineage_vat_response, list):
-        lineage_vat_response = [lineage_vat_response]
+    if (
+        parent_vat_response_file := Path(
+            os.environ["ARTIFACT_DIR"], "parent_vat_response.json"
+        )
+    ).exists():
+        with parent_vat_response_file.open("r") as f:
+            lineage_vat_response = json.load(f)
+        # parent_vat_response.json will not be a list when we release this, make sure to convert it to one
+        if not isinstance(lineage_vat_response, list):
+            lineage_vat_response = [lineage_vat_response]
 
     lineage_vat_response += pipeline_vat_response
     return lineage_vat_response
+
 
 def main():
     if "pipeline-test-project" in os.environ["CI_PROJECT_DIR"] and not os.environ.get(
@@ -144,9 +147,7 @@ def main():
     )
 
     tags = []
-    with Path(os.environ["ARTIFACT_STORAGE"], "lint", "tags.txt").open(
-        mode="r"
-    ) as f:
+    with Path(os.environ["ARTIFACT_STORAGE"], "lint", "tags.txt").open(mode="r") as f:
         for tag in f:
             tags.append(tag.strip())
 
@@ -189,9 +190,7 @@ def main():
         for file in os.listdir(os.environ["SBOM_DIR"])
         if file not in get_unattached_predicates()
     ]
-    predicates.append(
-        Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json")
-    )
+    predicates.append(Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json"))
 
     predicates.append(create_vat_response_attestation())
     predicate_types = get_predicate_types()
