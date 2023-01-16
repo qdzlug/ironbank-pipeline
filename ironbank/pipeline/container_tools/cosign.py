@@ -8,7 +8,7 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.image import Image, ImageFile
-from ironbank.pipeline.utils.predicates import get_predicate_files
+from ironbank.pipeline.utils.predicates import Predicates
 from ironbank.pipeline.utils.decorators import subprocess_error_handler
 from ironbank.pipeline.container_tools.container_tool import ContainerTool
 
@@ -133,7 +133,7 @@ class Cosign(ContainerTool):
         log_cmd: bool = False,
     ) -> None:
         # predicate types/files can be found in ironbank/pipeline/utils/predicates.py
-        predicate_files = get_predicate_files()
+        predicate_files = Predicates.get_predicate_files()
         cmd = [
             "cosign",
             "download",

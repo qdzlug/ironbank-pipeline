@@ -10,10 +10,7 @@ import tempfile
 from pathlib import Path
 
 from ironbank.pipeline.image import Image
-from ironbank.pipeline.utils.predicates import (
-    get_predicate_types,
-    get_unattached_predicates,
-)
+from ironbank.pipeline.utils.predicates import Predicates
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.container_tools.cosign import Cosign
 from ironbank.pipeline.utils import logger
@@ -88,7 +85,7 @@ def _convert_artifacts_to_hardening_manifest(
         json.dump(hm_object, f)
 
 
-def _generate_vat_response_lineage_attestation():
+def _generate_vat_response_lineage_file():
     """
     Generates a VAT response lineage using *this* pipeline run's VAT response and the VAT response attestation from the parent image
     """
@@ -110,10 +107,14 @@ def _generate_vat_response_lineage_attestation():
             lineage_vat_response = [lineage_vat_response]
 
     lineage_vat_response += pipeline_vat_response
-    return lineage_vat_response
+    lineage_vat_response_file = Path(os.environ["ARTIFACT_DIR"], "vat_response_lineage.json")
+    with lineage_vat_response_file.open("w"):
+        json.dumps(lineage_vat_response)
+
+    return lineage_vat_response_file
 
 
-def generate_predicates():
+def generate_attestation_predicates(predicates):
     """
     Generates a list of predicates to be attached to the image as Cosign Attestations
     """
@@ -128,15 +129,15 @@ def generate_predicates():
         Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.yaml"),
     )
 
-    predicates = [
+    attestation_predicates = [
         Path(os.environ["SBOM_DIR"], file)
         for file in os.listdir(os.environ["SBOM_DIR"])
-        if file not in get_unattached_predicates()
+        if file not in predicates.unattached_predicates
     ]
-    predicates.append(Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json"))
+    attestation_predicates.append(Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json"))
 
-    predicates.append(_generate_vat_response_lineage_attestation())
-    return predicates
+    attestation_predicates.append(_generate_vat_response_lineage_file())
+    return attestation_predicates
 
 
 def main():
@@ -152,8 +153,8 @@ def main():
     project = DsopProject()
     hm = HardeningManifest(project.hardening_manifest_path)
     cosign = Cosign()
-    predicates = generate_predicates()
-    predicate_types = get_predicate_types()
+    predicates = Predicates()
+    attestation_predicates = generate_attestation_predicates(predicates)
 
     try:
         # Compare digests to ensure image integrity
@@ -163,11 +164,11 @@ def main():
         # Sign image
         cosign.sign(production_image, log_cmd=True)
         log.info("Adding attestations")
-        for predicate in predicates:
+        for predicate in attestation_predicates:
             cosign.attest(
                 image=production_image,
                 predicate_path=predicate.as_posix(),
-                predicate_type=predicate_types[predicate.name],
+                predicate_type=predicates.types[predicate.name],
                 replace=True,
                 log_cmd=True,
             )
