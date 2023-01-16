@@ -44,7 +44,7 @@ class Cosign(ContainerTool):
         cmd += ["--key", self.kms_key_arn] if self.kms_key_arn else []
         cmd += ["--cert", self.cosign_cert] if self.cosign_cert else []
         cmd += ["--attachment", attachment] if attachment else []
-        cmd += [f"{image.registry}/{image.name}@{image.digest}"]
+        cmd += [f"{image.digest_str()}"]
         if log_cmd:
             self.log.info(cmd)
         subprocess.run(
