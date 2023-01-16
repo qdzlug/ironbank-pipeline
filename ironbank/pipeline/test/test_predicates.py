@@ -6,5 +6,6 @@ log = logger.setup("test_predicates")
 
 def test_get_predicates():
     log.info("Test successful returns")
-    assert Predicates.get_predicate_files()
-    assert Predicates.unattached_predicates
+    predicates = Predicates()
+    assert predicates.get_predicate_files()
+    assert predicates.unattached_predicates
