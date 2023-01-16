@@ -108,7 +108,9 @@ def create_vat_response_attestation():
             lineage_vat_response = [lineage_vat_response]
 
     lineage_vat_response += pipeline_vat_response
-    vat_response_lineage_file = Path(os.environ["ARTIFACT_DIR"], "vat_response_lineage.json")
+    vat_response_lineage_file = Path(
+        os.environ["ARTIFACT_DIR"], "vat_response_lineage.json"
+    )
     with vat_response_lineage_file.open("w"):
         json.dumps(lineage_vat_response)
     return vat_response_lineage_file
