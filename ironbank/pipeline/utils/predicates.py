@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
 
-@dataclass
-class Predicates(frozen=True, slots=True):
+@dataclass(frozen=True, slots=True)
+class Predicates:
     def __post_init__(self):
         self.types = {
             "sbom-cyclonedx-json.json": "cyclonedx",
