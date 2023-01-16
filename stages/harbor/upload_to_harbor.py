@@ -107,7 +107,9 @@ def _generate_vat_response_lineage_file():
             lineage_vat_response = [lineage_vat_response]
 
     lineage_vat_response += pipeline_vat_response
-    lineage_vat_response_file = Path(os.environ["ARTIFACT_DIR"], "vat_response_lineage.json")
+    lineage_vat_response_file = Path(
+        os.environ["ARTIFACT_DIR"], "vat_response_lineage.json"
+    )
     with lineage_vat_response_file.open("w"):
         json.dumps(lineage_vat_response)
 
@@ -134,7 +136,9 @@ def generate_attestation_predicates(predicates):
         for file in os.listdir(os.environ["SBOM_DIR"])
         if file not in predicates.unattached_predicates
     ]
-    attestation_predicates.append(Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json"))
+    attestation_predicates.append(
+        Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json")
+    )
 
     attestation_predicates.append(_generate_vat_response_lineage_file())
     return attestation_predicates
