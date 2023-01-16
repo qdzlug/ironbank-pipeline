@@ -4,9 +4,7 @@ import os
 import sys
 import json
 import yaml
-import base64
 import hashlib
-import tempfile
 from pathlib import Path
 
 from ironbank.pipeline.image import Image
