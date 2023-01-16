@@ -6,11 +6,11 @@ import os
 import shutil
 import logging
 import tempfile
-import requests
 import argparse
 from pathlib import Path
 from base64 import b64decode
 from itertools import groupby
+import requests
 from requests.structures import CaseInsensitiveDict
 
 from ironbank.pipeline.image import Image
@@ -332,19 +332,19 @@ def create_api_call():
     if args.oscap and not os.environ.get("DISTROLESS"):
         logging.debug("Importing oscap findings")
         os_jobs = generate_oscap_jobs(args.oscap)
-        logging.debug(f"oscap finding count: {len(os_jobs)}")
+        logging.debug("oscap finding count: %s", len(os_jobs))
     if args.anchore_sec:
         logging.debug("Importing anchore security findings")
         asec_jobs = generate_anchore_cve_jobs(args.anchore_sec)
-        logging.debug(f"Anchore security finding count: {len(asec_jobs)}")
+        logging.debug("Anchore security finding count: %s", len(asec_jobs))
     if args.anchore_gates:
         logging.debug("Importing importing anchore compliance findings")
         acomp_jobs = generate_anchore_comp_jobs(args.anchore_gates)
-        logging.debug(f"Anchore compliance finding count: {len(acomp_jobs)}")
+        logging.debug("Anchore compliance finding count: %s", len(acomp_jobs))
     if args.twistlock:
         logging.debug("Importing twistlock findings")
         tl_jobs = generate_twistlock_jobs(args.twistlock)
-        logging.debug(f"Twistlock finding count: {len(tl_jobs)}")
+        logging.debug("Twistlock finding count: %s", len(tl_jobs))
     all_jobs = tl_jobs + asec_jobs + acomp_jobs + os_jobs
     large_data = {
         "imageName": args.container,
@@ -380,16 +380,15 @@ def get_parent_vat_response(output_dir: str, hardening_manifest: HardeningManife
     with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
         docker_config = Path(docker_config_dir, "config.json")
         pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("UTF-8")
-        docker_config.write_text(pull_auth)
+        docker_config.write_text(pull_auth, encoding="utf-8")
         Cosign.download(
             base_image,
             output_dir=output_dir,
             docker_config_dir=docker_config_dir,
             predicate_types=[vat_response_predicate],
         )
-        output_dir = Path(output_dir)
-        predicate_path = output_dir / get_predicate_files()[vat_response_predicate]
-        parent_vat_path = output_dir / "parent_vat_response.json"
+        predicate_path = Path(output_dir, get_predicate_files()[vat_response_predicate])
+        parent_vat_path = Path(output_dir, "parent_vat_response.json")
         shutil.move(predicate_path, parent_vat_path)
 
 
@@ -405,10 +404,10 @@ def main():
     vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
     if not args.use_json:
         large_data = create_api_call()
-        with vat_request_json.open("w") as outfile:
+        with vat_request_json.open("w", encoding="utf-8") as outfile:
             json.dump(large_data, outfile)
     else:
-        with vat_request_json.open() as infile:
+        with vat_request_json.open(encoding="utf-8") as infile:
             large_data = json.load(infile)
 
     headers = CaseInsensitiveDict()
@@ -417,10 +416,10 @@ def main():
     try:
         resp = requests.post(args.api_url, headers=headers, json=large_data)
         resp.raise_for_status()
-        logging.debug(f"API Response:\n{resp.text}")
-        logging.debug(f"POST Response: {resp.status_code}")
+        logging.debug("API Response:\n%s", resp.text)
+        logging.debug("POST Response: %s", resp.status_code)
         with Path(f"{os.environ['ARTIFACT_DIR']}/vat_response.json").open(
-            "w"
+            "w", encoding="utf-8"
         ) as outfile:
             json.dump(resp.json(), outfile)
     except RuntimeError:
@@ -429,7 +428,7 @@ def main():
     except requests.exceptions.HTTPError:
         # only include errors provided by VAT endpoint
         if resp.text and resp.status_code != 500:
-            logging.error(f"API Response:\n{resp.text}")
+            logging.error("API Response:\n%s", resp.text)
         logging.exception("HTTP error")
         sys.exit(1)
     except requests.exceptions.RequestException:
