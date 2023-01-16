@@ -17,31 +17,22 @@ from ironbank.pipeline.utils.predicates import (
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.container_tools.cosign import Cosign
 from ironbank.pipeline.utils import logger
-
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 
 log = logger.setup("upload_to_harbor")
 
-
-
-def compare_digests(image: Image) -> None:
+def compare_digests(image: Image, docker_config_dir: str) -> None:
     """
     Pull down image manifest to compare digest to digest from build environment
     """
 
     log.info("Pulling manifest_file with skopeo")
-    skopeo = Skopeo("staging_auth.json")
+    skopeo = Skopeo(Path(docker_config_dir, "staging_auth.json"))
 
-    try:
-        log.info("Inspecting image in registry")
-        remote_inspect_raw = skopeo.inspect(
-            image.from_image(transport="docker://"), raw=True, log_cmd=True
-        )
-    except GenericSubprocessError:
-        log.error(
-            f"Failed to retrieve manifest for {image.registry}/{image.name}@{image.digest}"
-        )
-        sys.exit(1)
+    log.info("Inspecting image in registry")
+    remote_inspect_raw = skopeo.inspect(
+        image.from_image(transport="docker://"), raw=True, log_cmd=True
+    )
 
     digest = os.environ["IMAGE_PODMAN_SHA"].split(":")[-1]
     manifest = hashlib.sha256(remote_inspect_raw.encode())
@@ -54,45 +45,24 @@ def compare_digests(image: Image) -> None:
 
 
 def promote_tags(
-    staging_image: Image, production_image: Image, tags: list[str]
+        staging_image: Image, production_image: Image, tags: list[str], docker_config_dir: str
 ) -> None:
     """
     Promote image from staging project to production project,
     tagging it according the the tags defined in tags.txt
     """
 
-    with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
-        # Grab staging docker auth
-        staging_auth = base64.b64decode(os.environ["DOCKER_AUTH_CONFIG_STAGING"]).decode(
-            "utf-8"
+    for tag in tags:
+        production_image = production_image.from_image(tag=tag)
+
+        log.info(f"Copy from staging to {production_image}")
+        Skopeo.copy(
+            staging_image,
+            production_image,
+            src_authfile=Path(docker_config_dir, "staging_auth.json"),
+            dest_authfile=Path(docker_config_dir, "prod_auth.json"),
+            log_cmd=True,
         )
-        Path(docker_config_dir, "staging_auth.json").write_text(staging_auth)
-
-        # Grab ironbank/ironbank-testing docker auth
-        test_auth = os.environ.get("DOCKER_AUTH_CONFIG_TEST", None).strip()
-        if test_auth:
-            dest_auth = base64.b64decode(test_auth).decode("utf-8")
-        else:
-            dest_auth = base64.b64decode(os.environ["DOCKER_AUTH_CONFIG_PROD"]).decode(
-                "utf-8"
-            )
-        Path(docker_config_dir, "config.json").write_text(dest_auth)
-
-        for tag in tags:
-            production_image = production_image.from_image(tag=tag)
-
-            log.info(f"Copy from staging to {production_image}")
-            try:
-                Skopeo.copy(
-                    staging_image,
-                    production_image,
-                    src_authfile="staging_auth.json",
-                    dest_authfile="/tmp/config.json",
-                    log_cmd=True,
-                )
-            except GenericSubprocessError:
-                log.error(f"Failed to copy {staging_image} to {production_image}")
-                sys.exit(1)
 
 
 def convert_artifacts_to_hardening_manifest(
@@ -129,23 +99,14 @@ def create_vat_response_attestation():
     return lineage_vat_response
 
 def main():
-    if "pipeline-test-project" in os.environ["CI_PROJECT_DIR"] and not os.environ.get(
-        "DOCKER_AUTH_CONFIG_TEST"
-    ):
-        log.warning(
-            """
-            Skipping Harbor Upload. Cannot push to Harbor when working with pipeline
-            test projects unless DOCKER_AUTH_CONFIG_TEST is set...
-            """
-        )
-        sys.exit(1)
-
     staging_image = Image(
         registry=os.environ["REGISTRY_URL_STAGING"],
         name=os.environ["IMAGE_NAME"],
         digest=os.environ["IMAGE_PODMAN_SHA"],
         transport="docker://",
     )
+
+    production_image = Image.from_image(staging_image, registry=os.environ["REGISTRY_URL_PROD"])
 
     tags = []
     with Path(os.environ["ARTIFACT_STORAGE"], "lint", "tags.txt").open(
@@ -154,22 +115,30 @@ def main():
         for tag in f:
             tags.append(tag.strip())
 
-    production_image = Image(
-        registry=os.environ["REGISTRY_URL_PROD"],
-        name=os.environ["IMAGE_NAME"],
-        digest=os.environ["IMAGE_PODMAN_SHA"],
-        transport="docker://",
-    )
+    with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
+
+        Path(docker_config_dir, "staging_auth.json").write_text(base64.decode(os.environ["DOCKER_AUTH_CONFIG_STAGING"]).decode("utf-8"))
+        Path(docker_config_dir, "prod_auth.json").write_text(base64.decode(os.environ["DOCKER_AUTH_CONFIG_PROD"]).decode("utf-8"))
+
+        # Compare digests to ensure image integrity
+        try:
+            compare_digests(staging_image, docker_config_dir)
+        except GenericSubprocessError:
+            log.error(
+                f"Failed to retrieve manifest for {str(staging_image)}"
+            )
+            sys.exit(1)
+
+        # Promote tags to prod project
+        try:
+            promote_tags(staging_image, production_image, tags, docker_config_dir)
+        except GenericSubprocessError:
+            log.error(f"Failed to copy {str(staging_image)} to {str(production_image)}")
+            sys.exit(1)
 
     cosign = Cosign()
-
-    # Compare digests to ensure image integrity
-    compare_digests(staging_image)
-
-    # Transfer image from staging project to production project and tag
-    promote_tags(staging_image, production_image, tags)
-
     log.info("Signing image")
+
     try:
         cosign.sign(production_image, log_cmd=True)
     except GenericSubprocessError:
