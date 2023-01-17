@@ -95,7 +95,7 @@ def _generate_vat_response_lineage_file():
     lineage_vat_response = []
     if (
         parent_vat_response_file := Path(
-            os.environ["ARTIFACT_DIR"], "parent_vat_response.json"
+            os.environ["VAT_ARTIFACT_DIR"], "parent_vat_response.json"
         )
     ).exists():
         with parent_vat_response_file.open("r") as f:
