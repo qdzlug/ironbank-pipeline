@@ -66,12 +66,10 @@ class Image:
         )
 
     def tag_str(self):
-        # TODO: potentially move the transport formatting to skopeo, since it's the only tool that cares about transport
-        return f"{self.transport}{self.registry_path}:{self.tag}"
+        return f"{self.registry_path}:{self.tag}"
 
     def digest_str(self):
-        # TODO: potentially move the transport formatting to skopeo, since it's the only tool that cares about transport
-        return f"{self.transport}{self.registry_path}@{self.digest}"
+        return f"{self.registry_path}@{self.digest}"
 
     def __str__(self):
         # default to tag, else use digest
