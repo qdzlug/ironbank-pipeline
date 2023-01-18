@@ -162,7 +162,7 @@ def main():
         # Compare digests to ensure image integrity
         compare_digests(staging_image)
         # Promote image and tags from staging project
-        promote_tags(staging_image, production_image, hm.tags)
+        promote_tags(staging_image, production_image, hm.image_tags)
         # Sign image
         cosign.sign(production_image, log_cmd=True)
         log.info("Adding attestations")
