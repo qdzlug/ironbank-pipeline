@@ -76,9 +76,9 @@ class Image:
         if self.url:
             return f"{self.transport}{self.url}"
         elif self.tag:
-            return self.tag_str()
+            return f"{self.transport}{self.tag_str()}"
         elif self.digest:
-            return self.digest_str()
+            return f"{self.transport}{self.digest_str()}"
 
 
 @dataclass
