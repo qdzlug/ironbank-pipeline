@@ -56,6 +56,7 @@ class Cosign(ContainerTool):
                 "AWS_ACCESS_KEY_ID": self.aws_access_key_id or "",
                 "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key or "",
                 "AWS_REGION": self.aws_region,
+                "DOCKER_CONFIG": self.docker_config_dir,
                 **os.environ,
             },
         )
@@ -81,6 +82,7 @@ class Cosign(ContainerTool):
                 "AWS_ACCESS_KEY_ID": self.aws_access_key_id or "",
                 "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key or "",
                 "AWS_REGION": self.aws_region,
+                "DOCKER_CONFIG": self.docker_config_dir,
                 **os.environ,
             },
         )
@@ -118,6 +120,7 @@ class Cosign(ContainerTool):
                 "AWS_ACCESS_KEY_ID": self.aws_access_key_id or "",
                 "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key or "",
                 "AWS_REGION": self.aws_region,
+                "DOCKER_CONFIG": self.docker_config_dir,
                 **os.environ,
             },
         )

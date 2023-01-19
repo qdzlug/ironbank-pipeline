@@ -5,6 +5,8 @@ import sys
 import json
 import yaml
 import hashlib
+import tempfile
+import shutil
 from pathlib import Path
 
 from ironbank.pipeline.image import Image
@@ -154,7 +156,6 @@ def main():
     )
     project = DsopProject()
     hm = HardeningManifest(project.hardening_manifest_path)
-    cosign = Cosign()
     predicates = Predicates()
     attestation_predicates = generate_attestation_predicates(predicates)
 
@@ -164,16 +165,22 @@ def main():
         # Promote image and tags from staging project
         promote_tags(staging_image, production_image, hm.image_tags)
         # Sign image
-        cosign.sign(production_image, log_cmd=True)
-        log.info("Adding attestations")
-        for predicate in attestation_predicates:
-            cosign.attest(
-                image=production_image,
-                predicate_path=predicate.as_posix(),
-                predicate_type=predicates.types[predicate.name],
-                replace=True,
-                log_cmd=True,
+        with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
+            shutil.move(
+                os.environ["DOCKER_AUTH_CONFIG_FILE_PROD"],
+                Path(docker_config_dir, "config.json"),
             )
+            cosign = Cosign(docker_config_dir=docker_config_dir)
+            cosign.sign(production_image, log_cmd=True)
+            log.info("Adding attestations")
+            for predicate in attestation_predicates:
+                cosign.attest(
+                    image=production_image,
+                    predicate_path=predicate.as_posix(),
+                    predicate_type=predicates.types[predicate.name],
+                    replace=True,
+                    log_cmd=True,
+                )
     except GenericSubprocessError:
         sys.exit(1)
 

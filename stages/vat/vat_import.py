@@ -388,7 +388,9 @@ def get_parent_vat_response(output_dir: str, hardening_manifest: HardeningManife
             predicate_types=[vat_response_predicate],
         )
         predicates = Predicates()
-        predicate_path = Path(output_dir, predicates.get_predicate_files()[vat_response_predicate])
+        predicate_path = Path(
+            output_dir, predicates.get_predicate_files()[vat_response_predicate]
+        )
         parent_vat_path = Path(output_dir, "parent_vat_response.json")
         shutil.move(predicate_path, parent_vat_path)
 
