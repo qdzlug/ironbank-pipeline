@@ -28,9 +28,7 @@ include:
 
   - local: stages/harbor/harbor.yaml
 
-  - local: stages/s3/upload-to-s3.yaml
+  - local: stages/s3/upload-to-s3-other.yaml
 
 variables:
-  DISTRO_REPO_DIR: "apk-repos/repositories"
-  DISTRO_REPO_MOUNT: "/etc/apk/repositories"
   DISTROLESS: "1"

@@ -73,7 +73,7 @@ def load_resources(
                     log_cmd=True
                 )
             else:
-                os.rename(resource_file_obj, Path(resource_file))
+                shutil.move(resource_file_obj, Path(resource_file))
         else:
             log.error("Resource type is invalid")
             sys.exit(1)

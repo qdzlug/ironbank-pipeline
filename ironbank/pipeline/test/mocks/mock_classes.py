@@ -3,9 +3,11 @@
 from dataclasses import dataclass, field
 import subprocess
 import tempfile
+import requests
 
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.image import Image, ImageFile
+from ironbank.pipeline.apis import VatAPI
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.utils import logger
@@ -54,9 +56,24 @@ class MockOutput:
 
 
 @dataclass
+class MockJson:
+    def dump(*args, **kwargs):
+        pass
+
+
+@dataclass
+class MockResponse:
+    status_code: int = 500
+    text: str = "example"
+
+    def json(self):
+        return {"status_code": self.status_code, "text": self.text}
+
+
+@dataclass
 class MockPopen(subprocess.Popen):
-    stdout: str = field(default_factory=lambda: MockOutput())
-    stderr: str = field(
+    stdout: MockOutput = field(default_factory=lambda: MockOutput())
+    stderr: MockOutput = field(
         default_factory=lambda: MockOutput(mock_data=["err1\n", "err2\n"])
     )
     encoding: str = "UTF-10000"
@@ -118,6 +135,9 @@ class MockPath:
     def is_symlink(self):
         return False
 
+    def write_text(self, data, encoding=None, errors=None, newline=None):
+        return ""
+
     def __str__(self):
         return self.path
 
@@ -158,6 +178,10 @@ class MockHardeningManifest(HardeningManifest):
     image_tag: str = "1.0"
     base_image_name: str = "base_example"
     base_image_tag: str = "2.0"
+    validate: bool = False
+    invalid_labels = None
+    invalid_maintainers = None
+    invalid_image_sources = None
     args: dict = field(default_factory=lambda: {"a": "b", "c": "d"})
     labels: dict = field(default_factory=lambda: {"very": "cool", "wow": "awesome"})
     image_tags: list[str] = field(
@@ -184,6 +208,22 @@ class MockImage(Image):
 
     # def __post_init__(*args, **kwargs):
     #     pass
+
+
+@dataclass
+class MockVatAPI(VatAPI):
+    response: requests.Response = None
+
+    def check_access(self, image_name, create_request=False) -> None:
+        self.response = MockResponse()
+
+
+class MockGoodResponse:
+    status_code: int = 200
+    text: str = "example"
+
+    def json(self):
+        return {"status_code": self.status_code, "text": self.text}
 
 
 @dataclass

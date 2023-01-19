@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 
+import subprocess
 import sys
 import os
 import pytest
 import asyncio
 import pathlib
-import dockerfile
 from unittest.mock import patch
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.file_parser import DockerfileParser
-from ironbank.pipeline.utils.exceptions import DockerfileParseError
+from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 from ironbank.pipeline.test.mocks.mock_classes import (
     MockProject,
     MockHardeningManifest,
@@ -45,95 +45,72 @@ def nonexistent_dockerfile_path():
 @patch("dockerfile_validation.DsopProject", new=MockProject)
 @patch("dockerfile_validation.HardeningManifest", new=MockHardeningManifest)
 def test_dockerfile_validation_main(monkeypatch, caplog):
+    # TODO: use pytest.parameterize to remove the duplicate code in this test
 
-    log.info("Test successful validation")
-    monkeypatch.setattr(DockerfileParser, "parse", lambda x: [])
+    monkeypatch.setattr(DockerfileParser, "parse", lambda x: False)
+
+    log.info("Test successful validation on empty output")
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda *args, **kwargs: type("MockSubprocessResponse", (), {"stdout": ""}),
+    )
     asyncio.run(dockerfile_validation.main())
+    assert "No hadolint findings found" in caplog.text
     assert "Dockerfile is validated" in caplog.text
+    caplog.clear()
+
+    log.info("Test successful validation on DL and/or SC findings")
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda *args, **kwargs: type(
+            "MockSubprocessResponse",
+            (),
+            {
+                "stdout": "Dockerfile:1:2 DL1000 mock finding\nDockerfile:2:3 SC100 mock shell check finding"
+            },
+        ),
+    )
+    asyncio.run(dockerfile_validation.main())
+    assert "SC100" in caplog.text
+    assert "Dockerfile is validated" in caplog.text
+    caplog.clear()
+
+    log.info("Test hard fail on unable to parse dockerfile")
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda *args, **kwargs: type(
+            "MockSubprocessResponse", (), {"stdout": "Mock hard failure output"}
+        ),
+    )
+    with pytest.raises(SystemExit) as se:
+        asyncio.run(dockerfile_validation.main())
+    assert se.value.code == 1
+    assert "Mock hard failure output" in caplog.text
+    assert "Dockerfile is validated" not in caplog.text
+    caplog.clear()
 
     log.info("Test invalid FROM statement")
-    monkeypatch.setattr(DockerfileParser, "parse", lambda x: x)
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda *args, **kwargs: type("MockSubprocessResponse", (), {"stdout": ""}),
+    )
+    monkeypatch.setattr(DockerfileParser, "parse", lambda x: True)
     with pytest.raises(SystemExit) as se:
         asyncio.run(dockerfile_validation.main())
     assert se.value.code == 100
+    caplog.clear()
 
-    log.info("Test raise DockerFileParseError")
+    log.info("Test raise subprocess exception")
     monkeypatch.setattr(
-        DockerfileParser, "parse", lambda x: raise_(DockerfileParseError)
+        subprocess,
+        "run",
+        lambda *args, **kwargs: raise_(subprocess.CalledProcessError(1, ["mock_cmd"])),
     )
-    with pytest.raises(SystemExit) as se:
+    with pytest.raises(GenericSubprocessError):
         asyncio.run(dockerfile_validation.main())
-    assert se.value.code == 1
-
-    log.info("Test raise general Exception")
-    monkeypatch.setattr(DockerfileParser, "parse", lambda x: raise_(Exception))
-    with pytest.raises(SystemExit) as se:
-        asyncio.run(dockerfile_validation.main())
-    assert se.value.code == 1
-
-
-# TODO: move this to an integration test file
-@pytest.mark.integration
-def test_parse_dockerfile_integration(
-    good_dockerfile_path, bad_dockerfile_path, nonexistent_dockerfile_path
-):
-    assert DockerfileParser.parse_dockerfile(good_dockerfile_path) == (
-        dockerfile.Command(
-            cmd="ARG",
-            sub_cmd=None,
-            json=False,
-            original="ARG BASE_REGISTRY=registry1.dso.mil",
-            start_line=1,
-            end_line=1,
-            flags=(),
-            value=("BASE_REGISTRY=registry1.dso.mil",),
-        ),
-        dockerfile.Command(
-            cmd="ARG",
-            sub_cmd=None,
-            json=False,
-            original="ARG BASE_IMAGE=ironbank/redhat/ubi/ubi8",
-            start_line=2,
-            end_line=2,
-            flags=(),
-            value=("BASE_IMAGE=ironbank/redhat/ubi/ubi8",),
-        ),
-        dockerfile.Command(
-            cmd="ARG",
-            sub_cmd=None,
-            json=False,
-            original="ARG BASE_TAG=8.5",
-            start_line=3,
-            end_line=3,
-            flags=(),
-            value=("BASE_TAG=8.5",),
-        ),
-        dockerfile.Command(
-            cmd="FROM",
-            sub_cmd=None,
-            json=False,
-            original="FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}",
-            start_line=5,
-            end_line=5,
-            flags=(),
-            value=("${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}",),
-        ),
-    )
-
-    assert DockerfileParser.parse_dockerfile(bad_dockerfile_path) == (
-        dockerfile.Command(
-            cmd="FROM",
-            sub_cmd=None,
-            json=False,
-            original="FROM ubuntu:20.04",
-            start_line=1,
-            end_line=1,
-            flags=(),
-            value=("ubuntu:20.04",),
-        ),
-    )
-
-    with pytest.raises(DockerfileParseError) as exc_info:
-        DockerfileParser.parse_dockerfile(nonexistent_dockerfile_path)
-
-    assert exc_info.type == DockerfileParseError
+    assert "Running hadolint failed" in caplog.text
+    caplog.clear()

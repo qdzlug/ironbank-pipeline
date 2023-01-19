@@ -18,6 +18,7 @@ def template_type(os_type: str) -> None:
     """Writes the template type to an env file, based on the os_type var"""
     template_dict = {
         "alpine317-container": "alpine.yaml",
+        "chainguard-container": "chainguard.yaml",
         "distroless-container": "distroless.yaml",
         "scratch-container": "distroless.yaml",
         "sle15-bci-container": "suse.yaml",
@@ -33,6 +34,7 @@ def template_type(os_type: str) -> None:
     log.info("Using pipeline template: %s", template)
     with Path("template.env").open(mode="w", encoding="utf-8") as f:
         f.write(f"TEMPLATE={template}\n")
+        f.write(f"BASE_IMAGE_TYPE={os_type}\n")
         f.write(f"TARGET_BRANCH={os.environ['TARGET_BRANCH']}\n")
         f.write(f"LOGLEVEL={os.environ.get('LOGLEVEL', 'INFO')}")
 
