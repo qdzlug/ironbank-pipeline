@@ -9,7 +9,7 @@ class Predicates:
             "sbom-spdx.xml": "spdx",
             "sbom-spdx-json.json": "spdxjson",
             "sbom-syft-json.json": "https://github.com/anchore/syft#output-formats",
-            "vat_response.json": "https://vat.dso.mil/api/p1/predicate/beta1",
+            "vat_response_lineage.json": "https://vat.dso.mil/api/p1/predicate/beta1",
             "hardening_manifest.json": "https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md",
         }
     )
