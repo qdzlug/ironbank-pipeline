@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 @dataclass(frozen=True, slots=True)
 class Predicates:
     types: dict = field(
-        default_factory=lambda: dict(
+        default_factory=lambda:
             {
                 "sbom-cyclonedx-json.json": "cyclonedx",
                 "sbom-spdx.xml": "spdx",
@@ -14,9 +14,8 @@ class Predicates:
                 "hardening_manifest.json": "https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md",
             }
         )
-    )
     unattached_predicates: list[str] = field(
-        default_factory=lambda: list[
+        default_factory=lambda: [
             "sbom-spdx-tag-value.txt",
             "sbom-cyclonedx.xml",
         ]
