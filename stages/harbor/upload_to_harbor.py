@@ -166,7 +166,7 @@ def main():
         promote_tags(staging_image, production_image, hm.image_tags)
         # Sign image
         with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
-            shutil.move(
+            shutil.copy(
                 os.environ["DOCKER_AUTH_CONFIG_FILE_PROD"],
                 Path(docker_config_dir, "config.json"),
             )
