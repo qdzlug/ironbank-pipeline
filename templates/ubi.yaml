@@ -20,6 +20,8 @@ include:
 
   - local: stages/vat/base.yaml
 
+  - local: stages/post-vat/base.yaml
+
   - local: stages/csv-output/base.yaml
 
   - local: stages/check-cves/base.yaml
