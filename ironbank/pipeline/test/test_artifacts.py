@@ -16,8 +16,8 @@ from ironbank.pipeline.utils.exceptions import GenericSubprocessError, InvalidUR
 from ironbank.pipeline.artifacts import (
     S3Artifact,
     HttpArtifact,
-    GithubArtifact,
     ContainerArtifact,
+    GithubArtifact,
 )
 
 
