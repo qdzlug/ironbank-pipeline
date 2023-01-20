@@ -106,9 +106,9 @@ def _generate_vat_response_lineage_file():
         if not isinstance(lineage_vat_response, list):
             lineage_vat_response = [lineage_vat_response]
     # TODO remove
-    log.info("pipeline response: %s, parent_vat_response: %s", lineage_vat_response)
+    log.info("pipeline response: %s, parent_vat_response: %s", pipeline_vat_response, lineage_vat_response)
     lineage_vat_response += pipeline_vat_response
-    log.info("pipeline response: %s, lineage_vat_response: %s", lineage_vat_response)
+    log.info("lineage_vat_response: %s", lineage_vat_response)
     lineage_vat_response_file = Path(
         os.environ["ARTIFACT_DIR"], "vat_response_lineage.json"
     )
