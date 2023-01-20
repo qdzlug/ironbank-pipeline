@@ -127,7 +127,7 @@ class HttpArtifact(AbstractFileArtifact):
 class ContainerArtifact(AbstractArtifact):
     # artifact_path: Path = Path(f'{os.environ.get('ARTIFACT_DIR')/images/')
     log: logger = logger.setup("ContainerArtifact")
-    authfile: Path = Path(os.environ.get("DOCKER_AUTH_CONFIG_FILE_PULL"))
+    authfile: str = os.environ.get("DOCKER_AUTH_CONFIG_FILE_PULL")
 
     def __post_init__(self):
         super().__post_init__()
