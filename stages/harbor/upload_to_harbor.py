@@ -93,21 +93,21 @@ def _generate_vat_response_lineage_file():
     with Path(os.environ["VAT_RESPONSE"]).open("r") as f:
         pipeline_vat_response = json.load(f)
 
-    # Initialize lineage_vat_response as a list, so we can append to it if parent_vat_response.json doesn't exist
-    lineage_vat_response = []
+    # Initialize lineage_vat_response as a dict, so we can append to it if parent_vat_response.json doesn't exist
+    lineage_vat_response = {"images": []}
     if (parent_vat_response_file := Path(os.environ["PARENT_VAT_RESPONSE"])).exists():
         with parent_vat_response_file.open("r") as f:
             lineage_vat_response = json.load(f)
         # parent_vat_response.json will not be a list when we release this, make sure to convert it to one
-        if not isinstance(lineage_vat_response, list):
-            lineage_vat_response = [lineage_vat_response]
+        if not "images" in lineage_vat_response:
+            lineage_vat_response = {"images": [lineage_vat_response]}
     # TODO remove
     log.info(
         "pipeline response: %s, parent_vat_response: %s",
         pipeline_vat_response,
         lineage_vat_response,
     )
-    lineage_vat_response += [pipeline_vat_response]
+    lineage_vat_response["images"] += [pipeline_vat_response]
     log.info("lineage_vat_response: %s", lineage_vat_response)
     lineage_vat_response_file = Path(
         os.environ["ARTIFACT_DIR"], "vat_response_lineage.json"
