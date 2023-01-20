@@ -10,9 +10,9 @@ harbor:
     - vat
   variables:
     SBOM_DIR: ${ARTIFACT_STORAGE}/sbom
+    PARENT_VAT_RESPONSE: ${ARTIFACT_DIR}/vat/parent_vat_response.json
     VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/vat_response.json
     ACCESS_LOG_DIR: ${ARTIFACT_STORAGE}/build
-    VAT_ARTIFACT_DIR: ${ARTIFACT_DIR}/vat
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/harbor
   script:
     - 'mkdir -p "${ARTIFACT_DIR}"'

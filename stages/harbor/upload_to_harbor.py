@@ -97,7 +97,7 @@ def _generate_vat_response_lineage_file():
     lineage_vat_response = []
     if (
         parent_vat_response_file := Path(
-            os.environ["VAT_ARTIFACT_DIR"], "parent_vat_response.json"
+            os.environ["PARENT_VAT_REPONSE"]
         )
     ).exists():
         with parent_vat_response_file.open("r") as f:
@@ -105,8 +105,10 @@ def _generate_vat_response_lineage_file():
         # parent_vat_response.json will not be a list when we release this, make sure to convert it to one
         if not isinstance(lineage_vat_response, list):
             lineage_vat_response = [lineage_vat_response]
-
+    # TODO remove
+    log.info("pipeline response: %s, parent_vat_response: %s", lineage_vat_response)
     lineage_vat_response += pipeline_vat_response
+    log.info("pipeline response: %s, lineage_vat_response: %s", lineage_vat_response)
     lineage_vat_response_file = Path(
         os.environ["ARTIFACT_DIR"], "vat_response_lineage.json"
     )
