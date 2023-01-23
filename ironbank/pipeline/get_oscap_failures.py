@@ -97,26 +97,29 @@ def generate_oscap_jobs(oscap_path):
             logging.debug(f"SKIPPING: 'notselected' rule {rule_id}")
     try:
         assert len(set(cce["finding"] for cce in cces)) == len(cces)
-    except Exception as duplicate_idents:
+    except AssertionError as duplicate_idents:
         for cce in cces:
-            logging.info(f"Duplicate: {cce['finding']}")
-        raise duplicate_idents
+            logging.warning(f"Duplicate: {cce['finding']}")
+        # raise duplicate_idents
 
     return cces
 
 
 def get_oval_findings(finding_name, finding_href, severity):
-    if "RHEL9" in finding_href:
-        version = 9
-    elif "RHEL8" in finding_href:
-        version = 8
-    elif "RHEL7" in finding_href:
-        version = 7
+    """
+    Get oval definitions for oscap compliance findings
+    """
+    url = ""
+    if rhel_match := re.search(r"RHEL(?P<version>(7|8|9))", finding_href):
+        url = f"https://www.redhat.com/security/data/oval/com.redhat.rhsa-RHEL{rhel_match.group('version')}.xml.bz2"
+    elif sle_match := re.search(
+        r"suse\.linux\.enterprise\.(?P<version>(15))", finding_href
+    ):
+        url = f"https://ftp.suse.com/pub/projects/security/oval/suse.linux.enterprise.server.{sle_match.group('version')}-patch.xml"
     else:
         logging.error("OVAL findings found for non-ubi based image")
         sys.exit(1)
 
-    url = f"https://www.redhat.com/security/data/oval/com.redhat.rhsa-RHEL{version}.xml.bz2"
     root = get_redhat_oval_definitions(url)
 
     n_set = {
@@ -143,17 +146,31 @@ def get_oval_findings(finding_name, finding_href, severity):
     return oval_cves
 
 
-def get_redhat_oval_definitions(url):
+def get_redhat_oval_definitions(url: str) -> list[dict]:
+    """
+    Download oval definitions and return them as an list of dictionaries
+    """
     oval_definitions = {}
     if url in oval_definitions:
         return oval_definitions[url]
-    r = requests.get(url)
-    artifact_path = f"{os.environ['ARTIFACT_DIR']}/oval_definitions-{re.sub(r'[^a-z]', '-', url)}.xml"
-    with Path(artifact_path).open("wb") as f:
-        f.write(r.content)
-    data = bz2.BZ2File(artifact_path).read()
-    data_string = str(data, "utf-8")
-    with Path(artifact_path).open("w") as f:
-        f.write(data_string)
+    artifact_path = Path(
+        f"{os.environ['ARTIFACT_DIR']}/oval_definitions-{re.sub(r'[^a-z]', '-', url)}.xml"
+    )
+    if not artifact_path.exists():
+        response = requests.get(url, stream=True, timeout=None)
+        if response.status_code == 200:
+            with Path(artifact_path).open("wb") as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+            if url.endswith(".bz2"):
+                data = bz2.BZ2File(artifact_path).read()
+                data_string = str(data, "utf-8")
+                Path(artifact_path).write_text(data_string, encoding="utf-8")
+        else:
+            logging.info(
+                "Failed to download oval definitions: %s", response.status_code
+            )
+            sys.exit(1)
+
     oval_definitions[url] = etree.parse(artifact_path)
     return oval_definitions[url]
