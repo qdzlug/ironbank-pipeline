@@ -7,7 +7,7 @@ from ironbank.pipeline.container_tools.skopeo import Skopeo
 
 def main():
     src = Image(
-        url=os.environ["REGISTRY_URL_STAGING"],
+        registry=os.environ["REGISTRY_URL_STAGING"],
         name=os.environ["IMAGE_NAME"],
         digest=os.environ["IMAGE_PODMAN_SHA"],
         transport="docker://",
