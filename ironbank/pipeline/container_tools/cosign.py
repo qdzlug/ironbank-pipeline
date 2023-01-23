@@ -136,7 +136,8 @@ class Cosign(ContainerTool):
         log_cmd: bool = False,
     ) -> None:
         # predicate types/files can be found in ironbank/pipeline/utils/predicates.py
-        predicate_files = Predicates.get_predicate_files()
+        predicates = Predicates()
+        predicate_files = predicates.get_predicate_files()
         cmd = [
             "cosign",
             "download",
