@@ -32,10 +32,10 @@ echo "profile: ${profile}"
 echo "securityGuide: ${securityGuide}"
 
 case "${securityGuide}" in
-    *ssg-sle15*)
-        echo "Limiting scanning to SLE Server patches"
-        sed -i -e 's,/security/oval/suse\.linux\.enterprise\.15\.xml,/security/oval/suse.linux.enterprise.server.15-patch.xml,' "${SCAP_CONTENT}/${securityGuide}"
-        ;;
+  *ssg-sle15*)
+    echo "Limiting scanning to SLE Server patches"
+    sed -i -e 's,/security/oval/suse\.linux\.enterprise\.15\.xml,/security/oval/suse.linux.enterprise.server.15-patch.xml,' "${SCAP_CONTENT}/${securityGuide}"
+    ;;
 esac
 
 oscap-podman "${DOCKER_IMAGE_PATH}" xccdf eval --verbose ERROR --fetch-remote-resources --profile "${profile}" --stig-viewer compliance_output_report_stigviewer.xml --results compliance_output_report.xml --report report.html "${SCAP_CONTENT}/${securityGuide}" || true

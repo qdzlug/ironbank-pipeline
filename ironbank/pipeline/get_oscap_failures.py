@@ -114,7 +114,7 @@ def get_oval_findings(finding_name, finding_href, severity):
         logging.error("OVAL findings found for non-ubi based image")
         sys.exit(1)
 
-    root = get_redhat_oval_definitions(url)
+    root = get_oval_definitions(url)
 
     n_set = {
         "oval": "http://oval.mitre.org/XMLSchema/oval-definitions-5",
@@ -138,7 +138,7 @@ def get_oval_findings(finding_name, finding_href, severity):
     return oval_cves
 
 
-def get_redhat_oval_definitions(url: str) -> list[dict]:
+def get_oval_definitions(url: str) -> list[dict]:
     """
     Download oval definitions and return them as an list of dictionaries
     """

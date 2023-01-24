@@ -6,7 +6,7 @@ from ironbank.pipeline.utils import logger
 #     _format_reference,
 #     generate_oscap_jobs,
 #     get_oval_findings,
-#     get_redhat_oval_definitions,
+#     get_oval_definitions,
 # )  # noqa E402
 
 log = logger.setup("test_get_oscap_failures")
@@ -24,5 +24,5 @@ def test_get_oval_findings():
     pass
 
 
-def test_get_redhat_oval_definitions():
+def test_get_oval_definitions():
     pass
