@@ -370,7 +370,7 @@ def create_api_call():
     return large_data
 
 
-def get_parent_vat_response(output_dir: Path, hardening_manifest: HardeningManifest):
+def get_parent_vat_response(output_dir: str, hardening_manifest: HardeningManifest):
     base_image = Image(
         registry=os.environ["BASE_REGISTRY"],
         name=hardening_manifest.base_image_name,
