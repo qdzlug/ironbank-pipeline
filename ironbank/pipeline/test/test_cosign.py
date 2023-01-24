@@ -150,7 +150,7 @@ mock_predicate = {"https://hardening_manifest.eg/test/docs": "hardening_manifest
 # patch instead of monkeypatch to avoid direct import of cosign module
 @patch(
     "ironbank.pipeline.container_tools.cosign.Predicates.get_predicate_files",
-    new=lambda: mock_predicate,
+    new=lambda x: mock_predicate,
 )
 def test_cosign_download(caplog, monkeypatch):
     log.info("Test failed download")
