@@ -140,9 +140,11 @@ def main():
         tag=f"ibci-{os.environ['CI_PIPELINE_ID']}",
     )
     base_registry = os.environ["BASE_REGISTRY"]
-    prod_auth_path = Path(os.environ['DOCKER_AUTH_CONFIG_FILE_PULL'])
-    staging_auth_path = Path("/tmp/staging_auth.json")
+    # TODO: switch these over to file vars and remove auth generation
+    prod_auth_path = Path("/tmp", "prod_auth.json")
+    staging_auth_path = Path("/tmp", "staging_auth.json")
     pull_creds = None
+
     artifact_storage_dir = Path(os.environ["ARTIFACT_STORAGE"])
     build_artifact_dir = Path(os.environ["ARTIFACT_DIR"])
     imports_dir = artifact_storage_dir / "import-artifacts"
