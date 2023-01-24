@@ -99,7 +99,7 @@ def _generate_vat_response_lineage_file():
         with parent_vat_response_file.open("r") as f:
             lineage_vat_response = json.load(f)
         # parent_vat_response.json will not be a list when we release this, make sure to convert it to one
-        if not "images" in lineage_vat_response:
+        if "images" not in lineage_vat_response:
             lineage_vat_response = {"images": [lineage_vat_response]}
     lineage_vat_response["images"] += [pipeline_vat_response]
     lineage_vat_response_file = Path(
