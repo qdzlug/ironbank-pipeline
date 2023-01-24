@@ -127,7 +127,8 @@ class HttpArtifact(AbstractFileArtifact):
 class ContainerArtifact(AbstractArtifact):
     # artifact_path: Path = Path(f'{os.environ.get('ARTIFACT_DIR')/images/')
     log: logger = logger.setup("ContainerArtifact")
-    authfile: str = os.environ.get("DOCKER_AUTH_CONFIG_FILE_PULL")
+    # the authfile attribute is provided since skopeo can take an authfile but this file isn't created/used in the pipeline
+    authfile: str = Path("tmp", "prod_auth.json")
 
     def __post_init__(self):
         super().__post_init__()
