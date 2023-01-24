@@ -30,7 +30,7 @@ def generate_oscap_jobs(oscap_path):
         "dc": "http://purl.org/dc/elements/1.1/",
     }
 
-    cces = []
+    cces = {}
     for rule_result in root.findall("xccdf:TestResult/xccdf:rule-result", n_set):
         rule_id = rule_result.attrib["idref"]
         severity = rule_result.attrib["severity"]
@@ -50,7 +50,7 @@ def generate_oscap_jobs(oscap_path):
                 oval_cves = get_oval_findings(
                     check_content_ref_name, check_content_ref_href, severity.lower()
                 )
-                cces += oval_cves
+                cces = {**cces, **oval_cves}
             else:
                 # Get the <rule> that corresponds to the <rule-result>
                 # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
@@ -81,8 +81,8 @@ def generate_oscap_jobs(oscap_path):
                     .strip()
                 )
 
-                ret = {
-                    "finding": identifier,
+                cces[identifier] = {
+                    # "finding": identifier,
                     "severity": severity.lower(),
                     "description": description,
                     "link": None,
@@ -92,17 +92,11 @@ def generate_oscap_jobs(oscap_path):
                     # use old format for scan report parsing
                     "scanSource": "oscap_comp",
                 }
-                cces.append(ret)
         if result == "notselected":
             logging.debug(f"SKIPPING: 'notselected' rule {rule_id}")
-    try:
-        assert len(set(cce["finding"] for cce in cces)) == len(cces)
-    except AssertionError as duplicate_idents:
-        for cce in cces:
-            logging.warning(f"Duplicate: {cce['finding']}")
-        # raise duplicate_idents
 
-    return cces
+    # reformat for vat import
+    return [{"finding": k, **v} for k, v in cces.items()]
 
 
 def get_oval_findings(finding_name, finding_href, severity):
@@ -125,14 +119,13 @@ def get_oval_findings(finding_name, finding_href, severity):
     n_set = {
         "oval": "http://oval.mitre.org/XMLSchema/oval-definitions-5",
     }
-    oval_cves = []
+    oval_cves = {}
     definition = root.find(f".//oval:definition[@id='{finding_name}']", n_set)
     description = definition.find("oval:metadata/oval:title", n_set).text
     for cve in definition.findall("oval:metadata/oval:advisory/oval:cve", n_set):
         link = cve.attrib["href"]
         identifier = cve.text
-        cve_dict = {
-            "finding": identifier,
+        oval_cves[identifier] = {
             "link": link,
             "description": description,
             "severity": severity,
@@ -142,7 +135,6 @@ def get_oval_findings(finding_name, finding_href, severity):
             # use old format for scan report parsing
             "scanSource": "oscap_comp",
         }
-        oval_cves.append(cve_dict)
     return oval_cves
 
 
