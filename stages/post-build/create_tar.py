@@ -17,9 +17,9 @@ def main():
         transport="docker-archive:",
     )
 
-    skopeo = Skopeo(authfile=os.environ["DOCKER_AUTH_CONFIG_FILE_STAGING"])
-    skopeo.copy(
+    Skopeo.copy(
         src=src,
+        src_authfile=os.environ["DOCKER_AUTH_CONFIG_FILE_STAGING"],
         dest=dest,
         log_cmd=True,
     )
