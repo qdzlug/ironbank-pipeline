@@ -12,7 +12,8 @@ create-tar:
   variables:
     IMAGE_FILE: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
   script:
-    - '"${PIPELINE_REPO_DIR}/stages/post-build/create-tar.sh"'
+    - 'pip install --user --no-deps "${PIPELINE_REPO_DIR}"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/post-build/create_tar.py"'
   artifacts:
     when: always
     paths:

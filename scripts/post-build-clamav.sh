@@ -1,4 +1,5 @@
 #!/bin/bash
+# From post-build stage originally. Now ClamAV is ran within Anchore
 set -Eeuo pipefail
 freshclam
 clamscan -irv --max-filesize=4000M --max-scansize=4000M "${ARTIFACT_STORAGE}/build/" >"${CLAMAV_SCANS}/scan-image-clamav-report.txt"

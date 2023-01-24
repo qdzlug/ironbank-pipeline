@@ -1,7 +1,7 @@
 import os
-import pathlib
 import requests
 import boto3
+from pathlib import Path
 from urllib.parse import urlparse
 from requests.auth import HTTPBasicAuth
 from .utils import logger
@@ -125,15 +125,15 @@ class HttpArtifact(AbstractFileArtifact):
 
 @dataclass
 class ContainerArtifact(AbstractArtifact):
-    # artifact_path: pathlib.Path = pathlib.Path(f'{os.environ.get('ARTIFACT_DIR')/images/')
+    # artifact_path: Path = Path(f'{os.environ.get('ARTIFACT_DIR')/images/')
     log: logger = logger.setup("ContainerArtifact")
-    authfile: pathlib.Path = pathlib.Path("tmp", "prod_auth.json")
+    authfile: str = os.environ.get("DOCKER_AUTH_CONFIG_FILE_PULL")
 
     def __post_init__(self):
         super().__post_init__()
         self.url = self.url.replace("docker://", "")
         self.__tar_name = self.tag.replace("/", "-").replace(":", "-")
-        self.artifact_path = pathlib.Path(self.dest_path, f"{self.__tar_name}.tar")
+        self.artifact_path = Path(self.dest_path, f"{self.__tar_name}.tar")
 
     def get_credentials(self) -> str:
         username, password = self.get_username_password()
