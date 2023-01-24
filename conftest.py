@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
-
-from dataclasses import dataclass
-import requests
 import pytest
+import requests
+from dataclasses import dataclass
+from ironbank.pipeline.utils import logger
 
 
 @dataclass
@@ -31,10 +30,15 @@ class MockResponse:
         return {"status_code": self.status_code, "text": self.text}
 
 
+class MockJsonDecodeError(requests.JSONDecodeError):
+    def __init__(self):
+        pass
+
+
 @dataclass
 class MockInvalidJson(MockResponse):
     def json(self):
-        raise requests.JSONDecodeError
+        raise MockJsonDecodeError()
 
 
 @pytest.fixture(scope="module")
@@ -70,7 +74,7 @@ def mock_responses():
         raise RuntimeError
 
     def mockJsonDecodeError(*args, **kwargs):
-        return MockInvalidJson(200, "")
+        return MockInvalidJson(status_code=200, text="")
 
     return {
         "200": mock200,
@@ -85,3 +89,19 @@ def mock_responses():
         "runtimeError": mockRuntimeError,
         "jsonDecodeError": mockJsonDecodeError,
     }
+
+
+@pytest.fixture(scope="module")
+def mock_decorator():
+    decorator_log = logger.setup("mock_decorator")
+
+    def mocked_decorator_simple(func):
+        def wrapper(*args, **kwargs):
+            decorator_log.info(f"Decorator called for {func.__name__}")
+            return func(*args, **kwargs)
+
+    def mocked_decorator_with_arg(decorator_arg=""):
+        decorator_log.info(f"Args passed to decorator {decorator_arg}")
+        return mocked_decorator_simple
+
+    return {"simple": mocked_decorator_simple, "with_arg": mocked_decorator_with_arg}

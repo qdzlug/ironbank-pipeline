@@ -89,6 +89,7 @@ def generate_oscap_jobs(oscap_path):
                     "score": "",
                     "package": None,
                     "packagePath": None,
+                    # use old format for scan report parsing
                     "scanSource": "oscap_comp",
                 }
                 cces.append(ret)
@@ -105,7 +106,9 @@ def generate_oscap_jobs(oscap_path):
 
 
 def get_oval_findings(finding_name, finding_href, severity):
-    if "RHEL8" in finding_href:
+    if "RHEL9" in finding_href:
+        version = 9
+    elif "RHEL8" in finding_href:
         version = 8
     elif "RHEL7" in finding_href:
         version = 7
@@ -113,7 +116,7 @@ def get_oval_findings(finding_name, finding_href, severity):
         logging.error("OVAL findings found for non-ubi based image")
         sys.exit(1)
 
-    url = f"https://www.redhat.com/security/data/oval/com.redhat.rhsa-RHEL{version}.xml"
+    url = f"https://www.redhat.com/security/data/oval/com.redhat.rhsa-RHEL{version}.xml.bz2"
     root = get_redhat_oval_definitions(url)
 
     n_set = {
@@ -133,6 +136,7 @@ def get_oval_findings(finding_name, finding_href, severity):
             "score": "",
             "package": None,
             "packagePath": None,
+            # use old format for scan report parsing
             "scanSource": "oscap_comp",
         }
         oval_cves.append(cve_dict)
@@ -145,9 +149,11 @@ def get_redhat_oval_definitions(url):
         return oval_definitions[url]
     r = requests.get(url)
     artifact_path = f"{os.environ['ARTIFACT_DIR']}/oval_definitions-{re.sub(r'[^a-z]', '-', url)}.xml"
-    open(artifact_path, "wb").write(r.content)
+    with Path(artifact_path).open("wb") as f:
+        f.write(r.content)
     data = bz2.BZ2File(artifact_path).read()
     data_string = str(data, "utf-8")
-    open(artifact_path, "w").write(data_string)
+    with Path(artifact_path).open("w") as f:
+        f.write(data_string)
     oval_definitions[url] = etree.parse(artifact_path)
     return oval_definitions[url]

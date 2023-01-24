@@ -2,6 +2,7 @@
 
 
 import json
+from pathlib import Path
 from ironbank.pipeline.scan_report_parsers.anchore import (
     AnchoreSecurityParser,
     ReportParser,
@@ -13,7 +14,7 @@ def vulnerability_report(csv_dir, anchore_security_json, justifications):
     Generate the anchore vulnerability report
 
     """
-    with open(anchore_security_json, mode="r", encoding="utf-8") as f:
+    with Path(anchore_security_json).open("r") as f:
         json_data = json.load(f)
 
     vulns = AnchoreSecurityParser.get_vulnerabilities(json_data)
@@ -32,7 +33,6 @@ def vulnerability_report(csv_dir, anchore_security_json, justifications):
         "package_version",
         "fix",
         "url",
-        "inherited",
         "description",
         "nvd_cvss_v2_vector",
         "nvd_cvss_v3_vector",
@@ -67,7 +67,7 @@ def compliance_report(csv_dir, anchore_gates_json, justifications):
     Get results of Anchore gates for csv export, becomes anchore compliance spreadsheet
 
     """
-    with open(anchore_gates_json, encoding="utf-8") as f:
+    with Path(anchore_gates_json).open(encoding="utf-8") as f:
         json_data = json.load(f)
         sha = list(json_data.keys())[0]
         anchore_data = json_data[sha]["result"]["rows"]
@@ -95,13 +95,6 @@ def compliance_report(csv_dir, anchore_gates_json, justifications):
             gate["matched_rule_id"] = ""
             gate["whitelist_id"] = ""
             gate["whitelist_name"] = ""
-
-        try:
-            gate["inherited"] = ad[9]
-            if gate["gate"] == "dockerfile":
-                gate["inherited"] = False
-        except IndexError:
-            gate["inherited"] = "no_data"
 
         cve_justification = ""
         # ad[2] is trigger_id -- e.g. CVE-2020-####
@@ -132,7 +125,6 @@ def compliance_report(csv_dir, anchore_gates_json, justifications):
         "matched_rule_id",
         "whitelist_id",
         "whitelist_name",
-        "inherited",
         "Justification",
     ]
 

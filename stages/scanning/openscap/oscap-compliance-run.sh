@@ -1,9 +1,11 @@
 #!/bin/bash
-set -Eeuxo pipefail
-# shellcheck source=./stages/scanning/openscap/base_image_type.sh
-source "${PIPELINE_REPO_DIR}/stages/scanning/openscap/base_image_type.sh"
+set -Eeuo pipefail
 echo "Imported Base Image Type: ${BASE_IMAGE_TYPE}"
 mkdir -p "${OSCAP_SCANS}"
+podman pull --authfile "${DOCKER_AUTH_CONFIG_FILE_STAGING}" "${IMAGE_TO_SCAN}"
+set -x
+DOCKER_IMAGE_PATH=$(podman images -q)
+export DOCKER_IMAGE_PATH
 echo "${DOCKER_IMAGE_PATH}"
 
 # If OSCAP_VERSION variable doesn't exist, create the variable
@@ -28,13 +30,13 @@ profile=$(echo "${oscap_container}" | grep -o '"profile": "[^"]*' | grep -o '[^"
 securityGuide=$(echo "${oscap_container}" | grep -o '"securityGuide": "[^"]*' | grep -o '[^"]*$')
 echo "profile: ${profile}"
 echo "securityGuide: ${securityGuide}"
-oscap-podman "${DOCKER_IMAGE_PATH}" xccdf eval --verbose ERROR --fetch-remote-resources --profile "${profile}" --results compliance_output_report.xml --report report.html "${SCAP_CONTENT}/${securityGuide}" || true
-ls compliance_output_report.xml
-ls report.html
+oscap-podman "${DOCKER_IMAGE_PATH}" xccdf eval --verbose ERROR --fetch-remote-resources --profile "${profile}" --stig-viewer compliance_output_report_stigviewer.xml --results compliance_output_report.xml --report report.html "${SCAP_CONTENT}/${securityGuide}" || true
+ls compliance_output_report.xml compliance_output_report_stigviewer.xml report.html
 rm -rf "${SCAP_CONTENT}"
 echo "${OSCAP_VERSION}" >>"${OSCAP_SCANS}/oscap-version.txt"
 cp report.html "${OSCAP_SCANS}/report.html"
 cp compliance_output_report.xml "${OSCAP_SCANS}/compliance_output_report.xml"
+cp compliance_output_report_stigviewer.xml "${OSCAP_SCANS}/compliance_output_report_stigviewer.xml"
 
 echo "OSCAP_COMPLIANCE_URL=${CI_JOB_URL}" >oscap-compliance.env
 

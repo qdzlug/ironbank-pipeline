@@ -10,6 +10,24 @@ def get_oscap_guide(oscap_version, base_image_type):
     logging.debug(f"Oscap Version: {oscap_version}, Base Image Type: {base_image_type}")
 
     oscap_guides = {
+        "ubi9-container": {
+            "profile": "xccdf_org.ssgproject.content_profile_stig",
+            "securityGuide": "scap-security-guide-"
+            + str(oscap_version)
+            + "/ssg-rhel9-ds.xml",
+        },
+        "ubi9-minimal-container": {
+            "profile": "xccdf_org.ssgproject.content_profile_stig",
+            "securityGuide": "scap-security-guide-"
+            + str(oscap_version)
+            + "/ssg-rhel9-ds.xml",
+        },
+        "ubi9-micro-container": {
+            "profile": "xccdf_org.ssgproject.content_profile_stig",
+            "securityGuide": "scap-security-guide-"
+            + str(oscap_version)
+            + "/ssg-rhel9-ds.xml",
+        },
         "ubi8-container": {
             "profile": "xccdf_org.ssgproject.content_profile_stig",
             "securityGuide": "scap-security-guide-"

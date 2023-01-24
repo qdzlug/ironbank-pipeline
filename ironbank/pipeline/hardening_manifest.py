@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
+
 import os
 import sys
+import time
+import multiprocessing
+from pathlib import Path
+from typing import Optional
 import json
 import yaml
 import jsonschema
-from pathlib import Path
-import multiprocessing
-import time
 
 from ironbank.pipeline.utils import logger
 
@@ -19,7 +21,7 @@ class HardeningManifest:
     def __init__(self, hm_path: str, schema_path: str = "./", validate: bool = False):
         self.hm_path: Path = Path(hm_path)
         self.schema_path: Path = Path(schema_path)
-        with self.hm_path.open("r") as f:
+        with self.hm_path.open("r", encoding="utf-8") as f:
             tmp_content: dict = yaml.safe_load(f)
         self.image_name: str = tmp_content.get("name", "")
         # validation done in hardening manifest schema
@@ -84,9 +86,9 @@ class HardeningManifest:
 
     def validate_schema(self, conn: multiprocessing.Pipe) -> None:
         log.info("Validating schema")
-        with self.hm_path.open("r") as f:
+        with self.hm_path.open("r", encoding="utf-8") as f:
             hm_content = yaml.safe_load(f)
-        with self.schema_path.open("r") as f:
+        with self.schema_path.open("r", encoding="utf-8") as f:
             schema_content = json.load(f)
         label_regex = os.environ.get("LABEL_ALLOWLIST_REGEX", None)
         if label_regex:
@@ -105,7 +107,7 @@ class HardeningManifest:
 
     def check_for_fixme(self, subcontent: dict) -> list:
         """
-        Returns list of keys in dictionary whose value contains FIXME (case insensitve)
+        Returns list of keys in dictionary whose value contains FIXME (case insensitive)
         """
         return [
             k
@@ -113,14 +115,14 @@ class HardeningManifest:
             if isinstance(v, (str)) and "fixme" in v.lower()
         ]
 
-    def reject_invalid_labels(self, labels: str = None) -> list:
+    def reject_invalid_labels(self, labels: Optional[str] = None) -> list:
         """
-        Returns list of keys in hardening manifest labels whose value contains FIXME (case insensitve)
+        Returns list of keys in hardening manifest labels whose value contains FIXME (case insensitive)
         """
         log.info("Checking label values")
         invalid_labels = self.check_for_fixme(labels or self.labels)
         for k in invalid_labels:
-            log.error(f"FIXME found in {k}")
+            log.error("FIXME found in %s", k)
         return invalid_labels
 
     def check_for_invalid_image_source(self, subcontent: dict) -> str:
@@ -143,20 +145,20 @@ class HardeningManifest:
                 if url.startswith("docker://") or url.startswith("github://"):
                     invalid_source = self.check_for_invalid_image_source(x)
                     if invalid_source:
-                        log.info(f"Invalid image found: {invalid_source}")
+                        log.info("Invalid image found: %s", invalid_source)
                         invalid_sources.append(invalid_source)
         return invalid_sources
 
     def reject_invalid_maintainers(self) -> list:
         """
-        Returns list of keys in hardening manifest maintainers whose value contains FIXME (case insensitve)
+        Returns list of keys in hardening manifest maintainers whose value contains FIXME (case insensitive)
         """
         log.info("Checking maintainer values")
         invalid_maintainers = []
         for maintainer in self.maintainers:
             invalid_maintainers += self.check_for_fixme(maintainer)
         for k in invalid_maintainers:
-            log.error(f"FIXME found in {k}")
+            log.error("FIXME found in %s", k)
         return invalid_maintainers
 
     # TODO: Deprecate this once CI variables are replaced by modules with reusable methods
@@ -173,9 +175,15 @@ class HardeningManifest:
             f.write(f"IMAGE_VERSION={self.image_tag}\n")
             f.write(f"BASE_IMAGE={self.base_image_name}\n")
             f.write(f"BASE_TAG={self.base_image_tag}")
-            log.debug(f"IMAGE_NAME={self.image_name}\nIMAGE_VERSION={self.image_tag}")
             log.debug(
-                f"BASE_IMAGE={self.base_image_name}\nBASE_TAG={self.base_image_tag}"
+                "IMAGE_NAME=%s\nIMAGE_VERSION=%s",
+                self.image_name,
+                self.image_tag,
+            )
+            log.debug(
+                "BASE_IMAGE=%s\nBASE_TAG=%s",
+                self.base_image_name,
+                self.base_image_tag,
             )
         with (artifact_dir / "args.env").open("w") as f:
             for key, value in self.args.items():
@@ -223,14 +231,18 @@ def source_values(source_file, key) -> list:
     val_list = []
     source_file_path = Path(source_file)
     if source_file_path.exists():
-        with source_file_path.open("r") as sf:
+        with source_file_path.open("r", encoding="utf-8") as sf:
             for line in sf:
                 val_entry = line.strip()
                 val_list.append(val_entry)
                 num_vals += 1
-        log.info(f"Number of {key} detected: {num_vals}")
+        log.info(
+            "Number of %s detected: %s",
+            key,
+            num_vals,
+        )
     else:
-        log.info(source_file + " does not exist")
+        log.info("%s does not exist", source_file)
     return val_list
 
 
@@ -242,7 +254,7 @@ def get_source_keys_values(source_file) -> dict:
     """
     hm_labels = {}
     if Path(source_file).exists():
-        with Path(source_file).open("r") as sf:
+        with Path(source_file).open("r", encoding="utf-8") as sf:
             for line in sf:
                 key, value = line.rstrip().split("=", 1)
                 if key != "mil.dso.ironbank.image.keywords":
@@ -252,9 +264,9 @@ def get_source_keys_values(source_file) -> dict:
 
 def get_approval_status(source_file) -> tuple[str, str]:
     if Path(source_file).exists():
-        with Path(source_file).open("r") as sf:
+        with Path(source_file).open("r", encoding="utf-8") as sf:
             approval_object = json.load(sf)
     # TODO: Add error handling if file does not exist
-    approval_status = approval_object["accreditation"]
-    approval_text = approval_object.get("accreditationComment")
+    approval_status = approval_object["image"]["state"]["imageStatus"]
+    approval_text = approval_object["image"]["state"].get("reason", "")
     return approval_status, approval_text

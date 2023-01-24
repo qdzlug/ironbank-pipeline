@@ -430,14 +430,14 @@ Fill dictionary `new_data` with a top level element equal to the pipeline build 
 logging.debug(f"repo_map data:\n{new_data}")
 
     if existing_repomap:
-        with open("repo_map.json", "r+") as f:
+        with Path("repo_map.json").open("r+") as f:
             data = json.load(f)
             data.update(new_data)
             f.seek(0, 0)
             f.truncate()
             json.dump(data, f, indent=4)
     else:
-        with open("repo_map.json", "w") as outfile:
+        with Path("repo_map.json").open("w") as outfile:
             json.dump(new_data, outfile, indent=4, sort_keys=True)
 ```
 
@@ -496,7 +496,7 @@ key, <span style="color:aqua"><b>String</b></span>
     num_vals = 0
     val_list = []
     if os.path.exists(source_file):
-        with open(source_file, mode="r", encoding="utf-8") as sf:
+        with Path(source_file).open("r") as sf:
             for line in sf:
                 val_entry = line.strip()
                 val_list.append(val_entry)
@@ -531,7 +531,7 @@ source_file, <span style="color:aqua"><b>String</b></span>
 def _get_source_keys_values(source_file):
     hm_labels = {}
     if os.path.exists(source_file):
-        with open(source_file, mode="r", encoding="utf-8") as sf:
+        with Path(source_file).open("r") as sf:
             for line in sf:
                 key, value = line.rstrip().split("=", 1)
                 if key != "mil.dso.ironbank.image.keywords":
@@ -553,7 +553,7 @@ source_file, <span style="color:aqua"><b>String</b></span>
 ```py
 def _get_approval_status(source_file):
     if os.path.exists(source_file):
-        with open(source_file, mode="r", encoding="utf-8") as sf:
+        with Path(source_file).open("r") as sf:
             approval_object = json.load(sf)
     approval_status = approval_object["IMAGE_APPROVAL_STATUS"]
     approval_text = approval_object["IMAGE_APPROVAL_TEXT"]

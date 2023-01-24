@@ -12,6 +12,7 @@ import shutil
 import glob
 import csv
 import json
+from pathlib import Path
 
 
 def get_project(gl, group, project):
@@ -25,7 +26,7 @@ def get_job_artifacts(gl, project_obj):
             logging.INFO("Dry Run, continuing to find the last relevant job")
         else:
             file_name = "__artifacts.zip"
-            with open(file_name, "wb") as f:
+            with Path(file_name).open("wb") as f:
                 j.artifacts(streamed=True, action=f.write)
             zip = zipfile.ZipFile(file_name)
             zip.extractall()
@@ -59,7 +60,7 @@ def parse_trigger_files(gl, files):
     files = glob.glob("finished_pipleines_*.{}".format(extension))
     vat_diff = {}
     for file in files:
-        with open(file, newline="") as csvfile:
+        with Path(file).open(newline="") as csvfile:
             csv_reader = csv.reader(csvfile, delimiter=",", quotechar="|")
             for row in csv_reader:
                 if "vat compare" in row:
@@ -84,7 +85,7 @@ def parse_trigger_files(gl, files):
                                 )
                             except:
                                 print("404")
-    with open("vat_complete_diff.json", "w") as f:
+    with Path("vat_complete_diff.json").open("w") as f:
         json.dump(vat_diff, f, indent=4)
 
 

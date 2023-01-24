@@ -2,22 +2,22 @@
 
 import os
 import sys
-import pytest
 import yaml
+import pytest
 import pathlib
-from requests.exceptions import HTTPError
-from botocore.exceptions import ClientError
 from subprocess import CalledProcessError
-from ironbank.pipeline.hardening_manifest import HardeningManifest
+from requests.exceptions import HTTPError
+from ironbank.pipeline.utils import logger
+from botocore.exceptions import ClientError
 from ironbank.pipeline.project import DsopProject
+from ironbank.pipeline.utils.testing import raise_
+from ironbank.pipeline.utils.exceptions import InvalidURLList
+from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.artifacts import (
     S3Artifact,
     HttpArtifact,
     ContainerArtifact,
 )
-from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.testing import raise_
-from ironbank.pipeline.utils.exceptions import InvalidURLList
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import downloader  # noqa E402
@@ -146,13 +146,15 @@ def test_main_class_assignment(
         monkeypatch.setattr(DsopProject, "__init__", mock_dsop)
         monkeypatch.setattr(HardeningManifest, "__init__", mock_hm)
 
-    log.info("It should exit 0 on empty resources section")
+    log.info("Test exit 0 on empty resources section")
     with pytest.raises(SystemExit) as se:
         monkeypatch.setattr(DsopProject, "__init__", mock_dsop_init)
         monkeypatch.setattr(HardeningManifest, "__init__", mock_hm_init)
         downloader.main()
     assert se.value.code == 0
     caplog.clear()
+
+    log.info("Test exit 0 on bad URL scheme")
 
     def mock_hm_init_bad_scheme(self, hm_path):
         self.resources = mock_bad_scheme_resources
@@ -164,7 +166,7 @@ def test_main_class_assignment(
     assert se.value.code == 1
     caplog.clear()
 
-    log.info("It should use the correct class for each HTTP scheme")
+    log.info("Test use of correct class for each HTTP scheme")
 
     def mock_hm_init_s3(self, hm_path):
         self.resources = mock_s3_resources
@@ -233,6 +235,8 @@ def test_main_exceptions(monkeypatch, caplog, mock_s3_resources):
 
     monkeypatch.setattr(DsopProject, "__init__", mock_dsop_init)
     monkeypatch.setattr(HardeningManifest, "__init__", mock_hm_init)
+
+    log.info("Test various exceptions are caught and handled as expected")
 
     with pytest.raises(SystemExit):
         monkeypatch.setattr(

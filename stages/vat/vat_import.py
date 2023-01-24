@@ -3,18 +3,28 @@
 import sys
 import json
 import os
-import argparse
+import shutil
 import logging
+import tempfile
+import argparse
 from pathlib import Path
+from base64 import b64decode
+from itertools import groupby
 import requests
 from requests.structures import CaseInsensitiveDict
 
+from ironbank.pipeline.image import Image
+from ironbank.pipeline.project import DsopProject
+from ironbank.pipeline.container_tools.cosign import Cosign
+from ironbank.pipeline.utils.predicates import get_predicate_files
 from ironbank.pipeline.scan_report_parsers.anchore import AnchoreSecurityParser
 from ironbank.pipeline.get_oscap_failures import generate_oscap_jobs
 from ironbank.pipeline.hardening_manifest import (
+    HardeningManifest,
     source_values,
     get_source_keys_values,
 )
+
 
 parser = argparse.ArgumentParser(
     description="DCCSCR processing of CVE reports from various sources"
@@ -222,6 +232,7 @@ def generate_anchore_comp_jobs(anchore_comp_path):
                 "score": "",
                 "package": None,
                 "packagePath": None,
+                # use old format for scan report parsing
                 "scanSource": "anchore_comp",
             }
             acomps.append(vuln_rec)
@@ -229,44 +240,75 @@ def generate_anchore_comp_jobs(anchore_comp_path):
     return acomps
 
 
+def get_package_paths(twistlock_data):
+    """
+    Return a dict of (package_name, package_path) mapped to a list of paths.
+    """
+
+    def packages():
+        # Often go versions of binaries are in "applications"
+        yield from twistlock_data.get("applications", [])
+
+        # Python/RPM/Go/etc package versions are in "packages"
+        yield from twistlock_data.get("packages", [])
+
+    # Sort and group by name and version
+    keyfunc = lambda x: (x["name"], x["version"])  # noqa E731
+
+    pkg_paths = {}
+    sorted_pkgs = sorted(packages(), key=keyfunc)
+    grouped_pkgs = groupby(sorted_pkgs, key=keyfunc)
+
+    for k, pkgs in grouped_pkgs:
+        path_set = {p.get("path", None) for p in pkgs}
+        pkg_paths[k] = path_set
+
+    return pkg_paths
+
+
+def get_vulnerabilities(twistlock_data):
+    """
+    Convert the the Twistlock API JSON response to the VAT import format.
+    """
+
+    packages = get_package_paths(twistlock_data)
+
+    try:
+        for v in twistlock_data.get("vulnerabilities", []):
+            key = v["packageName"], v["packageVersion"]
+            severity = (
+                "low"
+                if v.get("severity").lower() == "unimportant"
+                else v.get("severity").lower()
+            )
+            for path in packages.get(key, [None]):
+                yield {
+                    "finding": v["id"],
+                    "severity": severity,
+                    "description": v.get("description"),
+                    "link": v.get("link"),
+                    "score": v.get("cvss"),
+                    "package": f"{v['packageName']}-{v['packageVersion']}",
+                    "packagePath": path,
+                    "scanSource": "twistlock_cve",
+                    "reportDate": v.get("publishedDate"),
+                    "identifiers": [v["id"]],
+                }
+    except KeyError as e:
+        logging.error(
+            "Missing key. Please contact the Iron Bank Pipeline and Ops (POPs) team"
+        )
+        logging.error(e.args)
+        sys.exit(1)
+
+
 # Get results from Twistlock report for finding generation
 def generate_twistlock_jobs(twistlock_cve_path):
     tc_path = Path(twistlock_cve_path)
     with tc_path.open(mode="r", encoding="utf-8") as f:
         json_data = json.load(f)
-    cves = []
-    if "vulnerabilities" in json_data["results"][0]:
-        for v_d in json_data["results"][0]["vulnerabilities"]:
-            # get associated justification if one exists
-            identifiers = []
-            identifiers.append(v_d["id"])
-            severity = (
-                "low"
-                if v_d["severity"].lower() == "unimportant"
-                else v_d["severity"].lower()
-            )
-            try:
-                cves.append(
-                    {
-                        "finding": v_d["id"],
-                        "severity": severity,
-                        "description": v_d.get("description"),
-                        "link": v_d.get("link"),
-                        "score": v_d.get("cvss"),
-                        "package": v_d["packageName"] + "-" + v_d["packageVersion"],
-                        "packagePath": None,
-                        "scanSource": "twistlock_cve",
-                        "reportDate": v_d.get("publishedDate"),
-                        "identifiers": identifiers,
-                    }
-                )
-            except KeyError as e:
-                logging.error(
-                    "Missing key. Please contact the Iron Bank Pipeline and Ops (POPs) team"
-                )
-                logging.error(e.args)
-                sys.exit(1)
-    return cves
+
+    return list(get_vulnerabilities(json_data["results"][0]))
 
 
 def create_api_call():
@@ -290,19 +332,19 @@ def create_api_call():
     if args.oscap and not os.environ.get("DISTROLESS"):
         logging.debug("Importing oscap findings")
         os_jobs = generate_oscap_jobs(args.oscap)
-        logging.debug(f"oscap finding count: {len(os_jobs)}")
+        logging.debug("oscap finding count: %s", len(os_jobs))
     if args.anchore_sec:
         logging.debug("Importing anchore security findings")
         asec_jobs = generate_anchore_cve_jobs(args.anchore_sec)
-        logging.debug(f"Anchore security finding count: {len(asec_jobs)}")
+        logging.debug("Anchore security finding count: %s", len(asec_jobs))
     if args.anchore_gates:
         logging.debug("Importing importing anchore compliance findings")
         acomp_jobs = generate_anchore_comp_jobs(args.anchore_gates)
-        logging.debug(f"Anchore compliance finding count: {len(acomp_jobs)}")
+        logging.debug("Anchore compliance finding count: %s", len(acomp_jobs))
     if args.twistlock:
         logging.debug("Importing twistlock findings")
         tl_jobs = generate_twistlock_jobs(args.twistlock)
-        logging.debug(f"Twistlock finding count: {len(tl_jobs)}")
+        logging.debug("Twistlock finding count: %s", len(tl_jobs))
     all_jobs = tl_jobs + asec_jobs + acomp_jobs + os_jobs
     large_data = {
         "imageName": args.container,
@@ -328,16 +370,45 @@ def create_api_call():
     return large_data
 
 
+def get_parent_vat_response(output_dir: str, hardening_manifest: HardeningManifest):
+    base_image = Image(
+        registry=os.environ["BASE_REGISTRY"],
+        name=hardening_manifest.base_image_name,
+        tag=hardening_manifest.base_image_tag,
+    )
+    vat_response_predicate = "https://vat.dso.mil/api/p1/predicate/beta1"
+    with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
+        docker_config = Path(docker_config_dir, "config.json")
+        pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("UTF-8")
+        docker_config.write_text(pull_auth, encoding="utf-8")
+        Cosign.download(
+            base_image,
+            output_dir=output_dir,
+            docker_config_dir=docker_config_dir,
+            predicate_types=[vat_response_predicate],
+        )
+        predicate_path = Path(output_dir, get_predicate_files()[vat_response_predicate])
+        parent_vat_path = Path(output_dir, "parent_vat_response.json")
+        shutil.move(predicate_path, parent_vat_path)
+
+
 def main():
+
+    dsop_project = DsopProject()
+    hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
+    if hardening_manifest.base_image_name:
+        get_parent_vat_response(
+            output_dir=os.environ["ARTIFACT_DIR"], hardening_manifest=hardening_manifest
+        )
+
+    vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
     if not args.use_json:
         large_data = create_api_call()
-        with open(f"{os.environ['ARTIFACT_DIR']}/vat_request.json", "w") as outfile:
+        with vat_request_json.open("w", encoding="utf-8") as outfile:
             json.dump(large_data, outfile)
     else:
-        with open(
-            f"{os.environ['ARTIFACT_DIR']}/vat_request.json", encoding="utf-8"
-        ) as o_f:
-            large_data = json.loads(o_f.read())
+        with vat_request_json.open(encoding="utf-8") as infile:
+            large_data = json.load(infile)
 
     headers = CaseInsensitiveDict()
     headers["Content-Type"] = "application/json"
@@ -345,9 +416,11 @@ def main():
     try:
         resp = requests.post(args.api_url, headers=headers, json=large_data)
         resp.raise_for_status()
-        logging.debug(f"API Response:\n{resp.text}")
-        logging.debug(f"POST Response: {resp.status_code}")
-        with open(f"{os.environ['ARTIFACT_DIR']}/vat_response.json", "w") as outfile:
+        logging.debug("API Response:\n%s", resp.text)
+        logging.debug("POST Response: %s", resp.status_code)
+        with Path(f"{os.environ['ARTIFACT_DIR']}/vat_response.json").open(
+            "w", encoding="utf-8"
+        ) as outfile:
             json.dump(resp.json(), outfile)
     except RuntimeError:
         logging.exception("RuntimeError: API Call Failed")
@@ -355,7 +428,7 @@ def main():
     except requests.exceptions.HTTPError:
         # only include errors provided by VAT endpoint
         if resp.text and resp.status_code != 500:
-            logging.error(f"API Response:\n{resp.text}")
+            logging.error("API Response:\n%s", resp.text)
         logging.exception("HTTP error")
         sys.exit(1)
     except requests.exceptions.RequestException:

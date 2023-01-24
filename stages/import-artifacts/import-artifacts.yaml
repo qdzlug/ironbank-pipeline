@@ -3,13 +3,16 @@ import-artifacts:
   needs:
     - load-scripts
     - lint
+    - job: trufflehog
+      artifacts: false
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/import-artifacts"
     REQUESTS_CA_BUNDLE: "/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt"
   script:
     - 'echo "${REQUESTS_CA_BUNDLE}"'
-    - 'pip install --user "${PIPELINE_REPO_DIR}"'
-    - '"${PIPELINE_REPO_DIR}/stages/import-artifacts/import-run.sh"'
+    - 'pip install --user --no-deps "${PIPELINE_REPO_DIR}"'
+    - 'mkdir -p "${ARTIFACT_DIR}/external-resources/" "${ARTIFACT_DIR}/images/"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/import-artifacts/downloader.py"'
   artifacts:
     when: always
     paths:

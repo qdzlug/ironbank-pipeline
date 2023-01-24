@@ -1,18 +1,19 @@
 import pytest
 import pathlib
-from unittest.mock import mock_open
-from ironbank.pipeline.utils.exceptions import SymlinkFoundError
 from pathlib import Path
+from unittest.mock import mock_open
+from ironbank.pipeline.utils import logger
 from mocks.mock_classes import MockProject, MockPath
+from ironbank.pipeline.utils.exceptions import SymlinkFoundError
+
+
+log = logger.setup("test_project")
 
 
 def test_validate(monkeypatch):
     mock_project = MockProject()
     monkeypatch.setattr(MockProject, "validate_no_symlinked_files", lambda self: None)
     monkeypatch.setattr(MockProject, "validate_files_exist", lambda self: None)
-    monkeypatch.setattr(
-        MockProject, "validate_clamav_whitelist_config", lambda self: None
-    )
     monkeypatch.setattr(MockProject, "validate_trufflehog_config", lambda self: None)
     monkeypatch.setattr(MockProject, "validate_dockerfile", lambda self: None)
     mock_project.validate()
@@ -41,40 +42,6 @@ def test_validate_files_exist(monkeypatch):
         mock_project.validate_files_exist()
 
     assert "Jenkinsfile found" in ae.value.args[0]
-
-
-def test_validate_clamav_whitelist_config(monkeypatch, caplog):
-
-    monkeypatch.setenv("CLAMAV_WHITELIST", 1)
-    monkeypatch.setattr(MockPath, "exists", lambda self: True)
-    mock_project = MockProject()
-    mock_project.validate_clamav_whitelist_config()
-
-    monkeypatch.setenv("CLAMAV_WHITELIST", "")
-    monkeypatch.setattr(MockPath, "exists", lambda self: False)
-    mock_project = MockProject()
-    mock_project.validate_clamav_whitelist_config()
-
-    with pytest.raises(SystemExit) as se:
-        monkeypatch.setenv("CLAMAV_WHITELIST", "True")
-        monkeypatch.setattr(MockPath, "exists", lambda self: False)
-        mock_project = MockProject()
-        mock_project.validate_clamav_whitelist_config()
-    assert se.value.code == 1
-    assert (
-        "CLAMAV_WHITELIST CI variable exists but clamav-whitelist file not found"
-        in caplog.text
-    )
-    caplog.clear()
-
-    with pytest.raises(SystemExit) as se:
-        monkeypatch.setenv("CLAMAV_WHITELIST", "")
-        monkeypatch.setattr(MockPath, "exists", lambda self: True)
-        mock_project = MockProject()
-        mock_project.validate_clamav_whitelist_config()
-    assert se.value.code == 1
-    assert "clamav-whitelist file found but CLAMAV_WHITELIST CI variable does not exist"
-    caplog.clear()
 
 
 def test_validate_trufflehog_config(monkeypatch, caplog):

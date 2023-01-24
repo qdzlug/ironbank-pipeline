@@ -14,15 +14,13 @@ vat:
     - anchore-scan
     - openscap-compliance
     - twistlock-scan
+    - run-logic
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/vat"
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: vat
-    ANCHORE_ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/anchore/"
-    TWISTLOCK_ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/openscap/"
-    OPENSCAP_ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/twistlock/"
   script:
     - 'mkdir -p "${ARTIFACT_DIR}"'
-    - 'pip install --user "${PIPELINE_REPO_DIR}"'
+    - 'pip install --user --no-deps "${PIPELINE_REPO_DIR}"'
     - '"${PIPELINE_REPO_DIR}/stages/vat/vat-run-api.sh"'
   artifacts:
     when: always

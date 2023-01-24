@@ -2,7 +2,7 @@
 
 import os
 from typing import Optional
-from dateutil import parser
+from dateutil import parser as dateparser
 from datetime import datetime, timezone
 
 
@@ -29,25 +29,25 @@ def is_approved(
     ft_ineligible_findings = False
     approval_status = "notapproved"
     approval_comment = None
-    exists_in_vat = bool(vat_resp_dict)
+    vat_image = vat_resp_dict["image"]
+
+    exists_in_vat = bool(vat_image)
     # Check accreditation
     force_approval = os.environ.get("FORCE_APPROVAL", "false") in ("True", "true", "1")
     if exists_in_vat:
         log.info(
-            f"VAT image {vat_resp_dict['imageName']}:{vat_resp_dict['imageTag']} {vat_resp_dict['vatUrl']}"
+            f"VAT image {vat_image['imageName']}:{vat_image['tag']} {vat_image['vatUrl']}"
         )
-        accredited = _is_accredited(vat_resp_dict)
-        if "accreditationComment" in vat_resp_dict:
-            approval_comment = vat_resp_dict["accreditationComment"]
-        approval_status = vat_resp_dict["accreditation"]
+        accredited = _is_accredited(vat_image)
+        if "reason" in vat_image["state"]:
+            approval_comment = vat_image["state"]["reason"]
+        approval_status = vat_image["state"]["imageStatus"]
         # Check earliest expiration
-        not_expired = _check_expiration(vat_resp_dict)
+        not_expired = _check_expiration(vat_image)
 
         # Check CVEs - print unapproved findings on Check CVEs stage
         if check_ft_findings:
-            ft_eligible_findings, ft_ineligible_findings = _check_findings(
-                vat_resp_dict
-            )
+            ft_eligible_findings, ft_ineligible_findings = _check_findings(vat_image)
     branch = os.environ["CI_COMMIT_BRANCH"]
     approved = _get_approval_status(
         exists_in_vat,
@@ -78,7 +78,7 @@ def is_approved(
     )
 
 
-def _is_accredited(vat_resp_dict) -> bool:
+def _is_accredited(vat_image: dict) -> bool:
     """
     Checks if a container's 'accreditation' is Conditionally Approved, or Approved
 
@@ -88,13 +88,13 @@ def _is_accredited(vat_resp_dict) -> bool:
         False indicates not accredited.
     """
     # Check accreditation
-    if vat_resp_dict["accreditation"] in ("Conditionally Approved", "Approved"):
-        return True
-    else:
-        return False
+    return vat_image["state"]["imageStatus"] in (
+        "Conditionally Approved",
+        "Approved",
+    )
 
 
-def _check_expiration(vat_resp_dict) -> bool:
+def _check_expiration(vat_image: dict) -> bool:
     """
     Checks if a container's 'earliestExpiration'. If key is present, check if current date is previous to expiration date. If 'earliestExpiration' key is not found, return True
 
@@ -104,9 +104,10 @@ def _check_expiration(vat_resp_dict) -> bool:
         False indicates container's accreditation has expired
     """
     # Check earliest expiration
-    if "earliestExpiration" in vat_resp_dict:
-        expiration_date = parser.parse(vat_resp_dict["earliestExpiration"])
-        return datetime.now(timezone.utc) < expiration_date
+    approval_factors = vat_image["state"]["factors"]
+    if "expiration" in approval_factors.get("caReview", {}):
+        expiration_date = dateparser.parse(approval_factors["caReview"]["expiration"])
+        return datetime.now(timezone.utc) < expiration_date.replace(tzinfo=timezone.utc)
     else:
         return True
 
@@ -148,7 +149,7 @@ def _get_approval_status(
         return not ft_ineligible_findings
 
 
-def _check_findings(vat_resp_dict) -> tuple[bool, bool]:
+def _check_findings(vat_image: dict) -> tuple[bool, bool]:
     """
     Pulls all non-approved findings into a list
     Then separates these into two lists of fast-track (ft) eligible and ft-ineligible findings
@@ -159,13 +160,15 @@ def _check_findings(vat_resp_dict) -> tuple[bool, bool]:
     ft_ineligible = False
     ft_eligible_findings = []
     ft_ineligible_findings = []
-    findings: list[dict] = vat_resp_dict["findings"]
+    findings: list[dict] = vat_image["findings"]
     # pull out findings that are not approved into a list to be used for finding ft eligible and ft ineligible findings
-    for unapproved in (
+    unapproved_findings = [
         finding
         for finding in findings
-        if finding["findingsState"] not in ("approved", "conditional")
-    ):
+        # findings cannot be conditionally approved
+        if finding["state"]["findingStatus"] not in ("Approved")
+    ]
+    for unapproved in unapproved_findings:
         # if a finding can be fast tracked, the key of fastTrackEligibility will exist in the finding
         # also confirm that list of ft codes is not empty. This should never be the case and this check may be able to be removed in the future.
         # //TODO Review with VAT team if ONLY checking for "fastTrackEligibility" key is sufficient for this logic check
@@ -208,7 +211,7 @@ def log_finding(findings: list, log_type: str) -> None:
     for finding in findings:
         log.log(
             log_level,
-            f"{finding_color}{finding['identifier']:<20} {finding['source']:20} {finding.get('severity', ''):20} {finding.get('package', ''):35} {finding.get('packagePath', ''):45} {colors['white']}{finding['inheritsFrom'] if finding['inheritsFrom'] else 'Uninherited'}",
+            f"{finding_color}{finding['identifier']:<20} {finding['scannerName']:20} {finding.get('severity', ''):20} {finding.get('package', ''):35} {finding.get('packagePath', ''):45} {colors['white']}{finding['inheritsFrom'] if finding['inheritsFrom'] else 'Uninherited'}",
         )
     return
 
@@ -216,7 +219,7 @@ def log_finding(findings: list, log_type: str) -> None:
 def log_findings_header(log_level: int) -> None:
     values = {
         "identifier": "Identifier",
-        "source": "Source",
+        "scannerName": "Scanner Name",
         "severity": "Severity",
         "package": "Package",
         "packagePath": "Package Path",
@@ -224,7 +227,7 @@ def log_findings_header(log_level: int) -> None:
     }
     log.log(
         log_level,
-        f"{values['identifier']:<20} {values['source']:20} {values.get('severity', ''):20} {values.get('package', ''):35} {values.get('packagePath', ''):45} {values['inheritsFrom']}",
+        f"{values['identifier']:<20} {values['scannerName']:20} {values.get('severity', ''):20} {values.get('package', ''):35} {values.get('packagePath', ''):45} {values['inheritsFrom']}",
     )
     return
 
@@ -238,29 +241,34 @@ def sort_justifications(vat_resp_dict) -> tuple[dict, dict, dict, dict]:
 
         oscap, twistlock, anchore cve, anchore compliance
     """
+
+    # use new scan source formats for vat report parsing
     sources: dict[str, dict] = {
-        "anchore_cve": {},
-        "anchore_comp": {},
-        "oscap_comp": {},
-        "twistlock_cve": {},
+        "Anchore CVE": {},
+        "Anchore Compliance": {},
+        "OSCAP Compliance": {},
+        "Twistlock CVE": {},
     }
 
-    for finding in vat_resp_dict["findings"]:
-        if finding["findingsState"] in ("approved", "conditionally approved"):
+    for finding in vat_resp_dict["image"]["findings"]:
+        if finding["state"]["findingStatus"].lower() in (
+            "approved",
+            "conditionally approved",
+        ):
             search_id = (
                 finding["identifier"],
-                finding["package"] if "package" in finding else None,
-                finding["packagePath"] if "packagePath" in finding else None,
+                finding.get("package", None),
+                finding.get("packagePath", None),
             )
-            sources[finding["source"]][search_id] = (
-                finding["contributor"]["justification"]
+            sources[finding["scannerName"]][search_id] = (
+                finding["justificationGate"]["justification"]
                 if not finding["inheritsFrom"]
                 else "Inherited from base image."
             )
 
     return (
-        sources["oscap_comp"],
-        sources["twistlock_cve"],
-        sources["anchore_cve"],
-        sources["anchore_comp"],
+        sources["Anchore CVE"],
+        sources["Anchore Compliance"],
+        sources["OSCAP Compliance"],
+        sources["Twistlock CVE"],
     )

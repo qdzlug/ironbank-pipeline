@@ -37,10 +37,10 @@ def main() -> None:
 
     image = os.environ["IMAGE_FULLTAG"]
 
-    anchore_scan.generate_sbom(image, artifacts_path, "cyclonedx", "xml")
+    anchore_scan.generate_sbom(image, artifacts_path, "cyclonedx-json", "json")
     anchore_scan.generate_sbom(image, artifacts_path, "spdx-tag-value", "txt")
     anchore_scan.generate_sbom(image, artifacts_path, "spdx-json", "json")
-    anchore_scan.generate_sbom(image, artifacts_path, "json", "json")
+    anchore_scan.generate_sbom(image, artifacts_path, "json", "json", "syft")
 
 
 if __name__ == "__main__":

@@ -10,5 +10,17 @@ class SymlinkFoundError(Exception):
     pass
 
 
-class ORASDownloadError(Exception):
+class CosignDownloadError(Exception):
+    pass
+
+
+class MaxRetriesException(Exception):
+    pass
+
+
+class GenericSubprocessError(Exception):
+    pass
+
+
+class RepoTypeNotSupported(Exception):
     pass

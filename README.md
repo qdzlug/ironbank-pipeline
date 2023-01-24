@@ -58,7 +58,7 @@ The `lint` scripts run, include:
 
 #### folder-structure
 
-The `folder_structure` function will check for the required files, and validate some of these as well, excluding the hardening manifest, as a separate functions will check this.
+The `folder_structure` function will check for the required files, and validate some of these as well, excluding the hardening manifest as a separate functions will check this.
 
 - validate_files_exist
 - validate_clamav_whitelist_config
@@ -150,8 +150,27 @@ The formats are:
 
 ### scan-logic
 
-This job will perform a comparison of the SBOM and access log created in the current pipeline, and the artifacts stored in Registry1.
-The intent is to determine the image that should be scanned, and if the image deployed to Registry1, should be updated, or just the scan artifacts.
+The intent of this script is to compare old vs new images and determine which should be scanned.
+
+Sequence:
+
+1. Write new image details (name, tag, commit, digest, build date) to env file
+1. Parse New Image Packages
+   - Using the access_log and SBOM artifacts from previous pipeline stages, parse each file, log, and save the list of packages for use later
+1. Verify Old Image
+   - Check if manifest exists (this is not a new tag)
+     - From the old image manifest:
+       - Check if git commit SHA is the same as old image
+       - Check if parent digest is the same as old image
+   - Go to next step if the manifest exists, commit SHAs are the same, and parent digests are the same
+   - Otherwise, if there is a difference, log that we must scan new image and exit
+1. Parse Old Image Packages
+   - Using the access_log and SBOM artifacts from the old image's Cosign attestation, parse, log, and save the list of packages for use later
+1. Compare the package lists for old and new image
+   - If package list match
+     - Log that we can scan old image
+     - Update env file with old image details (name, tag, commit, digest, build date)
+   - If not, log that we can scan new image and exit
 
 ### scanning
 

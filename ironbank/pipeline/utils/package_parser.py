@@ -38,6 +38,50 @@ class YumPackage(ParsedURLPackage):
 
 
 @dataclass(slots=True, frozen=True)
+class AptPackage(ParsedURLPackage):
+    kind: str = field(init=False, default="deb")
+
+    @classmethod
+    def parse(cls, url) -> Optional[Package]:
+        if url.startswith("dists"):
+            return None
+
+        match = re.match(
+            r"(?:^|.+\/)(?P<name>[^/]+)_(?P<version>[^/]*)_[^/]+.deb",
+            url,
+        )
+
+        if not match:
+            raise ValueError(f"Could not parse apt URL: {url}")
+
+        return AptPackage(
+            name=match.group("name"), version=match.group("version"), url=url
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class ApkPackage(ParsedURLPackage):
+    kind: str = field(init=False, default="apk")
+
+    @classmethod
+    def parse(cls, url) -> Optional[Package]:
+        if "APKINDEX" in url:
+            return None
+
+        match = re.match(
+            r"(?:^|.+/)(?P<name>[^/]+)-(?P<version>[0-9][^/]*(-[a-z][0-9]+)?).apk",
+            url,
+        )
+
+        if not match:
+            raise ValueError(f"Could not parse apk URL: {url}")
+
+        return ApkPackage(
+            name=match.group("name"), version=match.group("version"), url=url
+        )
+
+
+@dataclass(slots=True, frozen=True)
 class GoPackage(ParsedURLPackage):
     kind: str = field(init=False, default="go")
 
@@ -74,7 +118,7 @@ class PypiPackage(ParsedURLPackage):
             return None
 
         match = re.match(
-            r"^packages/(?P<name>[^/]+)/(?P<version>[^/]+)/(?P<filename>[^/]+)\.(?P<ext>tar\.gz|whl|tar\.gz\.asc|whl\.asc)$",
+            r"^packages/(?P<name>[^/]+)/(?P<version>[^/]+)/(?P<filename>[^/]+)\.(?P<ext>tar\.gz|whl|tar\.gz\.asc|whl\.asc|zip)$",
             url,
         )
 
@@ -132,6 +176,8 @@ class RubyGemPackage(ParsedURLPackage):
 
 @dataclass(slots=True, frozen=True)
 class NullPackage(ParsedURLPackage):
+    kind: str = field(init=False, default=None)
+
     @classmethod
     def parse(cls, url) -> None:
         return None

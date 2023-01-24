@@ -1,8 +1,7 @@
 import os
-import pathlib
-import subprocess
 import requests
 import boto3
+from pathlib import Path
 from urllib.parse import urlparse
 from requests.auth import HTTPBasicAuth
 from .utils import logger
@@ -10,11 +9,13 @@ from dataclasses import dataclass
 from base64 import b64decode
 from typing import Union
 from .utils.decorators import request_retry
-from .utils.exceptions import InvalidURLList, ORASDownloadError
+from .utils.exceptions import InvalidURLList
 from .abstract_artifacts import (
     AbstractArtifact,
     AbstractFileArtifact,
 )
+from ironbank.pipeline.image import Image, ImageFile
+from ironbank.pipeline.container_tools.skopeo import Skopeo
 
 
 @dataclass
@@ -124,14 +125,15 @@ class HttpArtifact(AbstractFileArtifact):
 
 @dataclass
 class ContainerArtifact(AbstractArtifact):
-    # artifact_path: pathlib.Path = pathlib.Path(f'{os.environ.get('ARTIFACT_DIR')/images/')
+    # artifact_path: Path = Path(f'{os.environ.get('ARTIFACT_DIR')/images/')
     log: logger = logger.setup("ContainerArtifact")
-    authfile: pathlib.Path = pathlib.Path("tmp", "prod_auth.json")
+    authfile: str = os.environ.get("DOCKER_AUTH_CONFIG_FILE_PULL")
 
     def __post_init__(self):
         super().__post_init__()
+        self.url = self.url.replace("docker://", "")
         self.__tar_name = self.tag.replace("/", "-").replace(":", "-")
-        self.artifact_path = pathlib.Path(self.dest_path, f"{self.__tar_name}.tar")
+        self.artifact_path = Path(self.dest_path, f"{self.__tar_name}.tar")
 
     def get_credentials(self) -> str:
         username, password = self.get_username_password()
@@ -146,127 +148,23 @@ class ContainerArtifact(AbstractArtifact):
             self.delete_artifact()
 
         self.log.info(f"Pulling {self.url}")
-        pull_cmd = [
-            "skopeo",
-            "copy",
-        ]
-        # authfile may not exist when testing locally
-        pull_cmd += [f"--authfile={self.authfile}"] if self.authfile.exists() else []
-        pull_cmd += ["--remove-signatures", "--additional-tag", self.tag]
-        pull_cmd += ["--src-creds", self.get_credentials()] if self.auth else []
-        # add src and dest
-        pull_cmd += [self.url, f"docker-archive:{self.artifact_path}"]
-        subprocess.run(
-            args=pull_cmd,
-            stdout=subprocess.PIPE,
-            stdin=subprocess.PIPE,
-            check=True,
+
+        # transport should already be included
+        # TODO: check for existing transport
+        src = Image(url=self.url, transport="docker://")
+        dest = ImageFile(file_path=self.artifact_path, transport="docker-archive:")
+
+        skopeo = Skopeo(authfile=self.authfile)
+        skopeo.copy(
+            src=src,
+            dest=dest,
+            remove_signatures=True,
+            additional_tags=self.tag,
+            src_creds=self.get_credentials() if self.auth else None,
+            log_cmd=True,
         )
+
         self.log.info("Successfully pulled")
-
-
-@dataclass
-class ORASArtifact(AbstractArtifact):
-    log: logger = logger.setup("ORASArtifact")
-
-    def __post_init__(self):
-        pass
-
-    def get_credentials(self) -> None:
-        pass
-
-    @classmethod
-    def find_sbom(cls, img_path: str, docker_config_dir: str) -> str:
-        triangulate_cmd = [
-            "cosign",
-            "triangulate",
-            "--type",
-            "sbom",
-            f"{img_path}",
-        ]
-        cls.log.info(triangulate_cmd)
-        try:
-            sbom = subprocess.run(
-                triangulate_cmd,
-                encoding="utf-8",
-                stdout=subprocess.PIPE,
-                check=True,
-                env={
-                    "PATH": os.environ["PATH"],
-                    "DOCKER_CONFIG": docker_config_dir,
-                },
-            )
-            return sbom.stdout
-        except subprocess.SubprocessError:
-            raise ORASDownloadError(
-                f"Cosign Triangulate Failed | Could not locate SBOM for {img_path}"
-            )
-
-    @classmethod
-    def verify(cls, sbom: str, docker_config_dir: str):
-        try:
-            cert = pathlib.Path(
-                os.environ.get("PIPELINE_REPO_DIR"),
-                "scripts",
-                "cosign",
-                "cosign-certificate.pem",
-            )
-            if not cert.is_file():
-                raise FileNotFoundError
-
-            verify_cmd = [
-                "cosign",
-                "verify",
-                "--cert",
-                cert.as_posix(),
-                sbom,
-            ]
-            cls.log.info(verify_cmd)
-            subprocess.run(
-                verify_cmd,
-                encoding="utf-8",
-                check=True,
-                env={
-                    "PATH": os.environ["PATH"],
-                    "DOCKER_CONFIG": docker_config_dir,
-                },
-            )
-        except subprocess.SubprocessError:
-            raise ORASDownloadError(
-                f"Cosign Verify Failed | Could not verify signature for {sbom}"
-            )
-        except FileNotFoundError:
-            raise ORASDownloadError(
-                f"Cosign Verify Failed | Could not find cert file: {cert}"
-            )
-
-    @classmethod
-    @request_retry(3)
-    def download(cls, img_path: str, output_dir: str, docker_config_dir: str):
-        sbom = cls.find_sbom(img_path, docker_config_dir).strip()
-
-        cls.verify(sbom, docker_config_dir)
-
-        pull_cmd = [
-            "oras",
-            "pull",
-            sbom,
-        ]
-        cls.log.info(pull_cmd)
-
-        try:
-            subprocess.run(
-                pull_cmd,
-                encoding="utf-8",
-                check=True,
-                cwd=output_dir,
-                env={
-                    "PATH": os.environ["PATH"],
-                    "DOCKER_CONFIG": docker_config_dir,
-                },
-            )
-        except subprocess.SubprocessError:
-            raise ORASDownloadError("Could not ORAS pull.")
 
 
 @dataclass

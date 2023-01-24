@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 
-import multiprocessing
 import os
 import logging
-import pytest
 import pathlib
-import json
-import yaml
 import time
-import jsonschema
-from unittest.mock import patch, mock_open, Mock
+import json
+import multiprocessing
 from dataclasses import dataclass
+from unittest.mock import patch, mock_open, Mock
+import pytest
+import yaml
+import jsonschema
+from mocks import mock_classes
+from mocks.mock_classes import MockHardeningManifest, MockPath, MockProcess
+from ironbank.pipeline.utils import logger
 from ironbank.pipeline.hardening_manifest import (
     HardeningManifest,
     source_values,
@@ -18,12 +21,10 @@ from ironbank.pipeline.hardening_manifest import (
     get_approval_status,
 )
 
-from mocks.mock_classes import MockHardeningManifest, MockPath
-from mocks import mock_classes
-
-logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
 
 mock_path = pathlib.Path(pathlib.Path(__file__).absolute().parent, "mocks")
+
+log = logger.setup("test_hardening_manifest")
 
 
 @dataclass
@@ -33,21 +34,6 @@ class MockConnection:
 
     def recv(self):
         logging.info("message received")
-
-
-@dataclass
-class MockProcess:
-    alive: bool = True
-    exitcode: int = 0
-
-    def start(self):
-        return None
-
-    def is_alive(self):
-        return self.alive
-
-    def terminate(self):
-        self.alive = False
 
 
 class MockJsonschema(Mock):
@@ -484,11 +470,10 @@ def test_get_source_keys_values(monkeypatch):
 @patch("ironbank.pipeline.hardening_manifest.Path", new=MockPath)
 def test_get_approval_status(monkeypatch):
     mock_approval_object = {
-        "accreditation": "Approved",
-        "accreditationComment": "Test approval",
+        "image": {"state": {"imageStatus": "Approved", "reason": "Test reason"}},
     }
     monkeypatch.setattr(MockPath, "exists", lambda x: True)
     monkeypatch.setattr(json, "load", lambda x: mock_approval_object)
     mock_approval_status, mock_approval_text = get_approval_status("")
-    assert mock_approval_status == mock_approval_object["accreditation"]
-    assert mock_approval_text == mock_approval_object["accreditationComment"]
+    assert mock_approval_status == mock_approval_object["image"]["state"]["imageStatus"]
+    assert mock_approval_text == mock_approval_object["image"]["state"]["reason"]

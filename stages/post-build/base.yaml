@@ -12,7 +12,8 @@ create-tar:
   variables:
     IMAGE_FILE: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
   script:
-    - '"${PIPELINE_REPO_DIR}/stages/post-build/create-tar.sh"'
+    - 'pip install --user --no-deps "${PIPELINE_REPO_DIR}"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/post-build/create_tar.py"'
   artifacts:
     when: always
     paths:
@@ -28,6 +29,6 @@ create-sbom:
     paths:
       - "${SBOM_DIR}/"
     expire_in: 1 week
-  image: "registry1.dso.mil/ironbank/anchore/engine/engine:1.0.0"
+  image: "registry1.dso.mil/ironbank/anchore/enterprise/enterprise:4.1.0"
   script:
     - python3 "${PIPELINE_REPO_DIR}/stages/post-build/generate_sbom.py"
