@@ -40,7 +40,7 @@ def evaluate_branches(
     ).timestamp()
     stale_branch_count = 0
     branch_total = len(branches)
-    print(f"Searching for branches older than {diff_age} month(s)")
+    print(f"Searching for branches older than {diff_age} month(s)\n")
     for branch in branches:
         branch_name = branch.name
         committed_date = branch.commit["committed_date"]
@@ -68,7 +68,7 @@ def evaluate_branches(
             if mode == "delete":
                 print("Deleting branch")
                 branch.delete()
-            print("")
+            print()
         else:
             print(
                 f"""Retaining branch: {branch_name}\n"""
@@ -99,7 +99,7 @@ def main() -> None:
     open_mr_branches = get_open_merge_requests(project)
 
     mode = os.environ.get("MODE", "dry_run")
-    print(f"Mode selected: {mode}")
+    print(f"\nMode selected: {mode}")
     evaluate_branches(
         branches,
         open_mr_branches,
