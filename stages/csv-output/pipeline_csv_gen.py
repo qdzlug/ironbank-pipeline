@@ -261,7 +261,6 @@ def get_oscap_full(oscap_file, justifications):
         references = "\n".join(
             format_reference(r) for r in rule.findall("xccdf:reference", ns)
         )
-        assert references
 
         rationale_element = rule.find("xccdf:rationale", ns)
         # Ubuntu XCCDF has no <rationale>
