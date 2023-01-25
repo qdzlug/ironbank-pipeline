@@ -135,12 +135,15 @@ def main() -> None:
 
     mode = os.environ.get("MODE", "dry_run")
     print(f"\nMode selected: {mode}")
-    evaluate_branches(
+    branch_data = evaluate_branches(
         branches,
         open_mr_branches,
-        mode,
         diff_age,
     )
+    format_val = len(max([x.name for x in branches], key=len))
+    print_branches(branch_data, format_val)
+    if mode == "delete":
+        delete_stale_branches(project, branch_data)
 
 
 if __name__ == "__main__":
