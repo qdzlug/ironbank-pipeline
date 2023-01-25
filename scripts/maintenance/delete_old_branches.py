@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """Prunes stale branches
-This script will look at all branches for a project and if the mode is delete, remove all branches that haven't been updated in 6 months.
+This script will look at all branches for a project and if the mode is delete, remove all branches that haven't been updated in specified number of months.
 Expected environment variables:
     - GITLAB_URL: GitLab HTTPS instance URL
     - GITLAB_TOKEN: Access token that provides API write access
