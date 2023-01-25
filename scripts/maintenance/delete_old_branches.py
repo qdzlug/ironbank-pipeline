@@ -12,8 +12,17 @@ Expected environment variables:
 
 import os
 from datetime import datetime
+from typing import NamedTuple
 from dateutil.relativedelta import relativedelta
 import gitlab
+
+
+class ProjectBranch(NamedTuple):
+    """Project branch"""
+
+    name: str
+    last_updated: str
+    state: str
 
 
 def get_open_merge_requests(project) -> tuple:
