@@ -34,21 +34,52 @@ def get_open_merge_requests(project) -> tuple:
     return tuple(open_mr_branches)
 
 
+def print_branches(
+    branch_info: dict[str, list[ProjectBranch]],
+    format_val: int,
+) -> None:
+    """Print branch info for list of ProjectBranches
+    Use format_val for padding"""
+    padding_len = format_val if format_val < 100 else 100
+    for state in branch_info:
+        print(f"{state.capitalize()} branch count: {len(branch_info[state])}")
+        for branch in (x for x in branch_info[state]):
+            print(
+                f"""Branch Name:{branch.name:<{padding_len}}\
+                    Last Updated: {branch.last_updated}"""
+            )
+        print()
+
+
+def delete_stale_branches(
+    project,
+    branches: dict[str, list[ProjectBranch]],
+) -> None:
+    """Delete branches in list of ProjectBranches"""
+    if not branches["stale"]:
+        print("No stale branches to delete")
+        return
+    for branch in branches["stale"]:
+        print(f"Deleting branch: {branch.name}")
+        project.branches.delete(branch.name)
+
+
 def evaluate_branches(
     branches,
     open_mr_branches,
-    mode,
     diff_age,
-) -> None:
+) -> dict[str, list[ProjectBranch]]:
     """
     Loop through GL project's list of branches to delete any that haven't been updated in the provided amount of time
     Defaults to six (months)
     """
+    branch_info: dict[str, list[ProjectBranch]] = {
+        "active": [],
+        "stale": [],
+    }
     diff_age_timestamp = (
         datetime.now() - relativedelta(months=int(diff_age))
     ).timestamp()
-    stale_branch_count = 0
-    branch_total = len(branches)
     print(f"Searching for branches older than {diff_age} month(s)\n")
     for branch in branches:
         branch_name = branch.name
@@ -59,36 +90,31 @@ def evaluate_branches(
         last_updated = datetime.strftime(
             datetime.utcfromtimestamp(branch_update_age), "%Y-%m-%dT%H:%M:%SZ"
         )
-        # if
-        #   the last update date is older (less than) than the defined amount of time
-        #   not in tuple of preserved branches
-        #   not in the tuple of open MR source branch names
-        # then delete the branch.
         if (
             diff_age_timestamp > branch_update_age
             and branch_name not in ("master",)
             and branch_name not in open_mr_branches
         ):
-            print(
-                f"""Stale branch:\t{branch_name}\n"""
-                f"""Last updated:\t{last_updated}"""
+            branch_info["stale"].append(
+                ProjectBranch(
+                    branch_name,
+                    last_updated,
+                    "stale",
+                )
             )
-            stale_branch_count += 1
-            if mode == "delete":
-                print("Deleting branch")
-                branch.delete()
-            print()
         else:
-            print(
-                f"""Retaining branch: {branch_name}\n"""
-                f"""Last updated:\t{last_updated}\n"""
+            branch_info["active"].append(
+                ProjectBranch(
+                    branch_name,
+                    last_updated,
+                    "active",
+                )
             )
     print(
-        f"""Total project branches:\t\t{branch_total}\n"""
-        f"""Total stale branches:\t\t{stale_branch_count}"""
+        f"Total project branches:\t\t{len(branches)}\n"
+        f"Total stale branches:\t\t{len(branch_info['stale'])}\n"
     )
-    if mode == "delete":
-        print(f"Total retained branches:\t{branch_total - stale_branch_count}")
+    return branch_info
 
 
 def main() -> None:
