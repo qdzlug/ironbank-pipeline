@@ -99,10 +99,9 @@ def _generate_vat_response_lineage_file():
     lineage_vat_response = {"images": []}
     if (parent_vat_response_file := Path(os.environ["PARENT_VAT_RESPONSE"])).exists():
         with parent_vat_response_file.open("r", encoding="utf-8") as f:
-            lineage_vat_response = json.load(f)
-        # parent_vat_response.json will not be a list when we release this, make sure to convert it to one
-        if "images" not in lineage_vat_response:
-            lineage_vat_response = {"images": [lineage_vat_response]}
+            parent_vat_response = json.load(f)
+            # parent_vat_response.json will not be a list when we release this, make sure to convert it to one
+            lineage_vat_response["images"] += parent_vat_response.get("images") or [parent_vat_response]
     lineage_vat_response["images"] += [pipeline_vat_response]
     lineage_vat_response_file = Path(
         os.environ["ARTIFACT_DIR"], "vat_response_lineage.json"
