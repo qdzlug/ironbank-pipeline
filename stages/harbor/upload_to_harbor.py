@@ -81,7 +81,7 @@ def _convert_artifacts_to_hardening_manifest(
         with item.open("r", errors="replace") as f:
             hm_object[item.name] = f.read()
 
-    with Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json").open("w") as f:
+    with Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json").open("w", encoding="utf-8") as f:
         json.dump(hm_object, f)
 
 
@@ -90,13 +90,13 @@ def _generate_vat_response_lineage_file():
     Generates a VAT response lineage using *this* pipeline run's VAT response and the VAT response attestation from the parent image
     """
     # Load VAT response for this pipeline run, convert to list
-    with Path(os.environ["VAT_RESPONSE"]).open("r") as f:
+    with Path(os.environ["VAT_RESPONSE"]).open("r", encoding="utf-8") as f:
         pipeline_vat_response = json.load(f)
 
     # Initialize lineage_vat_response as a dict, so we can append to it if parent_vat_response.json doesn't exist
     lineage_vat_response = {"images": []}
     if (parent_vat_response_file := Path(os.environ["PARENT_VAT_RESPONSE"])).exists():
-        with parent_vat_response_file.open("r") as f:
+        with parent_vat_response_file.open("r", encoding="utf-8") as f:
             lineage_vat_response = json.load(f)
         # parent_vat_response.json will not be a list when we release this, make sure to convert it to one
         if "images" not in lineage_vat_response:
