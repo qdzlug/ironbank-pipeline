@@ -140,7 +140,7 @@ def main() -> None:
         open_mr_branches,
         diff_age,
     )
-    format_val = len(max([x.name for x in branches], key=len))
+    format_val = len(max((x.name for x in branches), key=len))
     print_branches(branch_data, format_val)
     if mode == "delete":
         delete_stale_branches(project, branch_data)
