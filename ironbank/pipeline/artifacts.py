@@ -5,7 +5,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 from requests.auth import HTTPBasicAuth
 from .utils import logger
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from base64 import b64decode
 from typing import Union
 from .utils.decorators import request_retry
@@ -128,7 +128,9 @@ class ContainerArtifact(AbstractArtifact):
     # artifact_path: Path = Path(f'{os.environ.get('ARTIFACT_DIR')/images/')
     log: logger = logger.setup("ContainerArtifact")
     # the authfile attribute is provided since skopeo can take an authfile but this file isn't created/used in the pipeline
-    authfile: str = Path("tmp", "prod_auth.json")
+    authfile: str = field(
+        default_factory=lambda: os.environ["DOCKER_AUTH_CONFIG_FILE_PULL"]
+    )
 
     def __post_init__(self):
         super().__post_init__()
