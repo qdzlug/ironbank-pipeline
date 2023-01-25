@@ -81,7 +81,9 @@ def _convert_artifacts_to_hardening_manifest(
         with item.open("r", errors="replace") as f:
             hm_object[item.name] = f.read()
 
-    with Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json").open("w", encoding="utf-8") as f:
+    with Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json").open(
+        "w", encoding="utf-8"
+    ) as f:
         json.dump(hm_object, f)
 
 
