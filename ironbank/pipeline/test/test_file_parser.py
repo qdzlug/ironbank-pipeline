@@ -79,7 +79,7 @@ def test_access_log_file_parser(monkeypatch, mock_packages):
     test_cases = {
         "gosum": "NullPackage",
         "go": "GoPackage",
-        "yum": "RpmPackage",
+        "rpm": "RpmPackage",
         "pypi": "PypiPackage",
         "npm": "NpmPackage",
         "rubygem": "RubyGemPackage",
