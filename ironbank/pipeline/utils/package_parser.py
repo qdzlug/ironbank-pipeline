@@ -25,7 +25,7 @@ class RpmPackage(ParsedURLPackage):
             return None
 
         match = re.match(
-            r"(?:^|.+/)(?P<name>[^/]+)-(?P<version>[^/-]*-\d+(?:.\d+)*)(?:\.el8(?:_6)*)*(?:\.x86_64)*.rpm$",
+            r"(?:^|.+/)(?P<name>[^/]+)-(?P<version>[^/-]*-\d.*)(?:.rpm)*.rpm$",
             url,
         )
 
