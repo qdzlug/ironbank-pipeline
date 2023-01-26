@@ -32,9 +32,7 @@ class RpmPackage(ParsedURLPackage):
         if not match:
             raise ValueError(f"Could not parse yum URL: {url}")
 
-        return cls(
-            name=match.group("name"), version=match.group("version"), url=url
-        )
+        return cls(name=match.group("name"), version=match.group("version"), url=url)
 
 
 @dataclass(slots=True, frozen=True)
@@ -54,9 +52,7 @@ class AptPackage(ParsedURLPackage):
         if not match:
             raise ValueError(f"Could not parse apt URL: {url}")
 
-        return cls(
-            name=match.group("name"), version=match.group("version"), url=url
-        )
+        return cls(name=match.group("name"), version=match.group("version"), url=url)
 
 
 @dataclass(slots=True, frozen=True)
@@ -76,9 +72,7 @@ class ApkPackage(ParsedURLPackage):
         if not match:
             raise ValueError(f"Could not parse apk URL: {url}")
 
-        return cls(
-            name=match.group("name"), version=match.group("version"), url=url
-        )
+        return cls(name=match.group("name"), version=match.group("version"), url=url)
 
 
 @dataclass(slots=True, frozen=True)
@@ -125,9 +119,7 @@ class PypiPackage(ParsedURLPackage):
         if not match:
             raise ValueError(f"Could not parse pypi URL: {url}")
 
-        return cls(
-            name=match.group("name"), version=match.group("version"), url=url
-        )
+        return cls(name=match.group("name"), version=match.group("version"), url=url)
 
 
 @dataclass(slots=True, frozen=True)
@@ -147,9 +139,7 @@ class NpmPackage(ParsedURLPackage):
         if not match:
             raise ValueError(f"Could not parse npm URL: {url}")
 
-        return cls(
-            name=match.group("name"), version=match.group("version"), url=url
-        )
+        return cls(name=match.group("name"), version=match.group("version"), url=url)
 
 
 @dataclass(slots=True, frozen=True)
@@ -169,10 +159,9 @@ class RubyGemPackage(ParsedURLPackage):
         if not match:
             raise ValueError(f"Could not parse rubygem URL: {url}")
 
-        return cls(
-            name=match.group("name"), version=match.group("version"), url=url
-        )
-        
+        return cls(name=match.group("name"), version=match.group("version"), url=url)
+
+
 @dataclass(slots=True, frozen=True)
 class NullPackage(ParsedURLPackage):
     kind: str = field(init=False, default=None)

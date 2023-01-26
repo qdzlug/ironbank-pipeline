@@ -10,7 +10,7 @@ from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.package_parser import (
     NullPackage,
     GoPackage,
-    YumPackage,
+    RpmPackage,
     PypiPackage,
     NpmPackage,
     RubyGemPackage,
@@ -35,7 +35,7 @@ log = logger.setup("test_file_parser")
 def mock_packages(monkeypatch):
     monkeypatch.setattr(NullPackage, "parse", lambda x: "NullPackage")
     monkeypatch.setattr(GoPackage, "parse", lambda x: "GoPackage")
-    monkeypatch.setattr(YumPackage, "parse", lambda x: "YumPackage")
+    monkeypatch.setattr(RpmPackage, "parse", lambda x: "RpmPackage")
     monkeypatch.setattr(PypiPackage, "parse", lambda x: "PypiPackage")
     monkeypatch.setattr(NpmPackage, "parse", lambda x: "NpmPackage")
     monkeypatch.setattr(RubyGemPackage, "parse", lambda x: "RubyGemPackage")
@@ -79,7 +79,7 @@ def test_access_log_file_parser(monkeypatch, mock_packages):
     test_cases = {
         "gosum": "NullPackage",
         "go": "GoPackage",
-        "yum": "YumPackage",
+        "yum": "RpmPackage",
         "pypi": "PypiPackage",
         "npm": "NpmPackage",
         "rubygem": "RubyGemPackage",
