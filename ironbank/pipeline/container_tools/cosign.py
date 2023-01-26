@@ -8,7 +8,7 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.image import Image, ImageFile
-from ironbank.pipeline.utils.predicates import get_predicate_files
+from ironbank.pipeline.utils.predicates import Predicates
 from ironbank.pipeline.utils.decorators import subprocess_error_handler
 from ironbank.pipeline.container_tools.container_tool import ContainerTool
 
@@ -44,7 +44,7 @@ class Cosign(ContainerTool):
         cmd += ["--key", self.kms_key_arn] if self.kms_key_arn else []
         cmd += ["--cert", self.cosign_cert] if self.cosign_cert else []
         cmd += ["--attachment", attachment] if attachment else []
-        cmd += [f"{image.registry}/{image.name}@{image.digest}"]
+        cmd += [f"{image.digest_str()}"]
         if log_cmd:
             self.log.info(cmd)
         subprocess.run(
@@ -56,6 +56,7 @@ class Cosign(ContainerTool):
                 "AWS_ACCESS_KEY_ID": self.aws_access_key_id or "",
                 "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key or "",
                 "AWS_REGION": self.aws_region,
+                "DOCKER_CONFIG": self.docker_config_dir,
                 **os.environ,
             },
         )
@@ -81,6 +82,7 @@ class Cosign(ContainerTool):
                 "AWS_ACCESS_KEY_ID": self.aws_access_key_id or "",
                 "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key or "",
                 "AWS_REGION": self.aws_region,
+                "DOCKER_CONFIG": self.docker_config_dir,
                 **os.environ,
             },
         )
@@ -118,6 +120,7 @@ class Cosign(ContainerTool):
                 "AWS_ACCESS_KEY_ID": self.aws_access_key_id or "",
                 "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key or "",
                 "AWS_REGION": self.aws_region,
+                "DOCKER_CONFIG": self.docker_config_dir,
                 **os.environ,
             },
         )
@@ -133,7 +136,8 @@ class Cosign(ContainerTool):
         log_cmd: bool = False,
     ) -> None:
         # predicate types/files can be found in ironbank/pipeline/utils/predicates.py
-        predicate_files = get_predicate_files()
+        predicates = Predicates()
+        predicate_files = predicates.get_predicate_files()
         cmd = [
             "cosign",
             "download",

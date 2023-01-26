@@ -4,51 +4,51 @@ import os
 import sys
 import json
 import yaml
-import base64
 import hashlib
-import logging
-import pathlib
+import tempfile
+import shutil
+from pathlib import Path
 
 from ironbank.pipeline.image import Image
-from ironbank.pipeline.utils.predicates import (
-    get_predicate_types,
-    get_unattached_predicates,
-)
+from ironbank.pipeline.utils.predicates import Predicates
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.container_tools.cosign import Cosign
-
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.decorators import subprocess_error_handler
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
+from ironbank.pipeline.hardening_manifest import HardeningManifest
+from ironbank.pipeline.project import DsopProject
+
+log = logger.setup("upload_to_harbor")
 
 
+@subprocess_error_handler("Failed to retrieve manifest for staged image")
 def compare_digests(image: Image) -> None:
     """
     Pull down image manifest to compare digest to digest from build environment
     """
 
-    logging.info("Pulling manifest_file with skopeo")
-    skopeo = Skopeo("staging_auth.json")
+    log.info("Pulling manifest_file with skopeo")
+    skopeo = Skopeo(Path(os.environ["DOCKER_AUTH_CONFIG_FILE_STAGING"]))
 
-    try:
-        logging.info("Inspecting image in registry")
-        remote_inspect_raw = skopeo.inspect(
-            image.from_image(transport="docker://"), raw=True, log_cmd=True
-        )
-    except GenericSubprocessError:
-        logging.error(
-            f"Failed to retrieve manifest for {image.registry}/{image.name}@{image.digest}"
-        )
-        sys.exit(1)
+    log.info("Inspecting image in registry")
+    remote_inspect_raw = skopeo.inspect(
+        image.from_image(transport="docker://"), raw=True, log_cmd=True
+    )
 
     digest = os.environ["IMAGE_PODMAN_SHA"].split(":")[-1]
     manifest = hashlib.sha256(remote_inspect_raw.encode())
 
     if digest == manifest.hexdigest():
-        logging.info("Digests match")
+        log.info("Digests match")
     else:
-        logging.error(f"Digests do not match {digest}  {manifest.hexdigest()}")
+        log.error(f"Digests do not match {digest}  {manifest.hexdigest()}")
         sys.exit(1)
 
 
+@subprocess_error_handler(
+    "Failed to copy image from staging project to production project"
+)
 def promote_tags(
     staging_image: Image, production_image: Image, tags: list[str]
 ) -> None:
@@ -60,22 +60,18 @@ def promote_tags(
     for tag in tags:
         production_image = production_image.from_image(tag=tag)
 
-        logging.info(f"Copy from staging to {production_image}")
-        try:
-            Skopeo.copy(
-                staging_image,
-                production_image,
-                src_authfile="staging_auth.json",
-                dest_authfile="/tmp/config.json",
-                log_cmd=True,
-            )
-        except GenericSubprocessError:
-            logging.error(f"Failed to copy {staging_image} to {production_image}")
-            sys.exit(1)
+        log.info(f"Copy from staging to {production_image}")
+        Skopeo.copy(
+            staging_image,
+            production_image,
+            src_authfile=Path(os.environ["DOCKER_AUTH_CONFIG_FILE_STAGING"]),
+            dest_authfile=Path(os.environ["DOCKER_AUTH_CONFIG_FILE_PROD"]),
+            log_cmd=True,
+        )
 
 
-def convert_artifacts_to_hardening_manifest(
-    predicates: list, hardening_manifest: pathlib.Path
+def _convert_artifacts_to_hardening_manifest(
+    predicates: list, hardening_manifest: Path
 ):
 
     hm_object = yaml.safe_load(hardening_manifest.read_text())
@@ -85,124 +81,106 @@ def convert_artifacts_to_hardening_manifest(
         with item.open("r", errors="replace") as f:
             hm_object[item.name] = f.read()
 
-    with pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json").open(
-        "w"
+    with Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json").open(
+        "w", encoding="utf-8"
     ) as f:
         json.dump(hm_object, f)
 
 
-def main():
-    # Get logging level, set manually when running pipeline
-    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
-    if loglevel == "DEBUG":
-        logging.basicConfig(
-            level=loglevel,
-            format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
-        )
-        logging.debug("Log level set to debug")
-    else:
-        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
-        logging.info("Log level set to info")
+def _generate_vat_response_lineage_file():
+    """
+    Generates a VAT response lineage using *this* pipeline run's VAT response and the VAT response attestation from the parent image
+    """
+    # Load VAT response for this pipeline run, convert to list
+    with Path(os.environ["VAT_RESPONSE"]).open("r", encoding="utf-8") as f:
+        pipeline_vat_response = json.load(f)
 
-    if "pipeline-test-project" in os.environ["CI_PROJECT_DIR"] and not os.environ.get(
-        "DOCKER_AUTH_CONFIG_TEST"
-    ):
-        logging.warning(
-            """
-            Skipping Harbor Upload. Cannot push to Harbor when working with pipeline
-            test projects unless DOCKER_AUTH_CONFIG_TEST is set...
-            """
-        )
-        sys.exit(1)
-
-    # Grab staging docker auth
-    staging_auth = base64.b64decode(os.environ["DOCKER_AUTH_CONFIG_STAGING"]).decode(
-        "utf-8"
+    # Initialize lineage_vat_response as a dict, so we can append to it if parent_vat_response.json doesn't exist
+    lineage_vat_response = {"images": []}
+    if (parent_vat_response_file := Path(os.environ["PARENT_VAT_RESPONSE"])).exists():
+        with parent_vat_response_file.open("r", encoding="utf-8") as f:
+            parent_vat_response = json.load(f)
+            # parent_vat_response.json will not be a list when we release this, make sure to convert it to one
+            lineage_vat_response["images"] += parent_vat_response.get("images") or [
+                parent_vat_response
+            ]
+    lineage_vat_response["images"] += [pipeline_vat_response]
+    lineage_vat_response_file = Path(
+        os.environ["ARTIFACT_DIR"], "vat_response_lineage.json"
     )
-    pathlib.Path("staging_auth.json").write_text(staging_auth)
+    with lineage_vat_response_file.open("w", encoding="utf-8") as f:
+        json.dump(lineage_vat_response, f)
 
-    # Grab ironbank/ironbank-testing docker auth
-    test_auth = os.environ.get("DOCKER_AUTH_CONFIG_TEST", "").strip()
-    if test_auth:
-        dest_auth = base64.b64decode(test_auth).decode("utf-8")
-    else:
-        dest_auth = base64.b64decode(os.environ["DOCKER_AUTH_CONFIG_PROD"]).decode(
-            "utf-8"
-        )
-    pathlib.Path("/tmp/config.json").write_text(dest_auth)
+    return lineage_vat_response_file
 
+
+def generate_attestation_predicates(predicates):
+    """
+    Generates a list of predicates to be attached to the image as Cosign Attestations
+    """
+    hm_resources = [
+        Path(os.environ["CI_PROJECT_DIR"], "LICENSE"),
+        Path(os.environ["CI_PROJECT_DIR"], "README.md"),
+        Path(os.environ["ACCESS_LOG_DIR"], "access_log"),
+    ]
+    # Convert non-empty artifacts to hardening manifest
+    _convert_artifacts_to_hardening_manifest(
+        [res for res in hm_resources if res.stat().st_size != 0],
+        Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.yaml"),
+    )
+
+    attestation_predicates = [
+        Path(os.environ["SBOM_DIR"], file)
+        for file in os.listdir(os.environ["SBOM_DIR"])
+        if file not in predicates.unattached_predicates
+    ]
+    attestation_predicates.append(
+        Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json")
+    )
+
+    attestation_predicates.append(_generate_vat_response_lineage_file())
+    return attestation_predicates
+
+
+def main():
     staging_image = Image(
         registry=os.environ["REGISTRY_URL_STAGING"],
         name=os.environ["IMAGE_NAME"],
         digest=os.environ["IMAGE_PODMAN_SHA"],
         transport="docker://",
     )
-
-    tags = []
-    with pathlib.Path(os.environ["ARTIFACT_STORAGE"], "lint", "tags.txt").open(
-        mode="r"
-    ) as f:
-        for tag in f:
-            tags.append(tag.strip())
-
-    production_image = Image(
-        registry=os.environ["REGISTRY_URL_PROD"],
-        name=os.environ["IMAGE_NAME"],
-        digest=os.environ["IMAGE_PODMAN_SHA"],
-        transport="docker://",
+    production_image = Image.from_image(
+        staging_image, registry=os.environ["REGISTRY_URL_PROD"]
     )
+    project = DsopProject()
+    hm = HardeningManifest(project.hardening_manifest_path)
+    predicates = Predicates()
+    attestation_predicates = generate_attestation_predicates(predicates)
 
-    cosign = Cosign()
-
-    # Compare digests to ensure image integrity
-    compare_digests(staging_image)
-
-    # Transfer image from staging project to production project and tag
-    promote_tags(staging_image, production_image, tags)
-
-    logging.info("Signing image")
     try:
-        cosign.sign(production_image, log_cmd=True)
-    except GenericSubprocessError:
-        logging.error(
-            f"Failed to sign image: {production_image.registry}/{production_image.name}@{production_image.digest}"
-        )
-
-    hm_resources = [
-        pathlib.Path(os.environ["CI_PROJECT_DIR"], "LICENSE"),
-        pathlib.Path(os.environ["CI_PROJECT_DIR"], "README.md"),
-        pathlib.Path(os.environ["ACCESS_LOG_DIR"], "access_log"),
-    ]
-    # Convert non-empty artifacts to hardening manifest
-    convert_artifacts_to_hardening_manifest(
-        [res for res in hm_resources if res.stat().st_size != 0],
-        pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.yaml"),
-    )
-
-    unattached_predicates = get_unattached_predicates()
-    predicates = [
-        pathlib.Path(os.environ["SBOM_DIR"], file)
-        for file in os.listdir(os.environ["SBOM_DIR"])
-        if file not in unattached_predicates
-    ]
-    predicates.append(
-        pathlib.Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json")
-    )
-    predicates.append(pathlib.Path(os.environ["VAT_RESPONSE"]))
-    predicate_types = get_predicate_types()
-    logging.info("Adding attestations")
-    for predicate in predicates:
-        try:
-            cosign.attest(
-                image=production_image,
-                predicate_path=predicate.as_posix(),
-                predicate_type=predicate_types[predicate.name],
-                replace=True,
-                log_cmd=True,
+        # Compare digests to ensure image integrity
+        compare_digests(staging_image)
+        # Promote image and tags from staging project
+        promote_tags(staging_image, production_image, hm.image_tags)
+        # Sign image
+        with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
+            shutil.copy(
+                os.environ["DOCKER_AUTH_CONFIG_FILE_PROD"],
+                Path(docker_config_dir, "config.json"),
             )
-        except GenericSubprocessError:
-            logging.error(f"Failed to add attestation {predicate.as_posix()}")
-            sys.exit(1)
+            cosign = Cosign(docker_config_dir=docker_config_dir)
+            cosign.sign(production_image, log_cmd=True)
+            log.info("Adding attestations")
+            for predicate in attestation_predicates:
+                cosign.attest(
+                    image=production_image,
+                    predicate_path=predicate.as_posix(),
+                    predicate_type=predicates.types[predicate.name],
+                    replace=True,
+                    log_cmd=True,
+                )
+    except GenericSubprocessError:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
