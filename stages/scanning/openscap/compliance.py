@@ -106,6 +106,12 @@ def get_oscap_guide(oscap_version, base_image_type):
             + str(oscap_version)
             + "/ssg-ubuntu2004-ds.xml",
         },
+        "sle15-bci-container": {
+            "profile": "xccdf_org.ssgproject.content_profile_stig",
+            "securityGuide": "scap-security-guide-"
+            + str(oscap_version)
+            + "/ssg-sle15-ds.xml",
+        },
     }
     try:
         oscap_container = oscap_guides[base_image_type]

@@ -30,6 +30,14 @@ profile=$(echo "${oscap_container}" | grep -o '"profile": "[^"]*' | grep -o '[^"
 securityGuide=$(echo "${oscap_container}" | grep -o '"securityGuide": "[^"]*' | grep -o '[^"]*$')
 echo "profile: ${profile}"
 echo "securityGuide: ${securityGuide}"
+
+case "${securityGuide}" in
+  *ssg-sle15*)
+    echo "Limiting scanning to SLE Server patches"
+    sed -i -e 's,/security/oval/suse\.linux\.enterprise\.15\.xml,/security/oval/suse.linux.enterprise.server.15-patch.xml,' "${SCAP_CONTENT}/${securityGuide}"
+    ;;
+esac
+
 oscap-podman "${DOCKER_IMAGE_PATH}" xccdf eval --verbose ERROR --fetch-remote-resources --profile "${profile}" --stig-viewer compliance_output_report_stigviewer.xml --results compliance_output_report.xml --report report.html "${SCAP_CONTENT}/${securityGuide}" || true
 ls compliance_output_report.xml compliance_output_report_stigviewer.xml report.html
 rm -rf "${SCAP_CONTENT}"
