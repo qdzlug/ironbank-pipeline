@@ -21,7 +21,7 @@ class RpmPackage(ParsedURLPackage):
 
     @classmethod
     def parse(cls, url) -> Optional[Package]:
-        if url.startswith("repodata"):
+        if url.startswith("repodata") or url.startswith("media"):
             return None
 
         match = re.match(
