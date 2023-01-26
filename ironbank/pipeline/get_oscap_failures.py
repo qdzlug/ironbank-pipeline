@@ -111,7 +111,7 @@ def get_oval_findings(finding_name, finding_href, severity):
     ):
         url = f"https://ftp.suse.com/pub/projects/security/oval/suse.linux.enterprise.server.{sle_match.group('version')}-patch.xml"
     else:
-        logging.error("OVAL findings found for non-ubi based image")
+        logging.error("OVAL findings found for unknown image type")
         sys.exit(1)
 
     root = get_oval_definitions(url)
