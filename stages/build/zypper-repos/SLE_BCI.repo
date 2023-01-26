@@ -1,0 +1,5 @@
+[SLE_BCI]
+enabled=1
+autorefresh=1
+baseurl=http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/sle-bci-15-SP4/
+priority=100
