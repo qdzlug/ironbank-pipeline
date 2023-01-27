@@ -15,9 +15,9 @@ def package_classes():
     #   bad_urls - List of URLs that cannot be parsed and will throw exceptions
     #   skip_url - URL that will be skipped (return None)
     return {
-        "YumPackage": {
+        "RpmPackage": {
             "name": "libpcap",
-            "version": "1.9.1-5",
+            "version": "1.9.1-5.el8.x86_64",
             "good_url": "ubigroup-8/Packages/l/libpcap-1.9.1-5.el8.x86_64.rpm",
             "bad_urls": [
                 "ubigroup-8/Packages/l/libpcap-%$.rpm",

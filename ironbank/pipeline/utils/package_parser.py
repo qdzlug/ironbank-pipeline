@@ -16,25 +16,23 @@ class ParsedURLPackage(ABC, Package):
 
 
 @dataclass(slots=True, frozen=True)
-class YumPackage(ParsedURLPackage):
+class RpmPackage(ParsedURLPackage):
     kind: str = field(init=False, default="rpm")
 
     @classmethod
     def parse(cls, url) -> Optional[Package]:
-        if url.startswith("repodata"):
+        if url.startswith("repodata") or url.startswith("media"):
             return None
 
         match = re.match(
-            r"(?:^|.+/)(?P<name>[^/]+)-(?P<version>[^/-]*-\d+)\.[^/]+\.[^./]+.rpm",
+            r"(?:^|.+/)(?P<name>[^/]+)-(?P<version>[^/-]*-\d.*)(?:.rpm)*.rpm$",
             url,
         )
 
         if not match:
             raise ValueError(f"Could not parse yum URL: {url}")
 
-        return YumPackage(
-            name=match.group("name"), version=match.group("version"), url=url
-        )
+        return cls(name=match.group("name"), version=match.group("version"), url=url)
 
 
 @dataclass(slots=True, frozen=True)
@@ -54,9 +52,7 @@ class AptPackage(ParsedURLPackage):
         if not match:
             raise ValueError(f"Could not parse apt URL: {url}")
 
-        return AptPackage(
-            name=match.group("name"), version=match.group("version"), url=url
-        )
+        return cls(name=match.group("name"), version=match.group("version"), url=url)
 
 
 @dataclass(slots=True, frozen=True)
@@ -76,9 +72,7 @@ class ApkPackage(ParsedURLPackage):
         if not match:
             raise ValueError(f"Could not parse apk URL: {url}")
 
-        return ApkPackage(
-            name=match.group("name"), version=match.group("version"), url=url
-        )
+        return cls(name=match.group("name"), version=match.group("version"), url=url)
 
 
 @dataclass(slots=True, frozen=True)
@@ -103,7 +97,7 @@ class GoPackage(ParsedURLPackage):
         elif match.group("ext") and match.group("ext") != "mod":
             raise ValueError(f"Unexpected go mod extension: {url}")
         else:
-            return GoPackage(
+            return cls(
                 name=match.group("name"), version=match.group("version"), url=url
             )
 
@@ -125,9 +119,7 @@ class PypiPackage(ParsedURLPackage):
         if not match:
             raise ValueError(f"Could not parse pypi URL: {url}")
 
-        return PypiPackage(
-            name=match.group("name"), version=match.group("version"), url=url
-        )
+        return cls(name=match.group("name"), version=match.group("version"), url=url)
 
 
 @dataclass(slots=True, frozen=True)
@@ -147,9 +139,7 @@ class NpmPackage(ParsedURLPackage):
         if not match:
             raise ValueError(f"Could not parse npm URL: {url}")
 
-        return NpmPackage(
-            name=match.group("name"), version=match.group("version"), url=url
-        )
+        return cls(name=match.group("name"), version=match.group("version"), url=url)
 
 
 @dataclass(slots=True, frozen=True)
@@ -169,9 +159,7 @@ class RubyGemPackage(ParsedURLPackage):
         if not match:
             raise ValueError(f"Could not parse rubygem URL: {url}")
 
-        return RubyGemPackage(
-            name=match.group("name"), version=match.group("version"), url=url
-        )
+        return cls(name=match.group("name"), version=match.group("version"), url=url)
 
 
 @dataclass(slots=True, frozen=True)

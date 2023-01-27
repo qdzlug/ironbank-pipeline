@@ -9,7 +9,7 @@ from .utils.types import FileParser, Package
 from .utils.exceptions import RepoTypeNotSupported
 from .utils.package_parser import (
     GoPackage,
-    YumPackage,
+    RpmPackage,
     ApkPackage,
     AptPackage,
     PypiPackage,
@@ -59,8 +59,8 @@ class AccessLogFileParser(FileParser):
                     package = NullPackage.parse(re_match.group("url"))
                 case "go":
                     package = GoPackage.parse((re_match.group("url")))
-                case "yum":
-                    package = YumPackage.parse((re_match.group("url")))
+                case "rpm":
+                    package = RpmPackage.parse((re_match.group("url")))
                 case "pypi":
                     package = PypiPackage.parse((re_match.group("url")))
                 case "npm":
