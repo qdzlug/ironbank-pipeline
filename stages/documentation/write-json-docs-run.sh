@@ -40,7 +40,7 @@ jq -n '
   "buildNumber": env.CI_PIPELINE_ID,
   "approval": env.IMAGE_ACCREDITATION,
   "image": {
-    "digest": env.IMAGE_PODMAN_SHA
+    "digest": env.DIGEST_TO_SCAN
   },
   "pgp": {
     "publicKey": env.GPG_PUB_KEY,
@@ -48,7 +48,7 @@ jq -n '
   },
   "git": {
     "branch": env.CI_COMMIT_BRANCH,
-    "commit": env.CI_COMMIT_SHA
+    "commit": env.COMMIT_SHA_TO_SCAN
   },
   "reports": {
     "twistlock": {
@@ -65,14 +65,18 @@ jq -n '
 cat "${ARTIFACT_DIR}/scan-metadata.json"
 # Create manifest.json
 
-export DOCKER_REFERENCE="${REGISTRY_URL_PROD}/${IMAGE_NAME}:${IMAGE_VERSION}@${IMAGE_PODMAN_SHA}"
+export DOCKER_REFERENCE="${IMAGE_TO_SCAN}@${DIGEST_TO_SCAN}"
+
+if [[ $IMAGE_TO_SCAN == *"ironbank-staging"* ]]then;
+  export DOCKER_REFERENCE="${REGISTRY_URL_PROD}/${IMAGE_NAME}:${IMAGE_VERSION}@${DIGEST_TO_SCAN}"
+fi
 
 jq -n '
 {
   "image": env.DOCKER_REFERENCE,
-  "timestamp": env.TIMESTAMP,
+  "timestamp": env.BUILD_DATE_TO_SCAN,
   "git": {
-    "hash": env.CI_COMMIT_SHA,
+    "hash": env.COMMIT_SHA_TO_SCAN,
     "branch": env.CI_COMMIT_BRANCH
   },
   "tools": {
