@@ -45,6 +45,7 @@ class Buildah(ContainerTool):
         default_mounts_file: Path | str = None,
         storage_driver: str = None,
         tag: Image | str = None,
+        ulimit_args: dict = {},
         log_cmd: bool = False,
     ):
         context = context if isinstance(context, Path) else Path(context)
@@ -69,6 +70,7 @@ class Buildah(ContainerTool):
             else []
         )
         cmd += ["--storage-driver", storage_driver] if storage_driver else []
+        cmd += self._generate_arg_list_from_env("--ulimit", ulimit_args)
         # tag can either be a string or an Image object, cast to string to support both types
         cmd += ["-t", str(tag)] if tag else []
         cmd += [context]

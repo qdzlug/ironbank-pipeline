@@ -254,6 +254,7 @@ def main():
         log_level="warn",
         default_mounts_file=mount_conf_path,
         storage_driver="vfs",
+        ulimit_args={"nproc": "2000:2000"},
         tag=staging_image,
         log_cmd=True,
     )
