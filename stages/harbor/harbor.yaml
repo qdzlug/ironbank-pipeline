@@ -7,6 +7,7 @@ harbor:
     - lint
     - build
     - create-sbom
+    - scan-logic
     - vat
   variables:
     SBOM_DIR: ${ARTIFACT_STORAGE}/sbom

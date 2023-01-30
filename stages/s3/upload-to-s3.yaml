@@ -21,6 +21,7 @@ upload-to-s3:
     - lint
     - build
     - create-sbom
+    - scan-logic
     - anchore-scan
     - twistlock-scan
     - openscap-compliance

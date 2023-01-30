@@ -11,6 +11,7 @@
     - load-scripts
     - lint
     - build
+    - scan-logic
     - anchore-scan
     - twistlock-scan
     - openscap-compliance
