@@ -161,7 +161,8 @@ def main():
         # Compare digests to ensure image integrity
         compare_digests(staging_image)
         # Promote image and tags from staging project
-        promote_tags(staging_image, production_image, hm.image_tags)
+        if "ironbank-staging" in os.environ["IMAGE_TO_SCAN"]:
+            promote_tags(staging_image, production_image, hm.image_tags)
         # Sign image
         with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
             shutil.copy(
@@ -169,7 +170,8 @@ def main():
                 Path(docker_config_dir, "config.json"),
             )
             cosign = Cosign(docker_config_dir=docker_config_dir)
-            cosign.sign(production_image, log_cmd=True)
+            if "ironbank-staging" in os.environ["IMAGE_TO_SCAN"]:
+                cosign.sign(production_image, log_cmd=True)
             log.info("Adding attestations")
             for predicate in attestation_predicates:
                 cosign.attest(
