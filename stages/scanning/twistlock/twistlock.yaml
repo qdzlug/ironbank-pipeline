@@ -6,7 +6,7 @@ twistlock-scan:
   dependencies:
     - load-scripts
     - build
-    - run-logic
+    - scan-logic
   variables:
     # put all scan outputs in the scan-results folder
     TWISTLOCK_SCANS: "${ARTIFACT_STORAGE}/scan-results/twistlock"
