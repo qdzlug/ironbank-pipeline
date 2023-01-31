@@ -20,10 +20,11 @@ def post_artifact_data_vat():
             "imageName": os.environ["IMAGE_NAME"],
             "tag": os.environ["IMAGE_VERSION"],
             "publishedTimestamp": os.environ["directory_date"],
-            "readme": os.environ["README_PATH_SHORT"],
-            "license": os.environ["LICENSE_PATH_SHORT"],
+            "readme": "NONE",
+            "license": "NONE",
             "tar": os.environ["TAR_PATH_SHORT"],
         },
+        timeout=None,
     )
     return post_resp
 

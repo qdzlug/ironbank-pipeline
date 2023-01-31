@@ -5,12 +5,11 @@ upload-to-s3:
     - master
   variables:
     #TODO: Put these in globals
-    IMAGE_FILE: "${CI_PROJECT_NAME}-${IMAGE_VERSION}"
     SCAN_DIRECTORY: "${ARTIFACT_STORAGE}/scan-results"
     DOCUMENTATION_DIRECTORY: "${ARTIFACT_STORAGE}/documentation"
     BUILD_DIRECTORY: "${ARTIFACT_STORAGE}/build"
     SBOM_DIRECTORY: "${ARTIFACT_STORAGE}/sbom"
-    BASE_BUCKET_DIRECTORY: testing/container-scan-reports
+    BASE_BUCKET_DIRECTORY: container-scan-reports
     DOCUMENTATION_FILENAME: documentation
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
     REPORT_TAR_NAME: ${CI_PROJECT_NAME}-${IMAGE_VERSION}-reports-signature.tar.gz

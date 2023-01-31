@@ -1,4 +1,10 @@
 #!/bin/bash
+
+if [[ -n ${DISTROLESS:-} ]]; then
+  echo "Skipping openscap for distroless build"
+  exit 0
+fi
+
 set -Eeuo pipefail
 echo "Imported Base Image Type: ${BASE_IMAGE_TYPE}"
 mkdir -p "${OSCAP_SCANS}"
