@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
-import logging
-import boto3
 import os
-import argparse
-from botocore.exceptions import ClientError
 import mimetypes
+import boto3
+from botocore.exceptions import ClientError
+from ironbank.pipeline.utils import logger
+
+log = logger.setup(name="s3upload")
 
 
 def upload_file(file_name, bucket, object_name=None):
@@ -38,7 +39,7 @@ def upload_file(file_name, bucket, object_name=None):
         "ACL": "private",
     }
 
-    logging.debug(f"extra_args for {file_name}: {extra_args}")
+    log.debug("extra_args for %s: %s", file_name, extra_args)
     # If S3 object_name was not specified, use file_name
     if object_name is None:
         object_name = file_name
@@ -53,35 +54,6 @@ def upload_file(file_name, bucket, object_name=None):
     try:
         s3_client.upload_file(file_name, bucket, object_name, extra_args)
     except ClientError:
-        logging.error("S3 client error occured")
+        log.error("S3 client error occured")
         return False
     return True
-
-
-if __name__ == "__main__":
-    # Get logging level, set manually when running pipeline
-    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
-    if loglevel == "DEBUG":
-        logging.basicConfig(
-            level=loglevel,
-            format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
-        )
-        logging.debug("Log level set to debug")
-    else:
-        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
-        logging.info("Log level set to info")
-
-    parser = argparse.ArgumentParser(
-        description="Uploading various reports and files to DCCSCR S3"
-    )
-
-    parser.add_argument("--filename", help="File to upload")
-    parser.add_argument("--bucket", help="Bucket to upload to")
-    parser.add_argument("--dest", help="S3 object path")
-    args = parser.parse_args()
-
-    file_name = args.filename
-    bucket = args.bucket
-    object_name = args.dest
-
-    upload_file(file_name, bucket, object_name)
