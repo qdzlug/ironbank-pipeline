@@ -1,5 +1,6 @@
 harbor:
   stage: harbor
+  # TODO: consider using a resource group here to prevent multiple harbor jobs running concurrently for the same project
   only:
     - master
   dependencies:
