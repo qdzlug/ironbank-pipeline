@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 
 import os
-import logging
-import requests
 import sys
+import requests
+from ironbank.pipeline.utils import logger
+
+log = logger.setup("vat_artifact_post")
 
 
 def post_artifact_data_vat():
+    """
+    POST to VAT's artifacts endpoint to allow IBFE to start displaying the published image data
+    """
     vat_endpoint = (
         f"{os.environ['VAT_BACKEND_SERVER_ADDRESS']}/internal/import/artifacts"
     )
@@ -30,39 +35,18 @@ def post_artifact_data_vat():
 
 
 def main():
-    if os.environ["CI_COMMIT_BRANCH"] == "master":
-        # Get logging level, set manually when running pipeline
-        loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
-        if loglevel == "DEBUG":
-            logging.basicConfig(
-                level=loglevel,
-                format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
-            )
-            logging.debug("Log level set to debug")
-        else:
-            logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
-            logging.info("Log level set to info")
-
-        try:
-            app = "VAT"
-            post_resp = post_artifact_data_vat()
-            post_resp.raise_for_status()
-            logging.info(f"Uploaded container data to {app} API")
-        except requests.exceptions.Timeout:
-            logging.exception("Unable to reach the IBFE API, TIMEOUT.")
-            sys.exit(1)
-        except requests.exceptions.HTTPError:
-            logging.error(f"Got HTTP {post_resp.status_code}")
-            logging.error(f"{app} HTTP error")
-            sys.exit(1)
-        except requests.exceptions.RequestException:
-            logging.error(f"Error submitting container data to {app} API")
-            sys.exit(1)
-        except Exception:
-            logging.error(f"Unhandled exception for {app}")
-            sys.exit(1)
-    else:
-        logging.debug("Skipping use of vat artifacts and ibfe build endpoints")
+    try:
+        post_resp = post_artifact_data_vat()
+        post_resp.raise_for_status()
+        log.info("Uploaded container data to VAT API")
+    except requests.exceptions.RequestException as req_exc:
+        log.error("Error submitting container data to VAT API")
+        if isinstance(req_exc, requests.exceptions.Timeout):
+            log.exception("Unable to reach the VAT API, TIMEOUT.")
+        if isinstance(req_exc, requests.exceptions.HTTPError):
+            log.error("Got HTTP %s", post_resp.status_code)
+            log.error("VAT HTTP error")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
