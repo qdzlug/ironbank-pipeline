@@ -1,9 +1,9 @@
 import os
 import sys
-import pytest
-import requests
 from logging import Logger
 from unittest.mock import MagicMock, patch
+import pytest
+import requests
 from ironbank.pipeline.test.mocks.mock_classes import (
     MockProject,
     MockResponse,
@@ -30,19 +30,19 @@ def test_copy_path(monkeypatch):
     assert "Path traversal not safe in this function" in ae.value.args[0]
 
     log.info("Test copy directory")
-    mock_src: MockPath = MockPath("./src")
+    mock_src = MockPath("./src")
     with patch("shutil.copytree", new=MagicMock()) as mock_shutil:
         upload_artifacts.copy_path(mock_src, mock_dest)
         mock_shutil.assert_called_once_with(mock_src, mock_dest / "src")
 
     log.info("Test copy directory contents")
-    mock_src: MockPath = MockPath("./src/")
+    mock_src = MockPath("./src/")
     with patch("shutil.copytree", new=MagicMock()) as mock_shutil:
         upload_artifacts.copy_path(mock_src, mock_dest)
         mock_shutil.assert_called_once_with(mock_src, mock_dest)
 
     log.info("Test copy file")
-    mock_src: MockPath = MockPath("./src/")
+    mock_src = MockPath("./src/")
     monkeypatch.setattr(
         MockPath,
         "is_dir",
@@ -91,10 +91,9 @@ def test_main(monkeypatch, caplog):
     assert se.value.code == 0
 
     monkeypatch.setenv("CI_PROJECT_DIR", "mock_CI_PROJECT_DIR")
-    with patch(
-        "upload_artifacts.DsopProject",
-        new=MagicMock(project_path=MockPath("dsop/redhat/ubi8")),
-    ) as mock_proj:
-        upload_artifacts.main()
 
-    # monkeypatch.setattr(upload_artifacts.DsopProject, "project_path", "dsop/redhat/ubi8")
+    def mock_project_init(self):
+        self.project_path = MockPath("dsop/redhat/ubi/ubi8")
+
+    monkeypatch.setattr(upload_artifacts.DsopProject, "__init__", mock_project_init)
+    upload_artifacts.main()
