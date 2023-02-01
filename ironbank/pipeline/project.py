@@ -3,7 +3,6 @@ import os
 import re
 from pathlib import Path
 from dataclasses import dataclass
-from typing import Optional
 
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.exceptions import SymlinkFoundError
@@ -12,7 +11,7 @@ from ironbank.pipeline.utils.exceptions import SymlinkFoundError
 @dataclass
 class Project:
     log = logger.setup(name="Project")
-    project_path: Optional[Path] = Path(os.environ.get("CI_PROJECT_PATH", "."))
+    project_path: Path = Path(os.environ.get("CI_PROJECT_PATH", "."))
 
 
 @dataclass

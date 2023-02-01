@@ -7,6 +7,7 @@ import re
 import subprocess
 import sys
 import shutil
+import logging
 import requests
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.hardening_manifest import HardeningManifest
@@ -14,11 +15,10 @@ from ironbank.pipeline.utils import s3upload
 
 from ironbank.pipeline.utils import logger
 
+log: logging.Logger = logger.setup("vat_artifact_post")
 
-log = logger.setup("vat_artifact_post")
 
-
-def post_artifact_data_vat(tar_path: Path):
+def post_artifact_data_vat(tar_path: str) -> requests.Response:
     """
     POST to VAT's artifacts endpoint to allow IBFE to start displaying the published image data
     """
@@ -45,26 +45,40 @@ def post_artifact_data_vat(tar_path: Path):
 
 
 def main():
+    """
+    Upload tar file to s3 and hit VAT endpoint to provide path to tar file
+    After this stage finishes, IBFE is able to display new metadata for the associated image
+    """
     if "pipeline-test-project" in os.environ["CI_PROJECT_DIR"]:
         log.info(
             "Skipping publish. Cannot publish when working with pipeline test projects master branch..."
         )
         sys.exit(0)
 
-    dsop_proj = DsopProject()
-    hm = HardeningManifest(dsop_proj.hardening_manifest_path)
+    dsop_proj: DsopProject = DsopProject()
+    h_manifest: HardeningManifest = HardeningManifest(dsop_proj.hardening_manifest_path)
 
-    report_dir = Path("reports")
+    report_dir: Path = Path("reports")
     report_dir.mkdir(parents=True, exist_ok=True)
 
-    artifact_storage = os.environ["ARTIFACT_STORAGE"]
-    report_tar_name = os.environ["REPORT_TAR_NAME"]
-    utc_datetime_now = datetime.utcnow().isoformat(sep="T", timespec="milliseconds")
-    image_path = re.match(r"^(?:.*dsop\/)(.*)$", dsop_proj.project_path)
+    artifact_storage: str = os.environ["ARTIFACT_STORAGE"]
+    report_tar_name: str = os.environ["REPORT_TAR_NAME"]
+    utc_datetime_now: str = datetime.utcnow().isoformat(
+        sep="T", timespec="milliseconds"
+    )
+    # remove dsop from project_path (e.g. dsop/redhat/ubi/ubi8 becomes redhat/ubi/ubi8)
+    image_path: None | str | re.Match[str] = re.match(
+        r"^(?:.*dsop\/)(.*)$", dsop_proj.project_path.as_posix()
+    )
+    image_path = (
+        image_path.group(1)
+        if (image_path is not None and not isinstance(image_path, str))
+        else image_path
+    )
 
-    tar_path = f"{image_path}/{hm.image_tag}/{utc_datetime_now}_{os.environ['CI_PIPELINE_ID']}/{report_tar_name}"
+    tar_path: str = f"{image_path}/{h_manifest.image_tag}/{utc_datetime_now}_{os.environ['CI_PIPELINE_ID']}/{report_tar_name}"
 
-    report_files = [
+    report_files: list[str] = [
         f"{os.environ['DOCUMENTATION_DIRECTORY']}/reports/*",
         f"{os.environ['BUILD_DIRECTORY']}/access_log",
         f"{os.environ['SCAN_DIRECTORY']}/",
@@ -88,7 +102,7 @@ def main():
     )
 
     try:
-        post_resp = post_artifact_data_vat(tar_path=tar_path)
+        post_resp: requests.Response = post_artifact_data_vat(tar_path=tar_path)
         post_resp.raise_for_status()
         log.info("Uploaded container data to VAT API")
     except requests.exceptions.RequestException as req_exc:
