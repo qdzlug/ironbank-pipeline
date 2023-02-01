@@ -9,7 +9,7 @@ from ironbank.pipeline.utils import logger
 log = logger.setup(name="s3upload")
 
 
-def upload_file(file_name: str, bucket: str, object_name=None):
+def upload_file(file_name: str, bucket: str, object_name=None) -> None:
     """Upload a file to an S3 bucket
 
     :param file_name: File to upload
@@ -18,10 +18,10 @@ def upload_file(file_name: str, bucket: str, object_name=None):
     :return: True if file was uploaded, else False
     """
 
-    access_key = os.environ["S3_ACCESS_KEY"]
-    secret_key = os.environ["S3_SECRET_KEY"]
+    access_key: str = os.environ["S3_ACCESS_KEY"]
+    secret_key: str = os.environ["S3_SECRET_KEY"]
 
-    filetype = mimetypes.guess_type(file_name)
+    filetype: tuple = mimetypes.guess_type(file_name)
 
     if not filetype[0]:
         # If mimetype is NoneType use default value
@@ -53,7 +53,6 @@ def upload_file(file_name: str, bucket: str, object_name=None):
     )
     try:
         s3_client.upload_file(file_name, bucket, object_name, extra_args)
-    except ClientError:
+    except ClientError as ce:
         log.error("S3 client error occured")
-        return False
-    return True
+        raise ce

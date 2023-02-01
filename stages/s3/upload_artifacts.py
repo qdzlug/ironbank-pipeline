@@ -18,6 +18,20 @@ from ironbank.pipeline.utils import logger
 log: logging.Logger = logger.setup("vat_artifact_post")
 
 
+def copy_path(src: Path, dest: Path) -> None:
+    """
+    Copy source dir or file to destination
+    If dir endswith a '/', copy content in directory but not the directory itself
+    """
+    if src.is_dir():
+        if src.as_posix().endswith("/"):
+            shutil.copytree(src, dest)
+        else:
+            shutil.copytree(src, (dest / src.as_posix().split("/")[-1]))
+    else:
+        shutil.copy2(src, dest)
+
+
 def post_artifact_data_vat(tar_path: str) -> requests.Response:
     """
     POST to VAT's artifacts endpoint to allow IBFE to start displaying the published image data
@@ -61,7 +75,6 @@ def main():
     report_dir: Path = Path("reports")
     report_dir.mkdir(parents=True, exist_ok=True)
 
-    artifact_storage: str = os.environ["ARTIFACT_STORAGE"]
     report_tar_name: str = os.environ["REPORT_TAR_NAME"]
     utc_datetime_now: str = datetime.utcnow().isoformat(
         sep="T", timespec="milliseconds"
@@ -79,16 +92,18 @@ def main():
     tar_path: str = f"{image_path}/{h_manifest.image_tag}/{utc_datetime_now}_{os.environ['CI_PIPELINE_ID']}/{report_tar_name}"
 
     report_files: list[str] = [
-        f"{os.environ['DOCUMENTATION_DIRECTORY']}/reports/*",
+        f"{os.environ['DOCUMENTATION_DIRECTORY']}/reports/",
         f"{os.environ['BUILD_DIRECTORY']}/access_log",
-        f"{os.environ['SCAN_DIRECTORY']}/",
-        f"{os.environ['SBOM_DIRECTORY']}/",
-        f"{artifact_storage}/vat/vat_response.json",
+        f"{os.environ['SCAN_DIRECTORY']}",
+        f"{os.environ['SBOM_DIRECTORY']}",
+        f"{os.environ['VAT_DIRECTORY']}/vat_response.json",
+        dsop_proj.hardening_manifest_path.as_posix(),
         "README.md",
         "LICENSE",
     ]
     for file in report_files:
-        shutil.move(Path(file), report_dir)
+        file_path = Path(file)
+        copy_path(file_path, report_dir)
 
     log.info(os.listdir(report_dir))
 

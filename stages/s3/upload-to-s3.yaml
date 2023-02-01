@@ -9,6 +9,7 @@ upload-to-s3:
     DOCUMENTATION_DIRECTORY: "${ARTIFACT_STORAGE}/documentation"
     BUILD_DIRECTORY: "${ARTIFACT_STORAGE}/build"
     SBOM_DIRECTORY: "${ARTIFACT_STORAGE}/sbom"
+    VAT_DIRECTORY: "${ARTIFACT_STORAGE}/vat"
     BASE_BUCKET_DIRECTORY: container-scan-reports
     DOCUMENTATION_FILENAME: documentation
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
