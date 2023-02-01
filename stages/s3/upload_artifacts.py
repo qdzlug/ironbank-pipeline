@@ -32,7 +32,9 @@ def copy_path(src: Path, dest: Path) -> None:
         shutil.copy2(src, dest)
 
 
-def post_artifact_data_vat(tar_path: str) -> requests.Response:
+def post_artifact_data_vat(
+    published_timestamp: str, tar_path: str
+) -> requests.Response:
     """
     POST to VAT's artifacts endpoint to allow IBFE to start displaying the published image data
     """
@@ -48,7 +50,7 @@ def post_artifact_data_vat(tar_path: str) -> requests.Response:
         json={
             "imageName": os.environ["IMAGE_NAME"],
             "tag": os.environ["IMAGE_VERSION"],
-            "publishedTimestamp": os.environ["directory_date"],
+            "publishedTimestamp": published_timestamp,
             "readme": "NONE",
             "license": "NONE",
             "tar": tar_path,
@@ -117,7 +119,9 @@ def main():
     )
 
     try:
-        post_resp: requests.Response = post_artifact_data_vat(tar_path=tar_path)
+        post_resp: requests.Response = post_artifact_data_vat(
+            published_timestamp=utc_datetime_now, tar_path=tar_path
+        )
         post_resp.raise_for_status()
         log.info("Uploaded container data to VAT API")
     except requests.exceptions.RequestException as req_exc:
