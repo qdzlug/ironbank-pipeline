@@ -4,7 +4,6 @@ from dataclasses import dataclass, field
 import subprocess
 import tempfile
 import requests
-
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.image import Image, ImageFile
 from ironbank.pipeline.apis import VatAPI
@@ -63,8 +62,25 @@ class MockJson:
 
 @dataclass
 class MockResponse:
+    returncode: int = 1
     status_code: int = 500
     text: str = "example"
+    content: str = "example"
+    stderr: str = "canned_error"
+    stdout: str = "It broke"
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, mock1, mock2, mock3):
+        pass
+
+    def raise_for_status(self):
+        if self.status_code != 200:
+            raise requests.exceptions.HTTPError
+
+    def iter_content(self, chunk_size=2048):
+        return [b"abcdef", b"ghijkl", b"mnopqrs"]
 
     def json(self):
         return {"status_code": self.status_code, "text": self.text}
@@ -132,11 +148,20 @@ class MockPath:
     def as_posix(self):
         return self.path
 
+    def is_dir(self):
+        return True
+
     def is_symlink(self):
         return False
 
     def write_text(self, data, encoding=None, errors=None, newline=None):
         return ""
+
+    def __eq__(self, path) -> bool:
+        return self.as_posix() == path.as_posix()
+
+    def __contains__(self, sub_str):
+        return sub_str in self.as_posix()
 
     def __str__(self):
         return self.path

@@ -23,6 +23,9 @@ def copy_path(src: Path, dest: Path) -> None:
     Copy source dir or file to destination
     If dir endswith a '/', copy content in directory but not the directory itself
     """
+    # Path traversal not safe in this function
+    assert ".." not in src.as_posix(), "Path traversal not safe in this function"
+
     if src.is_dir():
         if src.as_posix().endswith("/"):
             shutil.copytree(src, dest)
@@ -85,11 +88,8 @@ def main():
     image_path: None | str | re.Match[str] = re.match(
         r"^(?:.*dsop\/)(.*)$", dsop_proj.project_path.as_posix()
     )
-    image_path = (
-        image_path.group(1)
-        if (image_path is not None and not isinstance(image_path, str))
-        else image_path
-    )
+    assert image_path
+    image_path = image_path.group(1) if isinstance(image_path, re.Match) else image_path
 
     tar_path: str = f"{image_path}/{h_manifest.image_tag}/{utc_datetime_now}_{os.environ['CI_PIPELINE_ID']}/{report_tar_name}"
 
