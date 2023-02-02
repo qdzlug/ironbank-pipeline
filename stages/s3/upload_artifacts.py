@@ -64,12 +64,6 @@ def main() -> None:
     Upload tar file to s3 and hit VAT endpoint to provide path to tar file
     After this stage finishes, IBFE is able to display new metadata for the associated image
     """
-    if "pipeline-test-project" in os.environ["CI_PROJECT_DIR"]:
-        log.info(
-            "Skipping publish. Cannot publish when working with pipeline test projects master branch..."
-        )
-        sys.exit(0)
-
     dsop_proj: DsopProject = DsopProject()
     hardening_manifest: HardeningManifest = HardeningManifest(
         dsop_proj.hardening_manifest_path
