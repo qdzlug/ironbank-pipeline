@@ -88,8 +88,8 @@ def main():
     image_path: None | str | re.Match[str] = re.match(
         r"^(?:.*dsop\/)(.*)$", dsop_proj.project_path.as_posix()
     )
-    assert image_path
-    image_path = image_path.group(1) if isinstance(image_path, re.Match) else image_path
+    assert isinstance(image_path, re.Match), "No match found for image path"
+    image_path = image_path.group(1)
 
     tar_path: str = f"{image_path}/{h_manifest.image_tag}/{utc_datetime_now}_{os.environ['CI_PIPELINE_ID']}/{report_tar_name}"
 
@@ -107,7 +107,7 @@ def main():
         file_path = Path(file)
         copy_path(file_path, report_dir)
 
-    log.info(os.listdir(report_dir))
+    log.info(os.listdir(report_dir.as_posix()))
 
     # tar
     subprocess.run(["tar", "-zcvf", report_tar_name, report_dir.as_posix()], check=True)
