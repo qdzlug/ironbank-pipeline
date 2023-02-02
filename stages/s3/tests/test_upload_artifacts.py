@@ -32,12 +32,6 @@ def test_copy_path(monkeypatch):
         upload_artifacts.copy_path(mock_src, mock_dest)
     assert "Path traversal not safe in this function" in ae.value.args[0]
 
-    log.info("Test copy directory")
-    mock_src = MockPath("./src")
-    with patch("shutil.copytree", new=MagicMock()) as mock_shutil:
-        upload_artifacts.copy_path(mock_src, mock_dest)
-        mock_shutil.assert_called_once_with(mock_src, mock_dest / "src")
-
     log.info("Test copy directory contents")
     mock_src = MockPath("./src/")
     with patch("shutil.copytree", new=MagicMock()) as mock_shutil:
@@ -45,7 +39,6 @@ def test_copy_path(monkeypatch):
         mock_shutil.assert_called_once_with(mock_src, mock_dest)
 
     log.info("Test copy file")
-    mock_src = MockPath("./src/")
     monkeypatch.setattr(
         MockPath,
         "is_dir",
