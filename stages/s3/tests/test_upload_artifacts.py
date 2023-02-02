@@ -87,7 +87,9 @@ def test_main(monkeypatch, mock_responses, caplog):
     monkeypatch.setenv("VAT_DIRECTORY", "mock_VAT_DIRECTORY")
     monkeypatch.setenv("S3_REPORT_BUCKET", "mock_S3_REPORT_BUCKET")
     monkeypatch.setenv("BASE_BUCKET_DIRECTORY", "mock_BASE_BUCKET_DIRECTORY")
-    monkeypatch.setattr(upload_artifacts, "post_artifact_data_vat", mock_responses["200"])
+    monkeypatch.setattr(
+        upload_artifacts, "post_artifact_data_vat", mock_responses["200"]
+    )
 
     log.info("Test pipeline-test-project in CI_PROJECT_DIR")
     with pytest.raises(SystemExit) as se:
@@ -106,10 +108,9 @@ def test_main(monkeypatch, mock_responses, caplog):
         self.project_path = MockPath("dsop/redhat/ubi/ubi8")
 
     monkeypatch.setattr(upload_artifacts.DsopProject, "__init__", mock_project_init)
-    monkeypatch.setattr(upload_artifacts, "copy_path", lambda *args, **kwargs : None)
+    monkeypatch.setattr(upload_artifacts, "copy_path", lambda *args, **kwargs: None)
     monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: None)
     monkeypatch.setattr(s3upload, "upload_file", lambda *args, **kwargs: None)
-
 
     # RJ's Tech Debt:
 # ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -139,7 +140,6 @@ def test_main(monkeypatch, mock_responses, caplog):
 # ⠀⠀⠀⠀⠀⠀⠀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⠀⠀⣀⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀
 # ⠀⠀⠀⠀⠀⠀⠛⠛⠓⠛⠙⠋⠋⠛⠟⠛⠟⠃⠚⠻⠛⠛⠀⠀⠃⠸⠛⠛⠓⠏⠟⠛⠰⠟⠂⠀⠀⠀⠀
 
-
     log.info("Test file not found error")
     with pytest.raises(FileNotFoundError) as fnfe:
         upload_artifacts.main()
@@ -157,17 +157,23 @@ def test_main(monkeypatch, mock_responses, caplog):
     caplog.clear()
 
     log.info("Test VAT API Timeout")
-    monkeypatch.setattr(upload_artifacts, "post_artifact_data_vat", lambda *args, **kwargs: raise_(requests.exceptions.Timeout))
+    monkeypatch.setattr(
+        upload_artifacts,
+        "post_artifact_data_vat",
+        lambda *args, **kwargs: raise_(requests.exceptions.Timeout),
+    )
     with pytest.raises(SystemExit) as se:
         upload_artifacts.main()
-    assert se.value.code ==  1
+    assert se.value.code == 1
     assert "Unable to reach the VAT API, TIMEOUT." in caplog.text
 
     caplog.clear()
 
     log.info("Test HTTP Error")
-    monkeypatch.setattr(upload_artifacts, "post_artifact_data_vat", mock_responses["404"])
+    monkeypatch.setattr(
+        upload_artifacts, "post_artifact_data_vat", mock_responses["404"]
+    )
     with pytest.raises(SystemExit) as se:
         upload_artifacts.main()
-    assert se.value.code ==  1
+    assert se.value.code == 1
     assert "VAT HTTP error" in caplog.text
