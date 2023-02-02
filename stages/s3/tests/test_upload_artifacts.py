@@ -57,7 +57,9 @@ def test_copy_path(monkeypatch):
 
 
 def test_post_artifact_data_vat(monkeypatch, mock_responses):
-    mock_tar_path: str = "test"
+    mock_tar_path: str = "test_tar"
+    mock_readme_path: str = "test_readme"
+    mock_license_path: str = "test_license"
     mock_published_timestamp: str = "time"
     monkeypatch.setenv("VAT_BACKEND_SERVER_ADDRESS", "test_serv_address")
     monkeypatch.setenv("CI_JOB_JWT_V2", "test_serv_address")
@@ -67,7 +69,7 @@ def test_post_artifact_data_vat(monkeypatch, mock_responses):
 
     log.info("Test successful response returned")
     resp: MockResponse = upload_artifacts.post_artifact_data_vat(
-        mock_published_timestamp, mock_tar_path
+        mock_published_timestamp, mock_tar_path, mock_readme_path, mock_license_path
     )
     assert resp.status_code == 200
 
