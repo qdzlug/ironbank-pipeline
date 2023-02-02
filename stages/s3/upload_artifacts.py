@@ -26,13 +26,7 @@ def copy_path(src: Path, dest: Path) -> None:
     # Path traversal not safe in this function
     assert ".." not in src.as_posix(), "Path traversal not safe in this function"
 
-    if src.is_dir():
-        if src.as_posix().endswith("/"):
-            shutil.copytree(src, dest)
-        else:
-            shutil.copytree(src, (dest / src.as_posix().split("/")[-1]))
-    else:
-        shutil.copy2(src, dest)
+    shutil.copytree(src, dest) if src.is_dir() else shutil.copy2(src, dest)
 
 
 def post_artifact_data_vat(
