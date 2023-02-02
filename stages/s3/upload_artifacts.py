@@ -36,7 +36,7 @@ def copy_path(src: Path, dest: Path) -> None:
 
 
 def post_artifact_data_vat(
-    published_timestamp: str, tar_path: str
+    published_timestamp: str, tar_path: str, readme_path: str, license_path: str
 ) -> requests.Response:
     """
     POST to VAT's artifacts endpoint to allow IBFE to start displaying the published image data
@@ -54,8 +54,8 @@ def post_artifact_data_vat(
             "imageName": os.environ["IMAGE_NAME"],
             "tag": os.environ["IMAGE_VERSION"],
             "publishedTimestamp": published_timestamp,
-            "readme": "NONE",
-            "license": "NONE",
+            "readme": readme_path,
+            "license": license_path,
             "tar": tar_path,
         },
         timeout=None,
@@ -63,7 +63,7 @@ def post_artifact_data_vat(
     return post_resp
 
 
-def main():
+def main() -> None:
     """
     Upload tar file to s3 and hit VAT endpoint to provide path to tar file
     After this stage finishes, IBFE is able to display new metadata for the associated image
@@ -75,7 +75,9 @@ def main():
         sys.exit(0)
 
     dsop_proj: DsopProject = DsopProject()
-    h_manifest: HardeningManifest = HardeningManifest(dsop_proj.hardening_manifest_path)
+    hardening_manifest: HardeningManifest = HardeningManifest(
+        dsop_proj.hardening_manifest_path
+    )
 
     report_dir: Path = Path("reports")
     report_dir.mkdir(parents=True, exist_ok=True)
@@ -91,7 +93,14 @@ def main():
     assert isinstance(image_path, re.Match), "No match found for image path"
     image_path = image_path.group(1)
 
-    tar_path: str = f"{image_path}/{h_manifest.image_tag}/{utc_datetime_now}_{os.environ['CI_PIPELINE_ID']}/{report_tar_name}"
+    s3_object_path = f"{image_path}/{hardening_manifest.image_tag}/{utc_datetime_now}_{os.environ['CI_PIPELINE_ID']}"
+
+    readme_name: str = "README.md"
+    license_name: str = "LICENSE"
+
+    license_path: str = f"{s3_object_path}/{readme_name}_not_uploaded"
+    readme_path: str = f"{s3_object_path}/{license_name}_not_uploaded"
+    tar_path: str = f"{s3_object_path}/{report_tar_name}"
 
     report_files: list[str] = [
         f"{os.environ['DOCUMENTATION_DIRECTORY']}/reports/",
@@ -100,8 +109,8 @@ def main():
         f"{os.environ['SBOM_DIRECTORY']}",
         f"{os.environ['VAT_DIRECTORY']}/vat_response.json",
         dsop_proj.hardening_manifest_path.as_posix(),
-        "README.md",
-        "LICENSE",
+        readme_name,
+        license_name,
     ]
     for file in report_files:
         file_path = Path(file)
@@ -120,7 +129,10 @@ def main():
 
     try:
         post_resp: requests.Response = post_artifact_data_vat(
-            published_timestamp=utc_datetime_now, tar_path=tar_path
+            published_timestamp=utc_datetime_now,
+            tar_path=tar_path,
+            readme_path=readme_path,
+            license_path=license_path,
         )
         post_resp.raise_for_status()
         log.info("Uploaded container data to VAT API")

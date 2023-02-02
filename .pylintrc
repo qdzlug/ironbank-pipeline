@@ -85,7 +85,9 @@ disable=raw-checker-failed,
         suppressed-message,
         useless-suppression,
         deprecated-pragma,
+        too-many-locals,
         use-symbolic-message-instead,
+        import-error,
         C0114, # missing-module-docstring
         C0301, # line-too-long
 
