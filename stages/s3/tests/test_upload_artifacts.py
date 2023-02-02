@@ -36,7 +36,7 @@ def test_copy_path(monkeypatch):
     mock_src = MockPath("./src/")
     with patch("shutil.copytree", new=MagicMock()) as mock_shutil:
         upload_artifacts.copy_path(mock_src, mock_dest)
-        mock_shutil.assert_called_once_with(mock_src, mock_dest)
+        mock_shutil.assert_called_once_with(mock_src, mock_dest, dirs_exist_ok=True)
 
     log.info("Test copy file")
     monkeypatch.setattr(
