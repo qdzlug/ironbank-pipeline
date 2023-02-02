@@ -14,6 +14,7 @@ from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.utils import s3upload
 
 from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.decorators import subprocess_error_handler
 
 log: logging.Logger = logger.setup("vat_artifact_post")
 
@@ -109,7 +110,9 @@ def main() -> None:
     log.info(os.listdir(report_dir.as_posix()))
 
     # tar
-    subprocess.run(["tar", "-zcvf", report_tar_name, report_dir.as_posix()], check=True)
+    subprocess_error_handler("Failed to compress file")(subprocess.run)(
+        ["tar", "-zcvf", report_tar_name, report_dir.as_posix()], check=True
+    )
     # upload to s3
     s3upload.upload_file(
         file_name=report_tar_name,

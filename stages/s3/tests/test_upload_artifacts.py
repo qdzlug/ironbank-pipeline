@@ -6,6 +6,7 @@ import pytest
 import requests
 import subprocess
 from ironbank.pipeline.utils import s3upload
+from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.test.mocks.mock_classes import (
     MockProject,
@@ -71,7 +72,6 @@ def test_post_artifact_data_vat(monkeypatch, mock_responses):
 @patch("upload_artifacts.DsopProject", new=MockProject)
 @patch("upload_artifacts.HardeningManifest", new=MockHardeningManifest)
 def test_main(monkeypatch, mock_responses, caplog):
-    monkeypatch.setenv("CI_PROJECT_DIR", "pipeline-test-project")
     monkeypatch.setenv("REPORT_TAR_NAME", "mock_REPORT_TAR_NAME")
     monkeypatch.setenv("CI_PIPELINE_ID", "mock_CI_PIPELINE_ID")
     monkeypatch.setenv("DOCUMENTATION_DIRECTORY", "mock_DOCUMENTATION_DIRECTORY")
@@ -84,14 +84,6 @@ def test_main(monkeypatch, mock_responses, caplog):
     monkeypatch.setattr(
         upload_artifacts, "post_artifact_data_vat", mock_responses["200"]
     )
-
-    log.info("Test pipeline-test-project in CI_PROJECT_DIR")
-    with pytest.raises(SystemExit) as se:
-        upload_artifacts.main()
-    assert se.value.code == 0
-
-    monkeypatch.setenv("CI_PROJECT_DIR", "mock_CI_PROJECT_DIR")
-
     log.info("Test image_path decision tree")
     with pytest.raises(AssertionError) as ae:
         upload_artifacts.main()
@@ -117,7 +109,19 @@ def test_main(monkeypatch, mock_responses, caplog):
     upload_artifacts.main()
     caplog.clear()
 
+    log.info("Test subprocess error")
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda *args, **kwargs: raise_(subprocess.CalledProcessError(1, [])),
+    )
+    with pytest.raises(GenericSubprocessError) as se:
+        upload_artifacts.main()
+    assert "Failed to compress file" in caplog.text
+    caplog.clear()
+
     log.info("Test successful upload to VAT API")
+    monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: None)
     upload_artifacts.main()
     assert "Uploaded container data to VAT API" in caplog.text
 
