@@ -51,7 +51,6 @@ def check_maintainers(hm_dict: dict) -> str:
 
 
 def main():
-
     set_log_level()
 
     GL_URL = os.environ["GITLAB_URL"]

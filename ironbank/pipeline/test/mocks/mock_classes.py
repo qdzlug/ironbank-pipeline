@@ -189,11 +189,15 @@ class MockTempDirectory(tempfile.TemporaryDirectory):
 class MockProject(DsopProject):
     example: MockPath = field(default_factory=lambda: MockPath("example_str"))
     project_path: MockPath = field(default_factory=lambda: MockPath("."))
-    hardening_manifest_path: MockPath = field(default_factory=lambda: MockPath("example_path"))
+    hardening_manifest_path: MockPath = field(
+        default_factory=lambda: MockPath("example_path")
+    )
     license_path: MockPath = field(default_factory=lambda: MockPath("license"))
     readme_path: MockPath = field(default_factory=lambda: MockPath("readme"))
     dockerfile_path: MockPath = field(default_factory=lambda: MockPath("dockerfile"))
-    trufflehog_conf_path: MockPath = field(default_factory=lambda: MockPath("trufflehog"))
+    trufflehog_conf_path: MockPath = field(
+        default_factory=lambda: MockPath("trufflehog")
+    )
     clamav_wl_path: MockPath = field(default_factory=lambda: MockPath("clamav"))
 
 
