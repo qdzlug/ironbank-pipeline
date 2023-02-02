@@ -72,7 +72,6 @@ def test_post_artifact_data_vat(monkeypatch, mock_responses):
     assert resp.status_code == 200
 
 
-@pytest.mark.only
 @patch("upload_artifacts.Path", new=MockPath)
 @patch("upload_artifacts.DsopProject", new=MockProject)
 @patch("upload_artifacts.HardeningManifest", new=MockHardeningManifest)

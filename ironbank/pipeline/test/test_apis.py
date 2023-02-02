@@ -22,7 +22,6 @@ def mock_vat_api():
 
 
 def test_get_image(monkeypatch, caplog, mock_vat_api, mock_responses):  # noqa W0404
-
     monkeypatch.setattr(requests, "get", mock_responses["200"])
     mock_vat_api.get_image("example/example/example", "1.0")
     assert "Fetched data from vat successfully" in caplog.text
@@ -43,7 +42,6 @@ def test_get_image(monkeypatch, caplog, mock_vat_api, mock_responses):  # noqa W
     },
 )
 def test_check_access(monkeypatch, caplog, mock_vat_api, mock_responses):  # noqa W0404
-
     monkeypatch.setattr(requests, "get", mock_responses["200"])
     mock_vat_api.check_access("example/example/example")
     for record in caplog.records:

@@ -34,7 +34,6 @@ def handle_system_exit(func):
 
 
 async def main():
-
     HARD_FAIL_CODE = 1
     SOFT_FAIL_CODE = 100
 

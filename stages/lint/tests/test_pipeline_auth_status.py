@@ -22,7 +22,6 @@ log = logger.setup(name="test_pipeline_auth_status")
 @patch("pipeline_auth_status.HardeningManifest", new=MockHardeningManifest)
 @patch("pipeline_auth_status.VatAPI", new=MockVatAPI)
 def test_pipeline_auth_status_main(monkeypatch, caplog):
-
     log.info("Test no backend server address")
 
     def mock_check_access_bad(self, *args, **kwargs):
