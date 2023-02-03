@@ -1,0 +1,17 @@
+# Set this for your top level group in gitlab
+# all projects will exist in this group at https://<staging_url>/dsop/<tester>
+tester: Kenn
+
+branch: 771-temp-branch
+src_gitlab_url: https://repo1.dso.mil
+dest_gitlab_url: https://code-ib-zelda.staging.dso.mil
+group: dsop
+clone_dir: staging_projects
+ci_file: .gitlab-ci.yml
+templates: templates
+projects:
+  - redhat/ubi/ubi8
+  - google/distroless/static
+  - redhat/openjdk/openjdk11
+  - aiml/airflow/airflow
+  - suse/bci/bci-base
