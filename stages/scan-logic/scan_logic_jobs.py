@@ -128,7 +128,6 @@ def main():
         log.info("Skip Logic: Non-master branch")
     else:
         with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
-
             # TODO: Make generating docker config file a module and reuse?
             # ------
             docker_config = pathlib.Path(docker_config_dir, "config.json")

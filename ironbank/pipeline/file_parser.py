@@ -88,7 +88,6 @@ class SbomFileParser(FileParser):
         packages: list[Package] = []
 
         for artifact in cls.handle_file_obj(sbom)["artifacts"]:
-
             packages.append(
                 Package(
                     kind=artifact["type"],

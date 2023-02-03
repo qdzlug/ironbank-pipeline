@@ -54,7 +54,6 @@ def getProjects(gl, targetGroup):
 
 @readlimiter.ratelimit("readlimiter", delay=True)
 def getProject(gl, projectId):
-
     for i in range(1, retries + 1):
         try:
             return gl.projects.get(projectId)
@@ -105,7 +104,6 @@ def getManifest(project):
 
 @issuelimiter.ratelimit("issuelimiter", delay=True)
 def createBaseImageIssue(project, image):
-
     # Create the templating objects
     templateLoader = jinja2.FileSystemLoader(searchpath="./templates")
     templateEnv = jinja2.Environment(loader=templateLoader)

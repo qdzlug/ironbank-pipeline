@@ -34,7 +34,6 @@ def check_type_label(hm_dict: dict) -> str:
 
 
 def check_labels(hm_dict: dict) -> str:
-
     bad_keys = []
     for k, v in hm_dict["labels"].items():
         if "fixme" in v.lower():
@@ -43,7 +42,6 @@ def check_labels(hm_dict: dict) -> str:
 
 
 def check_maintainers(hm_dict: dict) -> str:
-
     bad_keys = []
     for d in hm_dict["maintainers"]:
         for k, v in d.items():
@@ -53,7 +51,6 @@ def check_maintainers(hm_dict: dict) -> str:
 
 
 def main():
-
     set_log_level()
 
     GL_URL = os.environ["GITLAB_URL"]
@@ -77,7 +74,6 @@ def main():
     bad_hm = []
 
     for project in dsop_projects:
-
         try:
             f = (
                 project.files.get(file_path="hardening_manifest.yaml", ref="master")
