@@ -30,7 +30,6 @@ async def main():
         log.info("Inspect base image")
 
         with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
-
             docker_config = pathlib.Path(docker_config_dir, "config.json")
             if os.environ.get("STAGING_BASE_IMAGE"):
                 # Grab staging pull docker auth

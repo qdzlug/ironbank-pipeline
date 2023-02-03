@@ -22,7 +22,6 @@ log = logger.setup("test_hardening_manifest_validation")
 @patch("hardening_manifest_validation.DsopProject", new=MockProject)
 @patch("hardening_manifest_validation.HardeningManifest", new=MockHardeningManifest)
 def test_hardening_manifest_validation_main(monkeypatch, caplog):
-
     log.info("Test successful valiation")
     monkeypatch.setenv("ARTIFACT_DIR", MockPath)
     monkeypatch.setattr(HardeningManifest, "create_artifacts", lambda x: x)

@@ -73,7 +73,6 @@ def promote_tags(
 def _convert_artifacts_to_hardening_manifest(
     predicates: list, hardening_manifest: Path
 ):
-
     hm_object = yaml.safe_load(hardening_manifest.read_text())
 
     for item in predicates:

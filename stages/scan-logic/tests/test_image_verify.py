@@ -99,7 +99,6 @@ def test_verify_image_properties(monkeypatch, caplog, mock_hm):
 @patch("image_verify.DsopProject", new=MockProject)
 @patch("image_verify.HardeningManifest", new=MockHardeningManifest)
 def test_diff_needed(monkeypatch, caplog):
-
     log.info("Test Digest and Label values are returned on no diff")
     mock_old_img_json = {
         "Extra Key": "something",

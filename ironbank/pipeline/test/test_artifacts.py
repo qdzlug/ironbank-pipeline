@@ -179,7 +179,6 @@ def test_http_artifact_get_credentials(monkeypatch, mock_http_artifact):
 def test_http_artifact_download(
     monkeypatch, mock_http_artifact, mock_responses  # noqa W0404
 ):
-
     monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data=b"example"))
     monkeypatch.setattr(HttpArtifact, "get_credentials", lambda self: "example")
 

@@ -16,7 +16,6 @@ from ironbank.pipeline.hardening_manifest import (
 
 
 def get_repomap(object_name, bucket="ironbank-pipeline-artifacts") -> bool:
-
     access_key = os.environ["S3_ACCESS_KEY"]
     secret_key = os.environ["S3_SECRET_KEY"]
 
