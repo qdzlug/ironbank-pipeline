@@ -3,7 +3,7 @@ import subprocess
 import sys
 import yaml
 from pathlib import Path
-from git import Repo, Remote
+from git import Repo
 from jinja2 import Environment, FileSystemLoader, Template
 import shutil
 import gitlab
@@ -22,6 +22,7 @@ class Config:
     clone_dir: str | Path
     ci_file: str
     templates: str | Path
+    default_project_branch: str
     projects: list[str]
     proxies: dict[str] = field(
         default_factory=lambda: {
@@ -68,20 +69,19 @@ class Config:
 def clone_from_src(config: Config) -> list[Repo]:
     config.clone_dir.mkdir(parents=True, exist_ok=True)
 
-    repos: list[Repo] = []
-    for project in config.projects:
+    for project, i in zip(config.projects, range(len(config.projects))):
         clone_url: str = f"{config.src_git_url}/{config.group}/{project}"
         dest_dir: Path = Path(f"{config.clone_dir}/{project.split('/')[-1]}")
         print(clone_url)
         if not dest_dir.exists():
             repo: Repo = Repo.clone_from(clone_url, dest_dir)
             assert repo
-            repos.append(repo)
+            config.projects[i]["repo"] = repo
         else:
             repo = Repo(dest_dir)
             assert repo
-            repos.append(Repo(dest_dir))
-    return repos
+            config.projects[i]["repo"] = Repo(dest_dir)
+    return config
 
 
 def template_ci_file(config: Config):
@@ -96,16 +96,12 @@ def template_ci_file(config: Config):
     return ci_file_content
 
 
-def create_tester_group_in_dest(config: Config):
+def create_tester_group_in_dest(gl: gitlab.Gitlab, config: Config):
     """
     For tester (i.e. `tester` field in config.yaml)
     - Check for existing group in destination gl instance
     - If group does not exist, create it
     """
-    session = requests.session()
-    session.proxies.update(config.proxies)
-
-    gl = gitlab.Gitlab(url=config.dest, private_token=config.dest_pw, session=session)
 
     try:
         group = gl.groups.get(f"{config.group}/{config.tester}")
@@ -121,11 +117,11 @@ def create_tester_group_in_dest(config: Config):
     return group
 
 
-def push_repos_to_dest(repos, config: Config):
-    remotes: list[Remote] = []
-    for repo in repos:
+def push_repos_to_dest(config: Config):
+    for project, i in zip(config.projects, range(len(config.projects))):
+        repo = project["repo"]
         assert repo.working_dir
-        repo.git.checkout("master")
+        repo.git.checkout(project.get("branch") or config.default_project_branch)
         repo_path: Path = Path(repo.working_dir)
         repo_ci_file: Path = Path(repo_path, config.ci_file)
         repo_ci_file.unlink(missing_ok=True)
@@ -136,17 +132,34 @@ def push_repos_to_dest(repos, config: Config):
         remote = (
             repo.create_remote(
                 "staging",
-                f"{config.dest_git_url}/{config.group}/{config.tester}/{repo.working_dir.split('/')[-1]}",
+                f"{config.dest_git_url}/{config.group}/{config.tester}/{project['dest_project_name']}",
             )
             if "staging" not in [remote.name for remote in repo.remotes]
             else repo.remotes.staging
         )
-        remotes.append(remote)
+        config.projects[i]["remote"] = remote
         # remote.push()
-    return remotes
+    return config
+
+
+def get_projects_from_dest(gl: gitlab.Gitlab, config: Config):
+    for project, i in zip(config.projects, range(len(config.projects))):
+        config.projects[i]["gl_project"] = gl.projects.get(
+            f"{config.group}/{config.tester}/{config.dest_project_name}"
+        )
+    return config
+
+
+def kickoff_pipelines(config: Config):
+    for project, i in zip(config.projects, range(len(config.projects))):
+        config.projects[i]["pipeline"] = project["gl_project"].pipelines.create(
+            {"ref": project.get("branch") or config.default_project_branch}
+        )
+    return config
 
 
 def main():
+
     config_files = ["config.yaml", "secrets.yaml"]
     config_args = []
     for cf in config_files:
@@ -155,11 +168,19 @@ def main():
 
     config = Config(**{k: v for sub_dict in config_args for k, v in sub_dict.items()})
 
+    session = requests.session()
+    if config.proxies:
+        session.proxies.update(config.proxies)
+
+    dest_gl = gitlab.Gitlab(
+        url=config.dest, private_token=config.dest_pw, session=session
+    )
+
     assert isinstance(config.clone_dir, Path)
 
-    repos = clone_from_src(config)
+    config = clone_from_src(config)
 
-    create_tester_group_in_dest(config)
+    create_tester_group_in_dest(dest_gl, config)
 
     # TODO: check git config before updating it
     if config.proxies:
@@ -167,13 +188,15 @@ def main():
             ["git", "config", "--global", "http.proxy", "socks5h://localhost:12345"]
         )
 
-    push_repos_to_dest(repos, config)
+    config = push_repos_to_dest(config)
 
     # TODO: check git config before updating it
     if config.proxies:
         subprocess.run(["git", "config", "--global", "--unset", "http.proxy"])
 
-    # for remote in remotes:
+    config = get_projects_from_dest(dest_gl, config)
+
+    config = kickoff_pipelines(config)
 
 
 if __name__ == "__main__":

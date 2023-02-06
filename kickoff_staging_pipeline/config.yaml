@@ -9,10 +9,17 @@ group: dsop
 clone_dir: staging_projects
 ci_file: .gitlab-ci.yml
 templates: templates
+default_project_branch: master
 # project path in gitlab
 projects:
-  - redhat/ubi/ubi8
-  - google/distroless/static
-  - redhat/openjdk/openjdk11
-  - aiml/airflow/airflow
-  - suse/bci/bci-base
+  - gl_path: redhat/ubi/ubi8
+    dest_project_name: ubi8
+  - gl_path: google/distroless/static
+    dest_project_name: static
+  - gl_path: redhat/openjdk/openjdk11
+    dest_project_name: openjdk11
+  - gl_path: aiml/airflow/airflow
+    dest_project_name: airflow
+  - gl_path: suse/bci/bci-base
+    dest_project_name: bci-base
+    # branch: master   # --- branch can be set at a per project level
