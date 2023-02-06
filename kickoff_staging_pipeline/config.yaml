@@ -12,14 +12,16 @@ templates: templates
 default_project_branch: master
 # project path in gitlab
 projects:
-  - gl_path: redhat/ubi/ubi8
+  - src_path: redhat/ubi/ubi8
     dest_project_name: ubi8
-  - gl_path: google/distroless/static
+  - src_path: google/distroless/static
     dest_project_name: static
-  - gl_path: redhat/openjdk/openjdk11
-    dest_project_name: openjdk11
-  - gl_path: aiml/airflow/airflow
-    dest_project_name: airflow
-  - gl_path: suse/bci/bci-base
-    dest_project_name: bci-base
+  - src_path : fluxcd/helm-controller
+    dest_project_name: helm-controller
+  # - src_path: redhat/openjdk/openjdk11
+  #   dest_project_name: openjdk11
+  # - src_path: aiml/airflow/airflow
+  #   dest_project_name: airflow
+  # - src_path: suse/bci/bci-base
+  #   dest_project_name: bci-base
     # branch: master   # --- branch can be set at a per project level
