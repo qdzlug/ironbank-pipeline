@@ -14,14 +14,19 @@ default_project_branch: master
 projects:
   - src_path: redhat/ubi/ubi8
     dest_project_name: ubi8
-  - src_path: google/distroless/static
-    dest_project_name: static
-  - src_path : fluxcd/helm-controller
-    dest_project_name: helm-controller
+    base_image: True
+  # - src_path: google/distroless/static
+  #   dest_project_name: static
+  #   base_image: True
+  # - src_path : fluxcd/helm-controller
+  #   dest_project_name: helm-controller
   # - src_path: redhat/openjdk/openjdk11
   #   dest_project_name: openjdk11
   # - src_path: aiml/airflow/airflow
   #   dest_project_name: airflow
   # - src_path: suse/bci/bci-base
   #   dest_project_name: bci-base
+  # - src_path: twistlock/console/console
+  #   dest_project_name: twistlock_console
+  #   base_image: True
     # branch: master   # --- branch can be set at a per project level
