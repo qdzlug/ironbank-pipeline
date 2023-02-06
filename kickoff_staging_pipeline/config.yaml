@@ -3,12 +3,13 @@
 tester: Kenn
 
 branch: 771-temp-branch
-src_gitlab_url: https://repo1.dso.mil
-dest_gitlab_url: https://code-ib-zelda.staging.dso.mil
+src_gitlab_url: repo1.dso.mil
+dest_gitlab_url: code-ib-zelda.staging.dso.mil
 group: dsop
 clone_dir: staging_projects
 ci_file: .gitlab-ci.yml
 templates: templates
+# project path in gitlab
 projects:
   - redhat/ubi/ubi8
   - google/distroless/static
