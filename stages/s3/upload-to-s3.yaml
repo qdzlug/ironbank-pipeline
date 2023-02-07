@@ -5,12 +5,12 @@ upload-to-s3:
     - master
   variables:
     #TODO: Put these in globals
-    IMAGE_FILE: "${CI_PROJECT_NAME}-${IMAGE_VERSION}"
     SCAN_DIRECTORY: "${ARTIFACT_STORAGE}/scan-results"
     DOCUMENTATION_DIRECTORY: "${ARTIFACT_STORAGE}/documentation"
     BUILD_DIRECTORY: "${ARTIFACT_STORAGE}/build"
     SBOM_DIRECTORY: "${ARTIFACT_STORAGE}/sbom"
-    BASE_BUCKET_DIRECTORY: testing/container-scan-reports
+    VAT_DIRECTORY: "${ARTIFACT_STORAGE}/vat"
+    BASE_BUCKET_DIRECTORY: container-scan-reports
     DOCUMENTATION_FILENAME: documentation
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
     REPORT_TAR_NAME: ${CI_PROJECT_NAME}-${IMAGE_VERSION}-reports-signature.tar.gz
@@ -21,6 +21,7 @@ upload-to-s3:
     - lint
     - build
     - create-sbom
+    - scan-logic
     - anchore-scan
     - twistlock-scan
     - openscap-compliance
@@ -30,7 +31,7 @@ upload-to-s3:
     - vat
   script:
     - 'pip install --user --no-deps "${PIPELINE_REPO_DIR}"'
-    - '"${PIPELINE_REPO_DIR}/stages/s3/upload-to-s3-run.sh"'
+    - 'python "${PIPELINE_REPO_DIR}/stages/s3/upload_artifacts.py"'
   artifacts:
     paths:
       - reports/

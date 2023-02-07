@@ -155,7 +155,7 @@ def main():
     ).absolute()
     mount_conf_path = Path().home().joinpath(".config", "containers", "mounts.conf")
 
-    os.makedirs(build_artifact_dir)
+    build_artifact_dir.mkdir(parents=True, exist_ok=True)
 
     log.info("Determine source registry based on branch")
     if os.environ.get("STAGING_BASE_IMAGE"):

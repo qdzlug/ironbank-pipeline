@@ -3,7 +3,7 @@ anchore-scan:
   dependencies:
     - load-scripts
     - build
-    - run-logic
+    - scan-logic
   variables:
     ANCHORE_SCANS: "${ARTIFACT_STORAGE}/scan-results/anchore"
   image: "registry1.dso.mil/ironbank/anchore/cli/cli:0.9.4"

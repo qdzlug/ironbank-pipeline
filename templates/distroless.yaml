@@ -28,7 +28,7 @@ include:
 
   - local: stages/harbor/harbor.yaml
 
-  - local: stages/s3/upload-to-s3-other.yaml
+  - local: stages/s3/upload-to-s3.yaml
 
 variables:
   DISTROLESS: "1"
