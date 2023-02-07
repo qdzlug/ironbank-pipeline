@@ -17,7 +17,7 @@ twistlock-scan:
   before_script:
     - mkdir -p "${TWISTLOCK_SCANS}"
   script:
-    - 'podman pull --authfile "${DOCKER_AUTH_CONFIG}" "${IMAGE_TO_SCAN}"'
+    - 'podman pull --authfile "${DOCKER_AUTH_CONFIG_FILE_PULL}" "${IMAGE_TO_SCAN}"'
     - 'twistcli --version >"${VERSION_FILE}"'
     - 'twistcli images scan --address "${TWISTLOCK_SERVER_ADDRESS}" --podman-path podman --custom-labels --output-file "${CVE_FILE}" --details "${IMAGE_TO_SCAN}" | tee "${DETAIL_FILE}"'
     - 'ls "${CVE_FILE}"'
