@@ -191,7 +191,7 @@ def create_tester_group_in_dest(gl: gitlab.Gitlab, config: Config) -> GLGroup:
         group.save()
     except gitlab.GitlabAuthenticationError:
         print(
-            "Authentication error. Please run `export STAGING_GL_TOKEN=<your_rw_access_token>` before rerunning"
+            "Authentication error. Please update your dest auth in secrets.yaml or run `export DEST_UN=<username>` and `export DEST_PW=<rw_access_token>` before rerunning"
         )
         sys.exit(1)
     assert group
