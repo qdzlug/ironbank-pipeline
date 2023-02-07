@@ -21,20 +21,44 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Project:
+    """
+    Manages all configuration and artifacts associated with project
+    src_path: path in src repository, (e.g. for repo1.dso.mil/dsop/redhat/ubi/ubi8 this value should be redhat/ubi/ubi8) and config.group should be `dsop`
+    dest_project_name: project name to use for dest, does not support nested paths (i.e. test/test1 is not supported)
+    branch: branch that will be used for testing (default is master)
+    """
+
+    # from config
     src_path: str
-    dest_project_name: str
+    dest_project_name: str | Any = None
     # TODO: make appropriate typing fixes to set these as Optional
-    branch: str | Any = None
+    branch: str | Any = "master"
+    base_image: bool = False
+
+    # generated during script run
     repo: Repo | Any = None
     remote: Remote | Any = None
     gl_project: GLProject | Any = None
     pipeline: GLPipeline | Any = None
     changes_pushed: bool = False
-    base_image: bool = True
+
+    def __post_init__(self):
+        self.dest_project_name = (
+            self.dest_project_name or self.src_path.rsplit("/", maxsplit=1)[-1]
+        )
+        assert "/" not in self.dest_project_name
 
 
 @dataclass
 class Config:
+    """
+    Represents deserialized config.yaml+secrets.yaml
+    Manages Project objects used in this script
+
+    Any edits to config.yaml or secrets.yaml affect the instantiation of this class
+    Any changes to this class should be reflected in config.yaml or secrets.yaml where appropriate
+    """
+
     tester: str
     branch: str
     src_gitlab_url: str
@@ -97,14 +121,23 @@ class Config:
 
     @property
     def src(self) -> str:
+        """
+        Alias to src_gitlab_url
+        """
         return self.src_gitlab_url
 
     @property
     def dest(self) -> str:
+        """
+        Alias to dest_gitlab_url
+        """
         return self.dest_gitlab_url
 
 
 def clone_from_src(config: Config) -> Config:
+    """
+    Clone all src repos to a local directory defined in config
+    """
     config.clone_dir.mkdir(parents=True, exist_ok=True)
 
     for project, i in zip(config.projects, range(len(config.projects))):
@@ -123,6 +156,7 @@ def clone_from_src(config: Config) -> Config:
 
 
 def template_ci_file(config: Config) -> Path:
+    """ """
     environment: Environment = Environment(loader=FileSystemLoader(config.templates))
 
     template: Template = environment.get_template(f"{config.ci_file}.j2")
@@ -302,7 +336,7 @@ def main():
 
     assert isinstance(config.clone_dir, Path)
 
-    print("\nCloning images...")
+    print("\nCloning repos...")
     config = clone_from_src(config)
 
     create_tester_group_in_dest(dest_gl, config)
