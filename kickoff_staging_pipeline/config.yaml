@@ -2,7 +2,7 @@
 # all projects will exist in this group at https://<staging_url>/dsop/<tester>
 tester: Kenn
 
-branch: 771-temp-branch
+pipeline_branch: 771-temp-branch
 src_gitlab_url: repo1.dso.mil
 dest_gitlab_url: code-ib-zelda.staging.dso.mil
 group: dsop

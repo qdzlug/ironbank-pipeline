@@ -23,9 +23,17 @@ from dataclasses import dataclass, field
 class Project:
     """
     Manages all configuration and artifacts associated with project
-    src_path: path in src repository, (e.g. for repo1.dso.mil/dsop/redhat/ubi/ubi8 this value should be redhat/ubi/ubi8) and config.group should be `dsop`
-    dest_project_name: project name to use for dest, does not support nested paths (i.e. test/test1 is not supported)
-    branch: branch that will be used for testing (default is master)
+    Attributes:
+    - src_path: path in src repository, (e.g. for repo1.dso.mil/dsop/redhat/ubi/ubi8 this value should be redhat/ubi/ubi8) and config.group should be `dsop`
+    - dest_project_name: project name to use for dest, does not support nested paths (i.e. test/test1 is not supported)
+    - branch: project branch that will be used for running pipelines (default is master)
+    - base_image: set to True if using a base image project, sets LABEL_ALLOWLIST_REGEX after creating project
+
+    - repo: Local repo associated with project
+    - remote: Remote destination repo
+    - gl_project: Destination gitlab project
+    - pipeline: Pipeline created for project in destination
+    - changes_pushed: set to True if new changes were pushed to destination, prevents automated pipeline creation since one will be created with the pushed changes
     """
 
     # from config
@@ -57,10 +65,30 @@ class Config:
 
     Any edits to config.yaml or secrets.yaml affect the instantiation of this class
     Any changes to this class should be reflected in config.yaml or secrets.yaml where appropriate
+
+    Attributes:
+
+    config.yaml
+    - tester: name of the tester using this script, used to create a group in destination
+    - pipeline_branch: pipeline branch to test against
+    - src_gitlab_url: source url to retrieve repos from (examples: https://repo1.dso.mil or repo1.dso.mil -- both should work)
+    - dest_gitlab_url: dest url to use for running test pipelines (examples: https://code-ib-zelda.staging.dso.mil or code-ib-zelda.staging.dso.mil -- both should work)
+    - group: top level group to gather projects from and push to, should be "dsop" in most cases, but could be changed to something like ironbank-tools if testing automation against those projects
+    - template: template directory used for jinja templating the .gitlab-ci.yml file
+    - default_project_branch: default branch to use for each project if no branch is specified
+    - projects: list of projects to use for testing
+
+    - proxies: not currently set in the config since this script will pretty much always require a proxy, can be added to the config if needed
+
+    secrets.yaml -- can use secrets.yaml.example for the template
+    - src_un: source repo username
+    - src_pw: source repo access token
+    - dest_un: dest repo username
+    - dest_pw: dest repo access token
     """
 
     tester: str
-    branch: str
+    pipeline_branch: str
     src_gitlab_url: str
     dest_gitlab_url: str
     group: str
@@ -76,14 +104,15 @@ class Config:
             "http": "socks5h://127.0.0.1:12345",
         }
     )
-    src_un: str = field(default_factory=lambda: os.environ["SRC_UN"])
-    src_pw: str = field(default_factory=lambda: os.environ["SRC_PW"])
-    dest_un: str = field(default_factory=lambda: os.environ["DEST_UN"])
-    dest_pw: str = field(default_factory=lambda: os.environ["DEST_PW"])
+    src_un: str = field(default_factory=lambda: os.environ.get("SRC_UN", ""))
+    src_pw: str = field(default_factory=lambda: os.environ.get("SRC_PW", ""))
+    dest_un: str = field(default_factory=lambda: os.environ.get("DEST_UN", ""))
+    dest_pw: str = field(default_factory=lambda: os.environ.get("DEST_PW", ""))
 
     # TODO: remove this decorator when typing is resolved for self.projects
     @typing.no_type_check
     def __post_init__(self) -> None:
+        # convert project dictionaries to project objects
         self.projects = [
             Project(
                 **{
@@ -95,6 +124,13 @@ class Config:
         ]
         self.clone_dir = Path(self.clone_dir)
         self.templates = Path(self.templates)
+        # remove https or http prefix since they'll be added again for each url
+        self.src_gitlab_url = self.src_gitlab_url.replace("https://", "").replace(
+            "http://", ""
+        )
+        self.dest_gitlab_url = self.dest_gitlab_url.replace("https://", "").replace(
+            "http://", ""
+        )
         self.src_auth_exists = bool(self.src_un and self.src_pw)
         self.dest_auth_exists = bool(self.dest_un and self.dest_pw)
         self.src_url_prefix = (
@@ -112,6 +148,15 @@ class Config:
         self.dest_git_url: str = f"{self.dest_url_prefix}{self.dest_gitlab_url}"
         self.src_gitlab_url = f"https://{self.src_gitlab_url}"
         self.dest_gitlab_url = f"https://{self.dest_gitlab_url}"
+
+        if not self.dest_auth_exists:
+            print(
+                "WARNING: Destination authentication not provided. Keychain auth will be used for git if configured"
+            )
+        if not self.src_auth_exists:
+            print(
+                "WARNING: Source authentication not provided. Keychain auth will be used for git if configured"
+            )
 
         # validate values aren't misconfigured
         assert "repo1" not in self.dest_gitlab_url
@@ -137,6 +182,7 @@ class Config:
 def clone_from_src(config: Config) -> Config:
     """
     Clone all src repos to a local directory defined in config
+    Instatiates each project's repo object
     """
     config.clone_dir.mkdir(parents=True, exist_ok=True)
 
@@ -156,11 +202,13 @@ def clone_from_src(config: Config) -> Config:
 
 
 def template_ci_file(config: Config) -> Path:
-    """ """
+    """
+    Template .gitlab-ci.yml with expected pipeline branch
+    """
     environment: Environment = Environment(loader=FileSystemLoader(config.templates))
 
     template: Template = environment.get_template(f"{config.ci_file}.j2")
-    ci_file_content: str = template.render(branch=config.branch)
+    ci_file_content: str = template.render(branch=config.pipeline_branch)
     template_ci_file_path: Path = Path(config.templates, config.ci_file)
 
     with template_ci_file_path.open("w", encoding="utf-8") as f:
@@ -199,6 +247,9 @@ def create_tester_group_in_dest(gl: gitlab.Gitlab, config: Config) -> GLGroup:
 
 
 def update_force_push_rules(project: GLProject, branch: str) -> None:
+    """
+    Update project branch to allow force push
+    """
     project.protectedbranches.delete(branch)
     maintainer = gitlab.const.MAINTAINER_ACCESS
     project.protectedbranches.create(
@@ -212,6 +263,9 @@ def update_force_push_rules(project: GLProject, branch: str) -> None:
 
 
 def generate_remote(project: Project, repo: Repo, config: Config):
+    """
+    Create remote from repo if not exists, else return existing remote
+    """
     return (
         repo.create_remote(
             "staging",
@@ -223,6 +277,10 @@ def generate_remote(project: Project, repo: Repo, config: Config):
 
 
 def push_branches(project: Project, repo: Repo, remote: Remote) -> None:
+    """
+    Push project branch to destination, and development if not exists
+    Development must be pushed for trufflehog to function correctly
+    """
     branches = [project.branch]
     branches += (
         ["development"]
@@ -236,6 +294,18 @@ def push_branches(project: Project, repo: Repo, remote: Remote) -> None:
 
 
 def push_repos_to_dest(config: Config) -> Config:
+    """
+    Configures projects for destination and pushes them to destination
+    Instatiates each project's remote object
+    - Template ci file
+    - Pull changes from source
+    - Delete/Recreate updated ci file for each project
+    - If diff in ci file or ci file created for the first time
+        - Add ci file
+        - Commit changes
+        - Push to destination
+        - Set changes_pushed for project to True
+    """
     template_ci_file_path = template_ci_file(config)
     for project, i in zip(config.projects, range(len(config.projects))):
         repo: Repo = project.repo
@@ -273,6 +343,13 @@ def push_repos_to_dest(config: Config) -> Config:
 
 
 def update_dest_project_permissions(gl: gitlab.Gitlab, config: Config) -> Config:
+    """
+    Updates destination project permissions as necessary for pipeline to function
+    Instatiates each project's gl_project object
+    - Make project public
+    - Allow force push for branch
+    - Add LABEL_ALLOWLIST_REGEX for base images
+    """
     assert "repo1" not in gl.api_url
     for project, i in zip(config.projects, range(len(config.projects))):
         gl_project: GLProject = gl.projects.get(
@@ -301,6 +378,10 @@ def update_dest_project_permissions(gl: gitlab.Gitlab, config: Config) -> Config
 
 
 def kickoff_pipelines(config: Config) -> Config:
+    """
+    Kick's off pipelines for any projects that haven't pushed changes
+    Instatiates each project's pipeline object
+    """
     for project, i in zip(config.projects, range(len(config.projects))):
         # prevent kicking off second pipeline if ci changes were pushed to remote
         if not project.changes_pushed:
@@ -317,7 +398,16 @@ def kickoff_pipelines(config: Config) -> Config:
 
 
 def main():
-
+    """
+    Main function
+    - Generate config
+    - Create gl object
+    - Clone repos from source
+    - Create tester group
+    - Push repos to destination
+    - Update destination repo permissions
+    - Kickoff pipelines for anything that didn't push changes
+    """
     config_files = ["config.yaml", "secrets.yaml"]
     config_args = []
     for conf in config_files:
@@ -329,6 +419,11 @@ def main():
     session = requests.session()
     if config.proxies:
         session.proxies.update(config.proxies)
+
+    if not config.dest_pw:
+        print(
+            "WARNING: gitlab object configured without access token. Some functionality in this script may not work"
+        )
 
     dest_gl = gitlab.Gitlab(
         url=config.dest, private_token=config.dest_pw, session=session
