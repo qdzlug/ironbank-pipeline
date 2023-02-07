@@ -4,7 +4,6 @@ set -Eeuo pipefail
 GPG_VERSION=$(gpg --version | grep '(?<=gpg .GnuPG.)([^0-9]+)([0-9]+[.][0-9]+[.][0-9]+)' -oP | sed -E 's/ //g')
 
 # Create manifest.json
-export PODMAN_REFERENCE="${REGISTRY_URL_STAGING}/${IMAGE_NAME}:${IMAGE_VERSION}"
 export GPG_VERSION
 
 jq -n '
@@ -12,10 +11,10 @@ jq -n '
   "critical": {
     "type": "atomic container signature",
     "image": {
-      "podman-manifest-digest": env.IMAGE_PODMAN_SHA
+      "podman-manifest-digest": env.DIGEST_TO_SCAN
     },
     "identity": {
-      "podman-reference": env.PODMAN_REFERENCE
+      "podman-reference": env.IMAGE_TO_SCAN
     }
   },
   "optional": {

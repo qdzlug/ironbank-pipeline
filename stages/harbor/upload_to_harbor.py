@@ -73,7 +73,6 @@ def promote_tags(
 def _convert_artifacts_to_hardening_manifest(
     predicates: list, hardening_manifest: Path
 ):
-
     hm_object = yaml.safe_load(hardening_manifest.read_text())
 
     for item in predicates:
@@ -160,16 +159,18 @@ def main():
     try:
         # Compare digests to ensure image integrity
         compare_digests(staging_image)
-        # Promote image and tags from staging project
-        promote_tags(staging_image, production_image, hm.image_tags)
-        # Sign image
         with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
             shutil.copy(
                 os.environ["DOCKER_AUTH_CONFIG_FILE_PROD"],
                 Path(docker_config_dir, "config.json"),
             )
             cosign = Cosign(docker_config_dir=docker_config_dir)
-            cosign.sign(production_image, log_cmd=True)
+            # if the new image was scanned
+            if "ironbank-staging" in os.environ["IMAGE_TO_SCAN"]:
+                # Promote image and tags from staging project
+                promote_tags(staging_image, production_image, hm.image_tags)
+                # Sign image
+                cosign.sign(production_image, log_cmd=True)
             log.info("Adding attestations")
             for predicate in attestation_predicates:
                 cosign.attest(

@@ -18,7 +18,9 @@ log = logger.setup(name="hardening_manifest")
 
 # Not using dataclass because post_init is required for file load and parameter initialization
 class HardeningManifest:
-    def __init__(self, hm_path: str, schema_path: str = "./", validate: bool = False):
+    def __init__(
+        self, hm_path: str | Path, schema_path: str = "./", validate: bool = False
+    ):
         self.hm_path: Path = Path(hm_path)
         self.schema_path: Path = Path(schema_path)
         with self.hm_path.open("r", encoding="utf-8") as f:

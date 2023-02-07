@@ -396,7 +396,6 @@ def get_parent_vat_response(output_dir: str, hardening_manifest: HardeningManife
 
 
 def main():
-
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     if hardening_manifest.base_image_name:

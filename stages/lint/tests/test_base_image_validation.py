@@ -26,7 +26,6 @@ log = logger.setup("test_base_image_validation")
 @patch("base_image_validation.pathlib.Path", new=MockPath)
 @patch("base_image_validation.json", new=MockJson)
 def test_base_image_validation_main(monkeypatch, caplog):
-
     log.info("Test staging base image validation")
     monkeypatch.setenv("STAGING_BASE_IMAGE", "base")
     monkeypatch.setenv(

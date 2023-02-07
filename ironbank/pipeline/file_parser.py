@@ -29,7 +29,7 @@ class AccessLogFileParser(FileParser):
         packages: list[Package] = []
         nexus_host = os.environ["NEXUS_HOST"]
         nexus_re = re.compile(
-            f"({re.escape(nexus_host)})(?P<repo_type>[^/]+)/(?P<url>.*)"
+            rf"({re.escape(nexus_host)})(?P<repo_type>[^/]+)/(?P<url>.*)"
         )
 
         for line in cls.handle_file_obj(access_log):
@@ -88,7 +88,6 @@ class SbomFileParser(FileParser):
         packages: list[Package] = []
 
         for artifact in cls.handle_file_obj(sbom)["artifacts"]:
-
             packages.append(
                 Package(
                     kind=artifact["type"],

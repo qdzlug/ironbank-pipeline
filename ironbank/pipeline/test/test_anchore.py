@@ -110,7 +110,6 @@ def anchore_object():
 
 
 def test_get_anchore_api(monkeypatch, caplog, mock_responses, anchore_object):
-
     monkeypatch.setattr(requests, "get", mock_responses["200"])
     log.info("Test successful anchore api json request")
     assert anchore_object._get_anchore_api_json("", "", False) == {
@@ -146,7 +145,6 @@ def test_get_anchore_api(monkeypatch, caplog, mock_responses, anchore_object):
 
 
 def test_get_parent_sha(monkeypatch, anchore_object):
-
     monkeypatch.setattr(
         Anchore,
         "_get_anchore_api_json",
