@@ -50,7 +50,7 @@ class Project:
     pipeline: GLPipeline | Any = None
     changes_pushed: bool = False
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.dest_project_name = (
             self.dest_project_name or self.src_path.rsplit("/", maxsplit=1)[-1]
         )
@@ -262,7 +262,7 @@ def update_force_push_rules(project: GLProject, branch: str) -> None:
     )
 
 
-def generate_remote(project: Project, repo: Repo, config: Config):
+def generate_remote(project: Project, repo: Repo, config: Config) -> Remote:
     """
     Create remote from repo if not exists, else return existing remote
     """
@@ -397,7 +397,7 @@ def kickoff_pipelines(config: Config) -> Config:
     return config
 
 
-def main():
+def main() -> None:
     """
     Main function
     - Generate config

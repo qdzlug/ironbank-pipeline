@@ -19,3 +19,6 @@ poetry shell
 cd kickoff_staging_pipeline
 python3 kickoff.py
 ```
+
+# Notes:
+- If you switch destination envs, you'll need to delete everything out of the local clone repo dir first, or the old remotes will continue to be used
