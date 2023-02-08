@@ -158,11 +158,15 @@ def main():
                 log.info("Package(s) difference detected - Must scan new image")
             else:
                 log.info("Package lists match - Able to scan old image")
-                # TODO: Uncomment when feature is ready
                 # Override image to scan with old tag
-                # image_name_tag = f"{os.environ['BASE_REGISTRY']}/{image_name}:{old_image_details['tag']}"
-                # write_env_vars(image_name_tag, old_image_details['commit_sha'], old_image_details['digest'], old_image_details['build_date'])
-                # log.info("Old image name, tag, digest, and build date saved")
+                image_name_tag = f"{os.environ['BASE_REGISTRY']}/{image_name}:{old_image_details['tag']}"
+                write_env_vars(
+                    image_name_tag,
+                    old_image_details["commit_sha"],
+                    old_image_details["digest"],
+                    old_image_details["build_date"],
+                )
+                log.info("Old image name, tag, digest, and build date saved")
 
 
 if __name__ == "__main__":
