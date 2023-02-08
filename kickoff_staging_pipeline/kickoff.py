@@ -224,6 +224,9 @@ def create_tester_group_in_dest(gl: gitlab.Gitlab, config: Config) -> GLGroup:
     assert "repo1" not in gl.api_url
     try:
         group: GLGroup = gl.groups.get(f"{config.group}/{config.tester}")
+        print(f"{config.group}/{config.tester}")
+        group.visibility = "public"
+        group.save()
     except gitlab.GitlabGetError:
         print("Could not retrieve group. Attempting to create...")
         gl.groups.create(
@@ -234,7 +237,7 @@ def create_tester_group_in_dest(gl: gitlab.Gitlab, config: Config) -> GLGroup:
             }
         )
         group = gl.groups.get(f"{config.group}/{config.tester}")
-        group.visibilty = "public"
+        group.visibility = "public"
         group.save()
     except gitlab.GitlabAuthenticationError:
         print(
@@ -433,6 +436,7 @@ def main() -> None:
     print("\nCloning repos...")
     config = clone_from_src(config)
 
+    print("\nCreating group...")
     create_tester_group_in_dest(dest_gl, config)
 
     # TODO: check git config before updating it

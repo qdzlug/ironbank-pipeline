@@ -21,4 +21,5 @@ python3 kickoff.py
 ```
 
 # Notes:
-- If you switch destination envs, you'll need to delete everything out of the local clone repo dir first, or the old remotes will continue to be used
+
+- If you switch destination envs, you'll need to delete everything out of the local clone repo dir first, or the old remotes will continue to be used. Improvements to this functionality are being tracked in [this ticket](https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/issues/775)
