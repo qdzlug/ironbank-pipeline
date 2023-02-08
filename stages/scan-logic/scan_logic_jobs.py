@@ -81,7 +81,7 @@ def get_old_pkgs(
     Return list of packages parsed from old image sbom & access log
     """
     old_img = Image(
-        registry=os.environ["BASE_REGISTRY"],
+        registry=os.environ["REGISTRY_URL_PROD"],
         name=image_name,
         digest=image_digest,
     )
@@ -159,7 +159,7 @@ def main():
             else:
                 log.info("Package lists match - Able to scan old image")
                 # Override image to scan with old tag
-                image_name_tag = f"{os.environ['BASE_REGISTRY']}/{image_name}:{old_image_details['tag']}"
+                image_name_tag = f"{os.environ['REGISTRY_URL_PROD']}/{image_name}:{old_image_details['tag']}"
                 write_env_vars(
                     image_name_tag,
                     old_image_details["commit_sha"],
