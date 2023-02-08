@@ -17,3 +17,7 @@ test_projects/
 report.xml
 coverage.xml
 example.log
+kickoff_staging_pipeline/templates/.gitlab-ci.yml
+kickoff_staging_pipeline/staging_projects
+secrets.yaml
+config.yaml
