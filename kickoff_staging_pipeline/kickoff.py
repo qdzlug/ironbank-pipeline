@@ -159,9 +159,8 @@ class Config:
             )
 
         # validate values aren't misconfigured
-        assert "repo1" not in self.dest_gitlab_url
-        assert "repo1" not in self.dest_git_url
-        assert "repo1" not in self.dest
+        for url in [self.dest_gitlab_url, self.dest_git_url, self.dest]:
+            assert "repo1" not in url
         assert self.tester
 
     @property
