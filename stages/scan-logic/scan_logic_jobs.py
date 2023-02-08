@@ -40,10 +40,16 @@ def parse_packages(sbom: Path | dict, access_log: Path | list[str]) -> list[Pack
     """
     # Pipeline should fail if sbom does not exist (exception not caught)
     pkgs = set(SbomFileParser.parse(sbom))
-    try:
+
+    access_log_exists = (
+        access_log.exists() if isinstance(access_log, Path) else bool(access_log)
+    )
+
+    if access_log_exists:
         pkgs.update(AccessLogFileParser.parse(access_log))
-    except FileNotFoundError:
+    else:
         log.info("Access log does not exist")
+
     log.info("Packages parsed:")
     for pkg in pkgs:
         log.info(f"  {pkg}")
