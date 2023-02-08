@@ -44,11 +44,11 @@ def get_registry_info() -> tuple[str, str]:
     return (
         (
             os.environ["DOCKER_AUTH_CONFIG_FILE_STAGING"],
-            f"{os.environ['BASE_REGISTRY']}-staging",
+            os.environ["REGISTRY_URL_STAGING"],
         )
         if os.environ.get("STAGING_BASE_IMAGE")
         else (
-            os.environ["DOCKER_AUTH_CONFIG_FILE_STAGING"],
+            os.environ["DOCKER_AUTH_CONFIG_FILE_PULL"],
             os.environ["BASE_REGISTRY"],
         )
     )
