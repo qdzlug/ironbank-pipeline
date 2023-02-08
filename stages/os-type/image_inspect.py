@@ -41,15 +41,17 @@ def template_type(os_type: str) -> None:
 
 def get_registry_info() -> tuple[str, str]:
     """returns a tuple of pull auth file path and registry project"""
-    if os.environ.get("STAGING_BASE_IMAGE"):
-        # Grab staging pull docker auth
-        pull_auth = os.environ["DOCKER_AUTH_CONFIG_FILE_STAGING"]
-        registry = os.environ["REGISTRY_URL_STAGING"]
-    else:
-        # Grab prod docker auth
-        pull_auth = os.environ["DOCKER_AUTH_CONFIG_FILE_PULL"]
-        registry = os.environ["REGISTRY_URL_PROD"]
-    return pull_auth, registry
+    return (
+        (
+            os.environ["DOCKER_AUTH_CONFIG_FILE_STAGING"],
+            f"{os.environ['BASE_REGISTRY']}-staging",
+        )
+        if os.environ.get("STAGING_BASE_IMAGE")
+        else (
+            os.environ["DOCKER_AUTH_CONFIG_FILE_STAGING"],
+            os.environ["BASE_REGISTRY"],
+        )
+    )
 
 
 def main():
