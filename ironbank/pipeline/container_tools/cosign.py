@@ -175,3 +175,33 @@ class Cosign(ContainerTool):
                         json.dump(predicate["predicate"], f, indent=4)
         if proc.poll() != 0:
             raise subprocess.CalledProcessError(proc.returncode, cmd)
+
+    @classmethod
+    @subprocess_error_handler(logging_message="Cosign.verify failed")
+    def verify(
+        cls,
+        image: Image,
+        pubkey: str,
+        log_cmd: bool = False,
+    ):
+        cmd = [
+            "cosign",
+            "verify",
+            "--key",
+            pubkey,
+        ]
+        cmd += [f"{image.name}"]
+        if log_cmd:
+            cls.log.info(cmd)
+        try:
+            subprocess.run(
+                args=cmd,
+                capture_output=True,
+                check=True,
+                encoding="utf-8",
+            )
+            cls.log.info("%s Verified", image.name)
+            return True
+        except subprocess.CalledProcessError:
+            cls.log.info("%s Not Verified", image.name)
+            return False
