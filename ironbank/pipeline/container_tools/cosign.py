@@ -193,7 +193,7 @@ class Cosign(ContainerTool):
         cmd += [f"{image.name}"]
         if log_cmd:
             cls.log.info(cmd)
-        
+
         subprocess.run(
             args=cmd,
             capture_output=True,
@@ -202,4 +202,3 @@ class Cosign(ContainerTool):
         )
         cls.log.info("%s Verified", image.name)
         return True
-      
