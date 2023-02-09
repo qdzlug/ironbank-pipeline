@@ -35,5 +35,3 @@ openscap-compliance:
 variables:
   DISTRO_REPO_DIR: "zypper-repos"
   DISTRO_REPO_MOUNT: "/etc/zypp/repos.d"
-  DISTRO_CONF_FILE: "zypper-conf/zypp.conf"
-  DISTRO_CONF_MOUNT: "/etc/zypp/zypp.conf"

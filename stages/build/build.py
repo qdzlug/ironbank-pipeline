@@ -41,11 +41,6 @@ def create_mounts(mount_conf_path: Path, pipeline_build_dir: Path):
             pipeline_build_dir
             / f"{os.environ['DISTRO_REPO_DIR']}:{os.environ['DISTRO_REPO_MOUNT']}"
         )
-    if os.environ.get("DISTRO_CONF_FILE"):
-        mounts.append(
-            pipeline_build_dir
-            / f"{os.environ['DISTRO_CONF_FILE']}:{os.environ['DISTRO_CONF_MOUNT']}"
-        )
     mounts.append(pipeline_build_dir / "ruby" / ".ironbank-gemrc:.ironbank-gemrc")
     mounts.append(pipeline_build_dir / "ruby" / "bundler-conf:.bundle/config")
     with mount_conf_path.open("a+") as f:
