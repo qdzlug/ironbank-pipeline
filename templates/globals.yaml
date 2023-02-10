@@ -37,6 +37,10 @@ stages:
   ### VAT stage
   - vat
 
+  ### post-vat stage
+  # run trigggger jobs that rely on a project's VAT status being updated
+  - post-vat
+
   ### create csv output
   - csv-output
 
