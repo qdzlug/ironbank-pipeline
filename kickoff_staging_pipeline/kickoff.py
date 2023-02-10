@@ -490,7 +490,7 @@ def main() -> None:
 
     print("\nPipeline links:")
     for project in config.projects:
-        if not project.changes_pushed:
+        if project.changes_pushed:
             pipelines = project.gl_project.pipelines.list(
                 updated_after=str(datetime.now() - timedelta(minutes=2))
             )
