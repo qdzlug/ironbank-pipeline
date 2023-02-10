@@ -190,7 +190,7 @@ class Cosign(ContainerTool):
             "--key",
             pubkey,
         ]
-        cmd += [f"{image.name}"]
+        cmd += [f"{str(image)}"]
         if log_cmd:
             cls.log.info(cmd)
 
