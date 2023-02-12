@@ -14,7 +14,8 @@ log = logger.setup("VAT Status Badges")
 def get_vat_data() -> tuple[str, float, str]:
     """Retrieve image status data from VAT response file"""
     with Path(f"{os.environ['ARTIFACT_STORAGE']}/vat/vat_response.json").open(
-        mode="r", encoding="utf-8"
+        mode="r",
+        encoding="utf-8",
     ) as f:
         vat_response = json.load(f)
     log.info("Get VAT status for project")
@@ -29,8 +30,8 @@ def create_svg(badge_name: str, value: Any, thresholds: dict, svg_name: str) -> 
     """Create svg for project badge"""
     badge_color = thresholds.get(value, "light_grey")
     badge = anybadge.Badge(
-        badge_name,
-        value,
+        label=badge_name,
+        value=value,
         default_color=badge_color,
     )
     svg_file = Path(f"{os.environ['BADGE_DIRECTORY']}{svg_name}")
@@ -61,13 +62,13 @@ def main() -> None:
         "ABC Status",
         abc_status,
         abc_thresholds,
-        "abc.svg",
+        "abc_status.svg",
     )
     create_svg(
         "ORA Score",
         ora_score,
         ora_thresholds,
-        "ora.svg",
+        "ora_score.svg",
     )
     create_svg(
         "Image Status",
