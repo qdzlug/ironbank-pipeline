@@ -1,8 +1,4 @@
 check-findings:
-  variables:
-    TRIGGERING_PROJECT_ID: $CI_PROJECT_ID
-    ROBOTNIK_COMMAND: projectfindings
-    ROBOTNIK_SUBCOMMAND: check
   stage: post-vat
   allow_failure: true
   rules:
@@ -12,24 +8,28 @@ check-findings:
   needs:
     - job: vat
       artifacts: false
+  variables:
+    TRIGGERING_PROJECT_ID: $CI_PROJECT_ID
+    ROBOTNIK_COMMAND: projectfindings
+    ROBOTNIK_SUBCOMMAND: check
   trigger:
     project: ironbank-tools/robotnik
     branch: main
 
-update-approval-badge:
+update-vat-badges:
   stage: post-vat
   allow_failure: true
-  needs:
-    - job: vat
-      artifacts: false
   rules:
-    - if: $SKIP_BADGE_TRIGGER
-      when: never
     - if: $CI_COMMIT_BRANCH == "master"
+  needs:
+    - vat
   variables:
-    PROJECT_NAME: $CI_PROJECT_NAME
-    PROJECT_ID: $CI_PROJECT_ID
-    MODULES: approval_badges
-  trigger:
-    project: ironbank-tools/project-template
-    branch: master
+    BADGE_DIRECTORY: ./badges
+  before_script:
+    - python3 -m pip install --user anybadge
+    - 'mdkir "${BADGE_DIRECTORY}"'
+  script:
+    - python3 vat_status.py
+  artifacts:
+    paths:
+      - '"${BADGE_DIRECTORY}"'
