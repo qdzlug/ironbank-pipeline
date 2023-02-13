@@ -189,7 +189,7 @@ class Cosign(ContainerTool):
         #     "verify",
         # ]
         cmd = ["--key", pubkey] if pubkey else [
-            "pwd",    
+            "${pwd}",    
         ]
             # "--certificate",
             # "~/ironbank-pipeline/scripts/cosign/cosign-certificate.pem",
