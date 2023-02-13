@@ -20,7 +20,10 @@ class PaginatedRequest:
         page_count = (
             int(resp.headers["x-total-count"]) if "x-total-count" in resp.headers else 1
         )
-        self.total_pages = math.ceil(page_count / self.page_size) if page_count > 0 else 1
+        self.total_pages = (
+            math.ceil(page_count / self.page_size) if page_count > 0 else 1
+        )
+
     @request_retry(5)
     def get(self):
         for page in range(0, self.total_pages):
