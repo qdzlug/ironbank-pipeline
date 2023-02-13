@@ -7,6 +7,7 @@ from ironbank.pipeline.utils.paginated_request import PaginatedRequest
 
 log: logger = logger.setup("Harbor")
 
+
 @dataclass
 class Harbor(ABC):
     session: requests.Session
@@ -31,16 +32,21 @@ class HarborProject(Harbor):
             if isinstance(page, dict):
                 self.repositories.append(
                     HarborRepository(
-                        session=self.session, name='/'.join(page["name"].split('/')[1:]), project=self.name
+                        session=self.session,
+                        name="/".join(page["name"].split("/")[1:]),
+                        project=self.name,
                     )
                 )
             else:
                 for repository in page:
                     self.repositories.append(
                         HarborRepository(
-                            session=self.session, name='/'.join(repository["name"].split('/')[1:]), project=self.name
+                            session=self.session,
+                            name="/".join(repository["name"].split("/")[1:]),
+                            project=self.name,
                         )
                     )
+
 
 @dataclass
 class HarborRepository(Harbor):
@@ -62,7 +68,7 @@ class HarborRepository(Harbor):
                         tags=page["tags"] if "tags" in page else None,
                         project=self.project,
                         repository=self.name,
-                        push_time=artifact["push_time"]
+                        push_time=artifact["push_time"],
                     )
                 )
             else:
@@ -74,7 +80,7 @@ class HarborRepository(Harbor):
                             tags=artifact["tags"] if "tags" in artifact else None,
                             project=self.project,
                             repository=self.name,
-                            push_time=artifact["push_time"]
+                            push_time=artifact["push_time"],
                         )
                     )
 

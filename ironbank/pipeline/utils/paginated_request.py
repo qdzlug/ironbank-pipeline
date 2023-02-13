@@ -4,6 +4,7 @@ import math
 from dataclasses import dataclass
 from .request_retry import request_retry
 
+
 @dataclass
 class PaginatedRequest:
     session: requests.Session
@@ -24,11 +25,11 @@ class PaginatedRequest:
     def get(self):
         for page in range(0, self.total_pages):
             try:
-              response = self.session.get(
-                  self.url,
-                  params={"page": page, "page_size": self.page_size, "q": self.query},
-              )
-              response.raise_for_status()
+                response = self.session.get(
+                    self.url,
+                    params={"page": page, "page_size": self.page_size, "q": self.query},
+                )
+                response.raise_for_status()
             except requests.HTTPError as re:
                 raise re
             yield response.json()

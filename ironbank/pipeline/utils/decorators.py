@@ -13,6 +13,7 @@ log: Logger = logger.setup(name="Exception")
 
 log = logger.setup("retry")
 
+
 def requests_retry(retry_count):
     """
     Decorator for retrying a function running a requests call
@@ -34,6 +35,7 @@ def requests_retry(retry_count):
         return wrapper
 
     return decorate
+
 
 def request_retry(retry_count):
     """
