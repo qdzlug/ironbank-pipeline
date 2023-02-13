@@ -188,7 +188,7 @@ class Cosign(ContainerTool):
         #     "cosign",
         #     "verify",
         # ]
-        cmd += ["--key", pubkey] if pubkey else [
+        cmd = ["--key", pubkey] if pubkey else [
             "pwd",    
         ]
             # "--certificate",
