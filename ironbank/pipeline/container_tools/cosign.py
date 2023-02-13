@@ -181,11 +181,11 @@ class Cosign(ContainerTool):
     def verify(
         cls,
         image: Image,
-        log_cmd: bool = False,
         pubkey: Path = None,
         certificate: Path = None,
         certificate_chain: Path = None,
         signature_digest_algorithm = "sha256",
+        log_cmd: bool = False,
 
     ):
         # assert not (pubkey and (certificate_chain and certificate))
