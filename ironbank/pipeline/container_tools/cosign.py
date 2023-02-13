@@ -181,7 +181,7 @@ class Cosign(ContainerTool):
     def verify(
         cls,
         image: Image,
-        pubkey: str,
+        pubkey: str = None,
         log_cmd: bool = False,
     ):
         cmd = [
