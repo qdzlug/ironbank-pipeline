@@ -181,14 +181,11 @@ class Cosign(ContainerTool):
     def verify(
         cls,
         image: Image,
-        pubkey: str = None,
         log_cmd: bool = False,
     ):
         cmd = [
             "cosign",
             "verify",
-        ]
-        cmd = ["--key", pubkey] if pubkey else [
             "--certificate",
             "/ironbank-pipeline/scripts/cosign/cosign-certificate.pem",
             "--certificate-chain",
