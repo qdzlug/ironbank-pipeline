@@ -78,11 +78,11 @@ class HarborRepository(Harbor):
                     self.artifacts.append(
                         HarborArtifact(
                             auth=self.auth,
-                            digest=artifact["digest"],
+                            digest=page.json()["digest"],
                             tags=page.json()["tags"],
                             project=self.project,
                             repository=self.name,
-                            push_time=artifact["push_time"],
+                            push_time=page.json()["push_time"],
                         )
                     )
                 else:
