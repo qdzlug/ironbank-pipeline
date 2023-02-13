@@ -197,8 +197,8 @@ class Cosign(ContainerTool):
             # "~/ironbank-pipeline/scripts/cosign/cosign-ca-bundle.pem",
             # "--signature-digest-algorithm=sha256"]
         # cmd += [f"{image.name}"]
-        if log_cmd:
-            cls.log.info(cmd)
+        # if log_cmd:
+        cls.log.info(cmd)
 
         subprocess.run(
             args=cmd,
