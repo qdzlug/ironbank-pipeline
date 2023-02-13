@@ -187,9 +187,9 @@ class Cosign(ContainerTool):
             "cosign",
             "verify",
             "--certificate",
-            "/ironbank-pipeline/scripts/cosign/cosign-certificate.pem",
+            "cosign-certificate.pem",
             "--certificate-chain",
-            "/ironbank-pipeline/scripts/cosign/cosign-ca-bundle.pem",
+            "cosign-ca-bundle.pem",
             "--signature-digest-algorithm=sha256",
         ]
         cmd += [f"{image.name}"]
