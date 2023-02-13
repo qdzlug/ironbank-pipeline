@@ -187,9 +187,13 @@ class Cosign(ContainerTool):
         cmd = [
             "cosign",
             "verify",
-            "--key",
-            pubkey,
         ]
+        cmd += ["--key", pubkey] if pubkey else [
+            "--certificate",
+            "scripts/cosign/cosign-certificate.pem",
+            "--certificate-chain",
+            "scripts/cosign/cosign-ca-bundle.pem",
+            "--signature-digest-algorithm=sha256"]
         cmd += [f"{image.name}"]
         if log_cmd:
             cls.log.info(cmd)
