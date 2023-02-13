@@ -193,11 +193,11 @@ class Cosign(ContainerTool):
             "cosign",
             "verify",
         ]
-        cmd += ["--key", pubkey] if pubkey else [
+        cmd += ["--key", pubkey.as_posix()] if pubkey else [
             "--certificate",  
-            certificate,
+            certificate.as_posix(),
             "--certificate-chain",
-            certificate_chain,
+            certificate_chain.as_posix(),
             "--signature-digest-algorithm",
             signature_digest_algorithm
         ]
