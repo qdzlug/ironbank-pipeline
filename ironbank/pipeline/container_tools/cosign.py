@@ -189,11 +189,13 @@ class Cosign(ContainerTool):
             "verify",
         ]
         cmd += ["--key", pubkey] if pubkey else [
-            "--certificate",
-            "~/ironbank-pipeline/scripts/cosign/cosign-certificate.pem",
-            "--certificate-chain",
-            "~/ironbank-pipeline/scripts/cosign/cosign-ca-bundle.pem",
-            "--signature-digest-algorithm=sha256"]
+            "pwd",    
+        ]
+            # "--certificate",
+            # "~/ironbank-pipeline/scripts/cosign/cosign-certificate.pem",
+            # "--certificate-chain",
+            # "~/ironbank-pipeline/scripts/cosign/cosign-ca-bundle.pem",
+            # "--signature-digest-algorithm=sha256"]
         cmd += [f"{image.name}"]
         if log_cmd:
             cls.log.info(cmd)
