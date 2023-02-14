@@ -58,48 +58,6 @@ def get_oscap_guide(oscap_version, base_image_type):
             + str(oscap_version)
             + "/ssg-rhel8-ds.xml",
         },
-        "ol8-container": {
-            "profile": "xccdf_org.ssgproject.content_profile_standard",
-            "securityGuide": "scap-security-guide-"
-            + str(oscap_version)
-            + "/ssg-ol8-ds.xml",
-        },
-        "ol7-container": {
-            "profile": "xccdf_org.ssgproject.content_profile_stig",
-            "securityGuide": "scap-security-guide-"
-            + str(oscap_version)
-            + "/ssg-ol7-ds.xml",
-        },
-        "centos8-container": {
-            "profile": "xccdf_org.ssgproject.content_profile_standard",
-            "securityGuide": "scap-security-guide-"
-            + str(oscap_version)
-            + "/ssg-centos8-ds.xml",
-        },
-        "centos7-container": {
-            "profile": "xccdf_org.ssgproject.content_profile_standard",
-            "securityGuide": "scap-security-guide-"
-            + str(oscap_version)
-            + "/ssg-centos7-ds.xml",
-        },
-        "debian10-container": {
-            "profile": "xccdf_org.ssgproject.content_profile_anssi_np_nt28_high",
-            "securityGuide": "scap-security-guide-"
-            + str(oscap_version)
-            + "/ssg-debian10-ds.xml",
-        },
-        "debian9-container": {
-            "profile": "xccdf_org.ssgproject.content_profile_anssi_np_nt28_high",
-            "securityGuide": "scap-security-guide-"
-            + str(oscap_version)
-            + "/ssg-debian9-ds.xml",
-        },
-        "ubuntu1804-container": {
-            "profile": "xccdf_org.ssgproject.content_profile_stig",
-            "securityGuide": "scap-security-guide-"
-            + str(oscap_version)
-            + "/ssg-ubuntu1804-ds.xml",
-        },
         "ubuntu2004-container": {
             "profile": "xccdf_org.ssgproject.content_profile_stig",
             "securityGuide": "scap-security-guide-"
