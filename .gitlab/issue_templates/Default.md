@@ -20,7 +20,7 @@ What other information is pertinent to this issue?
 
 ## Definition of Done
 
-<!-- Add/remove tasks to demonstrate completeness of issue -->
+<!-- Add/remove tasks to demonstrate completeness of issue
 
 - [ ] Write or update any unit or integration tests
 - [ ] Project pipeline runs successfully
@@ -29,7 +29,10 @@ What other information is pertinent to this issue?
 - [ ] Code review completed and merge request approved/merged
 - [ ] All Acceptance Criteria have been completed
 
-<!-- Uncomment/add labels as needed -->
+Uncomment/add labels as needed -->
+
+- [ ]
+- [ ]
 
 /label ~"Project::Ironbank Pipeline"
 
