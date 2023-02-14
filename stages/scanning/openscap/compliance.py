@@ -77,9 +77,9 @@ def get_oscap_guide(oscap_version, base_image_type):
     }
     try:
         oscap_container = oscap_guides[base_image_type]
-        log.info(oscap_container)
+        print(oscap_container)
     except KeyError:
-        log.error("base_image_type does not exist")
+        print("base_image_type does not exist")
         sys.exit(1)
 
 
