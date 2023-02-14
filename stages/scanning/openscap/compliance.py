@@ -1,17 +1,15 @@
 #!/usr/bin/python3
 
+import os
 import sys
 import argparse
-
-from ironbank.pipeline.utils import logger
-
-log = logger.setup("Compliance Profiles")
+import logging
 
 
 def get_oscap_guide(scap_version, image_type):
     """Returns the SCAP profile to be used on an image"""
-    log.debug("Retrieving Oscap Guide")
-    log.debug("Oscap Version: %s, Base Image Type: %s", scap_version, image_type)
+    logging.debug("Retrieving Oscap Guide")
+    logging.debug("Oscap Version: %s, Base Image Type: %s", scap_version, image_type)
 
     oscap_guides = {
         "ubi9-container": {
@@ -84,6 +82,21 @@ def get_oscap_guide(scap_version, image_type):
 
 
 if __name__ == "__main__":
+    # Get logging level, set manually when running pipeline
+    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
+    if loglevel == "DEBUG":
+        logging.basicConfig(
+            level=loglevel,
+            format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
+        )
+        logging.debug("Log level set to debug")
+    else:
+        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
+        logging.info("Log level set to info")
+    parser = argparse.ArgumentParser(
+        description="Retrieve OSCAP security guide for image"
+    )
+
     parser = argparse.ArgumentParser(
         description="Retrieve OSCAP security guide for image"
     )
