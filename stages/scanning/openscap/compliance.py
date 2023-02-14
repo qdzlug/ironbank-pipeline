@@ -8,75 +8,75 @@ from ironbank.pipeline.utils import logger
 log = logger.setup("Compliance Profiles")
 
 
-def get_oscap_guide(oscap_version, base_image_type):
+def get_oscap_guide(scap_version, image_type):
     """Returns the SCAP profile to be used on an image"""
     log.debug("Retrieving Oscap Guide")
-    log.debug("Oscap Version: %s, Base Image Type: %s", oscap_version, base_image_type)
+    log.debug("Oscap Version: %s, Base Image Type: %s", scap_version, image_type)
 
     oscap_guides = {
         "ubi9-container": {
             "profile": "xccdf_org.ssgproject.content_profile_stig",
             "securityGuide": "scap-security-guide-"
-            + str(oscap_version)
+            + str(scap_version)
             + "/ssg-rhel9-ds.xml",
         },
         "ubi9-minimal-container": {
             "profile": "xccdf_org.ssgproject.content_profile_stig",
             "securityGuide": "scap-security-guide-"
-            + str(oscap_version)
+            + str(scap_version)
             + "/ssg-rhel9-ds.xml",
         },
         "ubi9-micro-container": {
             "profile": "xccdf_org.ssgproject.content_profile_stig",
             "securityGuide": "scap-security-guide-"
-            + str(oscap_version)
+            + str(scap_version)
             + "/ssg-rhel9-ds.xml",
         },
         "ubi8-container": {
             "profile": "xccdf_org.ssgproject.content_profile_stig",
             "securityGuide": "scap-security-guide-"
-            + str(oscap_version)
+            + str(scap_version)
             + "/ssg-rhel8-ds.xml",
         },
         "ubi8-minimal-container": {
             "profile": "xccdf_org.ssgproject.content_profile_stig",
             "securityGuide": "scap-security-guide-"
-            + str(oscap_version)
+            + str(scap_version)
             + "/ssg-rhel8-ds.xml",
         },
         "ubi8-micro-container": {
             "profile": "xccdf_org.ssgproject.content_profile_stig",
             "securityGuide": "scap-security-guide-"
-            + str(oscap_version)
+            + str(scap_version)
             + "/ssg-rhel8-ds.xml",
         },
         "ubi7-container": {
             "profile": "xccdf_org.ssgproject.content_profile_stig",
             "securityGuide": "scap-security-guide-"
-            + str(oscap_version)
+            + str(scap_version)
             + "/ssg-rhel7-ds.xml",
         },
         "ubi7-minimal-container": {
             "profile": "xccdf_org.ssgproject.content_profile_stig",
             "securityGuide": "scap-security-guide-"
-            + str(oscap_version)
+            + str(scap_version)
             + "/ssg-rhel7-ds.xml",
         },
         "ubuntu2004-container": {
             "profile": "xccdf_org.ssgproject.content_profile_stig",
             "securityGuide": "scap-security-guide-"
-            + str(oscap_version)
+            + str(scap_version)
             + "/ssg-ubuntu2004-ds.xml",
         },
         "sle15-bci-container": {
             "profile": "xccdf_org.ssgproject.content_profile_stig",
             "securityGuide": "scap-security-guide-"
-            + str(oscap_version)
+            + str(scap_version)
             + "/ssg-sle15-ds.xml",
         },
     }
     try:
-        oscap_container = oscap_guides[base_image_type]
+        oscap_container = oscap_guides[image_type]
         print(oscap_container)
     except KeyError:
         print("base_image_type does not exist")
