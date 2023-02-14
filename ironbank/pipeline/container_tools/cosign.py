@@ -187,7 +187,6 @@ class Cosign(ContainerTool):
         signature_digest_algorithm="sha256",
         log_cmd: bool = False,
     ):
-        # assert not (pubkey and (certificate_chain and certificate))
         cmd = [
             "cosign",
             "verify",
@@ -204,7 +203,7 @@ class Cosign(ContainerTool):
                 signature_digest_algorithm,
             ]
         )
-        cmd += [f"{image.name}"]
+        cmd += [f"{str(image)}"]
         if log_cmd:
             cls.log.info(cmd)
 

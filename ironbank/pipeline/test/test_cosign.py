@@ -217,3 +217,42 @@ def test_cosign_download(caplog, monkeypatch):
     assert found_predicates == ["exampletext"]
     assert str(["cosign", "download", "attestation", str(mock_image)]) in caplog.text
     caplog.clear()
+
+@patch("ironbank.pipeline.container_tools.cosign.Path", new=MockPath)
+def test_cosign_verify(caplog, monkeypatch):
+    log.info("Test failed signature validation")
+    mock_image = MockImage(registry="registry1.example", name="example/test", tag="1.0")
+    mock_pubkey = MockPath("/fake/fake.pub")
+
+    monkeypatch.setattr(subprocess, "run", mock_subprocess_fail)
+    monkeypatch.setattr(
+        subprocess,
+        "Popen",
+        lambda *args, **kwargs: MockPopen(
+            stdout=MockOutput(mock_data=[]), poll_counter=0, returncode=1
+        ),
+    )
+    with pytest.raises(GenericSubprocessError):
+        Cosign.verify(
+            image=mock_image,
+            pubkey=mock_pubkey
+        )
+    assert "Cosign.verify failed" in caplog.text
+    caplog.clear()
+
+    log.info("Test successful download")
+    monkeypatch.setattr(subprocess, "run", mock_subprocess_run)
+    monkeypatch.setattr(
+        subprocess,
+        "Popen",
+        lambda *args, **kwargs: MockPopen(
+            stdout=MockOutput(mock_data=[]), poll_counter=0, returncode=0
+        ),
+    )
+
+    Cosign.verify(
+        image=mock_image,
+        pubkey=mock_pubkey
+    )
+    assert f"{mock_image.name} Verified" in caplog.text
+    caplog.clear()
