@@ -38,29 +38,29 @@ def get_oscap_guide(oscap_version, base_image_type):
             + str(oscap_version)
             + "/ssg-rhel8-ds.xml",
         },
-        "ubi7-container": {
-            "profile": "xccdf_org.ssgproject.content_profile_stig",
-            "securityGuide": "scap-security-guide-"
-            + str(oscap_version)
-            + "/ssg-rhel7-ds.xml",
-        },
         "ubi8-minimal-container": {
             "profile": "xccdf_org.ssgproject.content_profile_stig",
             "securityGuide": "scap-security-guide-"
             + str(oscap_version)
             + "/ssg-rhel8-ds.xml",
         },
-        "ubi7-minimal-container": {
-            "profile": "xccdf_org.ssgproject.content_profile_stig",
-            "securityGuide": "scap-security-guide-"
-            + str(oscap_version)
-            + "/ssg-rhel7-ds.xml",
-        },
         "ubi8-micro-container": {
             "profile": "xccdf_org.ssgproject.content_profile_stig",
             "securityGuide": "scap-security-guide-"
             + str(oscap_version)
             + "/ssg-rhel8-ds.xml",
+        },
+        "ubi7-container": {
+            "profile": "xccdf_org.ssgproject.content_profile_stig",
+            "securityGuide": "scap-security-guide-"
+            + str(oscap_version)
+            + "/ssg-rhel7-ds.xml",
+        },
+        "ubi7-minimal-container": {
+            "profile": "xccdf_org.ssgproject.content_profile_stig",
+            "securityGuide": "scap-security-guide-"
+            + str(oscap_version)
+            + "/ssg-rhel7-ds.xml",
         },
         "ubuntu2004-container": {
             "profile": "xccdf_org.ssgproject.content_profile_stig",
