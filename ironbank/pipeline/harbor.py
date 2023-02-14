@@ -64,11 +64,11 @@ class HarborRepository(Harbor):
                 self.artifacts.append(
                     HarborArtifact(
                         session=self.session,
-                        digest=artifact["digest"],
+                        digest=page["digest"],
                         tags=page["tags"] if "tags" in page else None,
                         project=self.project,
                         repository=self.name,
-                        push_time=artifact["push_time"],
+                        push_time=page["push_time"],
                     )
                 )
             else:
