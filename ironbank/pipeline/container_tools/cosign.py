@@ -213,5 +213,5 @@ class Cosign(ContainerTool):
             check=True,
             encoding="utf-8",
         )
-        cls.log.info("%s Verified", image.name)
+        cls.log.info("%s Verified", str(image))
         return True

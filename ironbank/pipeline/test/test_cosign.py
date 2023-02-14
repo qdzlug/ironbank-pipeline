@@ -249,5 +249,5 @@ def test_cosign_verify(caplog, monkeypatch):
     )
 
     Cosign.verify(image=mock_image, pubkey=mock_pubkey)
-    assert f"{mock_image.name} Verified" in caplog.text
+    assert f"{str(mock_image)} Verified" in caplog.text
     caplog.clear()
