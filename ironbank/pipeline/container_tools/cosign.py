@@ -184,23 +184,26 @@ class Cosign(ContainerTool):
         pubkey: Path = None,
         certificate: Path = None,
         certificate_chain: Path = None,
-        signature_digest_algorithm = "sha256",
+        signature_digest_algorithm="sha256",
         log_cmd: bool = False,
-
     ):
         # assert not (pubkey and (certificate_chain and certificate))
         cmd = [
             "cosign",
             "verify",
         ]
-        cmd += ["--key", pubkey.as_posix()] if pubkey else [
-            "--certificate",  
-            certificate.as_posix(),
-            "--certificate-chain",
-            certificate_chain.as_posix(),
-            "--signature-digest-algorithm",
-            signature_digest_algorithm
-        ]
+        cmd += (
+            ["--key", pubkey.as_posix()]
+            if pubkey
+            else [
+                "--certificate",
+                certificate.as_posix(),
+                "--certificate-chain",
+                certificate_chain.as_posix(),
+                "--signature-digest-algorithm",
+                signature_digest_algorithm,
+            ]
+        )
         cmd += [f"{image.name}"]
         if log_cmd:
             cls.log.info(cmd)
