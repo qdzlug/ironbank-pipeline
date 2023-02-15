@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from dataclasses import dataclass, field
+from pathlib import Path, PosixPath
 import subprocess
 import tempfile
 import requests
@@ -130,11 +131,14 @@ class MockOpen:
         pass
 
 
-class MockPath:
+class MockPath(PosixPath):
     # TODO: remove this log message from init and provide a better way to inspect path on mock/patch
-    def __init__(self, path="", *args):
-        self.path: str = f"{path}{''.join((f'/{a}' for a in args))}"
+
+    def __new__(cls, path, *args):
+        self = object.__new__(cls)
+        self.path = f"{path}{''.join((f'/{a}' for a in args))}"
         self.log = logger.setup(name="MockPath")
+        return self
 
     def open(self, mode, encoding="utf-8"):
         return MockOpen(mode, encoding)

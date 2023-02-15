@@ -104,6 +104,9 @@ def get_old_pkgs(
             with Path(cosign_download, "hardening_manifest.json").open("r") as hm:
                 old_access_log = json.load(hm).get("access_log", "").split("\n")
 
+            # prevent old_access_log from having single value of '' if access log is missing
+            old_access_log = [] if old_access_log == [""] else old_access_log
+
             log.info("Parsing old packages")
             return parse_packages(old_sbom, old_access_log)
         else:

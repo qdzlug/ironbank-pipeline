@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 from logging import Logger
 from unittest.mock import MagicMock, patch
@@ -23,6 +24,7 @@ import upload_artifacts  # noqa E402
 log: Logger = logger.setup("test_upload_artifacts")
 
 
+@pytest.mark.only
 @patch("pathlib.Path", new=MockPath)
 def test_copy_path(monkeypatch):
     mock_src: MockPath = MockPath("./..")

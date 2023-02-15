@@ -62,7 +62,6 @@ async def main():
                 sys.exit(1)
 
             base_image_info = {"BASE_SHA": base_img_inspect["Digest"]}
-            # TODO: Confirm whether we still need to add this digest to this file
             log.info("Dump SHA to file")
             with pathlib.Path(os.environ["ARTIFACT_DIR"], "base_image.json").open(
                 "w"

@@ -42,21 +42,39 @@ def test_write_env_vars(monkeypatch):
     )
 
 
+@pytest.mark.only
 def test_parse_packages(monkeypatch, caplog):
     mock_sbom_path = MockPath(path="mock_sbom.json")
     mock_access_log_path = MockPath(path="mock_access_log.json")
 
-    log.info("Test access log packages are not added if access log path does not exist")
     monkeypatch.setattr(SbomFileParser, "parse", lambda path: mock_sbom_pkgs)
-    monkeypatch.setattr(
-        AccessLogFileParser, "parse", lambda self, *args: raise_(FileNotFoundError)
+    monkeypatch.setattr(AccessLogFileParser, "parse", lambda path: mock_access_log_pkgs)
+
+    log.info(
+        "Test access log packages are added if access log is a path and does not exist"
     )
     pkgs = scan_logic_jobs.parse_packages(mock_sbom_path, mock_access_log_path)
     assert pkgs == set(mock_sbom_pkgs)
 
-    log.info("Test sbom and access log pkgs are combined when both exist")
-    monkeypatch.setattr(AccessLogFileParser, "parse", lambda path: mock_access_log_pkgs)
+    log.info(
+        "Test access log packages are added if access log is a path and does exist"
+    )
+
+    monkeypatch.setattr(MockPath, "exists", lambda self: True)
+    mock_access_log_path = MockPath(path="mock_access_log.json")
     pkgs = scan_logic_jobs.parse_packages(mock_sbom_path, mock_access_log_path)
+    assert pkgs == set(mock_sbom_pkgs + mock_access_log_pkgs)
+
+    log.info(
+        "Test access log packages are added if access log is a list and does not exist"
+    )
+    pkgs = scan_logic_jobs.parse_packages(mock_sbom_path, [])
+    assert pkgs == set(mock_sbom_pkgs)
+
+    log.info(
+        "Test access log packages are added if access log is a list and does exist"
+    )
+    pkgs = scan_logic_jobs.parse_packages(mock_sbom_path, mock_access_log_pkgs)
     assert pkgs == set(mock_sbom_pkgs + mock_access_log_pkgs)
 
 
@@ -88,7 +106,7 @@ def test_get_old_pkgs(monkeypatch, caplog):
     img_name = "testName"
     img_dig = "testDig"
     mock_dock = MockPath("testDock")
-    monkeypatch.setenv("BASE_REGISTRY", "example")
+    monkeypatch.setenv("REGISTRY_URL_PROD", "example")
 
     log.info("Test download artifacts fails")
     monkeypatch.setattr(scan_logic_jobs, "download_artifacts", lambda **kwargs: False)
@@ -114,6 +132,14 @@ def test_get_old_pkgs(monkeypatch, caplog):
         )
         assert res == ["example"]
 
+    log.info("Test missing access log doesn't throw error")
+    monkeypatch.setattr(json, "load", lambda x: {})
+    with patch("tempfile.TemporaryDirectory", new=MockTempDirectory):
+        res = scan_logic_jobs.get_old_pkgs(
+            image_name=img_name, image_digest=img_dig, docker_config_dir=mock_dock
+        )
+        assert res == []
+
 
 def test_main(monkeypatch, caplog):
     # avoid actually creating env var file for all tests
@@ -121,7 +147,7 @@ def test_main(monkeypatch, caplog):
 
     monkeypatch.setenv("IMAGE_NAME", "example/test")
     monkeypatch.setenv("IMAGE_FULLTAG", "example/test:1.0")
-    monkeypatch.setenv("BASE_REGISTRY", "example")
+    monkeypatch.setenv("REGISTRY_URL_PROD", "example")
     monkeypatch.setenv("ARTIFACT_STORAGE", ".")
 
     log.info("Test FORCE_SCAN_NEW_IMAGE saves new digest and build date")
@@ -163,7 +189,7 @@ def test_main(monkeypatch, caplog):
             "tag": "test-tag",
             "commit_sha": "test-sha",
             "digest": "test-digest",
-            "build-date": "test-date",
+            "build_date": "test-date",
         },
     )
     monkeypatch.setattr(scan_logic_jobs, "get_old_pkgs", lambda **kwargs: [])
