@@ -181,16 +181,29 @@ class Cosign(ContainerTool):
     def verify(
         cls,
         image: Image,
-        pubkey: str,
+        pubkey: Path = None,
+        certificate: Path = None,
+        certificate_chain: Path = None,
+        signature_digest_algorithm="sha256",
         log_cmd: bool = False,
     ):
         cmd = [
             "cosign",
             "verify",
-            "--key",
-            pubkey,
         ]
-        cmd += [f"{image.name}"]
+        cmd += (
+            ["--key", pubkey.as_posix()]
+            if pubkey
+            else [
+                "--certificate",
+                certificate.as_posix(),
+                "--certificate-chain",
+                certificate_chain.as_posix(),
+                "--signature-digest-algorithm",
+                signature_digest_algorithm,
+            ]
+        )
+        cmd += [str(image)]
         if log_cmd:
             cls.log.info(cmd)
 
@@ -200,5 +213,5 @@ class Cosign(ContainerTool):
             check=True,
             encoding="utf-8",
         )
-        cls.log.info("%s Verified", image.name)
+        cls.log.info("%s Verified", str(image))
         return True
