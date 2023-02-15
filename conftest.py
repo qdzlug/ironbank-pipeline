@@ -57,7 +57,7 @@ def mock_responses():
 
     return {
         "200": mock200,
-        "200_with_headers": mock200_with_headers,
+        "200_with_x_total_count_headers": mock200_with_x_total_count_headers,
         "400": mock400,
         "403": mock403,
         "404": mock404,

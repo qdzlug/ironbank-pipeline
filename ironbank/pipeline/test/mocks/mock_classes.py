@@ -69,7 +69,7 @@ class MockResponse:
     content: str = "example"
     stderr: str = "canned_error"
     stdout: str = "It broke"
-    headers: dict = {"default": "default"}
+    headers: dict = field(default_factory=dict)
 
     def __enter__(self):
         return self
@@ -240,6 +240,12 @@ class MockImage(Image):
     # def __post_init__(*args, **kwargs):
     #     pass
 
+@dataclass
+class MockPaginatedRequest():
+    response: requests.Response = None
+
+    def check_access(self, image_name, create_request=False) -> None:
+        self.response = MockResponse()
 
 @dataclass
 class MockVatAPI(VatAPI):
