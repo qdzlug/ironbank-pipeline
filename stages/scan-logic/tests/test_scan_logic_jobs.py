@@ -42,7 +42,6 @@ def test_write_env_vars(monkeypatch):
     )
 
 
-@pytest.mark.only
 def test_parse_packages(monkeypatch, caplog):
     mock_sbom_path = MockPath(path="mock_sbom.json")
     mock_access_log_path = MockPath(path="mock_access_log.json")
