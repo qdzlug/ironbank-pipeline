@@ -11,6 +11,7 @@ from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.types import Package
+from requests import ConnectionError, Response
 
 
 class MockSet(set):
@@ -247,6 +248,15 @@ class MockVatAPI(VatAPI):
         self.response = MockResponse()
 
 
+class MockGoodResponseHarborAPI:
+    status_code: int = 200
+    text: str = "example"
+    headers: dict = {"x-total-count": "1"}
+
+    def json(self):
+        return {"status_code": self.status_code, "text": self.text}
+
+
 class MockGoodResponse:
     status_code: int = 200
     text: str = "example"
@@ -265,3 +275,37 @@ class MockSkopeo(Skopeo):
 
     def copy(*args, **kwargs):
         return ("stdout", "stderr")
+
+
+def mock_get_project_repository_response_200(*args, **kwargs):
+    response = Response()
+    response.status_code = 200
+    response.headers = {"x-total-count": 1}
+    response._content = b'{"name":"test"}'
+
+    return response
+
+
+def mock_get_project_repository_response_404(*args, **kwargs):
+    response = Response()
+    response.status_code = 404
+    return response
+
+
+def mock_get_repository_artifact_response_200(*args, **kwargs):
+    response = Response()
+    response.status_code = 200
+    response.headers = {"x-total-count": 1}
+    response._content = b'{"digest": "test","tags": "test","push_time": "test"}'
+
+    return response
+
+
+def mock_get_repository_artifact_response_404(*args, **kwargs):
+    response = Response()
+    response.status_code = 404
+    response.headers = {"x-total-count": 1}
+    response._content = b'{"name":"test"}'
+    response.url = ""
+
+    return response
