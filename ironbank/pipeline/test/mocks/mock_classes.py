@@ -12,7 +12,7 @@ from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.types import Package
-from requests import ConnectionError, Response
+from requests import Response
 
 
 class MockSet(set):

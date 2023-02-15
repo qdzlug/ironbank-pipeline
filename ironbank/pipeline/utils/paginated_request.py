@@ -36,4 +36,3 @@ class PaginatedRequest:
             except requests.HTTPError as re:
                 raise re
             yield response.json()
-
