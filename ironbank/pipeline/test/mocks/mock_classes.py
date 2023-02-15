@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from dataclasses import dataclass, field
-from pathlib import Path, PosixPath
+from pathlib import PosixPath
 import subprocess
 import tempfile
 import requests

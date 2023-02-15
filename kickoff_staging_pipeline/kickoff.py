@@ -401,6 +401,7 @@ def kickoff_pipelines(config: Config) -> Config:
 
 
 def open_urls(config: Config) -> None:
+    # need to do imports here to avoid breaking this for people who don't have selenium/geckodriver installed
     from selenium import webdriver
     from selenium.webdriver.firefox.options import Options
     from selenium.webdriver.common.proxy import Proxy
@@ -498,7 +499,9 @@ def main() -> None:
             project.pipeline = pipelines[0]
         print(project.pipeline.web_url)
 
-    open_urls_in_firefox = input("\nDo you want to open these urls in firefox?\n")
+    open_urls_in_firefox = input(
+        "\nDo you want to open these urls in firefox and do you have the required gecko driver installed?\n"
+    )
 
     if open_urls_in_firefox.lower() in ["y", "yes"]:
         open_urls(config)

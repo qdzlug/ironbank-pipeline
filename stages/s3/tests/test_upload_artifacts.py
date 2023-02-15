@@ -1,5 +1,4 @@
 import os
-import shutil
 import sys
 from logging import Logger
 from unittest.mock import MagicMock, patch
