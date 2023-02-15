@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
-import os
 import pytest
 import requests
-from unittest import mock
 
 from ironbank.pipeline.test.mocks.mock_classes import (
     mock_get_project_repository_response_200,
@@ -13,7 +11,7 @@ from ironbank.pipeline.test.mocks.mock_classes import (
 )
 
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.harbor.harbor import Harbor, HarborProject, HarborRepository
+from ironbank.pipeline.harbor.harbor import HarborProject, HarborRepository
 
 log = logger.setup("test_harbor_api")
 
@@ -37,7 +35,7 @@ def test_get_project_repository(monkeypatch, caplog, mock_project):  # noqa W040
     monkeypatch.setattr(requests, "get", mock_get_project_repository_response_404)
     try:
         mock_project.get_project_repository("example/example/example")
-    except requests.exceptions.HTTPError as re:
+    except requests.exceptions.HTTPError:
         assert "Error while retrieving Harbor Project" in caplog.text
         caplog.clear()
 
@@ -51,6 +49,6 @@ def test_get_repository_artifact(monkeypatch, caplog, mock_repository):  # noqa 
     monkeypatch.setattr(requests, "get", mock_get_repository_artifact_response_404)
     try:
         mock_repository.get_repository_artifact("example/example/example")
-    except requests.exceptions.HTTPError as re:
+    except requests.exceptions.HTTPError:
         assert "Error" in caplog.text
         caplog.clear()
