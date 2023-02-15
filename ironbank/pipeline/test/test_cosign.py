@@ -240,13 +240,6 @@ def test_cosign_verify(caplog, monkeypatch):
 
     log.info("Test successful download")
     monkeypatch.setattr(subprocess, "run", mock_subprocess_run)
-    monkeypatch.setattr(
-        subprocess,
-        "Popen",
-        lambda *args, **kwargs: MockPopen(
-            stdout=MockOutput(mock_data=[]), poll_counter=0, returncode=0
-        ),
-    )
 
     Cosign.verify(image=mock_image, pubkey=mock_pubkey)
     assert f"{str(mock_image)} Verified" in caplog.text
