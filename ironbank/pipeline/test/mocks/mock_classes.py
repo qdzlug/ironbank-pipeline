@@ -69,6 +69,7 @@ class MockResponse:
     content: str = "example"
     stderr: str = "canned_error"
     stdout: str = "It broke"
+    headers: dict = {"default": "default"}
 
     def __enter__(self):
         return self
