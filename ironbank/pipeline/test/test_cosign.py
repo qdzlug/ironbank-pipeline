@@ -226,13 +226,6 @@ def test_cosign_verify(caplog, monkeypatch):
     mock_pubkey = MockPath("/fake/fake.pub")
 
     monkeypatch.setattr(subprocess, "run", mock_subprocess_fail)
-    monkeypatch.setattr(
-        subprocess,
-        "Popen",
-        lambda *args, **kwargs: MockPopen(
-            stdout=MockOutput(mock_data=[]), poll_counter=0, returncode=1
-        ),
-    )
     with pytest.raises(GenericSubprocessError):
         Cosign.verify(image=mock_image, pubkey=mock_pubkey)
     assert "Cosign.verify failed" in caplog.text
