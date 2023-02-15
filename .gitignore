@@ -18,6 +18,7 @@ report.xml
 coverage.xml
 example.log
 kickoff_staging_pipeline/templates/.gitlab-ci.yml
-kickoff_staging_pipeline/staging_projects
+kickoff_staging_pipeline/staging_projects*
+**geckodriver.log**
 secrets.yaml
 config.yaml

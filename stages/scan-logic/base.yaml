@@ -1,7 +1,5 @@
 scan-logic:
   stage: scan-logic
-  # TODO: Remove when final testing of SBOMs is complete
-  allow_failure: true
   dependencies:
     - load-scripts
     - lint
