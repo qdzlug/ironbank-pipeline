@@ -4,7 +4,7 @@ import pytest
 import requests
 
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.harbor.utils.paginated_request import PaginatedRequest
+from ironbank.pipeline.utils.paginated_request import PaginatedRequest
 
 log = logger.setup("test_harbor_api")
 
