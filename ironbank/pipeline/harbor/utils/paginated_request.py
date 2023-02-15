@@ -15,6 +15,7 @@ class PaginatedRequest:
 
     def __post_init__(self):
         resp = requests.get(self.url, auth=self.auth)
+        print(resp)
         page_count = (
             int(resp.headers["x-total-count"]) if "x-total-count" in resp.headers else 1
         )

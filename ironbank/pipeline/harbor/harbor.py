@@ -52,9 +52,9 @@ class HarborProject(Harbor):
                                 project=self.name,
                             )
                         )
-
+            log.info("Successfully Retrieved Harbor Project %s", self.name)
         except requests.exceptions.HTTPError as re:
-            log.info("Error while retrieving Harbor project %s", self.name)
+            log.info("Error while retrieving Harbor Project %s", self.name)
             raise re
 
 
@@ -97,9 +97,9 @@ class HarborRepository(Harbor):
                                 push_time=artifact["push_time"],
                             )
                         )
-
+            log.info("Successfully Retrieved Harbor Repository %s Artifacts", self.name)
         except requests.exceptions.HTTPError as re:
-            log.info("Error while retrieving Harbor repository %s artifacts", self.name)
+            log.info("Error while retrieving Harbor Repository %s Artifacts", self.name)
             raise re
 
 
