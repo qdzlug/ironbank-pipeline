@@ -203,7 +203,7 @@ class Cosign(ContainerTool):
                 signature_digest_algorithm,
             ]
         )
-        cmd += [f"{str(image)}"]
+        cmd += [str(image)]
         if log_cmd:
             cls.log.info(cmd)
 
