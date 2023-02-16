@@ -1,193 +1,71 @@
 #!/usr/bin/env python3
 
-import os
-from typing import Optional
-from dateutil import parser as dateparser
-from datetime import datetime, timezone
-
-
-from .utils import logger
+from ironbank.pipeline.utils import logger
 
 log = logger.setup(name="vat_container_status")
 
 
-def is_approved(
-    vat_resp_dict, check_ft_findings
-) -> tuple[bool, int, str, Optional[str]]:
+def is_approved(vat_resp_dict, findings) -> int:
     """
-    This function is used by the wl-compare-lint and check-cve jobs. wl-compare only needs the approved return value, while check-cves needs this value and the exit code.
-
-    Returns
-        boolean - indicates if container is approved. If approved, master branch pipelines are permitted to run
-        int     - int is the exit code that check-cves should use
-        str     - this is the container's accreditation status
-        str     - this is the container's accreditation comments
+    FIX ME
     """
-    accredited = False
-    not_expired = False
-    ft_eligible_findings = False
-    ft_ineligible_findings = False
-    approval_status = "notapproved"
-    approval_comment = None
     vat_image = vat_resp_dict["image"]
 
     exists_in_vat = bool(vat_image)
-    # Check accreditation
-    force_approval = os.environ.get("FORCE_APPROVAL", "false") in ("True", "true", "1")
+
     if exists_in_vat:
         log.info(
             f"VAT image {vat_image['imageName']}:{vat_image['tag']} {vat_image['vatUrl']}"
         )
-        accredited = _is_accredited(vat_image)
-        if "reason" in vat_image["state"]:
-            approval_comment = vat_image["state"]["reason"]
-        approval_status = vat_image["state"]["imageStatus"]
-        # Check earliest expiration
-        not_expired = _check_expiration(vat_image)
 
-        # Check CVEs - print unapproved findings on Check CVEs stage
-        if check_ft_findings:
-            ft_eligible_findings, ft_ineligible_findings = _check_findings(vat_image)
-    branch = os.environ["CI_COMMIT_BRANCH"]
-    approved = _get_approval_status(
-        exists_in_vat,
-        accredited,
-        not_expired,
-        ft_ineligible_findings,
-        branch,
-        force_approval,
-    )
+    statuses: dict[str, list[str]] = {
+        # nothing for the maintainers/fa to do
+        "no_issues": ["Verified"],
+        # something for the maintainer to update
+        "maintainer_warnings": ["Needs Justification", "Needs Rework"],
+        # something for the finding approver to update
+        "finding_approver_warnings": ["Justified", "Needs Reverification"],
+    }
 
-    log.debug("Approval status: %s", approved)
+    findings_by_status: dict[str, list[dict]] = {}
+    for finding in findings:
+        status = finding["state"]["findingStatus"]
+        findings_by_status[status] = (
+            [*findings_by_status[status], finding]
+            if findings_by_status.get(status)
+            else [finding]
+        )
+
     # Exit codes for Check CVE parsing of VAT response
-    # 0   - Container is accredited, accreditation is not expired, and there are no unapproved findings
-    # 100 - Either Container is not accredited or the accreditation has expired and the branch is master, or there is an unapproved finding not eligible to be fast tracked
-    # 100 - Container is accredited, accreditation is not expired, and there are unapproved findings but they are ALL eligible to be fast tracked. This exit code is permitted to fail the Check CVE job
-    exit_code: int
-    # The first case should be a hard fail on master branches, as either the container is not accredited, the accreditation is expired
-    if not approved or ft_eligible_findings:
+    # 0   - fix me
+    # 100 - fix me
+    # 100 - fix me
+    exit_code: int = 0
+
+    # check for existence of finding status type in response
+    # key will not be exist if not applicable to at least one finding
+    status_type_found = lambda status: bool(  # noqa E731
+        [k for k in findings_by_status.keys() if k in statuses[status]]
+    )
+    maintainer_actions_required = status_type_found("maintainer_warnings")
+    # fa_actions_required = status_type_found("finding_approver_warnings")
+
+    if maintainer_actions_required:
+        # TODO: uncomment this after confirming it won't cause issues for robotnik
+        # log.info("Maintainer actions required on the following findings")
+        for status in statuses["maintainer_warnings"]:
+            log_findings(findings_by_status[status], "WARN")
         exit_code = 100
-    else:
-        exit_code = 0
+    # if fa_actions_required:
+    #     log.info("Finding approver actions required on the following findings")
+    #     for status in statuses["maintainer_warnings"]:
+    #         log_findings(findings_by_status[status], "WARN")
+    #     exit_code = 100
 
-    return (
-        approved,
-        exit_code,
-        approval_status,
-        approval_comment,
-    )
+    return exit_code
 
 
-def _is_accredited(vat_image: dict) -> bool:
-    """
-    Checks if a container's 'accreditation' is Conditionally Approved, or Approved
-
-    Returns
-        boolean:
-        True indicates accredited.
-        False indicates not accredited.
-    """
-    # Check accreditation
-    return vat_image["state"]["imageStatus"] in (
-        "Conditionally Approved",
-        "Approved",
-    )
-
-
-def _check_expiration(vat_image: dict) -> bool:
-    """
-    Checks if a container's 'earliestExpiration'. If key is present, check if current date is previous to expiration date. If 'earliestExpiration' key is not found, return True
-
-    Returns
-        boolean:
-        True indicates container's accreditation is not expired.
-        False indicates container's accreditation has expired
-    """
-    # Check earliest expiration
-    approval_factors = vat_image["state"]["factors"]
-    if "expiration" in approval_factors.get("caReview", {}):
-        expiration_date = dateparser.parse(approval_factors["caReview"]["expiration"])
-        return datetime.now(timezone.utc) < expiration_date.replace(tzinfo=timezone.utc)
-    else:
-        return True
-
-
-def _get_approval_status(
-    exists,
-    accredited,
-    not_expired,
-    ft_ineligible_findings,
-    branch,
-    force_approval=False,
-) -> bool:
-    """
-    Returns True if
-        branch == 'master'
-            if force_approval is True container is noted as accredited, and the accreditation has no expiration or expiration is not prior to current date
-            else container is noted as accredited, and the accreditation has no expiration or expiration is not prior to current date, and there are no unapproved fast track ineligible findings
-        branch != 'master' there are no unapproved fast track ineligible findings
-    """
-
-    """
-        If master:
-            check
-    """
-
-    if not exists:
-        return False
-    if not accredited:
-        log.debug("Container is not accredited in VAT")
-    if not not_expired:
-        log.debug("Container's earliest expiration is prior to current date")
-    if branch == "master":
-        # Check if an approval has been forced and if so, return accreditation and not_expired
-        if force_approval:
-            return accredited and not_expired
-        else:
-            return accredited and not_expired and not ft_ineligible_findings
-    else:
-        return not ft_ineligible_findings
-
-
-def _check_findings(vat_image: dict) -> tuple[bool, bool]:
-    """
-    Pulls all non-approved findings into a list
-    Then separates these into two lists of fast-track (ft) eligible and ft-ineligible findings
-    Logs the lists out and returns booleans indicating if either ft or non-ft findings, that are not approved, exist
-    Returns tuple of booleans, Fast track eligible, and fast track ineligible. False indicates not found while True means at lease one finding is present
-    """
-    ft_eligible = False
-    ft_ineligible = False
-    ft_eligible_findings = []
-    ft_ineligible_findings = []
-    findings: list[dict] = vat_image["findings"]
-    # pull out findings that are not approved into a list to be used for finding ft eligible and ft ineligible findings
-    unapproved_findings = [
-        finding
-        for finding in findings
-        # findings cannot be conditionally approved
-        if finding["state"]["findingStatus"] not in ("Approved")
-    ]
-    for unapproved in unapproved_findings:
-        # if a finding can be fast tracked, the key of fastTrackEligibility will exist in the finding
-        # also confirm that list of ft codes is not empty. This should never be the case and this check may be able to be removed in the future.
-        # //TODO Review with VAT team if ONLY checking for "fastTrackEligibility" key is sufficient for this logic check
-        if "fastTrackEligibility" in unapproved and unapproved["fastTrackEligibility"]:
-            ft_eligible_findings.append(unapproved)
-        else:
-            ft_ineligible_findings.append(unapproved)
-    #  if ft_eligible_findings is not an empty list, log findings and set boolean to True
-    if ft_eligible_findings:
-        log_finding(ft_eligible_findings, "WARN")
-        ft_eligible = True
-    #  if ft_ineligible_findings is not an empty list, log findings and set boolean to True
-    if ft_ineligible_findings:
-        log_finding(ft_ineligible_findings, "ERR")
-        ft_ineligible = True
-    return ft_eligible, ft_ineligible
-
-
-def log_finding(findings: list, log_type: str) -> None:
+def log_findings(findings: list, log_type: str) -> None:
     """
     Logs findings for the Check CVE stage of the pipeline
     """
@@ -213,7 +91,6 @@ def log_finding(findings: list, log_type: str) -> None:
             log_level,
             f"{finding_color}{finding['identifier']:<20} {finding['scannerName']:20} {finding.get('severity', ''):20} {finding.get('package', ''):35} {finding.get('packagePath', ''):45} {colors['white']}{finding['inheritsFrom'] if finding['inheritsFrom'] else 'Uninherited'}",
         )
-    return
 
 
 def log_findings_header(log_level: int) -> None:
@@ -229,7 +106,6 @@ def log_findings_header(log_level: int) -> None:
         log_level,
         f"{values['identifier']:<20} {values['scannerName']:20} {values.get('severity', ''):20} {values.get('package', ''):35} {values.get('packagePath', ''):45} {values['inheritsFrom']}",
     )
-    return
 
 
 def sort_justifications(vat_resp_dict) -> tuple[dict, dict, dict, dict]:
