@@ -42,7 +42,7 @@ async def main():
                 pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode(
                     "UTF-8"
                 )
-                registry = os.environ["REGISTRY_URL_PROD"]
+                registry = os.environ["BASE_REGISTRY"]
             docker_config.write_text(pull_auth)
             try:
                 skopeo = Skopeo(docker_config_dir=docker_config_dir)
@@ -62,7 +62,6 @@ async def main():
                 sys.exit(1)
 
             base_image_info = {"BASE_SHA": base_img_inspect["Digest"]}
-            # TODO: Confirm whether we still need to add this digest to this file
             log.info("Dump SHA to file")
             with pathlib.Path(os.environ["ARTIFACT_DIR"], "base_image.json").open(
                 "w"

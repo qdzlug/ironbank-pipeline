@@ -142,14 +142,19 @@ def generate_attestation_predicates(predicates):
 
 
 def main():
+    # staging image is always the new image
     staging_image = Image(
         registry=os.environ["REGISTRY_URL_STAGING"],
         name=os.environ["IMAGE_NAME"],
         digest=os.environ["IMAGE_PODMAN_SHA"],
         transport="docker://",
     )
+    # production image will have a different digest depending on which image was scanned
+    # sha will either be same as staging, or the old image's digest
     production_image = Image.from_image(
-        staging_image, registry=os.environ["REGISTRY_URL_PROD"]
+        staging_image,
+        registry=os.environ["REGISTRY_URL_PROD"],
+        digest=os.environ["DIGEST_TO_SCAN"],
     )
     project = DsopProject()
     hm = HardeningManifest(project.hardening_manifest_path)

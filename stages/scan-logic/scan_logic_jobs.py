@@ -40,10 +40,16 @@ def parse_packages(sbom: Path | dict, access_log: Path | list[str]) -> list[Pack
     """
     # Pipeline should fail if sbom does not exist (exception not caught)
     pkgs = set(SbomFileParser.parse(sbom))
-    try:
+
+    access_log_exists = (
+        access_log.exists() if isinstance(access_log, Path) else bool(access_log)
+    )
+
+    if access_log_exists:
         pkgs.update(AccessLogFileParser.parse(access_log))
-    except FileNotFoundError:
+    else:
         log.info("Access log does not exist")
+
     log.info("Packages parsed:")
     for pkg in pkgs:
         log.info(f"  {pkg}")
@@ -81,7 +87,7 @@ def get_old_pkgs(
     Return list of packages parsed from old image sbom & access log
     """
     old_img = Image(
-        registry=os.environ["BASE_REGISTRY"],
+        registry=os.environ["REGISTRY_URL_PROD"],
         name=image_name,
         digest=image_digest,
     )
@@ -96,7 +102,10 @@ def get_old_pkgs(
 
             # Parse access log from hardening manifest
             with Path(cosign_download, "hardening_manifest.json").open("r") as hm:
-                old_access_log = json.load(hm)["access_log"].split("\n")
+                old_access_log = json.load(hm).get("access_log", "").split("\n")
+
+            # prevent old_access_log from having single value of '' if access log is missing
+            old_access_log = [] if old_access_log == [""] else old_access_log
 
             log.info("Parsing old packages")
             return parse_packages(old_sbom, old_access_log)
@@ -158,11 +167,15 @@ def main():
                 log.info("Package(s) difference detected - Must scan new image")
             else:
                 log.info("Package lists match - Able to scan old image")
-                # TODO: Uncomment when feature is ready
                 # Override image to scan with old tag
-                # image_name_tag = f"{os.environ['BASE_REGISTRY']}/{image_name}:{old_image_details['tag']}"
-                # write_env_vars(image_name_tag, old_image_details['commit_sha'], old_image_details['digest'], old_image_details['build_date'])
-                # log.info("Old image name, tag, digest, and build date saved")
+                image_name_tag = f"{os.environ['REGISTRY_URL_PROD']}/{image_name}:{old_image_details['tag']}"
+                write_env_vars(
+                    image_name_tag,
+                    old_image_details["commit_sha"],
+                    old_image_details["digest"],
+                    old_image_details["build_date"],
+                )
+                log.info("Old image name, tag, digest, and build date saved")
 
 
 if __name__ == "__main__":
