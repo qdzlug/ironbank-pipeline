@@ -11,7 +11,7 @@ def log_unverified_findings(vat_response: dict) -> int:
     """
     vat_image = vat_response["image"]
     log.info(
-        "VAT image %s:%s %s ",
+        "VAT image %s:%s %s",
         vat_image["imageName"],
         vat_image["tag"],
         vat_image["vatUrl"],
@@ -25,7 +25,8 @@ def log_unverified_findings(vat_response: dict) -> int:
         if finding["state"]["findingStatus"] != "Verified"
     ]
 
-    log_findings(unverified_findings, "WARN")
+    if unverified_findings:
+        log_findings(unverified_findings, "WARN")
 
     # return exit code
     return 0 if not unverified_findings else 100
