@@ -45,7 +45,7 @@ def test_base_image_validation_main(monkeypatch, caplog):
 
     log.info("Test prod base image validation")
     monkeypatch.setenv("DOCKER_AUTH_CONFIG_PULL", "c3RhZ2luZy10ZXN0Cg==")
-    monkeypatch.setenv("REGISTRY_URL_PROD", "http://prod.com")
+    monkeypatch.setenv("BASE_REGISTRY", "http://prod.com")
     monkeypatch.setattr(
         MockSkopeo, "inspect", lambda *args, **kwargs: {"Digest": "1234qwer"}
     )

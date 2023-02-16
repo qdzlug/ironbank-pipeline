@@ -6,6 +6,7 @@ import typing
 import yaml
 from pathlib import Path
 from git import Repo, Remote, IndexFile
+from git.config import GitConfigParser
 from jinja2 import Environment, FileSystemLoader, Template
 import shutil
 import gitlab
@@ -17,6 +18,7 @@ from gitlab.v4.objects import (
 import requests
 import urllib
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 
 
 @dataclass
@@ -374,7 +376,6 @@ def update_dest_project_permissions(gl: gitlab.Gitlab, config: Config) -> Config
                         "value": r"^mil\.dso\.ironbank\.os-type$",
                     }
                 )
-
         config.projects[i].gl_project = gl_project
     return config
 
@@ -397,6 +398,29 @@ def kickoff_pipelines(config: Config) -> Config:
                 f"Skipping pipeline creation for {project.dest_project_name}. Pipeline already created."  # noqa E501
             )
     return config
+
+
+def open_urls(config: Config) -> None:
+    # need to do imports here to avoid breaking this for people who don't have selenium/geckodriver installed
+    from selenium import webdriver
+    from selenium.webdriver.firefox.options import Options
+    from selenium.webdriver.common.proxy import Proxy
+
+    options = Options()
+    # options.headless = True
+    # uncomment for local testing
+    options.proxy = Proxy(
+        {
+            "socksProxy": f"{os.environ.get('SOCKS_HOST', 'localhost')}:12345",
+            "socksVersion": 5,
+        }
+    )
+    options.set_preference("network.proxy.socks_remote_dns", True)
+    driver = webdriver.Firefox(options=options)
+    for project in config.projects:
+        driver.get(project.pipeline.web_url)
+        if project != config.projects[-1]:
+            driver.switch_to.new_window()
 
 
 def main() -> None:
@@ -440,7 +464,11 @@ def main() -> None:
     create_tester_group_in_dest(dest_gl, config)
 
     # TODO: check git config before updating it
-    if config.proxies:
+
+    conf_parser = GitConfigParser(config_level="global")
+    proxy_val = conf_parser.get_value(section="http", option="proxy", default="")
+
+    if not proxy_val and config.proxies:
         subprocess.run(
             ["git", "config", "--global", "http.proxy", "socks5h://localhost:12345"],
             check=True,
@@ -453,13 +481,30 @@ def main() -> None:
     config = update_dest_project_permissions(dest_gl, config)
 
     # TODO: check git config before updating it
-    if config.proxies:
+    if not proxy_val and config.proxies:
         subprocess.run(
             ["git", "config", "--global", "--unset", "http.proxy"], check=True
         )
 
     print("\nKicking off Pipelines...")
     config = kickoff_pipelines(config)
+
+    print("\nPipeline links:")
+    for project in config.projects:
+        if project.changes_pushed:
+            pipelines = project.gl_project.pipelines.list(
+                updated_after=str(datetime.now() - timedelta(minutes=2))
+            )
+            assert isinstance(pipelines, list)
+            project.pipeline = pipelines[0]
+        print(project.pipeline.web_url)
+
+    open_urls_in_firefox = input(
+        "\nDo you want to open these urls in firefox and do you have the required gecko driver installed?\n"
+    )
+
+    if open_urls_in_firefox.lower() in ["y", "yes"]:
+        open_urls(config)
 
 
 if __name__ == "__main__":

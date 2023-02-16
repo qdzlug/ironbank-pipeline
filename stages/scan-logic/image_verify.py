@@ -19,7 +19,7 @@ def inspect_old_image(
     try:
         skopeo = Skopeo(docker_config_dir=docker_config_dir)
         old_image = Image(
-            registry=os.environ["BASE_REGISTRY"],
+            registry=os.environ["REGISTRY_URL_PROD"],
             name=manifest.image_name,
             tag=manifest.image_tag,
             transport="docker://",
