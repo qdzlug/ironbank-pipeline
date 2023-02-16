@@ -10,6 +10,12 @@ import string
 log = logger.setup("test_finding_status")
 
 
+def generate_random_string(num_chars: int, extra_chars: str):
+    return "".join(
+        [random.choice(string.ascii_letters + extra_chars) for _ in range(num_chars)]
+    )
+
+
 def mock_vat_finding(
     identifier: str = None,
     scanner_name: str = None,
@@ -38,10 +44,9 @@ def mock_vat_finding(
             )
         },
     }
+
     # package must be defined for package path to be defined
     assert not (package_path and not package)
-
-    generate_random_string = lambda num_chars, extra_chars: ''.join([random.choice(string.ascii_letters+extra_chars) for _ in range(num_chars)]) # noqa E731
 
     finding = (
         finding
@@ -80,17 +85,30 @@ def mock_vat_response():
                 "reason": "Auto Approval example",
                 "factors": {"caReview": {"value": "Approved"}},
             },
-            "findings": [mock_vat_finding(**random.choice([{}, {'package': ''}, {'package': '', 'package_path': ''}])) for _ in range(50)],
+            "findings": [
+                mock_vat_finding(
+                    **random.choice(
+                        [{}, {"package": ""}, {"package": "", "package_path": ""}]
+                    )
+                )
+                for _ in range(50)
+            ],
         }
     }
 
 
 def test_log_unverified_findings(monkeypatch, mock_vat_response):
     log.info("Test unverified findings found returns 100")
-    mock_vat_response['image']['findings'] += [mock_vat_finding(state={"findingStatus": "Needs Rework"})]
-    monkeypatch.setattr(vat_container_status, "log_findings", lambda findings, level: None)
+    mock_vat_response["image"]["findings"] += [
+        mock_vat_finding(state={"findingStatus": "Needs Rework"})
+    ]
+    monkeypatch.setattr(
+        vat_container_status, "log_findings", lambda findings, level: None
+    )
     assert vat_container_status.log_unverified_findings(mock_vat_response) == 100
 
     log.info("Test no unverified findings found returns 0")
-    mock_vat_response['image']['findings'] = [mock_vat_finding(state={"findingStatus": "Verified"})]
+    mock_vat_response["image"]["findings"] = [
+        mock_vat_finding(state={"findingStatus": "Verified"})
+    ]
     assert vat_container_status.log_unverified_findings(mock_vat_response) == 0
