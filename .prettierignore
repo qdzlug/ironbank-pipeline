@@ -2,4 +2,4 @@
 **/.pytest_cache/
 .vscode/
 htmlcov/
-**/staging_projects/*
+**/staging_projects**
