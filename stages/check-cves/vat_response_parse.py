@@ -5,21 +5,19 @@ import sys
 import os
 from pathlib import Path
 
-from ironbank.pipeline.vat_container_status import is_approved
+from ironbank.pipeline.vat_container_status import log_unverified_findings
 
 
-def main():
+def main() -> None:
     """
-    Calls is_approved method in ironbank.pipeline.vat_container_status
+    Calls log_findings_by_status method in ironbank.pipeline.vat_container_status
     """
-
-    vat_response = {}
-    with Path(f"{os.environ['ARTIFACT_STORAGE']}/vat/vat_response.json").open(
-        mode="r", encoding="utf-8"
-    ) as f:
-        vat_response = json.load(f)
-
-    exit_code = is_approved(vat_response, True)
+    vat_response: dict = json.loads(
+        Path(f"{os.environ['ARTIFACT_STORAGE']}/vat/vat_response.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    exit_code = log_unverified_findings(vat_response)
     sys.exit(exit_code)
 
 

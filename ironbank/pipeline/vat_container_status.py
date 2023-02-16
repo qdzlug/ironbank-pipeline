@@ -5,64 +5,30 @@ from ironbank.pipeline.utils import logger
 log = logger.setup(name="vat_container_status")
 
 
-def is_approved(vat_resp_dict, findings) -> int:
+def log_unverified_findings(vat_response: dict) -> int:
     """
-    FIX ME
+    Log unverified findings from vat response
     """
-    vat_image = vat_resp_dict["image"]
-
-    exists_in_vat = bool(vat_image)
-
-    if exists_in_vat:
-        log.info(
-            f"VAT image {vat_image['imageName']}:{vat_image['tag']} {vat_image['vatUrl']}"
-        )
-
-    statuses: dict[str, list[str]] = {
-        # nothing for the maintainers/fa to do
-        "no_issues": ["Verified"],
-        # something for the maintainer to update
-        "maintainer_warnings": ["Needs Justification", "Needs Rework"],
-        # something for the finding approver to update
-        "finding_approver_warnings": ["Justified", "Needs Reverification"],
-    }
-
-    findings_by_status: dict[str, list[dict]] = {}
-    for finding in findings:
-        status = finding["state"]["findingStatus"]
-        findings_by_status[status] = (
-            [*findings_by_status[status], finding]
-            if findings_by_status.get(status)
-            else [finding]
-        )
-
-    # Exit codes for Check CVE parsing of VAT response
-    # 0   - fix me
-    # 100 - fix me
-    # 100 - fix me
-    exit_code: int = 0
-
-    # check for existence of finding status type in response
-    # key will not be exist if not applicable to at least one finding
-    status_type_found = lambda status: bool(  # noqa E731
-        [k for k in findings_by_status.keys() if k in statuses[status]]
+    vat_image = vat_response["image"]
+    log.info(
+        "VAT image %s:%s %s ",
+        vat_image["imageName"],
+        vat_image["tag"],
+        vat_image["vatUrl"],
     )
-    maintainer_actions_required = status_type_found("maintainer_warnings")
-    # fa_actions_required = status_type_found("finding_approver_warnings")
 
-    if maintainer_actions_required:
-        # TODO: uncomment this after confirming it won't cause issues for robotnik
-        # log.info("Maintainer actions required on the following findings")
-        for status in statuses["maintainer_warnings"]:
-            log_findings(findings_by_status[status], "WARN")
-        exit_code = 100
-    # if fa_actions_required:
-    #     log.info("Finding approver actions required on the following findings")
-    #     for status in statuses["maintainer_warnings"]:
-    #         log_findings(findings_by_status[status], "WARN")
-    #     exit_code = 100
+    findings: list[dict] = vat_image["findings"]
 
-    return exit_code
+    unverified_findings = [
+        finding
+        for finding in findings
+        if finding["state"]["findingStatus"] != "Verified"
+    ]
+
+    log_findings(unverified_findings, "WARN")
+
+    # return exit code
+    return 0 if not unverified_findings else 100
 
 
 def log_findings(findings: list, log_type: str) -> None:
@@ -108,7 +74,7 @@ def log_findings_header(log_level: int) -> None:
     )
 
 
-def sort_justifications(vat_resp_dict) -> tuple[dict, dict, dict, dict]:
+def sort_justifications(vat_response) -> tuple[dict, dict, dict, dict]:
     """
     Findings are sorted into dictionary whose key is the scan source of the given finding
 
@@ -126,7 +92,7 @@ def sort_justifications(vat_resp_dict) -> tuple[dict, dict, dict, dict]:
         "Twistlock CVE": {},
     }
 
-    for finding in vat_resp_dict["image"]["findings"]:
+    for finding in vat_response["image"]["findings"]:
         if finding["state"]["findingStatus"].lower() in (
             "approved",
             "conditionally approved",
