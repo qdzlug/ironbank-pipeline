@@ -1,4 +1,5 @@
-import requests
+from requests import Session,HTTPError
+
 import math
 
 from dataclasses import dataclass
@@ -10,7 +11,7 @@ log = logger.setup("paginated_request")
 
 @dataclass
 class PaginatedRequest:
-    session: requests.Session
+    session: Session
     url: str
     query: str = ""
     page: int = 1
@@ -36,6 +37,6 @@ class PaginatedRequest:
                     params={"page": page, "page_size": self.page_size, "q": self.query},
                 )
                 response.raise_for_status()
-            except requests.HTTPError as re:
+            except HTTPError as re:
                 raise re
             yield response.json()
