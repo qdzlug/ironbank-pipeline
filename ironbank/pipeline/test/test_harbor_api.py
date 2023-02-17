@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 
 import pytest
-import requests
 
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.paginated_request import PaginatedRequest
 from ironbank.pipeline.harbor import HarborProject, HarborRepository
 from ironbank.pipeline.test.mocks.mock_classes import MockPaginatedRequest
 from unittest.mock import patch
