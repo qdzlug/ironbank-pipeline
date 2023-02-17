@@ -244,12 +244,21 @@ class MockImage(Image):
     # def __post_init__(*args, **kwargs):
     #     pass
 
-@dataclass
-class MockPaginatedRequest():
-    response: requests.Response = None
 
-    def check_access(self, image_name, create_request=False) -> None:
-        self.response = MockResponse()
+@dataclass
+class MockPaginatedRequest:
+    session: requests.Session
+    url: str
+    query: str = ""
+    page: int = 1
+    page_size: int = 100
+
+    def __post_init__(self):
+        pass
+
+    def get(self):
+        return [{"name": "ironbank"}, {"name": "ironbank"}, {"name": "ironbank"}]
+
 
 @dataclass
 class MockVatAPI(VatAPI):
@@ -257,15 +266,6 @@ class MockVatAPI(VatAPI):
 
     def check_access(self, image_name, create_request=False) -> None:
         self.response = MockResponse()
-
-
-class MockGoodResponseHarborAPI:
-    status_code: int = 200
-    text: str = "example"
-    headers: dict = {"x-total-count": "1"}
-
-    def json(self):
-        return {"status_code": self.status_code, "text": self.text}
 
 
 class MockGoodResponse:
