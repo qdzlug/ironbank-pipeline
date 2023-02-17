@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 
-import pytest
-import requests
-
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.paginated_request import PaginatedRequest
 from requests import Session
-from ironbank.pipeline.utils.exceptions import MaxRetriesException
 
 log = logger.setup("test_harbor_api")
 
@@ -25,7 +21,7 @@ def test_paginated_request(monkeypatch, caplog, mock_responses):  # noqa W0404
 
     try:
         PaginatedRequest(session=harbor_session, url="https://example")
-    except Exception as e:
+    except Exception:
         log.info("Unsuccessful Paginated Request initialization")
 
     monkeypatch.setattr(
@@ -38,5 +34,5 @@ def test_paginated_request(monkeypatch, caplog, mock_responses):  # noqa W0404
     monkeypatch.setattr(Session, "get", mock_responses["500"])
     try:
         PaginatedRequest(session=harbor_session, url="https://example")
-    except Exception as e:
+    except Exception:
         log.info("Unsuccessful Paginated Request initialization")
