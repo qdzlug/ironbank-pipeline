@@ -13,7 +13,7 @@ from ironbank.pipeline.image import Image
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.types import Package
 from ironbank.pipeline.container_tools.cosign import Cosign
-from ironbank.pipeline.utils.exceptions import CosignDownloadError 
+from ironbank.pipeline.utils.exceptions import CosignDownloadError
 from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
 
 log = logger.setup("scan_logic_jobs")

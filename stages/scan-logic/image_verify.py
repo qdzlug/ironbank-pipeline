@@ -66,6 +66,7 @@ def verify_image_properties(img_json: dict, manifest: HardeningManifest) -> bool
 
     return False
 
+
 def verify_parent_image(hardening_manifest: HardeningManifest):
     base_image = Image(
         registry=os.environ["BASE_REGISTRY"],
@@ -73,10 +74,16 @@ def verify_parent_image(hardening_manifest: HardeningManifest):
         tag=hardening_manifest.base_image_tag,
     )
     try:
-        verify = Cosign.verify(base_image, certificate=Path("scripts/cosign/cosign-certificate.pem"), certificate_chain=Path("scripts/cosign/cosign-ca-bundle.pem"),log_cmd=True)
+        verify = Cosign.verify(
+            base_image,
+            certificate=Path("scripts/cosign/cosign-certificate.pem"),
+            certificate_chain=Path("scripts/cosign/cosign-ca-bundle.pem"),
+            log_cmd=True,
+        )
     except GenericSubprocessError:
         verify = False
     return verify
+
 
 def diff_needed(docker_config_dir: str) -> Optional[dict]:
     try:
@@ -91,7 +98,11 @@ def diff_needed(docker_config_dir: str) -> Optional[dict]:
         #  - manifest exists for tag (i.e. this pipeline is not running to create a new tag)
         #  - git commit SHAs match
         #  - parent digests match
-        if old_img_json and verify_image_properties(old_img_json, manifest) and verify_parent_image(manifest):
+        if (
+            old_img_json
+            and verify_image_properties(old_img_json, manifest)
+            and verify_parent_image(manifest)
+        ):
             return {
                 # Old image information to return
                 "tag": manifest.image_tag,
