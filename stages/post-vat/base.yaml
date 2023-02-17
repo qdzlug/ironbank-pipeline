@@ -15,21 +15,3 @@ check-findings:
   trigger:
     project: ironbank-tools/robotnik
     branch: main
-
-update-approval-badge:
-  stage: post-vat
-  allow_failure: true
-  needs:
-    - job: vat
-      artifacts: false
-  rules:
-    - if: $SKIP_BADGE_TRIGGER
-      when: never
-    - if: $CI_COMMIT_BRANCH == "master"
-  variables:
-    PROJECT_NAME: $CI_PROJECT_NAME
-    PROJECT_ID: $CI_PROJECT_ID
-    MODULES: approval_badges
-  trigger:
-    project: ironbank-tools/project-template
-    branch: master
