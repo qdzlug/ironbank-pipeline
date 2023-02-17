@@ -114,6 +114,7 @@ def test_diff_needed(monkeypatch, caplog):
         image_verify, "inspect_old_image", lambda x, y: mock_old_img_json
     )
     monkeypatch.setattr(image_verify, "verify_image_properties", lambda x, y: True)
+    monkeypatch.setattr(image_verify, "verify_parent_image", lambda x: True)
     diff_needed = image_verify.diff_needed(".")
     assert diff_needed == {
         "tag": mock_old_img_json["Tag"],
