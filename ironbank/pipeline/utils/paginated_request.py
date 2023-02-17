@@ -2,7 +2,10 @@ import requests
 import math
 
 from dataclasses import dataclass
-from .request_retry import request_retry
+from .decorators import request_retry
+from ironbank.pipeline.utils import logger
+
+log = logger.setup("paginated_request")
 
 
 @dataclass

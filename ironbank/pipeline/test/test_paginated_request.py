@@ -5,39 +5,38 @@ import requests
 
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.paginated_request import PaginatedRequest
+from requests import Session
+from ironbank.pipeline.utils.exceptions import MaxRetriesException
 
 log = logger.setup("test_harbor_api")
 
-
-@pytest.fixture
-def mock_paginated_request():
-    return PaginatedRequest(auth=[],url = "")
-
-# PaginatedRequest
-def test_get_project_repository(monkeypatch, caplog, mock_response):  # noqa W0404
-
-    monkeypatch.setattr(requests, "get",  mock_response["mock200_with_x_total_count_headers"])
-    mock_paginated_request.get()
-    # assert "Successfully Retrieved Harbor Project" in caplog.text
-    # caplog.clear()
-
-    # monkeypatch.setattr(requests, "get", mock_get_project_repository_response_404)
-    # try:
-    #     mock_project.get_project_repository("example/example/example")
-    # except requests.exceptions.HTTPError:
-    #     assert "Error while retrieving Harbor Project" in caplog.text
-    #     caplog.clear()
+harbor_session = Session()
+harbor_session.auth = ("user", "password")
 
 
-# def test_get_repository_artifact(monkeypatch, caplog, mock_repository):  # noqa W0404
-#     monkeypatch.setattr(requests, "get", mock_get_repository_artifact_response_200)
-#     mock_repository.get_repository_artifact("example/example/example")
-#     assert "Successfully Retrieved Harbor Repository" in caplog.text
-#     caplog.clear()
+def test_paginated_request(monkeypatch, caplog, mock_responses):  # noqa W0404
+    monkeypatch.setattr(
+        Session, "get", mock_responses["mock200_with_x_total_count_headers_and_pages"]
+    )
 
-#     monkeypatch.setattr(requests, "get", mock_get_repository_artifact_response_404)
-#     try:
-#         mock_repository.get_repository_artifact("example/example/example")
-#     except requests.exceptions.HTTPError:
-#         assert "Error" in caplog.text
-#         caplog.clear()
+    paginated_req = PaginatedRequest(session=harbor_session, url="https://example")
+    log.info("Successful Paginated Request initialization")
+    monkeypatch.setattr(Session, "get", mock_responses["500"])
+
+    try:
+        PaginatedRequest(session=harbor_session, url="https://example")
+    except Exception as e:
+        log.info("Unsuccessful Paginated Request initialization")
+
+    monkeypatch.setattr(
+        Session, "get", mock_responses["mock200_with_x_total_count_headers_and_pages"]
+    )
+    paginated_req.get()
+
+    log.info("Successful Harbor API get")
+
+    monkeypatch.setattr(Session, "get", mock_responses["500"])
+    try:
+        PaginatedRequest(session=harbor_session, url="https://example")
+    except Exception as e:
+        log.info("Unsuccessful Paginated Request initialization")
