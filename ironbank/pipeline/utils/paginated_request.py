@@ -1,4 +1,4 @@
-from requests import Session,HTTPError
+from requests import Session, HTTPError
 
 import math
 
