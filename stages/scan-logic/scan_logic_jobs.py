@@ -113,6 +113,7 @@ def get_old_pkgs(
             log.info("Download attestations failed")
             return []
 
+
 def main():
     image_name = os.environ["IMAGE_NAME"]
     image_name_tag = os.environ["IMAGE_FULLTAG"]
