@@ -16,13 +16,16 @@ class PaginatedRequest:
     query: str = ""
     page: int = 1
     page_size: int = 100
+    total_count_header: str = "x-total-count"
 
     @request_retry(5)
     def __post_init__(self):
         resp = self.session.get(self.url)
         resp.raise_for_status()
         page_count = (
-            int(resp.headers["x-total-count"]) if "x-total-count" in resp.headers else 1
+            int(resp.headers[self.total_count_header])
+            if self.total_count_header in resp.headers
+            else 1
         )
         self.total_pages = (
             math.ceil(page_count / self.page_size) if page_count > 0 else 1
