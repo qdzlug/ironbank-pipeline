@@ -60,29 +60,18 @@ class HarborRepository(Harbor):
             artifact_url = f"{self.api_url}/projects/{self.project}/repositories/{quote_plus(self.name)}/artifacts"
         paginated_request = PaginatedRequest(self.session, artifact_url)
         for page in paginated_request.get():
-            if isinstance(page, dict):
+            page = [page] if isinstance(page, dict) else page
+            for artifact in page:
                 self.artifacts.append(
                     HarborArtifact(
                         session=self.session,
-                        digest=page["digest"],
-                        tags=page["tags"] if "tags" in page else None,
+                        digest=artifact["digest"],
+                        tags=artifact["tags"] if "tags" in artifact else None,
                         project=self.project,
                         repository=self.name,
-                        push_time=page["push_time"],
+                        push_time=artifact["push_time"],
                     )
                 )
-            else:
-                for artifact in page:
-                    self.artifacts.append(
-                        HarborArtifact(
-                            session=self.session,
-                            digest=artifact["digest"],
-                            tags=artifact["tags"] if "tags" in artifact else None,
-                            project=self.project,
-                            repository=self.name,
-                            push_time=artifact["push_time"],
-                        )
-                    )
 
 
 @dataclass
