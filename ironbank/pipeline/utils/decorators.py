@@ -11,8 +11,6 @@ from ironbank.pipeline.utils import logger
 
 log: Logger = logger.setup(name="Exception")
 
-log = logger.setup("retry")
-
 
 def request_retry(retry_count):
     """
