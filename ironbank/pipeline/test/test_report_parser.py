@@ -8,14 +8,14 @@ from ironbank.pipeline.utils import logger
 from unittest.mock import mock_open
 from ironbank.pipeline.scan_report_parsers.report_parser import (
     ReportParser,
-    AbstractVuln,
+    AbstractFinding,
 )
 
 log = logger.setup("test_report_parser")
 
 
 @dataclass
-class MockAbstractVuln(AbstractVuln):
+class MockAbstractFinding(AbstractFinding):
     cve: str = None
     package: str = None
     package_path: str = None
@@ -35,11 +35,13 @@ class MockDictWriter:
 
 
 def test_get_justification():
-    tracked_vuln1 = MockAbstractVuln(
+    tracked_vuln1 = MockAbstractFinding(
         cve="001", package="testPkg", package_path="testPkgPth"
     )
-    tracked_vuln2 = MockAbstractVuln(cve="002", package="testPkg", package_path="pkgdb")
-    untracked_vuln = MockAbstractVuln(
+    tracked_vuln2 = MockAbstractFinding(
+        cve="002", package="testPkg", package_path="pkgdb"
+    )
+    untracked_vuln = MockAbstractFinding(
         cve="003", package="testPkg", package_path="testPkgPth"
     )
     vuln1_id = ("001", "testPkg", "testPkgPth")

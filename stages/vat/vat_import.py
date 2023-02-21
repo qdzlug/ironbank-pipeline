@@ -152,7 +152,7 @@ def generate_anchore_cve_jobs(anchore_sec_path):
 
     with Path(anchore_sec_path).open(mode="r", encoding="utf-8") as f:
         json_data = json.load(f)
-    vulns = AnchoreSecurityParser.get_vulnerabilities(json_data)
+    vulns = AnchoreSecurityParser.get_findings(json_data)
     cves = []
     fieldnames = [
         "finding",

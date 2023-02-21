@@ -17,7 +17,7 @@ def vulnerability_report(csv_dir, anchore_security_json, justifications):
     with Path(anchore_security_json).open("r") as f:
         json_data = json.load(f)
 
-    vulns = AnchoreSecurityParser.get_vulnerabilities(json_data)
+    vulns = AnchoreSecurityParser.get_findings(json_data)
 
     vuln_dict_list = []
 

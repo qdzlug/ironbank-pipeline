@@ -142,9 +142,7 @@ def get_oval_definitions(url: str) -> list[dict]:
     """
     Download oval definitions and return them as an list of dictionaries
     """
-    oval_definitions = {}
-    if url in oval_definitions:
-        return oval_definitions[url]
+
     artifact_path = Path(
         f"{os.environ['ARTIFACT_DIR']}/oval_definitions-{re.sub(r'[^a-z]', '-', url)}.xml"
     )
@@ -164,5 +162,4 @@ def get_oval_definitions(url: str) -> list[dict]:
             )
             sys.exit(1)
 
-    oval_definitions[url] = etree.parse(artifact_path)
-    return oval_definitions[url]
+    return etree.parse(artifact_path)

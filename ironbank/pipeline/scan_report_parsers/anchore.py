@@ -5,13 +5,13 @@ from dataclasses import dataclass, field, fields
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.decorators import key_index_error_handler
 from ironbank.pipeline.scan_report_parsers.report_parser import (
-    AbstractVuln,
+    AbstractFinding,
     ReportParser,
 )
 
 
 @dataclass
-class AnchoreVuln(AbstractVuln):
+class AnchoreCVEFinding(AbstractFinding):
     # keys match anchore severity report, passed as kwargs
     tag: str
     vuln: str
@@ -40,10 +40,10 @@ class AnchoreVuln(AbstractVuln):
     justification: str = None
     # used only within the module
     _nvd_versions: list = field(default_factory=lambda: ["v2", "v3"])
-    _log: logger = logger.setup("AnchoreVulnParser")
+    _log: logger = logger.setup("AnchoreCVEFindingParser")
 
     def __post_init__(self):
-        # allow for multiple names for vuln, allows vat/csv_gen to use different names and parse __dict__ for an AnchoreVuln object
+        # allow for multiple names for vuln, allows vat/csv_gen to use different names and parse __dict__ for an AnchoreCVEFinding object
         self.sort_fix()
         self.identifiers.append(self.vuln)
         # intentionally throw key error if description doesn't exist
@@ -96,7 +96,7 @@ class AnchoreVuln(AbstractVuln):
 
     @classmethod
     def from_dict(cls, vuln_data):
-        # only use keys from vuln_data supported by the AnchoreVuln class init
+        # only use keys from vuln_data supported by the AnchoreCVEFinding class init
         return cls(
             **{k: v for k, v in vuln_data.items() if k in [f.name for f in fields(cls)]}
         )
@@ -176,10 +176,10 @@ class AnchoreSecurityParser(ReportParser):
     log: logger = logger.setup("AnchoreSecurityParser")
 
     @classmethod
-    def get_vulnerabilities(cls, scan_json):
+    def get_findings(cls, scan_json):
         vulnerabilities = []
         for vuln_data in scan_json["vulnerabilities"]:
-            anchore_vuln = AnchoreVuln.from_dict(
+            anchore_vuln = AnchoreCVEFinding.from_dict(
                 vuln_data={**vuln_data, "tag": scan_json["imageFullTag"]}
             )
             vulnerabilities.append(anchore_vuln)

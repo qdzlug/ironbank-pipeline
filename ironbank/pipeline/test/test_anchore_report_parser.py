@@ -3,7 +3,7 @@ import pytest
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.scan_report_parsers.anchore import (
     AnchoreSecurityParser,
-    AnchoreVuln,
+    AnchoreCVEFinding,
 )
 
 log = logger.setup(name="anchore_report_parser")
@@ -38,14 +38,14 @@ def mock_vulns(mock_vuln_data):
 
 
 # used for all method testing except __post_init__ (need to mock post init functionality to prevent unexpected state change after initialization)
-class MockAnchoreVuln(AnchoreVuln):
+class MockAnchoreCVEFinding(AnchoreCVEFinding):
     def __post_init__(self):
         # add vuln to mock expected data
         self.identifiers.append(self.vuln)
 
 
 # used for testing __post_init__ (mock all methods used by __post_init__)
-class MAVPostInitPatches(AnchoreVuln):
+class MAVPostInitPatches(AnchoreCVEFinding):
     def sort_fix(self):
         self.fix = "sorted_fix"
 
@@ -61,7 +61,7 @@ class MAVPostInitPatches(AnchoreVuln):
 
 @pytest.fixture
 def mock_anchore_vuln(mock_vuln_data):
-    return MockAnchoreVuln(**mock_vuln_data)
+    return MockAnchoreCVEFinding(**mock_vuln_data)
 
 
 def test_anchore_vuln_post_init(mock_vuln_data):
@@ -115,19 +115,19 @@ def test_get_vendor_score(mock_anchore_vuln):
 def test_get_identifiers(mock_vuln_data):
     mock_new_vuln_id = "CVE-EXAMPLE-111"
     log.info("Test no nvd data available")
-    mock_anchore_vuln_ident = MockAnchoreVuln(**mock_vuln_data)
+    mock_anchore_vuln_ident = MockAnchoreCVEFinding(**mock_vuln_data)
     mock_anchore_vuln_ident.get_identifiers()
     assert mock_anchore_vuln_ident.identifiers == [mock_anchore_vuln_ident.vuln]
 
     log.info("Test no nvd data and vendor data includes existing cve")
-    mock_anchore_vuln_ident = MockAnchoreVuln(
+    mock_anchore_vuln_ident = MockAnchoreCVEFinding(
         **{**mock_vuln_data, "vendor_data": [{"id": mock_vuln_data["vuln"]}]}
     )
     mock_anchore_vuln_ident.get_identifiers()
     assert mock_anchore_vuln_ident.identifiers == [mock_anchore_vuln_ident.vuln]
 
     log.info("Test no nvd data available and vendor data produces new vuln id")
-    mock_anchore_vuln_ident = MockAnchoreVuln(
+    mock_anchore_vuln_ident = MockAnchoreCVEFinding(
         **{**mock_vuln_data, "vendor_data": [{"id": mock_new_vuln_id}]}
     )
     mock_anchore_vuln_ident.get_identifiers()
@@ -138,7 +138,7 @@ def test_get_identifiers(mock_vuln_data):
 
     # TODO: consider looping through these checks to remove duplicate code
     log.info("Test nvd data is available, is not a list, and includes existing cve")
-    mock_anchore_vuln_ident = MockAnchoreVuln(
+    mock_anchore_vuln_ident = MockAnchoreCVEFinding(
         **{**mock_vuln_data, "nvd_data": {"id": mock_vuln_data["vuln"]}}
     )
     mock_anchore_vuln_ident.get_identifiers()
@@ -147,7 +147,7 @@ def test_get_identifiers(mock_vuln_data):
     ]
 
     log.info("Test nvd data is available, is not a list, and includes new cve")
-    mock_anchore_vuln_ident = MockAnchoreVuln(
+    mock_anchore_vuln_ident = MockAnchoreCVEFinding(
         **{**mock_vuln_data, "nvd_data": {"id": mock_new_vuln_id}}
     )
     mock_anchore_vuln_ident.get_identifiers()
@@ -157,7 +157,7 @@ def test_get_identifiers(mock_vuln_data):
     ]
 
     log.info("Test nvd data is available, is a list, and includes existing cve")
-    mock_anchore_vuln_ident = MockAnchoreVuln(
+    mock_anchore_vuln_ident = MockAnchoreCVEFinding(
         **{**mock_vuln_data, "nvd_data": [{"id": mock_vuln_data["vuln"]}]}
     )
     mock_anchore_vuln_ident.get_identifiers()
@@ -166,7 +166,7 @@ def test_get_identifiers(mock_vuln_data):
     ]
 
     log.info("Test nvd data is available, is a list, and includes new cve")
-    mock_anchore_vuln_ident = MockAnchoreVuln(
+    mock_anchore_vuln_ident = MockAnchoreCVEFinding(
         **{**mock_vuln_data, "nvd_data": [{"id": mock_new_vuln_id}]}
     )
     mock_anchore_vuln_ident.get_identifiers()
@@ -188,14 +188,14 @@ def test_get_truncated_url(caplog, mock_anchore_vuln, mock_vuln_data):
     )
 
     log.info("Test url is a list and url will not be truncated")
-    mock_anchore_vuln_short_url = MockAnchoreVuln(
+    mock_anchore_vuln_short_url = MockAnchoreCVEFinding(
         **{**mock_vuln_data, "url": mock_urls}
     )
     mock_anchore_vuln_short_url.get_truncated_url()
     assert mock_anchore_vuln_short_url.url == expected_iterations(50)
 
     log.info("Test url is a list and url will be truncated")
-    mock_anchore_vuln_short_url = MockAnchoreVuln(
+    mock_anchore_vuln_short_url = MockAnchoreCVEFinding(
         **{**mock_vuln_data, "url": mock_urls}
     )
     mock_anchore_vuln_short_url.get_truncated_url(5)
@@ -206,7 +206,7 @@ def test_get_truncated_url(caplog, mock_anchore_vuln, mock_vuln_data):
 def test_sort_fix(mock_vuln_data):
     log.info("Test sort is successful")
     mock_fix_versions = f"{mock_vuln_data['fix']},5.0.0,1.2.3,4.5.1,2.0.3"
-    mock_anchore_vuln_fix = MockAnchoreVuln(
+    mock_anchore_vuln_fix = MockAnchoreCVEFinding(
         **{**mock_vuln_data, "fix": mock_fix_versions}
     )
     mock_anchore_vuln_fix.sort_fix()
@@ -229,11 +229,11 @@ def test_dict(mock_anchore_vuln):
     )
 
 
-def test_get_vulnerabilities(monkeypatch, mock_vulns):
+def test_get_findings(monkeypatch, mock_vulns):
     log.info("Test vulnerabilites are parsed from scan report")
     mock_anchore_security_parser = AnchoreSecurityParser()
-    monkeypatch.setattr(AnchoreVuln, "from_dict", lambda vuln_data: vuln_data)
-    vulns = mock_anchore_security_parser.get_vulnerabilities(mock_vulns)
+    monkeypatch.setattr(AnchoreCVEFinding, "from_dict", lambda vuln_data: vuln_data)
+    vulns = mock_anchore_security_parser.get_findings(mock_vulns)
     assert vulns == [
         {**mock_vulns["vulnerabilities"][0], "tag": mock_vulns["imageFullTag"]}
     ]

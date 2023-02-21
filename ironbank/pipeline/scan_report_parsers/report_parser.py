@@ -1,10 +1,11 @@
+from abc import ABC
 from dataclasses import dataclass
 from pathlib import Path
 import csv
 
 
 @dataclass
-class AbstractVuln:
+class AbstractFinding(ABC):
     # this class can hold similar attributes between different vuln
     # will be used for typing until we can start tying similarities between vulns
     pass
@@ -14,7 +15,7 @@ class AbstractVuln:
 @dataclass
 class ReportParser:
     @classmethod
-    def get_justification(cls, vuln: AbstractVuln, justifications: dict):
+    def get_justification(cls, vuln: AbstractFinding, justifications: dict):
         id = (
             vuln.cve,
             vuln.package,
