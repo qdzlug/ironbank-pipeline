@@ -4,7 +4,7 @@ from pathlib import Path
 import csv
 
 
-@dataclass
+@dataclass(slots=True, frozen=True)
 class AbstractFinding(ABC):
     # this class can hold similar attributes between different vuln
     # will be used for typing until we can start tying similarities between vulns
