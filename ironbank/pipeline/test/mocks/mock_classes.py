@@ -283,36 +283,3 @@ class MockSkopeo(Skopeo):
     def copy(*args, **kwargs):
         return ("stdout", "stderr")
 
-
-def mock_get_project_repository_response_200(*args, **kwargs):
-    response = Response()
-    response.status_code = 200
-    response.headers = {"x-total-count": 1}
-    response._content = b'{"name":"test"}'
-
-    return response
-
-
-def mock_get_project_repository_response_404(*args, **kwargs):
-    response = Response()
-    response.status_code = 404
-    return response
-
-
-def mock_get_repository_artifact_response_200(*args, **kwargs):
-    response = Response()
-    response.status_code = 200
-    response.headers = {"x-total-count": 1}
-    response._content = b'{"digest": "test","tags": "test","push_time": "test"}'
-
-    return response
-
-
-def mock_get_repository_artifact_response_404(*args, **kwargs):
-    response = Response()
-    response.status_code = 404
-    response.headers = {"x-total-count": 1}
-    response._content = b'{"name":"test"}'
-    response.url = ""
-
-    return response
