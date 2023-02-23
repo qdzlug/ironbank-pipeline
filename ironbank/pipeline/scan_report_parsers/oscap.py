@@ -40,10 +40,24 @@ class RuleInfo:
         "dc": "http://purl.org/dc/elements/1.1/",
         "oval": "http://oval.mitre.org/XMLSchema/oval-definitions-5",
     }
+    oval_rule: ClassVar[
+        str
+    ] = "xccdf_org.ssgproject.content_rule_security_patches_up_to_date"
     oval_name: str = ""
     oval_href: str = ""
 
+    def __new__(cls, root, rule_result):
+        rule_class = (
+            RuleInfoOVAL if cls.get_rule_id(rule_result) == cls.oval_rule else RuleInfo
+        )
+        return object.__new__(rule_class)
+
     def __post_init__(self, root, rule_result):
+        """
+        root: entire xml document tree structure
+        rule_result: portion of xml tree defining the result of the rule in the scan
+        rule: portion of xml tree providing information about the rule itself
+        """
         self.rule_id = rule_result.attrib["idref"]
         rule = root.find(f".//xccdf:Rule[@id='{self.rule_id}']", self.namespaces)
         self.set_identifiers(rule)
@@ -54,8 +68,6 @@ class RuleInfo:
         self.set_references(rule)
         self.set_rationale(rule)
         self.set_description(rule)
-        if self.rule_id == OscapFinding.oval_rule:
-            self.set_oval_values(rule_result)
 
     @classmethod
     def _format_reference(cls, ref):
@@ -103,15 +115,9 @@ class RuleInfo:
             else ""
         )
 
-    def set_oval_values(self, rule_result):
-        for val in ["name", "href"]:
-            setattr(
-                self,
-                f"oval_{val}",
-                rule_result.find(
-                    "xccdf:check/xccdf:check-content-ref", self.namespaces
-                ).attrib[val],
-            )
+    @classmethod
+    def get_rule_id(self, rule_obj):
+        return rule_obj.attrib.get("id", "") or rule_obj.attrib.get("idref", "")
 
     @classmethod
     def get_failed_results(cls, root):
@@ -123,6 +129,57 @@ class RuleInfo:
             if rule_result.find("xccdf:result", cls.namespaces).text
             in ["notchecked", "fail", "error"]
         ]
+
+
+class RuleInfoOVAL(RuleInfo):
+    oval_name: str = None
+    oval_href: str = None
+    definition: str = None
+    findings: str = None
+    description: str = None
+
+    def __post_init__(self, rule, rule_result):
+        super().__post_init__(rule, rule_result)
+        self.set_oval_name(rule_result)
+        self.set_oval_href(rule_result)
+
+    def set_oval_val_from_ref(self, val, rule_result):
+        setattr(
+            self,
+            f"oval_{val}",
+            rule_result.find(
+                "xccdf:check/xccdf:check-content-ref", self.namespaces
+            ).attrib[val],
+        )
+
+    def set_oval_name(self, rule_result):
+        self.set_oval_val_from_ref("name", rule_result)
+
+    def set_oval_href(self, rule_result):
+        self.set_oval_val_from_ref("href", rule_result)
+
+    def set_values_from_oval_report(self, oval_root):
+        self.set_definition(oval_root)
+        self.set_findings()
+        self.set_description()
+
+    def set_definition(self, oval_root):
+        self.definition = oval_root.find(
+            f".//oval:definition[@id='{self.oval_name}']", self.namespaces
+        )
+
+    def set_findings(self):
+        self.findings = self.definition.findall(
+            "oval:metadata/oval:advisory/oval:cve", self.namespaces
+        )
+
+    def set_description(self, *args, **kwargs):
+        if args or kwargs:
+            super().set_description(*args, **kwargs)
+        else:
+            self.description = self.definition.find(
+                "oval:metadata/oval:title", self.namespaces
+            ).text
 
 
 @dataclass(slots=True, frozen=True)
@@ -137,19 +194,15 @@ class OscapFinding(AbstractFinding):
     scan_source: str = "oscap_comp"
     justification: str = None
 
-    oval_rule: ClassVar[
-        str
-    ] = "xccdf_org.ssgproject.content_rule_security_patches_up_to_date"
-
     @classmethod
     def get_findings_from_rule_info(cls, rule_info) -> list[object]:
         """
         Gather findings from single rule_result
-        If rule_result iss OVAL, this list could include several findings, if rule_result is compliance only one finding will be returned in the list
+        If rule_result is OVAL, this list could include several findings, if rule_result is compliance only one finding will be returned in the list
         """
         finding_class = (
             OscapOVALFinding
-            if rule_info.rule_id == cls.oval_rule
+            if isinstance(rule_info, RuleInfoOVAL)
             else OscapComplianceFinding
         )
         return finding_class.get_findings_from_rule_info(rule_info=rule_info)
@@ -180,9 +233,6 @@ class OscapComplianceFinding(OscapFinding):
     def get_findings_from_rule_info(cls, rule_info):
         """
         Generate a single compliance finding from a rule result
-        root: entire xml document tree structure
-        rule_result: portion of xml tree defining the result of the rule in the scan
-        rule: portion of xml tree providing information about the rule itself
 
         Attributes like description/references/etc. are gathered here instead of a __post_init__ because they depend on the rule object
         """
@@ -209,38 +259,23 @@ class OscapOVALFinding(OscapFinding):
     _log: logger = logger.setup("OscapOVALFinding")
 
     @classmethod
-    def get_definition(cls, oval_name, oval_root, rule_info):
-        return oval_root.find(
-            f".//oval:definition[@id='{oval_name}']", rule_info.namespaces
-        )
-
-    @classmethod
-    def get_findings(cls, definition, rule_info):
-        return definition.findall(
-            "oval:metadata/oval:advisory/oval:cve", rule_info.namespaces
-        )
-
-    @classmethod
-    def get_description(cls, definition, rule_info):
-        return definition.find("oval:metadata/oval:title", rule_info.namespaces).text
-
-    @classmethod
     def get_findings_from_rule_info(cls, rule_info):
         """
         Generate a list of OVAL findings from a rule result
         """
         oval_url = cls.get_oval_url(rule_info.oval_href)
         oval_root = etree.parse(cls.download_oval_defintions(oval_url))
-        definition = cls.get_definition(rule_info.oval_name, oval_root, rule_info)
-        for finding in cls.get_findings(definition, rule_info):
+        rule_info.set_values_from_oval_report(oval_root)
+        for finding in rule_info.findings:
             yield cls(
                 rule_id=rule_info.rule_id,
                 identifier=finding.text,
                 link=finding.attrib["href"],
-                description=cls.get_description(definition, rule_info),
+                description=rule_info.description,
                 severity=rule_info.severity,
             )
 
+    # TODO: decide where these make the most sense, not sure the finding class is the best spot
     @classmethod
     def get_oval_url(cls, finding_href):
         if rhel_match := re.search(r"RHEL(?P<version>(7|8|9))", finding_href):
@@ -288,7 +323,7 @@ class OscapOVALFinding(OscapFinding):
 
 @dataclass
 class OscapReportParser(ReportParser):
-    log: logger = logger.setup("OscapComplianceParser")
+    log: logger = logger.setup("OscapReportParser")
 
     @classmethod
     def get_findings(cls, scan_xml: Path) -> list[OscapComplianceFinding]:
