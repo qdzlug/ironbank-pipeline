@@ -19,7 +19,7 @@ def inspect_old_image(
     try:
         skopeo = Skopeo(docker_config_dir=docker_config_dir)
         old_image = Image(
-            registry=os.environ["REGISTRY_URL_PROD"],
+            registry=os.environ["REGISTRY_PUBLISH_URL"],
             name=manifest.image_name,
             tag=manifest.image_tag,
             transport="docker://",
@@ -44,7 +44,7 @@ def verify_image_properties(img_json: dict, manifest: HardeningManifest) -> bool
         ).open() as f:
             base_sha = json.load(f)["BASE_SHA"]
 
-        new_parent = f"{os.environ['BASE_REGISTRY']}/{manifest.base_image_name}:{manifest.base_image_tag}@{base_sha}"
+        new_parent = f"{os.environ['REGISTRY_BASE_IMAGE_URL']}/{manifest.base_image_name}:{manifest.base_image_tag}@{base_sha}"
     else:
         new_parent = ""
 

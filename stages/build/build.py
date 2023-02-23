@@ -135,11 +135,11 @@ def main():
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     staging_image = Image(
-        registry=os.environ["REGISTRY_URL_STAGING"],
+        registry=os.environ["REGISTRY_PRE_PUBLISH_URL"],
         name=hardening_manifest.image_name,
         tag=f"ibci-{os.environ['CI_PIPELINE_ID']}",
     )
-    base_registry = os.environ["BASE_REGISTRY"]
+    base_registry = os.environ["REGISTRY_BASE_IMAGE_URL"]
     # TODO: switch these over to file vars and remove auth generation
     prod_auth_path = Path("/tmp", "prod_auth.json")
     staging_auth_path = Path("/tmp", "staging_auth.json")
@@ -228,7 +228,7 @@ def main():
     )
 
     # sed -i '/^FROM /r'
-    # TODO: use the NEXUS_HOST env variable for the values pulled from this file
+    # TODO: use the NEXUS_HOST_URL env variable for the values pulled from this file
     with Path(pipeline_build_dir, "build-args.json").open("r") as f:
         build_args = json.load(f)
         # create list of lists, with each sublist containing an arg
@@ -242,7 +242,7 @@ def main():
         context=".",
         build_args={
             **hardening_manifest.args,
-            "BASE_REGISTRY": base_registry,
+            "REGISTRY_BASE_IMAGE_URL": base_registry,
             **http_proxies,
             **build_args,
         },

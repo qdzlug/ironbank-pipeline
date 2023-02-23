@@ -105,7 +105,7 @@ def test_get_old_pkgs(monkeypatch, caplog):
     img_name = "testName"
     img_dig = "testDig"
     mock_dock = MockPath("testDock")
-    monkeypatch.setenv("REGISTRY_URL_PROD", "example")
+    monkeypatch.setenv("REGISTRY_PUBLISH_URL", "example")
 
     log.info("Test download artifacts fails")
     monkeypatch.setattr(scan_logic_jobs, "download_artifacts", lambda **kwargs: False)
@@ -146,7 +146,7 @@ def test_main(monkeypatch, caplog):
 
     monkeypatch.setenv("IMAGE_NAME", "example/test")
     monkeypatch.setenv("IMAGE_FULLTAG", "example/test:1.0")
-    monkeypatch.setenv("REGISTRY_URL_PROD", "example")
+    monkeypatch.setenv("REGISTRY_PUBLISH_URL", "example")
     monkeypatch.setenv("ARTIFACT_STORAGE", ".")
 
     log.info("Test FORCE_SCAN_NEW_IMAGE saves new digest and build date")

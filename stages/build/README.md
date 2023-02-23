@@ -5,11 +5,11 @@ The `build` stage builds the hardened container image using any artifacts that w
 The project Dockerfile must use an Iron Bank approved base image in building the hardened container image. This can be in the form of one of the UBI base images (UBI7, UBI8) or another image which has been approved and published (ex. - python36, nodejs, etc.). The following is an example of the proper way to reference one of these base images in the `Dockerfile`:
 
 ```
-ARG BASE_REGISTRY=registry1.dsop.io/ironbank
+ARG REGISTRY_BASE_IMAGE_URL=registry1.dsop.io/ironbank
 ARG BASE_IMAGE=redhat/ubi/ubi8
 ARG BASE_TAG=8.2
 
-FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}
+FROM ${REGISTRY_BASE_IMAGE_URL}/${BASE_IMAGE}:${BASE_TAG}
 ```
 
 ### Notes

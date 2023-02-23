@@ -27,7 +27,7 @@ class AccessLogFileParser(FileParser):
         with Path(os.environ["ACCESS_LOG_REPOS"]).open(mode="r", encoding="utf-8") as f:
             repos = json.load(f)
         packages: list[Package] = []
-        nexus_host = os.environ["NEXUS_HOST"]
+        nexus_host = os.environ["NEXUS_HOST_URL"]
         nexus_re = re.compile(
             rf"({re.escape(nexus_host)})(?P<repo_type>[^/]+)/(?P<url>.*)"
         )
@@ -121,9 +121,9 @@ class DockerfileParser(FileParser):
     def validate_final_from(content: list):
         """
         Returns whether the final FROM statement in the Dockerfile is valid, i.e.
-        FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}
+        FROM ${REGISTRY_BASE_IMAGE_URL}/${BASE_IMAGE}:${BASE_TAG}
         """
         return content[-1].split(" ")[-1] not in (
-            "${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}",
-            "$BASE_REGISTRY/$BASE_IMAGE:$BASE_TAG",
+            "${REGISTRY_BASE_IMAGE_URL}/${BASE_IMAGE}:${BASE_TAG}",
+            "$REGISTRY_BASE_IMAGE_URL/$BASE_IMAGE:$BASE_TAG",
         )

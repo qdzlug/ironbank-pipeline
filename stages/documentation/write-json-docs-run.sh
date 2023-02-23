@@ -68,7 +68,7 @@ cat "${ARTIFACT_DIR}/scan-metadata.json"
 export DOCKER_REFERENCE="${IMAGE_TO_SCAN}@${DIGEST_TO_SCAN}"
 
 if [[ $IMAGE_TO_SCAN == *"ironbank-staging"* ]]; then
-  export DOCKER_REFERENCE="${REGISTRY_URL_PROD}/${IMAGE_NAME}:${IMAGE_VERSION}@${DIGEST_TO_SCAN}"
+  export DOCKER_REFERENCE="${REGISTRY_PUBLISH_URL}/${IMAGE_NAME}:${IMAGE_VERSION}@${DIGEST_TO_SCAN}"
 fi
 
 jq -n '

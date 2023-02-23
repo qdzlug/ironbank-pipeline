@@ -31,7 +31,7 @@ def test_base_image_validation_main(monkeypatch, caplog):
     monkeypatch.setenv(
         "DOCKER_AUTH_CONFIG_STAGING", "c3RhZ2luZy10ZXN0Cg=="
     )  # staging-test -> base64 encoded value
-    monkeypatch.setenv("REGISTRY_URL_STAGING", "http://staging.com")
+    monkeypatch.setenv("REGISTRY_PRE_PUBLISH_URL", "http://staging.com")
     monkeypatch.setenv("ARTIFACT_DIR", "")
     monkeypatch.setattr(
         MockSkopeo, "inspect", lambda *args, **kwargs: {"Digest": "1234qwert"}
@@ -41,11 +41,11 @@ def test_base_image_validation_main(monkeypatch, caplog):
 
     monkeypatch.delenv("STAGING_BASE_IMAGE")
     monkeypatch.delenv("DOCKER_AUTH_CONFIG_STAGING")
-    monkeypatch.delenv("REGISTRY_URL_STAGING")
+    monkeypatch.delenv("REGISTRY_PRE_PUBLISH_URL")
 
     log.info("Test prod base image validation")
     monkeypatch.setenv("DOCKER_AUTH_CONFIG_PULL", "c3RhZ2luZy10ZXN0Cg==")
-    monkeypatch.setenv("BASE_REGISTRY", "http://prod.com")
+    monkeypatch.setenv("REGISTRY_BASE_IMAGE_URL", "http://prod.com")
     monkeypatch.setattr(
         MockSkopeo, "inspect", lambda *args, **kwargs: {"Digest": "1234qwer"}
     )

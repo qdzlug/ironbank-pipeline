@@ -102,7 +102,7 @@ class Stargate:
 
         skopeo = Skopeo(authfile="staging-auth.json")
         src = Image(
-            registry=os.environ["REGISTRY_URL_STAGING"],
+            registry=os.environ["REGISTRY_PRE_PUBLISH_URL"],
             name=os.environ["IMAGE_NAME"],
             digest=os.environ["IMAGE_PODMAN_SHA"],
             transport="docker://",

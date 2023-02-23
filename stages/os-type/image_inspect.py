@@ -43,13 +43,13 @@ def get_registry_info() -> tuple[str, str]:
     """returns a tuple of pull auth file path and registry project"""
     return (
         (
-            os.environ["DOCKER_AUTH_CONFIG_FILE_STAGING"],
-            os.environ["REGISTRY_URL_STAGING"],
+            os.environ["DOCKER_AUTH_FILE_PRE_PUBLISH"],
+            os.environ["REGISTRY_PRE_PUBLISH_URL"],
         )
         if os.environ.get("STAGING_BASE_IMAGE")
         else (
-            os.environ["DOCKER_AUTH_CONFIG_FILE_PULL"],
-            os.environ["BASE_REGISTRY"],
+            os.environ["DOCKER_AUTH_FILE_PULL"],
+            os.environ["REGISTRY_BASE_IMAGE_URL"],
         )
     )
 

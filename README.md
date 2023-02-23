@@ -263,3 +263,7 @@ The SBOM files, VAT response file, and Cosign signatures on the image and SBOM a
 
 Upload artifacts which are displayed/utilized by the [Iron Bank website](https://ironbank.dso.mil).
 The artifacts uploaded include scan reports, project README, project LICENSE, and others.
+
+## CI Vars Consumed Externally
+
+- `SYFT_REGISTRY_AUTH_PASSWORD` and `SYFT_REGISTRY_AUTH_USERNAME` are used for credentials for specific registries: [Link](https://github.com/anchore/syft/blob/main/README.md)

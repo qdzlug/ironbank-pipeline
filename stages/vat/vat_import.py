@@ -372,7 +372,7 @@ def create_api_call():
 
 def get_parent_vat_response(output_dir: str, hardening_manifest: HardeningManifest):
     base_image = Image(
-        registry=os.environ["BASE_REGISTRY"],
+        registry=os.environ["REGISTRY_BASE_IMAGE_URL"],
         name=hardening_manifest.base_image_name,
         tag=hardening_manifest.base_image_tag,
     )

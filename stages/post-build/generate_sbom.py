@@ -27,9 +27,9 @@ def main() -> None:
         logging.info("Log level set to info")
 
     anchore_scan = Anchore(
-        url=os.environ["ANCHORE_SERVER_ADDRESS"],
-        username=os.environ["ANCHORE_USERNAME"],
-        password=os.environ["ANCHORE_PASSWORD"],
+        url=os.environ["ANCHORE_URL"],
+        username="jwt",
+        password=os.environ["CI_JOB_JWT_V2"],
         verify=os.environ.get("ANCHORE_VERIFY", default=True),
     )
 
