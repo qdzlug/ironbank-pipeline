@@ -11,7 +11,6 @@ from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.types import Package
-from requests import Response
 
 
 class MockSet(set):
@@ -282,4 +281,3 @@ class MockSkopeo(Skopeo):
 
     def copy(*args, **kwargs):
         return ("stdout", "stderr")
-

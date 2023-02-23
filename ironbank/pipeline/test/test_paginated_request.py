@@ -48,6 +48,7 @@ def test_paginated_request_get(monkeypatch, mock_responses):  # noqa W0404
     monkeypatch.setattr(PaginatedRequest, "__post_init__", lambda x: None)
     paginated_req = PaginatedRequest(session=harbor_session, url="https://example")
     paginated_req.total_pages = 1
-    with pytest.raises(HTTPError):
+    with pytest.raises(HTTPError) as he:
         for item in paginated_req.get():
-            assert item
+            pass
+    assert he.type == HTTPError
