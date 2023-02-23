@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 import subprocess
 import tempfile
 import requests
+from requests import Session
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.image import Image, ImageFile
 from ironbank.pipeline.apis import VatAPI
@@ -85,6 +86,21 @@ class MockResponse:
 
     def json(self):
         return {"status_code": self.status_code, "text": self.text}
+
+
+@dataclass
+class MockSession(Session):
+    def get(*args, **kwargs):
+        return MockResponse()
+
+    def post(*args, **kwargs):
+        return MockResponse()
+
+    def put(*args, **kwargs):
+        return MockResponse()
+
+    def delete(*args, **kwargs):
+        return MockResponse()
 
 
 @dataclass

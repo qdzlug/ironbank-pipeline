@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from ironbank.pipeline.utils import logger
 from abc import ABC
 from urllib.parse import quote_plus
+from requests import Session
 from ironbank.pipeline.utils.paginated_request import PaginatedRequest
 
 log: logger = logger.setup("Harbor")
@@ -10,7 +11,7 @@ log: logger = logger.setup("Harbor")
 
 @dataclass
 class Harbor(ABC):
-    session: requests.Session
+    session: requests.Session = field(default_factory=lambda: Session())
     api_url: str = "https://registry1.dso.mil/api/v2.0"
     registry: str = "registry1.dso.mil"
 
