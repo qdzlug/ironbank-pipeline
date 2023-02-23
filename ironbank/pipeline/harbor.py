@@ -29,11 +29,11 @@ class HarborProject(Harbor):
         paginated_request = PaginatedRequest(self.session, repository_url)
         for page in paginated_request.get():
             page = [page] if isinstance(page, dict) else page
-            for repository in page:
+            for item in page:
                 self.repositories.append(
                     HarborRepository(
                         session=self.session,
-                        name="/".join(repository["name"].split("/")[1:]),
+                        name="/".join(item["name"].split("/")[1:]),
                         project=self.name,
                     )
                 )
