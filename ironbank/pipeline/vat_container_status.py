@@ -94,10 +94,7 @@ def sort_justifications(vat_response) -> tuple[dict, dict, dict, dict]:
     }
 
     for finding in vat_response["image"]["findings"]:
-        if finding["state"]["findingStatus"].lower() in (
-            "approved",
-            "conditionally approved",
-        ):
+        if finding["state"]["findingStatus"].lower() in ("verified",):
             search_id = (
                 finding["identifier"],
                 finding.get("package", None),
