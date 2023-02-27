@@ -8,14 +8,18 @@ import pathlib
 import sys
 import tempfile
 
+from pathlib import Path
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.image import Image
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
+from stages.build.build import verify_parent_image
 
 log = logger.setup(name="lint.base_image_validation")
+
+
 
 
 async def main():
@@ -59,6 +63,11 @@ async def main():
                         Please validate this image exists in the registry1.dso.mil/ironbank project."
                 )
                 log.error(f"Failed 'skopeo inspect' of image: {base_image}")
+                sys.exit(1)
+            try:
+                verify_parent_image(hardening_manifest=manifest, base_registry=registry)
+            except GenericSubprocessError:
+                log.error(f"Failed 'cosign verify' of image: {base_image}")
                 sys.exit(1)
 
             base_image_info = {"BASE_SHA": base_img_inspect["Digest"]}
