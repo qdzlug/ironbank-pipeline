@@ -8,7 +8,6 @@ import pathlib
 import sys
 import tempfile
 
-from pathlib import Path
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.utils import logger
