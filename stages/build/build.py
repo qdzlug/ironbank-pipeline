@@ -92,6 +92,7 @@ def get_parent_label(
     # if no base image, return empty string instead of None
     return ""
 
+
 def verify_parent_image(hardening_manifest: HardeningManifest, base_registry: str):
     base_image = Image(
         registry=base_registry,
@@ -108,6 +109,7 @@ def verify_parent_image(hardening_manifest: HardeningManifest, base_registry: st
     except GenericSubprocessError:
         verify = False
     return verify
+
 
 def start_squid(squid_conf: Path):
     parse_cmd = ["squid", "-k", "parse", "-f", squid_conf]
