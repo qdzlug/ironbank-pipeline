@@ -9,7 +9,6 @@ from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.image import Image, ImageFile
 from ironbank.pipeline.apis import VatAPI
 from ironbank.pipeline.project import DsopProject
-from ironbank.pipeline.container_tools.cosign import Cosign
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.types import Package
@@ -258,20 +257,6 @@ class MockGoodResponse:
 
     def json(self):
         return {"status_code": self.status_code, "text": self.text}
-
-
-@dataclass
-class MockCosign(Cosign):
-    def verify(
-        cls,
-        image: Image,
-        pubkey: MockPath = None,
-        certificate: MockPath = None,
-        certificate_chain: MockPath = None,
-        signature_digest_algorithm="sha256",
-        log_cmd: bool = False,
-    ):
-        return str(image)
 
 
 @dataclass
