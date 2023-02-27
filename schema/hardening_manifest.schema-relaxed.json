@@ -308,7 +308,7 @@
       "minItems": 1,
       "uniqueItems": true
     },
-    "partner_advocate": {
+    "partner_advocates": {
       "description": "CHT Member Advocates",
       "type": "array",
       "items": {
