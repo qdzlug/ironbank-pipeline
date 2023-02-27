@@ -14,9 +14,11 @@ from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.container_tools.buildah import Buildah
+from ironbank.pipeline.container_tools.cosign import Cosign
 from ironbank.pipeline.image import Image, ImageFile
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.decorators import subprocess_error_handler
+from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 
 log = logger.setup("build")
 
@@ -90,6 +92,22 @@ def get_parent_label(
     # if no base image, return empty string instead of None
     return ""
 
+def verify_parent_image(hardening_manifest: HardeningManifest, base_registry: str):
+    base_image = Image(
+        registry=base_registry,
+        name=hardening_manifest.base_image_name,
+        tag=hardening_manifest.base_image_tag,
+    )
+    try:
+        verify = Cosign.verify(
+            base_image,
+            certificate=Path("scripts/cosign/cosign-certificate.pem"),
+            certificate_chain=Path("scripts/cosign/cosign-ca-bundle.pem"),
+            log_cmd=True,
+        )
+    except GenericSubprocessError:
+        verify = False
+    return verify
 
 def start_squid(squid_conf: Path):
     parse_cmd = ["squid", "-k", "parse", "-f", squid_conf]
@@ -199,6 +217,9 @@ def main():
         hardening_manifest=hardening_manifest,
         base_registry=base_registry,
     )
+
+    log.info("Verifying parent image signature")
+    verify_parent_image(hardening_manifest=hardening_manifest, base_registry=base_registry)
 
     ib_labels = {
         "maintainer": "ironbank@dsop.io",

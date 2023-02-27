@@ -67,15 +67,16 @@ def verify_image_properties(img_json: dict, manifest: HardeningManifest) -> bool
     return False
 
 
-def verify_parent_image(hardening_manifest: HardeningManifest):
-    base_image = Image(
-        registry=os.environ["BASE_REGISTRY"],
-        name=hardening_manifest.base_image_name,
-        tag=hardening_manifest.base_image_tag,
+def verify_old_image(manifest: HardeningManifest):
+    old_image = Image(
+        registry=os.environ["REGISTRY_URL_PROD"],
+        name=manifest.image_name,
+        tag=manifest.image_tag,
+        transport="docker://",
     )
     try:
         verify = Cosign.verify(
-            base_image,
+            old_image,
             certificate=Path("scripts/cosign/cosign-certificate.pem"),
             certificate_chain=Path("scripts/cosign/cosign-ca-bundle.pem"),
             log_cmd=True,
@@ -101,7 +102,7 @@ def diff_needed(docker_config_dir: str) -> Optional[dict]:
         if (
             old_img_json
             and verify_image_properties(old_img_json, manifest)
-            and verify_parent_image(manifest)
+            and verify_old_image(manifest)
         ):
             return {
                 # Old image information to return

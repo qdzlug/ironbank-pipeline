@@ -11,6 +11,7 @@ from ironbank.pipeline.test.mocks.mock_classes import (
     MockPath,
     MockJson,
 )
+from ironbank.pipeline.container_tools.cosign import Cosign
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.utils import logger
@@ -36,6 +37,7 @@ def test_base_image_validation_main(monkeypatch, caplog):
     monkeypatch.setattr(
         MockSkopeo, "inspect", lambda *args, **kwargs: {"Digest": "1234qwert"}
     )
+    monkeypatch.setattr(Cosign, "verify", lambda x: True)
     asyncio.run(base_image_validation.main())
     assert "Dump SHA to file" in caplog.text
 
