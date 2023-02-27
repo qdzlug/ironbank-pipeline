@@ -20,8 +20,6 @@ from stages.build.build import verify_parent_image
 log = logger.setup(name="lint.base_image_validation")
 
 
-
-
 async def main():
     #
     # Hardening manifest is expected for all of the current repos that are being processed.

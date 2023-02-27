@@ -36,7 +36,9 @@ def test_base_image_validation_main(monkeypatch, caplog):
     monkeypatch.setattr(
         MockSkopeo, "inspect", lambda *args, **kwargs: {"Digest": "1234qwert"}
     )
-    monkeypatch.setattr(base_image_validation, "verify_parent_image", lambda *args, **kwargs: True)
+    monkeypatch.setattr(
+        base_image_validation, "verify_parent_image", lambda *args, **kwargs: True
+    )
     asyncio.run(base_image_validation.main())
     assert "Dump SHA to file" in caplog.text
 
