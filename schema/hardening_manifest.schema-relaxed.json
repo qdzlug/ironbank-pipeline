@@ -307,6 +307,25 @@
       },
       "minItems": 1,
       "uniqueItems": true
+    },
+    "partner_advocate": {
+      "description": "CHT Member Advocates",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "$ref": "#/definitions/printable-characters-without-newlines"
+          },
+          "username": {
+            "$ref": "#/definitions/printable-characters-without-newlines"
+          }
+        },
+        "additionalProperties": false,
+        "required": []
+      },
+      "minItems": 0,
+      "uniqueItems": true
     }
   },
   "required": ["apiVersion", "name", "tags", "args", "labels", "maintainers"],
