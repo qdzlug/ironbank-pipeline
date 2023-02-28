@@ -53,15 +53,15 @@ class HarborRepository(Harbor):
         paginated_request = PaginatedRequest(self.session, artifact_url)
         for page in paginated_request.get():
             page = [page] if isinstance(page, dict) else page
-            for artifact in page:
+            for item in page:
                 self.artifacts.append(
                     HarborArtifact(
                         session=self.session,
-                        digest=artifact["digest"],
-                        tags=artifact["tags"] if "tags" in artifact else None,
+                        digest=item["digest"],
+                        tags=item["tags"] if "tags" in item else None,
                         project=self.project,
                         repository=self.name,
-                        push_time=artifact["push_time"],
+                        push_time=item["push_time"],
                     )
                 )
 
