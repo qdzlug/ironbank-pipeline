@@ -93,24 +93,6 @@ def get_parent_label(
     return ""
 
 
-def verify_parent_image(hardening_manifest: HardeningManifest, base_registry: str):
-    base_image = Image(
-        registry=base_registry,
-        name=hardening_manifest.base_image_name,
-        tag=hardening_manifest.base_image_tag,
-    )
-    try:
-        verify = Cosign.verify(
-            base_image,
-            certificate=Path("scripts/cosign/cosign-certificate.pem"),
-            certificate_chain=Path("scripts/cosign/cosign-ca-bundle.pem"),
-            log_cmd=True,
-        )
-    except GenericSubprocessError:
-        verify = False
-    return verify
-
-
 def start_squid(squid_conf: Path):
     parse_cmd = ["squid", "-k", "parse", "-f", squid_conf]
     start_cmd = ["squid", "-f", squid_conf]
@@ -221,12 +203,13 @@ def main():
     )
 
     log.info("Verifying parent image signature")
-    parent_image = Image(
-        registry=base_registry,
-        name=hardening_manifest.base_image_name,
-        tag=hardening_manifest.base_image_tag,
-    )
-    Cosign.verify(image=parent_image)
+    if hardening_manifest.base_image_name:
+        parent_image = Image(
+            registry=base_registry,
+            name=hardening_manifest.base_image_name,
+            tag=hardening_manifest.base_image_tag,
+        )
+        Cosign.verify(image=parent_image)
 
     ib_labels = {
         "maintainer": "ironbank@dsop.io",
