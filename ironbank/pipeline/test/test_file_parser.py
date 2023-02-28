@@ -71,7 +71,7 @@ def test_access_log_file_parser(monkeypatch, mock_packages):
 
     monkeypatch.setattr(json, "load", lambda x: valid_repos)
     monkeypatch.setattr(AccessLogFileParser, "handle_file_obj", lambda x: x)
-    assert AccessLogFileParser.parse([f"200 CONNECT"]) == []
+    assert AccessLogFileParser.parse(["200 CONNECT"]) == []
 
     log.info("Test value error raised on unparseable url")
     with pytest.raises(ValueError) as ve:
