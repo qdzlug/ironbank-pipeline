@@ -182,8 +182,8 @@ class Cosign(ContainerTool):
         cls,
         image: Image,
         pubkey: Path = None,
-        certificate: Path = None,
-        certificate_chain: Path = None,
+        certificate: Path = Path("scripts/cosign/cosign-certificate.pem"),
+        certificate_chain: Path = Path("scripts/cosign/cosign-ca-bundle.pem"),
         signature_digest_algorithm="sha256",
         log_cmd: bool = False,
     ):

@@ -15,7 +15,6 @@ from ironbank.pipeline.image import Image
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 from ironbank.pipeline.container_tools.cosign import Cosign
-from stages.build.build import verify_parent_image
 
 log = logger.setup(name="lint.base_image_validation")
 
