@@ -221,7 +221,12 @@ def main():
     )
 
     log.info("Verifying parent image signature")
-    verify_parent_image(hardening_manifest=hardening_manifest, base_registry=base_registry)
+    parent_image = Image(
+        registry=base_registry,
+        name=hardening_manifest.base_image_name,
+        tag=hardening_manifest.base_image_tag,
+    )
+    Cosign.verify(image=parent_image)
 
     ib_labels = {
         "maintainer": "ironbank@dsop.io",

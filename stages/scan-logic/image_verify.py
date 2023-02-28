@@ -3,7 +3,6 @@ import sys
 import json
 import pathlib
 from typing import Optional
-from pathlib import Path
 from ironbank.pipeline.image import Image
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.project import DsopProject
@@ -66,30 +65,17 @@ def verify_image_properties(img_json: dict, manifest: HardeningManifest) -> bool
 
     return False
 
+def diff_needed(docker_config_dir: str) -> Optional[dict]:
+    try:
+        dsop_project = DsopProject()
+        manifest = HardeningManifest(dsop_project.hardening_manifest_path)
 
-def verify_old_image(manifest: HardeningManifest):
-    old_image = Image(
+        old_image = Image(
         registry=os.environ["REGISTRY_URL_PROD"],
         name=manifest.image_name,
         tag=manifest.image_tag,
         transport="docker://",
     )
-    try:
-        verify = Cosign.verify(
-            old_image,
-            certificate=Path("scripts/cosign/cosign-certificate.pem"),
-            certificate_chain=Path("scripts/cosign/cosign-ca-bundle.pem"),
-            log_cmd=True,
-        )
-    except GenericSubprocessError:
-        verify = False
-    return verify
-
-
-def diff_needed(docker_config_dir: str) -> Optional[dict]:
-    try:
-        dsop_project = DsopProject()
-        manifest = HardeningManifest(dsop_project.hardening_manifest_path)
 
         log.info("Inspecting old image")
         old_img_json = inspect_old_image(manifest, docker_config_dir)
@@ -102,7 +88,7 @@ def diff_needed(docker_config_dir: str) -> Optional[dict]:
         if (
             old_img_json
             and verify_image_properties(old_img_json, manifest)
-            and verify_old_image(manifest)
+            and Cosign.verify(image = old_image)
         ):
             return {
                 # Old image information to return

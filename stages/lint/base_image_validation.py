@@ -14,6 +14,7 @@ from ironbank.pipeline.utils import logger
 from ironbank.pipeline.image import Image
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
+from ironbank.pipeline.container_tools.cosign import Cosign
 from stages.build.build import verify_parent_image
 
 log = logger.setup(name="lint.base_image_validation")
@@ -61,11 +62,8 @@ async def main():
                 )
                 log.error(f"Failed 'skopeo inspect' of image: {base_image}")
                 sys.exit(1)
-            try:
-                verify_parent_image(hardening_manifest=manifest, base_registry=registry)
-            except GenericSubprocessError:
-                log.error(f"Failed 'cosign verify' of image: {base_image}")
-                sys.exit(1)
+            Cosign.verify(image=base_image)
+
 
             base_image_info = {"BASE_SHA": base_img_inspect["Digest"]}
             log.info("Dump SHA to file")
