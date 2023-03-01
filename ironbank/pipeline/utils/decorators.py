@@ -14,7 +14,7 @@ log: Logger = logger.setup(name="Exception")
 
 def request_retry(retry_count):
     """
-    Decorator for retrying a function running a subprocess call
+    Decorator for retrying a function running a requests or subprocess call
     """
 
     def decorate(func):
@@ -24,6 +24,11 @@ def request_retry(retry_count):
             for retry_num in range(1, retry_count + 1):
                 try:
                     return func(*args, **kwargs)
+                except requests.HTTPError:
+                    if retry_num >= retry_count:
+                        # prevent exception chaining by using from None
+                        raise MaxRetriesException() from None
+                    log.warning("Request failed, retrying...")
                 except subprocess.CalledProcessError:
                     if retry_num >= retry_count:
                         # prevent exception chaining by using from None

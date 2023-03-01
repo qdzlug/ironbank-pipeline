@@ -21,6 +21,19 @@ def mock_responses():
     def mock200(*args, **kwargs):
         return MockResponse(status_code=200, text="successful_request")
 
+    def mock200_with_x_total_count_headers(*args, **kwargs):
+        return MockResponse(
+            status_code=200, text="successful_request", headers={"x-total-count": 1}
+        )
+
+    def mock200_with_x_total_count_headers_and_pages(*args, **kwargs):
+        return MockResponse(
+            status_code=200,
+            text="successful_request",
+            headers={"x-total-count": 1},
+            content={"page": "page", "page_size": 1, "q": "q"},
+        )
+
     def mock400(*args, **kwargs):
         return MockResponse(status_code=400, text="bad_json_body")
 
@@ -53,6 +66,8 @@ def mock_responses():
 
     return {
         "200": mock200,
+        "200_with_x_total_count_headers": mock200_with_x_total_count_headers,
+        "mock200_with_x_total_count_headers_and_pages": mock200_with_x_total_count_headers_and_pages,
         "400": mock400,
         "403": mock403,
         "404": mock404,
