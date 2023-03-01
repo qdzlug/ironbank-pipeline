@@ -7,7 +7,8 @@ import os
 import argparse
 from pathlib import Path
 
-import xml.etree.ElementTree as etree
+from ironbank.pipeline.scan_report_parsers.anchore import AnchoreSecurityParser
+from ironbank.pipeline.scan_report_parsers.oscap import OscapReportParser
 
 from scanners import anchore
 from ironbank.pipeline.scan_report_parsers.report_parser import ReportParser
@@ -18,9 +19,10 @@ from ironbank.pipeline.vat_container_status import sort_justifications
 log = logger.setup("csv_gen")
 
 
-def main():
+def main() -> None:
     # Get logging level, set manually when running pipeline
 
+    # TODO: get rid of these
     parser = argparse.ArgumentParser(
         description="DCCSCR processing of CVE reports from various sources"
     )
@@ -62,48 +64,59 @@ def main():
         vat_findings
     )
 
-    oscap_fail_count = 0
-    twist_fail_count = 0
-    anchore_num_cves = 0
-    anchore_compliance = 0
-    if args.oscap and "DISTROLESS" not in os.environ:
-        oscap_fail_count = generate_oscap_report(
-            args.oscap, j_openscap, csv_dir=args.output_dir
+    oscap_comp_fail_count = 0
+    oscap_comp_not_checked_count = 0
+    twistlock_cve_fail_count = 0
+    anchore_cve_fail_count = 0
+    anchore_comp_fail_count = 0
+    image_id = ""
+
+    if "DISTROLESS" not in os.environ:
+        (
+            oscap_comp_fail_count,
+            oscap_comp_not_checked_count,
+        ) = generate_oscap_compliance_report(
+            report_path=args.oscap,
+            csv_output_dir=args.output_dir,
+            justifications=j_openscap,
         )
     else:
-        generate_blank_oscap_report(csv_dir=args.output_dir)
-    if args.twistlock:
-        twist_fail_count = generate_twistlock_report(
-            args.twistlock, j_twistlock, csv_dir=args.output_dir
-        )
-    if args.anchore_sec:
-        anchore_num_cves = anchore.vulnerability_report(
-            csv_dir=args.output_dir,
-            anchore_security_json=args.anchore_sec,
-            justifications=j_anchore_cve,
-        )
-    if args.anchore_gates:
-        anchore_compliance = anchore.compliance_report(
-            csv_dir=args.output_dir,
-            anchore_gates_json=args.anchore_gates,
-            justifications=j_anchore_comp,
-        )
+        generate_blank_oscap_report(csv_output_dir=args.output_dir)
+
+    twistlock_cve_fail_count = generate_twistlock_cve_report(
+        report_path=args.twistlock,
+        csv_output_dir=args.output_dir,
+        justifications=j_twistlock,
+    )
+    anchore_cve_fail_count = generate_anchore_cve_report(
+        report_path=args.anchore_sec,
+        csv_output_dir=args.output_dir,
+        justifications=j_anchore_cve,
+    )
+    anchore_comp_fail_count, image_id = generate_anchore_compliance_report(
+        report_path=args.anchore_gates,
+        csv_output_dir=args.output_dir,
+        justifications=j_anchore_comp,
+    )
 
     generate_summary_report(
-        csv_dir=args.output_dir,
-        osc=oscap_fail_count,
-        tlf=twist_fail_count,
-        anchore_num_cves=anchore_num_cves,
-        anchore_compliance=anchore_compliance,
+        oscap_comp_fail_count=oscap_comp_fail_count,
+        oscap_comp_not_checked_count=oscap_comp_not_checked_count,
+        twistlock_cve_fail_count=twistlock_cve_fail_count,
+        anchore_cve_fail_count=anchore_cve_fail_count,
+        anchore_comp_fail_count=anchore_comp_fail_count,
+        image_id=image_id,
+        csv_output_dir=args.output_dir,
     )
 
 
-def generate_blank_oscap_report(csv_dir):
+def generate_blank_oscap_report(csv_output_dir: Path) -> None:
     """
     Creates an empty oscap report, used when the OpenSCAP scan was skipped.
     """
     with Path(
-        csv_dir + "oscap.csv",
+        csv_output_dir,
+        "oscap.csv",
     ).open(mode="w", encoding="utf-8") as f:
         csv_writer = csv.writer(f)
         csv_writer.writerow(
@@ -121,63 +134,234 @@ def generate_blank_oscap_report(csv_dir):
         )
 
 
-def generate_summary_report(csv_dir, osc, tlf, anchore_num_cves, anchore_compliance):
+def generate_summary_report(
+    oscap_comp_fail_count: int,
+    oscap_comp_not_checked_count: int,
+    twistlock_cve_fail_count: int,
+    anchore_cve_fail_count: int,
+    anchore_comp_fail_count: int,
+    image_id: str,
+    csv_output_dir: Path,
+) -> None:
     """
     Creates a summary CSV with the finding totals from each scan
     """
-    with Path(csv_dir + "summary.csv").open(mode="w", encoding="utf-8") as f:
+    with Path(csv_output_dir, "summary.csv").open(mode="w", encoding="utf-8") as f:
         csv_writer = csv.writer(f)
 
         header = ["Scan", "Automated Findings", "Manual Checks", "Total"]
 
-        # if the osc arg type is an int, the scan was skipped so output zero values
-        if isinstance(osc, int):
-            osl = ["OpenSCAP - DISA Compliance", 0, 0, 0]
+        oscap_comp_row = ["OpenSCAP - DISA Compliance", 0, 0, 0]
         # osc arg is a tuple, meaning the generate_oscap_report function was run
-        else:
-            osl = ["OpenSCAP - DISA Compliance", osc[0], osc[1], osc[0] + osc[1]]
+        if oscap_comp_fail_count or oscap_comp_not_checked_count:
+            oscap_comp_row = [
+                "OpenSCAP - DISA Compliance",
+                oscap_comp_fail_count,
+                oscap_comp_not_checked_count,
+                oscap_comp_fail_count + oscap_comp_not_checked_count,
+            ]
 
-        anchore_vulns = ["Anchore CVE Results", anchore_num_cves, 0, anchore_num_cves]
-        anchore_comps = [
-            "Anchore Compliance Results",
-            anchore_compliance["stop_count"],
+        anchore_cve_row = [
+            "Anchore CVE Results",
+            anchore_cve_fail_count,
             0,
-            anchore_compliance["stop_count"],
+            anchore_cve_fail_count,
         ]
-        twl = ["Twistlock Vulnerability Results", int(tlf or 0), 0, int(tlf or 0)]
+        anchore_comp_row = [
+            "Anchore Compliance Results",
+            anchore_comp_fail_count,
+            0,
+            anchore_comp_fail_count,
+        ]
+        twistlock_cve_row = [
+            "Twistlock Vulnerability Results",
+            int(twistlock_cve_fail_count or 0),
+            0,
+            int(twistlock_cve_fail_count or 0),
+        ]
+        scan_rows = [
+            oscap_comp_row,
+            twistlock_cve_row,
+            anchore_cve_row,
+            anchore_comp_row,
+        ]
 
         csv_writer.writerow(header)
-        csv_writer.writerow(osl)
-        csv_writer.writerow(twl)
-        csv_writer.writerow(anchore_vulns)
-        csv_writer.writerow(anchore_comps)
-        csv_writer.writerow(
-            [
-                "Totals",
-                osl[1] + anchore_vulns[1] + anchore_comps[1] + twl[1],
-                osl[2] + anchore_vulns[2] + anchore_comps[2] + twl[2],
-                osl[3] + anchore_vulns[3] + anchore_comps[3] + twl[3],
-            ]
-        )
+        csv_writer.writerows(scan_rows)
+
+        total_automated, total_manual, total_all = 0, 0, 0
+
+        for row in scan_rows:
+            total_automated += row[1] if isinstance(row[1], int) else 0
+            total_manual += row[2] if isinstance(row[2], int) else 0
+            total_all += row[3] if isinstance(row[3], int) else 0
+
+        csv_writer.writerow(["Totals", total_automated, total_manual, total_all])
 
         csv_writer.writerow("")
-        sha_str = f"Scans performed on container layer sha256: {anchore_compliance['image_id']},,,"
+        sha_str = f"Scans performed on container layer sha256: {image_id},,,"
         csv_writer.writerow([sha_str])
 
 
-def generate_oscap_report(oscap, justifications, csv_dir):
+def generate_anchore_cve_report(
+    report_path: Path, csv_output_dir: Path, justifications: dict
+) -> int:
+    """
+    Generate the anchore vulnerability report
+
+    """
+
+    findings = AnchoreSecurityParser.get_findings(report_path=report_path)
+
+    fieldnames = [
+        "tag",
+        "cve",
+        "severity",
+        "feed",
+        "feed_group",
+        "package",
+        "package_path",
+        "package_type",
+        "package_version",
+        "fix",
+        "url",
+        "description",
+        "nvd_cvss_v2_vector",
+        "nvd_cvss_v3_vector",
+        "vendor_cvss_v2_vector",
+        "vendor_cvss_v3_vector",
+    ]
+
+    finding_dict_list = [
+        {
+            **finding.get_dict_from_fieldnames(fieldnames=fieldnames),
+            "justification": finding.get_justification(justifications),
+        }
+        for finding in findings
+    ]
+
+    AnchoreSecurityParser.write_csv_from_dict_list(
+        csv_dir=csv_output_dir,
+        dict_list=finding_dict_list,
+        fieldnames=fieldnames,
+        filename="anchore_security.csv",
+    )
+
+    return len(findings)
+
+
+def generate_anchore_compliance_report(
+    report_path: Path, csv_output_dir: Path, justifications: dict
+) -> tuple[int, str]:
+    """
+    Get results of Anchore gates for csv export, becomes anchore compliance spreadsheet
+
+    """
+    with Path(report_path).open(encoding="utf-8") as f:
+        json_data = json.load(f)
+        sha = list(json_data.keys())[0]
+        anchore_data = json_data[sha]["result"]["rows"]
+
+    gates = []
+    stop_count = 0
+    image_id = "unable_to_determine"
+    for ad in anchore_data:
+        gate = {
+            "image_id": ad[0],
+            "repo_tag": ad[1],
+            "trigger_id": ad[2],
+            "gate": ad[3],
+            "trigger": ad[4],
+            "check_output": ad[5],
+            "gate_action": ad[6],
+            "policy_id": ad[8],
+        }
+
+        if ad[7]:
+            gate["matched_rule_id"] = ad[7]["matched_rule_id"]
+            gate["whitelist_id"] = ad[7]["whitelist_id"]
+            gate["whitelist_name"] = ad[7]["whitelist_name"]
+        else:
+            gate["matched_rule_id"] = ""
+            gate["whitelist_id"] = ""
+            gate["whitelist_name"] = ""
+
+        cve_justification = ""
+        # ad[2] is trigger_id -- e.g. CVE-2020-####
+        id = (ad[2], None, None)
+        if ad[4] == "package":
+            cve_justification = "See Anchore CVE Results sheet"
+
+        if id in justifications:
+            cve_justification = justifications[id]
+        gate["Justification"] = cve_justification
+
+        gates.append(gate)
+
+        if gate["gate_action"] == "stop":
+            stop_count += 1
+
+        image_id = gate["image_id"]
+
+    fieldnames = [
+        "image_id",
+        "repo_tag",
+        "trigger_id",
+        "gate",
+        "trigger",
+        "check_output",
+        "gate_action",
+        "policy_id",
+        "matched_rule_id",
+        "whitelist_id",
+        "whitelist_name",
+        "Justification",
+    ]
+
+    ReportParser.write_csv_from_dict_list(
+        dict_list=gates,
+        fieldnames=fieldnames,
+        filename="anchore_gates.csv",
+        csv_dir=csv_output_dir,
+    )
+
+    return stop_count, image_id
+
+
+def generate_oscap_compliance_report(
+    report_path: Path, csv_output_dir: Path, justifications: dict
+) -> tuple[int, int]:
     """
     Generate csv for OSCAP findings with justifications
     Calls the get_oscap_full function to first parse the OSCAP XML report.
     """
-    oscap_cves = get_oscap_full(oscap, justifications)
-    with Path(csv_dir + "oscap.csv").open(mode="w", encoding="utf-8") as f:
+    findings = OscapReportParser.get_findings(report_path)
+    fieldnames = [
+        "title",
+        "ruleid",
+        "result",
+        "severity",
+        "identifiers",
+        "refs",
+        "desc",
+        "rationale",
+        "scanned_date",
+        "Justification",
+    ]
+    findings_dict_list = [
+        {
+            **finding.get_dict_from_fieldnames(fieldnames=fieldnames),
+            "justification": finding.get_justification(justifications=justifications),
+        }
+        for finding in findings
+    ]
+
+    with Path(csv_output_dir, "oscap.csv").open(mode="w", encoding="utf-8") as f:
         csv_writer = csv.writer(f)
         count = 0
         fail_count = 0
         nc_count = 0
-        scanned = ""
-        for line in oscap_cves:
+        for line in findings_dict_list:
             if count == 0:
                 header = line.keys()
                 csv_writer.writerow(header)
@@ -186,130 +370,21 @@ def generate_oscap_report(oscap, justifications, csv_dir):
                 fail_count += 1
             elif line["result"] == "notchecked":
                 nc_count += 1
-            scanned = line["scanned_date"]
             try:
                 csv_writer.writerow(line.values())
             except Exception as e:
                 log.error("problem writing line: %s", line.values())
                 raise e
-    return fail_count, nc_count, scanned
+    return fail_count, nc_count
 
 
-def get_oscap_full(oscap_file, justifications):
-    """
-    Get full OSCAP report with justifications for csv export
-    Parses the OSCAP XML report, and converts the finding into a list of dictionaries.
-    This list will be used to create an OSCAP CSV.
-    """
-    root = etree.parse(oscap_file)
-    ns = {
-        "xccdf": "http://checklists.nist.gov/xccdf/1.2",
-        "xhtml": "http://www.w3.org/1999/xhtml",  # not actually needed
-        "dc": "http://purl.org/dc/elements/1.1/",
-    }
-    patches_up_to_date_dupe = False
-    cces = []
-    for rule_result in root.findall("xccdf:TestResult/xccdf:rule-result", ns):
-        # Current CSV values
-        # title,ruleid,result,severity,identifiers,refs,desc,rationale,scanned_date,Justification
-        rule_id = rule_result.attrib["idref"]
-        severity = rule_result.attrib["severity"]
-        date_scanned = rule_result.attrib["time"]
-        result = rule_result.find("xccdf:result", ns).text
-        log.debug("Rule ID: %s", rule_id)
-        if result == "notselected":
-            log.debug("SKIPPING: 'notselected' rule %s", rule_id)
-            continue
-
-        if rule_id == "xccdf_org.ssgproject.content_rule_security_patches_up_to_date":
-            if patches_up_to_date_dupe:
-                log.debug(
-                    "SKIPPING: rule %s - OVAL check repeats and this finding is checked elsewhere",
-                    rule_id,
-                )
-                continue
-            patches_up_to_date_dupe = True
-        # Get the <rule> that corresponds to the <rule-result>
-        # This technically allows xpath injection, but we trust XCCDF files from OpenScap enough
-        rule = root.find(f".//xccdf:Rule[@id='{rule_id}']", ns)
-        title = rule.find("xccdf:title", ns).text
-
-        # UBI/ComplianceAsCode:
-        identifiers = [ident.text for ident in rule.findall("xccdf:ident", ns)]
-        if not identifiers:
-            # Ubuntu/ComplianceAsCode
-            identifiers = [rule_id]
-        # We never expect to get more than one identifier
-        assert len(identifiers) == 1
-        log.debug("Identifiers: %s", identifiers)
-        identifier = identifiers[0]
-        # Revisit this if we ever switch UBI from ComplianceAsCode to DISA content
-
-        def format_reference(ref):
-            ref_title = ref.find("dc:title", ns)
-            ref_identifier = ref.find("dc:identifier", ns)
-            href = ref.attrib.get("href")
-            if ref_title is not None:
-                assert ref_identifier is not None
-                return f"{ref_title.text}: {ref_identifier.text}"
-            if href:
-                return f"{href} {ref.text}"
-
-            return ref.text
-
-        # This is now informational only, vat_import no longer uses this field
-        references = "\n".join(
-            format_reference(r) for r in rule.findall("xccdf:reference", ns)
-        )
-
-        rationale_element = rule.find("xccdf:rationale", ns)
-        # Ubuntu XCCDF has no <rationale>
-        rationale = (
-            etree.tostring(rationale_element, method="text").decode("utf-8").strip()
-            if rationale_element is not None
-            else ""
-        )
-
-        # Convert description to text, seems to work well:
-        description = (
-            etree.tostring(rule.find("xccdf:description", ns), method="text")
-            .decode("utf8")
-            .strip()
-        )
-
-        cve_justification = ""
-        finding_id = (identifier, None, None)
-        if finding_id in justifications:
-            cve_justification = justifications[finding_id]
-
-        ret = {
-            "title": title,
-            "ruleid": rule_id,
-            "result": result,
-            "severity": severity,
-            "identifiers": identifier,
-            "refs": references,
-            "desc": description,
-            "rationale": rationale,
-            "scanned_date": date_scanned,
-            "Justification": cve_justification,
-        }
-        cces.append(ret)
-    try:
-        assert len(set(cce["identifiers"] for cce in cces)) == len(cces)
-    except Exception as duplicate_idents:
-        for cce in cces:
-            print(cce["ruleid"], cce["identifiers"])
-        raise duplicate_idents
-
-    return cces
-
-
-def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
+def generate_twistlock_cve_report(
+    report_path: Path, csv_output_dir: Path, justifications: dict
+) -> int:
     """
     Get results from Twistlock report for csv export
     """
-    with Path(twistlock_cve_json).open(mode="r", encoding="utf-8") as f:
+    with Path(report_path).open(mode="r", encoding="utf-8") as f:
         json_data = json.load(f)
         cves = []
         if "vulnerabilities" in json_data["results"][0]:
@@ -361,7 +436,7 @@ def generate_twistlock_report(twistlock_cve_json, justifications, csv_dir):
     ]
 
     ReportParser.write_csv_from_dict_list(
-        dict_list=cves, fieldnames=fieldnames, filename="tl.csv", csv_dir=csv_dir
+        dict_list=cves, fieldnames=fieldnames, filename="tl.csv", csv_dir=csv_output_dir
     )
 
     return len(cves)
