@@ -16,16 +16,22 @@ https://github.com/mozilla/geckodriver/releases/
 `sudo cp ~/Downloads geckodriver /usr/local/bin`
 `which gecko`
 
-### In config.yaml
+### Set up your own config and secrets files
 
+We have example files set up here that you will want to copy to be your own personal setup files. We have set up gitignore on these so that your personal files don't conflict or get sent back up to the remote.
+
+```bash
+cp config.yaml.example config.yaml
+cp secrets.yaml.example secrets.yaml
+```
+
+In your config.yaml, perform the following tasks:
 - Change `tester` to your name (or whatever you want your group name in the dest to be)
 - Change `pipeline_branch` to the pipeline branch you want to test
 - Change `dest_gitlab_url` to your test env
 - Uncomment or add any projects you want to test with
 
-### Create secrets.yaml or export env vars
-
-- Add src or dest creds as needed
+In secrets.yaml, add source and dest creds as needed. When testing in staging, you will need to update the 2 `dest` fields. The password will be a token that you create for the user in the destination Gitlab instance.
 
 ### To run the script
 
