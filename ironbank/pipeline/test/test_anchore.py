@@ -9,7 +9,7 @@ from unittest.mock import mock_open, patch
 from ironbank.pipeline.test.mocks.mock_classes import MockPath, MockPopen
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.testing import raise_
-from ironbank.pipeline.anchore import Anchore
+from ironbank.pipeline.scanner_api_handlers.anchore import Anchore
 
 
 log = logger.setup("test_anchore")
