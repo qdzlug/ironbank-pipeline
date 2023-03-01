@@ -1,4 +1,3 @@
-from abc import abstractmethod
 import bz2
 from dataclasses import InitVar, dataclass, field
 import os
@@ -138,8 +137,8 @@ class RuleInfoOVAL(RuleInfo):
     findings: str = None
     description: str = None
 
-    def __post_init__(self, rule, rule_result):
-        super().__post_init__(rule, rule_result)
+    def __post_init__(self, root, rule_result):
+        super().__post_init__(root, rule_result)
         self.set_oval_name(rule_result)
         self.set_oval_href(rule_result)
 
@@ -182,7 +181,7 @@ class RuleInfoOVAL(RuleInfo):
             ).text
 
 
-@dataclass(slots=True, frozen=True)
+@dataclass(frozen=True)
 class OscapFinding(AbstractFinding):
     identifier: str
     severity: str
@@ -192,7 +191,6 @@ class OscapFinding(AbstractFinding):
     package: str = None
     package_path: str = None
     scan_source: str = "oscap_comp"
-    justification: str = None
 
     @classmethod
     def get_findings_from_rule_info(cls, rule_info) -> list[object]:
@@ -215,7 +213,7 @@ class OscapFinding(AbstractFinding):
         return hash(self.identifier)
 
 
-@dataclass(slots=True, frozen=True, eq=True)
+@dataclass(frozen=True, eq=True)
 class OscapComplianceFinding(OscapFinding):
     identifiers: tuple = field(default_factory=lambda: ())
     title: str = None
@@ -230,7 +228,7 @@ class OscapComplianceFinding(OscapFinding):
         return self.references
 
     @classmethod
-    def get_findings_from_rule_info(cls, rule_info):
+    def get_findings_from_rule_info(cls, rule_info) -> object:
         """
         Generate a single compliance finding from a rule result
 
@@ -253,7 +251,7 @@ class OscapComplianceFinding(OscapFinding):
         return hash(self.identifier)
 
 
-@dataclass(slots=True, frozen=True)
+@dataclass(frozen=True)
 class OscapOVALFinding(OscapFinding):
     link: str = None
     _log: logger = logger.setup("OscapOVALFinding")

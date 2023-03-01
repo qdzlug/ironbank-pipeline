@@ -12,7 +12,7 @@ from ironbank.pipeline.scan_report_parsers.report_parser import (
 )
 
 
-@dataclass(slots=True, frozen=True)
+@dataclass(frozen=True)
 class AnchoreCVEFinding(AbstractFinding):
     # keys match anchore severity report, passed as kwargs
     tag: str
