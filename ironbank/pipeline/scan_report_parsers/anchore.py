@@ -1,5 +1,7 @@
 # maybe security and gate parsers should be separate
 
+import json
+from pathlib import Path
 import re
 from dataclasses import dataclass, field, fields
 from ironbank.pipeline.utils import logger
@@ -10,11 +12,11 @@ from ironbank.pipeline.scan_report_parsers.report_parser import (
 )
 
 
-@dataclass
+@dataclass(slots=True, frozen=True)
 class AnchoreCVEFinding(AbstractFinding):
     # keys match anchore severity report, passed as kwargs
     tag: str
-    vuln: str
+    identifier: str
     severity: str
     feed: str
     feed_group: str
@@ -37,12 +39,16 @@ class AnchoreCVEFinding(AbstractFinding):
     nvd_cvss_v3_vector: str = None
     vendor_cvss_v2_vector: str = None
     vendor_cvss_v3_vector: str = None
-    justification: str = None
     # used only within the module
     _nvd_versions: list = field(default_factory=lambda: ["v2", "v3"])
     _log: logger = logger.setup("AnchoreCVEFindingParser")
 
     def __post_init__(self):
+        """
+        Set values from existing object attributes that were set during __init__
+        """
+        # TODO: switch these to setattr to prevent issues with frozen
+
         # allow for multiple names for vuln, allows vat/csv_gen to use different names and parse __dict__ for an AnchoreCVEFinding object
         self.sort_fix()
         self.identifiers.append(self.vuln)
@@ -80,7 +86,11 @@ class AnchoreCVEFinding(AbstractFinding):
     # add alias from cve -> vuln
     @property
     def cve(self):
-        return self.vuln
+        return self.identifier
+
+    @property
+    def vuln(self):
+        return self.identifier
 
     @property
     def packagePath(self):
@@ -129,12 +139,12 @@ class AnchoreCVEFinding(AbstractFinding):
     def get_identifiers(self):
         if self.nvd_data:
             if isinstance(self.nvd_data, list) and len(self.nvd_data):
-                if self.nvd_data[0]["id"] != self.vuln:
+                if self.nvd_data[0]["id"] != self.identifier:
                     self.identifiers.append(self.nvd_data[0]["id"])
-            elif self.nvd_data["id"] != self.vuln:
+            elif self.nvd_data["id"] != self.identifier:
                 self.identifiers.append(self.nvd_data["id"])
         else:
-            if self.vendor_data[0]["id"] != self.vuln:
+            if self.vendor_data[0]["id"] != self.identifier:
                 self.identifiers.append(self.vendor_data[0]["id"])
 
     def get_truncated_url(self, max_url_len: int = 65535):
@@ -159,11 +169,12 @@ class AnchoreCVEFinding(AbstractFinding):
         fix_list = re.findall(fix_version_re, self.fix)
         self.fix = ", ".join(sorted(fix_list))
 
-    def dict(self):
+    def as_dict(self):
         return {
             "finding": self.finding,
             "cve": self.cve,
-            **self.__dict__,
+            "vuln": self.vuln,
+            **super().as_dict(),
             "packagePath": self.packagePath,
             "link": self.link,
             "inherited": self.inherited,
@@ -176,12 +187,13 @@ class AnchoreSecurityParser(ReportParser):
     log: logger = logger.setup("AnchoreSecurityParser")
 
     @classmethod
-    def get_findings(cls, scan_json):
-        vulnerabilities = []
+    def get_findings(cls, report_path: Path):
+        findings = []
+        scan_json = json.loads(report_path.read_text())
         for vuln_data in scan_json["vulnerabilities"]:
             anchore_vuln = AnchoreCVEFinding.from_dict(
                 vuln_data={**vuln_data, "tag": scan_json["imageFullTag"]}
             )
-            vulnerabilities.append(anchore_vuln)
+            findings.append(anchore_vuln)
         cls.log.info("Vulnerabilities retrieved")
-        return vulnerabilities
+        return list(set(findings))
