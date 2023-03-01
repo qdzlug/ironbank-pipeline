@@ -45,3 +45,4 @@ python3 kickoff.py
 # Notes:
 
 - If you switch destination envs, you'll need to delete everything out of the local clone repo dir first, or the old remotes will continue to be used. Improvements to this functionality are being tracked in [this ticket](https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/issues/775)
+- If testing in staging, you will need to be connected to the VPN and have a port-forward running. These are covered in onboarding.
