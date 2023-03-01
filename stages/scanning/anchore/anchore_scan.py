@@ -4,15 +4,7 @@ import os
 import sys
 import logging
 import pathlib
-
-sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
-        "ironbank/pipeline",
-    )
-)
-
-from anchore import Anchore  # noqa: E402
+from ironbank.pipeline.scanner_api_handlers.anchore import Anchore  # noqa: E402
 
 
 def main() -> None:
