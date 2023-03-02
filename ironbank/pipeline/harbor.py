@@ -38,6 +38,8 @@ class HarborProject(Harbor):
                         project=self.name,
                     )
                 )
+
+
 # add to pipeline logic
 @dataclass
 class HarborRobots(Harbor):
@@ -72,6 +74,7 @@ class HarborRobot:
     name: str = ""
     description: str = ""
     expires_at: str = ""
+
 
 @dataclass
 class HarborRepository(Harbor):
