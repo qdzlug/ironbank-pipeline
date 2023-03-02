@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from ironbank.pipeline.test.mocks.mock_classes import MockPaginatedRequest, MockSession
-from ironbank.pipeline.harbor import HarborProject, HarborRepository
+from ironbank.pipeline.harbor import HarborProject, HarborRepository,HarborRobots
 from ironbank.pipeline.utils import logger
 from unittest.mock import patch
 
@@ -62,6 +62,6 @@ def test_harbor_robots(monkeypatch):  # noqa W0404
         ],
     )
 
-    ironbank = HarborRobots(harbor_session)
+    ironbank = HarborRobots(MockSession())
     ironbank.get_accounts()
     log.info("Successful Harbor Robots get")
