@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from ironbank.pipeline.utils import logger
 from abc import ABC
 from urllib.parse import quote_plus
+from requests import Session
 from ironbank.pipeline.utils.paginated_request import PaginatedRequest
 
 log: logger = logger.setup("Harbor")
@@ -10,7 +11,7 @@ log: logger = logger.setup("Harbor")
 
 @dataclass
 class Harbor(ABC):
-    session: requests.Session
+    session: requests.Session = field(default_factory=lambda: Session())
     api_url: str = "https://registry1.dso.mil/api/v2.0"
     registry: str = "registry1.dso.mil"
 
@@ -29,11 +30,11 @@ class HarborProject(Harbor):
         paginated_request = PaginatedRequest(self.session, repository_url)
         for page in paginated_request.get():
             page = [page] if isinstance(page, dict) else page
-            for repository in page:
+            for item in page:
                 self.repositories.append(
                     HarborRepository(
                         session=self.session,
-                        name="/".join(repository["name"].split("/")[1:]),
+                        name="/".join(item["name"].split("/")[1:]),
                         project=self.name,
                     )
                 )
@@ -52,15 +53,15 @@ class HarborRepository(Harbor):
         paginated_request = PaginatedRequest(self.session, artifact_url)
         for page in paginated_request.get():
             page = [page] if isinstance(page, dict) else page
-            for artifact in page:
+            for item in page:
                 self.artifacts.append(
                     HarborArtifact(
                         session=self.session,
-                        digest=artifact["digest"],
-                        tags=artifact["tags"] if "tags" in artifact else None,
+                        digest=item["digest"],
+                        tags=item["tags"] if "tags" in item else None,
                         project=self.project,
                         repository=self.name,
-                        push_time=artifact["push_time"],
+                        push_time=item["push_time"],
                     )
                 )
 
