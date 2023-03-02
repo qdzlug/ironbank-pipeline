@@ -20,44 +20,44 @@ def get_vat_data() -> tuple[str, float, str]:
         vat_response = json.load(f)
     log.info("Get VAT status for project")
     image_state_data: dict = vat_response["image"]["state"]
-    abc_status: str = image_state_data["abc"]
+    abc_status: str = (
+        "Compliant With Warnings"
+        if (
+            image_state_data["factors"]["abc"]["hasAbcWarnings"]
+            and image_state_data["abc"] == "Compliant"
+        )
+        else image_state_data["abc"]
+    )
     ora_score: float = image_state_data["ora"]
-    image_status: str = image_state_data["imageStatus"]
-    return (abc_status, ora_score, image_status)
+    percent_verified: str = image_state_data["percentVerified"]
+    return (abc_status, ora_score, percent_verified)
 
 
 def create_svg(badge_name: str, value: Any, thresholds: dict, svg_name: str) -> None:
     """Create svg for project badge"""
-    badge_color = thresholds.get(value, "light_grey")
     badge = anybadge.Badge(
         label=badge_name,
         value=value,
-        default_color=badge_color,
+        thresholds=thresholds,
+        default_color="light_grey",
     )
-    svg_file = Path(f"{os.environ['BADGE_DIRECTORY']}{svg_name}")
+    svg_file = Path(f"{os.environ['BADGE_DIRECTORY']}/{svg_name}")
     badge.write_badge(svg_file)
 
 
 def main() -> None:
     """Main method"""
-    # TODO: Ensure threshold colors match the VAT's colorways
     abc_thresholds = {
-        "Compliant": "green",
-        "Non-compliant": "red",
+        "Compliant": "#217645",
+        "Compliant With Warnings": "#A85D00",
+        "Non-compliant": "#C91C00",
     }
-    ora_thresholds = {
-        100: "green",
-        70: "yellow",
-        50: "orange",
-        30: "red",
+    percent_thresholds = {
+        100: "#217645",
+        70: "#A85D00",
+        40: "#C91C00",
     }
-    image_status_thresholds = {
-        "Approved": "green",
-        "Conditionally Approved": "orange",
-        "Verified": "steelblue",
-        "Unverified": "light_grey",
-    }
-    abc_status, ora_score, image_status = get_vat_data()
+    abc_status, ora_score, percent_verified = get_vat_data()
     create_svg(
         "ABC Status",
         abc_status,
@@ -67,14 +67,14 @@ def main() -> None:
     create_svg(
         "ORA Score",
         ora_score,
-        ora_thresholds,
+        percent_thresholds,
         "ora_score.svg",
     )
     create_svg(
-        "Image Status",
-        image_status,
-        image_status_thresholds,
-        "image_status.svg",
+        "Findings Verified",
+        percent_verified,
+        percent_thresholds,
+        "percent_verified.svg",
     )
 
 
