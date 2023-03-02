@@ -1,6 +1,7 @@
 # To use this script
 
 ### Right versions of poetry and python
+
 You will want to make sure to have at least python 3.10 installed, you may check via `python3 --version` and using `which python` might give you a hint as to how you have it installed and can update it.
 
 python3 is installed by default on a Mac, it is recommended that you use brew to install/override/manage/update it
@@ -26,6 +27,7 @@ cp secrets.yaml.example secrets.yaml
 ```
 
 In your config.yaml, perform the following tasks:
+
 - Change `tester` to your name (or whatever you want your group name in the dest to be)
 - Change `pipeline_branch` to the pipeline branch you want to test
 - Change `dest_gitlab_url` to your test env
