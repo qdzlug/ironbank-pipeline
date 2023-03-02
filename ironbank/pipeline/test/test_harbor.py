@@ -49,3 +49,18 @@ def test_harbor_repository(monkeypatch):  # noqa W0404
     harbor_repository.get_repository_artifact(all=True)
     assert "test" == harbor_repository.artifacts[0].digest
     assert harbor_repository.artifacts[1].tags is None
+    
+@patch("ironbank.pipeline.harbor.PaginatedRequest", new=MockPaginatedRequest)
+def test_harbor_robots(monkeypatch):  # noqa W0404
+    monkeypatch.setattr(
+        MockPaginatedRequest,
+        "get",
+        lambda x: [
+            {"name": "robot1", "description": "test robot", "expires_at": "2022-01-01"},
+            {"name": "robot2", "description": "test robot", "expires_at": "2023-01-01"},
+        ],
+    )
+
+    ironbank = HarborRobots(harbor_session)
+    ironbank.get_accounts()
+    log.info("Successful Harbor Robots get")
