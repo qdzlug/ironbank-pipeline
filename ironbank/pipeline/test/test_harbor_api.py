@@ -3,7 +3,7 @@
 import pytest
 
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.harbor import HarborProject, HarborRepository
+from ironbank.pipeline.harbor import HarborProject, HarborRepository, HarborRobots
 from ironbank.pipeline.test.mocks.mock_classes import MockPaginatedRequest
 from unittest.mock import patch
 from requests import Session
@@ -70,3 +70,19 @@ def test_harbor_artifact(monkeypatch):  # noqa W0404
     ironbank = HarborRepository(harbor_session, name="ironbank")
     ironbank.get_repository_artifact()
     log.info("Successful Harbor Artifact get")
+
+
+@patch("ironbank.pipeline.harbor.PaginatedRequest", new=MockPaginatedRequest)
+def test_harbor_robots(monkeypatch):  # noqa W0404
+    monkeypatch.setattr(
+        MockPaginatedRequest,
+        "get",
+        lambda x: [
+            {"name": "robot1", "description": "test robot", "expires_at": "2022-01-01"},
+            {"name": "robot2", "description": "test robot", "expires_at": "2023-01-01"},
+        ],
+    )
+
+    ironbank = HarborRobots(harbor_session)
+    ironbank.get_accounts()
+    log.info("Successful Harbor Robots get")
