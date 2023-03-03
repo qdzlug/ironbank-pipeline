@@ -53,6 +53,7 @@ def test_harbor_repository(monkeypatch):  # noqa W0404
 
 @patch("ironbank.pipeline.harbor.PaginatedRequest", new=MockPaginatedRequest)
 def test_harbor_robots(monkeypatch):  # noqa W0404
+    log.info("Test get accounts harbor robots")
     monkeypatch.setattr(
         MockPaginatedRequest,
         "get",
@@ -64,4 +65,5 @@ def test_harbor_robots(monkeypatch):  # noqa W0404
 
     ironbank = HarborRobots(MockSession())
     ironbank.get_accounts()
-    log.info("Successful Harbor Robots get")
+    assert "robot1" == ironbank.accounts[0].name
+    assert "2023-01-01" == ironbank.accounts[1].description

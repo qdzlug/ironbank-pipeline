@@ -40,17 +40,14 @@ class HarborProject(Harbor):
                 )
 
 
-# add to pipeline logic
 @dataclass
 class HarborRobots(Harbor):
     accounts: list = field(default_factory=lambda: [])
 
     def get_accounts(self, repository: str = "", all: bool = False):
         robots_url = f"{self.api_url}/robots"
-        log.info(robots_url)
         paginated_request = PaginatedRequest(self.session, robots_url)
         for page in paginated_request.get():
-            print("adding robots")
             if isinstance(page, dict):
                 self.accounts.append(
                     HarborRobot(
