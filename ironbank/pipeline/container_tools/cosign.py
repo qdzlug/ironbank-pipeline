@@ -215,10 +215,6 @@ class Cosign(ContainerTool):
                 encoding="utf-8",
             )
         except subprocess.CalledProcessError as e:
-            if e.args[0] == 1:
-                cls.log.error("Failed to verify %s", str(image))
-                return False
-            else:
-                raise e
+            raise e
         cls.log.info("%s Verified", str(image))
         return True

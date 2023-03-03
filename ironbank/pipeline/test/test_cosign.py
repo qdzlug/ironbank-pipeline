@@ -225,7 +225,9 @@ def test_cosign_verify(caplog, monkeypatch):
     mock_image = MockImage(registry="registry1.example", name="example/test", tag="1.0")
     mock_pubkey = MockPath("/fake/fake.pub")
 
-    Cosign.verify(image=mock_image, pubkey=mock_pubkey)
+    monkeypatch.setattr(subprocess, "run", mock_subprocess_fail)
+    with pytest.raises(GenericSubprocessError):
+        Cosign.verify(image=mock_image, pubkey=mock_pubkey)
     assert "Failed to verify %s", str(mock_image) in caplog.text
     caplog.clear()
 

@@ -208,7 +208,7 @@ def main():
             name=hardening_manifest.base_image_name,
             tag=hardening_manifest.base_image_tag,
         )
-        Cosign.verify(image=parent_image)
+        Cosign.verify(parent_image)
 
     ib_labels = {
         "maintainer": "ironbank@dsop.io",
