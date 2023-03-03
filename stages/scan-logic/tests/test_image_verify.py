@@ -98,8 +98,11 @@ def test_verify_image_properties(monkeypatch, caplog, mock_hm):
 
 @patch("image_verify.DsopProject", new=MockProject)
 @patch("image_verify.HardeningManifest", new=MockHardeningManifest)
+@patch("image_verify.Image", new=MockImage)
 def test_diff_needed(monkeypatch, caplog):
     log.info("Test Digest and Label values are returned on no diff")
+    example_url = "http://example.com"
+    monkeypatch.setenv("REGISTRY_URL_PROD", example_url)
     mock_old_img_json = {
         "Extra Key": "something",
         "Tag": image_tag,
@@ -114,7 +117,7 @@ def test_diff_needed(monkeypatch, caplog):
         image_verify, "inspect_old_image", lambda x, y: mock_old_img_json
     )
     monkeypatch.setattr(image_verify, "verify_image_properties", lambda x, y: True)
-    monkeypatch.setattr(image_verify, "verify_old_image", lambda x: True)
+    monkeypatch.setattr(image_verify.Cosign, "verify", lambda x: True)
     diff_needed = image_verify.diff_needed(".")
     assert diff_needed == {
         "tag": mock_old_img_json["Tag"],

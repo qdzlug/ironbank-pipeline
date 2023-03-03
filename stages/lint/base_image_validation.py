@@ -63,7 +63,6 @@ async def main():
                 sys.exit(1)
             Cosign.verify(image=base_image)
 
-
             base_image_info = {"BASE_SHA": base_img_inspect["Digest"]}
             log.info("Dump SHA to file")
             with pathlib.Path(os.environ["ARTIFACT_DIR"], "base_image.json").open(
