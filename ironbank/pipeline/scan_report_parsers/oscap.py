@@ -42,12 +42,18 @@ class RuleInfo:
     oval_rule: ClassVar[
         str
     ] = "xccdf_org.ssgproject.content_rule_security_patches_up_to_date"
+    pass_results: ClassVar[tuple[str]] = ("pass", "notapplicable")
+    skip_results: ClassVar[tuple[str]] = ("notselected")
+    fail_results: ClassVar[tuple[str]] = ("notchecked", "fail", "error")
     oval_name: str = ""
     oval_href: str = ""
 
     def __new__(cls, root, rule_result):
         rule_class = (
-            RuleInfoOVAL if cls.get_rule_id(rule_result) == cls.oval_rule else RuleInfo
+            RuleInfoOVAL
+            if (cls.get_rule_id(rule_result) == cls.oval_rule)
+            and (cls.get_result(rule_result) not in cls.pass_results)
+            else RuleInfo
         )
         return object.__new__(rule_class)
 
@@ -84,6 +90,10 @@ class RuleInfo:
         assert len(self.identifiers) == 1
         self.identifier = self.identifiers[0]
 
+    @classmethod
+    def get_result(cls, rule_result):
+        return rule_result.find("xccdf:result", cls.namespaces).text
+
     def set_result(self, rule_result):
         """
         Return result of rule check from compliance scan
@@ -104,7 +114,7 @@ class RuleInfo:
             self._format_reference(ref)
             for ref in rule.findall("xccdf:reference", self.namespaces)
         )
-        assert self.references
+        # assert self.references
 
     def set_rationale(self, rule):
         rationale_element = rule.find("xccdf:rationale", self.namespaces)
@@ -119,14 +129,23 @@ class RuleInfo:
         return rule_obj.attrib.get("id", "") or rule_obj.attrib.get("idref", "")
 
     @classmethod
-    def get_failed_results(cls, root):
+    def get_results(cls, root, results_filter=None):
         return [
             rule_result
             for rule_result in root.findall(
                 "xccdf:TestResult/xccdf:rule-result", cls.namespaces
             )
-            if rule_result.find("xccdf:result", cls.namespaces).text
-            in ["notchecked", "fail", "error"]
+            if (
+                (
+                    rule_result.find("xccdf:result", cls.namespaces).text
+                    in results_filter
+                )
+                if results_filter
+                else (
+                    rule_result.find("xccdf:result", cls.namespaces).text
+                    not in cls.skip_results
+                )
+            )
         ]
 
 
@@ -190,6 +209,7 @@ class OscapFinding(AbstractFinding):
     score: str = ""
     package: str = None
     package_path: str = None
+    references: str = None
     scan_source: str = "oscap_comp"
 
     @classmethod
@@ -209,6 +229,22 @@ class OscapFinding(AbstractFinding):
     def desc(self):
         return self.description
 
+    @property
+    def refs(self):
+        return self.references
+
+    @property
+    def ruleid(self):
+        return self.rule_id
+
+    def as_dict(self) -> dict:
+        return {
+            **super().as_dict(),
+            "refs": self.refs,
+            "desc": self.desc,
+            "ruleid": self.ruleid,
+        }
+
     def __hash__(self):
         return hash(self.identifier)
 
@@ -218,7 +254,7 @@ class OscapComplianceFinding(OscapFinding):
     identifiers: tuple = field(default_factory=lambda: ())
     title: str = None
     result: str = None
-    references: str = None
+
     rationale: str = None
     scanned_date: str = None
     _log: logger = logger.setup("OscapComplianceFinding")
@@ -324,15 +360,21 @@ class OscapReportParser(ReportParser):
     log: logger = logger.setup("OscapReportParser")
 
     @classmethod
-    def get_findings(cls, scan_xml: Path) -> list[OscapComplianceFinding]:
-        root = etree.parse(scan_xml)
+    def get_findings(
+        cls, report_path: Path, results_filter: tuple[str] = None
+    ) -> list[OscapComplianceFinding]:
+        """
+        if results_filter is None, all results will be returned if failed or not
+        typically findings are in ["notchecked", "fail", "error"], but pipeline_csv_gen gathers all findings regardless of status
+        """
+        root = etree.parse(report_path)
 
-        failed_compliance_results = RuleInfo.get_failed_results(root)
+        compliance_results = RuleInfo.get_results(root, results_filter=results_filter)
 
         oscap_findings = []
-        for rule_result in failed_compliance_results:
+        for rule_result in compliance_results:
             rule_info = RuleInfo(root, rule_result)
             oscap_findings += OscapFinding.get_findings_from_rule_info(rule_info)
 
         # remove duplicates
-        return list(set(flatten(oscap_findings)))
+        return sorted(list(set(flatten(oscap_findings))), key=lambda x: x.rule_id)
