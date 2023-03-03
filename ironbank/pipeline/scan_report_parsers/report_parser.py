@@ -1,4 +1,5 @@
 from abc import ABC
+from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
 import csv
@@ -10,7 +11,7 @@ class AbstractFinding(ABC):
     # will be used for typing until we can start tying similarities between vulns
     identifier: str
     severity: str
-    description: str
+    description: str = ""
     scan_source: str = ""
     package: str = ""
     package_path: str = ""
@@ -19,7 +20,12 @@ class AbstractFinding(ABC):
         return self.__dict__
 
     def get_dict_from_fieldnames(self, fieldnames: list[str]) -> dict:
-        return {k: v for k, v in self.as_dict().items() if k in fieldnames}
+        # using OrderedDict so the keys are ordered in the same way the fieldnames are ordered
+        finding_dict = OrderedDict({k: None for k in fieldnames})
+        for k, v in self.as_dict().items():
+            if k in fieldnames:
+                finding_dict[k] = v
+        return finding_dict
 
     def get_justification(self, justifications: dict) -> str:
         id = (

@@ -10,7 +10,6 @@ from pathlib import Path
 from ironbank.pipeline.scan_report_parsers.anchore import AnchoreSecurityParser
 from ironbank.pipeline.scan_report_parsers.oscap import OscapReportParser
 
-from scanners import anchore
 from ironbank.pipeline.scan_report_parsers.report_parser import ReportParser
 from ironbank.pipeline.utils import logger
 
@@ -189,15 +188,11 @@ def generate_summary_report(
         csv_writer.writerow(header)
         csv_writer.writerows(scan_rows)
 
-        total_automated, total_manual, total_all = 0, 0, 0
+        totals_row: list[str | int] = ["Totals"]
+        # for each column, combine totals for each row if value in cell is int
+        totals_row += [sum([row[i] for row in scan_rows if isinstance(row[i], int)]) for i in range(1, len(header))]  # type: ignore
 
-        for row in scan_rows:
-            total_automated += row[1] if isinstance(row[1], int) else 0
-            total_manual += row[2] if isinstance(row[2], int) else 0
-            total_all += row[3] if isinstance(row[3], int) else 0
-
-        csv_writer.writerow(["Totals", total_automated, total_manual, total_all])
-
+        csv_writer.writerow(totals_row)
         csv_writer.writerow("")
         sha_str = f"Scans performed on container layer sha256: {image_id},,,"
         csv_writer.writerow([sha_str])
@@ -230,12 +225,13 @@ def generate_anchore_cve_report(
         "nvd_cvss_v3_vector",
         "vendor_cvss_v2_vector",
         "vendor_cvss_v3_vector",
+        "Justification",
     ]
 
     finding_dict_list = [
         {
             **finding.get_dict_from_fieldnames(fieldnames=fieldnames),
-            "justification": finding.get_justification(justifications),
+            "Justification": finding.get_justification(justifications),
         }
         for finding in findings
     ]
@@ -346,7 +342,6 @@ def generate_oscap_compliance_report(
         "desc",
         "rationale",
         "scanned_date",
-        "Justification",
     ]
     findings_dict_list = [
         {

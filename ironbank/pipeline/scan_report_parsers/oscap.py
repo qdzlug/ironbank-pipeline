@@ -43,7 +43,7 @@ class RuleInfo:
         str
     ] = "xccdf_org.ssgproject.content_rule_security_patches_up_to_date"
     pass_results: ClassVar[tuple[str]] = ("pass", "notapplicable")
-    skip_results: ClassVar[tuple[str]] = ("notselected")
+    skip_results: ClassVar[tuple[str]] = "notselected"
     fail_results: ClassVar[tuple[str]] = ("notchecked", "fail", "error")
     oval_name: str = ""
     oval_href: str = ""
