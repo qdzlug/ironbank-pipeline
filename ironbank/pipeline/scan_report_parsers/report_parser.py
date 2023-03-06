@@ -16,6 +16,11 @@ class AbstractFinding(ABC):
     package: str = ""
     package_path: str = ""
 
+    # add alias from finding -> vuln
+    @property
+    def finding(self):
+        return self.identifier
+
     @property
     def packagePath(self):
         return self.package_path
@@ -25,7 +30,12 @@ class AbstractFinding(ABC):
         return self.scan_source
 
     def as_dict(self) -> dict:
-        return self.__dict__
+        return {
+            **self.__dict__,
+            "finding": self.finding,
+            "packagePath": self.packagePath,
+            "scanSource": self.scanSource,
+        }
 
     def get_dict_from_fieldnames(self, fieldnames: list[str]) -> dict:
         # using OrderedDict so the keys are ordered in the same way the fieldnames are ordered
@@ -33,7 +43,7 @@ class AbstractFinding(ABC):
         for k, v in self.as_dict().items():
             if k in fieldnames:
                 finding_dict[k] = v
-        return finding_dict
+        return dict(finding_dict)
 
     def get_justification(self, justifications: dict) -> str:
         id = (

@@ -16,7 +16,7 @@ from requests.structures import CaseInsensitiveDict
 from ironbank.pipeline.image import Image
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.container_tools.cosign import Cosign
-from ironbank.pipeline.scan_report_parsers.oscap import OscapReportParser, RuleInfo
+from ironbank.pipeline.scan_report_parsers.oscap import OscapReportParser
 from ironbank.pipeline.utils.predicates import Predicates
 from ironbank.pipeline.scan_report_parsers.anchore import AnchoreSecurityParser
 from ironbank.pipeline.hardening_manifest import (
@@ -169,9 +169,7 @@ def generate_anchore_cve_findings(report_path, vat_finding_fields):
 def generate_oscap_findings(report_path, vat_finding_fields):
     return [
         finding.get_dict_from_fieldnames(vat_finding_fields)
-        for finding in OscapReportParser.get_findings(
-            report_path=Path(report_path), results_filter=RuleInfo.fail_results
-        )
+        for finding in OscapReportParser.get_findings(report_path=Path(report_path))
     ]
 
 

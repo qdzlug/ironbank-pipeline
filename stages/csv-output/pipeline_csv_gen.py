@@ -4,7 +4,6 @@ import csv
 import sys
 import json
 import os
-import argparse
 from pathlib import Path
 
 from ironbank.pipeline.scan_report_parsers.anchore import AnchoreSecurityParser
@@ -315,7 +314,7 @@ def generate_oscap_compliance_report(
     Generate csv for OSCAP findings with justifications
     Calls the get_oscap_full function to first parse the OSCAP XML report.
     """
-    findings = OscapReportParser.get_findings(report_path)
+    findings = OscapReportParser.get_findings(report_path, results_filter=None)
     fieldnames = [
         "title",
         "ruleid",

@@ -267,10 +267,6 @@ class OscapFinding(AbstractFinding):
 class OscapComplianceFinding(OscapFinding):
     _log: logger = logger.setup("OscapComplianceFinding")
 
-    @property
-    def refs(self):
-        return self.references
-
     @classmethod
     def get_findings_from_rule_info(cls, rule_info) -> object:
         """
@@ -358,7 +354,7 @@ class OscapReportParser(ReportParser):
 
     @classmethod
     def get_findings(
-        cls, report_path: Path, results_filter: tuple[str] = None
+        cls, report_path: Path, results_filter: tuple[str] = RuleInfo.fail_results
     ) -> list[OscapComplianceFinding]:
         """
         if results_filter is None, all results will be returned if failed or not

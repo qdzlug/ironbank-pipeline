@@ -58,11 +58,6 @@ class AnchoreCVEFinding(AbstractFinding):
         # no_data is set in the init by default, but if the value for inherited_from_base is "" or some other falsey value, update it to no_data
         self.inherited_from_base = self.inherited_from_base or "no_data"
 
-    # add alias from inherited -> inherited_from_base
-    @property
-    def inherited(self):
-        return self.inherited_from_base
-
     # We might want to add accessors/mutators for these properties in the future
     # For now, we'll only be using these properties as aliases for other initialized/updated attributes of this class
     # If we decide to use these, we can uncomment the following lines for "inherited"
@@ -74,11 +69,6 @@ class AnchoreCVEFinding(AbstractFinding):
     # def inherited(self):
     #     del self.inherited_from_base
 
-    # add alias from finding -> vuln
-    @property
-    def finding(self):
-        return self.vuln
-
     # add alias from cve -> vuln
     @property
     def cve(self):
@@ -87,6 +77,11 @@ class AnchoreCVEFinding(AbstractFinding):
     @property
     def vuln(self):
         return self.identifier
+
+    # add alias from inherited -> inherited_from_base
+    @property
+    def inherited(self):
+        return self.inherited_from_base
 
     @property
     def link(self):
@@ -122,7 +117,6 @@ class AnchoreCVEFinding(AbstractFinding):
                     d[f"cvss_{version}"]["vector_string"],
                 )
 
-    # def get_justification():
     @key_index_error_handler
     def get_identifiers(self):
         if self.nvd_data:
@@ -159,14 +153,11 @@ class AnchoreCVEFinding(AbstractFinding):
 
     def as_dict(self):
         return {
-            "finding": self.finding,
             "cve": self.cve,
             "vuln": self.vuln,
             **super().as_dict(),
-            "packagePath": self.packagePath,
             "link": self.link,
             "inherited": self.inherited,
-            "scanSource": self.scanSource,
         }
 
 
