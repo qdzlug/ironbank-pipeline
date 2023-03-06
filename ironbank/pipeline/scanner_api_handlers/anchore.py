@@ -9,6 +9,7 @@ import requests
 import subprocess
 
 
+# TODO integrate this with API class
 class Anchore:
     """
     Anchore Scanner
