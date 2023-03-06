@@ -162,7 +162,8 @@ Sequence:
      - From the old image manifest:
        - Check if git commit SHA is the same as old image
        - Check if parent digest is the same as old image
-   - Go to next step if the manifest exists, commit SHAs are the same, and parent digests are the same
+       - Check if old image has a verified signature
+   - Go to next step if the manifest exists, commit SHAs are the same, parent digests are the same, and the old image has a verified signature
    - Otherwise, if there is a difference, log that we must scan new image and exit
 1. Parse Old Image Packages
    - Using the access_log and SBOM artifacts from the old image's Cosign attestation, parse, log, and save the list of packages for use later
