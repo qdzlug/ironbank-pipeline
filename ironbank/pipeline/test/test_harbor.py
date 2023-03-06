@@ -66,4 +66,4 @@ def test_harbor_robots(monkeypatch):  # noqa W0404
     ironbank = HarborRobots(MockSession())
     ironbank.get_accounts()
     assert "robot1" == ironbank.accounts[0].name
-    assert "2023-01-01" == ironbank.accounts[1].description
+    assert "test robot" == ironbank.accounts[1].description
