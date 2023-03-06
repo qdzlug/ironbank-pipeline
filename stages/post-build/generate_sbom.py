@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 
 import os
+import sys
+from pathlib import Path
 
-from ironbank.pipeline.scanner_api_handlers.anchore import Anchore
+sys.path.append(Path(__file__).absolute().parents[1].as_posix())
+
+from ironbank_py39_modules.scanner_api_handlers.anchore import Anchore  # noqa: E402
 
 
 def main() -> None:

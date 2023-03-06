@@ -3,22 +3,14 @@
 import os
 import sys
 import logging
-import pathlib
-from ironbank.pipeline.scanner_api_handlers.anchore import Anchore  # noqa: E402
+from pathlib import Path
+
+sys.path.append(Path(__file__).absolute().parents[2].as_posix())
+from ironbank_py39_modules.scanner_api_handlers.anchore import Anchore  # noqa: E402
 
 
 def main() -> None:
     # Get logging level, set manually when running pipeline
-    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
-    if loglevel == "DEBUG":
-        logging.basicConfig(
-            level=loglevel,
-            format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
-        )
-        logging.debug("Log level set to debug")
-    else:
-        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
-        logging.info("Log level set to info")
 
     anchore_scan = Anchore(
         url=os.environ["ANCHORE_SERVER_ADDRESS"],
@@ -30,7 +22,7 @@ def main() -> None:
     artifacts_path = os.environ.get("ANCHORE_SCANS", default="/tmp/anchore_scans")
 
     # Create the directory if it does not exist
-    pathlib.Path(artifacts_path).mkdir(parents=True, exist_ok=True)
+    Path(artifacts_path).mkdir(parents=True, exist_ok=True)
 
     image = os.environ["IMAGE_TO_SCAN"]
 

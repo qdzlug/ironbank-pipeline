@@ -9,11 +9,13 @@ import requests
 import subprocess
 
 
-# TODO integrate this with API class
+# TODO: move this module to the `ironbank/pipelines` dir once anchore/enterprise moves to 3.10
 class Anchore:
     """
     Anchore Scanner
 
+    Wrapper for the anchore-cli and syft tools
+    Both tools must be installed for this module to function correctly
     """
 
     def __init__(self, url, username, password, verify):
