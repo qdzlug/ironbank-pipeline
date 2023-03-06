@@ -75,26 +75,26 @@ def main() -> None:
             oscap_comp_fail_count,
             oscap_comp_not_checked_count,
         ) = generate_oscap_compliance_report(
-            report_path=args.oscap,
-            csv_output_dir=args.output_dir,
+            report_path=Path(args.oscap),
+            csv_output_dir=Path(args.output_dir),
             justifications=j_openscap,
         )
     else:
-        generate_blank_oscap_report(csv_output_dir=args.output_dir)
+        generate_blank_oscap_report(csv_output_dir=Path(args.output_dir))
 
     twistlock_cve_fail_count = generate_twistlock_cve_report(
-        report_path=args.twistlock,
-        csv_output_dir=args.output_dir,
+        report_path=Path(args.twistlock),
+        csv_output_dir=Path(args.output_dir),
         justifications=j_twistlock,
     )
     anchore_cve_fail_count = generate_anchore_cve_report(
-        report_path=args.anchore_sec,
-        csv_output_dir=args.output_dir,
+        report_path=Path(args.anchore_sec),
+        csv_output_dir=Path(args.output_dir),
         justifications=j_anchore_cve,
     )
     anchore_comp_fail_count, image_id = generate_anchore_compliance_report(
-        report_path=args.anchore_gates,
-        csv_output_dir=args.output_dir,
+        report_path=Path(args.anchore_gates),
+        csv_output_dir=Path(args.output_dir),
         justifications=j_anchore_comp,
     )
 
