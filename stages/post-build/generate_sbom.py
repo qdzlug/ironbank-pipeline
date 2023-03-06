@@ -4,7 +4,7 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.append(Path(__file__).absolute().parents[1].as_posix())
+sys.path.append(Path(__file__).absolute().parents[2].as_posix())
 
 from ironbank_py39_modules.scanner_api_handlers.anchore import Anchore  # noqa: E402
 
