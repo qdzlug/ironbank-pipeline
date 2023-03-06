@@ -89,14 +89,6 @@ class AnchoreCVEFinding(AbstractFinding):
         return self.identifier
 
     @property
-    def packagePath(self):
-        return self.package_path
-
-    @property
-    def scanSource(self):
-        return self.scan_source
-
-    @property
     def link(self):
         return self.url
 

@@ -16,6 +16,14 @@ class AbstractFinding(ABC):
     package: str = ""
     package_path: str = ""
 
+    @property
+    def packagePath(self):
+        return self.package_path
+
+    @property
+    def scanSource(self):
+        return self.scan_source
+
     def as_dict(self) -> dict:
         return self.__dict__
 

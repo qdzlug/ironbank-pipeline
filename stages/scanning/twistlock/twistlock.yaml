@@ -9,7 +9,6 @@ twistlock-scan:
     - scan-logic
   variables:
     # put all scan outputs in the scan-results folder
-    TWISTLOCK_SCANS: "${ARTIFACT_STORAGE}/scan-results/twistlock"
     VERSION_FILE: "${TWISTLOCK_SCANS}/twistlock-version.txt"
     CVE_FILE: "${TWISTLOCK_SCANS}/twistlock_cve.json"
     DETAIL_FILE: "${TWISTLOCK_SCANS}/twistcli-details.txt"

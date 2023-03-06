@@ -21,30 +21,14 @@ log = logger.setup("csv_gen")
 def main() -> None:
     # Get logging level, set manually when running pipeline
 
-    # TODO: get rid of these
-    parser = argparse.ArgumentParser(
-        description="DCCSCR processing of CVE reports from various sources"
-    )
-    parser.add_argument("--twistlock", help="location of the twistlock JSON scan file")
-    parser.add_argument("--oscap", help="location of the oscap scan XML file")
-    parser.add_argument(
-        "--anchore-sec", help="location of the anchore_security.json scan file"
-    )
-    parser.add_argument(
-        "--anchore-gates", help="location of the anchore_gates.json scan file"
-    )
-    parser.add_argument(
-        "-o",
-        "--output-dir",
-        dest="output_dir",
-        help="directory in which to write CSV output",
-        default="./",
-    )
-    parser.add_argument("--sbom-dir", help="location of the anchore content directory")
-    args = parser.parse_args()
+    anchore_cve_path = Path(f"{os.environ['ANCHORE_SCANS']}/anchore_security.json")
+    anchore_comp_path = Path(f"{os.environ['ANCHORE_SCANS']}/anchore_gates.json")
+    twistlock_cve_path = Path(f"{os.environ['TWISTLOCK_SCANS']}/twistlock_cve.json")
+    oscap_comp_path = Path(f"{os.environ['OSCAP_SCANS']}/compliance_output_report.xml")
+    csv_output_dir = Path(os.environ["CSV_REPORT"])
 
     # Create the csv directory if not present
-    Path(args.output_dir).mkdir(parents=True, exist_ok=True)
+    Path(csv_output_dir).mkdir(parents=True, exist_ok=True)
 
     artifacts_path = os.environ["ARTIFACT_STORAGE"]
     # get cves and justifications from VAT
@@ -75,26 +59,26 @@ def main() -> None:
             oscap_comp_fail_count,
             oscap_comp_not_checked_count,
         ) = generate_oscap_compliance_report(
-            report_path=Path(args.oscap),
-            csv_output_dir=Path(args.output_dir),
+            report_path=oscap_comp_path,
+            csv_output_dir=csv_output_dir,
             justifications=j_openscap,
         )
     else:
-        generate_blank_oscap_report(csv_output_dir=Path(args.output_dir))
+        generate_blank_oscap_report(csv_output_dir=csv_output_dir)
 
     twistlock_cve_fail_count = generate_twistlock_cve_report(
-        report_path=Path(args.twistlock),
-        csv_output_dir=Path(args.output_dir),
+        report_path=twistlock_cve_path,
+        csv_output_dir=csv_output_dir,
         justifications=j_twistlock,
     )
     anchore_cve_fail_count = generate_anchore_cve_report(
-        report_path=Path(args.anchore_sec),
-        csv_output_dir=Path(args.output_dir),
+        report_path=anchore_cve_path,
+        csv_output_dir=csv_output_dir,
         justifications=j_anchore_cve,
     )
     anchore_comp_fail_count, image_id = generate_anchore_compliance_report(
-        report_path=Path(args.anchore_gates),
-        csv_output_dir=Path(args.output_dir),
+        report_path=anchore_comp_path,
+        csv_output_dir=csv_output_dir,
         justifications=j_anchore_comp,
     )
 
@@ -105,7 +89,7 @@ def main() -> None:
         anchore_cve_fail_count=anchore_cve_fail_count,
         anchore_comp_fail_count=anchore_comp_fail_count,
         image_id=image_id,
-        csv_output_dir=args.output_dir,
+        csv_output_dir=csv_output_dir,
     )
 
 
