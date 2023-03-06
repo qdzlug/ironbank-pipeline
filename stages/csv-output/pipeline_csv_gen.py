@@ -346,6 +346,7 @@ def generate_oscap_compliance_report(
     findings_dict_list = [
         {
             **finding.get_dict_from_fieldnames(fieldnames=fieldnames),
+            "identifiers": finding.identifier,
             "justification": finding.get_justification(justifications=justifications),
         }
         for finding in findings

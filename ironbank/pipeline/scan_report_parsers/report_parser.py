@@ -5,7 +5,7 @@ from pathlib import Path
 import csv
 
 
-@dataclass(frozen=True)
+@dataclass
 class AbstractFinding(ABC):
     # this class can hold similar attributes between different vuln
     # will be used for typing until we can start tying similarities between vulns
@@ -40,6 +40,16 @@ class AbstractFinding(ABC):
 @dataclass
 class ReportParser:
     @classmethod
+    def dedupe_findings_by_attr(cls, findings, attribute):
+        """
+        Remove duplicate findings from list by finding attribute
+        """
+        unique_findings = {}
+        for finding in findings:
+            if not (attr_val := getattr(finding, attribute)) in unique_findings:
+                unique_findings[attr_val] = finding
+        return [v for v in unique_findings.values()]
+
     @classmethod
     def write_csv_from_dict_list(
         cls, csv_dir: Path, dict_list: list[dict], fieldnames: list, filename: str

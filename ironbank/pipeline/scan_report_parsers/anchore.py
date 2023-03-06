@@ -12,6 +12,7 @@ from ironbank.pipeline.scan_report_parsers.report_parser import (
 )
 
 
+@dataclass
 class AnchoreCVEFinding(AbstractFinding):
     # keys match anchore severity report, passed as kwargs
     tag: str = ""
@@ -21,7 +22,7 @@ class AnchoreCVEFinding(AbstractFinding):
     package_version: str = ""
     fix: str = ""
     url: str = ""
-    extra: dict = ""
+    extra: dict = field(default_factory=lambda: {})
     inherited_from_base: str = "no_data"
     nvd_data: list = field(default_factory=lambda: [])
     vendor_data: list = field(default_factory=lambda: [])
@@ -192,5 +193,9 @@ class AnchoreSecurityParser(ReportParser):
                 vuln_data={**vuln_data, "tag": scan_json["imageFullTag"]}
             )
             findings.append(anchore_vuln)
+
         cls.log.info("Vulnerabilities retrieved")
-        return list(set(findings))
+        # dedupe all findings
+        findings = cls.dedupe_findings_by_attr(findings, "identifier")
+        assert len(set(f.identifier for f in findings)) == len(findings)
+        return findings

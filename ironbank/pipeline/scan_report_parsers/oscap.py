@@ -200,17 +200,34 @@ class RuleInfoOVAL(RuleInfo):
             ).text
 
 
-@dataclass(frozen=True)
+@dataclass
 class OscapFinding(AbstractFinding):
-    identifier: str
-    severity: str
-    description: str
     rule_id: str = None
     score: str = ""
     package: str = None
     package_path: str = None
     references: str = None
+    identifiers: tuple = field(default_factory=lambda: ())
+    title: str = None
+    result: str = None
+    rationale: str = None
+    scanned_date: str = None
     scan_source: str = "oscap_comp"
+
+    @classmethod
+    def get_default_init_params(cls, rule_info):
+        return {
+            "identifiers": rule_info.identifiers,
+            "identifier": rule_info.identifier,
+            "severity": rule_info.severity,
+            "rule_id": rule_info.rule_id,
+            "title": rule_info.title,
+            "scanned_date": rule_info.time,
+            "result": rule_info.result,
+            "description": rule_info.description,
+            "references": rule_info.references,
+            "rationale": rule_info.rationale,
+        }
 
     @classmethod
     def get_findings_from_rule_info(cls, rule_info) -> list[object]:
@@ -245,18 +262,9 @@ class OscapFinding(AbstractFinding):
             "ruleid": self.ruleid,
         }
 
-    def __hash__(self):
-        return hash(self.identifier)
 
-
-@dataclass(frozen=True, eq=True)
+@dataclass(eq=True)
 class OscapComplianceFinding(OscapFinding):
-    identifiers: tuple = field(default_factory=lambda: ())
-    title: str = None
-    result: str = None
-
-    rationale: str = None
-    scanned_date: str = None
     _log: logger = logger.setup("OscapComplianceFinding")
 
     @property
@@ -270,24 +278,13 @@ class OscapComplianceFinding(OscapFinding):
 
         Attributes like description/references/etc. are gathered here instead of a __post_init__ because they depend on the rule object
         """
-        yield cls(
-            identifiers=rule_info.identifiers,
-            identifier=rule_info.identifier,
-            severity=rule_info.severity,
-            rule_id=rule_info.rule_id,
-            title=rule_info.title,
-            scanned_date=rule_info.time,
-            result=rule_info.result,
-            description=rule_info.description,
-            references=rule_info.references,
-            rationale=rule_info.rationale,
-        )
+        yield cls(**cls.get_default_init_params(rule_info))
 
     def __hash__(self):
         return hash(self.identifier)
 
 
-@dataclass(frozen=True)
+@dataclass(eq=True)
 class OscapOVALFinding(OscapFinding):
     link: str = None
     _log: logger = logger.setup("OscapOVALFinding")
@@ -302,11 +299,11 @@ class OscapOVALFinding(OscapFinding):
         rule_info.set_values_from_oval_report(oval_root)
         for finding in rule_info.findings:
             yield cls(
-                rule_id=rule_info.rule_id,
-                identifier=finding.text,
-                link=finding.attrib["href"],
-                description=rule_info.description,
-                severity=rule_info.severity,
+                **{
+                    **cls.get_default_init_params(rule_info),
+                    "identifier": finding.text,
+                    "link": finding.attrib["href"],
+                }
             )
 
     # TODO: decide where these make the most sense, not sure the finding class is the best spot
@@ -371,10 +368,14 @@ class OscapReportParser(ReportParser):
 
         compliance_results = RuleInfo.get_results(root, results_filter=results_filter)
 
-        oscap_findings = []
+        findings = []
+
         for rule_result in compliance_results:
             rule_info = RuleInfo(root, rule_result)
-            oscap_findings += OscapFinding.get_findings_from_rule_info(rule_info)
+            findings += OscapFinding.get_findings_from_rule_info(rule_info)
 
-        # remove duplicates
-        return sorted(list(set(flatten(oscap_findings))), key=lambda x: x.rule_id)
+        # flatten, dedupe and sort findings
+        findings = flatten(findings)
+        findings = cls.dedupe_findings_by_attr(findings, "identifier")
+        assert len(set(f.identifier for f in findings)) == len(findings)
+        return sorted(findings, key=lambda x: x.rule_id)
