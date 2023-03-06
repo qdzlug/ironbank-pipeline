@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os
-import sys
 
 from ironbank.pipeline.scanner_api_handlers.anchore import Anchore
 
