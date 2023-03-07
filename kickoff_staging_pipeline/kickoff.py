@@ -200,6 +200,7 @@ class Config:
         return self.dest_gitlab_url
 
 
+@git_error_handler
 def clone_from_src(config: Config) -> Config:
     """
     Clone all src repos to a local directory defined in config
