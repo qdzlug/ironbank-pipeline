@@ -7,8 +7,6 @@ import shutil
 import datetime
 import subprocess
 from pathlib import Path
-from base64 import b64decode
-from typing import Callable
 
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.hardening_manifest import HardeningManifest
@@ -100,16 +98,6 @@ def start_squid(squid_conf: Path):
     time.sleep(5)
 
 
-# decode technically isn't a keyword, but it is a method of str
-# using PEP8 convention for avoiding builtin conflicts
-def generate_auth_file(auth: str, file_path: Path, decode_: Callable = None):
-    assert isinstance(file_path, Path)
-    auth = decode_(auth) if decode_ else auth
-    auth = auth.decode() if type(auth) == bytes else auth
-    with file_path.open("a+") as f:
-        f.write(auth)
-
-
 def generate_build_env(
     image_details: dict, image_name: str, image: Image, digest: str, skopeo: Skopeo
 ):
@@ -140,11 +128,6 @@ def main():
         tag=f"ibci-{os.environ['CI_PIPELINE_ID']}",
     )
     base_registry = os.environ["REGISTRY_BASE_IMAGE_URL"]
-    # TODO: switch these over to file vars and remove auth generation
-    prod_auth_path = Path("/tmp", "prod_auth.json")
-    staging_auth_path = Path("/tmp", "staging_auth.json")
-    pull_creds = None
-
     artifact_storage_dir = Path(os.environ["ARTIFACT_STORAGE"])
     build_artifact_dir = Path(os.environ["ARTIFACT_DIR"])
     imports_dir = artifact_storage_dir / "import-artifacts"
@@ -160,27 +143,11 @@ def main():
     log.info("Determine source registry based on branch")
     if os.environ.get("STAGING_BASE_IMAGE"):
         base_registry += "-staging"
-        pull_creds = os.environ["DOCKER_AUTH_CONFIG_STAGING"]
+        prod_auth_path = Path(os.environ["DOCKER_AUTH_FILE_PRE_PUBLISH"])
     else:
-        pull_creds = os.environ["DOCKER_AUTH_CONFIG_PULL"]
+        prod_auth_path = Path(os.environ["DOCKER_AUTH_FILE_PULL"])
 
-    # get read only auth files
-    # generate read only auth file for prod registry
-    log.debug("Generating pull auth file")
-    generate_auth_file(auth=pull_creds, file_path=prod_auth_path, decode_=b64decode)
-
-    # generate read write auth file for staging registry
-    log.debug("Generating staging read/write auth file")
-    generate_auth_file(
-        auth=os.environ["DOCKER_AUTH_CONFIG_STAGING"],
-        file_path=staging_auth_path,
-        decode_=b64decode,
-    )
-
-    with Path('.dockerignore').open("a+") as f:
-        f.writelines(
-            ["\n", f"{prod_auth_path.as_posix()}\n", f"{staging_auth_path.as_posix()}\n"]
-        )
+    staging_auth_path = Path(os.environ["DOCKER_AUTH_FILE_PRE_PUBLISH"])
 
     buildah = Buildah(authfile=prod_auth_path)
     skopeo = Skopeo()
