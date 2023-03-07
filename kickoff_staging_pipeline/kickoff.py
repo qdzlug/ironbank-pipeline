@@ -23,22 +23,18 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
 
-def git_error_handler(logging_message: str):
-    def decorate(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except GitError as e:
-                print(logging_message)
-                print(
-                    "\x1b[38;5;226mNote: Removing the clone_dir directory may resolve git-related errors. If you're unsure which directory this is, check the clone_dir value in the config.yaml"
-                )
-                raise e
+def git_error_handler(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except GitError as e:
+            print(
+                "\x1b[38;5;226mNote: Removing the clone_dir directory may resolve git-related errors. If you're unsure which directory this is, check the clone_dir value in the config.yaml"
+            )
+            raise e from None
 
-        return wrapper
-
-    return decorate
+    return wrapper
 
 
 @dataclass
