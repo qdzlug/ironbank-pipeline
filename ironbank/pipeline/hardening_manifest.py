@@ -39,6 +39,7 @@ class HardeningManifest:
         # TODO: define resources type
         self.resources: list[dict] = tmp_content.get("resources", [])
         self.maintainers: list[dict] = tmp_content.get("maintainers", [])
+        self.partner_advocates: list[dict] = tmp_content.get("partner_advocates", [])
         self.invalid_labels = None
         self.invalid_maintainers = None
         self.invalid_image_sources = None
@@ -51,6 +52,7 @@ class HardeningManifest:
         log.info("Checking for FIXME values in labels/maintainers")
         self.invalid_labels = self.reject_invalid_labels()
         self.invalid_maintainers = self.reject_invalid_maintainers()
+        self.invalid_partner_advocates = self.reject_invalid_partner_advocates()
         log.info("Checking for invalid image sources")
         self.invalid_image_sources = self.reject_invalid_image_sources()
 
@@ -162,6 +164,18 @@ class HardeningManifest:
         for k in invalid_maintainers:
             log.error("FIXME found in %s", k)
         return invalid_maintainers
+
+    def reject_invalid_partner_advocates(self) -> list:
+        """
+        Returns list of keys in hardening manifest maintainers whose value contains FIXME (case insensitive)
+        """
+        log.info("Checking partner_advocate values")
+        invalid_partner_advocates = []
+        for partner_advocate in self.partner_advocates:
+            invalid_partner_advocates += self.check_for_fixme(partner_advocate)
+        for k in invalid_partner_advocates:
+            log.error("FIXME found in %s", k)
+        return invalid_partner_advocates
 
     # TODO: Deprecate this once CI variables are replaced by modules with reusable methods
     def create_artifacts(self) -> None:
