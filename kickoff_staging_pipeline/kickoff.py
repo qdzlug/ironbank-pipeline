@@ -6,10 +6,12 @@ import typing
 import yaml
 from pathlib import Path
 from git import Repo, Remote, IndexFile
+from git.exc import GitError
 from git.config import GitConfigParser
 from jinja2 import Environment, FileSystemLoader, Template
 import shutil
 import gitlab
+import functools
 from gitlab.v4.objects import (
     Project as GLProject,
     Group as GLGroup,
@@ -19,6 +21,24 @@ import requests
 import urllib
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+
+
+def git_error_handler(logging_message: str):
+    def decorate(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except GitError as e:
+                print(logging_message)
+                print(
+                    "Note: Removing the staging_projects directory may resolve git-related errors."
+                )
+                raise e
+
+        return wrapper
+
+    return decorate
 
 
 @dataclass
@@ -297,6 +317,7 @@ def push_branches(project: Project, repo: Repo, remote: Remote) -> None:
         remote.push(force=True).raise_if_error()
 
 
+@git_error_handler
 def push_repos_to_dest(config: Config) -> Config:
     """
     Configures projects for destination and pushes them to destination
