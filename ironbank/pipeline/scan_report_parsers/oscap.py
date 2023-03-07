@@ -3,7 +3,7 @@ from dataclasses import InitVar, dataclass, field
 import os
 from pathlib import Path
 import re
-from typing import Any, ClassVar, Generator
+from typing import ClassVar
 
 import requests
 from ironbank.pipeline.scan_report_parsers.report_parser import (

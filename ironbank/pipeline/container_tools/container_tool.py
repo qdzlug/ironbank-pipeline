@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from abc import ABC
-from typing import Optional, Any
+from typing import Optional
 from ironbank.pipeline.utils.flatten import flatten
 
 
