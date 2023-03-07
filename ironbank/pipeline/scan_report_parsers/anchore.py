@@ -178,7 +178,4 @@ class AnchoreSecurityParser(ReportParser):
             findings.append(anchore_vuln)
 
         cls.log.info("Vulnerabilities retrieved")
-        # dedupe all findings
-        findings = cls.dedupe_findings_by_attr(findings, "identifier")
-        assert len(set(f.identifier for f in findings)) == len(findings)
         return findings
