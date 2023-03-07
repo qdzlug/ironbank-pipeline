@@ -2,7 +2,7 @@ import os
 import sys
 import json
 import pytest
-import pathlib
+from pathlib import Path
 from unittest.mock import mock_open, patch
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.testing import raise_
@@ -28,7 +28,7 @@ mock_access_log_pkgs = ["mock_access_log_pkg1"]
 def test_write_env_vars(monkeypatch):
     log.info("Test write scan logic env vars to file")
     m_open = mock_open()
-    monkeypatch.setattr(pathlib.Path, "open", m_open)
+    monkeypatch.setattr(Path, "open", m_open)
     mock_args = {
         "IMAGE_TO_SCAN": "a\n",
         "COMMIT_SHA_TO_SCAN": "b\n",
@@ -120,7 +120,7 @@ def test_get_old_pkgs(monkeypatch, caplog):
 
     log.info("Test download artifacts succeeds")
     monkeypatch.setattr(scan_logic_jobs, "download_artifacts", lambda **kwargs: True)
-    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data=""))
+    monkeypatch.setattr(Path, "open", mock_open(read_data=""))
     monkeypatch.setattr(json, "load", lambda x: {"access_log": "example"})
     monkeypatch.setattr(
         scan_logic_jobs, "parse_packages", lambda old_sbom, old_al: old_al
@@ -172,8 +172,7 @@ def test_main(monkeypatch, caplog):
 
     log.info("Test unable to verify image")
     monkeypatch.setenv("CI_COMMIT_BRANCH", "master")
-    monkeypatch.setenv("DOCKER_AUTH_CONFIG_PULL", "example")
-    monkeypatch.setattr(scan_logic_jobs, "b64decode", lambda x: x.encode())
+    monkeypatch.setenv("DOCKER_AUTH_FILE_PULL", "example")
     monkeypatch.setattr(image_verify, "diff_needed", lambda x: None)
     with pytest.raises(SystemExit):
         scan_logic_jobs.main()

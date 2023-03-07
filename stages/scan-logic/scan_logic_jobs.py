@@ -7,7 +7,6 @@ import pathlib
 import tempfile
 import image_verify
 from pathlib import Path
-from base64 import b64decode
 from ironbank.pipeline.image import Image
 
 from ironbank.pipeline.utils import logger
@@ -136,46 +135,39 @@ def main():
     elif os.environ["CI_COMMIT_BRANCH"] != "master":
         log.info("Skip Logic: Non-master branch")
     else:
-        with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
-            # TODO: Make generating docker config file a module and reuse?
-            # ------
-            docker_config = pathlib.Path(docker_config_dir, "config.json")
-            # Save docker auth to config file
-            pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("UTF-8")
-            docker_config.write_text(pull_auth)
-            # ---------
+        pull_auth = Path(os.environ["DOCKER_AUTH_FILE_PULL"])
 
-            old_image_details = image_verify.diff_needed(docker_config_dir)
-            if not old_image_details:
-                log.info("Image verify failed - Must scan new image")
-                sys.exit(0)
+        old_image_details = image_verify.diff_needed(pull_auth)
+        if not old_image_details:
+            log.info("Image verify failed - Must scan new image")
+            sys.exit(0)
 
-            log.info("SBOM diff required to determine image to scan")
+        log.info("SBOM diff required to determine image to scan")
 
-            old_pkgs = get_old_pkgs(
-                image_name=image_name,
-                image_digest=old_image_details["digest"],
-                docker_config_dir=docker_config_dir,
+        old_pkgs = get_old_pkgs(
+            image_name=image_name,
+            image_digest=old_image_details["digest"],
+            docker_config_dir=pull_auth,
+        )
+        if not old_pkgs:
+            log.info("No old pkgs to compare - Must scan new image")
+            sys.exit(0)
+
+        if new_pkgs.symmetric_difference(old_pkgs):
+            log.info(f"Packages added: {new_pkgs - old_pkgs}")
+            log.info(f"Packages removed: {old_pkgs - new_pkgs}")
+            log.info("Package(s) difference detected - Must scan new image")
+        else:
+            log.info("Package lists match - Able to scan old image")
+            # Override image to scan with old tag
+            image_name_tag = f"{os.environ['REGISTRY_PUBLISH_URL']}/{image_name}:{old_image_details['tag']}"
+            write_env_vars(
+                image_name_tag,
+                old_image_details["commit_sha"],
+                old_image_details["digest"],
+                old_image_details["build_date"],
             )
-            if not old_pkgs:
-                log.info("No old pkgs to compare - Must scan new image")
-                sys.exit(0)
-
-            if new_pkgs.symmetric_difference(old_pkgs):
-                log.info(f"Packages added: {new_pkgs - old_pkgs}")
-                log.info(f"Packages removed: {old_pkgs - new_pkgs}")
-                log.info("Package(s) difference detected - Must scan new image")
-            else:
-                log.info("Package lists match - Able to scan old image")
-                # Override image to scan with old tag
-                image_name_tag = f"{os.environ['REGISTRY_PUBLISH_URL']}/{image_name}:{old_image_details['tag']}"
-                write_env_vars(
-                    image_name_tag,
-                    old_image_details["commit_sha"],
-                    old_image_details["digest"],
-                    old_image_details["build_date"],
-                )
-                log.info("Old image name, tag, digest, and build date saved")
+            log.info("Old image name, tag, digest, and build date saved")
 
 
 if __name__ == "__main__":

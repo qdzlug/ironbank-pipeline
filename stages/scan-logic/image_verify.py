@@ -13,11 +13,9 @@ from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 log = logger.setup("image_verify")
 
 
-def inspect_old_image(
-    manifest: HardeningManifest, docker_config_dir: str
-) -> Optional[dict]:
+def inspect_old_image(manifest: HardeningManifest, pull_auth: str) -> Optional[dict]:
     try:
-        skopeo = Skopeo(docker_config_dir=docker_config_dir)
+        skopeo = Skopeo(authfile=pull_auth)
         old_image = Image(
             registry=os.environ["REGISTRY_PUBLISH_URL"],
             name=manifest.image_name,
@@ -65,13 +63,13 @@ def verify_image_properties(img_json: dict, manifest: HardeningManifest) -> bool
     return False
 
 
-def diff_needed(docker_config_dir: str) -> Optional[dict]:
+def diff_needed(pull_auth: str) -> Optional[dict]:
     try:
         dsop_project = DsopProject()
         manifest = HardeningManifest(dsop_project.hardening_manifest_path)
 
         log.info("Inspecting old image")
-        old_img_json = inspect_old_image(manifest, docker_config_dir)
+        old_img_json = inspect_old_image(manifest, pull_auth)
 
         log.info("Verifying image properties")
         # Return old image information if all are true:
