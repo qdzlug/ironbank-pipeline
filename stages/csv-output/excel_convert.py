@@ -50,7 +50,6 @@ def main(argv):
     _set_all_column_widths(wb)
     if os.environ["CI_COMMIT_BRANCH"] not in ["development", "master"]:
         _add_sheet_banners(wb)
-    wb.save(output_file)
 
 
 def _add_sheet_banners(wb):
@@ -157,7 +156,6 @@ def convert_to_excel(csv_dir, justification_sheet):
         read_gates_no_justifications.to_excel(
             writer, sheet_name="Anchore Compliance Results", header=True, index=False
         )
-        writer.save()
     with pd.ExcelWriter(
         justification_sheet
     ) as writer:  # pylint: disable=abstract-class-instantiated
@@ -177,7 +175,6 @@ def convert_to_excel(csv_dir, justification_sheet):
         read_gates.to_excel(
             writer, sheet_name="Anchore Compliance Results", header=True, index=False
         )
-        writer.save()
 
 
 def _set_column_width(sheet, column_value, width, wrap=False):

@@ -129,7 +129,7 @@ class RuleInfo:
         return rule_obj.attrib.get("id", "") or rule_obj.attrib.get("idref", "")
 
     @classmethod
-    def get_results(cls, root, results_filter=None):
+    def get_results(cls, root, results_filter):
         return [
             rule_result
             for rule_result in root.findall(
@@ -354,7 +354,7 @@ class OscapReportParser(ReportParser):
 
     @classmethod
     def get_findings(
-        cls, report_path: Path, results_filter: tuple[str] = RuleInfo.fail_results
+        cls, report_path: Path, results_filter: tuple[str] | None = RuleInfo.fail_results
     ) -> list[OscapComplianceFinding]:
         """
         if results_filter is None, all results will be returned if failed or not
