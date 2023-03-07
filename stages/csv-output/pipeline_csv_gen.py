@@ -220,7 +220,7 @@ def generate_anchore_cve_report(
     AnchoreSecurityParser.write_csv_from_dict_list(
         csv_dir=csv_output_dir,
         dict_list=finding_dict_list,
-        fieldnames=fieldnames,
+        fieldnames=finding_dict_list[0].keys(),
         filename="anchore_security.csv",
     )
 
