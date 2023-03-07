@@ -42,6 +42,7 @@ class HardeningManifest:
         self.partner_advocates: list[dict] = tmp_content.get("partner_advocates", [])
         self.invalid_labels = None
         self.invalid_maintainers = None
+        self.invalid_partner_advocates = None
         self.invalid_image_sources = None
         if validate:
             self.validate()

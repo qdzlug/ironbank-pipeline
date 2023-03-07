@@ -21,7 +21,11 @@ async def main():
         validate=True,
     )
     hardening_manifest.create_artifacts()
-    if hardening_manifest.invalid_labels or hardening_manifest.invalid_maintainers:
+    if (
+        hardening_manifest.invalid_labels
+        or hardening_manifest.invalid_maintainers
+        or hardening_manifest.invalid_partner_advocates
+    ):
         log.error(
             "Please update these labels to appropriately describe your container before rerunning this pipeline"
         )
