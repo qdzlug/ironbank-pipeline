@@ -22,6 +22,7 @@ def test_harbor_system_project(monkeypatch):  # noqa W0404
     assert "goo-goo-dolls" in harbor_system.projects[0].name
     assert "ironbank" in harbor_system.projects[1].name
 
+
 @patch("ironbank.pipeline.harbor.PaginatedRequest", new=MockPaginatedRequest)
 def test_harbor_project(monkeypatch):  # noqa W0404
     log.info("Test successful get all repositories")
