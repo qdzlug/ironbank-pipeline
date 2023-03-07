@@ -10,6 +10,19 @@ log = logger.setup("test_harbor")
 
 
 @patch("ironbank.pipeline.harbor.PaginatedRequest", new=MockPaginatedRequest)
+def test_harbor_system_project(monkeypatch):  # noqa W0404
+    log.info("Test successful projects retrieval")
+    monkeypatch.setattr(
+        MockPaginatedRequest,
+        "get",
+        lambda x: [{"name": "goo-goo-dolls"}, {"name": "ironbank"}],
+    )
+    harbor_system = HarborSystem(MockSession())
+    harbor_system.get_projects()
+    assert "goo-goo-dolls" in harbor_system.projects[0].name
+    assert "ironbank" in harbor_system.projects[1].name
+
+@patch("ironbank.pipeline.harbor.PaginatedRequest", new=MockPaginatedRequest)
 def test_harbor_project(monkeypatch):  # noqa W0404
     log.info("Test successful get all repositories")
     monkeypatch.setattr(
