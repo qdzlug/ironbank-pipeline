@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os
-import logging
+import sys
 from pathlib import Path
 
 sys.path.append(Path(__file__).absolute().parents[3].as_posix())
