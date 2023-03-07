@@ -167,7 +167,7 @@ class HardeningManifest:
 
     def reject_invalid_partner_advocates(self) -> list:
         """
-        Returns list of keys in hardening manifest maintainers whose value contains FIXME (case insensitive)
+        Returns list of keys in hardening manifest partner_advocates whose value contains FIXME (case insensitive)
         """
         log.info("Checking partner_advocate values")
         invalid_partner_advocates = []
