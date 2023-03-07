@@ -207,6 +207,7 @@ def generate_anchore_cve_report(
         "nvd_cvss_v3_vector",
         "vendor_cvss_v2_vector",
         "vendor_cvss_v3_vector",
+        "Justification",
     ]
 
     finding_dict_list = [
@@ -220,7 +221,7 @@ def generate_anchore_cve_report(
     AnchoreSecurityParser.write_csv_from_dict_list(
         csv_dir=csv_output_dir,
         dict_list=finding_dict_list,
-        fieldnames=finding_dict_list[0].keys(),
+        fieldnames=fieldnames,
         filename="anchore_security.csv",
     )
 
