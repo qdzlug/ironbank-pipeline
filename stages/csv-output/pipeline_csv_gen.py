@@ -52,7 +52,6 @@ def main() -> None:
     anchore_cve_fail_count = 0
     anchore_comp_fail_count = 0
     image_id = ""
-
     if "DISTROLESS" not in os.environ:
         (
             oscap_comp_fail_count,
@@ -208,7 +207,6 @@ def generate_anchore_cve_report(
         "nvd_cvss_v3_vector",
         "vendor_cvss_v2_vector",
         "vendor_cvss_v3_vector",
-        "Justification",
     ]
 
     finding_dict_list = [
@@ -330,7 +328,7 @@ def generate_oscap_compliance_report(
         {
             **finding.get_dict_from_fieldnames(fieldnames=fieldnames),
             "identifiers": finding.identifier,
-            "justification": finding.get_justification(justifications=justifications),
+            "Justification": finding.get_justification(justifications=justifications),
         }
         for finding in findings
     ]
