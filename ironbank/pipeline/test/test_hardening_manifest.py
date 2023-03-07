@@ -113,6 +113,7 @@ def mock_bad_maintainers():
         "email": "example@company.com",
     }
 
+
 @pytest.fixture
 def mock_good_partner_advocates():
     return {
@@ -127,6 +128,7 @@ def mock_bad_partner_advocates():
         "name": "FIXME",
         "username": "example",
     }
+
 
 @pytest.fixture
 def mock_good_image_sources():
@@ -339,7 +341,12 @@ def test_validate_schema(monkeypatch, caplog, hm):
 
 
 def test_find_fixme(
-    hm, mock_good_labels, mock_good_maintainers, mock_bad_labels, mock_bad_maintainers, mock_bad_partner_advocates, mock_good_partner_advocates
+    hm, mock_good_labels, 
+    mock_good_maintainers, 
+    mock_bad_labels, 
+    mock_bad_maintainers, 
+    mock_bad_partner_advocates, 
+    mock_good_partner_advocates
 ):
     assert hm.check_for_fixme(mock_good_labels) == []
     assert hm.check_for_fixme(mock_good_maintainers) == []
