@@ -32,7 +32,7 @@ def git_error_handler(func):
             print(
                 "\x1b[38;5;226mNote: Removing the clone_dir directory may resolve git-related errors. If you're unsure which directory this is, check the clone_dir value in the config.yaml\n\n\033[0m"
             )
-            raise e from None
+            raise e
 
     return wrapper
 
