@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from ironbank.pipeline.test.mocks.mock_classes import MockPaginatedRequest, MockSession
-from ironbank.pipeline.harbor import HarborProject, HarborRepository, HarborRobots
+from ironbank.pipeline.harbor import HarborProject, HarborRepository, HarborSystem
 from ironbank.pipeline.utils import logger
 from unittest.mock import patch
 
@@ -45,7 +45,7 @@ def test_harbor_repository(monkeypatch):  # noqa W0404
             },
         ],
     )
-    harbor_repository = HarborRepository(MockSession(), name="ironbank")
+    harbor_repository = HarborRepository(session=MockSession(), name="ironbank")
     harbor_repository.get_repository_artifact(all=True)
     assert "test" == harbor_repository.artifacts[0].digest
     assert harbor_repository.artifacts[1].tags is None
@@ -53,17 +53,26 @@ def test_harbor_repository(monkeypatch):  # noqa W0404
 
 @patch("ironbank.pipeline.harbor.PaginatedRequest", new=MockPaginatedRequest)
 def test_harbor_robots(monkeypatch):  # noqa W0404
-    log.info("Test get accounts harbor robots")
+    log.info("Test get harbor project robots")
     monkeypatch.setattr(
         MockPaginatedRequest,
         "get",
         lambda x: [
             {"name": "robot1", "description": "test robot", "expires_at": "2022-01-01"},
             {"name": "robot2", "description": "test robot", "expires_at": "2023-01-01"},
+            {"name": "robot2", "expires_at": "2023-01-01"},
         ],
     )
 
-    ironbank = HarborRobots(MockSession())
-    ironbank.get_accounts()
-    assert "robot1" == ironbank.accounts[0].name
-    assert "test robot" == ironbank.accounts[1].description
+    harbor_project = HarborProject(name="nonsense", session=MockSession())
+    harbor_project.get_robot_accounts()
+    assert "robot1" == harbor_project.robots[0].name
+    assert "test robot" == harbor_project.robots[1].description
+    assert "" == harbor_project.robots[2].description
+
+    log.info("Test get harbor system robots")
+    harbor_system = HarborSystem(session=MockSession())
+    harbor_system.get_robot_accounts()
+    assert "robot1" == harbor_system.robots[0].name
+    assert "test robot" == harbor_system.robots[1].description
+    assert "" == harbor_project.robots[2].description
