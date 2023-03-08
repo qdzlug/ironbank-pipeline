@@ -6,7 +6,7 @@ import json
 import os
 from pathlib import Path
 
-from ironbank.pipeline.scan_report_parsers.anchore import AnchoreSecurityParser
+from ironbank.pipeline.scan_report_parsers.anchore import AnchoreReportParser
 from ironbank.pipeline.scan_report_parsers.oscap import OscapReportParser
 
 from ironbank.pipeline.scan_report_parsers.report_parser import ReportParser
@@ -188,7 +188,7 @@ def generate_anchore_cve_report(
 
     """
 
-    findings = AnchoreSecurityParser.get_findings(report_path=report_path)
+    findings = AnchoreReportParser.get_findings(report_path=report_path)
 
     fieldnames = [
         "tag",
@@ -218,7 +218,7 @@ def generate_anchore_cve_report(
         for finding in findings
     ]
 
-    AnchoreSecurityParser.write_csv_from_dict_list(
+    AnchoreReportParser.write_csv_from_dict_list(
         csv_dir=csv_output_dir,
         dict_list=finding_dict_list,
         fieldnames=fieldnames,

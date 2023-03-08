@@ -2,7 +2,7 @@ import inspect
 import pytest
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.scan_report_parsers.anchore import (
-    AnchoreSecurityParser,
+    AnchoreReportParser,
     AnchoreCVEFinding,
 )
 
@@ -231,7 +231,7 @@ def test_dict(mock_anchore_vuln):
 
 def test_get_findings(monkeypatch, mock_vulns):
     log.info("Test vulnerabilites are parsed from scan report")
-    mock_anchore_security_parser = AnchoreSecurityParser()
+    mock_anchore_security_parser = AnchoreReportParser()
     monkeypatch.setattr(AnchoreCVEFinding, "from_dict", lambda vuln_data: vuln_data)
     vulns = mock_anchore_security_parser.get_findings(mock_vulns)
     assert vulns == [

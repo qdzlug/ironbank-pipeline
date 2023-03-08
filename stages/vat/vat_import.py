@@ -18,7 +18,7 @@ from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.container_tools.cosign import Cosign
 from ironbank.pipeline.scan_report_parsers.oscap import OscapReportParser
 from ironbank.pipeline.utils.predicates import Predicates
-from ironbank.pipeline.scan_report_parsers.anchore import AnchoreSecurityParser
+from ironbank.pipeline.scan_report_parsers.anchore import AnchoreReportParser
 from ironbank.pipeline.hardening_manifest import (
     HardeningManifest,
     source_values,
@@ -150,7 +150,7 @@ def generate_anchore_cve_findings(report_path, vat_finding_fields):
     in case of duplicate cves with different sorts for the list of fix versions
     """
 
-    findings = AnchoreSecurityParser.get_findings(report_path=Path(report_path))
+    findings = AnchoreReportParser.get_findings(report_path=Path(report_path))
 
     formatted_findings = []
     for finding in findings:

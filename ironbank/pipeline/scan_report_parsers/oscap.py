@@ -316,7 +316,7 @@ class RuleInfoOVAL(RuleInfo):
 class OscapFinding(AbstractFinding):
     """
     Base class for oscap findings
-    Resolves finding type (compliance or OVAL) and methods properties to support gathering metadata from findings
+    Resolves finding type (compliance or OVAL) and methods properties to support gathering metadata from oscap findings
     """
 
     rule_id: str = None
@@ -441,6 +441,10 @@ class OscapOVALFinding(OscapFinding):
 
 @dataclass
 class OscapReportParser(ReportParser):
+    """
+    Class for parsing findings out of oscap compliance reports
+    """
+
     log: logger = logger.setup("OscapReportParser")
 
     @classmethod
@@ -450,6 +454,8 @@ class OscapReportParser(ReportParser):
         results_filter: Optional[tuple[str]] = RuleInfo.fail_results,
     ) -> list[OscapComplianceFinding]:
         """
+        Gather oscap finding from oscap xml report
+
         If results_filter is None, all results will be returned if failed or not
         typically findings are in ["notchecked", "fail", "error"], but pipeline_csv_gen gathers all findings regardless of status
         """
