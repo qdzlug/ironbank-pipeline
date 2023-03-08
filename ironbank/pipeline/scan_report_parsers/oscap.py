@@ -55,7 +55,9 @@ class RuleInfo:
     oval_href: str = ""
     _log: logger = logger.setup("RuleInfo")
 
-    def __new__(cls, root: ElementTree, rule_result: Element) -> Callable:  # pylint: disable=unused-argument
+    def __new__(
+        cls, root: ElementTree, rule_result: Element
+    ) -> Callable:  # pylint: disable=unused-argument
         rule_class: Callable = (
             RuleInfoOVAL
             if (cls.get_rule_id(rule_result) == cls.oval_rule)
@@ -316,6 +318,7 @@ class OscapFinding(AbstractFinding):
     Base class for oscap findings
     Resolves finding type (compliance or OVAL) and methods properties to support gathering metadata from findings
     """
+
     rule_id: str = None
     score: str = ""
     package: str = None
@@ -331,7 +334,7 @@ class OscapFinding(AbstractFinding):
     @classmethod
     def get_default_init_params(cls, rule_info: RuleInfo) -> dict[str, Any]:
         """
-            Return dictionary of default initialization paramaters
+        Return dictionary of default initialization paramaters
         """
         return {
             "identifiers": rule_info.identifiers,
@@ -364,7 +367,7 @@ class OscapFinding(AbstractFinding):
     @property
     def desc(self) -> None:
         """
-            Read only description alias
+        Read only description alias
         """
         return self.description
 
@@ -434,6 +437,7 @@ class OscapOVALFinding(OscapFinding):
                     "link": finding.attrib["href"],
                 }
             )
+
 
 @dataclass
 class OscapReportParser(ReportParser):

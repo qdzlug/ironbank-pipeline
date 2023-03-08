@@ -70,18 +70,22 @@ class AnchoreCVEFinding(AbstractFinding):
     # def inherited(self):
     #     del self.inherited_from_base
 
-    # add alias from cve -> vuln
     @property
     def cve(self) -> str:
+        """
+        add alias from cve -> vuln
+        """
         return self.identifier
 
     @property
     def vuln(self) -> str:
         return self.identifier
 
-    # add alias from inherited -> inherited_from_base
     @property
     def inherited(self) -> str:
+        """
+        add alias from inherited -> inherited_from_base
+        """
         return self.inherited_from_base
 
     @property
