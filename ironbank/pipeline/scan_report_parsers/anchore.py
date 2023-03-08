@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import re
 from dataclasses import dataclass, field, fields
-from typing import Any
+from typing import Any, Optional, Union
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.decorators import key_index_error_handler
 from ironbank.pipeline.scan_report_parsers.report_parser import (
@@ -29,7 +29,7 @@ class AnchoreCVEFinding(AbstractFinding):
     url: str = ""
     extra: dict[str, Any] = field(default_factory=lambda: {})
     inherited_from_base: str = "no_data"
-    nvd_data: list[dict[str, Any]] | dict[str, Any] = field(default_factory=lambda: [])
+    nvd_data: Union[list[dict[str, Any]], dict[str, Any]] = field(default_factory=lambda: [])
     vendor_data: list[dict[str, Any]] = field(default_factory=lambda: [])
     # values are parsed form key paths in anchore report
     identifiers: list[str] = field(default_factory=lambda: [])
