@@ -49,3 +49,7 @@ maintainers:
     username: "cht_memeber"
     email: "cht_member@company.com"
     cht_member: true
+
+partner_advocates:
+  - name: "CHT Member"
+    username: "cht_member"

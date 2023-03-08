@@ -214,6 +214,7 @@ class MockHardeningManifest(HardeningManifest):
     validate: bool = False
     invalid_labels = None
     invalid_maintainers = None
+    invalid_partner_advocates = None
     invalid_image_sources = None
     args: dict = field(default_factory=lambda: {"a": "b", "c": "d"})
     labels: dict = field(default_factory=lambda: {"very": "cool", "wow": "awesome"})
