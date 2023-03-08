@@ -89,6 +89,7 @@ cosign verify-attestation \
 --cert https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-certificate.pem \
 registry1.dso.mil/ironbank/docker/scratch:ironbank
 ```
+
 ### Verifying Attestations with Cosign 2.0
 
 To verify the attestation of an existing image in registry1 using Cosign 2.0, you can use either a certificate or a public key.
@@ -100,14 +101,13 @@ If you have a certificate, you can use the cosign verify command with the --cert
 '''bash
 cosign verify \
 --certificate-identity 'ironbank@dsop.io' \
---certificate-oidc-issuer-regexp '.*' \
+--certificate-oidc-issuer-regexp '.\*' \
 --certificate 'ironbank-pipeline/scripts/cosign/cosign-certificate.pem' \
 --certificate-chain 'ironbank-pipeline/scripts/cosign/cosign-ca-bundle.pem' \
 --signature-digest-algorithm=sha256 \
 --insecure-ignore-tlog \
 --insecure-ignore-sct \
 <image_name>:<image_tag>
-
 
 In this command, replace <image_name> and <image_tag> with the name and tag of the image you want to verify. The options --certificate-identity, --certificate-oidc-issuer-regexp, and --signature-digest-algorithm are used to specify additional details about the certificate being used for verification.
 
