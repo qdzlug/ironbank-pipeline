@@ -53,8 +53,9 @@ class RuleInfo:
     fail_results: ClassVar[tuple[str]] = ("notchecked", "fail", "error")
     oval_name: str = ""
     oval_href: str = ""
+    _log: logger = logger.setup("RuleInfo")
 
-    def __new__(cls, root: ElementTree, rule_result: Element) -> Callable:
+    def __new__(cls, root: ElementTree, rule_result: Element) -> Callable:  # pylint: disable=unused-argument
         rule_class: Callable = (
             RuleInfoOVAL
             if (cls.get_rule_id(rule_result) == cls.oval_rule)
@@ -191,6 +192,7 @@ class RuleInfoOVAL(RuleInfo):
     definition: str = None
     findings: str = None
     description: str = None
+    _log: logger = logger.setup("RuleInfoOVAL")
 
     def __post_init__(self, root: Element, rule_result: Element) -> None:
         """
@@ -200,6 +202,9 @@ class RuleInfoOVAL(RuleInfo):
         super().__post_init__(root, rule_result)
         self.set_oval_name(rule_result)
         self.set_oval_href(rule_result)
+        oval_url: str = self.get_oval_url(self.oval_href)
+        oval_root: ElementTree = etree.parse(self.download_oval_defintions(oval_url))
+        self.set_values_from_oval_report(oval_root)
 
     def set_oval_val_from_ref(self, val: str, rule_result: Element) -> None:
         """
@@ -262,118 +267,12 @@ class RuleInfoOVAL(RuleInfo):
                 "oval:metadata/oval:title", self.namespaces
             ).text
 
-
-@dataclass
-class OscapFinding(AbstractFinding):
-    rule_id: str = None
-    score: str = ""
-    package: str = None
-    package_path: str = None
-    references: str = None
-    identifiers: tuple = field(default_factory=lambda: ())
-    title: str = None
-    result: str = None
-    rationale: str = None
-    scanned_date: str = None
-    scan_source: str = "oscap_comp"
-
-    @classmethod
-    def get_default_init_params(cls, rule_info: RuleInfo) -> dict[str, Any]:
-        return {
-            "identifiers": rule_info.identifiers,
-            "identifier": rule_info.identifier,
-            "severity": rule_info.severity,
-            "rule_id": rule_info.rule_id,
-            "title": rule_info.title,
-            "scanned_date": rule_info.time,
-            "result": rule_info.result,
-            "description": rule_info.description,
-            "references": rule_info.references,
-            "rationale": rule_info.rationale,
-        }
-
-    @classmethod
-    def get_findings_from_rule_info(
-        cls, rule_info: RuleInfo
-    ) -> Generator[object, None, None]:
-        """
-        Gather findings from single rule_result
-        If rule_result is OVAL, this list could include several findings, if rule_result is compliance only one finding will be returned in the list
-        """
-        finding_class = (
-            OscapOVALFinding
-            if isinstance(rule_info, RuleInfoOVAL)
-            else OscapComplianceFinding
-        )
-        return finding_class.get_findings_from_rule_info(rule_info=rule_info)
-
-    @property
-    def desc(self) -> None:
-        return self.description
-
-    @property
-    def refs(self) -> None:
-        return self.references
-
-    @property
-    def ruleid(self) -> None:
-        return self.rule_id
-
-    def as_dict(self) -> dict[str, Any]:
-        return {
-            **super().as_dict(),
-            "refs": self.refs,
-            "desc": self.desc,
-            "ruleid": self.ruleid,
-        }
-
-
-@dataclass(eq=True)
-class OscapComplianceFinding(OscapFinding):
-    _log: logger = logger.setup("OscapComplianceFinding")
-
-    @classmethod
-    def get_findings_from_rule_info(
-        cls, rule_info: RuleInfo
-    ) -> Generator[object, None, None]:
-        """
-        Generate a single compliance finding from a rule result
-
-        Attributes like description/references/etc. are gathered here instead of a __post_init__ because they depend on the rule object
-        """
-        yield cls(**cls.get_default_init_params(rule_info))
-
-    def __hash__(self) -> int:
-        return hash(self.identifier)
-
-
-@dataclass(eq=True)
-class OscapOVALFinding(OscapFinding):
-    link: str = None
-    _log: logger = logger.setup("OscapOVALFinding")
-
-    @classmethod
-    def get_findings_from_rule_info(
-        cls, rule_info: RuleInfo
-    ) -> Generator[object, None, None]:
-        """
-        Generate a list of OVAL findings from a rule result
-        """
-        oval_url: str = cls.get_oval_url(rule_info.oval_href)
-        oval_root: ElementTree = etree.parse(cls.download_oval_defintions(oval_url))
-        rule_info.set_values_from_oval_report(oval_root)
-        for finding in rule_info.findings:
-            yield cls(
-                **{
-                    **cls.get_default_init_params(rule_info),
-                    "identifier": finding.text,
-                    "link": finding.attrib["href"],
-                }
-            )
-
-    # TODO: decide where these make the most sense, not sure the finding class is the best spot
     @classmethod
     def get_oval_url(cls, finding_href: str) -> str:
+        """
+        Gather oval url from os type
+        Only called if an OVAL finding is discovered
+        """
         if rhel_match := re.search(r"RHEL(?P<version>(7|8|9))", finding_href):
             return f"https://www.redhat.com/security/data/oval/com.redhat.rhsa-RHEL{rhel_match.group('version')}.xml.bz2"
         elif sle_match := re.search(
@@ -386,7 +285,10 @@ class OscapOVALFinding(OscapFinding):
 
     @classmethod
     def download_oval_defintions(cls, url: str) -> list[dict]:
-        """ """
+        """
+        Download oval definition if not already downloaded
+        Only called if an OVAL finding is discovered
+        """
         artifact_path = Path(
             f"{os.environ['ARTIFACT_DIR']}/oval_definitions-{re.sub(r'[^a-z]', '-', url)}.xml"
         )
@@ -407,15 +309,131 @@ class OscapOVALFinding(OscapFinding):
                 raise OvalDefintionDownloadFailure
         return artifact_path
 
-    def __eq__(self, other: object) -> bool:
-        """
-        Prevent having multiple oval findings with same identifier
-        """
-        return self.identifier == other.identifier
 
-    def __hash__(self) -> None:
-        return hash(self.identifier)
+@dataclass
+class OscapFinding(AbstractFinding):
+    """
+    Base class for oscap findings
+    Resolves finding type (compliance or OVAL) and methods properties to support gathering metadata from findings
+    """
+    rule_id: str = None
+    score: str = ""
+    package: str = None
+    package_path: str = None
+    references: str = None
+    identifiers: tuple = field(default_factory=lambda: ())
+    title: str = None
+    result: str = None
+    rationale: str = None
+    scanned_date: str = None
+    scan_source: str = "oscap_comp"
 
+    @classmethod
+    def get_default_init_params(cls, rule_info: RuleInfo) -> dict[str, Any]:
+        """
+            Return dictionary of default initialization paramaters
+        """
+        return {
+            "identifiers": rule_info.identifiers,
+            "identifier": rule_info.identifier,
+            "severity": rule_info.severity,
+            "rule_id": rule_info.rule_id,
+            "title": rule_info.title,
+            "scanned_date": rule_info.time,
+            "result": rule_info.result,
+            "description": rule_info.description,
+            "references": rule_info.references,
+            "rationale": rule_info.rationale,
+        }
+
+    @classmethod
+    def get_findings_from_rule_info(
+        cls, rule_info: RuleInfo
+    ) -> Generator[object, None, None]:
+        """
+        Gather findings from single rule_result
+        If rule_result is OVAL, this list could include several findings, if rule_result is compliance only one finding will be returned in the generator
+        """
+        finding_class = (
+            OscapOVALFinding
+            if isinstance(rule_info, RuleInfoOVAL)
+            else OscapComplianceFinding
+        )
+        return finding_class.get_findings_from_rule_info(rule_info=rule_info)
+
+    @property
+    def desc(self) -> None:
+        """
+            Read only description alias
+        """
+        return self.description
+
+    @property
+    def refs(self) -> None:
+        """
+        Read only references alias
+        """
+        return self.references
+
+    @property
+    def ruleid(self) -> None:
+        """
+        Read only rule_id alias
+        """
+        return self.rule_id
+
+    def as_dict(self) -> dict[str, Any]:
+        """
+        Return object properties and attributes as a dictionary
+        """
+        return {
+            **super().as_dict(),
+            "refs": self.refs,
+            "desc": self.desc,
+            "ruleid": self.ruleid,
+        }
+
+
+@dataclass(eq=True)
+class OscapComplianceFinding(OscapFinding):
+    _log: logger = logger.setup("OscapComplianceFinding")
+
+    @classmethod
+    def get_findings_from_rule_info(
+        cls, rule_info: RuleInfo
+    ) -> Generator[object, None, None]:
+        """
+        Generate a single compliance finding from a RuleInfo object
+
+        This method is not directly called for this class type anywhere but in the parent's matching method
+        However, this method could be called directly for compliance findings if needed
+        """
+        yield cls(**cls.get_default_init_params(rule_info))
+
+
+@dataclass
+class OscapOVALFinding(OscapFinding):
+    link: str = None
+    _log: logger = logger.setup("OscapOVALFinding")
+
+    @classmethod
+    def get_findings_from_rule_info(
+        cls, rule_info: RuleInfo
+    ) -> Generator[object, None, None]:
+        """
+        Generate a list of OVAL findings from a rule result
+
+        This method is not directly called for this class type anywhere but in the parent's matching method
+        However, this method could be called directly for oval findings if needed
+        """
+        for finding in rule_info.findings:
+            yield cls(
+                **{
+                    **cls.get_default_init_params(rule_info),
+                    "identifier": finding.text,
+                    "link": finding.attrib["href"],
+                }
+            )
 
 @dataclass
 class OscapReportParser(ReportParser):
@@ -428,7 +446,7 @@ class OscapReportParser(ReportParser):
         results_filter: Optional[tuple[str]] = RuleInfo.fail_results,
     ) -> list[OscapComplianceFinding]:
         """
-        if results_filter is None, all results will be returned if failed or not
+        If results_filter is None, all results will be returned if failed or not
         typically findings are in ["notchecked", "fail", "error"], but pipeline_csv_gen gathers all findings regardless of status
         """
         root: ElementTree = etree.parse(report_path)
