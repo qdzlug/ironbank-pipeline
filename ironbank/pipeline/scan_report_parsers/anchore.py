@@ -48,7 +48,6 @@ class AnchoreCVEFinding(AbstractFinding):
         """
         Set values from existing object attributes that were set during __init__
         """
-        # TODO: switch these to setattr to prevent issues with frozen
 
         # allow for multiple names for vuln, allows vat/csv_gen to use different names and parse __dict__ for an AnchoreCVEFinding object
         self.set_sorted_fix()

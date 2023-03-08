@@ -3,6 +3,7 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
 import csv
+from typing import Any
 
 
 @dataclass
@@ -16,20 +17,31 @@ class AbstractFinding(ABC):
     package: str = ""
     package_path: str = ""
 
-    # add alias from finding -> vuln
     @property
-    def finding(self):
+    def finding(self) -> str:
+        """
+        Read only alias for identifier
+        """
         return self.identifier
 
     @property
-    def packagePath(self):
+    def packagePath(self) -> str:  # pylint: disable=invalid-name
+        """
+        Read only alias for package_path
+        """
         return self.package_path
 
     @property
-    def scanSource(self):
+    def scanSource(self) -> str:  # pylint: disable=invalid-name
+        """
+        Read only alias for scan_source
+        """
         return self.scan_source
 
-    def as_dict(self) -> dict:
+    def as_dict(self) -> dict[str, Any]:
+        """
+        Return dictionary representation of object including attributes and properties
+        """
         return {
             **self.__dict__,
             "finding": self.finding,
@@ -37,28 +49,35 @@ class AbstractFinding(ABC):
             "scanSource": self.scanSource,
         }
 
-    def get_dict_from_fieldnames(self, fieldnames: list[str]) -> dict:
+    def get_dict_from_fieldnames(self, fieldnames: list[str]) -> dict[str, Any]:
+        """
+        Return dictionary of all attributes matching input fieldnames
+        Sort order for keys in dictionary match order of fieldnames
+        """
         # using OrderedDict so the keys are ordered in the same way the fieldnames are ordered
         finding_dict = OrderedDict({k: None for k in fieldnames})
-        for k, v in self.as_dict().items():
-            if k in fieldnames:
-                finding_dict[k] = v
+        for key, value in self.as_dict().items():
+            if key in fieldnames:
+                finding_dict[key] = value
         return dict(finding_dict)
 
     def get_justification(self, justifications: dict) -> str:
-        id = (
+        id_ = (
             self.identifier,
             self.package,
             self.package_path if self.package_path != "pkgdb" else None,
         )
-        return justifications.get(id, "") if justifications else ""  # type: ignore
+        return justifications.get(id_, "") if justifications else ""
 
 
-# make this an abstract class once all inheriting classes are defined
 @dataclass
-class ReportParser:
+class ReportParser(ABC):
+    """
+    Base class for scan report parsing
+    Provides generic helper methods for writing out results, deduping findings, etc.
+    """
     @classmethod
-    def dedupe_findings_by_attr(cls, findings, attribute):
+    def dedupe_findings_by_attr(cls, findings: list[AbstractFinding], attribute: str) -> list[AbstractFinding]:
         """
         Remove duplicate findings from list by finding attribute
         """
@@ -73,9 +92,7 @@ class ReportParser:
         cls, csv_dir: Path, dict_list: list[dict], fieldnames: list, filename: str
     ) -> None:
         """
-        Create csv file based off prepared data. The data must be provided as a list
-        of dictionaries and the rest will be taken care of.
-
+        Create csv file based off prepared data. The data must be provided as a list of dictionaries.
         """
         filepath = Path(csv_dir, filename)
         filepath.parent.mkdir(parents=True, exist_ok=True)
