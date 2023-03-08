@@ -31,7 +31,7 @@ class RuleInfo:
     root: InitVar[ElementTree]
     rule_result: InitVar[Element]
     rule_id: str = ""
-    identifiers: list[str] = None
+    identifiers: list[str] | None = None
     identifier: str = ""
     title: str = ""
     severity: str = ""
@@ -189,11 +189,11 @@ class RuleInfoOVAL(RuleInfo):
     All oval xml parsing should be done within this class
     """
 
-    oval_name: str = None
-    oval_href: str = None
-    definition: str = None
-    findings: str = None
-    description: str = None
+    oval_name: str | None = None
+    oval_href: str | None = None
+    definition: str | None = None
+    findings: str | None = None
+    description: str | None = None
     _log: logger = logger.setup("RuleInfoOVAL")
 
     def __post_init__(self, root: Element, rule_result: Element) -> None:
@@ -319,16 +319,16 @@ class OscapFinding(AbstractFinding):
     Resolves finding type (compliance or OVAL) and methods properties to support gathering metadata from oscap findings
     """
 
-    rule_id: str = None
+    rule_id: str | None = None
     score: str = ""
-    package: str = None
-    package_path: str = None
-    references: str = None
+    package: str | None = None
+    package_path: str | None = None
+    references: str | None = None
     identifiers: tuple = field(default_factory=lambda: ())
-    title: str = None
-    result: str = None
-    rationale: str = None
-    scanned_date: str = None
+    title: str | None = None
+    result: str | None = None
+    rationale: str | None = None
+    scanned_date: str | None = None
     scan_source: str = "oscap_comp"
 
     @classmethod

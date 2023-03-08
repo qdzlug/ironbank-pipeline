@@ -91,30 +91,6 @@ def main() -> None:
     )
 
 
-def generate_blank_oscap_report(csv_output_dir: Path) -> None:
-    """
-    Creates an empty oscap report, used when the OpenSCAP scan was skipped.
-    """
-    with Path(
-        csv_output_dir,
-        "oscap.csv",
-    ).open(mode="w", encoding="utf-8") as f:
-        csv_writer = csv.writer(f)
-        csv_writer.writerow(
-            [
-                "OpenSCAP Scan Skipped Due to Base Image Used",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-            ]
-        )
-
-
 def generate_summary_report(
     oscap_comp_fail_count: int,
     oscap_comp_not_checked_count: int,
@@ -306,56 +282,6 @@ def generate_anchore_compliance_report(
     return stop_count, image_id
 
 
-def generate_oscap_compliance_report(
-    report_path: Path, csv_output_dir: Path, justifications: dict
-) -> tuple[int, int]:
-    """
-    Generate csv for OSCAP findings with justifications
-    Calls the get_oscap_full function to first parse the OSCAP XML report.
-    """
-    findings = OscapReportParser.get_findings(report_path, results_filter=None)
-    fieldnames = [
-        "title",
-        "ruleid",
-        "result",
-        "severity",
-        "identifiers",
-        "refs",
-        "desc",
-        "rationale",
-        "scanned_date",
-    ]
-    findings_dict_list = [
-        {
-            **finding.get_dict_from_fieldnames(fieldnames=fieldnames),
-            "identifiers": finding.identifier,
-            "Justification": finding.get_justification(justifications=justifications),
-        }
-        for finding in findings
-    ]
-
-    with Path(csv_output_dir, "oscap.csv").open(mode="w", encoding="utf-8") as f:
-        csv_writer = csv.writer(f)
-        count = 0
-        fail_count = 0
-        nc_count = 0
-        for line in findings_dict_list:
-            if count == 0:
-                header = line.keys()
-                csv_writer.writerow(header)
-                count += 1
-            if line["result"] == "fail":
-                fail_count += 1
-            elif line["result"] == "notchecked":
-                nc_count += 1
-            try:
-                csv_writer.writerow(line.values())
-            except Exception as e:
-                log.error("problem writing line: %s", line.values())
-                raise e
-    return fail_count, nc_count
-
-
 def generate_twistlock_cve_report(
     report_path: Path, csv_output_dir: Path, justifications: dict
 ) -> int:
@@ -418,6 +344,80 @@ def generate_twistlock_cve_report(
     )
 
     return len(cves)
+
+
+def generate_oscap_compliance_report(
+    report_path: Path, csv_output_dir: Path, justifications: dict
+) -> tuple[int, int]:
+    """
+    Generate csv for OSCAP findings with justifications
+    Calls the get_oscap_full function to first parse the OSCAP XML report.
+    """
+    findings = OscapReportParser.get_findings(report_path, results_filter=None)
+    fieldnames = [
+        "title",
+        "ruleid",
+        "result",
+        "severity",
+        "identifiers",
+        "refs",
+        "desc",
+        "rationale",
+        "scanned_date",
+    ]
+    findings_dict_list = [
+        {
+            **finding.get_dict_from_fieldnames(fieldnames=fieldnames),
+            "identifiers": finding.identifier,
+            "Justification": finding.get_justification(justifications=justifications),
+        }
+        for finding in findings
+    ]
+
+    with Path(csv_output_dir, "oscap.csv").open(mode="w", encoding="utf-8") as f:
+        csv_writer = csv.writer(f)
+        count = 0
+        fail_count = 0
+        nc_count = 0
+        for line in findings_dict_list:
+            if count == 0:
+                header = line.keys()
+                csv_writer.writerow(header)
+                count += 1
+            if line["result"] == "fail":
+                fail_count += 1
+            elif line["result"] == "notchecked":
+                nc_count += 1
+            try:
+                csv_writer.writerow(line.values())
+            except Exception as e:
+                log.error("problem writing line: %s", line.values())
+                raise e
+    return fail_count, nc_count
+
+
+def generate_blank_oscap_report(csv_output_dir: Path) -> None:
+    """
+    Creates an empty oscap report, used when the OpenSCAP scan was skipped.
+    """
+    with Path(
+        csv_output_dir,
+        "oscap.csv",
+    ).open(mode="w", encoding="utf-8") as f:
+        csv_writer = csv.writer(f)
+        csv_writer.writerow(
+            [
+                "OpenSCAP Scan Skipped Due to Base Image Used",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+            ]
+        )
 
 
 if __name__ == "__main__":

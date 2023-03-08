@@ -14,8 +14,8 @@ class AbstractFinding(ABC):
     severity: str
     description: str = ""
     scan_source: str = ""
-    package: str = ""
-    package_path: str = ""
+    package: str | None = ""
+    package_path: str | None = ""
 
     @property
     def finding(self) -> str:
@@ -25,7 +25,7 @@ class AbstractFinding(ABC):
         return self.identifier
 
     @property
-    def packagePath(self) -> str:  # pylint: disable=invalid-name
+    def packagePath(self) -> str | None:  # pylint: disable=invalid-name
         """
         Read only alias for package_path
         """
@@ -76,8 +76,11 @@ class ReportParser(ABC):
     Base class for scan report parsing
     Provides generic helper methods for writing out results, deduping findings, etc.
     """
+
     @classmethod
-    def dedupe_findings_by_attr(cls, findings: list[AbstractFinding], attribute: str) -> list[AbstractFinding]:
+    def dedupe_findings_by_attr(
+        cls, findings: list[AbstractFinding], attribute: str
+    ) -> list[AbstractFinding]:
         """
         Remove duplicate findings from list by finding attribute
         """
