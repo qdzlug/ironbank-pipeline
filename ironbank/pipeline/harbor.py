@@ -41,6 +41,39 @@ class HarborProject(Harbor):
 
 
 @dataclass
+class HarborRobots(Harbor):
+    accounts: list = field(default_factory=lambda: [])
+
+    def get_accounts(self, repository: str = "", all: bool = False):
+        robots_url = f"{self.api_url}/robots"
+        paginated_request = PaginatedRequest(self.session, robots_url)
+        for page in paginated_request.get():
+            if isinstance(page, dict):
+                self.accounts.append(
+                    HarborRobot(
+                        name=page["name"],
+                        description=page["description"],
+                        expires_at=page["expires_at"],
+                    )
+                )
+            else:
+                for account in page:
+                    new_account = HarborRobot(
+                        name=account["name"], expires_at=account["expires_at"]
+                    )
+                    if "description" in account.keys():
+                        new_account.description = account["description"]
+                    self.accounts.append(new_account)
+
+
+@dataclass
+class HarborRobot:
+    name: str = ""
+    description: str = ""
+    expires_at: str = ""
+
+
+@dataclass
 class HarborRepository(Harbor):
     name: str = ""
     project: str = ""

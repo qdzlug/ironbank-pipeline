@@ -182,8 +182,8 @@ class Cosign(ContainerTool):
         cls,
         image: Image,
         pubkey: Path = None,
-        certificate: Path = None,
-        certificate_chain: Path = None,
+        certificate: Path = Path("scripts/cosign/cosign-certificate.pem"),
+        certificate_chain: Path = Path("scripts/cosign/cosign-ca-bundle.pem"),
         signature_digest_algorithm="sha256",
         log_cmd: bool = False,
     ):
@@ -207,11 +207,18 @@ class Cosign(ContainerTool):
         if log_cmd:
             cls.log.info(cmd)
 
-        subprocess.run(
-            args=cmd,
-            capture_output=True,
-            check=True,
-            encoding="utf-8",
-        )
+        try:
+            subprocess.run(
+                args=cmd,
+                capture_output=True,
+                check=True,
+                encoding="utf-8",
+            )
+        except subprocess.CalledProcessError as e:
+            if e.args[0] == 1:
+                cls.log.error("Failed to verify %s", str(image))
+                return False
+            else:
+                raise e
         cls.log.info("%s Verified", str(image))
         return True
