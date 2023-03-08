@@ -49,7 +49,9 @@ def test_hardening_manifest_validation_main(monkeypatch, caplog):
     assert se.value.code == 1
 
     log.info("Test invalid member advocates")
-    monkeypatch.setattr(MockHardeningManifest, "invalid_partner_advocates", "bad_partner_advocates")
+    monkeypatch.setattr(
+        MockHardeningManifest, "invalid_partner_advocates", "bad_partner_advocates"
+    )
     with pytest.raises(SystemExit) as se:
         asyncio.run(hardening_manifest_validation.main())
     assert se.value.code == 1
