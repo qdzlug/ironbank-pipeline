@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import re
 from dataclasses import dataclass, field, fields
+from typing import Any
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.decorators import key_index_error_handler
 from ironbank.pipeline.scan_report_parsers.report_parser import (
@@ -71,31 +72,31 @@ class AnchoreCVEFinding(AbstractFinding):
 
     # add alias from cve -> vuln
     @property
-    def cve(self):
+    def cve(self) -> str:
         return self.identifier
 
     @property
-    def vuln(self):
+    def vuln(self) -> str:
         return self.identifier
 
     # add alias from inherited -> inherited_from_base
     @property
-    def inherited(self):
+    def inherited(self) -> str:
         return self.inherited_from_base
 
     @property
-    def link(self):
+    def link(self) -> str:
         return self.url
 
     @classmethod
-    def from_dict(cls, vuln_data):
+    def from_dict(cls, vuln_data: dict[str, Any]) -> object:
         # only use keys from vuln_data supported by the AnchoreCVEFinding class init
         return cls(
             **{k: v for k, v in vuln_data.items() if k in [f.name for f in fields(cls)]}
         )
 
     @key_index_error_handler
-    def get_nvd_scores(self, version):
+    def get_nvd_scores(self, version: str) -> None:
         if self.extra["nvd_data"][0][f"cvss_{version}"]:
             setattr(
                 self,
@@ -106,7 +107,7 @@ class AnchoreCVEFinding(AbstractFinding):
             )
 
     @key_index_error_handler
-    def get_vendor_nvd_scores(self, version):
+    def get_vendor_nvd_scores(self, version: str) -> None:
         for d in self.extra["vendor_data"]:
             if d.get(f"cvss_{version}") and d.get(f"cvss_{version}").get(
                 "vector_string"
@@ -118,7 +119,7 @@ class AnchoreCVEFinding(AbstractFinding):
                 )
 
     @key_index_error_handler
-    def get_identifiers(self):
+    def get_identifiers(self) -> None:
         if self.nvd_data:
             if isinstance(self.nvd_data, list) and len(self.nvd_data):
                 if self.nvd_data[0]["id"] != self.identifier:
@@ -129,7 +130,7 @@ class AnchoreCVEFinding(AbstractFinding):
             if self.vendor_data[0]["id"] != self.identifier:
                 self.identifiers.append(self.vendor_data[0]["id"])
 
-    def get_truncated_url(self, max_url_len: int = 65535):
+    def get_truncated_url(self, max_url_len: int = 65535) -> None:
         link_string = ""
         # The following should always evaluate to false since we no longer use vulndb as a data source for anchore
         # Keeping this logic in case this issue occurs again or we start using vulndb again
@@ -146,12 +147,12 @@ class AnchoreCVEFinding(AbstractFinding):
             self.url = link_string
         # else, skip truncation
 
-    def sort_fix(self):
+    def sort_fix(self) -> None:
         fix_version_re = "([A-Za-z0-9][-.0-~]*)"
         fix_list = re.findall(fix_version_re, self.fix)
         self.fix = ", ".join(sorted(fix_list))
 
-    def as_dict(self):
+    def as_dict(self) -> dict[str, Any]:
         return {
             "cve": self.cve,
             "vuln": self.vuln,
@@ -166,9 +167,9 @@ class AnchoreSecurityParser(ReportParser):
     log: logger = logger.setup("AnchoreSecurityParser")
 
     @classmethod
-    def get_findings(cls, report_path: Path):
+    def get_findings(cls, report_path: Path) -> list[AnchoreCVEFinding]:
         findings = []
-        scan_json = json.loads(report_path.read_text())
+        scan_json: dict = json.loads(report_path.read_text())
         for vuln_data in scan_json["vulnerabilities"]:
             # change vuln to identifier to match attributes
             vuln_data["identifier"] = vuln_data["vuln"]
