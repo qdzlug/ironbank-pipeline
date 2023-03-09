@@ -359,7 +359,7 @@ def create_api_call():
         "parentImageTag": args.parent_version,
         "jobId": args.job_id,
         "digest": args.digest.replace("sha256:", ""),
-        "vat_attestation_lineage" : args.vat_attestation_lineage,
+        "vat_attestation_lineage": args.vat_attestation_lineage,
         "timestamp": args.timestamp,
         "scanDate": args.scan_date,
         "buildDate": args.build_date,
