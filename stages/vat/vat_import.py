@@ -376,10 +376,12 @@ def get_parent_vat_response(output_dir: str, hardening_manifest: HardeningManife
     )
     vat_response_predicate = "https://vat.dso.mil/api/p1/predicate/beta1"
     pull_auth = Path(os.environ["DOCKER_AUTH_FILE_PULL"])
+    docker_config_dir = Path("/tmp/docker_config")
+    shutil.copy(src=pull_auth, dest=Path(docker_config_dir, "config.json"))
     Cosign.download(
         base_image,
         output_dir=output_dir,
-        docker_config_dir=pull_auth,
+        docker_config_dir=docker_config_dir,
         predicate_types=[vat_response_predicate],
     )
     predicates = Predicates()

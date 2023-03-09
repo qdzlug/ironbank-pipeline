@@ -4,6 +4,7 @@ import os
 import sys
 import json
 import pathlib
+import shutil
 import tempfile
 import image_verify
 from pathlib import Path
@@ -136,7 +137,8 @@ def main():
         log.info("Skip Logic: Non-master branch")
     else:
         pull_auth = Path(os.environ["DOCKER_AUTH_FILE_PULL"])
-
+        docker_config_dir = Path("/tmp/docker_config")
+        shutil.copy(src=pull_auth, dest=Path(docker_config_dir, "config.json"))
         old_image_details = image_verify.diff_needed(pull_auth)
         if not old_image_details:
             log.info("Image verify failed - Must scan new image")
@@ -147,7 +149,7 @@ def main():
         old_pkgs = get_old_pkgs(
             image_name=image_name,
             image_digest=old_image_details["digest"],
-            docker_config_dir=pull_auth,
+            docker_config_dir=docker_config_dir,
         )
         if not old_pkgs:
             log.info("No old pkgs to compare - Must scan new image")
