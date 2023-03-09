@@ -1,4 +1,4 @@
-from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils import logger,flatten
 from ironbank.pipeline.container_tools.container_tool import ContainerTool
 
 log = logger.setup("test_container_tool")
@@ -20,7 +20,7 @@ def test_container_tool_init():
 
 def test_flatten():
     log.info("Test 2d list is successfully flattened")
-    assert ContainerTool._flatten([["a", "b"], ["c", "d"], ["e", "f"]]) == [
+    assert flatten.flatten([["a", "b"], ["c", "d"], ["e", "f"]]) == [
         "a",
         "b",
         "c",

@@ -19,6 +19,9 @@ class MockAbstractFinding(AbstractFinding):
     cve: str = None
     package: str = None
     package_path: str = None
+    identifier: str = None 
+    severity: str = None 
+   
 
 
 @dataclass
@@ -36,13 +39,13 @@ class MockDictWriter:
 
 def test_get_justification():
     tracked_vuln1 = MockAbstractFinding(
-        cve="001", package="testPkg", package_path="testPkgPth"
+        identifier="001", package="testPkg", package_path="testPkgPth"
     )
     tracked_vuln2 = MockAbstractFinding(
-        cve="002", package="testPkg", package_path="pkgdb"
+        identifier="002", package="testPkg", package_path="pkgdb"
     )
     untracked_vuln = MockAbstractFinding(
-        cve="003", package="testPkg", package_path="testPkgPth"
+        identifier="003", package="testPkg", package_path="testPkgPth"
     )
     vuln1_id = ("001", "testPkg", "testPkgPth")
     vuln2_id = ("002", "testPkg", None)
@@ -52,16 +55,16 @@ def test_get_justification():
     }
 
     log.info("Test get justification success")
-    just = ReportParser.get_justification(tracked_vuln1, justifications)
+    just = AbstractFinding.get_justification(tracked_vuln1, justifications)
     assert just == "testJustification1"
 
     log.info("Test get justification success with package_path=pkgdb")
-    just = ReportParser.get_justification(tracked_vuln2, justifications)
+    just = AbstractFinding.get_justification(tracked_vuln2, justifications)
     assert just == "testJustification2"
 
     log.info("Test get justification return None")
-    just = ReportParser.get_justification(untracked_vuln, justifications)
-    assert just is None
+    just = AbstractFinding.get_justification(untracked_vuln, justifications)
+    assert just is ""
 
 
 def test_write_csv_from_dict_list(monkeypatch):
