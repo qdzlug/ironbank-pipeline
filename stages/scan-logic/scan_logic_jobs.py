@@ -138,7 +138,7 @@ def main():
     else:
         pull_auth = Path(os.environ["DOCKER_AUTH_FILE_PULL"])
         docker_config_dir = Path("/tmp/docker_config")
-        shutil.copy(src=pull_auth, dest=Path(docker_config_dir, "config.json"))
+        shutil.copy(src=pull_auth, dst=Path(docker_config_dir, "config.json"))
         old_image_details = image_verify.diff_needed(pull_auth)
         if not old_image_details:
             log.info("Image verify failed - Must scan new image")
