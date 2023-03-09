@@ -15,11 +15,52 @@ class Harbor(ABC):
     api_url: str = "https://registry1.dso.mil/api/v2.0"
     registry: str = "registry1.dso.mil"
 
+    def get_robot_accounts(self):
+        # Don't call this method for Harbor Classes without a robots attribute
+        assert getattr(self, "robots", "not_defined") != "not_defined"
+        if isinstance(self, HarborSystem):
+            robots_url = f"{self.api_url}/robots"
+        elif isinstance(self, HarborProject):
+            robots_url = f"{self.api_url}/projects/{quote_plus(self.name)}/robots"
+        else:
+            return
+        paginated_request = PaginatedRequest(self.session, robots_url)
+        for page in paginated_request.get():
+            for item in [page] if isinstance(page, dict) else page:
+                self.robots.append(
+                    HarborRobot(
+                        name=item["name"],
+                        description=item["description"]
+                        if "description" in item
+                        else "",
+                        expires_at=item["expires_at"],
+                    )
+                )
+
+
+@dataclass
+class HarborSystem(Harbor):
+    robots: list = field(default_factory=lambda: [])
+
+    def get_projects(self):
+        self.projects = []
+        project_url = f"{self.api_url}/projects"
+        paginated_request = PaginatedRequest(self.session, project_url)
+        for page in paginated_request.get():
+            for item in [page] if isinstance(page, dict) else page:
+                self.projects.append(
+                    HarborProject(
+                        session=self.session,
+                        name=item["name"],
+                    )
+                )
+
 
 @dataclass
 class HarborProject(Harbor):
     name: str = ""
     repositories: list = field(default_factory=lambda: [])
+    robots: list = field(default_factory=lambda: [])
 
     def get_project_repository(self, repository: str = "", all: bool = False):
         repository_url = (
@@ -29,48 +70,13 @@ class HarborProject(Harbor):
             repository_url = f"{self.api_url}/projects/{self.name}/repositories"
         paginated_request = PaginatedRequest(self.session, repository_url)
         for page in paginated_request.get():
-            page = [page] if isinstance(page, dict) else page
-            for item in page:
+            for item in [page] if isinstance(page, dict) else page:
                 self.repositories.append(
                     HarborRepository(
-                        session=self.session,
                         name="/".join(item["name"].split("/")[1:]),
                         project=self.name,
                     )
                 )
-
-
-@dataclass
-class HarborRobots(Harbor):
-    accounts: list = field(default_factory=lambda: [])
-
-    def get_accounts(self, repository: str = "", all: bool = False):
-        robots_url = f"{self.api_url}/robots"
-        paginated_request = PaginatedRequest(self.session, robots_url)
-        for page in paginated_request.get():
-            if isinstance(page, dict):
-                self.accounts.append(
-                    HarborRobot(
-                        name=page["name"],
-                        description=page["description"],
-                        expires_at=page["expires_at"],
-                    )
-                )
-            else:
-                for account in page:
-                    new_account = HarborRobot(
-                        name=account["name"], expires_at=account["expires_at"]
-                    )
-                    if "description" in account.keys():
-                        new_account.description = account["description"]
-                    self.accounts.append(new_account)
-
-
-@dataclass
-class HarborRobot:
-    name: str = ""
-    description: str = ""
-    expires_at: str = ""
 
 
 @dataclass
@@ -85,11 +91,9 @@ class HarborRepository(Harbor):
             artifact_url = f"{self.api_url}/projects/{self.project}/repositories/{quote_plus(self.name)}/artifacts"
         paginated_request = PaginatedRequest(self.session, artifact_url)
         for page in paginated_request.get():
-            page = [page] if isinstance(page, dict) else page
-            for item in page:
+            for item in [page] if isinstance(page, dict) else page:
                 self.artifacts.append(
                     HarborArtifact(
-                        session=self.session,
                         digest=item["digest"],
                         tags=item["tags"] if "tags" in item else None,
                         project=self.project,
@@ -100,7 +104,14 @@ class HarborRepository(Harbor):
 
 
 @dataclass
-class HarborArtifact(Harbor):
+class HarborRobot:
+    name: str = ""
+    description: str = ""
+    expires_at: str = ""
+
+
+@dataclass
+class HarborArtifact:
     name: str = ""
     repository: str = ""
     project: str = ""
