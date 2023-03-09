@@ -377,6 +377,7 @@ def get_parent_vat_response(output_dir: str, hardening_manifest: HardeningManife
     vat_response_predicate = "https://vat.dso.mil/api/p1/predicate/beta1"
     pull_auth = Path(os.environ["DOCKER_AUTH_FILE_PULL"])
     docker_config_dir = Path("/tmp/docker_config")
+    docker_config_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy(src=pull_auth, dst=Path(docker_config_dir, "config.json"))
     Cosign.download(
         base_image,
