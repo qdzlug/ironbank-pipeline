@@ -151,10 +151,11 @@ class MockOpen:
 class MockPath(PosixPath):
     # TODO: remove this log message from init and provide a better way to inspect path on mock/patch
 
-    def __new__(cls, path, *args):
+    def __new__(cls, path, *args, mock_data=None):
         self = object.__new__(cls)
         self.path = f"{path}{''.join((f'/{a}' for a in args))}"
         self.log = logger.setup(name="MockPath")
+        self.mock_data = mock_data
         return self
 
     def open(self, mode, encoding="utf-8"):
@@ -175,8 +176,11 @@ class MockPath(PosixPath):
     def is_symlink(self):
         return False
 
-    def write_text(self, data, encoding=None, errors=None, newline=None):
+    def write_text(self, mock_data, encoding=None, errors=None, newline=None):
         return ""
+
+    def read_text(self, encoding=None, *args, **kwargs):
+        return self.mock_data
 
     def __eq__(self, path) -> bool:
         return self.as_posix() == path.as_posix()
