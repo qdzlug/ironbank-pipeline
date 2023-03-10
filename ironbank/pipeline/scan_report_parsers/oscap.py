@@ -337,7 +337,7 @@ class OscapFinding(AbstractFinding):
         Return dictionary of default initialization paramaters
         """
         return {
-            "identifiers": rule_info.identifiers,
+            "identifiers": getattr(rule_info, "identifiers", []),
             "identifier": rule_info.identifier,
             "severity": rule_info.severity,
             "rule_id": rule_info.rule_id,
@@ -433,7 +433,7 @@ class OscapOVALFinding(OscapFinding):
             yield cls(
                 **{
                     **cls.get_default_init_params(rule_info),
-                    "identifier": finding.text,
+                    "identifier": getattr(finding.text, "text", "default_identifier"),
                     "link": finding.attrib["href"],
                 }
             )
@@ -461,18 +461,18 @@ class OscapReportParser(ReportParser):
         """
         root: ElementTree = etree.parse(report_path)
 
-        # compliance_results: list[Element] = RuleInfo.get_results(
-        #     root, results_filter=results_filter
-        # )
+        compliance_results: list[Element] = RuleInfo.get_results(
+            root, results_filter=results_filter
+        )
 
-        # findings: list[OscapFinding | list[OscapFinding]] = []
+        findings: list[OscapFinding | list[OscapFinding]] = []
 
-        # for rule_result in compliance_results:
-        #     rule_info = RuleInfo(root, rule_result)
-        #     findings += OscapFinding.get_findings_from_rule_info(rule_info)
+        for rule_result in compliance_results:
+            rule_info = RuleInfo(root, rule_result)
+            findings += OscapFinding.get_findings_from_rule_info(rule_info)
 
-        # # flatten, dedupe and sort findings
-        # findings = flatten(findings)
-        # findings = cls.dedupe_findings_by_attr(findings, "identifier")
-        # assert len(set(f.identifier for f in findings)) == len(findings)
-        # return sorted(findings, key=lambda x: x.rule_id)
+        # flatten, dedupe and sort findings
+        findings = flatten(findings)
+        findings = cls.dedupe_findings_by_attr(findings, "identifier")
+        assert len(set(f.identifier for f in findings)) == len(findings)
+        return sorted(findings, key=lambda x: x.rule_id)
