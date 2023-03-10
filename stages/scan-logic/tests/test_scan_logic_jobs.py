@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 import json
 import pytest
@@ -143,7 +144,7 @@ def test_get_old_pkgs(monkeypatch, caplog):
 def test_main(monkeypatch, caplog):
     # avoid actually creating env var file for all tests
     monkeypatch.setattr(scan_logic_jobs, "write_env_vars", lambda *args, **kwargs: None)
-
+    monkeypatch.setattr(shutil, "copy", lambda *args, **kwargs: None)
     monkeypatch.setenv("IMAGE_NAME", "example/test")
     monkeypatch.setenv("IMAGE_FULLTAG", "example/test:1.0")
     monkeypatch.setenv("REGISTRY_PUBLISH_URL", "example")
