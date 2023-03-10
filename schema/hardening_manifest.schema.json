@@ -53,7 +53,7 @@
     },
     "environment-variable-name-no-base-registry": {
       "type": "string",
-      "pattern": "(?i)(?!^REGISTRY_BASE_IMAGE_URL$)^[a-zA-Z0-9][a-zA-Z0-9_.-]*$"
+      "pattern": "(?i)(?!^BASE_REGISTRY$)^[a-zA-Z0-9][a-zA-Z0-9_.-]*$"
     }
   },
   "title": "IronBank",

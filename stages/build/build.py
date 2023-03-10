@@ -127,7 +127,7 @@ def main():
         name=hardening_manifest.image_name,
         tag=f"ibci-{os.environ['CI_PIPELINE_ID']}",
     )
-    base_registry = os.environ["REGISTRY_BASE_IMAGE_URL"]
+    base_registry = os.environ["BASE_REGISTRY"]
     artifact_storage_dir = Path(os.environ["ARTIFACT_STORAGE"])
     build_artifact_dir = Path(os.environ["ARTIFACT_DIR"])
     imports_dir = artifact_storage_dir / "import-artifacts"
@@ -209,7 +209,7 @@ def main():
         context=".",
         build_args={
             **hardening_manifest.args,
-            "REGISTRY_BASE_IMAGE_URL": base_registry,
+            "BASE_REGISTRY": base_registry,
             **http_proxies,
             **build_args,
         },

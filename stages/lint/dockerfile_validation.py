@@ -39,7 +39,7 @@ async def main():
         invalid_from = DockerfileParser.parse("Dockerfile")
         if invalid_from:
             log.error(
-                "The final FROM statement in the Dockerfile must be FROM ${REGISTRY_BASE_IMAGE_URL}/${BASE_IMAGE}:${BASE_TAG}"
+                "The final FROM statement in the Dockerfile must be FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}"
             )
             sys.exit(100)
 

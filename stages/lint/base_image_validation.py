@@ -34,7 +34,7 @@ async def main():
         else:
             # Grab prod docker auth
             pull_auth = Path(os.environ["DOCKER_AUTH_FILE_PULL"])
-            registry = os.environ["REGISTRY_BASE_IMAGE_URL"]
+            registry = os.environ["BASE_REGISTRY"]
 
         try:
             skopeo = Skopeo(authfile=pull_auth)

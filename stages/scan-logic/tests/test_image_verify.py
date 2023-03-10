@@ -86,7 +86,7 @@ def test_verify_image_properties(monkeypatch, caplog, mock_hm):
     monkeypatch.setenv("ARTIFACT_STORAGE", "ci-artifacts")
     monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data=""))
     monkeypatch.setattr(json, "load", lambda x: {"BASE_SHA": mock_sha})
-    monkeypatch.setenv("REGISTRY_BASE_IMAGE_URL", base_registry)
+    monkeypatch.setenv("BASE_REGISTRY", base_registry)
     mock_hm.base_image_name = "example/test"
     mock_hm.base_image_tag = "1.0"
     img_json["Labels"][

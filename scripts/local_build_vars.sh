@@ -6,7 +6,7 @@ export ARTIFACT_DIR="$ARTIFACT_STORAGE/build_artifacts"
 export CI_PIPELINE_ID='12345'
 
 export REGISTRY_PRE_PUBLISH_URL='no.nah.example.fake/ironbank-staging'
-export REGISTRY_BASE_IMAGE_URL='no.nah.example.fake/ironbank'
+export BASE_REGISTRY='no.nah.example.fake/ironbank'
 export STAGING_BASE_IMAGE=''
 export DOCKER_AUTH_CONFIG_PULL='e30='
 export DOCKER_AUTH_CONFIG_STAGING='e30='

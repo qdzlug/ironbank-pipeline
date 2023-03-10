@@ -42,7 +42,7 @@ def verify_image_properties(img_json: dict, manifest: HardeningManifest) -> bool
         ).open() as f:
             base_sha = json.load(f)["BASE_SHA"]
 
-        new_parent = f"{os.environ['REGISTRY_BASE_IMAGE_URL']}/{manifest.base_image_name}:{manifest.base_image_tag}@{base_sha}"
+        new_parent = f"{os.environ['BASE_REGISTRY']}/{manifest.base_image_name}:{manifest.base_image_tag}@{base_sha}"
     else:
         new_parent = ""
 

@@ -49,7 +49,7 @@ def get_registry_info() -> tuple[str, str]:
         if os.environ.get("STAGING_BASE_IMAGE")
         else (
             os.environ["DOCKER_AUTH_FILE_PULL"],
-            os.environ["REGISTRY_BASE_IMAGE_URL"],
+            os.environ["BASE_REGISTRY"],
         )
     )
 
