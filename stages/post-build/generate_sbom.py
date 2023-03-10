@@ -28,8 +28,8 @@ def main() -> None:
 
     anchore_scan = Anchore(
         url=os.environ["ANCHORE_URL"],
-        username="jwt",
-        password=os.environ["CI_JOB_JWT_V2"],
+        username=os.environ["ANCHORE_USERNAME"],
+        password=os.environ["ANCHORE_PASSWORD"],
         verify=os.environ.get("ANCHORE_VERIFY", default=True),
     )
 
