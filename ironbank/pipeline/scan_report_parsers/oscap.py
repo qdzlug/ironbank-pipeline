@@ -461,18 +461,18 @@ class OscapReportParser(ReportParser):
         """
         root: ElementTree = etree.parse(report_path)
 
-        compliance_results: list[Element] = RuleInfo.get_results(
-            root, results_filter=results_filter
-        )
+        # compliance_results: list[Element] = RuleInfo.get_results(
+        #     root, results_filter=results_filter
+        # )
 
-        findings: list[OscapFinding | list[OscapFinding]] = []
+        # findings: list[OscapFinding | list[OscapFinding]] = []
 
-        for rule_result in compliance_results:
-            rule_info = RuleInfo(root, rule_result)
-            findings += OscapFinding.get_findings_from_rule_info(rule_info)
+        # for rule_result in compliance_results:
+        #     rule_info = RuleInfo(root, rule_result)
+        #     findings += OscapFinding.get_findings_from_rule_info(rule_info)
 
-        # flatten, dedupe and sort findings
-        findings = flatten(findings)
-        findings = cls.dedupe_findings_by_attr(findings, "identifier")
-        assert len(set(f.identifier for f in findings)) == len(findings)
-        return sorted(findings, key=lambda x: x.rule_id)
+        # # flatten, dedupe and sort findings
+        # findings = flatten(findings)
+        # findings = cls.dedupe_findings_by_attr(findings, "identifier")
+        # assert len(set(f.identifier for f in findings)) == len(findings)
+        # return sorted(findings, key=lambda x: x.rule_id)
