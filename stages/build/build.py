@@ -12,6 +12,7 @@ from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.container_tools.buildah import Buildah
+from ironbank.pipeline.container_tools.cosign import Cosign
 from ironbank.pipeline.image import Image, ImageFile
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.decorators import subprocess_error_handler
@@ -166,6 +167,15 @@ def main():
         hardening_manifest=hardening_manifest,
         base_registry=base_registry,
     )
+
+    log.info("Verifying parent image signature")
+    if hardening_manifest.base_image_name:
+        parent_image = Image(
+            registry=base_registry,
+            name=hardening_manifest.base_image_name,
+            tag=hardening_manifest.base_image_tag,
+        )
+        Cosign.verify(parent_image)
 
     ib_labels = {
         "maintainer": "ironbank@dsop.io",

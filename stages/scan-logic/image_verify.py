@@ -7,6 +7,7 @@ from ironbank.pipeline.image import Image
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.container_tools.skopeo import Skopeo
+from ironbank.pipeline.container_tools.cosign import Cosign
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 
@@ -68,6 +69,13 @@ def diff_needed(pull_auth: str) -> Optional[dict]:
         dsop_project = DsopProject()
         manifest = HardeningManifest(dsop_project.hardening_manifest_path)
 
+        old_image = Image(
+            registry=os.environ["REGISTRY_URL_PROD"],
+            name=manifest.image_name,
+            tag=manifest.image_tag,
+            transport="docker://",
+        )
+
         log.info("Inspecting old image")
         old_img_json = inspect_old_image(manifest, pull_auth)
 
@@ -76,7 +84,11 @@ def diff_needed(pull_auth: str) -> Optional[dict]:
         #  - manifest exists for tag (i.e. this pipeline is not running to create a new tag)
         #  - git commit SHAs match
         #  - parent digests match
-        if old_img_json and verify_image_properties(old_img_json, manifest):
+        if (
+            old_img_json
+            and verify_image_properties(old_img_json, manifest)
+            and Cosign.verify(old_image)
+        ):
             return {
                 # Old image information to return
                 "tag": manifest.image_tag,

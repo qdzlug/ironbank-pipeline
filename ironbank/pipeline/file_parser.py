@@ -35,7 +35,7 @@ class AccessLogFileParser(FileParser):
         for line in cls.handle_file_obj(access_log):
             line = line.rstrip("\n")
 
-            if not line.startswith("200"):
+            if not line.startswith("200") or line.startswith("200 CONNECT"):
                 continue
 
             # split on spaces and get the url
