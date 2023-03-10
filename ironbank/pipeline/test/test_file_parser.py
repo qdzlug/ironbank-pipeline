@@ -129,7 +129,7 @@ def test_dockerfile_remove_non_from_statements():
 
 def test_dockerfile_validate_final_from():
     log.info("Test final from in Dockerfile is valid")
-    mock_from_stmts = ["FROM ${REGISTRY_BASE_IMAGE_URL}/${BASE_IMAGE}:${BASE_TAG}"]
+    mock_from_stmts = ["FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}"]
     assert DockerfileParser.validate_final_from(mock_from_stmts) is False
     log.info("Test final from in Dockefile is invalid")
     mock_from_stmts = ["FROM invalid_image:1.0"]

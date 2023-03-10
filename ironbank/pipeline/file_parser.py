@@ -121,9 +121,9 @@ class DockerfileParser(FileParser):
     def validate_final_from(content: list):
         """
         Returns whether the final FROM statement in the Dockerfile is valid, i.e.
-        FROM ${REGISTRY_BASE_IMAGE_URL}/${BASE_IMAGE}:${BASE_TAG}
+        FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}
         """
         return content[-1].split(" ")[-1] not in (
-            "${REGISTRY_BASE_IMAGE_URL}/${BASE_IMAGE}:${BASE_TAG}",
-            "$REGISTRY_BASE_IMAGE_URL/$BASE_IMAGE:$BASE_TAG",
+            "${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG}",
+            "$BASE_REGISTRY/$BASE_IMAGE:$BASE_TAG",
         )
