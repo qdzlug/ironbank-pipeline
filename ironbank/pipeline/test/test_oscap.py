@@ -5,7 +5,14 @@ from dataclasses import dataclass
 import random
 import unittest
 from xml.etree import ElementTree
-from ironbank.pipeline.scan_report_parsers.oscap import OscapReportParser, OscapFinding, OscapOVALFinding, RuleInfo,OscapComplianceFinding, RuleInfoOVAL
+from ironbank.pipeline.scan_report_parsers.oscap import (
+    OscapReportParser,
+    OscapFinding,
+    OscapOVALFinding,
+    RuleInfo,
+    OscapComplianceFinding,
+    RuleInfoOVAL,
+)
 from ironbank.pipeline.scan_report_parsers.report_parser import ReportParser
 from ironbank.pipeline.test.mocks.mock_classes import MockPath
 import pytest
@@ -28,30 +35,41 @@ log = logger.setup("test_oscap")
 class MockOscapComplianceFinding(OscapComplianceFinding):
     pass
 
-@dataclass 
+
+@dataclass
 class MockOscapFinding(OscapFinding):
     identifier: str = ""
     severity: str = ""
     identifiers: tuple = field(default_factory=lambda: ())
+
     @classmethod
     def get_findings_from_rule_info(cls, rule_info):
         el = Element("")
         el.attrib["identifier"] = "id"
-        return [MockOscapComplianceFinding(identifier=rule_info.identifier, rule_id='rule1',severity=""),]
+        return [
+            MockOscapComplianceFinding(
+                identifier=rule_info.identifier, rule_id="rule1", severity=""
+            ),
+        ]
 
 
 @dataclass
 class MockElement:
     text: str = "mock text"
-    attrib: dict = field(default_factory=lambda: {'idref': 'example_id','href': "href"})
+    attrib: dict = field(
+        default_factory=lambda: {"idref": "example_id", "href": "href"}
+    )
     fake_type: str = "compliance"
+
 
 @dataclass
 class MockElementTree:
     def find():
         pass
+
     def findall():
         pass
+
 
 # @pytest.fixture
 # def mock_element():
@@ -61,7 +79,7 @@ class MockElementTree:
 #     }
 
 
-@dataclass 
+@dataclass
 class MockRuleInfo(RuleInfo):
     rule_id: str = "12345"
     title: str = "Mock Rule Title"
@@ -71,51 +89,79 @@ class MockRuleInfo(RuleInfo):
         cls, root: MockElementTree, rule_result: MockElement
     ) -> Callable:  # pylint: disable=unused-argument
         return object.__new__(
-            MockRuleInfoOval
-            if (rule_result.fake_type == "OVAL")
-            else MockRuleInfo
+            MockRuleInfoOval if (rule_result.fake_type == "OVAL") else MockRuleInfo
         )
+
     def __post_init__(self, root: ElementTree, rule_result: Element):
         self.identifier = str(random.randint(0, 1000))
 
     def get_results(self, results_filter: list[str]):
-        return [MockElement(text="abc"),MockElement(text="def"),MockElement(text="ghi")]
+        return [
+            MockElement(text="abc"),
+            MockElement(text="def"),
+            MockElement(text="ghi"),
+        ]
+
 
 @dataclass
-class MockRuleInfoOval(MockRuleInfo,RuleInfoOVAL):
+class MockRuleInfoOval(MockRuleInfo, RuleInfoOVAL):
     findings: list[MockElement] = field(default_factory=lambda: [MockElement()])
 
 
 @dataclass
 class MockReportParser(ReportParser):
     @classmethod
-    def dedupe_findings_by_attr(cls, findings: list[MockOscapFinding], attribute: str) -> list[MockOscapFinding]:
+    def dedupe_findings_by_attr(
+        cls, findings: list[MockOscapFinding], attribute: str
+    ) -> list[MockOscapFinding]:
         log.error("TEST TEST TEST")
         return findings
+
 
 @pytest.mark.only
 @patch("ironbank.pipeline.scan_report_parsers.oscap.RuleInfo", new=MockRuleInfo)
 @patch("ironbank.pipeline.scan_report_parsers.oscap.OscapFinding", new=MockOscapFinding)
 def test_oscap_report_parser_get_findings(monkeypatch, caplog):
     oscap_report_parser = OscapReportParser()
-    monkeypatch.setattr(ElementTree, "parse", lambda *args,**kwargs: None)
-    monkeypatch.setattr(ironbank.pipeline.scan_report_parsers.oscap, "flatten", lambda x: x)
-    monkeypatch.setattr(ironbank.pipeline.scan_report_parsers.oscap.OscapReportParser, "dedupe_findings_by_attr", MockReportParser.dedupe_findings_by_attr)
-    oscap_report_parser.get_findings(MockPath("mockedpath"),("str","test"))
+    monkeypatch.setattr(ElementTree, "parse", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ironbank.pipeline.scan_report_parsers.oscap, "flatten", lambda x: x
+    )
+    monkeypatch.setattr(
+        ironbank.pipeline.scan_report_parsers.oscap.OscapReportParser,
+        "dedupe_findings_by_attr",
+        MockReportParser.dedupe_findings_by_attr,
+    )
+    oscap_report_parser.get_findings(MockPath("mockedpath"), ("str", "test"))
 
 
 def test_oscap_oval_get_findings_from_rule_info(monkeypatch, caplog):
     mock_text = "mock text"
-    mock_rule_info = MockRuleInfo(root=MockElementTree(),rule_result=MockElement(fake_type="OVAL",text=mock_text))
-    findings_from_rule_info = list(OscapOVALFinding.get_findings_from_rule_info(mock_rule_info))
+    mock_rule_info = MockRuleInfo(
+        root=MockElementTree(),
+        rule_result=MockElement(fake_type="OVAL", text=mock_text),
+    )
+    findings_from_rule_info = list(
+        OscapOVALFinding.get_findings_from_rule_info(mock_rule_info)
+    )
 
-    assert isinstance(findings_from_rule_info[0],OscapOVALFinding)
+    assert isinstance(findings_from_rule_info[0], OscapOVALFinding)
     assert findings_from_rule_info[0].link is not None
     assert findings_from_rule_info[0].identifier == mock_text
 
 
+def test_oscap_compliance_get_findings_from_rule_info(monkeypatch, caplog):
+    mock_text = "mock text"
+    mock_rule_info = MockRuleInfo(
+        root=MockElementTree(), rule_result=MockElement(text=mock_text)
+    )
+    findings_from_rule_info = list(
+        OscapComplianceFinding.get_findings_from_rule_info(mock_rule_info)
+    )
 
-
+    assert isinstance(findings_from_rule_info[0], OscapComplianceFinding)
+    assert getattr(findings_from_rule_info[0], "link", None) is None
+    assert findings_from_rule_info[0].identifier == mock_rule_info.identifier
 
     # with caplog.at_level(logging.DEBUG):
     #     findings = list(OscapOVALFinding.get_findings_from_rule_info(mock_rule_info))
@@ -133,8 +179,6 @@ def test_oscap_oval_get_findings_from_rule_info(monkeypatch, caplog):
     # assert caplog.records[0].message == "Generating OVAL finding: mock_text"
 
 
-
-
 # def test_oscap_compliance_finding(mock_rule_info, caplog):
 #     finding = OscapComplianceFinding(
 #         rule_id="12345",
@@ -145,7 +189,7 @@ def test_oscap_oval_get_findings_from_rule_info(monkeypatch, caplog):
 #     assert finding.rule_id == "12345"
 #     assert finding.title == "Mock Rule Title"
 #     assert finding.severity == "medium"
-    
+
 #     caplog.clear()
 #     with caplog.at_level("DEBUG"):
 #         findings = list(OscapComplianceFinding.get_findings_from_rule_info(mock_rule_info))
@@ -223,9 +267,6 @@ def test_oscap_oval_get_findings_from_rule_info(monkeypatch, caplog):
 #             "ruleid": "com.example.rule-123",
 #         }
 #         self.assertEqual(finding.as_dict(), expected_dict)
-
-
-
 
 
 # RuleInfoOVAL

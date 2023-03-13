@@ -5,6 +5,7 @@ from pathlib import Path
 import csv
 from typing import Any
 
+
 @dataclass
 class AbstractFinding(ABC):
     # this class can hold similar attributes between different vuln

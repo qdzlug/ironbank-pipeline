@@ -19,9 +19,8 @@ class MockAbstractFinding(AbstractFinding):
     cve: str = None
     package: str = None
     package_path: str = None
-    identifier: str = None 
-    severity: str = None 
-   
+    identifier: str = None
+    severity: str = None
 
 
 @dataclass
