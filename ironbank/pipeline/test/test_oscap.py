@@ -33,8 +33,15 @@ log = logger.setup("test_oscap")
 
 @dataclass
 class MockOscapComplianceFinding(OscapComplianceFinding):
-    pass
+    @classmethod
+    def get_findings_from_rule_info(cls, rule_info):
+        return cls
 
+@dataclass
+class MockOscapOVALFinding(OscapOVALFinding):
+    @classmethod
+    def get_findings_from_rule_info(cls, rule_info):
+        return cls
 
 @dataclass
 class MockOscapFinding(OscapFinding):
@@ -44,8 +51,6 @@ class MockOscapFinding(OscapFinding):
 
     @classmethod
     def get_findings_from_rule_info(cls, rule_info):
-        el = Element("")
-        el.attrib["identifier"] = "id"
         return [
             MockOscapComplianceFinding(
                 identifier=rule_info.identifier, rule_id="rule1", severity=""
@@ -117,23 +122,27 @@ class MockReportParser(ReportParser):
         log.error("TEST TEST TEST")
         return findings
 
-
-@pytest.mark.only
-@patch("ironbank.pipeline.scan_report_parsers.oscap.RuleInfo", new=MockRuleInfo)
-@patch("ironbank.pipeline.scan_report_parsers.oscap.OscapFinding", new=MockOscapFinding)
-def test_oscap_report_parser_get_findings(monkeypatch, caplog):
-    oscap_report_parser = OscapReportParser()
-    monkeypatch.setattr(ElementTree, "parse", lambda *args, **kwargs: None)
-    monkeypatch.setattr(
-        ironbank.pipeline.scan_report_parsers.oscap, "flatten", lambda x: x
+def test_oscap_get_default_init_params():
+    mock_text = "mock text"
+    mock_rule_info = MockRuleInfo(
+        root=MockElementTree(), rule_result=MockElement(text=mock_text)
     )
-    monkeypatch.setattr(
-        ironbank.pipeline.scan_report_parsers.oscap.OscapReportParser,
-        "dedupe_findings_by_attr",
-        MockReportParser.dedupe_findings_by_attr,
-    )
-    oscap_report_parser.get_findings(MockPath("mockedpath"), ("str", "test"))
+    default_params = OscapFinding.get_default_init_params(mock_rule_info)
 
+@patch("ironbank.pipeline.scan_report_parsers.oscap.OscapComplianceFinding", new=MockOscapComplianceFinding)
+@patch("ironbank.pipeline.scan_report_parsers.oscap.OscapOVALFinding", new=MockOscapOVALFinding)
+def test_oscap_get_findings_from_rule_info(monkeypatch):
+    mock_text = "mock text"
+    mock_rule_info = MockRuleInfo(
+        root=MockElementTree(),
+        rule_result=MockElement(text=mock_text),
+    )
+    assert OscapFinding.get_findings_from_rule_info(mock_rule_info) == MockOscapComplianceFinding
+    mock_rule_info = MockRuleInfo(
+        root=MockElementTree(),
+        rule_result=MockElement(fake_type="OVAL", text=mock_text),
+    )
+    assert OscapFinding.get_findings_from_rule_info(mock_rule_info) == MockOscapOVALFinding
 
 def test_oscap_oval_get_findings_from_rule_info(monkeypatch, caplog):
     mock_text = "mock text"
@@ -163,110 +172,73 @@ def test_oscap_compliance_get_findings_from_rule_info(monkeypatch, caplog):
     assert getattr(findings_from_rule_info[0], "link", None) is None
     assert findings_from_rule_info[0].identifier == mock_rule_info.identifier
 
-    # with caplog.at_level(logging.DEBUG):
-    #     findings = list(OscapOVALFinding.get_findings_from_rule_info(mock_rule_info))
 
-    # assert len(findings) == 1
+@pytest.mark.only
+@patch("ironbank.pipeline.scan_report_parsers.oscap.RuleInfo", new=MockRuleInfo)
+@patch("ironbank.pipeline.scan_report_parsers.oscap.OscapFinding", new=MockOscapFinding)
+def test_oscap_report_parser_get_findings(monkeypatch, caplog):
+    oscap_report_parser = OscapReportParser()
+    monkeypatch.setattr(ElementTree, "parse", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ironbank.pipeline.scan_report_parsers.oscap, "flatten", lambda x: x
+    )
+    monkeypatch.setattr(
+        ironbank.pipeline.scan_report_parsers.oscap.OscapReportParser,
+        "dedupe_findings_by_attr",
+        MockReportParser.dedupe_findings_by_attr,
+    )
+    oscap_report_parser.get_findings(MockPath("mockedpath"), ("str", "test"))
 
-    # OscapOVALFinding(
-    #     identifier="mock_text",
-    #     link="https://example.com",
-    #     rule_id=None,
-    #     severity = "severity"
-    # )
-    # TODO: figure out the assert statement for this test
-    # assert "Generating OVAL finding: mock_text" in caplog.text
-    # assert caplog.records[0].message == "Generating OVAL finding: mock_text"
+def test_as_dict():
+    oscap_finding = OscapFinding(identifier="name", severity="Hello")
+    oscap_finding.as_dict()
 
 
-# def test_oscap_compliance_finding(mock_rule_info, caplog):
-#     finding = OscapComplianceFinding(
-#         rule_id="12345",
-#         title="Mock Rule Title",
-#         severity="medium",
-#         identifier="identifier"
+
+
+
+
+# def test_get_findings_from_rule_info(self):
+#     findings = OscapFinding.get_findings_from_rule_info(self.rule_info)
+#     self.assertIsInstance(findings, Generator)
+
+# def test_desc_property(self):
+#     finding = OscapFinding(description="This is a finding.")
+#     self.assertEqual(finding.desc, "This is a finding.")
+
+# def test_refs_property(self):
+#     finding = OscapFinding(references="https://example.com/")
+#     self.assertEqual(finding.refs, "https://example.com/")
+
+# def test_ruleid_property(self):
+#     finding = OscapFinding(rule_id="com.example.rule-123")
+#     self.assertEqual(finding.ruleid, "com.example.rule-123")
+
+# def test_as_dict_method(self):
+#     finding = OscapFinding(
+#         identifier="rule-123",
+#         severity="high",
+#         rule_id="com.example.rule-123",
+#         title="Example Rule",
+#         scanned_date="2022-01-01T00:00:00Z",
+#         result="fail",
+#         description="This is an example rule.",
+#         references="https://example.com/",
+#         rationale="This rule checks for compliance with security best practices."
 #     )
-#     assert finding.rule_id == "12345"
-#     assert finding.title == "Mock Rule Title"
-#     assert finding.severity == "medium"
-
-#     caplog.clear()
-#     with caplog.at_level("DEBUG"):
-#         findings = list(OscapComplianceFinding.get_findings_from_rule_info(mock_rule_info))
-#         assert len(findings) == 1
-#         assert findings[0].rule_id == "12345"
-#         assert findings[0].title == "Mock Rule Title"
-#         assert findings[0].severity == "medium"
-
-# @pytest.OscapFinding
-# class TestOscapFinding(unittest.TestCase):
-
-#     def setUp(self):
-#         self.rule_info = RuleInfo(
-#             identifier="rule-123",
-#             severity="high",
-#             rule_id="com.example.rule-123",
-#             title="Example Rule",
-#             time="2022-01-01T00:00:00Z",
-#             result="fail",
-#             description="This is an example rule.",
-#             references="https://example.com/",
-#             rationale="This rule checks for compliance with security best practices."
-#         )
-
-#     def test_get_default_init_params(self):
-#         default_params = OscapFinding.get_default_init_params(self.rule_info)
-#         self.assertEqual(default_params["identifier"], "rule-123")
-#         self.assertEqual(default_params["severity"], "high")
-#         self.assertEqual(default_params["rule_id"], "com.example.rule-123")
-#         self.assertEqual(default_params["title"], "Example Rule")
-#         self.assertEqual(default_params["scanned_date"], "2022-01-01T00:00:00Z")
-#         self.assertEqual(default_params["result"], "fail")
-#         self.assertEqual(default_params["description"], "This is an example rule.")
-#         self.assertEqual(default_params["references"], "https://example.com/")
-#         self.assertEqual(default_params["rationale"], "This rule checks for compliance with security best practices.")
-
-#     def test_get_findings_from_rule_info(self):
-#         findings = OscapFinding.get_findings_from_rule_info(self.rule_info)
-#         self.assertIsInstance(findings, Generator)
-
-#     def test_desc_property(self):
-#         finding = OscapFinding(description="This is a finding.")
-#         self.assertEqual(finding.desc, "This is a finding.")
-
-#     def test_refs_property(self):
-#         finding = OscapFinding(references="https://example.com/")
-#         self.assertEqual(finding.refs, "https://example.com/")
-
-#     def test_ruleid_property(self):
-#         finding = OscapFinding(rule_id="com.example.rule-123")
-#         self.assertEqual(finding.ruleid, "com.example.rule-123")
-
-#     def test_as_dict_method(self):
-#         finding = OscapFinding(
-#             identifier="rule-123",
-#             severity="high",
-#             rule_id="com.example.rule-123",
-#             title="Example Rule",
-#             scanned_date="2022-01-01T00:00:00Z",
-#             result="fail",
-#             description="This is an example rule.",
-#             references="https://example.com/",
-#             rationale="This rule checks for compliance with security best practices."
-#         )
-#         expected_dict = {
-#             "identifier": "rule-123",
-#             "severity": "high",
-#             "rule_id": "com.example.rule-123",
-#             "title": "Example Rule",
-#             "scanned_date": "2022-01-01T00:00:00Z",
-#             "result": "fail",
-#             "description": "This is an example rule.",
-#             "refs": "https://example.com/",
-#             "desc": "This is an example rule.",
-#             "ruleid": "com.example.rule-123",
-#         }
-#         self.assertEqual(finding.as_dict(), expected_dict)
+#     expected_dict = {
+#         "identifier": "rule-123",
+#         "severity": "high",
+#         "rule_id": "com.example.rule-123",
+#         "title": "Example Rule",
+#         "scanned_date": "2022-01-01T00:00:00Z",
+#         "result": "fail",
+#         "description": "This is an example rule.",
+#         "refs": "https://example.com/",
+#         "desc": "This is an example rule.",
+#         "ruleid": "com.example.rule-123",
+#     }
+#     self.assertEqual(finding.as_dict(), expected_dict)
 
 
 # RuleInfoOVAL

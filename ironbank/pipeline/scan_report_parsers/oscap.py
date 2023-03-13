@@ -337,7 +337,7 @@ class OscapFinding(AbstractFinding):
         Return dictionary of default initialization paramaters
         """
         return {
-            "identifiers": getattr(rule_info, "identifiers", []),
+            "identifiers": rule_info.identifiers,
             "identifier": rule_info.identifier,
             "severity": rule_info.severity,
             "rule_id": rule_info.rule_id,
