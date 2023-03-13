@@ -20,7 +20,6 @@ from ironbank.pipeline.utils.exceptions import (
 )
 from ironbank.pipeline.utils.flatten import flatten
 
-
 @dataclass
 class RuleInfo:
     """
