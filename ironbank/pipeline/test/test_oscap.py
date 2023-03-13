@@ -2,13 +2,14 @@
 
 
 from dataclasses import dataclass
+import unittest
 from xml.etree import ElementTree
-from ironbank.pipeline.scan_report_parsers.oscap import OscapReportParser,OscapOVALFinding, RuleInfo,OscapComplianceFinding
+from ironbank.pipeline.scan_report_parsers.oscap import OscapReportParser, OscapFinding, OscapOVALFinding, RuleInfo,OscapComplianceFinding
 from ironbank.pipeline.test.mocks.mock_classes import MockPath
 import pytest
 from unittest.mock import patch
 from xml.etree.ElementTree import ElementTree, Element
-from typing import Callable
+from typing import Callable, Generator
 import logging
 import pytest
 
@@ -142,6 +143,79 @@ def test_oscap_compliance_finding(mock_rule_info, caplog):
         assert findings[0].title == "Mock Rule Title"
         assert findings[0].severity == "medium"
 
-# OscapFinding
+@pytest.OscapFinding
+class TestOscapFinding(unittest.TestCase):
+
+    def setUp(self):
+        self.rule_info = RuleInfo(
+            identifier="rule-123",
+            severity="high",
+            rule_id="com.example.rule-123",
+            title="Example Rule",
+            time="2022-01-01T00:00:00Z",
+            result="fail",
+            description="This is an example rule.",
+            references="https://example.com/",
+            rationale="This rule checks for compliance with security best practices."
+        )
+
+    def test_get_default_init_params(self):
+        default_params = OscapFinding.get_default_init_params(self.rule_info)
+        self.assertEqual(default_params["identifier"], "rule-123")
+        self.assertEqual(default_params["severity"], "high")
+        self.assertEqual(default_params["rule_id"], "com.example.rule-123")
+        self.assertEqual(default_params["title"], "Example Rule")
+        self.assertEqual(default_params["scanned_date"], "2022-01-01T00:00:00Z")
+        self.assertEqual(default_params["result"], "fail")
+        self.assertEqual(default_params["description"], "This is an example rule.")
+        self.assertEqual(default_params["references"], "https://example.com/")
+        self.assertEqual(default_params["rationale"], "This rule checks for compliance with security best practices.")
+
+    def test_get_findings_from_rule_info(self):
+        findings = OscapFinding.get_findings_from_rule_info(self.rule_info)
+        self.assertIsInstance(findings, Generator)
+
+    def test_desc_property(self):
+        finding = OscapFinding(description="This is a finding.")
+        self.assertEqual(finding.desc, "This is a finding.")
+
+    def test_refs_property(self):
+        finding = OscapFinding(references="https://example.com/")
+        self.assertEqual(finding.refs, "https://example.com/")
+
+    def test_ruleid_property(self):
+        finding = OscapFinding(rule_id="com.example.rule-123")
+        self.assertEqual(finding.ruleid, "com.example.rule-123")
+
+    def test_as_dict_method(self):
+        finding = OscapFinding(
+            identifier="rule-123",
+            severity="high",
+            rule_id="com.example.rule-123",
+            title="Example Rule",
+            scanned_date="2022-01-01T00:00:00Z",
+            result="fail",
+            description="This is an example rule.",
+            references="https://example.com/",
+            rationale="This rule checks for compliance with security best practices."
+        )
+        expected_dict = {
+            "identifier": "rule-123",
+            "severity": "high",
+            "rule_id": "com.example.rule-123",
+            "title": "Example Rule",
+            "scanned_date": "2022-01-01T00:00:00Z",
+            "result": "fail",
+            "description": "This is an example rule.",
+            "refs": "https://example.com/",
+            "desc": "This is an example rule.",
+            "ruleid": "com.example.rule-123",
+        }
+        self.assertEqual(finding.as_dict(), expected_dict)
+
+
+
+
+
 # RuleInfoOVAL
 # RuleInfo
