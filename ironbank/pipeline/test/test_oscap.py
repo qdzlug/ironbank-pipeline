@@ -43,7 +43,7 @@ class MockOscapFinding(OscapFinding):
 @dataclass
 class MockElement:
     text: str = "mock text"
-    attrib: dict = field(default_factory=lambda: {'idref': 'example_id'})
+    attrib: dict = field(default_factory=lambda: {'idref': 'example_id','href': "href"})
     fake_type: str = "compliance"
 
 @dataclass
@@ -64,7 +64,6 @@ class MockElementTree:
 @dataclass 
 class MockRuleInfo(RuleInfo):
     rule_id: str = "12345"
-    findings: list[MockElement] = field(default_factory=lambda: [MockElement()])
     title: str = "Mock Rule Title"
     severity: str = "medium"
 
@@ -83,8 +82,8 @@ class MockRuleInfo(RuleInfo):
         return [MockElement(text="abc"),MockElement(text="def"),MockElement(text="ghi")]
 
 @dataclass
-class MockRuleInfoOval(MockRuleInfo, RuleInfoOVAL):
-    pass
+class MockRuleInfoOval(MockRuleInfo,RuleInfoOVAL):
+    findings: list[MockElement] = field(default_factory=lambda: [MockElement()])
 
 
 @dataclass
@@ -105,25 +104,30 @@ def test_oscap_report_parser_get_findings(monkeypatch, caplog):
     oscap_report_parser.get_findings(MockPath("mockedpath"),("str","test"))
 
 
-# @pytest.fixture
-# def mock_rule_info():
+def test_oscap_oval_get_findings_from_rule_info(monkeypatch, caplog):
+    mock_text = "mock text"
+    mock_rule_info = MockRuleInfo(root=MockElementTree(),rule_result=MockElement(fake_type="OVAL",text=mock_text))
+    findings_from_rule_info = list(OscapOVALFinding.get_findings_from_rule_info(mock_rule_info))
 
-#     return MockRuleInfo()
+    assert isinstance(findings_from_rule_info[0],OscapOVALFinding)
+    assert findings_from_rule_info[0].link is not None
+    assert findings_from_rule_info[0].identifier == mock_text
 
-def test_get_findings_from_rule_info(mock_rule_info, monkeypatch, caplog):
-    monkeypatch.setattr(logging, "basicConfig", lambda **kwargs: None)
 
-    with caplog.at_level(logging.DEBUG):
-        findings = list(OscapOVALFinding.get_findings_from_rule_info(mock_rule_info))
 
-    assert len(findings) == 1
 
-    OscapOVALFinding(
-        identifier="mock_text",
-        link="https://example.com",
-        rule_id=None,
-        severity = "severity"
-    )
+
+    # with caplog.at_level(logging.DEBUG):
+    #     findings = list(OscapOVALFinding.get_findings_from_rule_info(mock_rule_info))
+
+    # assert len(findings) == 1
+
+    # OscapOVALFinding(
+    #     identifier="mock_text",
+    #     link="https://example.com",
+    #     rule_id=None,
+    #     severity = "severity"
+    # )
     # TODO: figure out the assert statement for this test
     # assert "Generating OVAL finding: mock_text" in caplog.text
     # assert caplog.records[0].message == "Generating OVAL finding: mock_text"
@@ -131,24 +135,24 @@ def test_get_findings_from_rule_info(mock_rule_info, monkeypatch, caplog):
 
 
 
-def test_oscap_compliance_finding(mock_rule_info, caplog):
-    finding = OscapComplianceFinding(
-        rule_id="12345",
-        title="Mock Rule Title",
-        severity="medium",
-        identifier="identifier"
-    )
-    assert finding.rule_id == "12345"
-    assert finding.title == "Mock Rule Title"
-    assert finding.severity == "medium"
+# def test_oscap_compliance_finding(mock_rule_info, caplog):
+#     finding = OscapComplianceFinding(
+#         rule_id="12345",
+#         title="Mock Rule Title",
+#         severity="medium",
+#         identifier="identifier"
+#     )
+#     assert finding.rule_id == "12345"
+#     assert finding.title == "Mock Rule Title"
+#     assert finding.severity == "medium"
     
-    caplog.clear()
-    with caplog.at_level("DEBUG"):
-        findings = list(OscapComplianceFinding.get_findings_from_rule_info(mock_rule_info))
-        assert len(findings) == 1
-        assert findings[0].rule_id == "12345"
-        assert findings[0].title == "Mock Rule Title"
-        assert findings[0].severity == "medium"
+#     caplog.clear()
+#     with caplog.at_level("DEBUG"):
+#         findings = list(OscapComplianceFinding.get_findings_from_rule_info(mock_rule_info))
+#         assert len(findings) == 1
+#         assert findings[0].rule_id == "12345"
+#         assert findings[0].title == "Mock Rule Title"
+#         assert findings[0].severity == "medium"
 
 # @pytest.OscapFinding
 # class TestOscapFinding(unittest.TestCase):

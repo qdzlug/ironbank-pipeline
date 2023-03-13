@@ -420,7 +420,7 @@ class OscapOVALFinding(OscapFinding):
 
     @classmethod
     def get_findings_from_rule_info(
-        cls, rule_info: RuleInfo
+        cls, rule_info: RuleInfoOVAL
     ) -> Generator[object, None, None]:
         """
         Generate a list of OVAL findings from a rule result
@@ -428,11 +428,12 @@ class OscapOVALFinding(OscapFinding):
         This method is not directly called for this class type anywhere but in the parent's matching method
         However, this method could be called directly for oval findings if needed
         """
+        cls._log.info(rule_info)
         for finding in rule_info.findings:
             yield cls(
                 **{
                     **cls.get_default_init_params(rule_info),
-                    "identifier": getattr(finding.text, "text", "default_identifier"),
+                    "identifier": finding.text,
                     "link": finding.attrib["href"],
                 }
             )
