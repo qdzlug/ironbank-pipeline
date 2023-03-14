@@ -1,4 +1,5 @@
 import shutil
+import json
 import sys
 
 from pathlib import Path
@@ -26,6 +27,7 @@ def test_get_parent_vat_response(monkeypatch):
     monkeypatch.setenv("BASE_REGISTRY", "mock_registry.dso.mil")
     monkeypatch.setenv("DOCKER_AUTH_CONFIG_PULL", "ZXhhbXBsZQ==")
     monkeypatch.setattr(shutil, "move", lambda from_, to_: None)
+    monkeypatch.setattr(json, "loads", lambda x: None)
     mock_hardening_manifest = MockHardeningManifest(".")
     with patch("vat_import.Cosign", new=MagicMock(spec=Cosign)) as mock_cosign:
         vat_import.get_parent_vat_response(".", mock_hardening_manifest)

@@ -43,12 +43,6 @@ parser.add_argument(
     required=True,
 )
 parser.add_argument(
-    "-va",
-    "--vat_attestation_lineage",
-    help="Vat attestation lineage for the image that is being scanned",
-    required=True,
-)
-parser.add_argument(
     "-ts",
     "--timestamp",
     help="Timestamp for current pipeline run",
@@ -359,7 +353,6 @@ def create_api_call():
         "parentImageTag": args.parent_version,
         "jobId": args.job_id,
         "digest": args.digest.replace("sha256:", ""),
-        "vat_attestation_lineage": args.vat_attestation_lineage,
         "timestamp": args.timestamp,
         "scanDate": args.scan_date,
         "buildDate": args.build_date,
@@ -400,21 +393,20 @@ def get_parent_vat_response(output_dir: str, hardening_manifest: HardeningManife
         )
         parent_vat_path = Path(output_dir, "parent_vat_response.json")
         shutil.move(predicate_path, parent_vat_path)
+        return json.loads(parent_vat_path.read_text(encoding="UTF-8"))
 
 
 def main():
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
-    if hardening_manifest.base_image_name:
-        get_parent_vat_response(
-            output_dir=os.environ["ARTIFACT_DIR"], hardening_manifest=hardening_manifest
-        )
+    parent_vat_response_content = get_parent_vat_response(output_dir=os.environ["ARTIFACT_DIR"], hardening_manifest=hardening_manifest) if hardening_manifest.base_image_name else []
 
     vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
     if not args.use_json:
         large_data = create_api_call()
         with vat_request_json.open("w", encoding="utf-8") as outfile:
             json.dump(large_data, outfile)
+            json.dump(parent_vat_response_content, outfile)
     else:
         with vat_request_json.open(encoding="utf-8") as infile:
             large_data = json.load(infile)
