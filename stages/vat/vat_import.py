@@ -400,12 +400,18 @@ def main():
         get_parent_vat_response(
             output_dir=os.environ["ARTIFACT_DIR"], hardening_manifest=hardening_manifest
         )
+        parent_vat_path = Path(f"{os.environ['ARTIFACT_DIR']}/parent_vat_response.json")
+        parent_vat_response_content = json.loads(
+            parent_vat_path.read_text(encoding="utf-8")
+        )
+
 
     vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
     if not args.use_json:
         large_data = create_api_call()
         with vat_request_json.open("w", encoding="utf-8") as outfile:
             json.dump(large_data, outfile)
+            json.dump(parent_vat_response_content, outfile)
     else:
         with vat_request_json.open(encoding="utf-8") as infile:
             large_data = json.load(infile)
