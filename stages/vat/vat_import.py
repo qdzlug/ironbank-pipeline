@@ -393,22 +393,18 @@ def get_parent_vat_response(output_dir: str, hardening_manifest: HardeningManife
         )
         parent_vat_path = Path(output_dir, "parent_vat_response.json")
         shutil.move(predicate_path, parent_vat_path)
-        # return json.loads(parent_vat_path.read_text(encoding="utf-8"))
 
 
 def main():
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
-    # parent_vat_response_content = get_parent_vat_response(output_dir=os.environ["ARTIFACT_DIR"], hardening_manifest=hardening_manifest) if hardening_manifest.base_image_name else []
-    
+
     if hardening_manifest.base_image_name:
         get_parent_vat_response(
             output_dir=os.environ["ARTIFACT_DIR"], hardening_manifest=hardening_manifest
         )
         parent_vat_path = Path(f"{os.environ['ARTIFACT_DIR']}/parent_vat_response.json")
         parent_vat_response_content = json.loads(parent_vat_path.read_text(encoding="utf-8"))
-
-
 
     vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
     if not args.use_json:
