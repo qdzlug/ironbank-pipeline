@@ -10,7 +10,7 @@ Use `40` for all of DSOP projects, or more focused `2730` for the python project
 
 ```shell
 pip install -r requirements.txt
-export VAT_BACKEND_SERVER_ADDRESS="https://vat-protected.dso.mil/api"
+export VAT_BACKEND_URL="https://vat-protected.dso.mil/api"
 python3 notifier.py -u https://repo1.dso.mil -t ${IRONBANK_TOOLS_TOKEN} -g 2680
 ```
 

@@ -37,9 +37,7 @@ def post_artifact_data_vat(
     """
     POST to VAT's artifacts endpoint to allow IBFE to start displaying the published image data
     """
-    vat_endpoint = (
-        f"{os.environ['VAT_BACKEND_SERVER_ADDRESS']}/internal/import/artifacts"
-    )
+    vat_endpoint = f"{os.environ['VAT_BACKEND_URL']}/internal/import/artifacts"
     post_resp = requests.post(
         vat_endpoint,
         headers={
