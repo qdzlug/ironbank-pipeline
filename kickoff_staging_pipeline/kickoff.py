@@ -1,7 +1,7 @@
 import os
 import subprocess
 import sys
-from typing import Any
+from typing import Any, Callable
 import typing
 import yaml
 from pathlib import Path
@@ -23,9 +23,9 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
 
-def git_error_handler(func):
+def git_error_handler(func: Callable) -> Callable:
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         try:
             return func(*args, **kwargs)
         except GitError as e:
@@ -271,7 +271,7 @@ def update_force_push_rules(project: GLProject, branch: str) -> None:
     """
     Update project branch to allow force push
     """
-    project.protectedbranches.delete(branch)
+    project.protectedbranches.delete("master")
     maintainer = gitlab.const.MAINTAINER_ACCESS
     project.protectedbranches.create(
         {

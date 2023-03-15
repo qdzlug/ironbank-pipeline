@@ -214,6 +214,9 @@ def main():
 
     write_dockerfile_args(dockerfile_args=dockerfile_args)
 
+    # args for buildah's ulimit settings
+    buildah_ulimit_args = json.loads(os.environ.get("BUILDAH_ULIMIT_ARGS", '{}')) or {'nproc': '2000:2000'}
+
     log.info("Build the image")
     buildah.build(
         context=".",
@@ -231,7 +234,7 @@ def main():
         log_level="warn",
         default_mounts_file=mount_conf_path,
         storage_driver="vfs",
-        ulimit_args={"nproc": "2000:2000"},
+        ulimit_args=buildah_ulimit_args,
         tag=staging_image,
         log_cmd=True,
     )
