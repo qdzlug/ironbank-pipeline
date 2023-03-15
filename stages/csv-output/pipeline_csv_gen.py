@@ -380,18 +380,18 @@ def generate_oscap_compliance_report(
         fail_count = 0
         nc_count = 0
         for line in findings_dict_list:
-            if count == 0:
-                header = line.keys()
-                csv_writer.writerow(header)
-                count += 1
-            if line["result"] == "fail":
-                fail_count += 1
-            elif line["result"] == "notchecked":
-                nc_count += 1
             try:
+                if count == 0:
+                    header = line.keys()
+                    csv_writer.writerow(header)
+                    count += 1
+                if line["result"] == "fail":
+                    fail_count += 1
+                elif line["result"] == "notchecked":
+                    nc_count += 1
                 csv_writer.writerow(line.values())
             except Exception as e:
-                log.error("problem writing line: %s", line.values())
+                log.error("Problem writing line")
                 raise e
     return fail_count, nc_count
 
