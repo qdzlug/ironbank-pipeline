@@ -297,20 +297,17 @@ def generate_remote(project: Project, repo: Repo, config: Config) -> Remote:
     )
 
 
-
 def push_branches(project: Project, repo: Repo, remote: Remote) -> None:
     """
     Push project branch to destination, and development if not exists
     Development must be pushed for trufflehog to function correctly
     """
     branches = [project.branch]
-    add_branch_if_not_selected = lambda branch: ( # noqa: E371
-        [branch]
-        if branch not in branches
-        else []
+    add_branch_if_not_selected = lambda branch: (  # noqa: E371
+        [branch] if branch not in branches else []
     )
-    branches += add_branch_if_not_selected('master')
-    branches += add_branch_if_not_selected('development')
+    branches += add_branch_if_not_selected("master")
+    branches += add_branch_if_not_selected("development")
     for branch in branches:
         print(branch)
         repo.git.checkout(branch)
