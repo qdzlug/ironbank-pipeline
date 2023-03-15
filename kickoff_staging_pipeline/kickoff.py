@@ -267,7 +267,7 @@ def create_tester_group_in_dest(gl: gitlab.Gitlab, config: Config) -> GLGroup:
     return group
 
 
-def update_force_push_rules(project: GLProject, branch: str) -> None:
+def update_force_push_rules(project: GLProject) -> None:
     """
     Update project branch to allow force push
     """
@@ -303,11 +303,11 @@ def push_branches(project: Project, repo: Repo, remote: Remote) -> None:
     Development must be pushed for trufflehog to function correctly
     """
     branches = [project.branch]
-    branches += (
-        ["development"]
-        if "development" not in [ref.name.split("staging/") for ref in remote.refs]
-        else []
+    add_branch_if_not_selected = lambda branch: (  # noqa: E371
+        [branch] if branch not in branches else []
     )
+    branches += add_branch_if_not_selected("master")
+    branches += add_branch_if_not_selected("development")
     for branch in branches:
         print(branch)
         repo.git.checkout(branch)
@@ -382,7 +382,7 @@ def update_dest_project_permissions(gl: gitlab.Gitlab, config: Config) -> Config
         print(f"Updating permissions for {project.dest_project_name}")
         gl_project.visibility = "public"
         gl_project.save()
-        update_force_push_rules(gl_project, project.branch)
+        update_force_push_rules(gl_project)
         if project.base_image:
             variable_exists = "LABEL_ALLOWLIST_REGEX" in [
                 var.key for var in gl_project.variables.list()
