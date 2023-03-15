@@ -63,7 +63,17 @@ def test_get_justification():
 
     log.info("Test get justification return None")
     just = AbstractFinding.get_justification(untracked_vuln, justifications)
-    assert just is ""
+    assert just == ""
+
+
+def test_get_dict_from_fieldnames():
+    log.info("Test dict is returned with expected fieldnames")
+    finding = AbstractFinding(
+        identifier="testID", severity="testSev", scan_source="testSrc"
+    )
+    test_dict = finding.get_dict_from_fieldnames(["finding", "packagePath"])
+    assert test_dict["finding"] == "testID"
+    assert test_dict["packagePath"] == ""
 
 
 def test_write_csv_from_dict_list(monkeypatch):
@@ -93,3 +103,22 @@ def test_write_csv_from_dict_list(monkeypatch):
         filename="test.csv",
     )
     assert mock_dict_writer.rows == test_dict_list
+
+
+def test_dedupe_findings_by_attr():
+    log.info("Test no duplicates")
+    findings = [
+        AbstractFinding(identifier="1", severity="1"),
+        AbstractFinding(identifier="2", severity="2"),
+    ]
+    deduped_findings = ReportParser.dedupe_findings_by_attr(findings, "identifier")
+    assert len(deduped_findings) == 2
+
+    log.info("Test remove duplicates")
+    findings = [
+        AbstractFinding(identifier="1", severity="1"),
+        AbstractFinding(identifier="1", severity="2"),
+    ]
+    deduped_findings = ReportParser.dedupe_findings_by_attr(findings, "identifier")
+    assert len(deduped_findings) == 1
+    assert deduped_findings[0].identifier == "1"

@@ -37,11 +37,13 @@ class MockOscapComplianceFinding(OscapComplianceFinding):
     def get_findings_from_rule_info(cls, rule_info):
         return cls
 
+
 @dataclass
 class MockOscapOVALFinding(OscapOVALFinding):
     @classmethod
     def get_findings_from_rule_info(cls, rule_info):
         return cls
+
 
 @dataclass
 class MockOscapFinding(OscapFinding):
@@ -122,6 +124,7 @@ class MockReportParser(ReportParser):
         log.error("TEST TEST TEST")
         return findings
 
+
 def test_oscap_get_default_init_params():
     mock_text = "mock text"
     mock_rule_info = MockRuleInfo(
@@ -129,20 +132,33 @@ def test_oscap_get_default_init_params():
     )
     default_params = OscapFinding.get_default_init_params(mock_rule_info)
 
-@patch("ironbank.pipeline.scan_report_parsers.oscap.OscapComplianceFinding", new=MockOscapComplianceFinding)
-@patch("ironbank.pipeline.scan_report_parsers.oscap.OscapOVALFinding", new=MockOscapOVALFinding)
+
+@patch(
+    "ironbank.pipeline.scan_report_parsers.oscap.OscapComplianceFinding",
+    new=MockOscapComplianceFinding,
+)
+@patch(
+    "ironbank.pipeline.scan_report_parsers.oscap.OscapOVALFinding",
+    new=MockOscapOVALFinding,
+)
 def test_oscap_get_findings_from_rule_info(monkeypatch):
     mock_text = "mock text"
     mock_rule_info = MockRuleInfo(
         root=MockElementTree(),
         rule_result=MockElement(text=mock_text),
     )
-    assert OscapFinding.get_findings_from_rule_info(mock_rule_info) == MockOscapComplianceFinding
+    assert (
+        OscapFinding.get_findings_from_rule_info(mock_rule_info)
+        == MockOscapComplianceFinding
+    )
     mock_rule_info = MockRuleInfo(
         root=MockElementTree(),
         rule_result=MockElement(fake_type="OVAL", text=mock_text),
     )
-    assert OscapFinding.get_findings_from_rule_info(mock_rule_info) == MockOscapOVALFinding
+    assert (
+        OscapFinding.get_findings_from_rule_info(mock_rule_info) == MockOscapOVALFinding
+    )
+
 
 def test_oscap_oval_get_findings_from_rule_info(monkeypatch, caplog):
     mock_text = "mock text"
@@ -173,7 +189,6 @@ def test_oscap_compliance_get_findings_from_rule_info(monkeypatch, caplog):
     assert findings_from_rule_info[0].identifier == mock_rule_info.identifier
 
 
-@pytest.mark.only
 @patch("ironbank.pipeline.scan_report_parsers.oscap.RuleInfo", new=MockRuleInfo)
 @patch("ironbank.pipeline.scan_report_parsers.oscap.OscapFinding", new=MockOscapFinding)
 def test_oscap_report_parser_get_findings(monkeypatch, caplog):
@@ -189,13 +204,10 @@ def test_oscap_report_parser_get_findings(monkeypatch, caplog):
     )
     oscap_report_parser.get_findings(MockPath("mockedpath"), ("str", "test"))
 
+
 def test_as_dict():
     oscap_finding = OscapFinding(identifier="name", severity="Hello")
     oscap_finding.as_dict()
-
-
-
-
 
 
 # def test_get_findings_from_rule_info(self):
