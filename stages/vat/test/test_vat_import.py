@@ -24,7 +24,8 @@ import vat_import  # noqa E402
 @patch("tempfile.TemporaryDirectory", new=MockTempDirectory)
 def test_get_parent_vat_response(monkeypatch):
     monkeypatch.setenv("BASE_REGISTRY", "mock_registry.dso.mil")
-    monkeypatch.setenv("DOCKER_AUTH_CONFIG_PULL", "ZXhhbXBsZQ==")
+    monkeypatch.setenv("DOCKER_AUTH_FILE_PULL", "ZXhhbXBsZQ==")
+    monkeypatch.setattr(shutil, "copy", lambda *args, **kwargs: None)
     monkeypatch.setattr(shutil, "move", lambda from_, to_: None)
     mock_hardening_manifest = MockHardeningManifest(".")
     with patch("vat_import.Cosign", new=MagicMock(spec=Cosign)) as mock_cosign:

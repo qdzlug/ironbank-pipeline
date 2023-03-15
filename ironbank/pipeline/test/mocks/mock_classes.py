@@ -5,6 +5,7 @@ from pathlib import PosixPath
 import subprocess
 import tempfile
 import requests
+from requests import Session
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.image import Image, ImageFile
 from ironbank.pipeline.apis import VatAPI
@@ -69,6 +70,7 @@ class MockResponse:
     content: str = "example"
     stderr: str = "canned_error"
     stdout: str = "It broke"
+    headers: dict = field(default_factory=dict)
 
     def __enter__(self):
         return self
@@ -85,6 +87,21 @@ class MockResponse:
 
     def json(self):
         return {"status_code": self.status_code, "text": self.text}
+
+
+@dataclass
+class MockSession(Session):
+    def get(*args, **kwargs):
+        return MockResponse()
+
+    def post(*args, **kwargs):
+        return MockResponse()
+
+    def put(*args, **kwargs):
+        return MockResponse()
+
+    def delete(*args, **kwargs):
+        return MockResponse()
 
 
 @dataclass
@@ -242,6 +259,21 @@ class MockImage(Image):
 
     # def __post_init__(*args, **kwargs):
     #     pass
+
+
+@dataclass
+class MockPaginatedRequest:
+    session: requests.Session
+    url: str
+    query: str = ""
+    page: int = 1
+    page_size: int = 100
+
+    def __post_init__(self):
+        pass
+
+    def get(self):
+        return [{"name": "ironbank"}, {"name": "ironbank"}, {"name": "ironbank"}]
 
 
 @dataclass

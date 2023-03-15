@@ -162,7 +162,8 @@ Sequence:
      - From the old image manifest:
        - Check if git commit SHA is the same as old image
        - Check if parent digest is the same as old image
-   - Go to next step if the manifest exists, commit SHAs are the same, and parent digests are the same
+       - Check if old image has a verified signature
+   - Go to next step if the manifest exists, commit SHAs are the same, parent digests are the same, and the old image has a verified signature
    - Otherwise, if there is a difference, log that we must scan new image and exit
 1. Parse Old Image Packages
    - Using the access_log and SBOM artifacts from the old image's Cosign attestation, parse, log, and save the list of packages for use later
@@ -263,3 +264,16 @@ The SBOM files, VAT response file, and Cosign signatures on the image and SBOM a
 
 Upload artifacts which are displayed/utilized by the [Iron Bank website](https://ironbank.dso.mil).
 The artifacts uploaded include scan reports, project README, project LICENSE, and others.
+
+## CI Vars Consumed Externally
+
+- `PIP_QUIET` is used to supress the output from pip commands
+
+- `SYFT_REGISTRY_AUTH_PASSWORD` and `SYFT_REGISTRY_AUTH_USERNAME` are used for credentials for specific registries: [Link](https://github.com/anchore/syft/blob/main/README.md)
+
+- `TWISTLOCK_USER` and `TWISTLOCK_PASSWORD` are used for TWISTLOCK authentication
+
+## Stargate (Legacy Code)
+
+- Stage and module removed on 03/06/2023
+- Last commit SHA: `f5a439a9237ce9ec05b8a6f4ce7e91c96c44f1d5`

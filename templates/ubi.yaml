@@ -32,8 +32,6 @@ include:
 
   - local: stages/s3/upload-to-s3.yaml
 
-  - local: stages/stargate/stargate.yaml
-
 variables:
   DISTRO_REPO_DIR: "ubi-repos"
   DISTRO_REPO_MOUNT: "/etc/yum.repos.d"

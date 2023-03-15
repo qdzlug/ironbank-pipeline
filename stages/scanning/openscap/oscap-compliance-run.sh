@@ -8,7 +8,7 @@ fi
 set -Eeuo pipefail
 echo "Imported Base Image Type: ${BASE_IMAGE_TYPE}"
 mkdir -p "${OSCAP_SCANS}"
-podman pull --authfile "${DOCKER_AUTH_CONFIG_FILE_PULL}" "${IMAGE_TO_SCAN}"
+podman pull --authfile "${DOCKER_AUTH_FILE_PULL}" "${IMAGE_TO_SCAN}"
 set -x
 DOCKER_IMAGE_PATH=$(podman images -q)
 export DOCKER_IMAGE_PATH

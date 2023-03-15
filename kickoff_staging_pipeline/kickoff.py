@@ -1,15 +1,17 @@
 import os
 import subprocess
 import sys
-from typing import Any
+from typing import Any, Callable
 import typing
 import yaml
 from pathlib import Path
 from git import Repo, Remote, IndexFile
+from git.exc import GitError
 from git.config import GitConfigParser
 from jinja2 import Environment, FileSystemLoader, Template
 import shutil
 import gitlab
+import functools
 from gitlab.v4.objects import (
     Project as GLProject,
     Group as GLGroup,
@@ -19,6 +21,20 @@ import requests
 import urllib
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+
+
+def git_error_handler(func: Callable) -> Callable:
+    @functools.wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        try:
+            return func(*args, **kwargs)
+        except GitError as e:
+            print(
+                "\x1b[38;5;226mNote: Removing the clone_dir directory may resolve git-related errors. If you're unsure which directory this is, check the clone_dir value in the config.yaml\n\n\033[0m"
+            )
+            raise e
+
+    return wrapper
 
 
 @dataclass
@@ -180,6 +196,7 @@ class Config:
         return self.dest_gitlab_url
 
 
+@git_error_handler
 def clone_from_src(config: Config) -> Config:
     """
     Clone all src repos to a local directory defined in config
@@ -187,18 +204,18 @@ def clone_from_src(config: Config) -> Config:
     """
     config.clone_dir.mkdir(parents=True, exist_ok=True)
 
-    for project, i in zip(config.projects, range(len(config.projects))):
+    for project in config.projects:
         clone_url: str = f"{config.src_git_url}/{config.group}/{project.src_path}"
         dest_dir: Path = Path(f"{config.clone_dir}/{project.dest_project_name}")
         print(clone_url)
         if not dest_dir.exists():
             repo: Repo = Repo.clone_from(clone_url, dest_dir)
             assert repo
-            config.projects[i].repo = repo
+            project.repo = repo
         else:
             repo = Repo(dest_dir)
             assert repo
-            config.projects[i].repo = Repo(dest_dir)
+            project.repo = Repo(dest_dir)
     return config
 
 
@@ -254,7 +271,7 @@ def update_force_push_rules(project: GLProject, branch: str) -> None:
     """
     Update project branch to allow force push
     """
-    project.protectedbranches.delete(branch)
+    project.protectedbranches.delete("master")
     maintainer = gitlab.const.MAINTAINER_ACCESS
     project.protectedbranches.create(
         {
@@ -297,6 +314,7 @@ def push_branches(project: Project, repo: Repo, remote: Remote) -> None:
         remote.push(force=True).raise_if_error()
 
 
+@git_error_handler
 def push_repos_to_dest(config: Config) -> Config:
     """
     Configures projects for destination and pushes them to destination
@@ -311,7 +329,7 @@ def push_repos_to_dest(config: Config) -> Config:
         - Set changes_pushed for project to True
     """
     template_ci_file_path = template_ci_file(config)
-    for project, i in zip(config.projects, range(len(config.projects))):
+    for project in config.projects:
         repo: Repo = project.repo
         assert repo.working_dir
         # check out test branch before proceeding (prevent making changes to last branch used)
@@ -332,13 +350,13 @@ def push_repos_to_dest(config: Config) -> Config:
             index.add([config.ci_file])
             index.commit("updating .gitlab-ci.yml")
             remote = generate_remote(project, repo, config)
-            config.projects[i].remote = remote
+            project.remote = remote
             remote_urls = [url for url in remote.urls]
             # double check repo1 not in dest before push
             print(remote_urls[0].split("@")[-1])
             assert len(remote_urls) == 1 and "repo1" not in remote_urls[0]
             push_branches(project, repo, remote)
-            config.projects[i].changes_pushed = True
+            project.changes_pushed = True
         else:
             print(
                 f"Nothing to push to staging for {project.dest_project_name}. Skipping"
@@ -355,7 +373,7 @@ def update_dest_project_permissions(gl: gitlab.Gitlab, config: Config) -> Config
     - Add LABEL_ALLOWLIST_REGEX for base images
     """
     assert "repo1" not in gl.api_url
-    for project, i in zip(config.projects, range(len(config.projects))):
+    for project in config.projects:
         gl_project: GLProject = gl.projects.get(
             f"{config.group}/{config.tester}/{project.dest_project_name}"
         )
@@ -376,7 +394,7 @@ def update_dest_project_permissions(gl: gitlab.Gitlab, config: Config) -> Config
                         "value": r"^mil\.dso\.ironbank\.os-type$",
                     }
                 )
-        config.projects[i].gl_project = gl_project
+        project.gl_project = gl_project
     return config
 
 
@@ -385,11 +403,11 @@ def kickoff_pipelines(config: Config) -> Config:
     Kick's off pipelines for any projects that haven't pushed changes
     Instatiates each project's pipeline object
     """
-    for project, i in zip(config.projects, range(len(config.projects))):
+    for project in config.projects:
         # prevent kicking off second pipeline if ci changes were pushed to remote
         if not project.changes_pushed:
             print(f"Kicking off pipeline for {project.dest_project_name}")
-            config.projects[i].pipeline = project.gl_project.pipelines.create(
+            project.pipeline = project.gl_project.pipelines.create(
                 {"ref": project.branch}
             )
         else:

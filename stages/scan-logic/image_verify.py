@@ -7,19 +7,18 @@ from ironbank.pipeline.image import Image
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.container_tools.skopeo import Skopeo
+from ironbank.pipeline.container_tools.cosign import Cosign
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 
 log = logger.setup("image_verify")
 
 
-def inspect_old_image(
-    manifest: HardeningManifest, docker_config_dir: str
-) -> Optional[dict]:
+def inspect_old_image(manifest: HardeningManifest, pull_auth: str) -> Optional[dict]:
     try:
-        skopeo = Skopeo(docker_config_dir=docker_config_dir)
+        skopeo = Skopeo(authfile=pull_auth)
         old_image = Image(
-            registry=os.environ["REGISTRY_URL_PROD"],
+            registry=os.environ["REGISTRY_PUBLISH_URL"],
             name=manifest.image_name,
             tag=manifest.image_tag,
             transport="docker://",
@@ -65,20 +64,31 @@ def verify_image_properties(img_json: dict, manifest: HardeningManifest) -> bool
     return False
 
 
-def diff_needed(docker_config_dir: str) -> Optional[dict]:
+def diff_needed(pull_auth: str) -> Optional[dict]:
     try:
         dsop_project = DsopProject()
         manifest = HardeningManifest(dsop_project.hardening_manifest_path)
 
+        old_image = Image(
+            registry=os.environ["REGISTRY_URL_PROD"],
+            name=manifest.image_name,
+            tag=manifest.image_tag,
+            transport="docker://",
+        )
+
         log.info("Inspecting old image")
-        old_img_json = inspect_old_image(manifest, docker_config_dir)
+        old_img_json = inspect_old_image(manifest, pull_auth)
 
         log.info("Verifying image properties")
         # Return old image information if all are true:
         #  - manifest exists for tag (i.e. this pipeline is not running to create a new tag)
         #  - git commit SHAs match
         #  - parent digests match
-        if old_img_json and verify_image_properties(old_img_json, manifest):
+        if (
+            old_img_json
+            and verify_image_properties(old_img_json, manifest)
+            and Cosign.verify(old_image)
+        ):
             return {
                 # Old image information to return
                 "tag": manifest.image_tag,

@@ -7,7 +7,7 @@ from ironbank.pipeline.container_tools.skopeo import Skopeo
 
 def main():
     src = Image(
-        registry=os.environ["REGISTRY_URL_STAGING"],
+        registry=os.environ["REGISTRY_PRE_PUBLISH_URL"],
         name=os.environ["IMAGE_NAME"],
         digest=os.environ["IMAGE_PODMAN_SHA"],
         transport="docker://",
@@ -19,7 +19,7 @@ def main():
 
     Skopeo.copy(
         src=src,
-        src_authfile=os.environ["DOCKER_AUTH_CONFIG_FILE_STAGING"],
+        src_authfile=os.environ["DOCKER_AUTH_FILE_PRE_PUBLISH"],
         dest=dest,
         log_cmd=True,
     )
