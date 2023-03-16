@@ -407,7 +407,7 @@ class MockRuleInfo(RuleInfo):
         ]
 
     @classmethod
-    def get_result(cls, rule_obj: MockElement) -> None:
+    def get_result(cls, rule_obj: MockElement) -> str:
         return "mock_result"
 
     def set_identifiers(self, rule_obj: MockElement) -> None:

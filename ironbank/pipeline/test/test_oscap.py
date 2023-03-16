@@ -158,7 +158,6 @@ def test_oscap_report_parser_get_findings(monkeypatch):
     oscap_report_parser.get_findings(MockPath("mockedpath"), ("str", "test"))
 
 
-@pytest.mark.only
 def test_rule_info_init(monkeypatch, mock_element_tree, mock_element):
     log.info("Test constructor gets base rule info and inits correctly")
     monkeypatch.setattr(MockRuleInfo, "__new__", RuleInfo.__new__)
@@ -169,7 +168,6 @@ def test_rule_info_init(monkeypatch, mock_element_tree, mock_element):
         assert isinstance(rule_info, RuleInfo)
 
 
-@pytest.mark.only
 def test_rule_info_oval_init(monkeypatch, mock_element_tree, mock_element):
     monkeypatch.setattr(MockRuleInfo, "__new__", RuleInfo.__new__)
     monkeypatch.setattr(MockRuleInfoOVAL, "__post_init__", RuleInfoOVAL.__post_init__)
@@ -188,7 +186,6 @@ def test_rule_info_oval_init(monkeypatch, mock_element_tree, mock_element):
         assert isinstance(rule_info_oval, RuleInfoOVAL)
 
 
-@pytest.mark.only
 def test_rule_info_format_reference(monkeypatch, mock_element, mock_rule_info):
     log.info("Test formatting a reference element")
     mock_rule_info = mock_rule_info["with__format_reference"]
@@ -202,8 +199,7 @@ def test_rule_info_format_reference(monkeypatch, mock_element, mock_rule_info):
     assert reference == mock_element.text
 
 
-@pytest.mark.only
-def test_set_identifiers(monkeypatch, mock_element, mock_rule_info):
+def test_set_identifiers(mock_element, mock_rule_info):
     log.info("Test setting identifiers from rule object")
     mock_rule_info = mock_rule_info["with_set_identifiers"]
     mock_rule_info.set_identifiers(mock_element)
@@ -211,5 +207,28 @@ def test_set_identifiers(monkeypatch, mock_element, mock_rule_info):
     assert ":ident" in mock_rule_info.identifier
 
 
-def test_get_result(monkeypatch):
+def test_get_result(mock_element, mock_rule_info):
+    log.info("Test getting result from rule result")
+    result = mock_rule_info["with_get_result"].get_result(mock_element)
+    assert ":result" in result
+
+
+def test_set_result(mock_element, mock_rule_info):
+    log.info("Test setting result from rule result")
+    mock_rule_info = mock_rule_info["with_set_result"]
+    mock_rule_info.set_result(mock_element)
+    assert ":result" in mock_rule_info.result
+
+
+def test_set_description(monkeypatch, mock_element, mock_rule_info):
+    log.info("Test setting description from rule")
+    mock_rule_info = mock_rule_info["with_set_description"]
+    monkeypatch.setattr(
+        ElementTree, "tostring", lambda x, method: x.text.encode("utf-8")
+    )
+    mock_rule_info.set_description(mock_element)
+    assert ":description" in mock_rule_info.description
+
+
+def test_set_references():
     pass
