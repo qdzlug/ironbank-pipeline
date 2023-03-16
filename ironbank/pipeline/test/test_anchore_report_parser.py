@@ -1,7 +1,6 @@
-import inspect
 import json
 import pytest
-from ironbank.pipeline.test.mocks.mock_classes import MockPath
+from ironbank.pipeline.test.mocks.mock_classes import MockPath, TestUtils
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.scan_report_parsers.anchore import (
     AnchoreReportParser,
@@ -226,19 +225,9 @@ def test_sort_fix(mock_finding_data):
 
 def test_dict(mock_anchore_finding):
     log.info("Test dict returns expected keys/values")
-    # filter out user-defined methods and built-in functions
-    mock_anchore_finding_attrs = inspect.getmembers(
-        mock_anchore_finding, lambda x: not inspect.isroutine(x)
-    )
-    # filter out magic methods
-    mock_anchore_finding_attrs = [
-        attr[0]
-        for attr in mock_anchore_finding_attrs
-        if (not attr[0].endswith("__") and attr[0] != "_abc_impl")
-    ]
+
     mock_anchore_finding_dict = mock_anchore_finding.as_dict()
-    log.info(sorted(mock_anchore_finding_attrs))
-    log.info(sorted(mock_anchore_finding_dict.keys()))
+    mock_anchore_finding_attrs = TestUtils.get_attrs_from_object(mock_anchore_finding)
     assert sorted(mock_anchore_finding_attrs) == sorted(
         list(mock_anchore_finding_dict.keys())
     )

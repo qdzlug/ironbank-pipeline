@@ -56,15 +56,14 @@ class RuleInfo:
     _log: logger = logger.setup("RuleInfo")
 
     def __new__(
-        cls, root: ElementTree, rule_result: Element
+        cls, root: ElementTree, rule_result: Element, *args, **kwargs
     ) -> Callable:  # pylint: disable=unused-argument
-        rule_class: Callable = (
+        return object.__new__(
             RuleInfoOVAL
             if (cls.get_rule_id(rule_result) == cls.oval_rule)
             and (cls.get_result(rule_result) not in cls.pass_results)
             else RuleInfo
         )
-        return object.__new__(rule_class)
 
     def __post_init__(self, root: ElementTree, rule_result: Element) -> None:
         """
@@ -205,7 +204,7 @@ class RuleInfoOVAL(RuleInfo):
         self.set_oval_name(rule_result)
         self.set_oval_href(rule_result)
         oval_url: str = self.get_oval_url(self.oval_href)
-        oval_root: ElementTree = etree.parse(self.download_oval_defintions(oval_url))
+        oval_root: ElementTree = etree.parse(self.download_oval_definitions(oval_url))
         self.set_values_from_oval_report(oval_root)
 
     def set_oval_val_from_ref(self, val: str, rule_result: Element) -> None:
@@ -286,7 +285,7 @@ class RuleInfoOVAL(RuleInfo):
             raise NoMatchingOvalUrl
 
     @classmethod
-    def download_oval_defintions(cls, url: str) -> list[dict]:
+    def download_oval_definitions(cls, url: str) -> Path:
         """
         Download oval definition if not already downloaded
         Only called if an OVAL finding is discovered
