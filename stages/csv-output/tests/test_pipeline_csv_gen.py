@@ -38,45 +38,40 @@ MOCK_OSCAP_FINDINGS: list[OscapComplianceFinding] = [
     OscapComplianceFinding(identifier="test2", severity="test2", result="notchecked"),
 ]
 
-MOCK_GOOD_TWISTLOCK_CVE_FINDINGS: dict = {
+MOCK_TWISTLOCK_CVE_FINDINGS: dict = {
     "results": [
         {
             "vulnerabilities": [
                 {
                     "id": "t_id",
-                    "status": "t_status",
-                    "cvss": 10,
-                    "vector": "t_vector",
-                    "description": "t_desc",
                     "severity": "t_sev",
                     "packageName": "t_pkg_name",
                     "packageVersion": "t_pkg_ver",
-                    "link": "t_link",
-                    "riskFactors": [
-                        "t_risk",
-                    ],
-                    "impactedVersions": ["t_imp_vers"],
-                    "publishedDate": "t_pub_date",
-                    "discoveredDate": "t_disc_date",
-                    "layerTime": "t_layer_time",
                 }
             ]
         }
     ]
 }
 
-MOCK_BAD_TWISTLOCK_CVE_FINDINGS: dict = {
-    "results": [
-        {
-            "vulnerabilities": [
-                {
-                    "id": "bad_id",
-                    "packageName": "bad_packageName",
-                    "packageVersion": "bad_packageVersion",
-                }
+MOCK_ANCHORE_FINDINGS: dict = {
+    "t_sha": {
+        "result": {
+            "rows": [
+                [
+                    "t_sha",
+                    "test/123",
+                    "456",
+                    "dockerfile",
+                    "package",
+                    "User root found",
+                    "stop",
+                    False,
+                    "TestEffectiveUserChecks",
+                    "",
+                ]
             ]
         }
-    ]
+    }
 }
 
 
@@ -93,14 +88,31 @@ class MockWriter:
 
 
 @pytest.mark.only
-def test_generate_twistlock_cve_report(monkeypatch, caplog):
+def test_generate_anchore_compliance_report(monkeypatch, caplog) -> None:
+    monkeypatch.setattr(Path, "open", mock_open())
+
+    log.info("Test successful report generation")
+    monkeypatch.setattr(json, "load", lambda *args, **kwargs: MOCK_ANCHORE_FINDINGS)
+    monkeypatch.setattr(
+        ReportParser, "write_csv_from_dict_list", lambda *args, **kwargs: None
+    )
+    stop_count, image_id = pipeline_csv_gen.generate_anchore_compliance_report(
+        report_path=Path("report"),
+        csv_output_dir=Path("csv_out"),
+        justifications={("456", None, None): "t_just"},
+    )
+    assert stop_count == 1
+    assert image_id == "t_sha"
+
+
+def test_generate_twistlock_cve_report(monkeypatch, caplog) -> None:
     log.info("Test successful report generation")
     monkeypatch.setattr(Path, "open", mock_open())
     monkeypatch.setattr(
         ReportParser, "write_csv_from_dict_list", lambda *args, **kwargs: None
     )
     monkeypatch.setattr(
-        json, "load", lambda *args, **kwargs: MOCK_GOOD_TWISTLOCK_CVE_FINDINGS
+        json, "load", lambda *args, **kwargs: MOCK_TWISTLOCK_CVE_FINDINGS
     )
     cve_len = pipeline_csv_gen.generate_twistlock_cve_report(
         report_path=Path("report"),
@@ -110,8 +122,10 @@ def test_generate_twistlock_cve_report(monkeypatch, caplog):
     assert cve_len == 1
 
     log.info("Test key error")
+    # Remove severity key to introduce key error
+    MOCK_TWISTLOCK_CVE_FINDINGS["results"][0]["vulnerabilities"][0].pop("severity")
     monkeypatch.setattr(
-        json, "load", lambda *args, **kwargs: MOCK_BAD_TWISTLOCK_CVE_FINDINGS
+        json, "load", lambda *args, **kwargs: MOCK_TWISTLOCK_CVE_FINDINGS
     )
     with pytest.raises(SystemExit):
         cve_len = pipeline_csv_gen.generate_twistlock_cve_report(
@@ -122,16 +136,14 @@ def test_generate_twistlock_cve_report(monkeypatch, caplog):
     assert "Missing key." in caplog.text
 
     log.info("Test no cves")
-    monkeypatch.setattr(
-        json, "load", lambda *args, **kwargs: {"results": [{"vulnerabilities": []}]}
-    )
+    monkeypatch.setattr(json, "load", lambda *args, **kwargs: {"results": [{}]})
     cve_len = pipeline_csv_gen.generate_twistlock_cve_report(
         report_path=Path("report"), csv_output_dir=Path("csv_out"), justifications={}
     )
     assert cve_len == 0
 
 
-def test_generate_oscap_compliance_report(monkeypatch, caplog):
+def test_generate_oscap_compliance_report(monkeypatch, caplog) -> None:
     log.info("Test successful report generated")
     monkeypatch.setattr(Path, "open", mock_open())
     monkeypatch.setattr(
@@ -160,7 +172,7 @@ def test_generate_oscap_compliance_report(monkeypatch, caplog):
     assert "Problem writing line" in caplog.text
 
 
-def test_generate_blank_oscap_report(monkeypatch):
+def test_generate_blank_oscap_report(monkeypatch) -> None:
     log.info("Test generate blank report")
     monkeypatch.setattr(Path, "open", mock_open())
     mock_writer = MockWriter()
