@@ -38,17 +38,60 @@ def mock_oscap_finding():
 
 
 @pytest.fixture
+def mock_element():
+    return MockElement()
+
+
+@pytest.fixture
+def mock_element_tree():
+    return MockElementTree()
+
+
+@pytest.fixture
+def mock_rule_info(monkeypatch, mock_element_tree, mock_element):
+    def default_():
+        return MockRuleInfo(root=mock_element_tree, rule_result=mock_element)
+
+    def oval():
+        return MockRuleInfo(
+            root=mock_element_tree, rule_result=MockElement(fake_type="OVAL")
+        )
+
+    def with_method(method_name):
+        monkeypatch.setattr(MockRuleInfo, method_name, getattr(RuleInfo, method_name))
+        return default_()
+
+    # TODO: use inspect to grab these from the class dynamically
+    methods = [
+        "_format_reference",
+        "set_identifiers",
+        "get_result",
+        "set_result",
+        "set_description",
+        "set_references",
+        "set_rationale",
+        "get_rule_id",
+        "get_results",
+    ]
+
+    return {
+        "default": default_(),
+        "oval": oval(),
+        # provide versions of mocked class with real definition
+        # k:v example: "with_set_identifiers": MockRuleInfo() with set_identifiers unmocked
+        **{f"with_{m}": with_method(m) for m in methods},
+    }
+
+
+@pytest.fixture
 def mock_text():
     return "mock text"
 
 
-def test_oscap_get_default_init_params(mock_text):
+def test_oscap_get_default_init_params(mock_rule_info):
     log.info("Test retrieving all default init params for OscapFinding object")
 
-    mock_rule_info = MockRuleInfo(
-        root=MockElementTree(), rule_result=MockElement(text=mock_text)
-    )
-    default_params = OscapFinding.get_default_init_params(mock_rule_info)
+    default_params = OscapFinding.get_default_init_params(mock_rule_info["default"])
     assert default_params
 
 
@@ -60,21 +103,14 @@ def test_oscap_get_default_init_params(mock_text):
     "ironbank.pipeline.scan_report_parsers.oscap.OscapOVALFinding",
     new=MockOscapOVALFinding,
 )
-def test_oscap_get_findings_from_rule_info(mock_text):
-    mock_rule_info = MockRuleInfo(
-        root=MockElementTree(),
-        rule_result=MockElement(text=mock_text),
-    )
+def test_oscap_get_findings_from_rule_info(mock_rule_info):
     assert (
-        OscapFinding.get_findings_from_rule_info(mock_rule_info)
+        OscapFinding.get_findings_from_rule_info(mock_rule_info["default"])
         == MockOscapComplianceFinding
     )
-    mock_rule_info = MockRuleInfo(
-        root=MockElementTree(),
-        rule_result=MockElement(fake_type="OVAL", text=mock_text),
-    )
     assert (
-        OscapFinding.get_findings_from_rule_info(mock_rule_info) == MockOscapOVALFinding
+        OscapFinding.get_findings_from_rule_info(mock_rule_info["oval"])
+        == MockOscapOVALFinding
     )
 
 
@@ -87,31 +123,23 @@ def test_as_dict(mock_oscap_finding):
     )
 
 
-def test_oscap_oval_get_findings_from_rule_info(mock_text):
-    mock_rule_info = MockRuleInfo(
-        root=MockElementTree(),
-        rule_result=MockElement(fake_type="OVAL", text=mock_text),
-    )
+def test_oscap_oval_get_findings_from_rule_info(mock_text, mock_rule_info):
     findings_from_rule_info = list(
-        OscapOVALFinding.get_findings_from_rule_info(mock_rule_info)
+        OscapOVALFinding.get_findings_from_rule_info(mock_rule_info["oval"])
     )
-
     assert isinstance(findings_from_rule_info[0], OscapOVALFinding)
     assert findings_from_rule_info[0].link is not None
     assert findings_from_rule_info[0].identifier == mock_text
 
 
-def test_oscap_compliance_get_findings_from_rule_info(mock_text):
-    mock_rule_info = MockRuleInfo(
-        root=MockElementTree(), rule_result=MockElement(text=mock_text)
-    )
+def test_oscap_compliance_get_findings_from_rule_info(mock_rule_info):
     findings_from_rule_info = list(
-        OscapComplianceFinding.get_findings_from_rule_info(mock_rule_info)
+        OscapComplianceFinding.get_findings_from_rule_info(mock_rule_info["default"])
     )
 
     assert isinstance(findings_from_rule_info[0], OscapComplianceFinding)
     assert getattr(findings_from_rule_info[0], "link", None) is None
-    assert findings_from_rule_info[0].identifier == mock_rule_info.identifier
+    assert findings_from_rule_info[0].identifier == mock_rule_info["default"].identifier
 
 
 @patch("ironbank.pipeline.scan_report_parsers.oscap.RuleInfo", new=MockRuleInfo)
@@ -131,32 +159,57 @@ def test_oscap_report_parser_get_findings(monkeypatch):
 
 
 @pytest.mark.only
-def test_rule_info_init(monkeypatch):
+def test_rule_info_init(monkeypatch, mock_element_tree, mock_element):
     log.info("Test constructor gets base rule info and inits correctly")
     monkeypatch.setattr(MockRuleInfo, "__new__", RuleInfo.__new__)
     monkeypatch.setattr(MockRuleInfo, "__post_init__", RuleInfo.__post_init__)
-    monkeypatch.setattr(MockRuleInfo, "get_rule_id", lambda rule_obj: "12345")
+    # we have to do this a `with patch` instead of using the decorator so the mocks we're doing before this line apply
     with patch("ironbank.pipeline.scan_report_parsers.oscap.RuleInfo", MockRuleInfo):
-        mock_rule_info = MockRuleInfo(root=MockElementTree(), rule_result=MockElement())
-        assert isinstance(mock_rule_info, RuleInfo)
+        rule_info = MockRuleInfo(root=mock_element_tree, rule_result=mock_element)
+        assert isinstance(rule_info, RuleInfo)
 
 
 @pytest.mark.only
-def test_rule_info_oval_init(monkeypatch):
+def test_rule_info_oval_init(monkeypatch, mock_element_tree, mock_element):
     monkeypatch.setattr(MockRuleInfo, "__new__", RuleInfo.__new__)
     monkeypatch.setattr(MockRuleInfoOVAL, "__post_init__", RuleInfoOVAL.__post_init__)
-    monkeypatch.setattr(
-        MockRuleInfo, "get_rule_id", lambda rule_obj: RuleInfo.oval_rule
-    )
+    monkeypatch.setattr(RuleInfo, "get_rule_id", lambda rule_obj: RuleInfo.oval_rule)
     with patch(
         "ironbank.pipeline.scan_report_parsers.oscap.RuleInfoOVAL", MockRuleInfoOVAL
     ):
         log.info("Test constructor gets oval rule info and inits correctly")
 
         monkeypatch.setattr(ElementTree, "parse", lambda *args, **kwargs: None)
-        mock_rule_info = MockRuleInfo(
-            root=MockElementTree(),
-            rule_result=MockElement(),
+        rule_info_oval = MockRuleInfo(
+            root=mock_element_tree,
+            rule_result=mock_element,
             rule_id=RuleInfo.oval_rule,
         )
-        assert isinstance(mock_rule_info, RuleInfoOVAL)
+        assert isinstance(rule_info_oval, RuleInfoOVAL)
+
+
+@pytest.mark.only
+def test_rule_info_format_reference(monkeypatch, mock_element, mock_rule_info):
+    log.info("Test formatting a reference element")
+    mock_rule_info = mock_rule_info["with__format_reference"]
+    reference = mock_rule_info._format_reference(mock_element)
+    # title and identifier are pulled from the params passed to `.find`
+    assert ":title" in reference
+    assert ":identifier" in reference
+    log.info("Test skipping formatting a reference")
+    monkeypatch.setattr(MockElement, "find", lambda *args, **kwargs: None)
+    reference = mock_rule_info._format_reference(mock_element)
+    assert reference == mock_element.text
+
+
+@pytest.mark.only
+def test_set_identifiers(monkeypatch, mock_element, mock_rule_info):
+    log.info("Test setting identifiers from rule object")
+    mock_rule_info = mock_rule_info["with_set_identifiers"]
+    mock_rule_info.set_identifiers(mock_element)
+    assert ":ident" in mock_rule_info.identifiers[0]
+    assert ":ident" in mock_rule_info.identifier
+
+
+def test_get_result(monkeypatch):
+    pass

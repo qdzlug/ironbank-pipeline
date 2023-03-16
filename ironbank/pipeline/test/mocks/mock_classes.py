@@ -351,10 +351,16 @@ class MockOscapFinding(OscapFinding):
 @dataclass
 class MockElementTree:
     def find(self, *args, **kwargs) -> None:
-        return MockElement()
+        return (
+            MockElement(xml_path=args[0], text=args[0])
+            if args
+            else MockElement(xml_path=kwargs["path"], text=kwargs["path"])
+            if kwargs
+            else MockElement()
+        )
 
     def findall(self, *args, **kwargs) -> None:
-        return [MockElement(), MockElement()]
+        return [self.find(*args, **kwargs)]
 
 
 @dataclass
@@ -368,6 +374,7 @@ class MockElement(MockElementTree):
             "time": "2:30",
         }
     )
+    xml_path: str = ""
     fake_type: str = "compliance"
 
 
@@ -387,12 +394,21 @@ class MockRuleInfo(RuleInfo):
     def __post_init__(self, root: ElementTree, rule_result: Element):
         self.identifier = str(random.randint(0, 1000))
 
-    def get_results(self, results_filter: list[str]):
+    @classmethod
+    def _format_reference(cls, ref: Element) -> str:
+        return "formatted_reference"
+
+    @classmethod
+    def get_results(cls, root: MockElement, results_filter: list[str]):
         return [
             MockElement(text="abc"),
             MockElement(text="def"),
             MockElement(text="ghi"),
         ]
+
+    @classmethod
+    def get_result(cls, rule_obj: MockElement) -> None:
+        return "mock_result"
 
     def set_identifiers(self, rule_obj: MockElement) -> None:
         self.identifiers = "mock_identifiers"

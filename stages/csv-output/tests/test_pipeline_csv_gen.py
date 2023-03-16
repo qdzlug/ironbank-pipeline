@@ -4,7 +4,6 @@ from io import TextIOWrapper
 import json
 import sys
 from typing import Any, Iterable
-from unittest.mock import patch
 import os
 from ironbank.pipeline.scan_report_parsers.oscap import (
     OscapComplianceFinding,
@@ -13,12 +12,6 @@ from ironbank.pipeline.scan_report_parsers.oscap import (
 from ironbank.pipeline.scan_report_parsers.anchore import (
     AnchoreReportParser,
     AnchoreCVEFinding,
-)
-from ironbank.pipeline.test.mocks.mock_classes import (
-    MockImage,
-    MockOutput,
-    MockPath,
-    MockPopen,
 )
 from unittest.mock import mock_open
 
@@ -207,7 +200,7 @@ def test_generate_oscap_compliance_report(monkeypatch, caplog) -> None:
     )
     mock_writer = MockWriter()
     monkeypatch.setattr(csv, "writer", lambda *args, **kwargs: mock_writer)
-    with pytest.raises(Exception) as e:
+    with pytest.raises(Exception):
         fail_count, nc_count = pipeline_csv_gen.generate_oscap_compliance_report(
             report_path=Path("report"),
             csv_output_dir=Path("csv_out"),

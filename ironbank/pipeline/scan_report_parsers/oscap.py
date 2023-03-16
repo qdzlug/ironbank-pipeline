@@ -117,7 +117,7 @@ class RuleInfo:
         """
         Set result from rule_result
         """
-        self.result = rule_result.find("xccdf:result", self.namespaces).text
+        self.result = self.get_result(rule_result=rule_result)
 
     def set_description(self, rule: Element) -> str:
         """
