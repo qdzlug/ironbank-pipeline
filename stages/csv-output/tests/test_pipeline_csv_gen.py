@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
 
-from io import TextIOWrapper
-import json
-import sys
-from typing import Any, Iterable
 import os
+import csv
+import sys
+import json
+import pytest
+from pathlib import Path
+from io import TextIOWrapper
+from typing import Any, Iterable
+from dataclasses import dataclass
+from unittest.mock import mock_open
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.testing import raise_
+from ironbank.pipeline.scan_report_parsers.report_parser import ReportParser
 from ironbank.pipeline.scan_report_parsers.oscap import (
     OscapComplianceFinding,
     OscapReportParser,
@@ -13,16 +21,7 @@ from ironbank.pipeline.scan_report_parsers.anchore import (
     AnchoreReportParser,
     AnchoreCVEFinding,
 )
-from unittest.mock import mock_open
 
-from pathlib import Path
-from ironbank.pipeline.utils import logger
-from dataclasses import dataclass
-
-import pytest
-import csv
-from ironbank.pipeline.utils.testing import raise_
-from ironbank.pipeline.scan_report_parsers.report_parser import ReportParser
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pipeline_csv_gen  # noqa E402
@@ -101,16 +100,92 @@ MOCK_ANCHORE_REPORT: dict = {
 class MockWriter:
     file_: TextIOWrapper = None
     fieldnames: list[str] = None
-    rows: list[Iterable[Any]] = None
+    stored_rows: list[Iterable[Any]] = None
 
     def writerow(self, row: Iterable[Any]):
-        if not self.rows:
-            self.rows = []
-        self.rows.append(row)
+        if not self.stored_rows:
+            self.stored_rows = []
+        self.stored_rows.append(row)
+
+    def writerows(self, rows: Iterable[Iterable]):
+        if not self.stored_rows:
+            self.stored_rows = []
+        for row in rows:
+            self.stored_rows.append(row)
 
 
-@pytest.mark.only
-def test_generate_anchore_cve_report(monkeypatch):
+def test_main(monkeypatch, caplog) -> None:
+    monkeypatch.setenv("ANCHORE_SCANS", "1")
+    monkeypatch.setenv("TWISTLOCK_SCANS", "2")
+    monkeypatch.setenv("OSCAP_SCANS", "3")
+    monkeypatch.setenv("CSV_REPORT", "4")
+    monkeypatch.setenv("ARTIFACT_STORAGE", "4")
+    monkeypatch.setattr(Path, "open", mock_open())
+    monkeypatch.setattr(Path, "mkdir", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        pipeline_csv_gen,
+        "sort_justifications",
+        lambda *args, **kwargs: ({"1": 1}, {"1": 1}, {"1": 1}, {"1": 1}),
+    )
+    monkeypatch.setattr(
+        pipeline_csv_gen,
+        "generate_oscap_compliance_report",
+        lambda *args, **kwargs: (1, 1),
+    )
+    monkeypatch.setattr(
+        pipeline_csv_gen, "generate_blank_oscap_report", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr(
+        pipeline_csv_gen, "generate_twistlock_cve_report", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr(
+        pipeline_csv_gen, "generate_anchore_cve_report", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr(
+        pipeline_csv_gen,
+        "generate_anchore_compliance_report",
+        lambda *args, **kwargs: (1, "1"),
+    )
+    monkeypatch.setattr(
+        pipeline_csv_gen, "generate_summary_report", lambda *args, **kwargs: None
+    )
+    log.info("Test exception thrown opening vat findings file")
+    monkeypatch.setattr(json, "load", lambda *args, **kwargs: raise_(Exception))
+    with pytest.raises(SystemExit):
+        pipeline_csv_gen.main()
+    assert "Error reading findings file." in caplog.text
+
+    log.info("Test sequence to generate blank oscap report")
+    monkeypatch.setattr(json, "load", lambda *args, **kwargs: None)
+    monkeypatch.setenv("DISTROLESS", "")
+    pipeline_csv_gen.main()
+
+    log.info("Test sequence to generate oscap compliance report")
+    monkeypatch.delenv("DISTROLESS")
+    pipeline_csv_gen.main()
+
+
+def test_generate_summary_report(monkeypatch) -> None:
+    log.info("Test successful summary report generated")
+    monkeypatch.setattr(Path, "open", mock_open())
+    mock_writer = MockWriter()
+    monkeypatch.setattr(csv, "writer", lambda *args, **kwargs: mock_writer)
+    pipeline_csv_gen.generate_summary_report(
+        oscap_comp_fail_count=1,
+        oscap_comp_not_checked_count=1,
+        twistlock_cve_fail_count=1,
+        anchore_cve_fail_count=1,
+        anchore_comp_fail_count=1,
+        image_id="t_id",
+        csv_output_dir=Path("csv_out"),
+    )
+    assert (
+        "Scans performed on container layer sha256: t_id,,,"
+        in mock_writer.stored_rows[-1]
+    )
+
+
+def test_generate_anchore_cve_report(monkeypatch) -> None:
     log.info("Test successful anchore cve report generated")
     monkeypatch.setattr(Path, "open", mock_open())
     monkeypatch.setattr(
@@ -215,7 +290,7 @@ def test_generate_blank_oscap_report(monkeypatch) -> None:
     mock_writer = MockWriter()
     monkeypatch.setattr(csv, "writer", lambda *args, **kwargs: mock_writer)
     pipeline_csv_gen.generate_blank_oscap_report(Path("test"))
-    assert mock_writer.rows == [
+    assert mock_writer.stored_rows == [
         [
             "OpenSCAP Scan Skipped Due to Base Image Used",
             "",
