@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 
+import requests
 from ironbank.pipeline.scan_report_parsers.oscap import (
     OscapReportParser,
     OscapFinding,
@@ -10,7 +11,6 @@ from ironbank.pipeline.scan_report_parsers.oscap import (
     RuleInfoOVAL,
 )
 
-from ironbank.pipeline.test.mocks.mock_classes import MockPath, TestUtils
 import pytest
 from unittest.mock import patch
 from xml.etree import ElementTree
@@ -26,7 +26,11 @@ from ironbank.pipeline.test.mocks.mock_classes import (
     MockOscapComplianceFinding,
     MockOscapOVALFinding,
     MockReportParser,
+    MockOutput,
+    MockPath,
+    TestUtils,
 )
+from ironbank.pipeline.utils.exceptions import OvalDefintionDownloadFailure
 
 
 log = logger.setup("test_oscap")
@@ -277,3 +281,38 @@ def test_rule_info_oval_set_oval_name(
     mock_rule_info = rule_info_mocker["oval_with_method"]("set_oval_name")
     mock_rule_info.set_oval_name(mock_element)
     assert "mock_name set for name" in caplog.text
+
+
+@patch("ironbank.pipeline.scan_report_parsers.oscap.Path", new=MockPath)
+@patch("ironbank.pipeline.scan_report_parsers.oscap.bz2.BZ2File", new=MockOutput)
+def test_download_oval_definitions(monkeypatch, mock_responses, caplog):
+    monkeypatch.setenv("ARTIFACT_DIR", "art_dir")
+
+    log.info("Test non-200 status code")
+    monkeypatch.setattr(
+        requests,
+        "get",
+        mock_responses["500"],
+    )
+    with pytest.raises(OvalDefintionDownloadFailure):
+        RuleInfoOVAL.download_oval_definitions("test_url")
+    assert "Failed to download oval definitions" in caplog.text
+
+    log.info("Test 200 status code")
+    monkeypatch.setattr(
+        requests,
+        "get",
+        mock_responses["200"],
+    )
+    artifact_path = RuleInfoOVAL.download_oval_definitions("test_url")
+    assert artifact_path == MockPath("art_dir/oval_definitions-test-url.xml")
+
+    log.info("Test bz2 extension")
+    monkeypatch.setattr(MockOutput, "read", lambda self: bytes(1))
+    artifact_path = RuleInfoOVAL.download_oval_definitions("test_url.bz2")
+    assert artifact_path == MockPath("art_dir/oval_definitions-test-url-bz-.xml")
+
+    monkeypatch.setattr(MockPath, "exists", lambda self: True)
+    log.info("Test artifact path exists")
+    artifact_path = RuleInfoOVAL.download_oval_definitions("test_url")
+    assert artifact_path == MockPath("art_dir/oval_definitions-test-url.xml")

@@ -5,7 +5,7 @@ import inspect
 from pathlib import PosixPath
 import subprocess
 import tempfile
-from typing import Callable
+from typing import Any, Callable
 import requests
 import random
 from requests import Session
@@ -45,6 +45,7 @@ class MockOutput:
         ]
     )
     line_num: int = 0
+    write_data: Any = None
 
     def read(self):
         return "".join(self.mock_data)
@@ -60,6 +61,9 @@ class MockOutput:
 
     def readlines(self):
         return self.mock_data
+
+    def write(self, write_data: Any):
+        self.write_data = write_data
 
     def __repr__(self):
         return self.read()
