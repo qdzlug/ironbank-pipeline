@@ -405,6 +405,8 @@ def main():
         parent_vat_response_content = json.loads(
             parent_vat_path.read_text(encoding="utf-8")
         )
+    else:
+        parent_vat_response_content = []
 
     vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
     if not args.use_json:
