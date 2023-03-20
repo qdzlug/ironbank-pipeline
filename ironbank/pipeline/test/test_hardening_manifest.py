@@ -115,6 +115,22 @@ def mock_bad_maintainers():
 
 
 @pytest.fixture
+def mock_good_partner_advocates():
+    return {
+        "name": "Example Examp",
+        "username": "example",
+    }
+
+
+@pytest.fixture
+def mock_bad_partner_advocates():
+    return {
+        "name": "FIXME",
+        "username": "example",
+    }
+
+
+@pytest.fixture
 def mock_good_image_sources():
     return [
         {
@@ -201,6 +217,12 @@ def mock_hm_content():
                 "username": "cht_memeber",
                 "email": "cht_member@company.com",
                 "cht_member": True,
+            },
+        ],
+        "partner_advocates": [
+            {
+                "name": "Cht Member",
+                "username": "cht_memb",
             },
         ],
     }
@@ -319,12 +341,20 @@ def test_validate_schema(monkeypatch, caplog, hm):
 
 
 def test_find_fixme(
-    hm, mock_good_labels, mock_good_maintainers, mock_bad_labels, mock_bad_maintainers
+    hm,
+    mock_good_labels,
+    mock_good_maintainers,
+    mock_bad_labels,
+    mock_bad_maintainers,
+    mock_bad_partner_advocates,
+    mock_good_partner_advocates,
 ):
     assert hm.check_for_fixme(mock_good_labels) == []
     assert hm.check_for_fixme(mock_good_maintainers) == []
+    assert hm.check_for_fixme(mock_good_partner_advocates) == []
     assert hm.check_for_fixme(mock_bad_labels) == ["org.opencontainers.image.licenses"]
     assert hm.check_for_fixme(mock_bad_maintainers) == ["name"]
+    assert hm.check_for_fixme(mock_bad_partner_advocates) == ["name"]
 
 
 def test_reject_invalid_labels(

@@ -1,7 +1,7 @@
 import os
 import subprocess
 import sys
-from typing import Any
+from typing import Any, Callable
 import typing
 import yaml
 from pathlib import Path
@@ -23,9 +23,9 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
 
-def git_error_handler(func):
+def git_error_handler(func: Callable) -> Callable:
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         try:
             return func(*args, **kwargs)
         except GitError as e:
@@ -267,11 +267,11 @@ def create_tester_group_in_dest(gl: gitlab.Gitlab, config: Config) -> GLGroup:
     return group
 
 
-def update_force_push_rules(project: GLProject, branch: str) -> None:
+def update_force_push_rules(project: GLProject) -> None:
     """
     Update project branch to allow force push
     """
-    project.protectedbranches.delete(branch)
+    project.protectedbranches.delete("master")
     maintainer = gitlab.const.MAINTAINER_ACCESS
     project.protectedbranches.create(
         {
@@ -303,11 +303,11 @@ def push_branches(project: Project, repo: Repo, remote: Remote) -> None:
     Development must be pushed for trufflehog to function correctly
     """
     branches = [project.branch]
-    branches += (
-        ["development"]
-        if "development" not in [ref.name.split("staging/") for ref in remote.refs]
-        else []
+    add_branch_if_not_selected = lambda branch: (  # noqa: E371
+        [branch] if branch not in branches else []
     )
+    branches += add_branch_if_not_selected("master")
+    branches += add_branch_if_not_selected("development")
     for branch in branches:
         print(branch)
         repo.git.checkout(branch)
@@ -382,7 +382,7 @@ def update_dest_project_permissions(gl: gitlab.Gitlab, config: Config) -> Config
         print(f"Updating permissions for {project.dest_project_name}")
         gl_project.visibility = "public"
         gl_project.save()
-        update_force_push_rules(gl_project, project.branch)
+        update_force_push_rules(gl_project)
         if project.base_image:
             variable_exists = "LABEL_ALLOWLIST_REGEX" in [
                 var.key for var in gl_project.variables.list()

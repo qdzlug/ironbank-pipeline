@@ -36,7 +36,7 @@ def mock_hm():
 def test_inspect_old_image(monkeypatch, mock_hm):
     log.info("Test inspect_old_image successful")
     example_url = "http://example.com"
-    monkeypatch.setenv("REGISTRY_URL_PROD", example_url)
+    monkeypatch.setenv("REGISTRY_PUBLISH_URL", example_url)
     result = image_verify.inspect_old_image(mock_hm, ".")
     assert (
         result

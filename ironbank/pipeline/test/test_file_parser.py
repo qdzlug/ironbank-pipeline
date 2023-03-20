@@ -52,7 +52,7 @@ def test_access_log_file_parser(monkeypatch, mock_packages):
     mock_url = f"{mock_nexus_host}{mock_repo}/{mock_pkg}"
     valid_repos = {mock_repo: mock_pkg}
 
-    monkeypatch.setenv("NEXUS_HOST", mock_nexus_host)
+    monkeypatch.setenv("NEXUS_HOST_URL", mock_nexus_host)
     monkeypatch.setenv("ACCESS_LOG_REPOS", "mock_value")
 
     monkeypatch.setattr(json, "load", lambda x: valid_repos)

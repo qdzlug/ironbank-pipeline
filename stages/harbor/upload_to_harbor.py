@@ -29,7 +29,7 @@ def compare_digests(image: Image) -> None:
     """
 
     log.info("Pulling manifest_file with skopeo")
-    skopeo = Skopeo(Path(os.environ["DOCKER_AUTH_CONFIG_FILE_STAGING"]))
+    skopeo = Skopeo(Path(os.environ["DOCKER_AUTH_FILE_PRE_PUBLISH"]))
 
     log.info("Inspecting image in registry")
     remote_inspect_raw = skopeo.inspect(
@@ -64,8 +64,8 @@ def promote_tags(
         Skopeo.copy(
             staging_image,
             production_image,
-            src_authfile=Path(os.environ["DOCKER_AUTH_CONFIG_FILE_STAGING"]),
-            dest_authfile=Path(os.environ["DOCKER_AUTH_CONFIG_FILE_PROD"]),
+            src_authfile=Path(os.environ["DOCKER_AUTH_FILE_PRE_PUBLISH"]),
+            dest_authfile=Path(os.environ["DOCKER_AUTH_FILE_PUBLISH"]),
             log_cmd=True,
         )
 
@@ -144,7 +144,7 @@ def generate_attestation_predicates(predicates):
 def main():
     # staging image is always the new image
     staging_image = Image(
-        registry=os.environ["REGISTRY_URL_STAGING"],
+        registry=os.environ["REGISTRY_PRE_PUBLISH_URL"],
         name=os.environ["IMAGE_NAME"],
         digest=os.environ["IMAGE_PODMAN_SHA"],
         transport="docker://",
@@ -153,7 +153,7 @@ def main():
     # sha will either be same as staging, or the old image's digest
     production_image = Image.from_image(
         staging_image,
-        registry=os.environ["REGISTRY_URL_PROD"],
+        registry=os.environ["REGISTRY_PUBLISH_URL"],
         digest=os.environ["DIGEST_TO_SCAN"],
     )
     project = DsopProject()
@@ -166,7 +166,7 @@ def main():
         compare_digests(staging_image)
         with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
             shutil.copy(
-                os.environ["DOCKER_AUTH_CONFIG_FILE_PROD"],
+                os.environ["DOCKER_AUTH_FILE_PUBLISH"],
                 Path(docker_config_dir, "config.json"),
             )
             cosign = Cosign(docker_config_dir=docker_config_dir)

@@ -1,8 +1,9 @@
 import os
+import shutil
 import sys
 import json
 import pytest
-import pathlib
+from pathlib import Path
 from unittest.mock import mock_open, patch
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.testing import raise_
@@ -28,7 +29,7 @@ mock_access_log_pkgs = ["mock_access_log_pkg1"]
 def test_write_env_vars(monkeypatch):
     log.info("Test write scan logic env vars to file")
     m_open = mock_open()
-    monkeypatch.setattr(pathlib.Path, "open", m_open)
+    monkeypatch.setattr(Path, "open", m_open)
     mock_args = {
         "IMAGE_TO_SCAN": "a\n",
         "COMMIT_SHA_TO_SCAN": "b\n",
@@ -105,7 +106,7 @@ def test_get_old_pkgs(monkeypatch, caplog):
     img_name = "testName"
     img_dig = "testDig"
     mock_dock = MockPath("testDock")
-    monkeypatch.setenv("REGISTRY_URL_PROD", "example")
+    monkeypatch.setenv("REGISTRY_PUBLISH_URL", "example")
 
     log.info("Test download artifacts fails")
     monkeypatch.setattr(scan_logic_jobs, "download_artifacts", lambda **kwargs: False)
@@ -120,7 +121,7 @@ def test_get_old_pkgs(monkeypatch, caplog):
 
     log.info("Test download artifacts succeeds")
     monkeypatch.setattr(scan_logic_jobs, "download_artifacts", lambda **kwargs: True)
-    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data=""))
+    monkeypatch.setattr(Path, "open", mock_open(read_data=""))
     monkeypatch.setattr(json, "load", lambda x: {"access_log": "example"})
     monkeypatch.setattr(
         scan_logic_jobs, "parse_packages", lambda old_sbom, old_al: old_al
@@ -143,10 +144,10 @@ def test_get_old_pkgs(monkeypatch, caplog):
 def test_main(monkeypatch, caplog):
     # avoid actually creating env var file for all tests
     monkeypatch.setattr(scan_logic_jobs, "write_env_vars", lambda *args, **kwargs: None)
-
+    monkeypatch.setattr(shutil, "copy", lambda *args, **kwargs: None)
     monkeypatch.setenv("IMAGE_NAME", "example/test")
     monkeypatch.setenv("IMAGE_FULLTAG", "example/test:1.0")
-    monkeypatch.setenv("REGISTRY_URL_PROD", "example")
+    monkeypatch.setenv("REGISTRY_PUBLISH_URL", "example")
     monkeypatch.setenv("ARTIFACT_STORAGE", ".")
 
     log.info("Test FORCE_SCAN_NEW_IMAGE saves new digest and build date")
@@ -172,8 +173,7 @@ def test_main(monkeypatch, caplog):
 
     log.info("Test unable to verify image")
     monkeypatch.setenv("CI_COMMIT_BRANCH", "master")
-    monkeypatch.setenv("DOCKER_AUTH_CONFIG_PULL", "example")
-    monkeypatch.setattr(scan_logic_jobs, "b64decode", lambda x: x.encode())
+    monkeypatch.setenv("DOCKER_AUTH_FILE_PULL", "example")
     monkeypatch.setattr(image_verify, "diff_needed", lambda x: None)
     with pytest.raises(SystemExit):
         scan_logic_jobs.main()

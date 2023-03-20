@@ -1,4 +1,41 @@
-# Cosign Signatures
+[Installing Version 1.13.0](#Installation_ver_1_13)
+[Installing Version 1.2.0](#Installation_ver_1_2)
+[Pulling Cosign Artifacts](#Pulling-Cosign-Artifacts)
+[Signature](#Signature)
+[Attestations](#Attestations)
+[Verifying Attestations](#Verifying-Attestations)
+[Downloading and Parsing Attestations for v1.13.0](#Downloading-and-Parsing-Attestations)
+[Cosign Keys](#Cosign-Keys)
+
+# Installation_ver_1_13
+# Cosign Installation for ver 1.13
+# Windows - wsl
+  wget "https://github.com/sigstore/cosign/releases/download/v1.13.0/cosign-linux-amd64"
+  sudo mv cosign-linux-amd64 /usr/local/bin/cosign
+  sudo chmod +x /usr/local/bin/cosign
+  sudo chmod +x /usr/local/bin/cosign
+
+# Homebrew/Linuxbrew
+  brew install cosign@v1.13.0
+
+# Installation_ver_1_2
+# Cosign Installation for ver 2 
+# Documentation: https://docs.sigstore.dev/cosign/installation/
+# Windows - wsl
+  go install github.com/sigstore/cosign/v2/cmd/cosign@v2.0.0
+  sudo cp -p ~/go/bin/cosign /usr/local/bin/
+  sudo chmod +x /usr/local/bin/cosign
+
+# Homebrew/Linuxbrew
+  brew install cosign
+
+# Check Cosign Version
+  cosign version
+  [Cosign Verify Command For Version 1.13.0](#v1.13.0)
+  [Cosign Verify Command For Version 1.2.0](#v1.2.0)
+
+# v1.13.0
+# Cosign version - v1.13.0
 
 The Iron Bank pipeline now performs cosign signatures on all images pushed to the `ironbank` project within Registry1.
 
@@ -22,7 +59,15 @@ cosign verify \
 registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.6
 ```
 
-A successful verify command will display the following
+# v1.2.0
+# Cosign version v1.2.0
+
+```bash
+  cosign verify \
+  --key https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign.pem registry1.dso.mil/ironbank/suse/bci/bci-base:15.4 \
+  --insecure-ignore-tlog=true
+```
+# A successful verify command will display the following
 
 ```log
 Verification for registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5 --
@@ -33,7 +78,7 @@ The following checks were performed on each of these signatures:
 [{"critical":{"identity":{"docker-reference":"registry1.dso.mil/ironbank/redhat/ubi/ubi8"},"image":{"docker-manifest-digest":"sha256:ec1cac395b78158812d0e670e1843b90faf4e933925b7e1c41f1c2f3ff06ff56"},"type":"cosign container image signature"},"optional":{"Subject":"ironbank@dsop.io"}}
 ```
 
-## Pulling Cosign Artifacts
+## Pulling-Cosign-Artifacts
 
 Beyond creating image signatures, Cosign is used to generate additional artifacts in support of software supply chain security, such as image SBOMs and Attestations.
 
@@ -77,13 +122,13 @@ This response and the `predicate` `payload` is forms acts as a signed, offline r
 
 The `hardening_manifest.json` `predicate` contains a json-encoded copy of the `hardening_manifest.yaml`, along with the `LICENSE`, `README.md`, and `access_log`s as a `payload`. This `predicate` provides useful metadata about a given image that may not be relevent to VAT, and is therefore not contained in the VAT response predicate.
 
-### Verifying Attestations
+### Verifying-Attestations
 
 Attestations, like the images themselves, are signed by Cosign. These signatures, which are attached to each attestation's [DSSE](https://github.com/secure-systems-lab/dsse/blob/master/envelope.md#dsse-envelope) envelope, can be validated using the following command:
 
 ```bash
 cosign verify-attestation \
---type (slsaprovenance|link|spdx|spdxjson|cyclonedx|vuln|https://vat.dso.mil/api/p1/predicate/beta1|https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md)
+--type (slsaprovenance|link|spdx|spdxjson|cyclonedx|vuln|https://vat.dso.mil/api/p1/predicate/beta1|https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md)  
 --output-file cosign-attestation.json \
 --certificate-chain https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-ca-bundle.pem \
 --cert https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-certificate.pem \
@@ -124,7 +169,7 @@ It's important to note that certificates and public keys are not interchangeable
 
 Note: Because each attestation is individually added to the `.att` OCI artifact as DSSE envelopes, each envelope has its own signature. Therefore each attestation's signature must be validated individually.
 
-### Downloading and Parsing Attestations
+### Downloading-and-Parsing-Attestations
 
 The attestations for any given image in Registry1 contain a body of evidence including access logs, SBOMs, LICENSE files, and `hardening_manifest.yaml` content. In order to download and parse these, use the following script.
 
@@ -159,6 +204,7 @@ done
 
 This script will cycle through the attestations, decode them, and stores them as separate files on disk named according to the predicateType.
 
-## SBOM
-
-#TODO
+### Cosign-Keys
+[link](https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-ca-bundle.pem)
+[link](https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-certificate.pem)
+[link](https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign.pem)
