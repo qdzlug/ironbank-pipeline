@@ -369,7 +369,8 @@ class MockElement(MockElementTree):
     attrib: dict = field(
         default_factory=lambda: {
             "idref": "example_id",
-            "href": "href",
+            "href": "mock_href",
+            "name": "mock_name",
             "severity": "medium",
             "time": "2:30",
         }
@@ -395,8 +396,12 @@ class MockRuleInfo(RuleInfo):
         self.identifier = str(random.randint(0, 1000))
 
     @classmethod
+    def get_result(cls, rule_result: MockElement) -> str:
+        return "mock_result"
+
+    @classmethod
     def _format_reference(cls, ref: Element) -> str:
-        return "formatted_reference"
+        return "mock_formatted_reference"
 
     @classmethod
     def get_results(cls, root: MockElement, results_filter: list[str]):
@@ -405,10 +410,6 @@ class MockRuleInfo(RuleInfo):
             MockElement(text="def"),
             MockElement(text="ghi"),
         ]
-
-    @classmethod
-    def get_result(cls, rule_obj: MockElement) -> str:
-        return "mock_result"
 
     def set_identifiers(self, rule_obj: MockElement) -> None:
         self.identifiers = "mock_identifiers"
@@ -429,6 +430,9 @@ class MockRuleInfo(RuleInfo):
 @dataclass
 class MockRuleInfoOVAL(MockRuleInfo, RuleInfoOVAL):
     findings: list[MockElement] = field(default_factory=lambda: [MockElement()])
+
+    def set_oval_val_from_ref(self, val: str, rule_result: Element) -> None:
+        self._log.warn("%s set for %s", rule_result.attrib[val], val)
 
     def set_oval_name(self, rule_obj: MockElement):
         self.oval_name = "mock_oval_name"
