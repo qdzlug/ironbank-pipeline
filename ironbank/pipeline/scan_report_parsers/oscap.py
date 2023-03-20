@@ -55,9 +55,15 @@ class RuleInfo:
     oval_href: str = ""
     _log: logger = logger.setup("RuleInfo")
 
+    # TODO: consider making a separate factory for this purpose
     def __new__(
         cls, root: ElementTree, rule_result: Element, *args, **kwargs
     ) -> Callable:  # pylint: disable=unused-argument
+        """
+        RuleInfo constructor
+        Supports using generic RuleInfo to select the appropriate class for constructing (RuleInfo or RuleInfoOVAL)
+        Constructor accepts *args and **kwargs to support unit testing (setting rule_id), but these additional args are not used otherwise
+        """
         return object.__new__(
             RuleInfoOVAL
             if (cls.get_rule_id(rule_result) == cls.oval_rule)
@@ -160,7 +166,7 @@ class RuleInfo:
         return rule_obj.attrib.get("id", "") or rule_obj.attrib.get("idref", "")
 
     @classmethod
-    def get_results(cls, root: Element, results_filter: list[str]) -> list[Element]:
+    def get_results(cls, root: ElementTree, results_filter: list[str]) -> list[Element]:
         """
         Get results based on filter
         If results_filter is falsey, return all selected results
@@ -195,7 +201,18 @@ class RuleInfoOVAL(RuleInfo):
     description: str | None = None
     _log: logger = logger.setup("RuleInfoOVAL")
 
-    def __post_init__(self, root: Element, rule_result: Element) -> None:
+    def __new__(cls, root: ElementTree, rule_result: Element, *args, **kwargs):
+        """
+        RuleInfoOVAL
+        Implemented to document use case for the base constructor and to provide functionality if needed
+        Constructor accepts *args and **kwargs to support unit testing (setting rule_id), but these additional args are not used otherwise
+        """
+        cls._log.warning(
+            "Constructing RuleInfoOVAL directly. While this is supported you'll likely want to use the base RuleInfo class to automatically select the appropriate class for instantiation"
+        )
+        return object.__new__(cls)
+
+    def __post_init__(self, root: ElementTree, rule_result: Element) -> None:
         """
         Get all compliance info for finding
         Get oval info from compliance document
@@ -428,7 +445,6 @@ class OscapOVALFinding(OscapFinding):
         This method is not directly called for this class type anywhere but in the parent's matching method
         However, this method could be called directly for oval findings if needed
         """
-        cls._log.info(rule_info)
         for finding in rule_info.findings:
             yield cls(
                 **{
