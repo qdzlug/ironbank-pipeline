@@ -356,9 +356,11 @@ class MockOscapFinding(OscapFinding):
 class MockElementTree:
     def find(self, *args, **kwargs) -> None:
         return (
-            MockElement(xml_path=args[0], text=args[0])
+            MockElement(xml_path=args[0], text=f"{args[0]}_mock_element_text")
             if args
-            else MockElement(xml_path=kwargs["path"], text=kwargs["path"])
+            else MockElement(
+                xml_path=kwargs["path"], text=f"{kwargs['path']}_mock_element_text"
+            )
             if kwargs
             else MockElement()
         )
@@ -369,7 +371,7 @@ class MockElementTree:
 
 @dataclass
 class MockElement(MockElementTree):
-    text: str = "mock text"
+    text: str = "mock_element_text"
     attrib: dict = field(
         default_factory=lambda: {
             "idref": "example_id",
@@ -379,7 +381,9 @@ class MockElement(MockElementTree):
             "time": "2:30",
         }
     )
+    # xml_path is provided to spy on the xml path used in find/findall
     xml_path: str = ""
+    # fake_type is provided to easily switch between MockRuleInfo and MockRuleInfoOVAL type in the MockRuleInfo constructor
     fake_type: str = "compliance"
 
 
@@ -427,13 +431,16 @@ class MockRuleInfo(RuleInfo):
     def set_rationale(self, rule_obj: MockElement) -> None:
         self.rationale = "mock_rationale"
 
-    def set_description(self, rule_obj: MockElement) -> None:
+    def set_description(self, *args, **kwargs) -> None:
         self.description = "mock_description"
 
 
 @dataclass
 class MockRuleInfoOVAL(MockRuleInfo, RuleInfoOVAL):
     findings: list[MockElement] = field(default_factory=lambda: [MockElement()])
+
+    def __post_init__(self, root: ElementTree, rule_result: Element):
+        pass
 
     def set_oval_val_from_ref(self, val: str, rule_result: Element) -> None:
         self._log.warn("%s set for %s", rule_result.attrib[val], val)
@@ -446,6 +453,15 @@ class MockRuleInfoOVAL(MockRuleInfo, RuleInfoOVAL):
 
     def set_values_from_oval_report(self, rule_obj: MockElement):
         pass
+
+    def set_findings(self):
+        self.findings = ["mock_oval_findings"]
+
+    def set_definition(self, oval_root: ElementTree) -> None:
+        self.definition = MockElement("mock_definition")
+
+    def set_description(self, *args, **kwargs) -> None:
+        self.description = "mock_oval_description"
 
     @classmethod
     def get_oval_url(cls, finding_href: str) -> str:

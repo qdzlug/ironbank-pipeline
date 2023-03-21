@@ -16,7 +16,7 @@ from xml.etree.ElementTree import ElementTree, Element
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.exceptions import (
     NoMatchingOvalUrl,
-    OvalDefintionDownloadFailure,
+    OvalDefinitionDownloadFailure,
 )
 from ironbank.pipeline.utils.flatten import flatten
 
@@ -196,7 +196,8 @@ class RuleInfoOVAL(RuleInfo):
 
     oval_name: str | None = None
     oval_href: str | None = None
-    definition: str | None = None
+    # definition
+    definition: Element | None = None
     findings: str | None = None
     description: str | None = None
     _log: logger = logger.setup("RuleInfoOVAL")
@@ -277,7 +278,6 @@ class RuleInfoOVAL(RuleInfo):
         When first initializing (i.e. calling super().__post_init__), use compliance method to set description
         Once parent initializition finishes, set the updated description from the oval report
         """
-
         if args or kwargs:
             super().set_description(*args, **kwargs)
         else:
@@ -324,7 +324,7 @@ class RuleInfoOVAL(RuleInfo):
                 cls._log.info(
                     "Failed to download oval definitions: %s", response.status_code
                 )
-                raise OvalDefintionDownloadFailure
+                raise OvalDefinitionDownloadFailure
         return artifact_path
 
 

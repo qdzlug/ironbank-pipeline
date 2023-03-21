@@ -30,7 +30,7 @@ from ironbank.pipeline.test.mocks.mock_classes import (
     MockPath,
     TestUtils,
 )
-from ironbank.pipeline.utils.exceptions import OvalDefintionDownloadFailure
+from ironbank.pipeline.utils.exceptions import OvalDefinitionDownloadFailure
 
 
 log = logger.setup("test_oscap")
@@ -85,11 +85,6 @@ def rule_info_mocker(monkeypatch, mock_element_tree, mock_element):
     }
 
 
-@pytest.fixture
-def mock_text():
-    return "mock text"
-
-
 def test_oscap_get_default_init_params(rule_info_mocker):
     log.info("Test retrieving all default init params for OscapFinding object")
 
@@ -106,6 +101,7 @@ def test_oscap_get_default_init_params(rule_info_mocker):
     new=MockOscapOVALFinding,
 )
 def test_oscap_get_findings_from_rule_info(rule_info_mocker):
+    log.info("Test getting correct finding type from base oscap findings class")
     assert (
         OscapFinding.get_findings_from_rule_info(rule_info_mocker["base"]())
         == MockOscapComplianceFinding
@@ -125,16 +121,18 @@ def test_as_dict(mock_oscap_finding):
     )
 
 
-def test_oscap_oval_get_findings_from_rule_info(mock_text, rule_info_mocker):
+def test_oscap_oval_get_findings_from_rule_info(mock_element, rule_info_mocker):
+    log.info("Test get finding from rule info for oval oscap finding")
     findings_from_rule_info = list(
         OscapOVALFinding.get_findings_from_rule_info(rule_info_mocker["oval"]())
     )
     assert isinstance(findings_from_rule_info[0], OscapOVALFinding)
     assert findings_from_rule_info[0].link is not None
-    assert findings_from_rule_info[0].identifier == mock_text
+    assert findings_from_rule_info[0].identifier == mock_element.text
 
 
 def test_oscap_compliance_get_findings_from_rule_info(rule_info_mocker):
+    log.info("Test get findings from rule for complaince oscap finding")
     mock_rule_info = rule_info_mocker["base"]()
     findings_from_rule_info = list(
         OscapComplianceFinding.get_findings_from_rule_info(mock_rule_info)
@@ -148,6 +146,7 @@ def test_oscap_compliance_get_findings_from_rule_info(rule_info_mocker):
 @patch("ironbank.pipeline.scan_report_parsers.oscap.RuleInfo", new=MockRuleInfo)
 @patch("ironbank.pipeline.scan_report_parsers.oscap.OscapFinding", new=MockOscapFinding)
 def test_oscap_report_parser_get_findings(monkeypatch):
+    log.info("Test getting all findings using report parser")
     oscap_report_parser = OscapReportParser()
     monkeypatch.setattr(ElementTree, "parse", lambda *args, **kwargs: None)
     monkeypatch.setattr(
@@ -222,6 +221,22 @@ def test_rule_info_set_references(mock_element, rule_info_mocker):
     assert "mock_formatted_reference" in mock_rule_info.references
 
 
+def test_rule_info_set_rationale(monkeypatch, mock_element, rule_info_mocker):
+    log.info("Test setting rationale from rule if rationale element available")
+    mock_rule_info = rule_info_mocker["base_with_method"]("set_rationale")
+    monkeypatch.setattr(
+        ElementTree,
+        "tostring",
+        lambda element, method: "mock_rationale".encode("utf-8"),
+    )
+    mock_rule_info.set_rationale(mock_element)
+    assert mock_rule_info.rationale == "mock_rationale"
+
+    monkeypatch.setattr(mock_element, "find", lambda *args, **kwargs: None)
+    mock_rule_info.set_rationale(mock_element)
+    assert mock_rule_info.rationale == ""
+
+
 def test_rule_info_get_results(monkeypatch, mock_element, rule_info_mocker):
     log.info("Test get results with filter")
     mock_rule_info = rule_info_mocker["base_with_method"]("get_results")
@@ -274,18 +289,65 @@ def test_rule_info_oval_set_oval_val_from_ref(mock_element, rule_info_mocker):
     assert mock_rule_info.oval_href == "mock_href"
 
 
-def test_rule_info_oval_set_oval_name(
-    monkeypatch, caplog, mock_element, rule_info_mocker
-):
+def test_rule_info_oval_set_oval_name(caplog, mock_element, rule_info_mocker):
     log.info("Test setting oval name attribute")
     mock_rule_info = rule_info_mocker["oval_with_method"]("set_oval_name")
     mock_rule_info.set_oval_name(mock_element)
     assert "mock_name set for name" in caplog.text
 
 
+def test_rule_info_oval_set_oval_href(caplog, mock_element, rule_info_mocker):
+    log.info("Test setting oval name attribute")
+    mock_rule_info = rule_info_mocker["oval_with_method"]("set_oval_href")
+    mock_rule_info.set_oval_href(mock_element)
+    assert "mock_href set for href" in caplog.text
+
+
+def test_rule_info_oval_set_values_from_oval_report(
+    mock_element_tree, rule_info_mocker
+):
+    log.info("Test setting values from oval report")
+    mock_rule_info = rule_info_mocker["oval_with_method"]("set_values_from_oval_report")
+    mock_rule_info.set_values_from_oval_report(mock_element_tree)
+    assert mock_rule_info.definition == MockElement(text="mock_definition")
+    assert mock_rule_info.findings == ["mock_oval_findings"]
+    assert mock_rule_info.description == "mock_oval_description"
+
+
+def test_rule_info_oval_set_definition(mock_element_tree, rule_info_mocker):
+    log.info("Test setting values from oval root")
+    mock_rule_info = rule_info_mocker["oval_with_method"]("set_definition")
+    mock_rule_info.set_definition(mock_element_tree)
+    assert "oval:definition" in mock_rule_info.definition.xml_path
+
+
+def test_rule_info_oval_set_findings(mock_element_tree, rule_info_mocker):
+    log.info("Test setting values from oval root")
+    mock_rule_info = rule_info_mocker["oval_with_method"]("set_findings")
+    # this is mocked in mock_rule_info
+    mock_rule_info.set_definition(mock_element_tree)
+    # this is not
+    mock_rule_info.set_findings()
+    assert "oval:cve" in mock_rule_info.findings[0].xml_path
+
+
+@pytest.mark.only
+def test_rule_info_oval_set_description(
+    mock_element, mock_element_tree, rule_info_mocker
+):
+    log.info("Test setting description from super")
+    # inheritance breaks when doing this
+    mock_rule_info = rule_info_mocker["oval_with_method"]("set_description")
+    mock_rule_info.set_definition(mock_element_tree)
+    mock_rule_info.set_description(mock_element)
+    assert "mock_description" in mock_rule_info.description
+
+
 @patch("ironbank.pipeline.scan_report_parsers.oscap.Path", new=MockPath)
 @patch("ironbank.pipeline.scan_report_parsers.oscap.bz2.BZ2File", new=MockOutput)
-def test_download_oval_definitions(monkeypatch, mock_responses, caplog):
+def test_download_oval_definitions(
+    monkeypatch, rule_info_mocker, mock_responses, caplog
+):
     monkeypatch.setenv("ARTIFACT_DIR", "art_dir")
 
     log.info("Test non-200 status code")
@@ -294,8 +356,9 @@ def test_download_oval_definitions(monkeypatch, mock_responses, caplog):
         "get",
         mock_responses["500"],
     )
-    with pytest.raises(OvalDefintionDownloadFailure):
-        RuleInfoOVAL.download_oval_definitions("test_url")
+    mock_rule_info = rule_info_mocker["oval_with_method"]("download_oval_definitions")
+    with pytest.raises(OvalDefinitionDownloadFailure):
+        mock_rule_info.download_oval_definitions("test_url")
     assert "Failed to download oval definitions" in caplog.text
 
     log.info("Test 200 status code")
@@ -304,15 +367,15 @@ def test_download_oval_definitions(monkeypatch, mock_responses, caplog):
         "get",
         mock_responses["200"],
     )
-    artifact_path = RuleInfoOVAL.download_oval_definitions("test_url")
+    artifact_path = mock_rule_info.download_oval_definitions("test_url")
     assert artifact_path == MockPath("art_dir/oval_definitions-test-url.xml")
 
     log.info("Test bz2 extension")
     monkeypatch.setattr(MockOutput, "read", lambda self: bytes(1))
-    artifact_path = RuleInfoOVAL.download_oval_definitions("test_url.bz2")
+    artifact_path = mock_rule_info.download_oval_definitions("test_url.bz2")
     assert artifact_path == MockPath("art_dir/oval_definitions-test-url-bz-.xml")
 
     monkeypatch.setattr(MockPath, "exists", lambda self: True)
     log.info("Test artifact path exists")
-    artifact_path = RuleInfoOVAL.download_oval_definitions("test_url")
+    artifact_path = mock_rule_info.download_oval_definitions("test_url")
     assert artifact_path == MockPath("art_dir/oval_definitions-test-url.xml")

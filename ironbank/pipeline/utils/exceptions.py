@@ -30,5 +30,5 @@ class NoMatchingOvalUrl(Exception):
     pass
 
 
-class OvalDefintionDownloadFailure(Exception):
+class OvalDefinitionDownloadFailure(Exception):
     pass
