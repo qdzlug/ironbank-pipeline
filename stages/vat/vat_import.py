@@ -402,7 +402,12 @@ def main():
             output_dir=os.environ["ARTIFACT_DIR"], hardening_manifest=hardening_manifest
         )
         parent_vat_path = Path(f"{os.environ['ARTIFACT_DIR']}/parent_vat_response.json")
-        parent_vat_response_content = json.loads(parent_vat_path.read_text(encoding="utf-8"))
+        parent_vat_response_content = {
+            "vatAttestationLineage": json.loads(
+                parent_vat_path.read_text(encoding="utf-8")
+            ),
+        }
+        logging.debug(parent_vat_response_content)
     else:
         parent_vat_response_content = []
 
