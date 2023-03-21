@@ -64,6 +64,7 @@ def rule_info_mocker(monkeypatch, mock_element_tree, mock_element):
             root=mock_element_tree, rule_result=MockElement(fake_type="OVAL")
         )
 
+    # TODO: figure out how to do this in a way that doesn't break with calls to `super()` (e.g. set_description for RuleInfoOVAL)
     def with_base_method(method_name):
         # using __dict__ to get a function object back instead of a method object
         # using getattr will point to the RuleInfo's method, which would cause any other classmethods to be pulled from the RuleInfo class instead of the MockRuleInfo
@@ -211,10 +212,12 @@ def test_rule_info_set_description(monkeypatch, mock_element, rule_info_mocker):
     log.info("Test setting description from rule")
     mock_rule_info = rule_info_mocker["base_with_method"]("set_description")
     monkeypatch.setattr(
-        ElementTree, "tostring", lambda x, method: x.text.encode("utf-8")
+        ElementTree,
+        "tostring",
+        lambda element, method: "mock_description".encode("utf-8"),
     )
     mock_rule_info.set_description(mock_element)
-    assert ":description" in mock_rule_info.description
+    assert "mock_description" in mock_rule_info.description
 
 
 def test_rule_info_set_references(mock_element, rule_info_mocker):
@@ -335,17 +338,27 @@ def test_rule_info_oval_set_findings(mock_element_tree, rule_info_mocker):
 
 
 def test_rule_info_oval_set_description(
-    mock_element, mock_element_tree, rule_info_mocker
+    monkeypatch, mock_element, mock_element_tree, rule_info_mocker
 ):
     log.info("Test setting description from super")
-    # inheritance breaks when doing this
     mock_rule_info = rule_info_mocker["oval_with_method"]("set_description")
     mock_rule_info.set_definition(mock_element_tree)
+    # we have to do this to help with the call of super
+    monkeypatch.setattr(
+        ElementTree,
+        "tostring",
+        lambda element, method: "mock_description".encode("utf-8"),
+    )
+    # this will call super(), which will unmock all of RuleInfo :tada:
     mock_rule_info.set_description(mock_element)
     assert "mock_description" in mock_rule_info.description
 
+    log.info("test setting description from oval report")
+    mock_rule_info.set_description()
+    assert "oval:metadata" in mock_rule_info.description
 
-def test_get_oval_url(monkeypatch, rule_info_mocker, caplog):
+
+def test_get_oval_url(rule_info_mocker, caplog):
     log.info("Test RHEL image type")
     mock_rule_info = rule_info_mocker["oval_with_method"]("get_oval_url")
     oval_url = mock_rule_info.get_oval_url("RHEL7")
