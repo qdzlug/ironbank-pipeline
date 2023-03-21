@@ -403,7 +403,7 @@ def main():
         )
         parent_vat_path = Path(f"{os.environ['ARTIFACT_DIR']}/parent_vat_response.json")
         with parent_vat_path.open("r", encoding="UTF-8") as f:
-            parent_vat_response_content = {"vatAttestationLineage": json.loads(f)}
+            parent_vat_response_content = {"vatAttestationLineage": json.load(f)}
         logging.debug(parent_vat_response_content)
     else:
         parent_vat_response_content = {"vatAttestationLineage": None}
