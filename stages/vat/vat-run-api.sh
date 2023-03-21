@@ -19,7 +19,6 @@ python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
   --container "${IMAGE_NAME}" \
   --version "${IMAGE_VERSION}" \
   --digest "${DIGEST_TO_SCAN}" \
-  --vatAttestationLineage "${ARTIFACT_DIR}/parent_vat_response.json" \
   --parent "${BASE_IMAGE:-}" \
   --parent_version "${BASE_TAG:-}" \
   --comp_link "${OSCAP_COMPLIANCE_URL:-''}" \
