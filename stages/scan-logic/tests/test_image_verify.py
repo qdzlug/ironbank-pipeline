@@ -102,7 +102,7 @@ def test_verify_image_properties(monkeypatch, caplog, mock_hm):
 def test_diff_needed(monkeypatch, caplog):
     log.info("Test Digest and Label values are returned on no diff")
     example_url = "http://example.com"
-    monkeypatch.setenv("REGISTRY_URL_PROD", example_url)
+    monkeypatch.setenv("REGISTRY_PUBLISH_URL", example_url)
     mock_old_img_json = {
         "Extra Key": "something",
         "Tag": image_tag,
