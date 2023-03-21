@@ -30,7 +30,10 @@ from ironbank.pipeline.test.mocks.mock_classes import (
     MockPath,
     TestUtils,
 )
-from ironbank.pipeline.utils.exceptions import OvalDefinitionDownloadFailure
+from ironbank.pipeline.utils.exceptions import (
+    NoMatchingOvalUrl,
+    OvalDefinitionDownloadFailure,
+)
 
 
 log = logger.setup("test_oscap")
@@ -331,7 +334,6 @@ def test_rule_info_oval_set_findings(mock_element_tree, rule_info_mocker):
     assert "oval:cve" in mock_rule_info.findings[0].xml_path
 
 
-@pytest.mark.only
 def test_rule_info_oval_set_description(
     mock_element, mock_element_tree, rule_info_mocker
 ):
@@ -341,6 +343,28 @@ def test_rule_info_oval_set_description(
     mock_rule_info.set_definition(mock_element_tree)
     mock_rule_info.set_description(mock_element)
     assert "mock_description" in mock_rule_info.description
+
+
+def test_get_oval_url(monkeypatch, rule_info_mocker, caplog):
+    log.info("Test RHEL image type")
+    mock_rule_info = rule_info_mocker["oval_with_method"]("get_oval_url")
+    oval_url = mock_rule_info.get_oval_url("RHEL7")
+    assert (
+        oval_url
+        == "https://www.redhat.com/security/data/oval/com.redhat.rhsa-RHEL7.xml.bz2"
+    )
+
+    log.info("Test SUSE image type")
+    oval_url = mock_rule_info.get_oval_url("suse.linux.enterprise.15")
+    assert (
+        oval_url
+        == "https://ftp.suse.com/pub/projects/security/oval/suse.linux.enterprise.server.15-patch.xml"
+    )
+
+    log.info("Test unknown image type")
+    with pytest.raises(NoMatchingOvalUrl):
+        mock_rule_info.get_oval_url("unknown")
+    assert "OVAL findings found for unknown image type" in caplog.text
 
 
 @patch("ironbank.pipeline.scan_report_parsers.oscap.Path", new=MockPath)
