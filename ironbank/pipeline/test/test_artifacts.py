@@ -49,7 +49,7 @@ def add_s3_vars(monkeypatch):
 
 @pytest.fixture(autouse=True)
 def mock_pull_auth(monkeypatch):
-    monkeypatch.setenv("DOCKER_AUTH_CONFIG_FILE_PULL", "example")
+    monkeypatch.setenv("DOCKER_AUTH_FILE_PULL", "example")
 
 
 @pytest.fixture

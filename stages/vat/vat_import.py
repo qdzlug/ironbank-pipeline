@@ -5,10 +5,8 @@ import json
 import os
 import shutil
 import logging
-import tempfile
 import argparse
 from pathlib import Path
-from base64 import b64decode
 from itertools import groupby
 from typing import Any, Generator
 import requests
@@ -399,35 +397,43 @@ def get_parent_vat_response(
         tag=hardening_manifest.base_image_tag,
     )
     vat_response_predicate = "https://vat.dso.mil/api/p1/predicate/beta1"
-    with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
-        docker_config = Path(docker_config_dir, "config.json")
-        pull_auth = b64decode(os.environ["DOCKER_AUTH_CONFIG_PULL"]).decode("UTF-8")
-        docker_config.write_text(pull_auth, encoding="utf-8")
-        Cosign.download(
-            base_image,
-            output_dir=output_dir,
-            docker_config_dir=docker_config_dir,
-            predicate_types=[vat_response_predicate],
-        )
-        predicates = Predicates()
-        predicate_path = Path(
-            output_dir, predicates.get_predicate_files()[vat_response_predicate]
-        )
-        parent_vat_path = Path(output_dir, "parent_vat_response.json")
-        shutil.move(predicate_path, parent_vat_path)
+    pull_auth = Path(os.environ["DOCKER_AUTH_FILE_PULL"])
+    docker_config_dir = Path("/tmp/docker_config")
+    docker_config_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy(src=pull_auth, dst=Path(docker_config_dir, "config.json"))
+    Cosign.download(
+        base_image,
+        output_dir=output_dir,
+        docker_config_dir=docker_config_dir,
+        predicate_types=[vat_response_predicate],
+    )
+    predicates = Predicates()
+    predicate_path = Path(
+        output_dir, predicates.get_predicate_files()[vat_response_predicate]
+    )
+    parent_vat_path = Path(output_dir, "parent_vat_response.json")
+    shutil.move(predicate_path, parent_vat_path)
 
 
 def main() -> None:
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
+
     if hardening_manifest.base_image_name:
         get_parent_vat_response(
             output_dir=os.environ["ARTIFACT_DIR"], hardening_manifest=hardening_manifest
         )
+        parent_vat_path = Path(f"{os.environ['ARTIFACT_DIR']}/parent_vat_response.json")
+        with parent_vat_path.open("r", encoding="UTF-8") as f:
+            parent_vat_response_content = {"vatAttestationLineage": json.load(f)}
+        logging.debug(parent_vat_response_content)
+    else:
+        parent_vat_response_content = {"vatAttestationLineage": None}
 
     vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
     if not args.use_json:
         large_data = create_api_call()
+        large_data.update(parent_vat_response_content)
         with vat_request_json.open("w", encoding="utf-8") as outfile:
             json.dump(large_data, outfile)
     else:

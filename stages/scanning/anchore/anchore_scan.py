@@ -12,7 +12,7 @@ def main() -> None:
     # Get logging level, set manually when running pipeline
 
     anchore_scan = Anchore(
-        url=os.environ["ANCHORE_SERVER_ADDRESS"],
+        url=os.environ["ANCHORE_URL"],
         username=os.environ["ANCHORE_USERNAME"],
         password=os.environ["ANCHORE_PASSWORD"],
         verify=os.environ.get("ANCHORE_VERIFY", default=True),

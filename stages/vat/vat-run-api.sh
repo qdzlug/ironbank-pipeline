@@ -6,7 +6,7 @@ if echo "${CI_PROJECT_DIR}" | grep -q -F 'pipeline-test-project'; then
 fi
 REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${COMMIT_SHA_TO_SCAN}"
 export REMOTE_REPORT_DIRECTORY
-export VAT_API_URL="${VAT_BACKEND_SERVER_ADDRESS}/internal/import/scan"
+export VAT_API_URL="${VAT_BACKEND_URL}/internal/import/scan"
 
 # output OSCAP link variables for the VAT stage to use
 python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \

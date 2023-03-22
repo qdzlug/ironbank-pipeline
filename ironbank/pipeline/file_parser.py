@@ -27,7 +27,7 @@ class AccessLogFileParser(FileParser):
         with Path(os.environ["ACCESS_LOG_REPOS"]).open(mode="r", encoding="utf-8") as f:
             repos = json.load(f)
         packages: list[Package] = []
-        nexus_host = os.environ["NEXUS_HOST"]
+        nexus_host = os.environ["NEXUS_HOST_URL"]
         nexus_re = re.compile(
             rf"({re.escape(nexus_host)})(?P<repo_type>[^/]+)/(?P<url>.*)"
         )

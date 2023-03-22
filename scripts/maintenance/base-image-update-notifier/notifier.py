@@ -10,7 +10,7 @@ from pyrate_limiter import Duration, Limiter, RequestRate
 import requests
 
 # VAT config
-vat_api_url = f"{os.environ['VAT_BACKEND_SERVER_ADDRESS']}/p1"
+vat_api_url = f"{os.environ['VAT_BACKEND_URL']}/p1"
 
 # Set the rate limiters. These have to be global and specified first.
 # Modifying these during the main function has no effect, so these
