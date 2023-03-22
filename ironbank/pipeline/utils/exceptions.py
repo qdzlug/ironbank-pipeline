@@ -24,3 +24,11 @@ class GenericSubprocessError(Exception):
 
 class RepoTypeNotSupported(Exception):
     pass
+
+
+class NoMatchingOvalUrl(Exception):
+    pass
+
+
+class OvalDefinitionDownloadFailure(Exception):
+    pass

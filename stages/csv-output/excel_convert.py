@@ -157,7 +157,6 @@ def convert_to_excel(csv_dir, justification_sheet):
         read_gates_no_justifications.to_excel(
             writer, sheet_name="Anchore Compliance Results", header=True, index=False
         )
-        writer.save()
     with pd.ExcelWriter(
         justification_sheet
     ) as writer:  # pylint: disable=abstract-class-instantiated
@@ -177,7 +176,6 @@ def convert_to_excel(csv_dir, justification_sheet):
         read_gates.to_excel(
             writer, sheet_name="Anchore Compliance Results", header=True, index=False
         )
-        writer.save()
 
 
 def _set_column_width(sheet, column_value, width, wrap=False):

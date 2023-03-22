@@ -42,6 +42,11 @@ trigger:
     STAGING_PIPELINE: $STAGING_PIPELINE
     TARGET_BRANCH: $TARGET_BRANCH
     TEMPLATE: $TEMPLATE
+    SCAN_RESULTS: "${ARTIFACT_STORAGE}/scan-results"
+    ANCHORE_SCANS: "${SCAN_RESULTS}/anchore"
+    TWISTLOCK_SCANS: "${SCAN_RESULTS}/twistlock"
+    OSCAP_SCANS: "${SCAN_RESULTS}/openscap"
+
   trigger:
     include:
       - project: ironbank-tools/ironbank-pipeline
