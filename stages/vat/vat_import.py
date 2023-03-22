@@ -396,14 +396,22 @@ def get_parent_vat_response(output_dir: str, hardening_manifest: HardeningManife
 def main():
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
+
     if hardening_manifest.base_image_name:
         get_parent_vat_response(
             output_dir=os.environ["ARTIFACT_DIR"], hardening_manifest=hardening_manifest
         )
+        parent_vat_path = Path(f"{os.environ['ARTIFACT_DIR']}/parent_vat_response.json")
+        with parent_vat_path.open("r", encoding="UTF-8") as f:
+            parent_vat_response_content = {"vatAttestationLineage": json.load(f)}
+        logging.debug(parent_vat_response_content)
+    else:
+        parent_vat_response_content = {"vatAttestationLineage": None}
 
     vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
     if not args.use_json:
         large_data = create_api_call()
+        large_data.update(parent_vat_response_content)
         with vat_request_json.open("w", encoding="utf-8") as outfile:
             json.dump(large_data, outfile)
     else:
