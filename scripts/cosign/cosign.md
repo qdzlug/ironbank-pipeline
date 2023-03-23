@@ -73,7 +73,7 @@ registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.6
 
 ```bash
   cosign verify \
-  --key https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign.pem registry1.dso.mil/ironbank/suse/bci/bci-base:15.4 \
+  --key https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-publickey.pem registry1.dso.mil/ironbank/suse/bci/bci-base:15.4 \
   --insecure-ignore-tlog=true
 ```
 
@@ -194,4 +194,4 @@ This script will cycle through the attestations, decode them, and stores them as
 
 - [CA Bundle](https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-ca-bundle.pem)
 - [Certificate](https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-certificate.pem)
-- [Public Key](https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign.pem)
+- [Public Key](https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-publickey.pem)
