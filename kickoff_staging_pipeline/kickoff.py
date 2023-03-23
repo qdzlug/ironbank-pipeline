@@ -427,13 +427,14 @@ def open_urls(config: Config) -> None:
     options = Options()
     # options.headless = True
     # uncomment for local testing
-    options.proxy = Proxy(
-        {
-            "socksProxy": f"{os.environ.get('SOCKS_HOST', 'localhost')}:12345",
-            "socksVersion": 5,
-        }
-    )
-    options.set_preference("network.proxy.socks_remote_dns", True)
+    if config.proxies:
+        options.proxy = Proxy(
+            {
+                "socksProxy": f"{os.environ.get('SOCKS_HOST', 'localhost')}:12345",
+                "socksVersion": 5,
+            }
+        )
+        options.set_preference("network.proxy.socks_remote_dns", True)
     driver = webdriver.Firefox(options=options)
     for project in config.projects:
         driver.get(project.pipeline.web_url)
