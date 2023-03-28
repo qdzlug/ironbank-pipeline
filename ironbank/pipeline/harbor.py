@@ -94,6 +94,7 @@ class HarborRepository(Harbor):
             for item in [page] if isinstance(page, dict) else page:
                 self.artifacts.append(
                     HarborArtifact(
+                        session=self.session,
                         digest=item["digest"],
                         tags=item["tags"] if "tags" in item else None,
                         project=self.project,
