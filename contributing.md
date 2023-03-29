@@ -448,9 +448,82 @@ If we didn't do any of the prep for mocking this, we would have to `monkeypatch`
 
 -
 
+#### Use `monkeypatch` when mocking functionality for a single function/method
+
 #### Use `@patch` when mocking entire class
 
-#### Use `monkeypatch` when mocking functionality for a single function/method
+Some times we'd like to patch an entire class in test. Maybe we need to mock a return value that would be an object that calls some methods or it's just easier to mock the entire class or parts of it rather than monkeypatching every method called for a class (which is often the case if you're calling more than one method for a class).
+
+For example:
+** example_module.py **
+
+```python
+
+def example(example_path: str):
+    example_path = Path(example_path)
+    assert example_path.exists()
+    with example_path.open(encoding="utf-8") as f:
+        content = f.read()
+    log.info(example_path.absolute().as_posix())
+
+```
+
+Here we're calling several `Path` methods, and one of those method calls returns another Path object, `absolute()`, which then calls another Path method, `as_posix()`. We're also calling `open` on the `Path` object which returns a `TextIOWrapper` as `f`, which then calls the `read()` method.
+
+You could try to monkeypatch this still, but you'd still need to create some mock class definition for what is returned by `open` and for `absolute` to get the `read` and `as_posix` respectively.
+
+```python
+import example_module
+
+class MockTextIOWrapper():
+    def __enter__(self):
+        return self
+    def __exit__(self, ex_type, ex_value, ex_tb):
+        pass
+    def read():
+        return "mock_read"
+
+class MockPath():
+    def as_posix():
+        pass
+
+def test_example(monkeypatch):
+    monkeypatch.setattr(pathlib.Path, "exists", lambda: True)
+    monkeypatch.setattr(pathlib.Path, "open", MockTextIOWrapper())
+    monkeypatch.setattr(pathlib.Path, "absolute", MockPath())
+    example_module.example("some_path")
+
+```
+
+We can make mocking all of this easier and reusable by skipping monkeypatching altogether and just mocking everything we're using in the `Path` class.
+To illustrate this, we can look at a simplified version of our `MockPath` object that we created in the `ironbank/pipeline/tests/mocks/mock_classes.py` module for this case.
+
+```python
+class MockTextIOWrapper():
+    def __enter__(self):
+        return self
+    def __exit__(self, ex_type, ex_value, ex_tb):
+        pass
+    def read():
+        return "mock_read"
+
+class MockPath():
+    def open(self):
+        return MockTextIOWrapper(self)
+
+    def exists(self):
+        return True
+
+    def absolute(self):
+        return MockPath()
+
+# this mocks the class definition of Path during instantiation
+@patch("pathlib.Path", new=MockPath)
+def test_example():
+    # all Path methods are overridden by MockPath ones here
+    example_module.example('example_path')
+
+```
 
 #### Lambdas can be used for simple mocks
 
