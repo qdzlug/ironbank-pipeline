@@ -21,7 +21,7 @@ log = logger.setup("build")
 
 
 def write_dockerfile_args(dockerfile_args: list["str"]):
-    with Path("Dockerfile").open("r+") as f:
+    with Path("Dockerfile").open(mode="r+", encoding="utf-8") as f:
         dockerfile_content = []
         for line in f.readlines():
             dockerfile_content.append(line)
@@ -34,6 +34,9 @@ def write_dockerfile_args(dockerfile_args: list["str"]):
 
 
 def create_mounts(mount_conf_path: Path, pipeline_build_dir: Path):
+    """
+    Create temporary mounts
+    """
     mounts = []
     if os.environ.get("DISTRO_REPO_DIR"):
         mounts.append(
@@ -54,6 +57,9 @@ def create_mounts(mount_conf_path: Path, pipeline_build_dir: Path):
 def load_resources(
     resource_dir: str, resource_type: str = "file", skopeo: Skopeo = None
 ):
+    """
+    Load resources pulled in import-artifacts job
+    """
     for resource_file in os.listdir(resource_dir):
         resource_file_obj = Path(resource_dir, resource_file)
         if resource_file_obj.is_file() and not resource_file_obj.is_symlink():
@@ -65,7 +71,7 @@ def load_resources(
                 )
                 manifest_json = json.loads(manifest.stdout)
                 image_url = manifest_json[0]["RepoTags"][0]
-                log.info(f"loading image {resource_file_obj}")
+                log.info("loading image %s", resource_file_obj)
                 skopeo.copy(
                     ImageFile(file_path=resource_file_obj, transport="docker-archive:"),
                     Image(url=image_url, transport="containers-storage:"),
@@ -83,6 +89,10 @@ def get_parent_label(
     hardening_manifest: HardeningManifest,
     base_registry: str,
 ):
+    """
+    Return the parent image's name and digest to be applied as a label
+        If there is no parent image listed in the hardening manifest, returns an empty string
+    """
     if hardening_manifest.base_image_name:
         base_image = Image(registry=base_registry, name=hardening_manifest.base_image_name, tag=hardening_manifest.base_image_tag)
         return f"{base_image}@{skopeo.inspect(base_image.from_image(transport='docker://'))['Digest']}"
@@ -91,6 +101,9 @@ def get_parent_label(
 
 
 def start_squid(squid_conf: Path):
+    """
+    Start squid proxy to capture all packages pulled from Nexus
+    """
     parse_cmd = ["squid", "-k", "parse", "-f", squid_conf]
     start_cmd = ["squid", "-f", squid_conf]
     for cmd in [parse_cmd, start_cmd]:
@@ -112,7 +125,7 @@ def generate_build_env(
     ]
     for env_ in build_envs:
         log.info(env_.strip())
-    with Path("build.env").open("a+") as f:
+    with Path("build.env").open(mode="a+", encoding="utf-8") as f:
         f.writelines(build_envs)
 
 
@@ -206,7 +219,7 @@ def main():
 
     # sed -i '/^FROM /r'
     # TODO: use the NEXUS_HOST_URL env variable for the values pulled from this file
-    with Path(pipeline_build_dir, "build-args.json").open("r") as f:
+    with Path(pipeline_build_dir, "build-args.json").open(mode="r", encoding="utf-8") as f:
         build_args = json.load(f)
         # create list of lists, with each sublist containing an arg
         # sublist needed for f.writelines() on arg substitution in Dockerfile
@@ -252,7 +265,6 @@ def main():
         log_cmd=True,
     )
 
-    # TODO: decide if we need to push tags on staging_base_image or development
     if (
         os.environ.get("STAGING_BASE_IMAGE")
         or os.environ["CI_COMMIT_BRANCH"] == "development"
@@ -264,8 +276,7 @@ def main():
     local_image_details = buildah.inspect(image=src, storage_driver="vfs", log_cmd=True)
 
     # get digest from skopeo copy digestfile
-    # TODO: consider replacing this with retrieving digest from dest on skopeo.inspect
-    with Path(build_artifact_dir, "digest").open("r") as f:
+    with Path(build_artifact_dir, "digest").open(mode="r",encoding="utf-8") as f:
         digest = f.read()
 
     generate_build_env(
