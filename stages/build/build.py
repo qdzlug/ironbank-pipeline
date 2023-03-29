@@ -255,6 +255,7 @@ def main():
     # Instantiate new objects from existing staging image attributes
     src = staging_image.from_image(transport="containers-storage:")
     dest = staging_image.from_image(transport="docker://")
+    ci_image = dest
 
     # TODO: skip the following skopeo copies on local build, maybe change the copy to local dir?
     skopeo.copy(
@@ -269,9 +270,9 @@ def main():
         os.environ.get("STAGING_BASE_IMAGE")
         or os.environ["CI_COMMIT_BRANCH"] == "development"
     ):
-        for t in hardening_manifest.image_tags:
-            dest = dest.from_image(tag=t)
-            skopeo.copy(src, dest, dest_authfile=staging_auth_path, log_cmd=True)
+        for tag in hardening_manifest.image_tags:
+            dest = dest.from_image(tag=tag)
+            skopeo.copy(ci_image, dest, dest_authfile=staging_auth_path, log_cmd=True)
 
     local_image_details = buildah.inspect(image=src, storage_driver="vfs", log_cmd=True)
 
