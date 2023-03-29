@@ -86,8 +86,10 @@ def raise_():
     """
     Helper function allowing for a lambda to raise an exception
     """
+
     def raise_exception(e):
         raise e
+
     return raise_exception
 
 

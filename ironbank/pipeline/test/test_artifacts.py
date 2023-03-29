@@ -200,7 +200,9 @@ def test_container_artifact_get_credentials(monkeypatch, mock_container_artifact
     assert mock_container_artifact.get_credentials() == "example:test"
 
 
-def test_container_artifact_download(monkeypatch, caplog, mock_container_artifact, raise_):
+def test_container_artifact_download(
+    monkeypatch, caplog, mock_container_artifact, raise_
+):
     monkeypatch.setattr(pathlib.Path, "exists", lambda self: False)
     monkeypatch.setattr(
         AbstractArtifact, "delete_artifact", lambda self: log.info("deleting artifact")
