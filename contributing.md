@@ -147,29 +147,29 @@ This can lead to the file being left open if an exception occurs before the file
 
 1. Using with to handle file open/close safely
 
-  ```python
-  # reading
-  example_path = Path("example.txt")
-  with example_path.open(encoding="utf-8") as f:
-    content = f.read()
+```python
+# reading
+example_path = Path("example.txt")
+with example_path.open(encoding="utf-8") as f:
+  content = f.read()
 
-  # writing
-  content = "example_text"
-  with example_path.open(encoding="utf-8") as f:
-    f.write(content)
+# writing
+content = "example_text"
+with example_path.open(encoding="utf-8") as f:
+  f.write(content)
 
-  ```
+```
 
 1. Using builtin Path methods
 
-  ```python
-  # reading
-  content = Path("example.txt").read_text(encoding="utf-8")
+```python
+# reading
+content = Path("example.txt").read_text(encoding="utf-8")
 
-  # writing
-  content = "example_text"
-  Path("example.txt").write_text(content, encoding="utf-8")
-  ```
+# writing
+content = "example_text"
+Path("example.txt").write_text(content, encoding="utf-8")
+```
 
 ### Using `with`
 
@@ -221,10 +221,7 @@ class Project:
 
 ### Type hinting
 
-
-
-
-___
+---
 
 ## Testing guide
 
@@ -269,12 +266,12 @@ def test_example(monkeypatch, caplog, mock_data):
 
 ```
 
-
 #### Mock everything
 
 We want to mock out functionality for anything being called in the thing we're testing.
 
 **Exceptions:**
+
 > Note: We don't want to mock these things directly, but we'll still want to mock callables in the thing we're testing even if they're are only doing these things
 
 - regexes
@@ -315,8 +312,8 @@ def test_validate_request(monkeypatch):
 #### Use existing stuff
 
 <!-- Currently using `conftest.py` at root for reusable fixtures. A project can have multiple conftest.py files placed in a scope where they would be reused. We might want to do that to break out things used by `ironbank` modules and code in the `stages` dir -->
-We've created a number of helpful mock classes and fixtures that can be consumed in your tests. Anything defined in **conftest.py** will be auto imported as fixture and just needs to be requested by the test to be used.
 
+We've created a number of helpful mock classes and fixtures that can be consumed in your tests. Anything defined in **conftest.py** will be auto imported as fixture and just needs to be requested by the test to be used.
 
 Please check **conftest.py** in the root of this project and **ironbank/pipeline/tests/mocks/mock_classes.py** before creating generic fixtures or mock classes to see if they already exist. All new generic fixtures and mock classes should be placed in those files where appropriate.
 
@@ -438,7 +435,6 @@ def test_pipeline_resource_validate_metadata(mock_pipeline_resources):
 ```
 
 While the initial overhead of creating the mock class and fixture can be significant, it is typically a much more maintainable/extensible path and makes what is happening in the test more obvious. This is more noticeable when there are larger chains of calling/called functions
-
 
 If we didn't do any of the prep for mocking this, we would have to `monkeypatch` all methods called for every method we're testing. By mocking the class first, we're able to just inherit the mocked methods if they're being called by the method we're testing.
 
