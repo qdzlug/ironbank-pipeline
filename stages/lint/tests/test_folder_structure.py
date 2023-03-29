@@ -6,7 +6,6 @@ import asyncio
 import pytest
 from unittest.mock import patch
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.test.mocks.mock_classes import (
     MockProject,
@@ -19,7 +18,7 @@ log = logger.setup("test_folder_structure")
 
 
 @patch("dockerfile_validation.DsopProject", new=MockProject)
-def test_folder_structure_main(monkeypatch, caplog):
+def test_folder_structure_main(monkeypatch, caplog, raise_):
     log.info("Test successful validation")
     monkeypatch.setattr(DsopProject, "validate", lambda x: x)
     asyncio.run(folder_structure.main())

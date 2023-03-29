@@ -12,7 +12,6 @@ from ironbank.pipeline.test.mocks.mock_classes import (
     MockSkopeo,
 )
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
-from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.utils import logger
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -33,7 +32,7 @@ def mock_hm():
 
 @patch("image_verify.Skopeo", new=MockSkopeo)
 @patch("image_verify.Image", new=MockImage)
-def test_inspect_old_image(monkeypatch, mock_hm):
+def test_inspect_old_image(monkeypatch, mock_hm, raise_):
     log.info("Test inspect_old_image successful")
     example_url = "http://example.com"
     monkeypatch.setenv("REGISTRY_PUBLISH_URL", example_url)
@@ -99,7 +98,7 @@ def test_verify_image_properties(monkeypatch, caplog, mock_hm):
 @patch("image_verify.DsopProject", new=MockProject)
 @patch("image_verify.HardeningManifest", new=MockHardeningManifest)
 @patch("image_verify.Image", new=MockImage)
-def test_diff_needed(monkeypatch, caplog):
+def test_diff_needed(monkeypatch, caplog, raise_):
     log.info("Test Digest and Label values are returned on no diff")
     example_url = "http://example.com"
     monkeypatch.setenv("REGISTRY_PUBLISH_URL", example_url)

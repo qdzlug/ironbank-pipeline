@@ -6,7 +6,6 @@ import pytest
 from pathlib import Path
 from unittest.mock import mock_open, patch
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.container_tools.cosign import Cosign
 from ironbank.pipeline.utils.exceptions import CosignDownloadError
 from ironbank.pipeline.test.mocks.mock_classes import (
@@ -78,7 +77,7 @@ def test_parse_packages(monkeypatch, caplog):
     assert pkgs == set(mock_sbom_pkgs + mock_access_log_pkgs)
 
 
-def test_download_artifacts(monkeypatch):
+def test_download_artifacts(monkeypatch, raise_):
     img = MockImage(tag="test", digest="test")
     mock_out = MockPath("testOut")
     mock_dock = MockPath("testDock")

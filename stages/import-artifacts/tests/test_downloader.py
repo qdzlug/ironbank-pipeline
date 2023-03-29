@@ -10,7 +10,6 @@ from requests.exceptions import HTTPError
 from ironbank.pipeline.utils import logger
 from botocore.exceptions import ClientError
 from ironbank.pipeline.project import DsopProject
-from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.utils.exceptions import InvalidURLList
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.artifacts import (
@@ -231,7 +230,7 @@ def test_main_class_assignment(
 
 
 # TODO: update all DsopProject and HardeningManifest __init__ mocks to use patch
-def test_main_exceptions(monkeypatch, caplog, mock_s3_resources):
+def test_main_exceptions(monkeypatch, caplog, mock_s3_resources, raise_):
     def mock_dsop_init(self):
         self.hardening_manifest_path = "lol"
 
