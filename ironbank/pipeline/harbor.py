@@ -1,4 +1,5 @@
 import requests
+import json
 from dataclasses import dataclass, field
 from ironbank.pipeline.utils import logger
 from abc import ABC
@@ -8,6 +9,9 @@ from ironbank.pipeline.utils.paginated_request import PaginatedRequest
 
 log: logger = logger.setup("Harbor")
 
+@dataclass
+class PayloadString(str):
+    pass
 
 @dataclass
 class Harbor(ABC):
@@ -54,7 +58,6 @@ class HarborSystem(Harbor):
                         name=item["name"],
                     )
                 )
-
 
 @dataclass
 class HarborProject(Harbor):
@@ -104,11 +107,34 @@ class HarborRepository(Harbor):
 
 
 @dataclass
-class HarborRobot:
-    name: str = ""
-    description: str = ""
+class HarborRobot(Harbor):
+    name: PayloadString = ""
+    description: PayloadString = ""
     expires_at: str = ""
+    duration: str = ""
+    disable: bool = False
+    level: str = ""
+    permissions: list['HarborRobotPermissions'] = field(default_factory=lambda: [HarborRobotPermissions()])
 
+    def toJson(self):
+        return json.dumps(self.__dict__)
+
+    def create_robot(self):
+        robot_url = f"{self.api_url}/robots"
+        try:
+          resp = self.session.post(robot_url, json=self.toJson())
+          resp.raise_for_status()
+        except requests.HTTPError as re:
+            log.error("Robot creation failed with code {}".format(re.status_code))
+
+@dataclass
+class HarborRobotPermissions:
+    access: list[dict] = field(default_factory=lambda: [{}])
+    kind: str = ""
+    namespace: str = ""
+
+    def toJson(self):
+        return json.dumps(self.__dict__)
 
 @dataclass
 class HarborArtifact:
