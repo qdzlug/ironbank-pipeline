@@ -119,6 +119,9 @@ class HarborRobot(Harbor):
     level: str = ""
     permissions: list["HarborRobotPermissions"] = field(default_factory=lambda: [])
 
+    def __post_init__(self):
+        self.permissions = [HarborRobotPermissions(**permission) for permission in self.permissions]
+
     def payload(self):
         return {
             "name": self.name,
