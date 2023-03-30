@@ -112,6 +112,7 @@ class HarborRepository(Harbor):
 @dataclass
 class HarborRobot(Harbor):
     name: str = ""
+    email: str = ""
     description: str = ""
     expires_at: str = ""
     duration: int = 365
