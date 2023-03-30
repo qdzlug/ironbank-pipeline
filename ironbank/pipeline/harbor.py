@@ -134,20 +134,15 @@ class HarborRobot(Harbor):
 
     def create_robot(self):
         robot_url = f"{self.api_url}/robots"
-        try:
-            resp = self.session.post(
-                robot_url,
-                json=self.payload(),
-                headers={"Content-Type": "application/json"},
-            )
-            resp.raise_for_status()
-        except requests.HTTPError:
-            log.error(
-                "Robot creation failed with code {}, payload: {}".format(
-                    resp.status_code, resp.json()
-                )
-            )
-        log.info(resp.json())
+        resp = self.session.post(
+            robot_url,
+            json=self.payload(),
+            headers={"Content-Type": "application/json"},
+        )
+        log.info(
+            "Robot creation failed with code %s, payload: %s", resp.status_code, resp.json()
+        )
+        resp.raise_for_status()
 
 
 @dataclass
