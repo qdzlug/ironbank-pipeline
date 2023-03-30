@@ -1,5 +1,17 @@
 # Contributor guide
 
+## Summaries
+
+This guide provides information regarding contributing to the pipeline, styles to follow and testing information. If you have any questions regarding the content of this document or the ironbank-pipeline, please direct them to @ariel.shnitzer.
+
+### Style
+
+Follow PEP8 but let the formatters/linters do their job. If `black` has nothing left to reformat and `pylint`/`mypy` don't have any complaints, you're covered from a PEP8 perspective as far as we're concerned.
+
+### Testing
+
+We provide many ways to handle mocking/patching things in here, but please follow whatever option you think is most maintainable and extensible. You may find it useful to install an app to provide code coverage by line, but you can also review code coverage for each line you changed in the MR in gitlab after the pipeline completes for your branch.
+
 ## Initial setup
 
 - Follow the guide [here](https://python-poetry.org/docs/) to install poetry
@@ -83,16 +95,70 @@ Wraps several linters together.
 
 TODO: decide if we're keeping this or getting rid of it in favor of pylint
 
+### Configure pylint/mypy in vscode
+
+- Create a file in the root of this project `.vscode/settings.json`
+- Add the following content to it
+
+```json
+{
+    "python.linting.enabled": true,
+    "python.linting.lintOnSave": true,
+    "python.linting.mypyEnabled": true,
+    "python.linting.pylintEnabled": true,
+}
+```
+
+- Set your interpreter to the one in your poetry env
+  - On mac: press `cmd+shift+p` and search for `python select interpreter`
+  - Select the python interpreter in your poetry virtualenv (should look something like **~/.../pypoetry/virtualenvs/ibmodules-...**)
+    - Note: If you haven't run `poetry install` at any point, this will not work
+
+### Autoreloading in ipython (or jupyter notebooks)
+
+At the start of each session you can run
+
+```python
+%load_ext autoreload
+%autoreload 2
+```
+
+___
+
+If you don't want to do this every time:
+
+- Run
+
+    ```sh
+    ipython profile create
+    ```
+
+- Open the file that was just created which should be `~/.ipython/profile_default/ipython_config.py`
+
+- Add these two lines to it (or update the lines that are already commented out in the file with these values)
+
+    ```python
+    c.TerminalIPythonApp.exec_lines = ['%autoreload 2']
+    c.TerminalIPythonApp.extensions = ['autoreload']
+    ```
+
+
 ## Style guide
 
-### Configure pylint/mypy
+By default, we follow [PEP8](https://peps.python.org/pep-0008) as a style guide. Typically, `black` should be able to automatically fix any formatting issues to align with PEP 8, but it is recommended to still integrate a tool like `pylint` into your editor to catch non-format related issues with PEP 8.
 
-By default, we follow [PEP8](https://peps.python.org/pep-0008) as a style guide but there are cases where we break conventions from PEP8 listed below. Typically, `black` should be able to automatically fix any formatting issues to align with PEP 8, but it is recommended to still integrate a tool like `pylint` into your editor to catch non-format related issues with PEP 8.
+### Naming conventions
 
 - a path to a file is called `<some_name>_path`
 - a path to a directory is called `<some_name>_dir`
+- we aren't strict with `private` vs. `public` attributes, but if you are going to use them we typically only opt for a single leading underscore for private ones
 
-avoid using `Any` when using type hints
+### Type hinting
+
+- All new/updated files should include a reasonable amount of type hinting
+  - All mypy errors should be resolved or commented on in the MR
+- avoid using `Any` when adding type hints
+  - Exceptions can be made for responses from APIs/services we don't control
 
 ### File I/O
 
@@ -176,6 +242,9 @@ Path("example.txt").write_text(content, encoding="utf-8")
 As a general rule of thumb, it is recommended to use `with` if `__enter__` and `__exit__` methods are provided for a class and it makes sense.
 This prevents needing to handle the case where some step needs to be done if an exception is thrown
 
+<!-- TODO: add examples of __enter__ and __exit__ and how all that works -->
+
+
 For example:
 
 ```python
@@ -208,6 +277,8 @@ For more info refer to [PEP 343](https://peps.python.org/pep-0343/)
 
 ### Use dataclasses
 
+# TODO: talk about this
+
 ```python
 @dataclass
 class Project:
@@ -219,7 +290,24 @@ class Project:
     return self.metadata
 ```
 
-### Type hinting
+### Provide a logger for each file and class
+
+Every file should provide a `log` object and every class should have a `_log` class attribute. You should use the `ironbank.pipeline.utils.logger` module for creating these
+
+For example:
+
+```python
+from ironbank.pipeline.utils import logger
+import logging
+from typing import ClassVar
+
+log: logging.Logger = logger.setup("example")
+
+@dataclass
+class ExampleClass:
+    _log: ClassVar[logging.Logger] = logger.setup("ExampleClass")
+
+```
 
 ---
 
@@ -228,6 +316,8 @@ class Project:
 ### Unit testing
 
 #### Basic Example
+
+Below is an example of a function and the unit test for it. `MockResponse` is a mock class that we provide in `ironbank/pipelines/tests/mocks/mock_classes.py` but a very simple version is defined here to prevent confusion.
 
 **example.py**
 
@@ -280,7 +370,7 @@ We want to mock out functionality for anything being called in the thing we're t
 - math
 - time/dates
 
-Examples:
+For example:
 
 **example.py**
 
@@ -440,22 +530,96 @@ If we didn't do any of the prep for mocking this, we would have to `monkeypatch`
 
 #### Testing gotchas
 
-- MockClasses with inheritance and classmethods
+###### MockClasses with inheritance and classmethods
 
-- Assertions in pytest.raises blocks
 
-- Patching is affected by using `from <module> import <thing>`
 
--
+
+###### Assertions in pytest.raises blocks
+
+When using `pytest.raises` to test cases where exceptions are called, be sure to keep your exceptions outside of the `with` block or else they will never actually be triggered
+
+```python
+# bad
+with pytest.raises(SystemExit) as se:
+    # this throws an exception which (since this was invoked using with) is caught it in an `__exit__` method that confirms the exception was raised
+    example_func_raises_exc("some text")
+    # this is skipped
+    assert se.value.code == 1
+
+# good
+with pytest.raise(SystemExit) as se:
+    # this throws an exception, same as above
+    example_func_raises_exc("some text")
+# se exists outside of the scope of the `with` block
+assert se.value.code == 1
+
+```
+
+##### Patching paths are affected when using `from <module> import <something>`
+
+When patching something that was imported in the module you're testing using `from <module> import <thing>`, the path to the patch changes.
+
+Below, there are two examples of how patching looks in each context
+
+**When using `import <module>`, it looks like:**
+
+**example_module.py**
+
+```python
+import base64
+import pathlib
+
+
+def example():
+    example_path = pathlib.Path('example_path')
+    decoded_text = base64.b64encode('example_text')
+```
+
+**test_example.py**
+
+```python
+
+@patch('pathlib.Path', new=MockPath)
+def test_example():
+    monkeypatch.setattr(base64, 'b64encode', lambda x: x)
+    example_module.example()
+
+```
+
+**When using `from <module> import <something>`**
+
+**example_module.py**
+
+```python
+from base64 import b64encode
+from pathlib import Path
+
+
+def example():
+    example_path = Path('example_path')
+    decoded_text = b64encode('example_text')
+```
+
+**test_example.py**
+
+```python
+
+@patch('example_module.Path', new=MockPath)
+def test_example():
+    monkeypatch.setattr(example_module, 'b64encode', lambda x: x)
+    example_module.example()
+
+```
 
 #### Use `monkeypatch` when mocking functionality for a single function/method
 
 #### Use `@patch` when mocking entire class
 
-Some times we'd like to patch an entire class in test. Maybe we need to mock a return value that would be an object that calls some methods or it's just easier to mock the entire class or parts of it rather than monkeypatching every method called for a class (which is often the case if you're calling more than one method for a class).
+Some times we'd like to patch an entire class in our test. Maybe we need to mock a return value that would be an object that calls some methods or it's just easier to mock the entire class or parts of it rather than monkeypatching every method called for a class (which is often the case if you're calling more than one method for a class).
 
 For example:
-** example_module.py **
+**example_module.py**
 
 ```python
 
@@ -470,7 +634,9 @@ def example(example_path: str):
 
 Here we're calling several `Path` methods, and one of those method calls returns another Path object, `absolute()`, which then calls another Path method, `as_posix()`. We're also calling `open` on the `Path` object which returns a `TextIOWrapper` as `f`, which then calls the `read()` method.
 
-You could try to monkeypatch this still, but you'd still need to create some mock class definition for what is returned by `open` and for `absolute` to get the `read` and `as_posix` respectively.
+You could try to monkeypatch this still, but you'd still need to create some mock class definition to using `with` on `open` and for `absolute` to get the `read` and `as_posix` respectively.
+
+Here's what it looks like if we monkeypatch it.
 
 ```python
 import example_module
@@ -496,7 +662,7 @@ def test_example(monkeypatch):
 ```
 
 We can make mocking all of this easier and reusable by skipping monkeypatching altogether and just mocking everything we're using in the `Path` class.
-To illustrate this, we can look at a simplified version of our `MockPath` object that we created in the `ironbank/pipeline/tests/mocks/mock_classes.py` module for this case.
+To demonstrate this, we can look at a simplified version of our `MockPath` object that we created in the `ironbank/pipeline/tests/mocks/mock_classes.py` module for this case.
 
 ```python
 class MockTextIOWrapper():
@@ -523,12 +689,18 @@ def test_example():
     # all Path methods are overridden by MockPath ones here
     example_module.example('example_path')
 
+    # we can still override functionality with monkeypatch if needed (or even better, provide multiple configurable options for the class with a fixture/helper class)
+    monkeypatch.setattr(MockPath, "exists", lambda: False)
+    with pytest.raises(AssertionError) as ae:
+        example_module.example('example_path')
+
 ```
 
 #### Lambdas can be used for simple mocks
 
-```python
+For example:
 
+```python
 # good
 monkeypatch.setattr(<module>, "super_simple_func", lambda a,b: "mock_value")
 
