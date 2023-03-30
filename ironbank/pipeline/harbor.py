@@ -141,7 +141,7 @@ class HarborRobot(Harbor):
             headers={"Content-Type": "application/json"},
         )
         resp.raise_for_status()
-
+        return resp.json()
 
 @dataclass
 class HarborRobotPermissions:
