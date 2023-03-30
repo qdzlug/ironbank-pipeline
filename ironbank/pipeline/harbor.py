@@ -108,33 +108,38 @@ class HarborRepository(Harbor):
 
 @dataclass
 class HarborRobot(Harbor):
-    name: PayloadString = ""
-    description: PayloadString = ""
+    name: str = ""
+    description: str = ""
     expires_at: str = ""
-    duration: str = ""
+    duration: int = 365
     disable: bool = False
     level: str = ""
     permissions: list['HarborRobotPermissions'] = field(default_factory=lambda: [HarborRobotPermissions()])
 
-    def toJson(self):
-        return json.dumps(self.__dict__)
+    def payload(self):
+        return {
+            "name": self.name,
+            "description": self.description,
+            "duration": self.duration,
+            "disable": self.disable,
+            "level": self.level,
+            "permissions": [self.permissions.__dict__]
+    }
 
     def create_robot(self):
         robot_url = f"{self.api_url}/robots"
         try:
-          resp = self.session.post(robot_url, json=self.toJson())
-          resp.raise_for_status()
-        except requests.HTTPError as re:
-            log.error("Robot creation failed with code {}".format(re.status_code))
+            resp = self.session.post(robot_url, json=self.payload(), headers={"Content-Type": "application/json"})
+            resp.raise_for_status()
+        except requests.HTTPError:
+            log.error("Robot creation failed with code {}, payload: {}".format(resp.status_code, resp.json()))
+        log.info(resp.json())
 
 @dataclass
 class HarborRobotPermissions:
     access: list[dict] = field(default_factory=lambda: [{}])
     kind: str = ""
     namespace: str = ""
-
-    def toJson(self):
-        return json.dumps(self.__dict__)
 
 @dataclass
 class HarborArtifact:
