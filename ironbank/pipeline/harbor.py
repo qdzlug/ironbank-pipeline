@@ -9,9 +9,11 @@ from ironbank.pipeline.utils.paginated_request import PaginatedRequest
 
 log: logger = logger.setup("Harbor")
 
+
 @dataclass
 class PayloadString(str):
     pass
+
 
 @dataclass
 class Harbor(ABC):
@@ -58,6 +60,7 @@ class HarborSystem(Harbor):
                         name=item["name"],
                     )
                 )
+
 
 @dataclass
 class HarborProject(Harbor):
@@ -114,7 +117,7 @@ class HarborRobot(Harbor):
     duration: int = 365
     disable: bool = False
     level: str = ""
-    permissions: list['HarborRobotPermissions'] = field(default_factory=lambda: [HarborRobotPermissions()])
+    permissions: list["HarborRobotPermissions"] = field(default_factory=lambda: [])
 
     def payload(self):
         return {
@@ -123,23 +126,33 @@ class HarborRobot(Harbor):
             "duration": self.duration,
             "disable": self.disable,
             "level": self.level,
-            "permissions": [self.permissions.__dict__]
-    }
+            "permissions": [permission.__dict__ for permission in self.permissions],
+        }
 
     def create_robot(self):
         robot_url = f"{self.api_url}/robots"
         try:
-            resp = self.session.post(robot_url, json=self.payload(), headers={"Content-Type": "application/json"})
+            resp = self.session.post(
+                robot_url,
+                json=self.payload(),
+                headers={"Content-Type": "application/json"},
+            )
             resp.raise_for_status()
         except requests.HTTPError:
-            log.error("Robot creation failed with code {}, payload: {}".format(resp.status_code, resp.json()))
+            log.error(
+                "Robot creation failed with code {}, payload: {}".format(
+                    resp.status_code, resp.json()
+                )
+            )
         log.info(resp.json())
+
 
 @dataclass
 class HarborRobotPermissions:
     access: list[dict] = field(default_factory=lambda: [{}])
     kind: str = ""
     namespace: str = ""
+
 
 @dataclass
 class HarborArtifact:
