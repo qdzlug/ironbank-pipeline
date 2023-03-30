@@ -100,7 +100,8 @@ class MockResponse:
 
     def json(self):
         return {"status_code": self.status_code, "text": self.text}
-    
+
+
 # Mock for subprocess.CompletedProcess, the return value for subprocess.run
 @dataclass
 class MockCompletedProcess:
@@ -108,6 +109,7 @@ class MockCompletedProcess:
     text: str = "example"
     stderr: str = "canned_error"
     stdout: str = "It broke"
+
 
 @dataclass
 class MockSession(Session):

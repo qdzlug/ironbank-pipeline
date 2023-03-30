@@ -68,6 +68,7 @@ def mock_responses():
         "jsonDecodeError": mockJsonDecodeError,
     }
 
+
 @pytest.fixture(scope="module")
 def mock_completed_process():
     def mock0(*args, **kwargs):
@@ -78,7 +79,7 @@ def mock_completed_process():
 
     def mock2(*args, **kwargs):
         return MockCompletedProcess(returncode=2, text="other_error")
-    
+
     return {
         "0": mock0,
         "1": mock1,
