@@ -139,9 +139,6 @@ class HarborRobot(Harbor):
             json=self.payload(),
             headers={"Content-Type": "application/json"},
         )
-        log.info(
-            "Robot creation failed with code %s, payload: %s", resp.status_code, resp.json()
-        )
         resp.raise_for_status()
 
 
