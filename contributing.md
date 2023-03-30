@@ -102,10 +102,10 @@ TODO: decide if we're keeping this or getting rid of it in favor of pylint
 
 ```json
 {
-    "python.linting.enabled": true,
-    "python.linting.lintOnSave": true,
-    "python.linting.mypyEnabled": true,
-    "python.linting.pylintEnabled": true,
+  "python.linting.enabled": true,
+  "python.linting.lintOnSave": true,
+  "python.linting.mypyEnabled": true,
+  "python.linting.pylintEnabled": true
 }
 ```
 
@@ -123,25 +123,24 @@ At the start of each session you can run
 %autoreload 2
 ```
 
-___
+---
 
 If you don't want to do this every time:
 
 - Run
 
-    ```sh
-    ipython profile create
-    ```
+  ```sh
+  ipython profile create
+  ```
 
 - Open the file that was just created which should be `~/.ipython/profile_default/ipython_config.py`
 
 - Add these two lines to it (or update the lines that are already commented out in the file with these values)
 
-    ```python
-    c.TerminalIPythonApp.exec_lines = ['%autoreload 2']
-    c.TerminalIPythonApp.extensions = ['autoreload']
-    ```
-
+  ```python
+  c.TerminalIPythonApp.exec_lines = ['%autoreload 2']
+  c.TerminalIPythonApp.extensions = ['autoreload']
+  ```
 
 ## Style guide
 
@@ -243,7 +242,6 @@ As a general rule of thumb, it is recommended to use `with` if `__enter__` and `
 This prevents needing to handle the case where some step needs to be done if an exception is thrown
 
 <!-- TODO: add examples of __enter__ and __exit__ and how all that works -->
-
 
 For example:
 
@@ -531,9 +529,6 @@ If we didn't do any of the prep for mocking this, we would have to `monkeypatch`
 #### Testing gotchas
 
 ###### MockClasses with inheritance and classmethods
-
-
-
 
 ###### Assertions in pytest.raises blocks
 
