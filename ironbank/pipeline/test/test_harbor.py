@@ -5,7 +5,6 @@ from ironbank.pipeline.test.mocks.mock_classes import (
     MockSession,
     MockHarborRobot,
     MockHarborRobotPermissions,
-    MockResponse,
 )
 from ironbank.pipeline.harbor import (
     HarborProject,
