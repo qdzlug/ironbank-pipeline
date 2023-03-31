@@ -121,7 +121,9 @@ class HarborRobot(Harbor):
     permissions: list["HarborRobotPermissions"] = field(default_factory=lambda: [])
 
     def __post_init__(self):
-        self.permissions = [HarborRobotPermissions(**permission) for permission in self.permissions]
+        self.permissions = [
+            HarborRobotPermissions(**permission) for permission in self.permissions
+        ]
 
     def payload(self):
         return {
@@ -142,6 +144,7 @@ class HarborRobot(Harbor):
         )
         resp.raise_for_status()
         return resp.json()
+
 
 @dataclass
 class HarborRobotPermissions:

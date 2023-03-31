@@ -13,6 +13,7 @@ from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.image import Image, ImageFile
 from ironbank.pipeline.apis import VatAPI
 from ironbank.pipeline.project import DsopProject
+from ironbank.pipeline.harbor import HarborRobot, HarborRobotPermissions
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.types import Package
@@ -493,3 +494,27 @@ class TestUtils:
             for attr in obj_attrs
             if (not attr[0].endswith("__") and attr[0] != "_abc_impl")
         ]
+
+
+@dataclass
+class MockHarborRobot(HarborRobot):
+    name: str = "pretend"
+    email: str = "fake@fake.lie"
+    description: str = "You may think you can read, but you can't"
+    expires_at: str = "yesterday"
+    duration: int = 1
+    disable: bool = False
+    level: str = "highest"
+    permissions: list["HarborRobotPermissions"] = field(default_factory=lambda: [])
+
+
+@dataclass
+class MockHarborRobotPermissions(HarborRobotPermissions):
+    access: list[dict] = field(
+        default_factory=lambda: [
+            {"resource": "bar", "action": "truffle"},
+            {"resource": "foo", "action": "carrot"},
+        ]
+    )
+    kind: "baz"
+    namespace: "/sprite"
