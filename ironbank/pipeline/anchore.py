@@ -205,7 +205,7 @@ class Anchore:
 
         """
         add_cmd = [
-            "anchore-cli",
+            "anchorectl",
             "--json",
             "--u",
             self.username,
@@ -217,6 +217,14 @@ class Anchore:
             "add",
             "--noautosubscribe",
         ]
+
+        if sbom_path:
+            add_cmd += ["--from", sbom_path]
+
+        if pathlib.Path("./Dockerfile").is_file():
+            add_cmd += ["--dockerfile", "./Dockerfile"]
+
+        add_cmd.append(image)
 
         if pathlib.Path("./Dockerfile").is_file():
             add_cmd += ["--dockerfile", "./Dockerfile"]
@@ -259,7 +267,7 @@ class Anchore:
         """
         logging.info(f"Waiting for Anchore to scan {digest}")
         wait_cmd = [
-            "anchore-cli",
+            "anchorectl",
             "--u",
             self.username,
             "--p",
