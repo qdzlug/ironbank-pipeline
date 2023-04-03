@@ -1,5 +1,4 @@
 import requests
-import json
 from dataclasses import dataclass, field
 from ironbank.pipeline.utils import logger
 from abc import ABC

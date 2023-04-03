@@ -516,5 +516,5 @@ class MockHarborRobotPermissions(HarborRobotPermissions):
             {"resource": "foo", "action": "carrot"},
         ]
     )
-    kind: "baz"
-    namespace: "/sprite"
+    kind: str = "baz"
+    namespace: str = "/sprite"
