@@ -241,8 +241,6 @@ Path("example.txt").write_text(content, encoding="utf-8")
 As a general rule of thumb, it is recommended to use `with` if `__enter__` and `__exit__` methods are provided for a class and it makes sense.
 This prevents needing to handle the case where some step needs to be done if an exception is thrown
 
-<!-- TODO: add examples of __enter__ and __exit__ and how all that works -->
-
 For example:
 
 ```python
@@ -271,14 +269,56 @@ with example_file as f:
 
 ```
 
-For more info refer to [PEP 343](https://peps.python.org/pep-0343/)
+If you'd like to use `with` when instantiating an object of a class created within this project, you'll need to define `__enter__` and `__exit__` methods for the class.
+
+For example:
+
+```python
+
+@dataclass
+class TmpVar:
+    key: str
+    value: str
+
+    def __enter__(self):
+        os.environ[key] = value
+        return self
+
+    # all three "exc" params are None unless an exception is raised
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        del os.environ[key]
+        if exc_type:
+            raise exc_type(exc_value, exc_tb)
+
+
+
+def create_tmp_var(key, value):
+    return TmpVar(key, value)
+
+
+# can also be `with TmpVar("example, "text") as tmp_var:`
+with create_tmp_var("example", "text") as tmp_var:
+    assert os.environ["example"] == "text"
+
+assert os.environ.get("example") is None
+```
+
+If you're attempting to use with on a function that has some managed resource or for other `with` statement utilities, refer to [contextlib](https://docs.python.org/3/library/contextlib.html).
+
+For more info on `with`, refer to [PEP 343](https://peps.python.org/pep-0343/)
 
 ### Use dataclasses
 
-# TODO: talk about this
+When writing classes in this project, we typically opt for dataclasses to:
+
+- avoid needing boiler plate for `__init__`
+- allow us to more clearly document attributes for our classes
+- for other added benefits such as easily making an object of a class hashable using `frozen`
+
+For example:
 
 ```python
-@dataclass
+@dataclass(slots=True, frozen=True)
 class Project:
   id_: int
   name: str = "example_name"
@@ -639,7 +679,7 @@ import example_module
 class MockTextIOWrapper():
     def __enter__(self):
         return self
-    def __exit__(self, ex_type, ex_value, ex_tb):
+    def __exit__(self, exc_type, exc_value, exc_tb):
         pass
     def read():
         return "mock_read"
