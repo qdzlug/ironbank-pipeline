@@ -328,6 +328,8 @@ class Project:
     return self.metadata
 ```
 
+### instance methods vs. class methods vs. static methods
+
 ### Provide a logger for each file and class
 
 Every file should provide a `log` object and every class should have a `_log` class attribute. You should use the `ironbank.pipeline.utils.logger` module for creating these
@@ -392,6 +394,71 @@ def test_example(monkeypatch, caplog, mock_data):
     assert "This is an example" in caplog.text
     caplog.clear()
 
+```
+
+#### Test order
+
+Tests should be in the same order that the functions/methods appear in the file
+
+For example:
+
+**example.py**
+
+```python
+def example():
+    ...
+def something():
+    ...
+def abc():
+    ...
+```
+
+order should be
+
+**test_example.py**
+
+```python
+
+def test_example():
+    ...
+def test_something():
+    ...
+def test_abc():
+    ...
+```
+
+#### Test naming
+
+Tests should be named after the function they're testing. If the thing being tested is a method, the classname for the method should be included in the test name
+
+For example:
+
+**example.py**
+
+```python
+@dataclass
+class SuperCool:
+    def get_super():
+        return "super"
+
+    def get_cool():
+        return "cool"
+
+def really_awesome():
+    return "wow"
+```
+
+Functions should be named as follows:
+
+**test_example.py**
+
+```python
+def test_super_cool_get_super():
+    ...
+def test_super_cool_get_cool():
+    ...
+def test_really_awesome():
+    ...
 ```
 
 #### Mock everything
@@ -568,7 +635,11 @@ If we didn't do any of the prep for mocking this, we would have to `monkeypatch`
 
 #### Testing gotchas
 
-###### MockClasses with inheritance and classmethods
+###### Mock classes with multiple inheritance and super()
+
+<!-- TODO: figure out a cleaner way of unmocking to prevent method resolution issues -->
+
+When unmocking methods in a mock class that call `super()`, we can get some unexpected results regarding method resolution. Please refer to `test_rule_info_oval_set_description` in `ironbank/pipeline/test/test_oscap.py` for an example of this behavior.
 
 ###### Assertions in pytest.raises blocks
 
@@ -647,7 +718,26 @@ def test_example():
 
 ```
 
-#### Use `monkeypatch` when mocking functionality for a single function/method
+#### Use `monkeypatch` when mocking functionality for a single function/method or environment variable
+
+If you have a single function/method that you need to mock, you can use monkeypatch to mock its implementation. You can also use monkeypatch to mock values for environment variables
+
+For example:
+
+# TODO wrap this up
+
+**example.py**
+
+```python
+def example():
+     = os.environ["EXAMPLE"]
+```
+
+**test_example.py**
+
+```python
+
+```
 
 #### Use `@patch` when mocking entire class
 
@@ -751,5 +841,7 @@ monkeypatch.setattr(<module>, "super_simple_func", mock_super_simple_func)
 <!-- Add stuff here -->
 
 ### E2E Testing
+
+#TODO
 
 <!-- Add information about the kickoff_staging_pipeline dir -->
