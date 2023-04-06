@@ -2,7 +2,7 @@ import pytest
 import requests
 from dataclasses import dataclass
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.test.mocks.mock_classes import MockResponse
+from ironbank.pipeline.test.mocks.mock_classes import MockResponse, MockCompletedProcess
 
 
 class MockJsonDecodeError(requests.JSONDecodeError):
@@ -46,15 +46,6 @@ def mock_responses():
     def mock500(*args, **kwargs):
         return MockResponse(status_code=500, text="server_ded")
 
-    def mock0(*args, **kwargs):
-        return MockResponse(returncode=0, text="successful")
-
-    def mock1(*args, **kwargs):
-        return MockResponse(returncode=1, text="exists")
-
-    def mock2(*args, **kwargs):
-        return MockResponse(returncode=2, text="other_error")
-
     def mockRequestException(*args, **kwargs):
         raise requests.exceptions.RequestException
 
@@ -72,12 +63,27 @@ def mock_responses():
         "403": mock403,
         "404": mock404,
         "500": mock500,
-        "0": mock0,
-        "1": mock1,
-        "2": mock2,
         "requestException": mockRequestException,
         "runtimeError": mockRuntimeError,
         "jsonDecodeError": mockJsonDecodeError,
+    }
+
+
+@pytest.fixture(scope="module")
+def mock_completed_process():
+    def mock0(*args, **kwargs):
+        return MockCompletedProcess(returncode=0, text="successful")
+
+    def mock1(*args, **kwargs):
+        return MockCompletedProcess(returncode=1, text="exists")
+
+    def mock2(*args, **kwargs):
+        return MockCompletedProcess(returncode=2, text="other_error")
+
+    return {
+        "0": mock0,
+        "1": mock1,
+        "2": mock2,
     }
 
 

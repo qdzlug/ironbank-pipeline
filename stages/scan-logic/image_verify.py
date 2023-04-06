@@ -70,7 +70,7 @@ def diff_needed(pull_auth: str) -> Optional[dict]:
         manifest = HardeningManifest(dsop_project.hardening_manifest_path)
 
         old_image = Image(
-            registry=os.environ["REGISTRY_URL_PROD"],
+            registry=os.environ["REGISTRY_PUBLISH_URL"],
             name=manifest.image_name,
             tag=manifest.image_tag,
             transport="docker://",

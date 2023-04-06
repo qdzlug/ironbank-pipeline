@@ -5,12 +5,15 @@ import pytest
 import pathlib
 import requests
 import subprocess
+import sys
 from unittest.mock import mock_open, patch
 from ironbank.pipeline.test.mocks.mock_classes import MockPath, MockPopen
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.testing import raise_
-from ironbank.pipeline.anchore import Anchore
+from pathlib import Path
 
+sys.path.append(Path(__file__).absolute().parents[1].as_posix())
+from ironbank_py39_modules.scanner_api_handlers.anchore import Anchore  # noqa: E402
 
 log = logger.setup("test_anchore")
 
@@ -284,12 +287,12 @@ def test_get_compliance(monkeypatch, mock_compliance_data_resp, anchore_object):
     assert f"&base_digest={parent_digest}" not in urls[-1]
 
 
-def test_image_add(monkeypatch, caplog, mock_responses, anchore_object):
+def test_image_add(monkeypatch, caplog, mock_completed_process, anchore_object):
     monkeypatch.setattr(pathlib.Path, "is_file", lambda _: True)
     mock_image = "image.dso.mil/imagename/tag"
     mock_digest = "sha256-12345678910"
     log.info("Test subprocess call returns 0 on successful image add")
-    monkeypatch.setattr(subprocess, "run", mock_responses["0"])
+    monkeypatch.setattr(subprocess, "run", mock_completed_process["0"])
     monkeypatch.setattr(
         json, "loads", lambda *args, **kwargs: [{"imageDigest": mock_digest}]
     )
@@ -297,7 +300,7 @@ def test_image_add(monkeypatch, caplog, mock_responses, anchore_object):
     assert anchore_object.image_add(mock_image) == mock_digest
 
     log.info("Test subprocess call returns 1 on image already exists in anchore")
-    monkeypatch.setattr(subprocess, "run", mock_responses["1"])
+    monkeypatch.setattr(subprocess, "run", mock_completed_process["1"])
     monkeypatch.setattr(
         json,
         "loads",
@@ -320,7 +323,7 @@ def test_image_add(monkeypatch, caplog, mock_responses, anchore_object):
 
     log.info("Test image add raises SystemExit on non 0/1 return code")
     with pytest.raises(SystemExit):
-        monkeypatch.setattr(subprocess, "run", mock_responses["2"])
+        monkeypatch.setattr(subprocess, "run", mock_completed_process["2"])
         monkeypatch.setattr(
             json,
             "loads",

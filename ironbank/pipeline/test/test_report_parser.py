@@ -8,17 +8,19 @@ from ironbank.pipeline.utils import logger
 from unittest.mock import mock_open
 from ironbank.pipeline.scan_report_parsers.report_parser import (
     ReportParser,
-    AbstractVuln,
+    AbstractFinding,
 )
 
 log = logger.setup("test_report_parser")
 
 
 @dataclass
-class MockAbstractVuln(AbstractVuln):
+class MockAbstractFinding(AbstractFinding):
     cve: str = None
     package: str = None
     package_path: str = None
+    identifier: str = None
+    severity: str = None
 
 
 @dataclass
@@ -35,12 +37,14 @@ class MockDictWriter:
 
 
 def test_get_justification():
-    tracked_vuln1 = MockAbstractVuln(
-        cve="001", package="testPkg", package_path="testPkgPth"
+    tracked_vuln1 = MockAbstractFinding(
+        identifier="001", package="testPkg", package_path="testPkgPth"
     )
-    tracked_vuln2 = MockAbstractVuln(cve="002", package="testPkg", package_path="pkgdb")
-    untracked_vuln = MockAbstractVuln(
-        cve="003", package="testPkg", package_path="testPkgPth"
+    tracked_vuln2 = MockAbstractFinding(
+        identifier="002", package="testPkg", package_path="pkgdb"
+    )
+    untracked_vuln = MockAbstractFinding(
+        identifier="003", package="testPkg", package_path="testPkgPth"
     )
     vuln1_id = ("001", "testPkg", "testPkgPth")
     vuln2_id = ("002", "testPkg", None)
@@ -50,16 +54,26 @@ def test_get_justification():
     }
 
     log.info("Test get justification success")
-    just = ReportParser.get_justification(tracked_vuln1, justifications)
+    just = AbstractFinding.get_justification(tracked_vuln1, justifications)
     assert just == "testJustification1"
 
     log.info("Test get justification success with package_path=pkgdb")
-    just = ReportParser.get_justification(tracked_vuln2, justifications)
+    just = AbstractFinding.get_justification(tracked_vuln2, justifications)
     assert just == "testJustification2"
 
     log.info("Test get justification return None")
-    just = ReportParser.get_justification(untracked_vuln, justifications)
-    assert just is None
+    just = AbstractFinding.get_justification(untracked_vuln, justifications)
+    assert just == ""
+
+
+def test_get_dict_from_fieldnames():
+    log.info("Test dict is returned with expected fieldnames")
+    finding = AbstractFinding(
+        identifier="testID", severity="testSev", scan_source="testSrc"
+    )
+    test_dict = finding.get_dict_from_fieldnames(["finding", "packagePath"])
+    assert test_dict["finding"] == "testID"
+    assert test_dict["packagePath"] == ""
 
 
 def test_write_csv_from_dict_list(monkeypatch):
@@ -89,3 +103,22 @@ def test_write_csv_from_dict_list(monkeypatch):
         filename="test.csv",
     )
     assert mock_dict_writer.rows == test_dict_list
+
+
+def test_dedupe_findings_by_attr():
+    log.info("Test no duplicates")
+    findings = [
+        AbstractFinding(identifier="1", severity="1"),
+        AbstractFinding(identifier="2", severity="2"),
+    ]
+    deduped_findings = ReportParser.dedupe_findings_by_attr(findings, "identifier")
+    assert len(deduped_findings) == 2
+
+    log.info("Test remove duplicates")
+    findings = [
+        AbstractFinding(identifier="1", severity="1"),
+        AbstractFinding(identifier="1", severity="2"),
+    ]
+    deduped_findings = ReportParser.dedupe_findings_by_attr(findings, "identifier")
+    assert len(deduped_findings) == 1
+    assert deduped_findings[0].identifier == "1"

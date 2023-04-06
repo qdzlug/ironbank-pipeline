@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
 from dataclasses import dataclass, field
+import inspect
 from pathlib import PosixPath
 import subprocess
 import tempfile
+from typing import Any, Callable
 import requests
+import random
 from requests import Session
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.image import Image, ImageFile
@@ -13,6 +16,15 @@ from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.types import Package
+from ironbank.pipeline.scan_report_parsers.report_parser import ReportParser
+from xml.etree.ElementTree import ElementTree, Element
+from ironbank.pipeline.scan_report_parsers.oscap import (
+    OscapComplianceFinding,
+    OscapOVALFinding,
+    OscapFinding,
+    RuleInfo,
+    RuleInfoOVAL,
+)
 
 
 class MockSet(set):
@@ -33,6 +45,7 @@ class MockOutput:
         ]
     )
     line_num: int = 0
+    write_data: Any = None
 
     def read(self):
         return "".join(self.mock_data)
@@ -49,6 +62,9 @@ class MockOutput:
     def readlines(self):
         return self.mock_data
 
+    def write(self, write_data: Any):
+        self.write_data = write_data
+
     def __repr__(self):
         return self.read()
 
@@ -64,12 +80,9 @@ class MockJson:
 
 @dataclass
 class MockResponse:
-    returncode: int = 1
     status_code: int = 500
     text: str = "example"
     content: str = "example"
-    stderr: str = "canned_error"
-    stdout: str = "It broke"
     headers: dict = field(default_factory=dict)
 
     def __enter__(self):
@@ -87,6 +100,15 @@ class MockResponse:
 
     def json(self):
         return {"status_code": self.status_code, "text": self.text}
+
+
+# Mock for subprocess.CompletedProcess, the return value for subprocess.run
+@dataclass
+class MockCompletedProcess:
+    returncode: int = 1
+    text: str = "example"
+    stderr: str = "canned_error"
+    stdout: str = "It broke"
 
 
 @dataclass
@@ -151,10 +173,11 @@ class MockOpen:
 class MockPath(PosixPath):
     # TODO: remove this log message from init and provide a better way to inspect path on mock/patch
 
-    def __new__(cls, path, *args):
+    def __new__(cls, path, *args, mock_data=None):
         self = object.__new__(cls)
         self.path = f"{path}{''.join((f'/{a}' for a in args))}"
         self.log = logger.setup(name="MockPath")
+        self.mock_data = mock_data
         return self
 
     def open(self, mode, encoding="utf-8"):
@@ -175,8 +198,11 @@ class MockPath(PosixPath):
     def is_symlink(self):
         return False
 
-    def write_text(self, data, encoding=None, errors=None, newline=None):
+    def write_text(self, mock_data, encoding=None, errors=None, newline=None):
         return ""
+
+    def read_text(self, encoding=None, *args, **kwargs):
+        return self.mock_data
 
     def __eq__(self, path) -> bool:
         return self.as_posix() == path.as_posix()
@@ -302,3 +328,174 @@ class MockSkopeo(Skopeo):
 
     def copy(*args, **kwargs):
         return ("stdout", "stderr")
+
+
+@dataclass
+class MockOscapComplianceFinding(OscapComplianceFinding):
+    @classmethod
+    def get_findings_from_rule_info(cls, rule_info):
+        return cls
+
+
+@dataclass
+class MockOscapOVALFinding(OscapOVALFinding):
+    @classmethod
+    def get_findings_from_rule_info(cls, rule_info):
+        return cls
+
+
+@dataclass
+class MockOscapFinding(OscapFinding):
+    identifier: str = "mock_identifier"
+    severity: str = "mock_severity"
+    identifiers: tuple = field(default_factory=lambda: ())
+
+    @classmethod
+    def get_findings_from_rule_info(cls, rule_info):
+        return [
+            MockOscapComplianceFinding(
+                identifier=rule_info.identifier, rule_id="rule1", severity=""
+            ),
+        ]
+
+
+@dataclass
+class MockElementTree:
+    def find(self, *args, **kwargs) -> None:
+        return (
+            MockElement(xml_path=args[0], text=f"{args[0]}_mock_element_text")
+            if args
+            else MockElement(
+                xml_path=kwargs["path"], text=f"{kwargs['path']}_mock_element_text"
+            )
+            if kwargs
+            else MockElement()
+        )
+
+    def findall(self, *args, **kwargs) -> None:
+        return [self.find(*args, **kwargs)]
+
+
+@dataclass
+class MockElement(MockElementTree):
+    text: str = "mock_element_text"
+    attrib: dict = field(
+        default_factory=lambda: {
+            "idref": "example_id",
+            "href": "mock_href",
+            "name": "mock_name",
+            "severity": "medium",
+            "time": "2:30",
+        }
+    )
+    # xml_path is provided to spy on the xml path used in find/findall
+    xml_path: str = ""
+    # fake_type is provided to easily switch between MockRuleInfo and MockRuleInfoOVAL type in the MockRuleInfo constructor
+    fake_type: str = "compliance"
+
+
+@dataclass
+class MockRuleInfo(RuleInfo):
+    rule_id: str = "12345"
+    title: str = "Mock Rule Title"
+    severity: str = "medium"
+
+    def __new__(
+        cls, root: MockElementTree, rule_result: MockElement, *args, **kwargs
+    ) -> Callable:  # pylint: disable=unused-argument
+        return object.__new__(
+            MockRuleInfoOVAL if (rule_result.fake_type == "OVAL") else MockRuleInfo
+        )
+
+    def __post_init__(self, root: ElementTree, rule_result: Element):
+        self.identifier = str(random.randint(0, 1000))
+
+    @classmethod
+    def get_result(cls, rule_result: MockElement) -> str:
+        return "mock_result"
+
+    @classmethod
+    def _format_reference(cls, ref: Element) -> str:
+        return "mock_formatted_reference"
+
+    @classmethod
+    def get_results(cls, root: MockElement, results_filter: list[str]):
+        return [
+            MockElement(text="abc"),
+            MockElement(text="def"),
+            MockElement(text="ghi"),
+        ]
+
+    def set_identifiers(self, rule_obj: MockElement) -> None:
+        self.identifiers = "mock_identifiers"
+
+    def set_result(self, rule_obj: MockElement) -> None:
+        self.result = "mock_result"
+
+    def set_references(self, rule_obj: MockElement) -> None:
+        self.references = "mock_references"
+
+    def set_rationale(self, rule_obj: MockElement) -> None:
+        self.rationale = "mock_rationale"
+
+    def set_description(self, *args, **kwargs) -> None:
+        self.description = "mock_description"
+
+
+@dataclass
+class MockRuleInfoOVAL(MockRuleInfo, RuleInfoOVAL):
+    findings: list[MockElement] = field(default_factory=lambda: [MockElement()])
+
+    def __post_init__(self, root: ElementTree, rule_result: Element):
+        pass
+
+    def set_oval_val_from_ref(self, val: str, rule_result: Element) -> None:
+        self._log.warn("%s set for %s", rule_result.attrib[val], val)
+
+    def set_oval_name(self, rule_obj: MockElement):
+        self.oval_name = "mock_oval_name"
+
+    def set_oval_href(self, rule_obj: MockElement):
+        self.oval_href = "mock_oval_href"
+
+    def set_values_from_oval_report(self, rule_obj: MockElement):
+        pass
+
+    def set_findings(self):
+        self.findings = ["mock_oval_findings"]
+
+    def set_definition(self, oval_root: ElementTree) -> None:
+        self.definition = MockElement("mock_definition")
+
+    def set_description(self, *args, **kwargs) -> None:
+        self.description = "mock_oval_description"
+
+    @classmethod
+    def get_oval_url(cls, finding_href: str) -> str:
+        return "https://mock_url.mock"
+
+    @classmethod
+    def download_oval_definitions(cls, url: str) -> list[dict]:
+        return MockPath("example", "path")
+
+
+@dataclass
+class MockReportParser(ReportParser):
+    @classmethod
+    def dedupe_findings_by_attr(
+        cls, findings: list[MockOscapFinding], attribute: str
+    ) -> list[MockOscapFinding]:
+        return findings
+
+
+@dataclass
+class TestUtils:
+    @staticmethod
+    def get_attrs_from_object(obj: object):
+        obj_attrs = inspect.getmembers(obj, lambda x: not inspect.isroutine(x))
+        # return attributes with magic methods and abc private attributes removed
+        return [
+            attr[0]
+            for attr in obj_attrs
+            if (not attr[0].endswith("__") and attr[0] != "_abc_impl")
+        ]

@@ -1,41 +1,51 @@
-[Installing Version 1.13.0](#Installation_ver_1_13)
-[Installing Version 1.2.0](#Installation_ver_1_2)
-[Pulling Cosign Artifacts](#Pulling-Cosign-Artifacts)
-[Signature](#Signature)
-[Attestations](#Attestations)
-[Verifying Attestations](#Verifying-Attestations)
-[Downloading and Parsing Attestations for v1.13.0](#Downloading-and-Parsing-Attestations)
-[Cosign Keys](#Cosign-Keys)
+# Iron Bank Cosign Usage
 
-# Installation_ver_1_13
-# Cosign Installation for ver 1.13
-# Windows - wsl
-  wget "https://github.com/sigstore/cosign/releases/download/v1.13.0/cosign-linux-amd64"
-  sudo mv cosign-linux-amd64 /usr/local/bin/cosign
-  sudo chmod +x /usr/local/bin/cosign
-  sudo chmod +x /usr/local/bin/cosign
+## Links
 
-# Homebrew/Linuxbrew
-  brew install cosign@v1.13.0
+- [Installing Version 1.13.0](#cosign-installation-for-ver-113)
+- [Installing Version 2.0](#cosign-installation-for-ver-20)
+- [Pulling Cosign Artifacts](#pulling-cosign-artifacts)
+- [Signature](#signature)
+- [Attestations](#attestations)
+- [Verifying Attestations](#verifying-attestations)
+- [Downloading and Parsing Attestations for v1.13.0 and v2.0](#downloading-and-parsing-attestations)
+- [Cosign Keys](#iron-bank-cosign-keys)
 
-# Installation_ver_1_2
-# Cosign Installation for ver 2 
-# Documentation: https://docs.sigstore.dev/cosign/installation/
-# Windows - wsl
-  go install github.com/sigstore/cosign/v2/cmd/cosign@v2.0.0
-  sudo cp -p ~/go/bin/cosign /usr/local/bin/
-  sudo chmod +x /usr/local/bin/cosign
+## Cosign Installation for ver 1.13
 
-# Homebrew/Linuxbrew
-  brew install cosign
+### Windows - wsl
 
-# Check Cosign Version
-  cosign version
-  [Cosign Verify Command For Version 1.13.0](#v1.13.0)
-  [Cosign Verify Command For Version 1.2.0](#v1.2.0)
+wget "https://github.com/sigstore/cosign/releases/download/v1.13.0/cosign-linux-amd64"
+sudo mv cosign-linux-amd64 /usr/local/bin/cosign
+sudo chmod +x /usr/local/bin/cosign
+sudo chmod +x /usr/local/bin/cosign
 
-# v1.13.0
-# Cosign version - v1.13.0
+### Homebrew/Linuxbrew
+
+brew install cosign@v1.13.0
+
+## Cosign Installation for ver 2.0
+
+[Installation documentation](https://docs.sigstore.dev/cosign/installation/)
+
+### Windows - wsl
+
+go install github.com/sigstore/cosign/v2/cmd/cosign@v2.0.0
+sudo cp -p ~/go/bin/cosign /usr/local/bin/
+sudo chmod +x /usr/local/bin/cosign
+
+### Homebrew/Linuxbrew
+
+brew install cosign
+
+## Check Cosign Version
+
+cosign version
+
+- [Cosign Verify Command For Version 1.13.0](#v1130)
+- [Cosign Verify Command For Version 2.0](#v20)
+
+### v1.13.0
 
 The Iron Bank pipeline now performs cosign signatures on all images pushed to the `ironbank` project within Registry1.
 
@@ -43,7 +53,7 @@ Please see the adjacent pem file, `cosign-certificate.pem` for the public cert u
 
 The CA bundle cert can be used to validate the `cosign-certificate.pem` file's authenticity.
 
-## Verifying a Signature
+#### Verifying a Signature
 
 To verify a signature, make sure you have [`cosign` installed](https://github.com/sigstore/cosign#installation).
 The path to the certificate file can be a URL or a file path.
@@ -59,15 +69,23 @@ cosign verify \
 registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.6
 ```
 
-# v1.2.0
-# Cosign version v1.2.0
+### v2.0
 
 ```bash
   cosign verify \
-  --key https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign.pem registry1.dso.mil/ironbank/suse/bci/bci-base:15.4 \
+  --key https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-publickey.pem registry1.dso.mil/ironbank/suse/bci/bci-base:15.4 \
   --insecure-ignore-tlog=true
 ```
-# A successful verify command will display the following
+
+```bash
+    cosign verify \
+    --certificate-identity 'ironbank@dsop.io' --certificate-oidc-issuer-regexp '.*' \
+    --certificate 'https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-certificate.pem' \
+    --certificate-chain 'https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw//master/scripts/cosign/cosign-ca-bundle.pem' \
+    --signature-digest-algorithm=sha256 --insecure-ignore-tlog --insecure-ignore-sct registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.7
+```
+
+#### A successful verify command will display the following
 
 ```log
 Verification for registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.5 --
@@ -78,7 +96,7 @@ The following checks were performed on each of these signatures:
 [{"critical":{"identity":{"docker-reference":"registry1.dso.mil/ironbank/redhat/ubi/ubi8"},"image":{"docker-manifest-digest":"sha256:ec1cac395b78158812d0e670e1843b90faf4e933925b7e1c41f1c2f3ff06ff56"},"type":"cosign container image signature"},"optional":{"Subject":"ironbank@dsop.io"}}
 ```
 
-## Pulling-Cosign-Artifacts
+## Pulling Cosign Artifacts
 
 Beyond creating image signatures, Cosign is used to generate additional artifacts in support of software supply chain security, such as image SBOMs and Attestations.
 
@@ -87,7 +105,7 @@ These artifacts, as well as their own signature artifacts, can be downloaded and
 If using `cosign download [command]`, the output will be sent to stdout.
 It is recommended to use either `--output-file` or pipe this output to another command.
 
-## Signature
+### Signature
 
 The easiest way to access a signature is to use `cosign download signature`
 
@@ -95,9 +113,9 @@ The easiest way to access a signature is to use `cosign download signature`
 cosign download signature <image uri>
 ```
 
-## Attestations
+### Attestations
 
-Attestation artifacts have tags ending in `.att`. Cosign [attestations](https://github.com/sigstore/cosign/blob/main/specs/ATTESTATION_SPEC.md) provide a means of associating arbitrary artifacts, such as SBOMs, to OCI images in registries. IronBank attaches SBOMs generated by [`syft`](https://github.com/anchore/syft) as attestations using the follwoing `predicateTypes`:
+Attestation artifacts have tags ending in `.att`. Cosign [attestations](https://github.com/sigstore/cosign/blob/main/specs/ATTESTATION_SPEC.md) provide a means of associating arbitrary artifacts, such as SBOMs, to OCI images in registries. IronBank attaches SBOMs generated by [`syft`](https://github.com/anchore/syft) as attestations using the following `predicateTypes`:
 
 - `cyclonedx`
 - `spdx`
@@ -105,7 +123,7 @@ Attestation artifacts have tags ending in `.att`. Cosign [attestations](https://
 
 The `payloads` (i.e. the actual attestation content) for these `predicateTypes` are the SBOMs for the image, formatted in accordance with the `predicateType`. You can read more about these `predicateTypes` [here](https://github.com/anchore/syft#output-formats).
 
-Additonally, IronBank creates two custom `predicates` and attaches these as attestations to all images in registry1. The `predicateType` for these attestations are:
+Additionally, IronBank creates two custom `predicates` and attaches these as attestations to all images in registry1. The `predicateType` for these attestations are:
 
 - `https://vat.dso.mil/api/p1/predicate/beta1`
 - `https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md`
@@ -114,13 +132,13 @@ These custom `predicates` have `payloads` that contain the VAT API response retu
 
 ### VAT Response Predicate
 
-The VAT response `predicate` contains the response receieved from the VAT API as part of the IronBank pipeline. The response is received when POSTing scan results, the `hardening_manifest.yaml`, and other compliance data to VAT.
+The VAT response `predicate` contains the response received from the VAT API as part of the IronBank pipeline. The response is received when POSTing scan results, the `hardening_manifest.yaml`, and other compliance data to VAT.
 
 This response and the `predicate` `payload` is forms acts as a signed, offline record attesting that the image has been run through the IronBank pipeline and submitted to VAT, and contains the VAT's compliance check results for wider distribution.
 
-### hardening_manifest.json Predicate
+#### hardening_manifest.json Predicate
 
-The `hardening_manifest.json` `predicate` contains a json-encoded copy of the `hardening_manifest.yaml`, along with the `LICENSE`, `README.md`, and `access_log`s as a `payload`. This `predicate` provides useful metadata about a given image that may not be relevent to VAT, and is therefore not contained in the VAT response predicate.
+The `hardening_manifest.json` `predicate` contains a json-encoded copy of the `hardening_manifest.yaml`, along with the `LICENSE`, `README.md`, and `access_log`s as a `payload`. This `predicate` provides useful metadata about a given image that may not be relevant to VAT, and is therefore not contained in the VAT response predicate.
 
 ### Verifying-Attestations
 
@@ -128,44 +146,12 @@ Attestations, like the images themselves, are signed by Cosign. These signatures
 
 ```bash
 cosign verify-attestation \
---type (slsaprovenance|link|spdx|spdxjson|cyclonedx|vuln|https://vat.dso.mil/api/p1/predicate/beta1|https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md)  
+--type (slsaprovenance|link|spdx|spdxjson|cyclonedx|vuln|https://vat.dso.mil/api/p1/predicate/beta1|https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md)
 --output-file cosign-attestation.json \
 --certificate-chain https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-ca-bundle.pem \
 --cert https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-certificate.pem \
 registry1.dso.mil/ironbank/docker/scratch:ironbank
 ```
-
-### Verifying Attestations with Cosign 2.0
-
-To verify the attestation of an existing image in registry1 using Cosign 2.0, you can use either a certificate or a public key.
-
-### Verify with a Certificate
-
-If you have a certificate, you can use the cosign verify command with the --certificate and --certificate-chain options. Here is an example command:
-
-'''bash
-cosign verify \
---certificate-identity 'ironbank@dsop.io' \
---certificate-oidc-issuer-regexp '.\*' \
---certificate 'ironbank-pipeline/scripts/cosign/cosign-certificate.pem' \
---certificate-chain 'ironbank-pipeline/scripts/cosign/cosign-ca-bundle.pem' \
---signature-digest-algorithm=sha256 \
---insecure-ignore-tlog \
---insecure-ignore-sct \
-<image_name>:<image_tag>
-
-In this command, replace <image_name> and <image_tag> with the name and tag of the image you want to verify. The options --certificate-identity, --certificate-oidc-issuer-regexp, and --signature-digest-algorithm are used to specify additional details about the certificate being used for verification.
-
-### Verify with a Public Key
-
-If you have a public key, you can use the cosign verify command with the --key option. Here is an example command:
-
-'''bash
-cosign verify --key cosign.pub registry1.dso.mil/ironbank/suse/bci/bci-base:15.4 --insecure-ignore-tlog
-
-In this command, replace cosign.pub with the path to your public key file, and replace registry1.dso.mil/ironbank/suse/bci/bci-base:15.4 with the name and tag of the image you want to verify. The --insecure-ignore-tlog option is used to ignore any transparency logs that may be present.
-
-It's important to note that certificates and public keys are not interchangeable, and you should use the appropriate option based on what you have available to you.
 
 Note: Because each attestation is individually added to the `.att` OCI artifact as DSSE envelopes, each envelope has its own signature. Therefore each attestation's signature must be validated individually.
 
@@ -204,7 +190,8 @@ done
 
 This script will cycle through the attestations, decode them, and stores them as separate files on disk named according to the predicateType.
 
-### Cosign-Keys
-[link](https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-ca-bundle.pem)
-[link](https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-certificate.pem)
-[link](https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign.pem)
+### Iron Bank Cosign Keys
+
+- [CA Bundle](https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-ca-bundle.pem)
+- [Certificate](https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-certificate.pem)
+- [Public Key](https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/raw/master/scripts/cosign/cosign-publickey.pem)

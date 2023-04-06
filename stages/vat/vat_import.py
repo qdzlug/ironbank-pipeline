@@ -8,15 +8,16 @@ import logging
 import argparse
 from pathlib import Path
 from itertools import groupby
+from typing import Any, Generator
 import requests
 from requests.structures import CaseInsensitiveDict
 
 from ironbank.pipeline.image import Image
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.container_tools.cosign import Cosign
+from ironbank.pipeline.scan_report_parsers.oscap import OscapReportParser
 from ironbank.pipeline.utils.predicates import Predicates
-from ironbank.pipeline.scan_report_parsers.anchore import AnchoreSecurityParser
-from ironbank.pipeline.get_oscap_failures import generate_oscap_jobs
+from ironbank.pipeline.scan_report_parsers.anchore import AnchoreReportParser
 from ironbank.pipeline.hardening_manifest import (
     HardeningManifest,
     source_values,
@@ -140,45 +141,47 @@ parser.add_argument(
 )
 
 
-def generate_anchore_cve_jobs(anchore_sec_path):
+def generate_anchore_cve_findings(
+    report_path: Path, vat_finding_fields: list[str]
+) -> list[dict[str, Any]]:
     """
-    Generate the anchore vulnerability report
+    From an anchore cve finding report, generate findings and use list of findings and their metadata to generate list of dictionaries
 
     sorted_fix and fix_version_re needed for sorting fix string
     in case of duplicate cves with different sorts for the list of fix versions
     """
 
-    with Path(anchore_sec_path).open(mode="r", encoding="utf-8") as f:
-        json_data = json.load(f)
-    vulns = AnchoreSecurityParser.get_vulnerabilities(json_data)
-    cves = []
-    fieldnames = [
-        "finding",
-        "severity",
-        "description",
-        "link",
-        "score",
-        "package",
-        "packagePath",
-        "scanSource",
-        "identifiers",
+    findings = AnchoreReportParser.get_findings(report_path=Path(report_path))
+
+    formatted_findings = []
+    for finding in findings:
+        finding.set_truncated_url()
+        finding.package_path = (
+            finding.package_path if finding.package_path != "pkgdb" else None
+        )
+        finding.severity = finding.severity.lower()
+        formatted_findings.append(
+            {**finding.get_dict_from_fieldnames(vat_finding_fields), "score": ""}
+        )
+
+    return formatted_findings
+
+
+def generate_oscap_findings(
+    report_path: Path, vat_finding_fields: list[str]
+) -> list[dict[str, Any]]:
+    """
+    From an oscap comp finding report, generate findings and use list of findings and their metadata to generate list of dictionaries
+    """
+    return [
+        finding.get_dict_from_fieldnames(vat_finding_fields)
+        for finding in OscapReportParser.get_findings(report_path=Path(report_path))
     ]
 
-    for vuln in vulns:
-        vuln.get_truncated_url()
-        vuln.package_path = vuln.package_path if vuln.package_path != "pkgdb" else None
-        vuln.severity = vuln.severity.lower()
-        cve = {k: v for k, v in vuln.dict().items() if k in fieldnames}
-        cve["score"] = ""
-        if cve not in cves:
-            cves.append(cve)
 
-    return cves
-
-
-def generate_anchore_comp_jobs(anchore_comp_path):
+def generate_anchore_comp_findings(anchore_comp_path: Path) -> list[dict[str, Any]]:
     """
-    Get results of Anchore gates for csv export, becomes anchore compliance spreadsheet
+    From an anchore comp finding report, generate findings and use list of findings and their metadata to generate list of dictionaries
     """
     ac_path = Path(anchore_comp_path)
     with ac_path.open(mode="r", encoding="utf-8") as f:
@@ -238,12 +241,12 @@ def generate_anchore_comp_jobs(anchore_comp_path):
     return acomps
 
 
-def get_package_paths(twistlock_data):
+def get_twistlock_package_paths(twistlock_data: dict[str, Any]) -> dict:
     """
     Return a dict of (package_name, package_path) mapped to a list of paths.
     """
 
-    def packages():
+    def packages() -> Generator[Any, None, None]:
         # Often go versions of binaries are in "applications"
         yield from twistlock_data.get("applications", [])
 
@@ -264,13 +267,18 @@ def get_package_paths(twistlock_data):
     return pkg_paths
 
 
-def get_vulnerabilities(twistlock_data):
+# Get results from Twistlock report for finding generation
+def generate_twistlock_findings(twistlock_cve_path: Path) -> list[dict[str, Any]]:
     """
-    Convert the the Twistlock API JSON response to the VAT import format.
+    From an twistlock cve finding report, generate findings and use list of findings and their metadata to generate list of dictionaries
     """
+    twistlock_data = json.loads(Path(twistlock_cve_path).read_text(encoding="utf-8"))[
+        "results"
+    ][0]
 
-    packages = get_package_paths(twistlock_data)
+    packages = get_twistlock_package_paths(twistlock_data)
 
+    findings = []
     try:
         for v in twistlock_data.get("vulnerabilities", []):
             key = v["packageName"], v["packageVersion"]
@@ -280,18 +288,20 @@ def get_vulnerabilities(twistlock_data):
                 else v.get("severity").lower()
             )
             for path in packages.get(key, [None]):
-                yield {
-                    "finding": v["id"],
-                    "severity": severity,
-                    "description": v.get("description"),
-                    "link": v.get("link"),
-                    "score": v.get("cvss"),
-                    "package": f"{v['packageName']}-{v['packageVersion']}",
-                    "packagePath": path,
-                    "scanSource": "twistlock_cve",
-                    "reportDate": v.get("publishedDate"),
-                    "identifiers": [v["id"]],
-                }
+                findings.append(
+                    {
+                        "finding": v["id"],
+                        "severity": severity,
+                        "description": v.get("description"),
+                        "link": v.get("link"),
+                        "score": v.get("cvss"),
+                        "package": f"{v['packageName']}-{v['packageVersion']}",
+                        "packagePath": path,
+                        "scanSource": "twistlock_cve",
+                        "reportDate": v.get("publishedDate"),
+                        "identifiers": [v["id"]],
+                    }
+                )
     except KeyError as e:
         logging.error(
             "Missing key. Please contact the Iron Bank Pipeline and Ops (POPs) team"
@@ -299,17 +309,10 @@ def get_vulnerabilities(twistlock_data):
         logging.error(e.args)
         sys.exit(1)
 
-
-# Get results from Twistlock report for finding generation
-def generate_twistlock_jobs(twistlock_cve_path):
-    tc_path = Path(twistlock_cve_path)
-    with tc_path.open(mode="r", encoding="utf-8") as f:
-        json_data = json.load(f)
-
-    return list(get_vulnerabilities(json_data["results"][0]))
+    return findings
 
 
-def create_api_call():
+def create_api_call() -> dict:
     artifact_storage = os.environ["ARTIFACT_STORAGE"]
     keyword_list = source_values(f"{artifact_storage}/lint/keywords.txt", "keywords")
     tag_list = source_values(f"{artifact_storage}/lint/tags.txt", "tags")
@@ -320,30 +323,47 @@ def create_api_call():
 
     renovate_enabled = Path("renovate.json").is_file()
 
-    os_jobs = []
-    tl_jobs = []
-    asec_jobs = []
-    acomp_jobs = []
+    os_findings = []
+    tl_findings = []
+    asec_findings = []
+    acomp_findings = []
+
+    vat_finding_fields = os.environ.get("VAT_FINDING_FIELDS") or [
+        "finding",
+        "severity",
+        "description",
+        "link",
+        "score",
+        "package",
+        "packagePath",
+        "scanSource",
+        "identifiers",
+    ]
+    assert isinstance(vat_finding_fields, list)
 
     # if the DISTROLESS variable exists, the oscap job was not run.
     # When not os.environ.get("DISTROLESS"), this means this is not a DISTROLESS project, and oscap findings should be imported
     if args.oscap and not os.environ.get("DISTROLESS"):
         logging.debug("Importing oscap findings")
-        os_jobs = generate_oscap_jobs(args.oscap)
-        logging.debug("oscap finding count: %s", len(os_jobs))
+        os_findings = generate_oscap_findings(
+            args.oscap, vat_finding_fields=vat_finding_fields
+        )
+        logging.debug("oscap finding count: %s", len(os_findings))
     if args.anchore_sec:
         logging.debug("Importing anchore security findings")
-        asec_jobs = generate_anchore_cve_jobs(args.anchore_sec)
-        logging.debug("Anchore security finding count: %s", len(asec_jobs))
+        asec_findings = generate_anchore_cve_findings(
+            args.anchore_sec, vat_finding_fields=vat_finding_fields
+        )
+        logging.debug("Anchore security finding count: %s", len(asec_findings))
     if args.anchore_gates:
         logging.debug("Importing importing anchore compliance findings")
-        acomp_jobs = generate_anchore_comp_jobs(args.anchore_gates)
-        logging.debug("Anchore compliance finding count: %s", len(acomp_jobs))
+        acomp_findings = generate_anchore_comp_findings(args.anchore_gates)
+        logging.debug("Anchore compliance finding count: %s", len(acomp_findings))
     if args.twistlock:
         logging.debug("Importing twistlock findings")
-        tl_jobs = generate_twistlock_jobs(args.twistlock)
-        logging.debug("Twistlock finding count: %s", len(tl_jobs))
-    all_jobs = tl_jobs + asec_jobs + acomp_jobs + os_jobs
+        tl_findings = generate_twistlock_findings(args.twistlock)
+        logging.debug("Twistlock finding count: %s", len(tl_findings))
+    all_findings = tl_findings + asec_findings + acomp_findings + os_findings
     large_data = {
         "imageName": args.container,
         "imageTag": args.version,
@@ -358,7 +378,7 @@ def create_api_call():
             "url": args.repo_link,
             "commit": args.commit_hash,
         },
-        "findings": all_jobs,
+        "findings": all_findings,
         "keywords": keyword_list,
         "tags": tag_list,
         "labels": label_dict,
@@ -368,7 +388,9 @@ def create_api_call():
     return large_data
 
 
-def get_parent_vat_response(output_dir: str, hardening_manifest: HardeningManifest):
+def get_parent_vat_response(
+    output_dir: str, hardening_manifest: HardeningManifest
+) -> None:
     base_image = Image(
         registry=os.environ["BASE_REGISTRY"],
         name=hardening_manifest.base_image_name,
@@ -393,24 +415,32 @@ def get_parent_vat_response(output_dir: str, hardening_manifest: HardeningManife
     shutil.move(predicate_path, parent_vat_path)
 
 
-def main():
+def main() -> None:
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
+
     if hardening_manifest.base_image_name:
         get_parent_vat_response(
             output_dir=os.environ["ARTIFACT_DIR"], hardening_manifest=hardening_manifest
         )
+        parent_vat_path = Path(f"{os.environ['ARTIFACT_DIR']}/parent_vat_response.json")
+        with parent_vat_path.open("r", encoding="UTF-8") as f:
+            parent_vat_response_content = {"vatAttestationLineage": json.load(f)}
+        logging.debug(parent_vat_response_content)
+    else:
+        parent_vat_response_content = {"vatAttestationLineage": None}
 
     vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
     if not args.use_json:
         large_data = create_api_call()
+        large_data.update(parent_vat_response_content)
         with vat_request_json.open("w", encoding="utf-8") as outfile:
             json.dump(large_data, outfile)
     else:
         with vat_request_json.open(encoding="utf-8") as infile:
             large_data = json.load(infile)
 
-    headers = CaseInsensitiveDict()
+    headers: CaseInsensitiveDict = CaseInsensitiveDict()
     headers["Content-Type"] = "application/json"
     headers["Authorization"] = f"Bearer {os.environ['CI_JOB_JWT_V2']}"
     try:
