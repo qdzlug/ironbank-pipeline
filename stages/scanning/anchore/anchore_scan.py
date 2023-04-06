@@ -25,9 +25,6 @@ def main() -> None:
 
     image = os.environ["IMAGE_TO_SCAN"]
 
-    # Set the SBOM file path
-    sbom_file_path = "./sbom-syft-json.json"
-
     digest = anchore_scan.image_add(image)
     anchore_scan.image_wait(digest=digest)
     anchore_scan.get_vulns(digest=digest, image=image, artifacts_path=artifacts_path)

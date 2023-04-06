@@ -221,9 +221,6 @@ class Anchore:
             "--noautosubscribe",
         ]
 
-        if sbom_path:
-            add_cmd += ["--from", sbom_path]
-
         if pathlib.Path("./Dockerfile").is_file():
             add_cmd += ["--dockerfile", "./Dockerfile"]
 
