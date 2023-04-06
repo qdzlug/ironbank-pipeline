@@ -1,5 +1,44 @@
 # Contributor guide
 
+1. [Summaries](#summaries)
+    1. [Style](#style)
+    1. [Testing](#testing)
+1. [Initial setup](#initial-setup)
+1. [Formatting and linting tools](#formatting-and-linting-tools)
+    1. [Black](#black)
+    1. [Pylint](#pylint)
+    1. [Mypy](#mypy)
+    1. [Pylama](#pylama)
+    1. [Configure pylint/mypy in vscode](#configure-pylint/mypy-in-vscode)
+    1. [Autoreloading in ipython (or jupyter notebooks)](#autoreloading-in-ipython-(or-jupyter-notebooks))
+1. [Style guide](#style-guide)
+    1. [Naming conventions](#naming-conventions)
+    1. [Type hinting](#type-hinting)
+    1. [File I/O](#file-i/o)
+        1. [Seperate dirs/files by comma](#seperate-dirs/files-by-comma)
+        1. [Use builtin methods for path traversal](#use-builtin-methods-for-path-traversal)
+        1. [Reading and writing from files](#reading-and-writing-from-files)
+    1. [Using `with`](#using-`with`)
+    1. [Use dataclasses](#use-dataclasses)
+    1. [Provide a logger for each file and class](#provide-a-logger-for-each-file-and-class)
+1. [Testing guide](#testing-guide)
+    1. [Unit testing](#unit-testing)
+        1. [Basic Example](#basic-example)
+        1. [Test order](#test-order)
+        1. [Test naming](#test-naming)
+        1. [Mock everything](#mock-everything)
+        1. [Use existing stuff](#use-existing-stuff)
+        1. [Create mock classes and fixtures](#create-mock-classes-and-fixtures)
+        1. [Use `monkeypatch` when mocking functionality for a single function/method or environment variable](#use-`monkeypatch`-when-mocking-functionality-for-a-single-function/method-or-environment-variable)
+        1. [Use `@patch` when mocking entire class](#use-`@patch`-when-mocking-entire-class)
+        1. [Lambdas can be used for simple mocks](#lambdas-can-be-used-for-simple-mocks)
+        1. [Magic Mocks](#magic-mocks)
+        1. [Testing gotchas](#testing-gotchas)
+            1. [Mock classes with multiple inheritance and super()](#mock-classes-with-multiple-inheritance-and-super())
+            1. [Assertions in pytest.raises blocks](#assertions-in-pytest.raises-blocks)
+            1. [Patching paths are affected when using `from <module> import <something>`](#patching-paths-are-affected-when-using-`from-<module>-import-<something>`)
+    1. [Integration Testing](#integration-testing)
+    1. [E2E Testing](#e2e-testing)
 ## Summaries
 
 This guide provides information regarding contributing to the pipeline, styles to follow and testing information. If you have any questions regarding the content of this document or the ironbank-pipeline, please direct them to @ariel.shnitzer.
@@ -845,3 +884,6 @@ monkeypatch.setattr(<module>, "super_simple_func", mock_super_simple_func)
 #TODO
 
 <!-- Add information about the kickoff_staging_pipeline dir -->
+### Generating the TOC for this guide
+
+Please run the `scripts/markdown_toc_generator.py` file and provide the path to this file when asked for input.
