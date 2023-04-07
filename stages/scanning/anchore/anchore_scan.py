@@ -10,7 +10,7 @@ from ironbank_py39_modules.scanner_api_handlers.anchore import Anchore  # noqa: 
 
 def main() -> None:
     # Get logging level, set manually when running pipeline
-
+    digest = os.environ["IMAGE_PODMAN_SHA"]
     anchore_scan = Anchore(
         url=os.environ["ANCHORE_URL"],
         username=os.environ["ANCHORE_USERNAME"],
@@ -25,9 +25,12 @@ def main() -> None:
 
     image = os.environ["IMAGE_TO_SCAN"]
 
-    digest = anchore_scan.image_add(image)
-    anchore_scan.image_wait(digest=digest)
-    anchore_scan.get_vulns(digest=digest, image=image, artifacts_path=artifacts_path)
+    anchore_scan.image_add(image)
+    anchore_scan.get_vulns(
+        digest=digest,
+        image=image,
+        artifacts_path=artifacts_path,
+    )
     anchore_scan.get_compliance(
         digest=digest, image=image, artifacts_path=artifacts_path
     )
