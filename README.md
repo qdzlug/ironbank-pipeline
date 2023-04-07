@@ -2,7 +2,7 @@
 
 ## Getting started
 
-If this is your first time contributing to this repo, please read our getting_started.md guide. This guide provides steps for setting up your local environment as well as information regarding best practices when contributing to this code base.
+If this is your first time contributing to this repo, please read our contributing.md guide. This guide provides steps for setting up your local environment as well as information regarding best practices when contributing to this code base.
 
 ## ironbank-pipeline directory structure
 
