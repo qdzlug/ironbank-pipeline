@@ -210,20 +210,11 @@ class Anchore:
         """
         add_cmd = [
             "anchorectl",
-            "--json",
-            "--u",
-            self.username,
-            "--p",
-            self.password,
-            "--url",
-            self.url,
             "image",
             "add",
-            "--noautosubscribe",
+            "--no-auto-subscribe",
+            "--wait",
         ]
-
-        if pathlib.Path("./Dockerfile").is_file():
-            add_cmd += ["--dockerfile", "./Dockerfile"]
 
         add_cmd.append(image)
 
@@ -233,29 +224,39 @@ class Anchore:
         add_cmd.append(image)
 
         try:
-            logging.info(f"{' '.join(add_cmd[0:3])} {' '.join(add_cmd[5:])}")
-            image_add = subprocess.run(
+            logging.info(
+                "%s %s",
+                " ".join(add_cmd[0:3]),
+                " ".join(add_cmd[5:]),
+            )
+            os.environ["PYTHONUNBUFFERED"] = "1"
+            image_add = subprocess.Popen(
                 add_cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 encoding="utf-8",
             )
+            while image_add.poll() is None:
+                line = image_add.stdout.readline().strip()
+                if line:
+                    logging.info(line)
+            os.environ["PYTHONUNBUFFERED"] = "0"
+
         except subprocess.SubprocessError:
-            logging.exception("Could not add image to Anchore")
+            logging.error("Failed while waiting for Anchore to scan image")
             sys.exit(1)
 
-        logging.debug(f"Return Code: {image_add.returncode}")
+        logging.debug("Return Code: %s", image_add.returncode)
 
         if image_add.returncode == 0:
-            logging.info(f"{image} added to Anchore")
+            logging.info("%s added to Anchore", image)
             logging.info(image_add.stdout)
 
-            return json.loads(image_add.stdout)[0]["imageDigest"]
         elif image_add.returncode == 1:
             logging.info(
-                f"{image} already exists in Anchore. Pulling current scan data."
+                "%s already exists in Anchore.",
             )
-            return json.loads(image_add.stdout)["detail"]["digest"]
+            logging.info(image_add.stdout)
         else:
             logging.error(image_add.stdout)
             logging.error(image_add.stderr)
