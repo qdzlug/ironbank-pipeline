@@ -36,26 +36,6 @@ class RpmPackage(ParsedURLPackage):
 
 
 @dataclass(slots=True, frozen=True)
-class AptPackage(ParsedURLPackage):
-    kind: str = field(init=False, default="deb")
-
-    @classmethod
-    def parse(cls, url) -> Optional[Package]:
-        if url.startswith("dists"):
-            return None
-
-        match = re.match(
-            r"(?:^|.+\/)(?P<name>[^/]+)_(?P<version>[^/]*)_[^/]+.deb",
-            url,
-        )
-
-        if not match:
-            raise ValueError(f"Could not parse apt URL: {url}")
-
-        return cls(name=match.group("name"), version=match.group("version"), url=url)
-
-
-@dataclass(slots=True, frozen=True)
 class ApkPackage(ParsedURLPackage):
     kind: str = field(init=False, default="apk")
 
@@ -71,6 +51,26 @@ class ApkPackage(ParsedURLPackage):
 
         if not match:
             raise ValueError(f"Could not parse apk URL: {url}")
+
+        return cls(name=match.group("name"), version=match.group("version"), url=url)
+
+
+@dataclass(slots=True, frozen=True)
+class DebianPackage(ParsedURLPackage):
+    kind: str = field(init=False, default="deb")
+
+    @classmethod
+    def parse(cls, url) -> Optional[Package]:
+        if url.startswith("dists"):
+            return None
+
+        match = re.match(
+            r"(?:^|.+/)(?P<name>[^/0-9]+[^0-9_-])(?:-|_)?(?P<version>\d+.*)(?:.deb)*.deb$",
+            url,
+        )
+
+        if not match:
+            raise ValueError(f"Could not parse deb URL: {url}")
 
         return cls(name=match.group("name"), version=match.group("version"), url=url)
 

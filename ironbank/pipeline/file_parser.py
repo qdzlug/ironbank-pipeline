@@ -11,11 +11,11 @@ from .utils.package_parser import (
     GoPackage,
     RpmPackage,
     ApkPackage,
-    AptPackage,
     PypiPackage,
     NpmPackage,
     RubyGemPackage,
     NullPackage,
+    DebianPackage,
 )
 
 log = logger.setup(name="package_parser")
@@ -67,10 +67,10 @@ class AccessLogFileParser(FileParser):
                     package = NpmPackage.parse((re_match.group("url")))
                 case "rubygem":
                     package = RubyGemPackage.parse((re_match.group("url")))
-                case "apt":
-                    package = AptPackage.parse((re_match.group("url")))
                 case "apk":
                     package = ApkPackage.parse((re_match.group("url")))
+                case "deb":
+                    package = DebianPackage.parse((re_match.group("url")))
                 case _:
                     raise RepoTypeNotSupported(
                         f"Repository type not supported: {repos[repo_type]}"
