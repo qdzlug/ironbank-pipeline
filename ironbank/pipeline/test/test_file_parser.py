@@ -14,7 +14,7 @@ from ironbank.pipeline.utils.package_parser import (
     PypiPackage,
     NpmPackage,
     RubyGemPackage,
-    AptPackage,
+    DebianPackage,
     ApkPackage,
 )
 from ironbank.pipeline.file_parser import (
@@ -40,7 +40,7 @@ def mock_packages(monkeypatch):
     monkeypatch.setattr(NpmPackage, "parse", lambda x: "NpmPackage")
     monkeypatch.setattr(RubyGemPackage, "parse", lambda x: "RubyGemPackage")
     monkeypatch.setattr(ApkPackage, "parse", lambda x: "ApkPackage")
-    monkeypatch.setattr(AptPackage, "parse", lambda x: "AptPackage")
+    monkeypatch.setattr(DebianPackage, "parse", lambda x: "DebianPackage")
 
 
 @patch("ironbank.pipeline.file_parser.Path", new=MockPath)
@@ -98,7 +98,7 @@ def test_access_log_file_parser(monkeypatch, mock_packages):
         "npm": "NpmPackage",
         "rubygem": "RubyGemPackage",
         "apk": "ApkPackage",
-        "apt": "AptPackage",
+        "deb": "DebianPackage",
     }
 
     log.info("Test successfully parsed package type and matched")
