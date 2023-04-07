@@ -262,54 +262,6 @@ class Anchore:
             logging.error(image_add.stderr)
             sys.exit(image_add.returncode)
 
-    def image_wait(self, digest):
-        """
-        Wait for Anchore to scan the image.
-
-        """
-        logging.info(f"Waiting for Anchore to scan {digest}")
-        wait_cmd = [
-            "anchorectl",
-            "--u",
-            self.username,
-            "--p",
-            self.password,
-            "--url",
-            self.url,
-            "image",
-            "wait",
-            "--interval",
-            "30",
-            "--timeout",
-            os.environ.get("ANCHORE_TIMEOUT", default="2400"),
-            digest,
-        ]
-        try:
-            os.environ["PYTHONUNBUFFERED"] = "1"
-            logging.info(f"{' '.join(wait_cmd[0:2])} {' '.join(wait_cmd[4:])}")
-            image_wait = subprocess.Popen(
-                wait_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                encoding="utf-8",
-            )
-
-            while image_wait.poll() is None:
-                line = image_wait.stdout.readline().strip()
-                if line:
-                    logging.info(line)
-            os.environ["PYTHONUNBUFFERED"] = "0"
-
-        except subprocess.SubprocessError:
-            logging.error("Failed while waiting for Anchore to scan image")
-            sys.exit(1)
-
-        # Check return code
-        if image_wait.returncode != 0:
-            logging.error(image_wait.stdout)
-            logging.error(image_wait.stderr)
-            sys.exit(image_wait.returncode)
-
     def generate_sbom(
         self, image, artifacts_path, output_format, file_type, filename=None
     ):
