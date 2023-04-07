@@ -4,7 +4,7 @@ anchore-scan:
     - load-scripts
     - build
     - scan-logic
-  image: "registry1.dso.mil/ironbank/anchore/enterprise/enterprise:4.4.1"
+  image: "registry1.dso.mil/ironbank/anchore/enterprise/enterprise:4.5.0"
   script:
     - python3 "${PIPELINE_REPO_DIR}/stages/scanning/anchore/anchore_scan.py"
   artifacts:
