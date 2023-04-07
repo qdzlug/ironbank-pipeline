@@ -5,8 +5,8 @@ import sys
 import json
 import pathlib
 import logging
-import requests
 import subprocess
+import requests
 
 
 # TODO: move this module to the `ironbank/pipelines` dir once anchore/enterprise moves to 3.10
@@ -33,7 +33,7 @@ class Anchore:
         payload - request payload for anchore api
 
         """
-        logging.info(f"Fetching {url}")
+        logging.info("Fetching %s", url)
         try:
             r = requests.get(
                 url,
@@ -90,11 +90,12 @@ class Anchore:
         url = f"{self.url}/version"
         version_json = self._get_anchore_api_json(url)
         logging.info(
-            f"Anchore Enterprise Version: {version_json['service']['version']}"
+            "Anchore Enterprise Version: %s",
+            version_json["service"]["version"],
         )
         filename = pathlib.Path(artifacts_path, "anchore-version.txt")
-        logging.debug(f"Writing to {filename}")
-        with filename.open(mode="w") as f:
+        logging.debug("Writing to %s", filename)
+        with filename.open(mode="w", encoding="utf-8") as f:
             json.dump(version_json["service"]["version"], f)
 
     def _get_extra_vuln_data(self, vulnerability):
@@ -148,8 +149,8 @@ class Anchore:
         vuln_dict["imageFullTag"] = image
 
         filename = pathlib.Path(artifacts_path, "anchore_api_security_full.json")
-        logging.debug(f"Writing to {filename}")
-        with filename.open(mode="w") as f:
+        logging.debug("Writing to %s", filename)
+        with filename.open(mode="w", encoding="utf-8") as f:
             json.dump(vuln_dict, f)
 
         # Add the extra vuln details
@@ -159,8 +160,8 @@ class Anchore:
 
         # Create json report called anchore_security.json
         filename = pathlib.Path(artifacts_path, "anchore_security.json")
-        logging.debug(f"Writing to {filename}")
-        with filename.open(mode="w") as f:
+        logging.debug("Writing to %s", filename)
+        with filename.open(mode="w", encoding="utf-8") as f:
             json.dump(vuln_dict, f)
 
     def get_compliance(self, digest, image, artifacts_path):
@@ -185,8 +186,8 @@ class Anchore:
 
         # Save the API response
         filename = pathlib.Path(artifacts_path, "anchore_api_gates_full.json")
-        logging.debug(f"Writing to {filename}")
-        with filename.open(mode="w") as f:
+        logging.debug("Writing to %s", filename)
+        with filename.open(mode="w", encoding="utf-8") as f:
             json.dump(body_json, f)
 
         results = body_json[0][digest][image][0]["detail"]["result"]["result"]
@@ -197,8 +198,8 @@ class Anchore:
         results_dict[imageid] = results[imageid]
 
         filename = pathlib.Path(artifacts_path, "anchore_gates.json")
-        logging.debug(f"Writing to {filename}")
-        with filename.open(mode="w") as f:
+        logging.debug("Writing to %s", filename)
+        with filename.open(mode="w", encoding="utf-8") as f:
             json.dump(results_dict, f)
 
     def image_add(self, image):
