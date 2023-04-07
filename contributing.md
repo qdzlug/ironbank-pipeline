@@ -208,6 +208,11 @@ example_path = Path("example.txt")
 
 Best practices when using `Path` objects
 
+
+#### Importing Path
+
+We typically don't enforce whether you should use a `import <module>` or `from <module> import <something>` but for `Path` you should import using `from pathlib import Path`. Since `Path`s are used all over this code base, we follow this rule to make the code more readable and consistent.
+
 #### Seperate dirs/files by comma
 
 ```python
@@ -509,6 +514,7 @@ We want to mock out functionality for anything being called in the thing we're t
 > Note: We don't want to mock these things directly, but we'll still want to mock callables in the thing we're testing even if they're are only doing these things
 
 - regexes
+- `os.environ`
 - string methods
   - i.e. `rstrip`, `split`
 - math
@@ -672,109 +678,27 @@ While the initial overhead of creating the mock class and fixture can be signifi
 
 If we didn't do any of the prep for mocking this, we would have to `monkeypatch` all methods called for every method we're testing. By mocking the class first, we're able to just inherit the mocked methods if they're being called by the method we're testing.
 
-#### Testing gotchas
-
-###### Mock classes with multiple inheritance and super()
-
-<!-- TODO: figure out a cleaner way of unmocking to prevent method resolution issues -->
-
-When unmocking methods in a mock class that call `super()`, we can get some unexpected results regarding method resolution. Please refer to `test_rule_info_oval_set_description` in `ironbank/pipeline/test/test_oscap.py` for an example of this behavior.
-
-###### Assertions in pytest.raises blocks
-
-When using `pytest.raises` to test cases where exceptions are called, be sure to keep your exceptions outside of the `with` block or else they will never actually be triggered
-
-```python
-# bad
-with pytest.raises(SystemExit) as se:
-    # this throws an exception which (since this was invoked using with) is caught it in an `__exit__` method that confirms the exception was raised
-    example_func_raises_exc("some text")
-    # this is skipped
-    assert se.value.code == 1
-
-# good
-with pytest.raise(SystemExit) as se:
-    # this throws an exception, same as above
-    example_func_raises_exc("some text")
-# se exists outside of the scope of the `with` block
-assert se.value.code == 1
-
-```
-
-##### Patching paths are affected when using `from <module> import <something>`
-
-When patching something that was imported in the module you're testing using `from <module> import <thing>`, the path to the patch changes.
-
-Below, there are two examples of how patching looks in each context
-
-**When using `import <module>`, it looks like:**
-
-**example_module.py**
-
-```python
-import base64
-import pathlib
-
-
-def example():
-    example_path = pathlib.Path('example_path')
-    decoded_text = base64.b64encode('example_text')
-```
-
-**test_example.py**
-
-```python
-
-@patch('pathlib.Path', new=MockPath)
-def test_example():
-    monkeypatch.setattr(base64, 'b64encode', lambda x: x)
-    example_module.example()
-
-```
-
-**When using `from <module> import <something>`**
-
-**example_module.py**
-
-```python
-from base64 import b64encode
-from pathlib import Path
-
-
-def example():
-    example_path = Path('example_path')
-    decoded_text = b64encode('example_text')
-```
-
-**test_example.py**
-
-```python
-
-@patch('example_module.Path', new=MockPath)
-def test_example():
-    monkeypatch.setattr(example_module, 'b64encode', lambda x: x)
-    example_module.example()
-
-```
 
 #### Use `monkeypatch` when mocking functionality for a single function/method or environment variable
 
-If you have a single function/method that you need to mock, you can use monkeypatch to mock its implementation. You can also use monkeypatch to mock values for environment variables
+If you have a single function/method that you need to mock, you can use monkeypatch to mock its implementation. You can also use monkeypatch to mock values for environment variables. If you'd like to mock a function with `MagicMock` to produce an object you can spy on, please refer to the [Magic Mocks](####-magic-mocks) section.
 
 For example:
-
-# TODO wrap this up
 
 **example.py**
 
 ```python
-def example():
-     = os.environ["EXAMPLE"]
+def get_key():
+    encoded_key = os.environ["ENCODED_KEY"]
+    return base64.b64decode(encoded_key)
 ```
 
 **test_example.py**
 
 ```python
+def test_get_key(monkeypatch):
+    monkeypatch.setenv("ENCODED_KEY", "abc123")
+    monkeypatch.setattr(base64, "b64encode", lambda x: x)
 
 ```
 
@@ -875,13 +799,133 @@ def mock_super_simple_func(a, b):
 monkeypatch.setattr(<module>, "super_simple_func", mock_super_simple_func)
 ```
 
+#### Magic Mocks
+
+<!-- TODO: come up with a strategy for more consistenly integrating MagicMock in our unit tests for spying during test execution -->
+
+While we don't consistently use `MagicMock`s within our code base, they can be very useful for spying on things occurring in a test. If you need to `assert` something happened within a test but don't have a great way to validate it from the logs or return values, you can patch a callable with a magic mock to see if certain actions took affect.
+
+For example:
+
+**example_module.py**
+
+```python
+from pathlib import Path
+import shutil
+def example():
+    ariel = Path("ariel.tar")
+    if ariel.exists():
+        shutil.move(ariel, Path("~/.Trash"))
+```
+
+**test_example.py**
+
+```python
+import example_module
+@patch("example_module.Path", new=MockPath)
+def test_example():
+    with patch("shutil.move", new=MagicMock()) as mock_shutil:
+        example_module.example()
+    mock_shutil.assert_called_once()
+```
+
+Note that you'll need to do a `with patch` instead of using the decorator to provide an object you can spy on. This is also the only case where we'll use a `with patch` instead of using a `monkeypatch` for mocking a single method or function since it will generate an object to use.
+
+#### Testing gotchas
+
+##### Mock classes with multiple inheritance and super()
+
+<!-- TODO: figure out a cleaner way of unmocking to prevent method resolution issues -->
+
+When unmocking methods in a mock class that call `super()`, we can get some unexpected results regarding method resolution. Please refer to `test_rule_info_oval_set_description` in `ironbank/pipeline/test/test_oscap.py` for an example of this behavior.
+
+##### Assertions in pytest.raises blocks
+
+When using `pytest.raises` to test cases where exceptions are called, be sure to keep your exceptions outside of the `with` block or else they will never actually be triggered
+
+```python
+# bad
+with pytest.raises(SystemExit) as se:
+    # this throws an exception which (since this was invoked using with) is caught it in an `__exit__` method that confirms the exception was raised
+    example_func_raises_exc("some text")
+    # this is skipped
+    assert se.value.code == 1
+
+# good
+with pytest.raise(SystemExit) as se:
+    # this throws an exception, same as above
+    example_func_raises_exc("some text")
+# se exists outside of the scope of the `with` block
+assert se.value.code == 1
+
+```
+
+##### Patching paths are affected when using `from <module> import <something>`
+
+When patching something that was imported in the module you're testing using `from <module> import <thing>`, the path to the patch changes.
+
+Below, there are two examples of how patching looks in each context
+
+**When using `import <module>`, it looks like:**
+
+**example_module.py**
+
+```python
+import base64
+import pathlib
+
+
+def example():
+    example_path = pathlib.Path('example_path')
+    decoded_text = base64.b64encode('example_text')
+```
+
+**test_example.py**
+
+```python
+
+@patch('pathlib.Path', new=MockPath)
+def test_example():
+    monkeypatch.setattr(base64, 'b64encode', lambda x: x)
+    example_module.example()
+
+```
+
+**When using `from <module> import <something>`**
+
+**example_module.py**
+
+```python
+from base64 import b64encode
+from pathlib import Path
+
+
+def example():
+    example_path = Path('example_path')
+    decoded_text = b64encode('example_text')
+```
+
+**test_example.py**
+
+```python
+
+@patch('example_module.Path', new=MockPath)
+def test_example():
+    monkeypatch.setattr(example_module, 'b64encode', lambda x: x)
+    example_module.example()
+
+```
+
 ### Integration Testing
 
 <!-- Add stuff here -->
+TODO: update this section after completing ticket #801
+
+Currently, this code base doesn't contain any integration tests. However, you can still test components of this code by running portions of the code in ipython, jupyter notebook, or creating a test file. Nearly all resources this pipeline produces and consumes can be mocked out either through artifacts from the pipeline jobs or from attestations in the registry.
 
 ### E2E Testing
 
-#TODO
+If you're making any refactoring or feature changes to this code base, you'll need to run a pipeline in staging as an end to end test. To do this, you'll need to be a member of the POPs team and need to get setup in our staging environment first. Once you're setup, you'll want to follow the `README.md` in the `kickoff_staging_pipeline` to get create the necessary config files to kick these pipelines off in staging in an automated fashion.
 
 <!-- Add information about the kickoff_staging_pipeline dir -->
 ### Generating the TOC for this guide
