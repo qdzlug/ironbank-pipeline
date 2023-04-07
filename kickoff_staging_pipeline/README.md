@@ -14,8 +14,9 @@ Once you have >python3.10 installed, you may install poetry:
 Download the right gecko package:
 https://github.com/mozilla/geckodriver/releases/
 
-`sudo cp ~/Downloads geckodriver /usr/local/bin`
-`which gecko`
+`sudo tar -xvzf geckodriver-<version>.tar.gz`
+`sudo cp ~/Downloads/geckodriver /usr/local/bin`
+`which geckodriver`
 
 ### Set up your own config and secrets files
 
