@@ -9,16 +9,17 @@
    1. [Pylint](#pylint)
    1. [Mypy](#mypy)
    1. [Pylama](#pylama)
-   1. [Configure pylint/mypy in vscode](#configure-pylint/mypy-in-vscode)
-   1. [Autoreloading in ipython (or jupyter notebooks)](<#autoreloading-in-ipython-(or-jupyter-notebooks)>)
+   1. [Configure pylint/mypy in vscode](#configure-pylintmypy-in-vscode)
+   1. [Autoreloading in ipython (or jupyter notebooks)](#autoreloading-in-ipython-or-jupyter-notebooks)
 1. [Style guide](#style-guide)
    1. [Naming conventions](#naming-conventions)
    1. [Type hinting](#type-hinting)
-   1. [File I/O](#file-i/o)
-      1. [Seperate dirs/files by comma](#seperate-dirs/files-by-comma)
+   1. [File I/O](#file-io)
+      1. [Importing Path](#importing-path)
+      1. [Separate dirs/files by comma](#separate-dirsfiles-by-comma)
       1. [Use builtin methods for path traversal](#use-builtin-methods-for-path-traversal)
       1. [Reading and writing from files](#reading-and-writing-from-files)
-   1. [Using `with`](#using-`with`)
+   1. [Using `with`](#using-with)
    1. [Use dataclasses](#use-dataclasses)
    1. [Provide a logger for each file and class](#provide-a-logger-for-each-file-and-class)
 1. [Testing guide](#testing-guide)
@@ -29,16 +30,17 @@
       1. [Mock everything](#mock-everything)
       1. [Use existing stuff](#use-existing-stuff)
       1. [Create mock classes and fixtures](#create-mock-classes-and-fixtures)
-      1. [Use `monkeypatch` when mocking functionality for a single function/method or environment variable](#use-`monkeypatch`-when-mocking-functionality-for-a-single-function/method-or-environment-variable)
-      1. [Use `@patch` when mocking entire class](#use-`@patch`-when-mocking-entire-class)
+      1. [Use `monkeypatch` when mocking functionality for a single function/method or environment variable](#use-monkeypatch-when-mocking-functionality-for-a-single-functionmethod-or-environment-variable)
+      1. [Use `@patch` when mocking entire class](#use-@patch-when-mocking-entire-class)
       1. [Lambdas can be used for simple mocks](#lambdas-can-be-used-for-simple-mocks)
       1. [Magic Mocks](#magic-mocks)
       1. [Testing gotchas](#testing-gotchas)
-         1. [Mock classes with multiple inheritance and super()](<#mock-classes-with-multiple-inheritance-and-super()>)
-         1. [Assertions in pytest.raises blocks](#assertions-in-pytest.raises-blocks)
-         1. [Patching paths are affected when using `from <module> import <something>`](#patching-paths-are-affected-when-using-`from-<module>-import-<something>`)
+         1. [Mock classes with multiple inheritance and super()](#mock-classes-with-multiple-inheritance-and-super)
+         1. [Assertions in pytest.raises blocks](#assertions-in-pytestraises-blocks)
+         1. [Patching paths are affected when using `from <module> import <something>`](#patching-paths-are-affected-when-using-from-module-import-something)
    1. [Integration Testing](#integration-testing)
    1. [E2E Testing](#e2e-testing)
+   1. [Generating the TOC for this guide](#generating-the-toc-for-this-guide)
 
 ## Summaries
 
@@ -213,7 +215,7 @@ Best practices when using `Path` objects
 
 We typically don't enforce whether you should use a `import <module>` or `from <module> import <something>` but for `Path` you should import using `from pathlib import Path`. Since `Path`s are used all over this code base, we follow this rule to make the code more readable and consistent.
 
-#### Seperate dirs/files by comma
+#### Separate dirs/files by comma
 
 ```python
 # bad
@@ -371,8 +373,6 @@ class Project:
   def get_metadata(self):
     return self.metadata
 ```
-
-### instance methods vs. class methods vs. static methods
 
 ### Provide a logger for each file and class
 
