@@ -33,9 +33,9 @@ def package_classes():
             ],
             "skip_url": "simple/packages/pip/22.3.1/pip-.whl",
         },
-        "AptPackage": {
+        "DebianPackage": {
             "name": "openssl",
-            "version": "1.1.1f-1ubuntu2.16",
+            "version": "1.1.1f-1ubuntu2.16_amd64",
             "good_url": "pool/main/o/openssl/openssl_1.1.1f-1ubuntu2.16_amd64.deb",
             "bad_urls": [
                 "pool/main/o/openssl/openssl%$_.deb",
