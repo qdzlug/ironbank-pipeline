@@ -1,4 +1,4 @@
-from requests import Session, HTTPError
+from requests import Session
 
 import math
 
@@ -34,12 +34,9 @@ class PaginatedRequest:
     @request_retry(5)
     def get(self):
         for page in range(0, self.total_pages):
-            try:
-                response = self.session.get(
-                    self.url,
-                    params={"page": page, "page_size": self.page_size, "q": self.query},
-                )
-                response.raise_for_status()
-            except HTTPError as re:
-                raise re
+            response = self.session.get(
+                self.url,
+                params={"page": page, "page_size": self.page_size, "q": self.query},
+            )
+            response.raise_for_status()
             yield response.json()

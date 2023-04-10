@@ -1,7 +1,18 @@
 #!/usr/bin/env python3
 
-from ironbank.pipeline.test.mocks.mock_classes import MockPaginatedRequest, MockSession
-from ironbank.pipeline.harbor import HarborProject, HarborRepository, HarborSystem
+from ironbank.pipeline.test.mocks.mock_classes import (
+    MockPaginatedRequest,
+    MockSession,
+    MockHarborRobot,
+    MockHarborRobotPermissions,
+)
+from ironbank.pipeline.harbor import (
+    HarborProject,
+    HarborRepository,
+    HarborSystem,
+    HarborRobot,
+    HarborRobotPermissions,
+)
 from ironbank.pipeline.utils import logger
 from unittest.mock import patch
 
@@ -63,6 +74,27 @@ def test_harbor_repository(monkeypatch):  # noqa W0404
     harbor_repository.get_repository_artifact(all=True)
     assert "test" == harbor_repository.artifacts[0].digest
     assert harbor_repository.artifacts[1].tags is None
+
+
+@patch("ironbank.pipeline.harbor.HarborRobot", MockHarborRobot)
+def test_harbor_robot_payload():  # noqa W0404
+    log.info("Test generation of robot account payload")
+    hr = HarborRobot(permissions=[MockHarborRobotPermissions().__dict__])
+    for permission in hr.permissions:
+        assert isinstance(permission, HarborRobotPermissions)
+    payload = hr.payload()
+    assert payload["name"] == HarborRobot.name
+
+
+@patch("ironbank.pipeline.harbor.HarborRobot", MockHarborRobot)
+def test_harbor_robot_create(monkeypatch, mock_responses):
+    log.info("Test generation of robot account creation success")
+    hr = HarborRobot(
+        permissions=[MockHarborRobotPermissions().__dict__], session=MockSession()
+    )
+    monkeypatch.setattr(MockSession, "post", mock_responses["200"])
+    resp = hr.create_robot()
+    assert resp["text"] == "successful_request"
 
 
 @patch("ironbank.pipeline.harbor.PaginatedRequest", new=MockPaginatedRequest)

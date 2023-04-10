@@ -77,7 +77,7 @@ pylama:
     - pip install --user pyflakes==2.4.0
     - pip install --user pylama
     - pylama
-## ignore line errors as blacks has been ran against code.
+## ignore line errors as black has been ran against code.
 
 prettier:
   needs: []

@@ -10,6 +10,11 @@ log: logger = logger.setup("Harbor")
 
 
 @dataclass
+class PayloadString(str):
+    pass
+
+
+@dataclass
 class Harbor(ABC):
     session: requests.Session = field(default_factory=lambda: Session())
     api_url: str = "https://registry1.dso.mil/api/v2.0"
@@ -104,10 +109,47 @@ class HarborRepository(Harbor):
 
 
 @dataclass
-class HarborRobot:
+class HarborRobot(Harbor):
     name: str = ""
+    email: str = ""
     description: str = ""
     expires_at: str = ""
+    duration: int = 365
+    disable: bool = False
+    level: str = ""
+    permissions: list["HarborRobotPermissions"] = field(default_factory=lambda: [])
+
+    def __post_init__(self):
+        self.permissions = [
+            HarborRobotPermissions(**permission) for permission in self.permissions
+        ]
+
+    def payload(self):
+        return {
+            "name": self.name,
+            "description": self.description,
+            "duration": self.duration,
+            "disable": self.disable,
+            "level": self.level,
+            "permissions": [permission.__dict__ for permission in self.permissions],
+        }
+
+    def create_robot(self):
+        robot_url = f"{self.api_url}/robots"
+        resp = self.session.post(
+            robot_url,
+            json=self.payload(),
+            headers={"Content-Type": "application/json"},
+        )
+        resp.raise_for_status()
+        return resp.json()
+
+
+@dataclass
+class HarborRobotPermissions:
+    access: list[dict] = field(default_factory=lambda: [{}])
+    kind: str = ""
+    namespace: str = ""
 
 
 @dataclass
