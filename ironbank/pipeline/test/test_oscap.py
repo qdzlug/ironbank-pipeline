@@ -349,7 +349,7 @@ def test_rule_info_oval_set_description(
         "tostring",
         lambda element, method: "mock_description".encode("utf-8"),
     )
-    # this will call super(), which will unmock all of RuleInfo :tada:
+    # this will call super(), which will point to RuleInfo's set_description
     mock_rule_info.set_description(mock_element)
     assert "mock_description" in mock_rule_info.description
 

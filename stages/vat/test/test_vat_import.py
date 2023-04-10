@@ -30,4 +30,4 @@ def test_get_parent_vat_response(monkeypatch):
     mock_hardening_manifest = MockHardeningManifest(".")
     with patch("vat_import.Cosign", new=MagicMock(spec=Cosign)) as mock_cosign:
         vat_import.get_parent_vat_response(".", mock_hardening_manifest)
-        mock_cosign.download.assert_called_once()
+    mock_cosign.download.assert_called_once()

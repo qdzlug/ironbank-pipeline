@@ -9,7 +9,6 @@ import sys
 from unittest.mock import mock_open, patch
 from ironbank.pipeline.test.mocks.mock_classes import MockPath, MockPopen
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.testing import raise_
 from pathlib import Path
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
@@ -287,7 +286,7 @@ def test_get_compliance(monkeypatch, mock_compliance_data_resp, anchore_object):
     assert f"&base_digest={parent_digest}" not in urls[-1]
 
 
-def test_image_add(monkeypatch, caplog, mock_completed_process, anchore_object):
+def test_image_add(monkeypatch, caplog, mock_completed_process, anchore_object, raise_):
     monkeypatch.setattr(pathlib.Path, "is_file", lambda _: True)
     mock_image = "image.dso.mil/imagename/tag"
     mock_digest = "sha256-12345678910"
@@ -334,7 +333,7 @@ def test_image_add(monkeypatch, caplog, mock_completed_process, anchore_object):
     caplog.clear()
 
 
-def test_image_wait(monkeypatch, caplog, anchore_object):
+def test_image_wait(monkeypatch, caplog, anchore_object, raise_):
     mock_digest = "sha256-12345678910"
 
     log.info("Test successful wait")
@@ -369,7 +368,7 @@ def test_image_wait(monkeypatch, caplog, anchore_object):
 
 
 @patch("pathlib.Path", new=MockPath)
-def test_generate_sbom(monkeypatch, caplog, anchore_object):
+def test_generate_sbom(monkeypatch, caplog, anchore_object, raise_):
     log.info("Test write sbom to default filename")
     monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: None)
 

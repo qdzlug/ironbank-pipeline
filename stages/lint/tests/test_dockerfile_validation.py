@@ -8,7 +8,6 @@ import asyncio
 import pathlib
 from unittest.mock import patch
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.file_parser import DockerfileParser
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 from ironbank.pipeline.test.mocks.mock_classes import (
@@ -44,7 +43,7 @@ def nonexistent_dockerfile_path():
 
 @patch("dockerfile_validation.DsopProject", new=MockProject)
 @patch("dockerfile_validation.HardeningManifest", new=MockHardeningManifest)
-def test_dockerfile_validation_main(monkeypatch, caplog):
+def test_dockerfile_validation_main(monkeypatch, caplog, raise_):
     # TODO: use pytest.parameterize to remove the duplicate code in this test
 
     monkeypatch.setattr(DockerfileParser, "parse", lambda x: False)

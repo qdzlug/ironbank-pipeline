@@ -87,6 +87,18 @@ def mock_completed_process():
     }
 
 
+@pytest.fixture
+def raise_():
+    """
+    Helper function allowing for a lambda to raise an exception
+    """
+
+    def raise_exception(e):
+        raise e
+
+    return raise_exception
+
+
 @pytest.fixture(scope="module")
 def mock_decorator():
     decorator_log = logger.setup("mock_decorator")

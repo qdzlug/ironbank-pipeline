@@ -7,7 +7,6 @@ import requests
 import subprocess
 from ironbank.pipeline.utils import s3upload
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
-from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.test.mocks.mock_classes import (
     MockProject,
     MockResponse,
@@ -37,7 +36,7 @@ def test_copy_path(monkeypatch):
     mock_src = MockPath("./src/")
     with patch("shutil.copytree", new=MagicMock()) as mock_shutil:
         upload_artifacts.copy_path(mock_src, mock_dest)
-        mock_shutil.assert_called_once_with(mock_src, mock_dest, dirs_exist_ok=True)
+    mock_shutil.assert_called_once_with(mock_src, mock_dest, dirs_exist_ok=True)
 
     log.info("Test copy file")
     monkeypatch.setattr(
@@ -47,7 +46,7 @@ def test_copy_path(monkeypatch):
     )
     with patch("shutil.copy2", new=MagicMock()) as mock_shutil:
         upload_artifacts.copy_path(mock_src, mock_dest)
-        mock_shutil.assert_called_once_with(mock_src, mock_dest)
+    mock_shutil.assert_called_once_with(mock_src, mock_dest)
 
 
 def test_post_artifact_data_vat(monkeypatch, mock_responses):
@@ -71,7 +70,7 @@ def test_post_artifact_data_vat(monkeypatch, mock_responses):
 @patch("upload_artifacts.Path", new=MockPath)
 @patch("upload_artifacts.DsopProject", new=MockProject)
 @patch("upload_artifacts.HardeningManifest", new=MockHardeningManifest)
-def test_main(monkeypatch, mock_responses, caplog):
+def test_main(monkeypatch, mock_responses, caplog, raise_):
     monkeypatch.setenv("REPORT_TAR_NAME", "mock_REPORT_TAR_NAME")
     monkeypatch.setenv("CI_PIPELINE_ID", "mock_CI_PIPELINE_ID")
     monkeypatch.setenv("DOCUMENTATION_DIRECTORY", "mock_DOCUMENTATION_DIRECTORY")

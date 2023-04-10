@@ -11,7 +11,6 @@ from typing import Any, Iterable
 from dataclasses import dataclass
 from unittest.mock import mock_open
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.scan_report_parsers.report_parser import ReportParser
 from ironbank.pipeline.scan_report_parsers.oscap import (
     OscapComplianceFinding,
@@ -114,7 +113,7 @@ class MockWriter:
             self.stored_rows.append(row)
 
 
-def test_main(monkeypatch, caplog) -> None:
+def test_main(monkeypatch, caplog, raise_) -> None:
     monkeypatch.setenv("ANCHORE_SCANS", "1")
     monkeypatch.setenv("TWISTLOCK_SCANS", "2")
     monkeypatch.setenv("OSCAP_SCANS", "3")
@@ -255,7 +254,7 @@ def test_generate_twistlock_cve_report(monkeypatch, caplog) -> None:
     assert cve_len == 0
 
 
-def test_generate_oscap_compliance_report(monkeypatch, caplog) -> None:
+def test_generate_oscap_compliance_report(monkeypatch, caplog, raise_) -> None:
     log.info("Test successful oscap compliance report generated")
     monkeypatch.setattr(Path, "open", mock_open())
     monkeypatch.setattr(

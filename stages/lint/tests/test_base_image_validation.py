@@ -12,7 +12,6 @@ from ironbank.pipeline.test.mocks.mock_classes import (
     MockJson,
 )
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
-from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.utils import logger
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -25,7 +24,7 @@ log = logger.setup("test_base_image_validation")
 @patch("base_image_validation.HardeningManifest", new=MockHardeningManifest)
 @patch("base_image_validation.Path", new=MockPath)
 @patch("base_image_validation.json", new=MockJson)
-def test_base_image_validation_main(monkeypatch, caplog):
+def test_base_image_validation_main(monkeypatch, caplog, raise_):
     log.info("Test staging base image validation")
     monkeypatch.setenv("STAGING_BASE_IMAGE", "base")
     monkeypatch.setenv(

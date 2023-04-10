@@ -4,7 +4,6 @@ import json
 import pytest
 import subprocess
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.testing import raise_
 from ironbank.pipeline.test.mocks.mock_classes import MockImage
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 from ironbank.pipeline.container_tools.skopeo import CopyException, Skopeo
@@ -28,7 +27,7 @@ def test_skopeo_init():
     assert skopeo.docker_config_dir is None
 
 
-def test_inspect(monkeypatch, caplog):
+def test_inspect(monkeypatch, caplog, raise_):
     mock_image = MockImage(registry="example.com", name="example/test", tag="1.0")
     skopeo = Skopeo()
 
@@ -62,7 +61,7 @@ def test_inspect(monkeypatch, caplog):
     caplog.clear()
 
 
-def test_copy(monkeypatch, caplog):
+def test_copy(monkeypatch, caplog, raise_):
     skopeo = Skopeo()
     mock_src = mock_image.from_image()
     mock_dest = MockImage(
