@@ -42,9 +42,16 @@ class SubprocessDecoratorChecker(BaseChecker):
     def visit_expr(self, node: nodes.Expr) -> None:
         """Checks expressions for subprocess run."""
         func_def = self._function_stack[-1] if self._function_stack else None
-        expr_desc = node.value.func.as_string() if getattr(node.value, "func", None) else None
-        if func_def and expr_desc and (expr_desc in ["subprocess.run", "subprocess.Popen"]) and (
-            not func_def.decorators
-            or "subprocess_error_handler" not in func_def.decorators.as_string()
+        expr_desc = (
+            node.value.func.as_string() if getattr(node.value, "func", None) else None
+        )
+        if (
+            func_def
+            and expr_desc
+            and (expr_desc in ["subprocess.run", "subprocess.Popen"])
+            and (
+                not func_def.decorators
+                or "subprocess_error_handler" not in func_def.decorators.as_string()
+            )
         ):
             self.add_message("subprocess-decorator-missing", node=func_def)

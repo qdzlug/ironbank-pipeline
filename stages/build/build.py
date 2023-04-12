@@ -89,6 +89,7 @@ def get_parent_label(
     # if no base image, return empty string instead of None
     return ""
 
+
 @subprocess_error_handler("Failed to start squid")
 def start_squid(squid_conf: Path):
     parse_cmd = ["squid", "-k", "parse", "-f", squid_conf]
