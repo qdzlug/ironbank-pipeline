@@ -143,3 +143,5 @@ unit-testing:
       coverage_report:
         coverage_format: cobertura
         path: coverage.xml
+    paths:
+      - ./coverage.xml
