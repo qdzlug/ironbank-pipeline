@@ -89,12 +89,12 @@ def get_parent_label(
     # if no base image, return empty string instead of None
     return ""
 
-
+@subprocess_error_handler("Failed to start squid")
 def start_squid(squid_conf: Path):
     parse_cmd = ["squid", "-k", "parse", "-f", squid_conf]
     start_cmd = ["squid", "-f", squid_conf]
     for cmd in [parse_cmd, start_cmd]:
-        subprocess.run(cmd)
+        subprocess.run(cmd, check=True)
     # build will fail while squid is starting without this
     time.sleep(5)
 
