@@ -1,5 +1,5 @@
-from astroid import nodes
 from typing import TYPE_CHECKING, Optional
+from astroid import nodes
 
 from pylint.checkers import BaseChecker
 
@@ -15,9 +15,11 @@ def register(linter: "PyLinter") -> None:
 
 
 class SubprocessDecoratorChecker(BaseChecker):
+    """Checker for finding functions that use subprocess and don't include the subprocess_error_handler decorator"""
+
     name = "subprocess-decorator"
     msgs = {
-        "W0001": (
+        "E1500": (
             "Missing subprocess decorator.",
             "subprocess-decorator-missing",
             "All functions directly using subprocess should use the subprocess decorator.",
@@ -27,24 +29,21 @@ class SubprocessDecoratorChecker(BaseChecker):
 
     def __init__(self, linter: Optional["PyLinter"] = None) -> None:
         super().__init__(linter)
-        self._function_stack = []
+        self._function_stack: list[nodes.FunctionDef] = []
 
     def visit_functiondef(self, node: nodes.FunctionDef) -> None:
-        def subprocess_used(function_body: list):
-            """Checks for subprocess calls in function body."""
-            for line in function_body:
-                if (
-                    "subprocess.run" in line.as_string()
-                    or "subprocess.POpen" in line.as_string()
-                ):
-                    return True
+        """Stores function def."""
+        self._function_stack.append(node)
 
-        self._function_stack.append([])
-        if subprocess_used(node.body) and (
-            not node.decorators
-            or "subprocess_error_handler" not in node.decorators.as_string()
-        ):
-            self.add_message("subprocess-decorator-missing", node=node)
-
-    def leave_functiondef(self, node: nodes.FunctionDef) -> None:
+    def leave_functiondef(self, _: nodes.FunctionDef) -> None:
+        """Remove function def."""
         self._function_stack.pop()
+
+    def visit_expr(self, node: nodes.Expr) -> None:
+        """Checks expressions for subprocess run."""
+        func_def = self._function_stack[-1]
+        if node.value.func.as_string() in ["subprocess.run", "subprocess.Popen"] and (
+            not func_def.decorators
+            or "subprocess_error_handler" not in func_def.decorators.as_string()
+        ):
+            self.add_message("subprocess-decorator-missing", node=func_def)
