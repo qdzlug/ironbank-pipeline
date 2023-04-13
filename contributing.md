@@ -13,6 +13,9 @@
    1. [Autoreloading in ipython (or jupyter notebooks)](#autoreloading-in-ipython-or-jupyter-notebooks)
 1. [Style guide](#style-guide)
    1. [Naming conventions](#naming-conventions)
+   1. [Subprocess usage](#subprocess-usage)
+      1. [Subprocess decorator](#subprocess-decorator)
+      1. [Subprocess flags](#subprocess-flags)
    1. [Type hinting](#type-hinting)
    1. [File I/O](#file-io)
       1. [Importing Path](#importing-path)
@@ -193,6 +196,46 @@ By default, we follow [PEP8](https://peps.python.org/pep-0008) as a style guide.
 - a path to a file is called `<some_name>_path`
 - a path to a directory is called `<some_name>_dir`
 - we aren't strict with `private` vs. `public` attributes, but if you are going to use them we typically only opt for a single leading underscore for private ones
+
+### Subprocess usage
+
+#### Subprocess decorator
+
+When using `subprocess,` please always decorate the function calling `subprocess` with `subprocess_error_handler`. This provides better control over the exception produced on subprocess errors. We have a custom pylint checker, **ironbank/pipeline/pylint_checkers/subprocess_checker.py**, that can catch if you missed this.
+
+For example:
+
+```python
+@subprocess_error_handler
+def example():
+    subprocess.run(["ls", "-al"])
+
+# or
+
+@subprocess_error_handler
+def example():
+    subprocess.Popen(["cd", ".."])
+
+```
+
+#### Subprocess flags
+
+When using subprocess, please ensure to handle the flags as follows
+
+- don't set `shell=True`
+- provide `cmd` as a list of strings
+- set `check=True` unless you have a specific reason not to
+
+For example
+
+```python
+
+# bad
+subprocess.run("ls -al", shell=True)
+
+# good
+subprocess.run(["ls", "-al"], check=True)
+```
 
 ### Type hinting
 
