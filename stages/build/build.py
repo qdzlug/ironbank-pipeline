@@ -42,6 +42,7 @@ def create_mounts(mount_conf_path: Path, pipeline_build_dir: Path):
         )
     mounts.append(pipeline_build_dir / "ruby" / ".ironbank-gemrc:.ironbank-gemrc")
     mounts.append(pipeline_build_dir / "ruby" / "bundler-conf:.bundle/config")
+    mounts.append(pipeline_build_dir / "php" / "config.json:config.json")
     with mount_conf_path.open("a+") as f:
         for mount in mounts:
             f.write(f"{mount}\n")
@@ -70,7 +71,7 @@ def load_resources(
                 skopeo.copy(
                     ImageFile(file_path=resource_file_obj, transport="docker-archive:"),
                     Image(url=image_url, transport="containers-storage:"),
-                    log_cmd=True
+                    log_cmd=True,
                 )
             else:
                 shutil.move(resource_file_obj, Path(resource_file))
@@ -85,7 +86,11 @@ def get_parent_label(
     base_registry: str,
 ):
     if hardening_manifest.base_image_name:
-        base_image = Image(registry=base_registry, name=hardening_manifest.base_image_name, tag=hardening_manifest.base_image_tag)
+        base_image = Image(
+            registry=base_registry,
+            name=hardening_manifest.base_image_name,
+            tag=hardening_manifest.base_image_tag,
+        )
         return f"{base_image}@{skopeo.inspect(base_image.from_image(transport='docker://'))['Digest']}"
     # if no base image, return empty string instead of None
     return ""
@@ -188,7 +193,7 @@ def main():
         ).isoformat(sep=" ", timespec="seconds"),
         "org.opencontainers.image.source": os.environ["CI_PROJECT_URL"],
         "org.opencontainers.image.revision": os.environ["CI_COMMIT_SHA"],
-        "mil.dso.ironbank.image.parent": parent_label
+        "mil.dso.ironbank.image.parent": parent_label,
     }
 
     log.info("Converting build args from hardening manifest into command line args")
@@ -217,7 +222,9 @@ def main():
     write_dockerfile_args(dockerfile_args=dockerfile_args)
 
     # args for buildah's ulimit settings
-    buildah_ulimit_args = json.loads(os.environ.get("BUILDAH_ULIMIT_ARGS", '{}')) or {'nproc': '2000:2000'}
+    buildah_ulimit_args = json.loads(os.environ.get("BUILDAH_ULIMIT_ARGS", "{}")) or {
+        "nproc": "2000:2000"
+    }
 
     log.info("Build the image")
     buildah.build(
