@@ -87,8 +87,10 @@ def create_trufflehog_config(
     return True if config_variable and project_config_path.is_file() else False
 
 
-@subprocess_error_handler("Failed to run trufflehog")
-def main() -> None:
+# reenable if/when we add requests to the trufflehog image
+# this is safe for now because we catch the exception directly
+# @subprocess_error_handler("Failed to run trufflehog")
+def main() -> None: # pylint: disable=subprocess-decorator-missing
     repo_dir = os.environ["CI_PROJECT_DIR"]
     pipeline_repo_dir = os.environ.get(
         "PIPELINE_REPO_DIR",
