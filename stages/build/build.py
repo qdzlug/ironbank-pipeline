@@ -51,6 +51,7 @@ def create_mounts(mount_conf_path: Path, pipeline_build_dir: Path):
 # resource_type set to file by default so image is explicitly set
 # resource_type is not used unless value = image, but it is set to file for clarity of purpose
 # TODO: consider passing a true "type" for resource_type (i.e. resource_type = Image or resource_type = Path)
+@subprocess_error_handler("Failed to load resources")
 def load_resources(
     resource_dir: str, resource_type: str = "file", skopeo: Skopeo = None
 ):
@@ -90,11 +91,12 @@ def get_parent_label(
     return ""
 
 
+@subprocess_error_handler("Failed to start squid")
 def start_squid(squid_conf: Path):
     parse_cmd = ["squid", "-k", "parse", "-f", squid_conf]
     start_cmd = ["squid", "-f", squid_conf]
     for cmd in [parse_cmd, start_cmd]:
-        subprocess.run(cmd)
+        subprocess.run(cmd, check=True)
     # build will fail while squid is starting without this
     time.sleep(5)
 

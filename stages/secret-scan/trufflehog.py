@@ -10,6 +10,7 @@ from pathlib import Path
 
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.decorators import subprocess_error_handler
 
 log = logger.setup(name="lint.trufflehog")
 
@@ -86,6 +87,7 @@ def create_trufflehog_config(
     return True if config_variable and project_config_path.is_file() else False
 
 
+@subprocess_error_handler("Failed to run trufflehog")
 def main() -> None:
     repo_dir = os.environ["CI_PROJECT_DIR"]
     pipeline_repo_dir = os.environ.get(
