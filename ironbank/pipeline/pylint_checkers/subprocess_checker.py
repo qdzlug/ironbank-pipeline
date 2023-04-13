@@ -39,8 +39,16 @@ class SubprocessDecoratorChecker(BaseChecker):
         """Remove function def."""
         self._function_stack.pop()
 
+    def visit_assign(self, node: nodes.Assign) -> None:
+        """Checks assignments for subprocess and decorator usage."""
+        self.check_sub_proc_errors(node=node)
+
     def visit_expr(self, node: nodes.Expr) -> None:
-        """Checks expressions for subprocess run."""
+        """Checks expressions for subprocess and decorator usage."""
+        self.check_sub_proc_errors(node=node)
+
+    def check_sub_proc_errors(self, node: nodes.Assign | nodes.Expr) -> None:
+        """Logic for finding if subprocess was used in the function and whether the decorator was added"""
         func_def = self._function_stack[-1] if self._function_stack else None
         expr_desc = (
             node.value.func.as_string() if getattr(node.value, "func", None) else None
