@@ -1,14 +1,14 @@
 {
-    "repositories": [
-        {
-            "type": "composer",
-            "url": "http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/php-packagist/"
-        },
-        {
-            "packagist.org": false
-        }
-    ],
-    "config": {
-        "secure-http": false
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/php-packagist/"
+    },
+    {
+      "packagist.org": false
     }
+  ],
+  "config": {
+    "secure-http": false
+  }
 }
