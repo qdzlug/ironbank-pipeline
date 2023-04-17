@@ -5,5 +5,5 @@
   "PIP_TRUSTED_HOST": "nexus-repository-manager.nexus-repository-manager.svc.cluster.local",
   "NPM_CONFIG_REGISTRY": "http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/npmproxy/",
   "GEMRC": ".ironbank-gemrc",
-  "COMPOSER_HOME": "."
+  "COMPOSER_HOME": "config.json"
 }
