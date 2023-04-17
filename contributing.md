@@ -1,6 +1,5 @@
 # Contributor guide
 
-1. [Contributor guide](#contributor-guide)
 1. [Summaries](#summaries)
    1. [Style](#style)
    1. [Testing](#testing)
