@@ -43,6 +43,10 @@
          1. [Patching paths are affected when using `from <module> import <something>`](#patching-paths-are-affected-when-using-from-module-import-something)
    1. [Integration Testing](#integration-testing)
    1. [E2E Testing](#e2e-testing)
+   1. [Merge Request (MR) Guide](#merge-request-mr-guide)
+      1. [Creating a MR](#creating-a-mr)
+      1. [General MR Review](#general-mr-review)
+      1. [Outside Contributor MR Review](#outside-contributor-mr-review)
    1. [Generating the TOC for this guide](#generating-the-toc-for-this-guide)
 
 ## Summaries
@@ -971,6 +975,44 @@ Currently, this code base doesn't contain any integration tests. However, you ca
 If you're making any refactoring or feature changes to this code base, you'll need to run a pipeline in staging as an end to end test. To do this, you'll need to be a member of the POPs team and need to get setup in our staging environment first. Once you're setup, you'll want to follow the `README.md` in the `kickoff_staging_pipeline` to get create the necessary config files to kick these pipelines off in staging in an automated fashion.
 
 <!-- Add information about the kickoff_staging_pipeline dir -->
+
+### Merge Request (MR) Guide
+
+#### Creating a MR
+
+1. Clone the pipelines repository to your local machine.
+1. Create a new branch with a name that tracks the ticket number you're working ex: `827-mr-contributing-guide`.
+1. Make your changes to the code, commit your changes with a descriptive commit message, and push the changes to the remote repository.
+1. Go to the project page and click on the "Merge Requests" tab.
+1. Click the "New Merge Request" button to create a new merge request.
+1. Select the source branch (the branch with your changes) and the target branch (the branch you want to merge into, usually "master").
+1. Fill out the title and description for your merge request, explaining what changes you made and why they are important.
+1. Add any relevant labels, assignees, or reviewers to your merge request.
+1. Submit the merge request.
+1. Monitor the merge request for any comments or suggestions from reviewers, and make any necessary changes.
+1. Once your merge request is approved, it can be merged into the target branch.
+
+#### General MR Review
+
+1. Navigate to the GitLab project where the merge request was made.
+1. Find the merge request tab and click on it.
+1. Find the merge request you want to review and click on it to open it.
+1. Read the description and the changes made in the merge request.
+1. Review the code changes carefully, looking for errors or potential issues. You may want to test the changes locally or on a separate branch to make sure they work as intended.
+1. Leave comments and suggestions for the code changes. You can do this directly in the merge request, either as a general comment or by clicking on specific lines of code and leaving inline comments.
+1. If necessary, ask the author of the merge request to make additional changes or provide more information.
+1. Once you are satisfied with the changes, approve the merge request.
+1. If the merge request requires a specific reviewer, assign the merge request to them for their review.
+1. Once all reviewers have approved the merge request, it can be merged.
+
+#### Outside Contributor MR Review
+
+1. If a Contributor License Agreement (CLA) is available and deemed necessary, make sure it has been signed.
+1. Check the quality of the contribution and provide constructive feedback to the contributor if needed.
+   - Keep in mind that external contributors may be less familiar with the project's guidelines and conventions.
+1. Be respectful and courteous in your interactions with the external contributor, and try to help them improve their contribution.
+1. Once you are satisfied with the contribution, approve the merge request, and consider adding the contributor to the project's list of contributors.
+1. If the external contributor has not signed a CLA, ask them to do so before merging the contribution.
 
 ### Generating the TOC for this guide
 
