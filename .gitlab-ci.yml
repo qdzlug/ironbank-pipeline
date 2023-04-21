@@ -1,8 +1,4 @@
-# You can override the included template(s) by including variable overrides
-# See https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
-# Note that environment variables can be set in several places
-# See https://docs.gitlab.com/ee/ci/variables/#priority-of-environment-variables
-image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.9.1"
+image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.9.8"
 
 stages:
   - secret-scanning
@@ -15,7 +11,7 @@ trufflehog:
   tags:
     - ironbank-tools
   stage: secret-scanning
-  image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.5
+  image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6
   variables:
     # This forces the trufflehog job to NOT perform a shallow clone
     GIT_DEPTH: 0
@@ -59,14 +55,14 @@ shellcheck:
       exit "$ret"
 
 black:
-  image: registry1.dso.mil/ironbank/opensource/python/python39:v3.9.13
+  image: registry1.dso.mil/ironbank/opensource/python:v3.11.3
   needs: []
   tags:
     - ironbank-tools
   stage: format
   script:
     - pip install --user black
-    - black --check --diff --color -t py311 .
+    - black --check --diff --color -t py311 -- **/*.py
 
 pylama:
   needs: []
@@ -84,7 +80,7 @@ prettier:
   tags:
     - ironbank-tools
   stage: format
-  image: "registry1.dso.mil/ironbank/opensource/nodejs/nodejs14:14.19.1"
+  image: "registry1.dso.mil/ironbank/opensource/nodejs/nodejs18:18.16.0-slim"
   script:
     - npx prettier -c .
 
@@ -118,7 +114,7 @@ shfmt:
   tags:
     - ironbank-tools
   stage: format
-  image: "registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.6"
+  image: "registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.7"
   script:
     - dnf install wget -y
     - wget https://github.com/mvdan/sh/releases/download/v3.1.2/shfmt_v3.1.2_linux_amd64
