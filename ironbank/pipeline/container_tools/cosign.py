@@ -207,18 +207,20 @@ class Cosign(ContainerTool):
         if log_cmd:
             cls.log.info(cmd)
 
-        # try:
-        subprocess.run(
-            args=cmd,
-            capture_output=True,
-            check=True,
-            encoding="utf-8",
-        )
-        # except subprocess.CalledProcessError as e:
-        #     if e.args[0] == 1:
-        #         cls.log.error("Failed to verify %s", str(image))
-        #         return False
-        #     else:
-        #         raise e
+        try:
+            subprocess.run(
+                args=cmd,
+                capture_output=True,
+                check=True,
+                encoding="utf-8",
+            )
+        except subprocess.CalledProcessError as e:
+            cls.log.error(e.returncode)
+            cls.log.error(e.output)
+            # if e.args[0] == 1:
+            #     cls.log.error("Failed to verify %s", str(image))
+            #     return False
+            # else:
+            #     raise e
         cls.log.info("%s Verified", str(image))
         return True
