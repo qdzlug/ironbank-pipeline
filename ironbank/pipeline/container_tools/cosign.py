@@ -177,7 +177,7 @@ class Cosign(ContainerTool):
             raise subprocess.CalledProcessError(proc.returncode, cmd)
 
     @classmethod
-    @subprocess_error_handler("Cosign.verify failed")
+    # @subprocess_error_handler("Cosign.verify failed")
     def verify(
         cls,
         image: Image,
@@ -207,18 +207,18 @@ class Cosign(ContainerTool):
         if log_cmd:
             cls.log.info(cmd)
 
-        try:
-            subprocess.run(
-                args=cmd,
-                capture_output=True,
-                check=True,
-                encoding="utf-8",
-            )
-        except subprocess.CalledProcessError as e:
-            if e.args[0] == 1:
-                cls.log.error("Failed to verify %s", str(image))
-                return False
-            else:
-                raise e
+        # try:
+        subprocess.run(
+            args=cmd,
+            capture_output=True,
+            check=True,
+            encoding="utf-8",
+        )
+        # except subprocess.CalledProcessError as e:
+        #     if e.args[0] == 1:
+        #         cls.log.error("Failed to verify %s", str(image))
+        #         return False
+        #     else:
+        #         raise e
         cls.log.info("%s Verified", str(image))
         return True
