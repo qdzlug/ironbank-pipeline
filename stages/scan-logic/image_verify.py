@@ -87,7 +87,7 @@ def diff_needed(pull_auth: str) -> Optional[dict]:
         if (
             old_img_json
             and verify_image_properties(old_img_json, manifest)
-            and Cosign.verify(old_image)
+            and Cosign.verify(image=old_image, log_cmd=True)
         ):
             return {
                 # Old image information to return
