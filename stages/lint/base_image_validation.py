@@ -53,7 +53,7 @@ async def main():
             )
             log.error(f"Failed 'skopeo inspect' of image: {base_image}")
             sys.exit(1)
-        Cosign.verify(image=base_image, log_cmd=True)
+        Cosign.verify(image=base_image.from_image(transport=""), log_cmd=True)
 
         base_image_info = {"BASE_SHA": base_img_inspect["Digest"]}
         log.info("Dump SHA to file")
