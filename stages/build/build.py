@@ -79,7 +79,7 @@ def load_resources(
                 skopeo.copy(
                     ImageFile(file_path=resource_file_obj, transport="docker-archive:"),
                     Image(url=image_url, transport="containers-storage:"),
-                    log_cmd=True
+                    log_cmd=True,
                 )
             else:
                 shutil.move(resource_file_obj, Path(resource_file))
@@ -98,7 +98,11 @@ def get_parent_label(
         returns an empty string if one is not defined
     """
     if hardening_manifest.base_image_name:
-        base_image = Image(registry=base_registry, name=hardening_manifest.base_image_name, tag=hardening_manifest.base_image_tag)
+        base_image = Image(
+            registry=base_registry,
+            name=hardening_manifest.base_image_name,
+            tag=hardening_manifest.base_image_tag,
+        )
         return f"{base_image}@{skopeo.inspect(base_image.from_image(transport='docker://'))['Digest']}"
     # if no base image, return empty string instead of None
     return ""
@@ -208,7 +212,7 @@ def main():
         ).isoformat(sep=" ", timespec="seconds"),
         "org.opencontainers.image.source": os.environ["CI_PROJECT_URL"],
         "org.opencontainers.image.revision": os.environ["CI_COMMIT_SHA"],
-        "mil.dso.ironbank.image.parent": parent_label
+        "mil.dso.ironbank.image.parent": parent_label,
     }
 
     log.info("Converting build args from hardening manifest into command line args")
@@ -236,7 +240,9 @@ def main():
     write_dockerfile_args(dockerfile_args=dockerfile_args)
 
     # args for buildah's ulimit settings
-    buildah_ulimit_args = json.loads(os.environ.get("BUILDAH_ULIMIT_ARGS", '{}')) or {'nproc': '2000:2000'}
+    buildah_ulimit_args = json.loads(os.environ.get("BUILDAH_ULIMIT_ARGS", "{}")) or {
+        "nproc": "2000:2000"
+    }
 
     log.info("Build the image")
     buildah.build(
@@ -284,8 +290,10 @@ def main():
     local_image_details = buildah.inspect(image=src, storage_driver="vfs", log_cmd=True)
 
     # get digest from skopeo copy digestfile
-    # TODO: consider replacing this with retrieving digest from dest on skopeo.inspect
-    with Path(build_artifact_dir, "digest").open("r") as f:
+    with Path(build_artifact_dir, "digest").open(
+        mode="r",
+        encoding="utf-8",
+    ) as f:
         digest = f.read()
 
     generate_build_env(
@@ -293,7 +301,6 @@ def main():
         image_name=hardening_manifest.image_name,
         image=src,
         digest=digest,
-        skopeo=skopeo,
     )
 
     log.info("Archive the proxy access log")
