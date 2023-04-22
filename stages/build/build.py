@@ -258,6 +258,7 @@ def main():
             **hardening_manifest.labels,
         },
         format_="oci",
+        pull="always",
         log_level="warn",
         default_mounts_file=mount_conf_path,
         storage_driver="vfs",
