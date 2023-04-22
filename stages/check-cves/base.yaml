@@ -2,7 +2,7 @@ check-cves:
   stage: check-cves
   allow_failure:
     exit_codes: 100
-  dependencies:
+  needs:
     - load-scripts
     - lint
     - twistlock-scan

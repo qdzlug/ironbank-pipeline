@@ -7,7 +7,7 @@ vat:
     - when: "on_success"
   stage: vat
   # Load in the IMAGE_VERSION variable from load-scripts env
-  dependencies:
+  needs:
     - load-scripts
     - build
     - lint

@@ -1,6 +1,6 @@
 scan-logic:
   stage: scan-logic
-  dependencies:
+  needs:
     - load-scripts
     - lint
     - build

@@ -3,4 +3,4 @@
   except:
     refs:
       - tags
-  dependencies: []
+  needs: []

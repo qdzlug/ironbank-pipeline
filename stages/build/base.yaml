@@ -3,7 +3,7 @@ build:
   stage: build
   tags:
     - ironbank-dsop-build
-  dependencies:
+  needs:
     - import-artifacts
     - load-scripts
     - lint

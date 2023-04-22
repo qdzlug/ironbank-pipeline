@@ -3,7 +3,7 @@ twistlock-scan:
   stage: scanning
 
   # Load in the IMAGE_VERSION variable from load-scripts env
-  dependencies:
+  needs:
     - load-scripts
     - build
     - scan-logic

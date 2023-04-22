@@ -1,6 +1,6 @@
 anchore-scan:
   stage: scanning
-  dependencies:
+  needs:
     - load-scripts
     - build
     - scan-logic

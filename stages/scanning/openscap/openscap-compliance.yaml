@@ -6,7 +6,7 @@ openscap-compliance:
   except:
     variables:
       - $DISTROLESS
-  dependencies:
+  needs:
     - load-scripts
     - build
     - scan-logic
