@@ -75,7 +75,7 @@ def load_resources(
                 )
                 manifest_json = json.loads(manifest.stdout)
                 image_url = manifest_json[0]["RepoTags"][0]
-                log.info(f"loading image {resource_file_obj}")
+                log.info("loading image %s", resource_file_obj)
                 skopeo.copy(
                     ImageFile(file_path=resource_file_obj, transport="docker-archive:"),
                     Image(url=image_url, transport="containers-storage:"),
@@ -133,7 +133,7 @@ def generate_build_env(
     ]
     for env_ in build_envs:
         log.info(env_.strip())
-    with Path("build.env").open("a+") as f:
+    with Path("build.env").open(mode="a+", encoding="utf-8",) as f:
         f.writelines(build_envs)
 
 
@@ -226,9 +226,8 @@ def main():
         mount_conf_path=mount_conf_path, pipeline_build_dir=pipeline_build_dir
     )
 
-    # sed -i '/^FROM /r'
     # TODO: use the NEXUS_HOST_URL env variable for the values pulled from this file
-    with Path(pipeline_build_dir, "build-args.json").open("r") as f:
+    with Path(pipeline_build_dir, "build-args.json").open(mode="r", encoding="utf-8",) as f:
         build_args = json.load(f)
         # create list of lists, with each sublist containing an arg
         # sublist needed for f.writelines() on arg substitution in Dockerfile
@@ -274,13 +273,12 @@ def main():
         log_cmd=True,
     )
 
-    # TODO: decide if we need to push tags on staging_base_image or development
     if (
         os.environ.get("STAGING_BASE_IMAGE")
         or os.environ["CI_COMMIT_BRANCH"] == "development"
     ):
-        for t in hardening_manifest.image_tags:
-            dest = dest.from_image(tag=t)
+        for tag in hardening_manifest.image_tags:
+            dest = dest.from_image(tag=tag)
             skopeo.copy(src, dest, dest_authfile=staging_auth_path, log_cmd=True)
 
     local_image_details = buildah.inspect(image=src, storage_driver="vfs", log_cmd=True)
