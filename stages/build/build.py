@@ -21,7 +21,13 @@ log = logger.setup("build")
 
 
 def write_dockerfile_args(dockerfile_args: list["str"]):
-    with Path("Dockerfile").open("r+") as f:
+    """
+    Overwrite Dockerfile args that are defined in the hardening manifest
+    """
+    with Path("Dockerfile").open(
+        mode="r+",
+        encoding="utf-8",
+    ) as f:
         dockerfile_content = []
         for line in f.readlines():
             dockerfile_content.append(line)
@@ -34,6 +40,9 @@ def write_dockerfile_args(dockerfile_args: list["str"]):
 
 
 def create_mounts(mount_conf_path: Path, pipeline_build_dir: Path):
+    """
+    Mount config files required for use of internal proxy
+    """
     mounts = []
     if os.environ.get("DISTRO_REPO_DIR"):
         mounts.append(
@@ -84,6 +93,10 @@ def get_parent_label(
     hardening_manifest: HardeningManifest,
     base_registry: str,
 ):
+    """
+    Retrieve parent image digest if base image is defined in hardening manifest
+        returns an empty string if one is not defined
+    """
     if hardening_manifest.base_image_name:
         base_image = Image(registry=base_registry, name=hardening_manifest.base_image_name, tag=hardening_manifest.base_image_tag)
         return f"{base_image}@{skopeo.inspect(base_image.from_image(transport='docker://'))['Digest']}"
@@ -93,6 +106,9 @@ def get_parent_label(
 
 @subprocess_error_handler("Failed to start squid")
 def start_squid(squid_conf: Path):
+    """
+    Start squid proxy to create access log file
+    """
     parse_cmd = ["squid", "-k", "parse", "-f", squid_conf]
     start_cmd = ["squid", "-f", squid_conf]
     for cmd in [parse_cmd, start_cmd]:
@@ -102,8 +118,11 @@ def start_squid(squid_conf: Path):
 
 
 def generate_build_env(
-    image_details: dict, image_name: str, image: Image, digest: str, skopeo: Skopeo
+    image_details: dict, image_name: str, image: Image, digest: str
 ):
+    """
+    Creates env file to be used later in pipeline
+    """
     build_envs = [
         f"IMAGE_ID=sha256:{image_details['FromImageID']}\n",
         f"IMAGE_PODMAN_SHA={digest}\n",
@@ -121,8 +140,9 @@ def generate_build_env(
 # decorate main to capture all subprocess errors
 @subprocess_error_handler(logging_message="Unexpected subprocess error caught")
 def main():
-
-    # define vars
+    """
+    main method
+    """
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     staging_image = Image(
