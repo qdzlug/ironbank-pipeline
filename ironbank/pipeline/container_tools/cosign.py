@@ -177,13 +177,13 @@ class Cosign(ContainerTool):
             raise subprocess.CalledProcessError(proc.returncode, cmd)
 
     @classmethod
-    # @subprocess_error_handler("Cosign.verify failed")
+    @subprocess_error_handler("Cosign.verify failed")
     def verify(
         cls,
         image: Image,
         pubkey: Path = None,
-        certificate: Path = Path("scripts/cosign/cosign-certificate.pem"),
-        certificate_chain: Path = Path("scripts/cosign/cosign-ca-bundle.pem"),
+        certificate: Path = Path(os.environ.get('PIPELINE_REPO_DIR', '.'), "scripts", "cosign", "cosign-certificate.pem"),
+        certificate_chain: Path = Path(os.environ.get('PIPELINE_REPO_DIR', '.'), "scripts", "cosign", "cosign-ca-bundle.pem"),
         signature_digest_algorithm="sha256",
         log_cmd: bool = False,
     ):
@@ -215,12 +215,10 @@ class Cosign(ContainerTool):
                 encoding="utf-8",
             )
         except subprocess.CalledProcessError as e:
-            cls.log.error(e.returncode)
-            cls.log.error(e.output)
-            # if e.args[0] == 1:
-            #     cls.log.error("Failed to verify %s", str(image))
-            #     return False
-            # else:
-            #     raise e
+            if e.args[0] == 1:
+                cls.log.error("Failed to verify %s", str(image))
+                return False
+            else:
+                raise e
         cls.log.info("%s Verified", str(image))
         return True
