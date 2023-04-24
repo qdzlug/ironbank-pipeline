@@ -4,9 +4,9 @@ build:
   tags:
     - ironbank-dsop-build
   needs:
-    - import-artifacts
     - load-scripts
     - lint
+    - import-artifacts
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
   script:
