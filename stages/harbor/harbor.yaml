@@ -10,7 +10,9 @@ harbor:
     - create-sbom
     - scan-logic
     - vat
-    - job: documentation
+    - job: ib-manifest
+      artifacts: false
+    - job: write-json-docs
       artifacts: false
   variables:
     SBOM_DIR: ${ARTIFACT_STORAGE}/sbom
