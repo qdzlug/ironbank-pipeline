@@ -74,7 +74,7 @@ class Buildah(ContainerTool):
         cmd += self._generate_arg_list_from_env("--label", labels)
         cmd += ["--authfile", self.authfile] if self.authfile else []
         cmd += ["--format", format_] if format_ else []
-        cmd += ["--pull", pull] if pull else []
+        cmd += [f"--pull={pull}"] if pull else []
         cmd += ["--log-level", log_level] if log_level else []
         cmd += (
             ["--default-mounts-file", default_mounts_file]
