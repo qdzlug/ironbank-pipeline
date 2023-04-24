@@ -181,9 +181,20 @@ class Cosign(ContainerTool):
     def verify(
         cls,
         image: Image,
+        docker_config_dir: str,
         pubkey: Path = None,
-        certificate: Path = Path(os.environ.get('PIPELINE_REPO_DIR', '.'), "scripts", "cosign", "cosign-certificate.pem"),
-        certificate_chain: Path = Path(os.environ.get('PIPELINE_REPO_DIR', '.'), "scripts", "cosign", "cosign-ca-bundle.pem"),
+        certificate: Path = Path(
+            os.environ.get("PIPELINE_REPO_DIR", "."),
+            "scripts",
+            "cosign",
+            "cosign-certificate.pem",
+        ),
+        certificate_chain: Path = Path(
+            os.environ.get("PIPELINE_REPO_DIR", "."),
+            "scripts",
+            "cosign",
+            "cosign-ca-bundle.pem",
+        ),
         signature_digest_algorithm="sha256",
         log_cmd: bool = False,
     ):
@@ -213,6 +224,10 @@ class Cosign(ContainerTool):
                 capture_output=True,
                 check=True,
                 encoding="utf-8",
+                env={
+                    "PATH": os.environ["PATH"],
+                    "DOCKER_CONFIG": docker_config_dir,
+                },
             )
         except subprocess.CalledProcessError as e:
             if e.args[0] == 1:
