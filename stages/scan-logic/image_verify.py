@@ -1,8 +1,6 @@
 import os
-import shutil
 import sys
 import json
-import tempfile
 from pathlib import Path
 from typing import Optional
 from ironbank.pipeline.image import Image
