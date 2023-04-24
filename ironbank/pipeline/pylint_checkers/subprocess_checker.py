@@ -48,7 +48,6 @@ class SubprocessChecker(BaseChecker):
     }
     options = ()
 
-
     def __init__(self, linter: Optional["PyLinter"] = None) -> None:
         super().__init__(linter)
         self.expr_desc: str = ""
@@ -76,7 +75,9 @@ class SubprocessChecker(BaseChecker):
         self.check_subproc_dec_issues()
         self.check_subproc_popen_not_using_with(node=node)
         self.check_subproc_using_string_arg(node=node)
-        if self.expr_desc in ["subprocess.run"] and getattr(node.value, "keywords", None):
+        if self.expr_desc in ["subprocess.run"] and getattr(
+            node.value, "keywords", None
+        ):
             for kwarg in node.value.keywords:
                 if "shell=True" == kwarg.as_string():
                     self.add_message("using-subprocess-with-shell", node=node)
@@ -108,8 +109,14 @@ class SubprocessChecker(BaseChecker):
                         # get assignment statement from lookup
                         asgn_stmt = next(asgns[0].assigned_stmts())
                         # get inferred value from assignment statements if assignment statement isn't already a List
-                        inferred_value = next(asgn_stmt.infer()) if not isinstance(asgn_stmt, nodes.List) else asgn_stmt
-                        if inferred_value is not Uninferable and not isinstance(inferred_value, nodes.List):
+                        inferred_value = (
+                            next(asgn_stmt.infer())
+                            if not isinstance(asgn_stmt, nodes.List)
+                            else asgn_stmt
+                        )
+                        if inferred_value is not Uninferable and not isinstance(
+                            inferred_value, nodes.List
+                        ):
                             self.add_message("use-list-for-subprocess-args", node=node)
                     except AttributeError:
                         self.add_message("kenn-goofed-on-arg-checks", node=node)
@@ -121,7 +128,9 @@ class SubprocessChecker(BaseChecker):
     def check_subproc_popen_not_using_with(self, node: nodes.ALL_NODE_CLASSES) -> None:
         # print(self.expr_desc)
         if self.expr_desc == "subprocess.Popen":
-            if not getattr(node, "parent", None) or not isinstance(node.parent, nodes.With):
+            if not getattr(node, "parent", None) or not isinstance(
+                node.parent, nodes.With
+            ):
                 self.add_message("using-popen-without-with", node=node)
 
     def check_subproc_dec_issues(self) -> None:

@@ -7,7 +7,7 @@ assert md_file.exists(), f"{md_file} does not exist"
 
 md_file_lines: list[str] = md_file.read_text(encoding="utf-8").split("\n")
 
-header_regex: re.Pattern = re.compile(r"^(#+)\s([A-Z].*)")
+header_regex: re.Pattern = re.compile(r"^(#{2,})\s([A-Z].*)")
 
 print("\n\n\n")
 
