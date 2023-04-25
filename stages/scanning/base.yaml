@@ -7,6 +7,9 @@
   retry:
     max: 2
     when: always
+  artifacts:
+    when: always
+    expire_in: 1 week
 
 anchore-scan:
   extends: .scanning
@@ -14,10 +17,8 @@ anchore-scan:
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/scanning/anchore/anchore_scan.py"'
   artifacts:
-    when: always
     paths:
       - "${ANCHORE_SCANS}/"
-    expire_in: 1 week
 
 openscap-compliance:
   extends: .scanning
@@ -27,12 +28,10 @@ openscap-compliance:
   script:
     - '"${PIPELINE_REPO_DIR}/stages/scanning/openscap/oscap-compliance-run.sh"'
   artifacts:
-    when: always
     paths:
       - "${OSCAP_SCANS}"
     reports:
       dotenv: oscap-compliance.env
-    expire_in: 1 week
 
 twistlock-scan:
   extends: .scanning
@@ -49,7 +48,5 @@ twistlock-scan:
     - 'ls "${CVE_FILE}"'
     - 'chmod 0644 "${CVE_FILE}"'
   artifacts:
-    when: always
     paths:
       - "${TWISTLOCK_SCANS}/"
-    expire_in: 1 week
