@@ -99,10 +99,6 @@ if __name__ == "__main__":
     else:
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
-    skip_oscap = os.environ.get("DISTROLESS")
-    if skip_oscap:
-        logging.info("Variable found. Skipping Open SCAP scan")
-        sys.exit(0)
     parser = argparse.ArgumentParser(
         description="Retrieve OSCAP security guide for image"
     )
