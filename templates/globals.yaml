@@ -24,10 +24,7 @@ include:
   - local: stages/build/base.yaml
   - local: stages/post-build/base.yaml
   - local: stages/scan-logic/base.yaml
-  # scanning stage jobs
-  - local: stages/scanning/anchore/anchore.yaml
-  - local: stages/scanning/openscap/openscap-compliance.yaml
-  - local: stages/scanning/twistlock/twistlock.yaml
+  - local: stages/scanning/base.yaml
   - local: stages/vat/base.yaml
   - local: stages/post-vat/base.yaml
   - local: stages/csv-output/base.yaml
