@@ -33,4 +33,4 @@ include:
   - local: stages/s3/upload-to-s3.yaml
 
 variables:
-  DISTROLESS: "1"
+  SKIP_OPENSCAP: "1"

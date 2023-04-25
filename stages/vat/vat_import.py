@@ -341,9 +341,9 @@ def create_api_call() -> dict:
     ]
     assert isinstance(vat_finding_fields, list)
 
-    # if the DISTROLESS variable exists, the oscap job was not run.
-    # When not os.environ.get("DISTROLESS"), this means this is not a DISTROLESS project, and oscap findings should be imported
-    if args.oscap and not os.environ.get("DISTROLESS"):
+    # if the SKIP_OPENSCAP variable exists, the oscap job was not run.
+    # When not os.environ.get("SKIP_OPENSCAP"), this means this is not a SKIP_OPENSCAP project, and oscap findings should be imported
+    if args.oscap and not os.environ.get("SKIP_OPENSCAP"):
         logging.debug("Importing oscap findings")
         os_findings = generate_oscap_findings(
             args.oscap, vat_finding_fields=vat_finding_fields

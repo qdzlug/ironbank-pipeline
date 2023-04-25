@@ -71,7 +71,7 @@ def _colorize_full(wb):
     _colorize_sheet(wb["Anchore Compliance Results"])
     _colorize_sheet(wb["Twistlock Vulnerability Results"])
 
-    if not os.environ.get("DISTROLESS"):
+    if not os.environ.get("SKIP_OPENSCAP"):
         _colorize_sheet(wb["OpenSCAP - DISA Compliance"])
 
 
@@ -191,7 +191,7 @@ def _set_column_width(sheet, column_value, width, wrap=False):
 
 
 def _set_all_column_widths(wb):
-    if not os.environ.get("DISTROLESS"):
+    if not os.environ.get("SKIP_OPENSCAP"):
         openscap_disa = wb["OpenSCAP - DISA Compliance"]
         _set_column_width(
             openscap_disa, column_value="scanned_date", width=20

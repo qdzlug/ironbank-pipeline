@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [[ -n ${DISTROLESS:-} ]]; then
-  echo "Skipping openscap for distroless build"
+if [[ -n ${SKIP_OPENSCAP:-} ]]; then
+  echo "Skipping OpenSCAP scan"
   exit 0
 fi
 
