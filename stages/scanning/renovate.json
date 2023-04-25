@@ -16,7 +16,7 @@
   ],
   "regexManagers": [
     {
-      "fileMatch": ["^rhel-oscap-version.json$"],
+      "fileMatch": ["^oscap-version.json$"],
       "matchStrings": ["\"version\":\\s+\"(?<currentValue>.*?)\""],
       "depNameTemplate": "ComplianceAsCode/content",
       "datasourceTemplate": "github-releases"

@@ -16,7 +16,7 @@ echo "${DOCKER_IMAGE_PATH}"
 
 # If OSCAP_VERSION variable doesn't exist, create the variable
 if [[ -z ${OSCAP_VERSION:-} ]]; then
-  OSCAP_VERSION=$(jq -r .version "$PIPELINE_REPO_DIR/stages/scanning/rhel-oscap-version.json" | sed 's/v//g')
+  OSCAP_VERSION=$(jq -r .version "$PIPELINE_REPO_DIR/stages/scanning/oscap-version.json" | sed 's/v//g')
 fi
 
 oscap_container=$(python3 "${PIPELINE_REPO_DIR}/stages/scanning/openscap/compliance.py" --oscap-version "${OSCAP_VERSION}" --image-type "${BASE_IMAGE_TYPE}" | sed s/\'/\"/g)
