@@ -1,66 +1,40 @@
 image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.9.3
 stages:
-  ### preprocess stage
-  # clone down the templates directory for use in later stages
-  # Requirements:
-  # - executor image with git
   - preprocess
-
-  ### lint stage
-  # yaml lint (ci file, hardening_manifest.yaml), dockerfile lint, wl compare lint
-  # Requirements:
-  # - executor image with Python 3.x installed
   - lint
-
-  ### Secret Scan
   - secret-scan
-
-  ### Import Artifacts
   - import-artifacts
-
-  ### build stage
-  # build image w version tag and create tar file
   - build
-
-  ### post-build stage
-  # container archive output
   - post-build
-
-  ### scan-logic stage
-  # Image verification and sbom/access log diff
   - scan-logic
-
-  ### scanning stage
-  # twistlock, oscap, and anchore scans
   - scanning
-
-  ### VAT stage
   - vat
-
-  ### post-vat stage
-  # run trigggger jobs that rely on a project's VAT status being updated
   - post-vat
-
-  ### create csv output
   - csv-output
-
-  ### check cve stage
   - check-cves
-
-  ### Sign image and manifest and write documentation
   - documentation
-
-  ### harbor stage
-  # push to harbor (runs on master)
   - harbor
-
-  ### s3 stage
-  # publish artifacts to S3 (runs on development and master)
   - s3-publish
 
 include:
   - local: stages/preprocess/load-scripts.yaml
-  - local: stages/scanning/base.yaml
+  - local: stages/lint/lint.yaml
+  - local: stages/secret-scan/trufflehog.yaml
+  - local: stages/import-artifacts/import-artifacts.yaml
+  - local: stages/build/base.yaml
+  - local: stages/post-build/base.yaml
+  - local: stages/scan-logic/base.yaml
+  # scanning stage jobs
+  - local: stages/scanning/anchore/anchore.yaml
+  - local: stages/scanning/openscap/openscap-compliance.yaml
+  - local: stages/scanning/twistlock/twistlock.yaml
+  - local: stages/vat/base.yaml
+  - local: stages/post-vat/base.yaml
+  - local: stages/csv-output/base.yaml
+  - local: stages/check-cves/base.yaml
+  - local: stages/documentation/base.yaml
+  - local: stages/harbor/harbor.yaml
+  - local: stages/s3/upload-to-s3.yaml
 
 workflow:
   rules:
