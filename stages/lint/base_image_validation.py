@@ -57,15 +57,18 @@ async def main():
             sys.exit(1)
 
         with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
+            log.info("Verifying base image signature")
             shutil.copy(
                 pull_auth,
                 Path(docker_config_dir, "config.json"),
             )
-            Cosign.verify(
+            if not Cosign.verify(
                 image=base_image.from_image(transport=""),
                 docker_config_dir=docker_config_dir,
                 log_cmd=True,
-            )
+            ):
+                log.error("Failed to verify base image signature")
+                sys.exit(1)
 
         base_image_info = {"BASE_SHA": base_img_inspect["Digest"]}
         log.info("Dump SHA to file")

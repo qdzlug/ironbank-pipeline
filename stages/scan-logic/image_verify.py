@@ -81,10 +81,10 @@ def diff_needed(docker_config_dir: Path) -> Optional[dict]:
         log.info("Inspecting old image")
         old_img_json = inspect_old_image(manifest, docker_config_dir)
 
-        log.info("Verify old image signature")
         cosign_verify = True
         # Skip cosign verify in staging as it will fail
         if "repo1.dso.mil" in os.environ["CI_SERVER_URL"]:
+            log.info("Verify old image signature")
             cosign_verify = Cosign.verify(
                 image=old_image.from_image(transport=""),
                 docker_config_dir=docker_config_dir,

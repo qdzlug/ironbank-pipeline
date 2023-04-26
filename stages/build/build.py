@@ -183,7 +183,9 @@ def main():
                 prod_auth_path,
                 Path(docker_config_dir, "config.json"),
             )
-            Cosign.verify(image=parent_image, docker_config_dir=docker_config_dir, log_cmd=True)
+            if not Cosign.verify(image=parent_image, docker_config_dir=docker_config_dir, log_cmd=True):
+                log.error("Failed to verify parent image signature")
+                sys.exit(1)
 
     ib_labels = {
         "maintainer": "ironbank@dsop.io",
