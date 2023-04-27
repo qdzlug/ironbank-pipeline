@@ -7,14 +7,14 @@ vat:
     - when: "on_success"
   stage: vat
   # Load in the IMAGE_VERSION variable from load-scripts env
-  dependencies:
+  needs:
     - load-scripts
-    - build
     - lint
+    - build
+    - scan-logic
     - anchore-scan
     - openscap-compliance
     - twistlock-scan
-    - scan-logic
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/vat"
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: vat

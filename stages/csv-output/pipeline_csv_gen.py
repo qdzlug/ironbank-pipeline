@@ -52,7 +52,7 @@ def main() -> None:
     anchore_cve_fail_count = 0
     anchore_comp_fail_count = 0
     image_id = ""
-    if "DISTROLESS" not in os.environ:
+    if "SKIP_OPENSCAP" not in os.environ:
         (
             oscap_comp_fail_count,
             oscap_comp_not_checked_count,

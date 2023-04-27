@@ -1,15 +1,19 @@
 harbor:
   stage: harbor
-  # TODO: consider using a resource group here to prevent multiple harbor jobs running concurrently for the same project
-  only:
-    - master
-  dependencies:
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+  resource_group: harbor_phase
+  needs:
     - load-scripts
     - lint
     - build
     - create-sbom
     - scan-logic
     - vat
+    - job: ib-manifest
+      artifacts: false
+    - job: write-json-docs
+      artifacts: false
   variables:
     SBOM_DIR: ${ARTIFACT_STORAGE}/sbom
     PARENT_VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/parent_vat_response.json

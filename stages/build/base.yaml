@@ -3,10 +3,10 @@ build:
   stage: build
   tags:
     - ironbank-dsop-build
-  dependencies:
-    - import-artifacts
+  needs:
     - load-scripts
     - lint
+    - import-artifacts
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
   script:

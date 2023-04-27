@@ -21,7 +21,13 @@ log = logger.setup("build")
 
 
 def write_dockerfile_args(dockerfile_args: list["str"]):
-    with Path("Dockerfile").open("r+") as f:
+    """
+    Overwrite Dockerfile args that are defined in the hardening manifest
+    """
+    with Path("Dockerfile").open(
+        mode="r+",
+        encoding="utf-8",
+    ) as f:
         dockerfile_content = []
         for line in f.readlines():
             dockerfile_content.append(line)
@@ -34,6 +40,9 @@ def write_dockerfile_args(dockerfile_args: list["str"]):
 
 
 def create_mounts(mount_conf_path: Path, pipeline_build_dir: Path):
+    """
+    Mount config files required for use of internal proxy
+    """
     mounts = []
     if os.environ.get("DISTRO_REPO_DIR"):
         mounts.append(
@@ -66,11 +75,11 @@ def load_resources(
                 )
                 manifest_json = json.loads(manifest.stdout)
                 image_url = manifest_json[0]["RepoTags"][0]
-                log.info(f"loading image {resource_file_obj}")
+                log.info("loading image %s", resource_file_obj)
                 skopeo.copy(
                     ImageFile(file_path=resource_file_obj, transport="docker-archive:"),
                     Image(url=image_url, transport="containers-storage:"),
-                    log_cmd=True
+                    log_cmd=True,
                 )
             else:
                 shutil.move(resource_file_obj, Path(resource_file))
@@ -84,8 +93,16 @@ def get_parent_label(
     hardening_manifest: HardeningManifest,
     base_registry: str,
 ):
+    """
+    Retrieve parent image digest if base image is defined in hardening manifest
+        returns an empty string if one is not defined
+    """
     if hardening_manifest.base_image_name:
-        base_image = Image(registry=base_registry, name=hardening_manifest.base_image_name, tag=hardening_manifest.base_image_tag)
+        base_image = Image(
+            registry=base_registry,
+            name=hardening_manifest.base_image_name,
+            tag=hardening_manifest.base_image_tag,
+        )
         return f"{base_image}@{skopeo.inspect(base_image.from_image(transport='docker://'))['Digest']}"
     # if no base image, return empty string instead of None
     return ""
@@ -93,6 +110,9 @@ def get_parent_label(
 
 @subprocess_error_handler("Failed to start squid")
 def start_squid(squid_conf: Path):
+    """
+    Start squid proxy to create access log file
+    """
     parse_cmd = ["squid", "-k", "parse", "-f", squid_conf]
     start_cmd = ["squid", "-f", squid_conf]
     for cmd in [parse_cmd, start_cmd]:
@@ -102,8 +122,11 @@ def start_squid(squid_conf: Path):
 
 
 def generate_build_env(
-    image_details: dict, image_name: str, image: Image, digest: str, skopeo: Skopeo
+    image_details: dict, image_name: str, image: Image, digest: str
 ):
+    """
+    Creates env file to be used later in pipeline
+    """
     build_envs = [
         f"IMAGE_ID=sha256:{image_details['FromImageID']}\n",
         f"IMAGE_PODMAN_SHA={digest}\n",
@@ -114,15 +137,16 @@ def generate_build_env(
     ]
     for env_ in build_envs:
         log.info(env_.strip())
-    with Path("build.env").open("a+") as f:
+    with Path("build.env").open(mode="a+", encoding="utf-8",) as f:
         f.writelines(build_envs)
 
 
 # decorate main to capture all subprocess errors
 @subprocess_error_handler(logging_message="Unexpected subprocess error caught")
 def main():
-
-    # define vars
+    """
+    main method
+    """
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     staging_image = Image(
@@ -188,7 +212,7 @@ def main():
         ).isoformat(sep=" ", timespec="seconds"),
         "org.opencontainers.image.source": os.environ["CI_PROJECT_URL"],
         "org.opencontainers.image.revision": os.environ["CI_COMMIT_SHA"],
-        "mil.dso.ironbank.image.parent": parent_label
+        "mil.dso.ironbank.image.parent": parent_label,
     }
 
     log.info("Converting build args from hardening manifest into command line args")
@@ -206,9 +230,8 @@ def main():
         mount_conf_path=mount_conf_path, pipeline_build_dir=pipeline_build_dir
     )
 
-    # sed -i '/^FROM /r'
     # TODO: use the NEXUS_HOST_URL env variable for the values pulled from this file
-    with Path(pipeline_build_dir, "build-args.json").open("r") as f:
+    with Path(pipeline_build_dir, "build-args.json").open(mode="r", encoding="utf-8",) as f:
         build_args = json.load(f)
         # create list of lists, with each sublist containing an arg
         # sublist needed for f.writelines() on arg substitution in Dockerfile
@@ -217,7 +240,9 @@ def main():
     write_dockerfile_args(dockerfile_args=dockerfile_args)
 
     # args for buildah's ulimit settings
-    buildah_ulimit_args = json.loads(os.environ.get("BUILDAH_ULIMIT_ARGS", '{}')) or {'nproc': '2000:2000'}
+    buildah_ulimit_args = json.loads(os.environ.get("BUILDAH_ULIMIT_ARGS", "{}")) or {
+        "nproc": "2000:2000"
+    }
 
     log.info("Build the image")
     buildah.build(
@@ -254,20 +279,21 @@ def main():
         log_cmd=True,
     )
 
-    # TODO: decide if we need to push tags on staging_base_image or development
     if (
         os.environ.get("STAGING_BASE_IMAGE")
         or os.environ["CI_COMMIT_BRANCH"] == "development"
     ):
-        for t in hardening_manifest.image_tags:
-            dest = dest.from_image(tag=t)
+        for tag in hardening_manifest.image_tags:
+            dest = dest.from_image(tag=tag)
             skopeo.copy(src, dest, dest_authfile=staging_auth_path, log_cmd=True)
 
     local_image_details = buildah.inspect(image=src, storage_driver="vfs", log_cmd=True)
 
     # get digest from skopeo copy digestfile
-    # TODO: consider replacing this with retrieving digest from dest on skopeo.inspect
-    with Path(build_artifact_dir, "digest").open("r") as f:
+    with Path(build_artifact_dir, "digest").open(
+        mode="r",
+        encoding="utf-8",
+    ) as f:
         digest = f.read()
 
     generate_build_env(
@@ -275,7 +301,6 @@ def main():
         image_name=hardening_manifest.image_name,
         image=src,
         digest=digest,
-        skopeo=skopeo,
     )
 
     log.info("Archive the proxy access log")

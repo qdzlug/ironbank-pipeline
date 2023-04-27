@@ -6,7 +6,7 @@ echo "${IB_CONTAINER_GPG_KEY}" | base64 -d >key
 # Gather info for scan-metadata.json
 GPG_VERSION_INFO=$(gpg --version | grep "gpg")
 
-if [[ "${DISTROLESS:-}" ]]; then
+if [[ "${SKIP_OPENSCAP:-}" ]]; then
   ANCHORE_VERSION=$(sed 's/"//g' "${ANCHORE_VERSION_FILE}")
   TWISTLOCK_VERSION=$(sed 's/"//g' "${TWISTLOCK_VERSION_FILE}" | cut -d" " -f3)
 else

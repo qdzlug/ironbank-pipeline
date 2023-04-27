@@ -1,8 +1,4 @@
-# You can override the included template(s) by including variable overrides
-# See https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
-# Note that environment variables can be set in several places
-# See https://docs.gitlab.com/ee/ci/variables/#priority-of-environment-variables
-image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.9.1"
+image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.9.8"
 
 stages:
   - secret-scanning
@@ -10,12 +6,15 @@ stages:
   - lint
   - test
 
-trufflehog:
+.base:
   needs: []
   tags:
     - ironbank-tools
+
+trufflehog:
+  extends: .base
   stage: secret-scanning
-  image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.5
+  image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6
   variables:
     # This forces the trufflehog job to NOT perform a shallow clone
     GIT_DEPTH: 0
@@ -24,9 +23,7 @@ trufflehog:
     - python3 stages/secret-scan/trufflehog.py
 
 shellcheck:
-  needs: []
-  tags:
-    - ironbank-tools
+  extends: .base
   stage: lint
   image: registry1.dso.mil/ironbank/ironbank-pipelines/shellcheck:v0.8.0
   script:
@@ -59,19 +56,15 @@ shellcheck:
       exit "$ret"
 
 black:
-  image: registry1.dso.mil/ironbank/opensource/python/python39:v3.9.13
-  needs: []
-  tags:
-    - ironbank-tools
+  image: registry1.dso.mil/ironbank/opensource/python:v3.11.3
+  extends: .base
   stage: format
   script:
     - pip install --user black
-    - black --check --diff --color -t py311 .
+    - black --check --diff --color -t py311 -- **/*.py
 
 pylama:
-  needs: []
-  tags:
-    - ironbank-tools
+  extends: .base
   stage: lint
   script:
     - pip install --user pyflakes==2.4.0
@@ -80,18 +73,14 @@ pylama:
 ## ignore line errors as black has been ran against code.
 
 prettier:
-  needs: []
-  tags:
-    - ironbank-tools
+  extends: .base
   stage: format
-  image: "registry1.dso.mil/ironbank/opensource/nodejs/nodejs14:14.19.1"
+  image: "registry1.dso.mil/ironbank/opensource/nodejs/nodejs18:18.16.0-slim"
   script:
     - npx prettier -c .
 
 pylint:
-  needs: []
-  tags:
-    - ironbank-tools
+  extends: .base
   stage: lint
   allow_failure: true
   variables:
@@ -114,11 +103,9 @@ pylint:
       - ./ironbank_1.stats
 
 shfmt:
-  needs: []
-  tags:
-    - ironbank-tools
+  extends: .base
   stage: format
-  image: "registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.6"
+  image: "registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.7"
   script:
     - dnf install wget -y
     - wget https://github.com/mvdan/sh/releases/download/v3.1.2/shfmt_v3.1.2_linux_amd64
@@ -126,9 +113,7 @@ shfmt:
     - "./shfmt_v3.1.2_linux_amd64 -d ."
 
 unit-testing:
-  needs: []
-  tags:
-    - ironbank-tools
+  extends: .base
   stage: test
   script:
     - python3 -m pip install --user pytest-cov

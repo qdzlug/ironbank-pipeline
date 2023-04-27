@@ -1,8 +1,8 @@
 upload-to-s3:
   stage: s3-publish
   resource_group: s3_phase
-  only:
-    - master
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
   variables:
     #TODO: Put these in globals
     SCAN_DIRECTORY: "${ARTIFACT_STORAGE}/scan-results"
@@ -16,7 +16,7 @@ upload-to-s3:
     REPORT_TAR_NAME: ${CI_PROJECT_NAME}-${IMAGE_VERSION}-reports-signature.tar.gz
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: ibfe
 
-  dependencies:
+  needs:
     - load-scripts
     - lint
     - build
@@ -29,6 +29,8 @@ upload-to-s3:
     - ib-manifest
     - write-json-docs
     - vat
+    - job: harbor
+      artifacts: false
   script:
     - 'pip install --user --no-deps "${PIPELINE_REPO_DIR}"'
     - 'python "${PIPELINE_REPO_DIR}/stages/s3/upload_artifacts.py"'

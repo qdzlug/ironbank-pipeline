@@ -1,13 +1,13 @@
 csv-output:
   stage: csv-output
-  dependencies:
-    - twistlock-scan
-    - openscap-compliance
-    - vat
-    - anchore-scan
+  needs:
     - load-scripts
     - lint
     - build
+    - anchore-scan
+    - openscap-compliance
+    - twistlock-scan
+    - vat
   variables:
     # Put generated csv report in the scan-results folder
     CSV_REPORT: "${ARTIFACT_STORAGE}/scan-results/csvs"

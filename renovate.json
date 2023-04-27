@@ -19,7 +19,7 @@
   ],
   "regexManagers": [
     {
-      "fileMatch": ["^stages/scanning/rhel-oscap-version.json$"],
+      "fileMatch": ["^stages/scanning/oscap-version.json$"],
       "matchStrings": ["\"version\":\\s+\"(?<currentValue>.*?)\""],
       "depNameTemplate": "ComplianceAsCode/content",
       "datasourceTemplate": "github-releases"

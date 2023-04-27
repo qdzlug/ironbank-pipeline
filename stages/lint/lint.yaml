@@ -1,6 +1,6 @@
 lint:
   stage: lint
-  dependencies:
+  needs:
     - load-scripts
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/lint"
