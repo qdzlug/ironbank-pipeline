@@ -15,7 +15,8 @@
    1. [Naming conventions](#naming-conventions)
    1. [Subprocess usage](#subprocess-usage)
       1. [Subprocess decorator](#subprocess-decorator)
-      1. [Subprocess flags](#subprocess-flags)
+      1. [Subprocess arguments](#subprocess-arguments)
+      1. [Use `with` when using Popen](#use-with-when-using-popen)
    1. [Type hinting](#type-hinting)
    1. [File I/O](#file-io)
       1. [Importing Path](#importing-path)
@@ -222,12 +223,12 @@ def example():
 
 ```
 
-#### Subprocess flags
+#### Subprocess arguments
 
-When using subprocess, please ensure to handle the flags as follows
+When using subprocess, please ensure to handle the arguments as follows
 
 - don't set `shell=True`
-- provide `cmd` as a list of strings
+- provide `args` as a list of strings
 - set `check=True` unless you have a specific reason not to
 
 For example
@@ -239,6 +240,24 @@ subprocess.run("ls -al", shell=True)
 
 # good
 subprocess.run(["ls", "-al"], check=True)
+```
+
+#### Use `with` when using `Popen`
+
+When using `subprocess.Popen`, please ensure to handle safe process creation/deletion by using `with`
+
+For example
+
+```python
+
+# bad
+proc = subprocess.Popen(["ls", "-al"])
+proc.communicate()
+
+# good
+with subprocess.Popen(["ls", "-al"]) as proc:
+    proc.communicate()
+
 ```
 
 ### Type hinting
