@@ -112,11 +112,12 @@ class SubprocessChecker(BaseChecker):
             # assign name and val are astroid node types (i.e. AssignName and some astroid node.TYPE)
             assign_name, assign_val = next(sub_assign), next(sub_assign)
             # deal with type hint
-            assign_val = (
-                assign_val
-                if not isinstance(assign_val, nodes.Subscript)
-                else next(sub_assign)
-            )
+            # subscript can be a type hint or an assignment of a subscript (e.g. a slice of a list)
+            if isinstance(assign_val, nodes.Subscript):
+                try:
+                    assign_val = next(sub_assign)
+                except StopIteration:
+                    pass
             yield (assign_name, assign_val)
 
     def get_inferred_value(
@@ -174,7 +175,7 @@ class SubprocessChecker(BaseChecker):
         func_def = self.get_func_def()
         if (
             func_def
-            and (self._expr_desc in ["subprocess.run", "subprocess.Popen"])
+            and (self._expr_desc in self.subproc_cmds)
             and (
                 not func_def.decorators
                 or "subprocess_error_handler" not in func_def.decorators.as_string()
