@@ -1,5 +1,6 @@
-from typing import TYPE_CHECKING, Optional
-from astroid import nodes
+from typing import TYPE_CHECKING, Generator, Optional
+from astroid import nodes, AstroidError
+from astroid.util import Uninferable
 
 from pylint.checkers import BaseChecker
 
@@ -11,25 +12,50 @@ def register(linter: "PyLinter") -> None:
     """This required method auto registers the checker during initialization.
     :param linter: The linter to register the checker to.
     """
-    linter.register_checker(SubprocessDecoratorChecker(linter))
+    linter.register_checker(SubprocessChecker(linter))
 
 
-class SubprocessDecoratorChecker(BaseChecker):
+class SubprocessChecker(BaseChecker):
     """Checker for finding functions that use subprocess and don't include the subprocess_error_handler decorator"""
 
-    name = "subprocess-decorator"
-    msgs = {
+    name: str = "subprocess-decorator"
+    msgs: dict[str, tuple] = {
         "E1500": (
-            "Missing subprocess decorator.",
+            "Missing subprocess decorator \U0001f974",
             "subprocess-decorator-missing",
             "All functions directly using subprocess should use the subprocess decorator.",
         ),
+        "E1501": (
+            "Using subprocess with shell=True \U0001f627",
+            "using-subprocess-with-shell",
+            "Using subprocess with shell=True introduces risks that can mitigated by not creating a subshell and passing a list of args.",
+        ),
+        "E1502": (
+            "Use list of string for subprocess args \U0001f628",
+            "use-list-for-subprocess-args",
+            "Using subprocess with a args string instead of a list of strings is not recommended.",
+        ),
+        "E1503": (
+            "Using subprocess.Popen without using with \U0001f925",
+            "using-popen-without-with",
+            "Please consider using `with` when using Popen to allow for safer/easier resource management",
+        ),
+        "F1504": (
+            "Kenn broke something... \U0001f92F",
+            "kenn-goofed-on-arg-checks",
+            "Inferring the value is weird and scares me. Go debug check_subproc_using_string_arg in subprocess_checkers.py if you see this.",
+        ),
     }
-    options = ()
+    options: tuple = ()
+    subproc_run: str = "subprocess.run"
+    subproc_popen: str = "subprocess.Popen"
+    subproc_cmds: list[str] = [subproc_run, subproc_popen]
 
     def __init__(self, linter: Optional["PyLinter"] = None) -> None:
         super().__init__(linter)
+        self._expr_desc: str = ""
         self._function_stack: list[nodes.FunctionDef] = []
+        self._decorator_error_found: bool = False
 
     def visit_functiondef(self, node: nodes.FunctionDef) -> None:
         """Stores function def."""
@@ -38,28 +64,115 @@ class SubprocessDecoratorChecker(BaseChecker):
     def leave_functiondef(self, _: nodes.FunctionDef) -> None:
         """Remove function def."""
         self._function_stack.pop()
+        self._decorator_error_found = False
 
-    def visit_assign(self, node: nodes.Assign) -> None:
-        """Checks assignments for subprocess and decorator usage."""
-        self.check_sub_proc_errors(node=node)
-
-    def visit_expr(self, node: nodes.Expr) -> None:
+    def visit_call(self, node: nodes.Call) -> None:
         """Checks expressions for subprocess and decorator usage."""
-        self.check_sub_proc_errors(node=node)
+        self.set_expr_desc(node=node)
+        self.check_subproc_dec_issues()
+        self.check_subproc_popen_not_using_with(node=node)
+        self.check_subproc_using_string_arg(node=node)
+        if self._expr_desc in self.subproc_run:
+            for kwarg in getattr(node, "keywords", []):
+                if "shell=True" == kwarg.as_string():
+                    self.add_message("using-subprocess-with-shell", node=node)
 
-    def check_sub_proc_errors(self, node: nodes.Assign | nodes.Expr) -> None:
+    def set_expr_desc(self, node: nodes.Expr | nodes.Assign) -> None:
+        self._expr_desc = node.func.as_string() if getattr(node, "func", None) else ""
+
+    def get_func_def(self) -> nodes.FunctionDef:
+        return self._function_stack[-1] if self._function_stack else None
+
+    def get_args_from_node(self, node: nodes.NodeNG) -> nodes.NodeNG:
+        args_: nodes.NodeNG | None = None
+        if self._expr_desc in self.subproc_cmds:
+            args_ = node.args[0] if getattr(node, "args", None) else None
+            for kwarg in getattr(node, "keywords", []):
+                args_ = kwarg.value if kwarg.arg == "args" else args_
+        return args_
+
+    def get_assignments(
+        self,
+    ) -> Generator[tuple[nodes.AssignName, nodes.NodeNG], None, None]:
+        # get nodes from func which are either explict assigns or assigns with type hint
+        for assign in (
+            subnode
+            for subnode in self.get_func_def().get_children()
+            if isinstance(subnode, nodes.Assign) or isinstance(subnode, nodes.AnnAssign)
+        ):
+            sub_assign = assign.get_children()
+            # assign name and val are astroid node types (i.e. AssignName and some astroid node.TYPE)
+            assign_name, assign_val = next(sub_assign), next(sub_assign)
+            # deal with type hint
+            # subscript can be a type hint or an assignment of a subscript (e.g. a slice of a list)
+            if isinstance(assign_val, nodes.Subscript):
+                try:
+                    assign_val = next(sub_assign)
+                except StopIteration:
+                    pass
+            yield (assign_name, assign_val)
+
+    def get_inferred_value(
+        self, args_: nodes.NodeNG, node: nodes.NodeNG
+    ) -> Generator[nodes.NodeNG, None, None]:
+        try:
+            # try to infer values from argument
+            # this will be Uninferable unless the value is passed in directly
+            # for example: subprocess.run(['asdfasdf', 'asfasdf])) will return an object of type nodes.List here
+            yield from args_.infer()
+
+            # get all assignments (including those with type hint) with name matching args_.name
+            # ignore aug assignments
+            yield from (
+                asgn_val
+                for (asgn_name, asgn_val) in self.get_assignments()
+                if asgn_name.name == args_.name
+            )
+
+        except (AttributeError, AstroidError):
+            self.add_message("kenn-goofed-on-arg-checks", node=node)
+
+    def check_subproc_using_string_arg(self, node: nodes.NodeNG) -> None:
+        args_: nodes.NodeNG | None = self.get_args_from_node(node)
+        if args_ and not isinstance(args_, nodes.List):
+            if isinstance(args_, nodes.Name):
+                inferred_val_gen = self.get_inferred_value(args_, node)
+                inferred_value = next(inferred_val_gen)
+                # if inferred value found, skip next iteration
+                # else, get last assignment for args passed to subprocess
+                inferred_value = inferred_value or [val for val in inferred_val_gen][-1]
+
+                # skip adding error if Uninferable
+                # skip adding error if assignment is to function call (need fallback still)
+                # TODO: throw error if Call, unless type hint is provided (can use subscript)
+                # TODO: provide fallback to type hint
+                if (
+                    inferred_value is not Uninferable
+                    and not isinstance(inferred_value, nodes.Call)
+                    and not isinstance(inferred_value, nodes.List)
+                ):
+                    self.add_message("use-list-for-subprocess-args", node=node)
+            else:
+                self.add_message("use-list-for-subprocess-args", node=node)
+
+    def check_subproc_popen_not_using_with(self, node: nodes.NodeNG) -> None:
+        if self._expr_desc == "subprocess.Popen":
+            if not getattr(node, "parent", None) or not isinstance(
+                node.parent, nodes.With
+            ):
+                self.add_message("using-popen-without-with", node=node)
+
+    def check_subproc_dec_issues(self) -> None:
         """Logic for finding if subprocess was used in the function and whether the decorator was added"""
-        func_def = self._function_stack[-1] if self._function_stack else None
-        expr_desc = (
-            node.value.func.as_string() if getattr(node.value, "func", None) else None
-        )
+        func_def = self.get_func_def()
         if (
             func_def
-            and expr_desc
-            and (expr_desc in ["subprocess.run", "subprocess.Popen"])
+            and (self._expr_desc in self.subproc_cmds)
             and (
                 not func_def.decorators
                 or "subprocess_error_handler" not in func_def.decorators.as_string()
             )
+            and not self._decorator_error_found
         ):
+            self._decorator_error_found = True
             self.add_message("subprocess-decorator-missing", node=func_def)
