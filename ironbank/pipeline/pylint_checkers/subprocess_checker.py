@@ -64,29 +64,21 @@ class SubprocessChecker(BaseChecker):
     def leave_functiondef(self, _: nodes.FunctionDef) -> None:
         """Remove function def."""
         self._function_stack.pop()
+        self._decorator_error_found = False
 
-    def visit_assign(self, node: nodes.Assign) -> None:
-        """Checks assignments for subprocess and decorator usage."""
-        self.set_expr_desc(node=node)
-        self.check_subproc_dec_issues()
-        self.check_subproc_popen_not_using_with(node=node)
-        self.check_subproc_using_string_arg(node=node)
-
-    def visit_expr(self, node: nodes.Expr) -> None:
+    def visit_call(self, node: nodes.Call) -> None:
         """Checks expressions for subprocess and decorator usage."""
         self.set_expr_desc(node=node)
         self.check_subproc_dec_issues()
         self.check_subproc_popen_not_using_with(node=node)
         self.check_subproc_using_string_arg(node=node)
         if self._expr_desc in self.subproc_run:
-            for kwarg in getattr(node.value, "keywords", []):
+            for kwarg in getattr(node, "keywords", []):
                 if "shell=True" == kwarg.as_string():
                     self.add_message("using-subprocess-with-shell", node=node)
 
     def set_expr_desc(self, node: nodes.Expr | nodes.Assign) -> None:
-        self._expr_desc = (
-            node.value.func.as_string() if getattr(node.value, "func", None) else ""
-        )
+        self._expr_desc = node.func.as_string() if getattr(node, "func", None) else ""
 
     def get_func_def(self) -> nodes.FunctionDef:
         return self._function_stack[-1] if self._function_stack else None
@@ -94,8 +86,8 @@ class SubprocessChecker(BaseChecker):
     def get_args_from_node(self, node: nodes.NodeNG) -> nodes.NodeNG:
         args_: nodes.NodeNG | None = None
         if self._expr_desc in self.subproc_cmds:
-            args_ = node.value.args[0] if getattr(node.value, "args", None) else None
-            for kwarg in getattr(node.value, "keywords", []):
+            args_ = node.args[0] if getattr(node, "args", None) else None
+            for kwarg in getattr(node, "keywords", []):
                 args_ = kwarg.value if kwarg.arg == "args" else args_
         return args_
 
