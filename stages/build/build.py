@@ -2,7 +2,6 @@ import os
 import re
 import sys
 import json
-import tempfile
 import time
 import shutil
 import datetime
@@ -202,14 +201,7 @@ def main():
             name=hardening_manifest.base_image_name,
             tag=hardening_manifest.base_image_tag,
         )
-        with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
-            shutil.copy(
-                prod_auth_path,
-                Path(docker_config_dir, "config.json"),
-            )
-            if not Cosign.verify(image=parent_image, docker_config_dir=docker_config_dir, log_cmd=True):
-                log.error("Failed to verify parent image signature")
-                sys.exit(1)
+        Cosign.verify(parent_image)
 
     ib_labels = {
         "maintainer": "ironbank@dsop.io",

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import shutil
 import sys
 import os
 from unittest.mock import patch
@@ -36,10 +35,7 @@ def test_base_image_validation_main(monkeypatch, caplog, raise_):
     monkeypatch.setattr(
         MockSkopeo, "inspect", lambda *args, **kwargs: {"Digest": "1234qwert"}
     )
-    monkeypatch.setattr(shutil, "copy", lambda *args, **kwargs: None)
-    monkeypatch.setattr(
-        base_image_validation.Cosign, "verify", lambda *args, **kwargs: True
-    )
+    monkeypatch.setattr(base_image_validation.Cosign, "verify", lambda x: True)
     asyncio.run(base_image_validation.main())
     assert "Dump SHA to file" in caplog.text
 
@@ -56,18 +52,7 @@ def test_base_image_validation_main(monkeypatch, caplog, raise_):
     asyncio.run(base_image_validation.main())
     assert "Dump SHA to file" in caplog.text
 
-    log.info("Test cosign verify fails")
-    monkeypatch.setattr(
-        base_image_validation.Cosign, "verify", lambda *args, **kwargs: False
-    )
-    with pytest.raises(SystemExit) as se:
-        asyncio.run(base_image_validation.main())
-    assert se.value.code == 1
-
     log.info("Test base image validation throws exception")
-    monkeypatch.setattr(
-        base_image_validation.Cosign, "verify", lambda *args, **kwargs: True
-    )
     monkeypatch.setattr(
         MockSkopeo, "inspect", lambda *args, **kwargs: raise_(GenericSubprocessError)
     )

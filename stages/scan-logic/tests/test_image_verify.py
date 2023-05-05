@@ -4,6 +4,7 @@ import json
 import pytest
 import pathlib
 from unittest.mock import mock_open, patch
+
 from ironbank.pipeline.test.mocks.mock_classes import (
     MockHardeningManifest,
     MockImage,
@@ -101,7 +102,6 @@ def test_diff_needed(monkeypatch, caplog, raise_):
     log.info("Test Digest and Label values are returned on no diff")
     example_url = "http://example.com"
     monkeypatch.setenv("REGISTRY_PUBLISH_URL", example_url)
-    monkeypatch.setenv("CI_SERVER_URL", "repo1.dso.mil")
     mock_old_img_json = {
         "Extra Key": "something",
         "Tag": image_tag,
@@ -116,7 +116,7 @@ def test_diff_needed(monkeypatch, caplog, raise_):
         image_verify, "inspect_old_image", lambda x, y: mock_old_img_json
     )
     monkeypatch.setattr(image_verify, "verify_image_properties", lambda x, y: True)
-    monkeypatch.setattr(image_verify.Cosign, "verify", lambda *args, **kwargs: True)
+    monkeypatch.setattr(image_verify.Cosign, "verify", lambda x: True)
     diff_needed = image_verify.diff_needed(".")
     assert diff_needed == {
         "tag": mock_old_img_json["Tag"],
@@ -126,7 +126,6 @@ def test_diff_needed(monkeypatch, caplog, raise_):
     }
 
     log.info("Test None is returned on empty old img inspect")
-    monkeypatch.setenv("CI_SERVER_URL", "")
     monkeypatch.setattr(image_verify, "inspect_old_image", lambda x, y: {})
     assert image_verify.diff_needed(".") is None
 
