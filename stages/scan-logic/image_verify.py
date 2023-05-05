@@ -1,7 +1,7 @@
 import os
 import sys
 import json
-from pathlib import Path
+import pathlib
 from typing import Optional
 from ironbank.pipeline.image import Image
 from ironbank.pipeline.utils import logger
@@ -14,11 +14,9 @@ from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 log = logger.setup("image_verify")
 
 
-def inspect_old_image(
-    manifest: HardeningManifest, docker_config_dir: Path
-) -> Optional[dict]:
+def inspect_old_image(manifest: HardeningManifest, pull_auth: str) -> Optional[dict]:
     try:
-        skopeo = Skopeo(docker_config_dir=docker_config_dir)
+        skopeo = Skopeo(authfile=pull_auth)
         old_image = Image(
             registry=os.environ["REGISTRY_PUBLISH_URL"],
             name=manifest.image_name,
@@ -40,7 +38,7 @@ def verify_image_properties(img_json: dict, manifest: HardeningManifest) -> bool
 
     old_parent = img_json["Labels"]["mil.dso.ironbank.image.parent"]
     if manifest.base_image_name:
-        with Path(
+        with pathlib.Path(
             os.environ["ARTIFACT_STORAGE"], "lint", "base_image.json"
         ).open() as f:
             base_sha = json.load(f)["BASE_SHA"]
@@ -66,7 +64,7 @@ def verify_image_properties(img_json: dict, manifest: HardeningManifest) -> bool
     return False
 
 
-def diff_needed(docker_config_dir: Path) -> Optional[dict]:
+def diff_needed(pull_auth: str) -> Optional[dict]:
     try:
         dsop_project = DsopProject()
         manifest = HardeningManifest(dsop_project.hardening_manifest_path)
@@ -79,18 +77,7 @@ def diff_needed(docker_config_dir: Path) -> Optional[dict]:
         )
 
         log.info("Inspecting old image")
-        old_img_json = inspect_old_image(manifest, docker_config_dir)
-
-        cosign_verify = True
-        # Skip cosign verify in staging as it will fail
-        # TODO: Investigate getting cosign verify working in staging environment
-        if "repo1.dso.mil" in os.environ["CI_SERVER_URL"]:
-            log.info("Verify old image signature")
-            cosign_verify = Cosign.verify(
-                image=old_image.from_image(transport=""),
-                docker_config_dir=docker_config_dir,
-                log_cmd=True,
-            )
+        old_img_json = inspect_old_image(manifest, pull_auth)
 
         log.info("Verifying image properties")
         # Return old image information if all are true:
@@ -100,7 +87,7 @@ def diff_needed(docker_config_dir: Path) -> Optional[dict]:
         if (
             old_img_json
             and verify_image_properties(old_img_json, manifest)
-            and cosign_verify
+            and Cosign.verify(old_image)
         ):
             return {
                 # Old image information to return
