@@ -182,7 +182,13 @@ class Cosign(ContainerTool):
         cls,
         image: Image,
         docker_config_dir: str,
-        pubkey: Path = None,
+        use_key: bool,
+        pubkey: Path = Path(
+            os.environ.get("PIPELINE_REPO_DIR", "."),
+            "scripts",
+            "cosign",
+            "cosign-publickey.pem",
+        ),
         certificate: Path = Path(
             os.environ.get("PIPELINE_REPO_DIR", "."),
             "scripts",
@@ -195,6 +201,8 @@ class Cosign(ContainerTool):
             "cosign",
             "cosign-ca-bundle.pem",
         ),
+        certificate_identity: str = "ironbank@dsop.io",
+        certificate_oidc_issuer_regexp=".*",
         signature_digest_algorithm="sha256",
         log_cmd: bool = False,
     ):
@@ -204,17 +212,22 @@ class Cosign(ContainerTool):
         ]
         cmd += (
             ["--key", pubkey.as_posix()]
-            if pubkey
+            if use_key
             else [
                 "--certificate",
                 certificate.as_posix(),
                 "--certificate-chain",
                 certificate_chain.as_posix(),
+                "--certificate-identity",
+                certificate_identity,
+                "--certificate-oidc-issuer-regexp",
+                certificate_oidc_issuer_regexp,
                 "--signature-digest-algorithm",
                 signature_digest_algorithm,
+                "--insecure-ignore-sct",
             ]
         )
-        cmd += [str(image)]
+        cmd += ["--insecure-ignore-tlog", str(image)]
         if log_cmd:
             cls.log.info(cmd)
 

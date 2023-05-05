@@ -64,6 +64,7 @@ async def main():
             if not Cosign.verify(
                 image=base_image.from_image(transport=""),
                 docker_config_dir=docker_config_dir,
+                use_key=True,
                 log_cmd=True,
             ):
                 log.error("Failed to verify base image signature")
