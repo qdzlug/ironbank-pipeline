@@ -244,7 +244,7 @@ class Cosign(ContainerTool):
             )
         except subprocess.CalledProcessError as e:
             if e.args[0] == 1:
-                cls.log.error("Failed to verify %s", str(image))
+                cls.log.exception("Failed to verify %s", str(image))
                 return False
             else:
                 raise e
