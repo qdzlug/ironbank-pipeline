@@ -204,6 +204,7 @@ class Cosign(ContainerTool):
         certificate_identity: str = "ironbank@dsop.io",
         certificate_oidc_issuer_regexp=".*",
         signature_digest_algorithm="sha256",
+        offline: bool = False,
         log_cmd: bool = False,
     ):
         cmd = [
@@ -227,6 +228,7 @@ class Cosign(ContainerTool):
                 "--insecure-ignore-sct",
             ]
         )
+        cmd += ["--offline"] if offline else []
         cmd += ["--insecure-ignore-tlog", str(image)]
         if log_cmd:
             cls.log.info(cmd)
