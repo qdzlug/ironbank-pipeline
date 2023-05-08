@@ -195,8 +195,8 @@ def main():
         base_registry=base_registry,
     )
 
-    log.info("Verifying parent image signature")
     if hardening_manifest.base_image_name:
+        log.info("Verifying parent image signature")
         parent_image = Image(
             registry=base_registry,
             name=hardening_manifest.base_image_name,

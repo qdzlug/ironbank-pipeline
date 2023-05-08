@@ -232,7 +232,7 @@ class Cosign(ContainerTool):
             cls.log.info(cmd)
 
         try:
-            subprocess.run(
+            sub_run = subprocess.run(
                 args=cmd,
                 capture_output=True,
                 check=True,
@@ -243,6 +243,8 @@ class Cosign(ContainerTool):
                 },
             )
         except subprocess.CalledProcessError as e:
+            cls.log.error(sub_run.stdout)
+            cls.log.error(sub_run.stderr)
             if e.args[0] == 1:
                 cls.log.exception("Failed to verify %s", str(image))
                 return False
