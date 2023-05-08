@@ -229,7 +229,7 @@ class Cosign(ContainerTool):
             ]
         )
         cmd += ["--offline"] if offline else []
-        cmd += ["--insecure-ignore-tlog", str(image)]
+        cmd += ["--insecure-ignore-tlog=true", str(image)]
         if log_cmd:
             cls.log.info(cmd)
 
