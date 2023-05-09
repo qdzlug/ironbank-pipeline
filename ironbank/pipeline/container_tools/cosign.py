@@ -147,7 +147,7 @@ class Cosign(ContainerTool):
         if log_cmd:
             cls.log.info(cmd)
 
-        with subprocess.Popen(["ls", "-al"]) as proc:
+        with subprocess.Popen(["ls", "-al"], stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
             proc.communicate(
                 cmd,
                 encoding="utf-8",
