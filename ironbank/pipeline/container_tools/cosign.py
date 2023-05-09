@@ -158,31 +158,23 @@ class Cosign(ContainerTool):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             env=env,
+
         ) as proc:
-            stdout, stderr = proc.communicate()
-        if proc.returncode == 0:
-            print("Command executed successfully!")
-            print(stdout)
-        else:
-            print(f"Command failed with return code {proc.returncode}")
-            print(stderr)
-
-        # Check if child process has terminated and no data piped to stdout
-
-        for line in iter(proc.stdout.readline, ""):
-            payload = json.loads(line)["payload"]
-            predicate = json.loads(base64.b64decode(payload))
+            # Check if child process has terminated and no data piped to stdout
+            for line in iter(proc.stdout.readline, ""):
+                payload = json.loads(line)["payload"]
+                predicate = json.loads(base64.b64decode(payload))
 
             # payload can take up a lot of memory, delete after decoding and converting to dict object
             del payload
 
             # Write predicates to their respective files
-            for predicate_type in predicate_types:
-                if predicate["predicateType"] == predicate_type:
-                    with Path(output_dir, predicate_files[predicate_type]).open(
+        for predicate_type in predicate_types:
+            if predicate["predicateType"] == predicate_type:
+                with Path(output_dir, predicate_files[predicate_type]).open(
                         "w+"
-                    ) as f:
-                        json.dump(predicate["predicate"], f, indent=4)
+                ) as f:
+                    json.dump(predicate["predicate"], f, indent=4)
         if proc.poll() != 0:
             raise subprocess.CalledProcessError(proc.returncode, cmd)
 

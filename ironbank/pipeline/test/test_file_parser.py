@@ -117,7 +117,7 @@ def test_sbom_file_parser(monkeypatch):
     parsed_packages = SbomFileParser.parse({"artifacts": [mock_package]})
     assert parsed_packages == [MockPackage(*list(mock_package.values()))]
 
-
+@pytest.mark.only
 @patch("ironbank.pipeline.file_parser.Path", new=MockPath)
 def test_dockerfile_parse(monkeypatch):
     log.info("Test dockerfile is successfully parsed")

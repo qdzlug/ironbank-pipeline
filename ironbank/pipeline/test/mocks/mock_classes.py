@@ -5,7 +5,7 @@ import inspect
 from pathlib import PosixPath
 import subprocess
 import tempfile
-from typing import Any, Callable, IO, Optional, Tuple 
+from typing import Any, Callable, IO, Optional
 import requests
 import random
 from requests import Session
@@ -37,14 +37,14 @@ class MockSet(set):
     #     return ['Example diff']
 
 
-@dataclass(unsafe_hash=True)
+@dataclass
 class MockOutput:
-    mock_data: Tuple[str, ...] = field(
-        default_factory=lambda: (
+    mock_data: list[str] = field(
+    default_factory=lambda: [
             "data1\n",
             "data2\n",
-        )
-    )
+        ]
+    )    
     line_num: int = 0
     write_data: Any = None
     pos: int = 0
@@ -144,8 +144,6 @@ class MockPopen(subprocess.Popen):
     poll_value: int = None
     stdin: Optional[IO[Any]] = None
     _communication_started: bool = False
-
-
 
     def poll(self):
         # allow poll to run multiple times without getting stuck in while loop
