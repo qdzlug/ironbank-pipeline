@@ -179,25 +179,18 @@ def test_cosign_download(caplog, monkeypatch):
     caplog.clear()
 
     log.info("Test successful download")
+    mock_data = (
+    '{"payload": {"predicateType": "' + tuple(mock_predicate.keys())[0] + '", "predicate": "exampletext"}}\n',
+    '{"payload": {"predicateType": "skipped_predicate_type_example", "predicate": "skipped_predicate_example"}}\n',
+)
+
+    
     monkeypatch.setattr(
         subprocess,
         "Popen",
         lambda *args, **kwargs: MockPopen(
             stdout=MockOutput(
-                mock_data=[
-                    {
-                        "payload": {
-                            "predicateType": list(mock_predicate.keys())[0],
-                            "predicate": "exampletext",
-                        }
-                    },
-                    {
-                        "payload": {
-                            "predicateType": "skipped_predicate_type_example",
-                            "predicate": "skipped_predicate_example",
-                        }
-                    },
-                ]
+                mock_data=mock_data,
             ),
             poll_counter=0,
         ),

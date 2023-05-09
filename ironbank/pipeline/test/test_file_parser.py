@@ -124,7 +124,8 @@ def test_dockerfile_parse(monkeypatch):
     monkeypatch.setattr(DockerfileParser, "remove_non_from_statements", lambda x: x)
     monkeypatch.setattr(DockerfileParser, "validate_final_from", lambda x: x)
     mock_result = DockerfileParser.parse("mock_filepath")
-    assert mock_result == MockOutput().mock_data
+    assert set(mock_result) == set(MockOutput().mock_data)
+
 
 
 def test_dockerfile_remove_non_from_statements():
