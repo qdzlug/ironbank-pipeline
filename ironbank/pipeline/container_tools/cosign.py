@@ -145,12 +145,12 @@ class Cosign(ContainerTool):
             str(image),
         ]
         if log_cmd:
-            ls.log.info(cmd)
+            cls.log.info(cmd)
 
         env = {
             "PATH": os.environ["PATH"],
             "DOCKER_CONFIG": docker_config_dir,
-    }       
+        }
         with subprocess.Popen(
             cmd,
             encoding="utf-8",
@@ -158,7 +158,7 @@ class Cosign(ContainerTool):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             env=env,
-    ) as proc:
+        ) as proc:
             stdout, stderr = proc.communicate()
         if proc.returncode == 0:
             print("Command executed successfully!")
