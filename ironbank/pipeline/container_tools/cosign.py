@@ -168,13 +168,13 @@ class Cosign(ContainerTool):
                 # payload can take up a lot of memory, delete after decoding and converting to dict object
                 del payload
 
-            # Write predicates to their respective files
-            for predicate_type in predicate_types:
-                if predicate["predicateType"] == predicate_type:
-                    with Path(output_dir, predicate_files[predicate_type]).open(
-                        "w+"
-                    ) as f:
-                        json.dump(predicate["predicate"], f, indent=4)
+                # Write predicates to their respective files
+                for predicate_type in predicate_types:
+                    if predicate["predicateType"] == predicate_type:
+                        with Path(output_dir, predicate_files[predicate_type]).open(
+                            "w+"
+                        ) as f:
+                            json.dump(predicate["predicate"], f, indent=4)
             if proc.poll() != 0:
                 raise subprocess.CalledProcessError(proc.returncode, cmd)
 
