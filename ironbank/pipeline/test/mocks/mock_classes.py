@@ -138,6 +138,12 @@ class MockPopen(subprocess.Popen):
     poll_counter: int = 5
     poll_value: int = None
 
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        pass
+
     def poll(self):
         # allow poll to run multiple times without getting stuck in while loop
         self.poll_counter -= 1
