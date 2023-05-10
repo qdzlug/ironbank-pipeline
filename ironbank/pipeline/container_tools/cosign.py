@@ -177,7 +177,7 @@ class Cosign(ContainerTool):
             raise subprocess.CalledProcessError(proc.returncode, cmd)
 
     @classmethod
-    # @subprocess_error_handler("Cosign.verify failed")
+    @subprocess_error_handler("Cosign.verify failed")
     def verify(
         cls,
         image: Image,
@@ -204,7 +204,6 @@ class Cosign(ContainerTool):
         certificate_identity: str = "ironbank@dsop.io",
         certificate_oidc_issuer_regexp=".*",
         signature_digest_algorithm="sha256",
-        offline: bool = False,
         log_cmd: bool = False,
     ):
         cmd = [
@@ -228,24 +227,21 @@ class Cosign(ContainerTool):
                 "--insecure-ignore-sct",
             ]
         )
-        cmd += ["--offline"] if offline else []
         cmd += ["--insecure-ignore-tlog=true", str(image)]
         if log_cmd:
             cls.log.info(cmd)
 
         try:
-            sub_run = subprocess.run(
+            subprocess.run(
                 args=cmd,
                 capture_output=True,
-                # check=True,
+                check=True,
                 encoding="utf-8",
                 env={
                     "PATH": os.environ["PATH"],
                     "DOCKER_CONFIG": docker_config_dir,
                 },
             )
-            cls.log.error(sub_run.stdout)
-            cls.log.error(sub_run.stderr)
         except subprocess.CalledProcessError as e:
             if e.args[0] == 1:
                 cls.log.exception("Failed to verify %s", str(image))
