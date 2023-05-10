@@ -441,6 +441,25 @@ def open_urls(config: Config) -> None:
         if project != config.projects[-1]:
             driver.switch_to.new_window()
 
+def generate_config_file(config_file: str) -> dict:
+    """
+    Generate config.yaml or secrets.yaml using the appropriate
+    """
+    return_args = {}
+    # open example yaml to get needed values
+    with Path(config_file+".example").open("r", encoding="utf-8") as f:
+        return_args = yaml.safe_load(f)
+
+    # get user input for needed values
+    print(f"\n Generating {f}. Please provide the following:")
+    for key in return_args:
+        return_args[key] = input(f"{key}: ")
+
+    # write values to appropriate yaml file and return return_args
+    with Path(config_file).open("w", encoding="utf-8") as f:
+        yaml.safe_dump(return_args, f)
+    return return_args
+
 
 def main() -> None:
     """
@@ -456,8 +475,12 @@ def main() -> None:
     config_files = ["config.yaml", "secrets.yaml"]
     config_args = []
     for conf in config_files:
-        with Path(conf).open("r", encoding="utf-8") as f:
-            config_args += [yaml.safe_load(f)]
+        try:
+            with Path(conf).open("r", encoding="utf-8") as f:
+                config_args += [yaml.safe_load(f)]
+        except OSError as e:
+            #exception: file not found
+            config_args += [generate_config_file(conf)]
 
     config = Config(**{k: v for sub_dict in config_args for k, v in sub_dict.items()})
 
