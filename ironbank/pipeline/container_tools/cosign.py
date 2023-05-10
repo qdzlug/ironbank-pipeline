@@ -181,9 +181,28 @@ class Cosign(ContainerTool):
     def verify(
         cls,
         image: Image,
-        pubkey: Path = None,
-        certificate: Path = Path("scripts/cosign/cosign-certificate.pem"),
-        certificate_chain: Path = Path("scripts/cosign/cosign-ca-bundle.pem"),
+        docker_config_dir: str,
+        use_key: bool,
+        pubkey: Path = Path(
+            os.environ.get("PIPELINE_REPO_DIR", "."),
+            "scripts",
+            "cosign",
+            "cosign-publickey.pem",
+        ),
+        certificate: Path = Path(
+            os.environ.get("PIPELINE_REPO_DIR", "."),
+            "scripts",
+            "cosign",
+            "cosign-certificate.pem",
+        ),
+        certificate_chain: Path = Path(
+            os.environ.get("PIPELINE_REPO_DIR", "."),
+            "scripts",
+            "cosign",
+            "cosign-ca-bundle.pem",
+        ),
+        certificate_identity: str = "ironbank@dsop.io",
+        certificate_oidc_issuer_regexp=".*",
         signature_digest_algorithm="sha256",
         log_cmd: bool = False,
     ):
@@ -193,17 +212,22 @@ class Cosign(ContainerTool):
         ]
         cmd += (
             ["--key", pubkey.as_posix()]
-            if pubkey
+            if use_key
             else [
                 "--certificate",
                 certificate.as_posix(),
                 "--certificate-chain",
                 certificate_chain.as_posix(),
+                "--certificate-identity",
+                certificate_identity,
+                "--certificate-oidc-issuer-regexp",
+                certificate_oidc_issuer_regexp,
                 "--signature-digest-algorithm",
                 signature_digest_algorithm,
+                "--insecure-ignore-sct",
             ]
         )
-        cmd += [str(image)]
+        cmd += ["--insecure-ignore-tlog=true", str(image)]
         if log_cmd:
             cls.log.info(cmd)
 
@@ -213,6 +237,10 @@ class Cosign(ContainerTool):
                 capture_output=True,
                 check=True,
                 encoding="utf-8",
+                env={
+                    "PATH": os.environ["PATH"],
+                    "DOCKER_CONFIG": docker_config_dir,
+                },
             )
         except subprocess.CalledProcessError as e:
             if e.args[0] == 1:

@@ -136,22 +136,22 @@ def main():
     elif os.environ["CI_COMMIT_BRANCH"] != "master":
         log.info("Skip Logic: Non-master branch")
     else:
+        # STAGING_BASE_IMAGE not checked here - Only used for feature branches
         pull_auth = Path(os.environ["DOCKER_AUTH_FILE_PULL"])
-        docker_config_dir = Path("/tmp/docker_config")
-        docker_config_dir.mkdir(parents=True, exist_ok=True)
-        shutil.copy(src=pull_auth, dst=Path(docker_config_dir, "config.json"))
-        old_image_details = image_verify.diff_needed(pull_auth)
-        if not old_image_details:
-            log.info("Image verify failed - Must scan new image")
-            sys.exit(0)
+        with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
+            shutil.copy(src=pull_auth, dst=Path(docker_config_dir, "config.json"))
+            old_image_details = image_verify.diff_needed(docker_config_dir)
+            if not old_image_details:
+                log.info("Image verify failed - Must scan new image")
+                sys.exit(0)
 
-        log.info("SBOM diff required to determine image to scan")
+            log.info("SBOM diff required to determine image to scan")
 
-        old_pkgs = get_old_pkgs(
-            image_name=image_name,
-            image_digest=old_image_details["digest"],
-            docker_config_dir=docker_config_dir,
-        )
+            old_pkgs = get_old_pkgs(
+                image_name=image_name,
+                image_digest=old_image_details["digest"],
+                docker_config_dir=docker_config_dir,
+            )
         if not old_pkgs:
             log.info("No old pkgs to compare - Must scan new image")
             sys.exit(0)
