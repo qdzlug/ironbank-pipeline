@@ -127,7 +127,6 @@ def test_dockerfile_parse(monkeypatch):
     assert mock_result == MockOutput().mock_data
 
 
-
 def test_dockerfile_remove_non_from_statements():
     log.info("Test non from statements are filtered from tuple")
     mock_cmds = ["ENV abc", "ENTRYPOINT NONE", "ARG TEST", "RUN dnf install -y example"]
