@@ -441,13 +441,14 @@ def open_urls(config: Config) -> None:
         if project != config.projects[-1]:
             driver.switch_to.new_window()
 
+
 def generate_config_file(config_file: str) -> dict:
     """
     Generate config.yaml or secrets.yaml using the appropriate
     """
     return_args = {}
     # open example yaml to get needed values
-    with Path(config_file+".example").open("r", encoding="utf-8") as f:
+    with Path(config_file + ".example").open("r", encoding="utf-8") as f:
         return_args = yaml.safe_load(f)
 
     # get user input for needed values
@@ -478,8 +479,8 @@ def main() -> None:
         try:
             with Path(conf).open("r", encoding="utf-8") as f:
                 config_args += [yaml.safe_load(f)]
-        except OSError as e:
-            #exception: file not found
+        except OSError:
+            # exception: file not found
             config_args += [generate_config_file(conf)]
 
     config = Config(**{k: v for sub_dict in config_args for k, v in sub_dict.items()})
