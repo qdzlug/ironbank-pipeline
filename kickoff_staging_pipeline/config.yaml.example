@@ -1,10 +1,10 @@
 # Set this for your top level group in gitlab
 # all projects will exist in this group at https://<staging_url>/dsop/<tester>
-tester: <your_name>
+tester: <replace_me>
 
-pipeline_branch: <your_pipeline_branch>
+pipeline_branch: <replace_me>
 src_gitlab_url: repo1.dso.mil
-dest_gitlab_url: <your_test_env_url>
+dest_gitlab_url: <replace_me>
 group: dsop
 clone_dir: staging_projects
 ci_file: .gitlab-ci.yml

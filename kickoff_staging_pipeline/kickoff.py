@@ -454,7 +454,8 @@ def generate_config_file(config_file: str) -> dict:
     # get user input for needed values
     print(f"\n Generating {f}. Please provide the following:")
     for key in return_args:
-        return_args[key] = input(f"{key}: ")
+        if return_args[key] == "<replace_me>":
+            return_args[key] = input(f"{key}: ")
 
     # write values to appropriate yaml file and return return_args
     with Path(config_file).open("w", encoding="utf-8") as f:
@@ -476,11 +477,12 @@ def main() -> None:
     config_files = ["config.yaml", "secrets.yaml"]
     config_args = []
     for conf in config_files:
-        try:
-            with Path(conf).open("r", encoding="utf-8") as f:
+        config_path = Path(conf)
+        if config_path.exists():
+            with config_path.open("r", encoding="utf-8") as f:
                 config_args += [yaml.safe_load(f)]
-        except OSError:
-            # exception: file not found
+        else:
+            # file not found
             config_args += [generate_config_file(conf)]
 
     config = Config(**{k: v for sub_dict in config_args for k, v in sub_dict.items()})
