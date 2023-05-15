@@ -20,6 +20,7 @@ trufflehog:
     GIT_DEPTH: 0
   script:
     - python3 -m pip install --user .
+    - 'git config --global --add safe.directory "${CI_PROJECT_DIR}"'
     - python3 stages/secret-scan/trufflehog.py
 
 shellcheck:
