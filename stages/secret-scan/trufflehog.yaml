@@ -8,5 +8,5 @@ trufflehog:
     GIT_DEPTH: 0
   script:
     - 'pip install --user --no-deps "${PIPELINE_REPO_DIR}"'
-    - git config --global --add safe.directory $CI_PROJECT_DIR
+    - 'git config --global --add safe.directory "${CI_PROJECT_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/secret-scan/trufflehog.py"'
