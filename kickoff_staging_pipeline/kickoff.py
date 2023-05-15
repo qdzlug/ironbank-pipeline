@@ -444,15 +444,16 @@ def open_urls(config: Config) -> None:
 
 def generate_config_file(config_file: str) -> dict:
     """
-    Generate config.yaml or secrets.yaml using the appropriate
+    Generate config.yaml or secrets.yaml using the appropriate values from
+    the respective example yaml file
     """
     return_args = {}
     # open example yaml to get needed values
-    with Path(config_file + ".example").open("r", encoding="utf-8") as f:
+    with Path(f"{config_file}.example").open("r", encoding="utf-8") as f:
         return_args = yaml.safe_load(f)
 
-    # get user input for needed values
-    print(f"\n Generating {f}. Please provide the following:")
+    # get user input for keys that need their value replaced
+    print(f"\nGenerating {config_file}. Please provide the following:")
     for key in return_args:
         if return_args[key] == "<replace_me>":
             return_args[key] = input(f"{key}: ")
@@ -482,7 +483,6 @@ def main() -> None:
             with config_path.open("r", encoding="utf-8") as f:
                 config_args += [yaml.safe_load(f)]
         else:
-            # file not found
             config_args += [generate_config_file(conf)]
 
     config = Config(**{k: v for sub_dict in config_args for k, v in sub_dict.items()})
