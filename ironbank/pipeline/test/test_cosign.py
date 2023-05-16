@@ -226,13 +226,35 @@ def test_cosign_verify(caplog, monkeypatch):
     mock_pubkey = MockPath("/fake/fake.pub")
 
     monkeypatch.setattr(subprocess, "run", mock_subprocess_fail)
-    Cosign.verify(image=mock_image, pubkey=mock_pubkey)
+    Cosign.verify(
+        image=mock_image,
+        docker_config_dir=MockPath("."),
+        use_key=True,
+        pubkey=mock_pubkey,
+    )
     assert "Failed to verify %s", str(mock_image) in caplog.text
     caplog.clear()
 
     log.info("Test successful download")
     monkeypatch.setattr(subprocess, "run", mock_subprocess_run)
 
-    Cosign.verify(image=mock_image, pubkey=mock_pubkey)
+    Cosign.verify(
+        image=mock_image,
+        docker_config_dir=MockPath("."),
+        use_key=True,
+        pubkey=mock_pubkey,
+    )
+    assert f"{str(mock_image)} Verified" in caplog.text
+    caplog.clear()
+
+    log.info("Test successful download using certs")
+
+    Cosign.verify(
+        image=mock_image,
+        docker_config_dir=MockPath("."),
+        use_key=False,
+        pubkey=mock_pubkey,
+        log_cmd=True,
+    )
     assert f"{str(mock_image)} Verified" in caplog.text
     caplog.clear()

@@ -4,6 +4,7 @@ import sys
 import json
 import time
 import shutil
+import tempfile
 import datetime
 import subprocess
 from pathlib import Path
@@ -194,14 +195,22 @@ def main():
         base_registry=base_registry,
     )
 
-    log.info("Verifying parent image signature")
     if hardening_manifest.base_image_name:
+        log.info("Verifying parent image signature")
         parent_image = Image(
             registry=base_registry,
             name=hardening_manifest.base_image_name,
             tag=hardening_manifest.base_image_tag,
         )
-        Cosign.verify(parent_image)
+        with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
+            shutil.copy(
+                prod_auth_path,
+                Path(docker_config_dir, "config.json"),
+            )
+            # TODO: Find a workaround for getting Cosign Verify passing with no network
+            if not Cosign.verify(image=parent_image, docker_config_dir=docker_config_dir, use_key=False, log_cmd=True):
+                log.debug("Failed to verify parent image signature")
+                log.debug("Cosign is unable to initialize properly without network access")
 
     ib_labels = {
         "maintainer": "ironbank@dsop.io",
