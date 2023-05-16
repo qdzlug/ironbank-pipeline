@@ -286,7 +286,6 @@ class Anchore:
                 stderr=subprocess.STDOUT,
                 encoding="utf-8",
             ) as image_wait:
-
                 while image_wait.poll() is None:
                     line = image_wait.stdout.readline().strip()
                     if line:

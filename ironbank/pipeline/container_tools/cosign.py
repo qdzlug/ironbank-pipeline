@@ -158,7 +158,6 @@ class Cosign(ContainerTool):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             env=env,
-
         ) as proc:
             # Check if child process has terminated and no data piped to stdout
             for line in iter(proc.stdout.readline, ""):
