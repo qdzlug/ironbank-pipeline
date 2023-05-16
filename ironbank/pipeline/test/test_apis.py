@@ -36,7 +36,7 @@ def test_get_image(monkeypatch, caplog, mock_vat_api, mock_responses):  # noqa W
 @mock.patch.dict(
     os.environ,
     {
-        "CI_JOB_JWT_V2": "abcdefg",
+        "VAT_TOKEN": "abcdefg",
         "CI_PROJECT_NAME": "example/example/example",
         "CI_PROJECT_URL": "https://example.invalid",
     },

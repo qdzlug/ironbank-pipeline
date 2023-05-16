@@ -66,7 +66,7 @@ class VatAPI(API):
             params={"name": image_name, "createRequest": create_request},
             headers={
                 "Content-Type": "application/json",
-                "Authorization": f"Bearer {os.environ['CI_JOB_JWT_V2']}",
+                "Authorization": f"Bearer {os.environ['VAT_TOKEN']}",
             },
         )
         self.response.raise_for_status()

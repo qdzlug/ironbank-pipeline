@@ -55,7 +55,7 @@ def test_post_artifact_data_vat(monkeypatch, mock_responses):
     mock_license_path: str = "test_license"
     mock_published_timestamp: str = "time"
     monkeypatch.setenv("VAT_BACKEND_URL", "test_serv_address")
-    monkeypatch.setenv("CI_JOB_JWT_V2", "test_serv_address")
+    monkeypatch.setenv("VAT_TOKEN", "test_serv_address")
     monkeypatch.setenv("IMAGE_NAME", "test_img_name")
     monkeypatch.setenv("IMAGE_VERSION", "test_img_ver")
     monkeypatch.setattr(requests, "post", mock_responses["200"])
