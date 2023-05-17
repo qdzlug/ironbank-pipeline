@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 import requests
-import os
 
 from .utils import logger
 from .utils.decorators import vat_request_error_handler
