@@ -58,7 +58,7 @@ class VatAPI(API):
         return self.response.json() if self.response.status_code == 200 else None
 
     @vat_request_error_handler
-    def check_access(self, image_name, create_request=False) -> None:
+    def check_access(self, image_name, auth, create_request=False) -> None:
         self.log.info(f"Checking access to {image_name}")
         self.log.info(f"{self.url}{self.import_access_route}/?name={image_name}")
         self.response = requests.get(
@@ -66,7 +66,7 @@ class VatAPI(API):
             params={"name": image_name, "createRequest": create_request},
             headers={
                 "Content-Type": "application/json",
-                "Authorization": f"Bearer {os.environ['CI_JOB_JWT_V2']}",
+                "Authorization": f"Bearer {auth}",
             },
         )
         self.response.raise_for_status()
