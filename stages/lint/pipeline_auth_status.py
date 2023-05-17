@@ -16,11 +16,10 @@ async def main() -> None:
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     vat_api = VatAPI(url=os.environ["VAT_BACKEND_URL"])
-    vat_token = os.environ["VAT_TOKEN"]
 
     vat_api.check_access(
         image_name=hardening_manifest.image_name,
-        auth=vat_token,
+        auth=os.environ["VAT_TOKEN"],
         create_request=True,
     )
 
