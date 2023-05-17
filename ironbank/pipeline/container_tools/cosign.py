@@ -153,10 +153,10 @@ class Cosign(ContainerTool):
             cwd=output_dir,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            env = {
-            "PATH": os.environ["PATH"],
-            "DOCKER_CONFIG": docker_config_dir,
-        }
+            env={
+                "PATH": os.environ["PATH"],
+                "DOCKER_CONFIG": docker_config_dir,
+            }
 
         ) as proc:
             # Check if child process has terminated and no data piped to stdout
