@@ -147,17 +147,17 @@ class Cosign(ContainerTool):
         if log_cmd:
             cls.log.info(cmd)
 
-        env = {
-            "PATH": os.environ["PATH"],
-            "DOCKER_CONFIG": docker_config_dir,
-        }
         with subprocess.Popen(
             cmd,
             encoding="utf-8",
             cwd=output_dir,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            env=env,
+            env = {
+            "PATH": os.environ["PATH"],
+            "DOCKER_CONFIG": docker_config_dir,
+        }
+
         ) as proc:
             # Check if child process has terminated and no data piped to stdout
             for line in iter(proc.stdout.readline, ""):
