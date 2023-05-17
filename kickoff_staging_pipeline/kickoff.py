@@ -442,6 +442,27 @@ def open_urls(config: Config) -> None:
             driver.switch_to.new_window()
 
 
+def generate_config_file(config_file: str) -> dict:
+    """
+    Generate config.yaml or secrets.yaml using the appropriate values from
+    the respective example yaml file
+    """
+    # open example yaml to get needed values
+    with Path(f"{config_file}.example").open("r", encoding="utf-8") as f:
+        return_args = yaml.safe_load(f)
+
+    # get user input for keys that need their value replaced
+    print(f"\nGenerating {config_file}. Please provide the following:")
+    for key in return_args:
+        if return_args[key] == "<replace_me>":
+            return_args[key] = input(f"{key}: ")
+
+    # write values to appropriate yaml file and return return_args
+    with Path(config_file).open("w", encoding="utf-8") as f:
+        yaml.safe_dump(return_args, f)
+    return return_args
+
+
 def main() -> None:
     """
     Main function
@@ -456,8 +477,12 @@ def main() -> None:
     config_files = ["config.yaml", "secrets.yaml"]
     config_args = []
     for conf in config_files:
-        with Path(conf).open("r", encoding="utf-8") as f:
-            config_args += [yaml.safe_load(f)]
+        config_path = Path(conf)
+        if config_path.exists():
+            with config_path.open("r", encoding="utf-8") as f:
+                config_args += [yaml.safe_load(f)]
+        else:
+            config_args += [generate_config_file(conf)]
 
     config = Config(**{k: v for sub_dict in config_args for k, v in sub_dict.items()})
 
