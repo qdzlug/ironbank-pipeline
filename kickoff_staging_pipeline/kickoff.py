@@ -447,7 +447,6 @@ def generate_config_file(config_file: str) -> dict:
     Generate config.yaml or secrets.yaml using the appropriate values from
     the respective example yaml file
     """
-    return_args = {}
     # open example yaml to get needed values
     with Path(f"{config_file}.example").open("r", encoding="utf-8") as f:
         return_args = yaml.safe_load(f)
