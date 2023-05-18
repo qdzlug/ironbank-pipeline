@@ -146,7 +146,8 @@ class Cosign(ContainerTool):
         ]
         if log_cmd:
             cls.log.info(cmd)
-        proc = subprocess.Popen(
+
+        with subprocess.Popen(
             cmd,
             encoding="utf-8",
             cwd=output_dir,
@@ -155,26 +156,26 @@ class Cosign(ContainerTool):
             env={
                 "PATH": os.environ["PATH"],
                 "DOCKER_CONFIG": docker_config_dir,
-            },
-        )
-        # Check if child process has terminated and no data piped to stdout
+            }
 
-        for line in iter(proc.stdout.readline, ""):
-            payload = json.loads(line)["payload"]
-            predicate = json.loads(base64.b64decode(payload))
+        ) as proc:
+            # Check if child process has terminated and no data piped to stdout
+            for line in iter(proc.stdout.readline, ""):
+                payload = json.loads(line)["payload"]
+                predicate = json.loads(base64.b64decode(payload))
 
-            # payload can take up a lot of memory, delete after decoding and converting to dict object
-            del payload
+                # payload can take up a lot of memory, delete after decoding and converting to dict object
+                del payload
 
-            # Write predicates to their respective files
-            for predicate_type in predicate_types:
-                if predicate["predicateType"] == predicate_type:
-                    with Path(output_dir, predicate_files[predicate_type]).open(
-                        "w+"
-                    ) as f:
-                        json.dump(predicate["predicate"], f, indent=4)
-        if proc.poll() != 0:
-            raise subprocess.CalledProcessError(proc.returncode, cmd)
+                # Write predicates to their respective files
+                for predicate_type in predicate_types:
+                    if predicate["predicateType"] == predicate_type:
+                        with Path(output_dir, predicate_files[predicate_type]).open(
+                            "w+"
+                        ) as f:
+                            json.dump(predicate["predicate"], f, indent=4)
+            if proc.poll() != 0:
+                raise subprocess.CalledProcessError(proc.returncode, cmd)
 
     @classmethod
     @subprocess_error_handler("Cosign.verify failed")

@@ -280,18 +280,17 @@ class Anchore:
         try:
             os.environ["PYTHONUNBUFFERED"] = "1"
             logging.info(f"{' '.join(wait_cmd[0:2])} {' '.join(wait_cmd[4:])}")
-            image_wait = subprocess.Popen(
+            with subprocess.Popen(
                 wait_cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 encoding="utf-8",
-            )
-
-            while image_wait.poll() is None:
-                line = image_wait.stdout.readline().strip()
-                if line:
-                    logging.info(line)
-            os.environ["PYTHONUNBUFFERED"] = "0"
+            ) as image_wait:
+                while image_wait.poll() is None:
+                    line = image_wait.stdout.readline().strip()
+                    if line:
+                        logging.info(line)
+                os.environ["PYTHONUNBUFFERED"] = "0"
 
         except subprocess.SubprocessError:
             logging.error("Failed while waiting for Anchore to scan image")
