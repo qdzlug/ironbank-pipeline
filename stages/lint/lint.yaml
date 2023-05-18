@@ -2,6 +2,9 @@ lint:
   stage: lint
   needs:
     - load-scripts
+  id_tokens:
+    VAT_TOKEN:
+      aud: ${CI_SERVER_URL}
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/lint"
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: vat

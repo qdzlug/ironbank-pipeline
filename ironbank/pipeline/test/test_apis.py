@@ -36,19 +36,18 @@ def test_get_image(monkeypatch, caplog, mock_vat_api, mock_responses):  # noqa W
 @mock.patch.dict(
     os.environ,
     {
-        "CI_JOB_JWT_V2": "abcdefg",
         "CI_PROJECT_NAME": "example/example/example",
         "CI_PROJECT_URL": "https://example.invalid",
     },
 )
 def test_check_access(monkeypatch, caplog, mock_vat_api, mock_responses):  # noqa W0404
     monkeypatch.setattr(requests, "get", mock_responses["200"])
-    mock_vat_api.check_access("example/example/example")
+    mock_vat_api.check_access("example/example/example", "example_auth")
     for record in caplog.records:
         assert record.levelname != "WARNING"
     caplog.clear()
 
     monkeypatch.setattr(requests, "get", mock_responses["403"])
-    mock_vat_api.check_access("example/example/example")
+    mock_vat_api.check_access("example/example/example", "example_auth")
     assert "is not authorized to use the image name of:" in caplog.text
     caplog.clear()

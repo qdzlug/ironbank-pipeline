@@ -12,6 +12,9 @@
     expire_in: 1 week
 
 anchore-scan:
+  id_tokens:
+    ANCHORE_PASSWORD:
+      aud: ${CI_SERVER_URL}
   extends: .scanning
   image: "registry1.dso.mil/ironbank/anchore/enterprise/enterprise:4.4.1"
   script:
@@ -34,6 +37,9 @@ openscap-compliance:
       dotenv: oscap-compliance.env
 
 twistlock-scan:
+  id_tokens:
+    TWISTLOCK_PASSWORD:
+      aud: ${CI_SERVER_URL}
   extends: .scanning
   image: registry1.dso.mil/ironbank-apps/rootless-twistcli:22.12.415
   variables:

@@ -3,6 +3,9 @@ upload-to-s3:
   resource_group: s3_phase
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
+  id_tokens:
+    VAT_TOKEN:
+      aud: ${CI_SERVER_URL}
   variables:
     #TODO: Put these in globals
     SCAN_DIRECTORY: "${ARTIFACT_STORAGE}/scan-results"

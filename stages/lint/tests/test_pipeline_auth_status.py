@@ -28,7 +28,7 @@ def test_pipeline_auth_status_main(monkeypatch, caplog):
         self.response = MockResponse()
 
     monkeypatch.setenv("VAT_BACKEND_URL", "")
-    monkeypatch.setenv("CI_JOB_JWT_V2", "http://vat-local.abcdefg")
+    monkeypatch.setenv("VAT_TOKEN", "http://vat-local.abcdefg")
     monkeypatch.setattr(MockVatAPI, "check_access", mock_check_access_bad)
     with pytest.raises(SystemExit) as se:
         asyncio.run(pipeline_auth_status.main())
@@ -41,7 +41,7 @@ def test_pipeline_auth_status_main(monkeypatch, caplog):
         self.response = MockGoodResponse()
 
     monkeypatch.setenv("VAT_BACKEND_URL", "http://vat-local.example")
-    monkeypatch.setenv("CI_JOB_JWT_V2", "http://vat-local.abcdefg")
+    monkeypatch.setenv("VAT_TOKEN", "http://vat-local.abcdefg")
     monkeypatch.setattr(MockVatAPI, "check_access", mock_check_access_good)
 
     asyncio.run(pipeline_auth_status.main())
