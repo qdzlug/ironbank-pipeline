@@ -57,12 +57,19 @@ shellcheck:
       exit "$ret"
 
 black:
-  image: registry1.dso.mil/ironbank/opensource/python:v3.11.3
   extends: .base
   stage: format
   script:
     - pip install --user black
     - black --check --diff --color -t py311 -- **/*.py
+
+docformatter:
+  extends: .baes
+  stage: format
+  script:
+    - pip install --user docformatter
+    - docformatter --check --diff -r stages
+    - docformatter --check --diff -r ironbank
 
 pylama:
   extends: .base
@@ -114,7 +121,9 @@ shfmt:
     - "./shfmt_v3.1.2_linux_amd64 -d ."
 
 unit-testing:
-  extends: .base
+  needs:
+    - job: .base
+      artifacts: false
   stage: test
   script:
     - python3 -m pip install --user pytest-cov
