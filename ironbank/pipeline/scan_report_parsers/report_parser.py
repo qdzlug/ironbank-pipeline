@@ -19,29 +19,22 @@ class AbstractFinding(ABC):
 
     @property
     def finding(self) -> str:
-        """
-        Read only alias for identifier
-        """
+        """Read only alias for identifier."""
         return self.identifier
 
     @property
     def packagePath(self) -> str | None:  # pylint: disable=invalid-name
-        """
-        Read only alias for package_path
-        """
+        """Read only alias for package_path."""
         return self.package_path
 
     @property
     def scanSource(self) -> str:  # pylint: disable=invalid-name
-        """
-        Read only alias for scan_source
-        """
+        """Read only alias for scan_source."""
         return self.scan_source
 
     def as_dict(self) -> dict[str, Any]:
-        """
-        Return dictionary representation of object including attributes and properties
-        """
+        """Return dictionary representation of object including attributes and
+        properties."""
         return {
             **self.__dict__,
             "finding": self.finding,
@@ -50,10 +43,8 @@ class AbstractFinding(ABC):
         }
 
     def get_dict_from_fieldnames(self, fieldnames: list[str]) -> dict[str, Any]:
-        """
-        Return dictionary of all attributes matching input fieldnames
-        Sort order for keys in dictionary match order of fieldnames
-        """
+        """Return dictionary of all attributes matching input fieldnames Sort
+        order for keys in dictionary match order of fieldnames."""
         # using OrderedDict so the keys are ordered in the same way the fieldnames are ordered
         finding_dict = OrderedDict({k: None for k in fieldnames})
         for key, value in self.as_dict().items():
@@ -72,18 +63,14 @@ class AbstractFinding(ABC):
 
 @dataclass
 class ReportParser(ABC):
-    """
-    Base class for scan report parsing
-    Provides generic helper methods for writing out results, deduping findings, etc.
-    """
+    """Base class for scan report parsing Provides generic helper methods for
+    writing out results, deduping findings, etc."""
 
     @classmethod
     def dedupe_findings_by_attr(
         cls, findings: list[AbstractFinding], attribute: str
     ) -> list[AbstractFinding]:
-        """
-        Remove duplicate findings from list by finding attribute
-        """
+        """Remove duplicate findings from list by finding attribute."""
         unique_findings = {}
         for finding in findings:
             if not (attr_val := getattr(finding, attribute)) in unique_findings:
@@ -94,8 +81,9 @@ class ReportParser(ABC):
     def write_csv_from_dict_list(
         cls, csv_dir: Path, dict_list: list[dict], fieldnames: list, filename: str
     ) -> None:
-        """
-        Create csv file based off prepared data. The data must be provided as a list of dictionaries.
+        """Create csv file based off prepared data.
+
+        The data must be provided as a list of dictionaries.
         """
         filepath = Path(csv_dir, filename)
         filepath.parent.mkdir(parents=True, exist_ok=True)

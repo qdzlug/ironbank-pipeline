@@ -24,9 +24,8 @@ log = logger.setup("upload_to_harbor")
 
 @subprocess_error_handler("Failed to retrieve manifest for staged image")
 def compare_digests(image: Image) -> None:
-    """
-    Pull down image manifest to compare digest to digest from build environment
-    """
+    """Pull down image manifest to compare digest to digest from build
+    environment."""
 
     log.info("Pulling manifest_file with skopeo")
     skopeo = Skopeo(Path(os.environ["DOCKER_AUTH_FILE_PRE_PUBLISH"]))
@@ -52,10 +51,8 @@ def compare_digests(image: Image) -> None:
 def promote_tags(
     staging_image: Image, production_image: Image, tags: list[str]
 ) -> None:
-    """
-    Promote image from staging project to production project,
-    tagging it according the the tags defined in tags.txt
-    """
+    """Promote image from staging project to production project, tagging it
+    according the the tags defined in tags.txt."""
 
     for tag in tags:
         production_image = production_image.from_image(tag=tag)
@@ -87,9 +84,8 @@ def _convert_artifacts_to_hardening_manifest(
 
 
 def _generate_vat_response_lineage_file():
-    """
-    Generates a VAT response lineage using *this* pipeline run's VAT response and the VAT response attestation from the parent image
-    """
+    """Generates a VAT response lineage using *this* pipeline run's VAT
+    response and the VAT response attestation from the parent image."""
     # Load VAT response for this pipeline run, convert to list
     with Path(os.environ["VAT_RESPONSE"]).open("r", encoding="utf-8") as f:
         pipeline_vat_response = json.load(f)
@@ -114,9 +110,8 @@ def _generate_vat_response_lineage_file():
 
 
 def generate_attestation_predicates(predicates):
-    """
-    Generates a list of predicates to be attached to the image as Cosign Attestations
-    """
+    """Generates a list of predicates to be attached to the image as Cosign
+    Attestations."""
     hm_resources = [
         Path(os.environ["CI_PROJECT_DIR"], "LICENSE"),
         Path(os.environ["CI_PROJECT_DIR"], "README.md"),

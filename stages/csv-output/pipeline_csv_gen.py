@@ -100,9 +100,7 @@ def generate_summary_report(
     image_id: str,
     csv_output_dir: Path,
 ) -> None:
-    """
-    Creates a summary CSV with the finding totals from each scan
-    """
+    """Creates a summary CSV with the finding totals from each scan."""
     with Path(csv_output_dir, "summary.csv").open(mode="w", encoding="utf-8") as f:
         csv_writer = csv.writer(f)
 
@@ -159,10 +157,7 @@ def generate_summary_report(
 def generate_anchore_cve_report(
     report_path: Path, csv_output_dir: Path, justifications: dict
 ) -> int:
-    """
-    Generate the anchore vulnerability report
-
-    """
+    """Generate the anchore vulnerability report."""
 
     findings = AnchoreReportParser.get_findings(report_path=report_path)
 
@@ -207,10 +202,8 @@ def generate_anchore_cve_report(
 def generate_anchore_compliance_report(
     report_path: Path, csv_output_dir: Path, justifications: dict
 ) -> tuple[int, str]:
-    """
-    Get results of Anchore gates for csv export, becomes anchore compliance spreadsheet
-
-    """
+    """Get results of Anchore gates for csv export, becomes anchore compliance
+    spreadsheet."""
     with Path(report_path).open(encoding="utf-8") as f:
         json_data = json.load(f)
         sha = list(json_data.keys())[0]
@@ -285,9 +278,7 @@ def generate_anchore_compliance_report(
 def generate_twistlock_cve_report(
     report_path: Path, csv_output_dir: Path, justifications: dict
 ) -> int:
-    """
-    Get results from Twistlock report for csv export
-    """
+    """Get results from Twistlock report for csv export."""
     with Path(report_path).open(mode="r", encoding="utf-8") as f:
         json_data = json.load(f)
         cves = []
@@ -349,10 +340,8 @@ def generate_twistlock_cve_report(
 def generate_oscap_compliance_report(
     report_path: Path, csv_output_dir: Path, justifications: dict
 ) -> tuple[int, int]:
-    """
-    Generate csv for OSCAP findings with justifications
-    Calls the get_oscap_full function to first parse the OSCAP XML report.
-    """
+    """Generate csv for OSCAP findings with justifications Calls the
+    get_oscap_full function to first parse the OSCAP XML report."""
     findings = OscapReportParser.get_findings(report_path, results_filter=None)
     fieldnames = [
         "title",
@@ -397,9 +386,8 @@ def generate_oscap_compliance_report(
 
 
 def generate_blank_oscap_report(csv_output_dir: Path) -> None:
-    """
-    Creates an empty oscap report, used when the OpenSCAP scan was skipped.
-    """
+    """Creates an empty oscap report, used when the OpenSCAP scan was
+    skipped."""
     with Path(
         csv_output_dir,
         "oscap.csv",

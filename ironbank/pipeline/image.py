@@ -13,8 +13,7 @@ class MissingNameAndUrlError(Exception):
 
 @dataclass
 class Image:
-    """
-    The Image Dataclass contains commonly used image attributes
+    """The Image Dataclass contains commonly used image attributes.
 
     Either name and tag/digest must be provided or url
     """

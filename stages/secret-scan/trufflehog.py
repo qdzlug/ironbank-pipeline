@@ -15,12 +15,10 @@ log = logger.setup(name="lint.trufflehog")
 
 
 def get_commit_diff(repo_dir: str, diff_branch: str) -> str:
-    """
-    Uses gitpython to get a list of commit shasums of feature branch
-    commits that don't exist in development, or for commits in
-    development that aren't in master when CI_COMMIT_BRANCH is development
-    Returns a string of commit SHAs separated by newline characters
-    """
+    """Uses gitpython to get a list of commit shasums of feature branch commits
+    that don't exist in development, or for commits in development that aren't
+    in master when CI_COMMIT_BRANCH is development Returns a string of commit
+    SHAs separated by newline characters."""
     # fetch origin before performing a git log
     repo = git.Repo(repo_dir)
     commits = repo.git.rev_list(
@@ -32,12 +30,9 @@ def get_commit_diff(repo_dir: str, diff_branch: str) -> str:
 
 
 def get_history_cmd(commits: str) -> list[str]:
-    """
-    Splits a string of newline separated commit SHAs
-    Returns a list of truffleHog3 flags
-        [--since, the oldest sha in the commits list]
-        if list is empty [--no-history]
-    """
+    """Splits a string of newline separated commit SHAs Returns a list of
+    truffleHog3 flags [--since, the oldest sha in the commits list] if list is
+    empty [--no-history]"""
     commit_lst = commits.split("\n")
     for commit in commit_lst:
         log.info(commit)
@@ -47,9 +42,8 @@ def get_history_cmd(commits: str) -> list[str]:
 
 
 def get_config(config_file: Path, expand_vars: bool = False) -> list:
-    """
-    Loads a trufflehog config yaml file and pulls out the skip_strings and skip_paths values
-    """
+    """Loads a trufflehog config yaml file and pulls out the skip_strings and
+    skip_paths values."""
     exclude_list = []
     if config_file.is_file():
         log.debug("Config file found")
@@ -71,11 +65,12 @@ def create_trufflehog_config(
     repo_dir: str,
     config_variable: Optional[str] = None,
 ) -> bool:
-    """
-    Loads the default trufflehog config and if a project config exists loads that as well.
-    Then concatonates the default and project configs and writes these to a file.
-    Returns a boolean.
-        True if the config variable exists and a config file is found
+    """Loads the default trufflehog config and if a project config exists loads
+    that as well.
+
+    Then concatonates the default and project configs and writes these
+    to a file. Returns a boolean.     True if the config variable exists
+    and a config file is found
     """
     default_exclude_list = get_config(default_config_path, True)
     project_exclude_list = get_config(project_config_path) if config_variable else []

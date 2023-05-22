@@ -11,7 +11,7 @@ log = logger.setup(name="lint.metadata")
 
 
 def main():
-    """Validate hardening manifest"""
+    """Validate hardening manifest."""
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(
         dsop_project.hardening_manifest_path,

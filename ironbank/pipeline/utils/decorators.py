@@ -13,9 +13,8 @@ log: Logger = logger.setup(name="Exception")
 
 
 def request_retry(retry_count):
-    """
-    Decorator for retrying a function running a requests or subprocess call
-    """
+    """Decorator for retrying a function running a requests or subprocess
+    call."""
 
     def decorate(func):
         # args and kwargs are passed to allow this decorator to work on any method

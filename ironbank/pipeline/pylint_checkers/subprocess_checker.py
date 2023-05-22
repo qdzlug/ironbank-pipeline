@@ -10,13 +10,15 @@ if TYPE_CHECKING:
 
 def register(linter: "PyLinter") -> None:
     """This required method auto registers the checker during initialization.
+
     :param linter: The linter to register the checker to.
     """
     linter.register_checker(SubprocessChecker(linter))
 
 
 class SubprocessChecker(BaseChecker):
-    """Checker for finding functions that use subprocess and don't include the subprocess_error_handler decorator"""
+    """Checker for finding functions that use subprocess and don't include the
+    subprocess_error_handler decorator."""
 
     name: str = "subprocess-decorator"
     msgs: dict[str, tuple] = {
@@ -163,7 +165,8 @@ class SubprocessChecker(BaseChecker):
                 self.add_message("using-popen-without-with", node=node)
 
     def check_subproc_dec_issues(self) -> None:
-        """Logic for finding if subprocess was used in the function and whether the decorator was added"""
+        """Logic for finding if subprocess was used in the function and whether
+        the decorator was added."""
         func_def = self.get_func_def()
         if (
             func_def

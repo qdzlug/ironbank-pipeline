@@ -35,9 +35,8 @@ def write_env_vars(
 
 
 def parse_packages(sbom: Path | dict, access_log: Path | list[str]) -> list[Package]:
-    """
-    Verify sbom and access log files exist and parse packages accordingly
-    """
+    """Verify sbom and access log files exist and parse packages
+    accordingly."""
     # Pipeline should fail if sbom does not exist (exception not caught)
     pkgs = set(SbomFileParser.parse(sbom))
 
@@ -57,9 +56,8 @@ def parse_packages(sbom: Path | dict, access_log: Path | list[str]) -> list[Pack
 
 
 def download_artifacts(image: Image, output_dir: Path, docker_config_dir: Path) -> bool:
-    """
-    Download cosign attestation and save predicates for sbom & hardening manifest to files
-    """
+    """Download cosign attestation and save predicates for sbom & hardening
+    manifest to files."""
     try:
         log.info(f"Downloading artifacts for image: {image}")
         # Download syft sbom (json) & hardening manifest (json)
@@ -83,9 +81,7 @@ def download_artifacts(image: Image, output_dir: Path, docker_config_dir: Path) 
 def get_old_pkgs(
     image_name: str, image_digest: str, docker_config_dir: Path
 ) -> list[Package]:
-    """
-    Return list of packages parsed from old image sbom & access log
-    """
+    """Return list of packages parsed from old image sbom & access log."""
     old_img = Image(
         registry=os.environ["REGISTRY_PUBLISH_URL"],
         name=image_name,

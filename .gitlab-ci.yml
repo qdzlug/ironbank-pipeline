@@ -68,8 +68,7 @@ docformatter:
   stage: format
   script:
     - pip install --user docformatter
-    - docformatter --check --diff -r stages
-    - docformatter --check --diff -r ironbank
+    - docformatter --check --diff -r stages ironbank
 
 pylama:
   extends: .base

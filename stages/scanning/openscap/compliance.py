@@ -7,7 +7,7 @@ import logging
 
 
 def get_oscap_guide(scap_version, image_type):
-    """Returns the SCAP profile to be used on an image"""
+    """Returns the SCAP profile to be used on an image."""
     logging.debug("Retrieving Oscap Guide")
     logging.debug("Oscap Version: %s, Base Image Type: %s", scap_version, image_type)
 

@@ -144,11 +144,11 @@ parser.add_argument(
 def generate_anchore_cve_findings(
     report_path: Path, vat_finding_fields: list[str]
 ) -> list[dict[str, Any]]:
-    """
-    From an anchore cve finding report, generate findings and use list of findings and their metadata to generate list of dictionaries
+    """From an anchore cve finding report, generate findings and use list of
+    findings and their metadata to generate list of dictionaries.
 
-    sorted_fix and fix_version_re needed for sorting fix string
-    in case of duplicate cves with different sorts for the list of fix versions
+    sorted_fix and fix_version_re needed for sorting fix string in case
+    of duplicate cves with different sorts for the list of fix versions
     """
 
     findings = AnchoreReportParser.get_findings(report_path=Path(report_path))
@@ -170,9 +170,8 @@ def generate_anchore_cve_findings(
 def generate_oscap_findings(
     report_path: Path, vat_finding_fields: list[str]
 ) -> list[dict[str, Any]]:
-    """
-    From an oscap comp finding report, generate findings and use list of findings and their metadata to generate list of dictionaries
-    """
+    """From an oscap comp finding report, generate findings and use list of
+    findings and their metadata to generate list of dictionaries."""
     return [
         finding.get_dict_from_fieldnames(vat_finding_fields)
         for finding in OscapReportParser.get_findings(report_path=Path(report_path))
@@ -180,9 +179,8 @@ def generate_oscap_findings(
 
 
 def generate_anchore_comp_findings(anchore_comp_path: Path) -> list[dict[str, Any]]:
-    """
-    From an anchore comp finding report, generate findings and use list of findings and their metadata to generate list of dictionaries
-    """
+    """From an anchore comp finding report, generate findings and use list of
+    findings and their metadata to generate list of dictionaries."""
     ac_path = Path(anchore_comp_path)
     with ac_path.open(mode="r", encoding="utf-8") as f:
         json_data = json.load(f)
@@ -242,9 +240,8 @@ def generate_anchore_comp_findings(anchore_comp_path: Path) -> list[dict[str, An
 
 
 def get_twistlock_package_paths(twistlock_data: dict[str, Any]) -> dict:
-    """
-    Return a dict of (package_name, package_path) mapped to a list of paths.
-    """
+    """Return a dict of (package_name, package_path) mapped to a list of
+    paths."""
 
     def packages() -> Generator[Any, None, None]:
         # Often go versions of binaries are in "applications"
@@ -269,9 +266,8 @@ def get_twistlock_package_paths(twistlock_data: dict[str, Any]) -> dict:
 
 # Get results from Twistlock report for finding generation
 def generate_twistlock_findings(twistlock_cve_path: Path) -> list[dict[str, Any]]:
-    """
-    From an twistlock cve finding report, generate findings and use list of findings and their metadata to generate list of dictionaries
-    """
+    """From an twistlock cve finding report, generate findings and use list of
+    findings and their metadata to generate list of dictionaries."""
     twistlock_data = json.loads(Path(twistlock_cve_path).read_text(encoding="utf-8"))[
         "results"
     ][0]

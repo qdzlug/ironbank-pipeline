@@ -20,10 +20,8 @@ log: logging.Logger = logger.setup("vat_artifact_post")
 
 
 def copy_path(src: Path, dest: Path) -> None:
-    """
-    Copy source dir or file to destination
-    If dir endswith a '/', copy content in directory but not the directory itself
-    """
+    """Copy source dir or file to destination If dir endswith a '/', copy
+    content in directory but not the directory itself."""
     # Path traversal not safe in this function
     assert ".." not in src.as_posix(), "Path traversal not safe in this function"
     shutil.copytree(src, dest, dirs_exist_ok=True) if src.is_dir() else shutil.copy2(
@@ -34,9 +32,8 @@ def copy_path(src: Path, dest: Path) -> None:
 def post_artifact_data_vat(
     published_timestamp: str, tar_path: str, readme_path: str, license_path: str
 ) -> requests.Response:
-    """
-    POST to VAT's artifacts endpoint to allow IBFE to start displaying the published image data
-    """
+    """POST to VAT's artifacts endpoint to allow IBFE to start displaying the
+    published image data."""
     vat_endpoint = f"{os.environ['VAT_BACKEND_URL']}/internal/import/artifacts"
     post_resp = requests.post(
         vat_endpoint,
@@ -58,10 +55,9 @@ def post_artifact_data_vat(
 
 
 def main() -> None:
-    """
-    Upload tar file to s3 and hit VAT endpoint to provide path to tar file
-    After this stage finishes, IBFE is able to display new metadata for the associated image
-    """
+    """Upload tar file to s3 and hit VAT endpoint to provide path to tar file
+    After this stage finishes, IBFE is able to display new metadata for the
+    associated image."""
     dsop_proj: DsopProject = DsopProject()
     hardening_manifest: HardeningManifest = HardeningManifest(
         dsop_proj.hardening_manifest_path

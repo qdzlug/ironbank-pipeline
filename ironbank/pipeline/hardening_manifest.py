@@ -111,9 +111,8 @@ class HardeningManifest:
             sys.exit(1)
 
     def check_for_fixme(self, subcontent: dict) -> list:
-        """
-        Returns list of keys in dictionary whose value contains FIXME (case insensitive)
-        """
+        """Returns list of keys in dictionary whose value contains FIXME (case
+        insensitive)"""
         return [
             k
             for (k, v) in subcontent.items()
@@ -121,9 +120,8 @@ class HardeningManifest:
         ]
 
     def reject_invalid_labels(self, labels: Optional[str] = None) -> list:
-        """
-        Returns list of keys in hardening manifest labels whose value contains FIXME (case insensitive)
-        """
+        """Returns list of keys in hardening manifest labels whose value
+        contains FIXME (case insensitive)"""
         log.info("Checking label values")
         invalid_labels = self.check_for_fixme(labels or self.labels)
         for k in invalid_labels:
@@ -137,9 +135,8 @@ class HardeningManifest:
                     return v
 
     def reject_invalid_image_sources(self) -> list:
-        """
-        Returns list of tags in the hardening manifest's resource list that are invalid, i.e. contain 'registry1.dso.mil'
-        """
+        """Returns list of tags in the hardening manifest's resource list that
+        are invalid, i.e. contain 'registry1.dso.mil'."""
         log.info("Checking image resource sources")
         invalid_sources = []
         for x in self.resources:
@@ -155,9 +152,8 @@ class HardeningManifest:
         return invalid_sources
 
     def reject_invalid_maintainers(self) -> list:
-        """
-        Returns list of keys in hardening manifest maintainers whose value contains FIXME (case insensitive)
-        """
+        """Returns list of keys in hardening manifest maintainers whose value
+        contains FIXME (case insensitive)"""
         log.info("Checking maintainer values")
         invalid_maintainers = []
         for maintainer in self.maintainers:
@@ -167,9 +163,8 @@ class HardeningManifest:
         return invalid_maintainers
 
     def reject_invalid_partner_advocates(self) -> list:
-        """
-        Returns list of keys in hardening manifest partner_advocates whose value contains FIXME (case insensitive)
-        """
+        """Returns list of keys in hardening manifest partner_advocates whose
+        value contains FIXME (case insensitive)"""
         log.info("Checking partner_advocate values")
         invalid_partner_advocates = []
         for partner_advocate in self.partner_advocates:
@@ -264,10 +259,10 @@ def source_values(source_file, key) -> list:
 
 
 def get_source_keys_values(source_file) -> dict:
-    """
-    Returns the labels from the hardening_manifest.yaml file as dictionary.
-    Ignore keywords since IBFE already has an implementation for gathering keywords
+    """Returns the labels from the hardening_manifest.yaml file as dictionary.
 
+    Ignore keywords since IBFE already has an implementation for
+    gathering keywords
     """
     hm_labels = {}
     if Path(source_file).exists():
