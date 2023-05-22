@@ -122,7 +122,7 @@ shfmt:
 
 unit-testing:
   needs:
-    - .base
+    - job: .base
       artifacts: false
   stage: test
   script:
