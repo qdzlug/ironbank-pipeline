@@ -122,7 +122,15 @@ shfmt:
 
 unit-testing:
   needs:
-    - job: .base
+    - job: trufflehog
+      artifacts: false
+    - job: black
+      artifacts: false
+    - job: docformatter
+      artifacts: false
+    - job: pylama
+      artifacts: false
+    - job: pylint
       artifacts: false
   stage: test
   script:
