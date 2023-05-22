@@ -64,7 +64,7 @@ black:
     - black --check --diff --color -t py311 -- **/*.py
 
 docformatter:
-  extends: .baes
+  extends: .base
   stage: format
   script:
     - pip install --user docformatter
