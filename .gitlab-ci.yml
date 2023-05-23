@@ -11,6 +11,7 @@ stages:
   tags:
     - ironbank-tools
 
+# Secret Scanning
 trufflehog:
   extends: .base
   stage: secret-scanning
@@ -23,6 +24,39 @@ trufflehog:
     - 'git config --global --add safe.directory "${CI_PROJECT_DIR}"'
     - python3 stages/secret-scan/trufflehog.py
 
+# Format
+black:
+  extends: .base
+  stage: format
+  script:
+    - pip install --user black
+    - black --check --diff --color -t py311 -- **/*.py
+
+docformatter:
+  extends: .base
+  stage: format
+  script:
+    - pip install --user docformatter
+    - docformatter --check --diff -r stages ironbank
+
+prettier:
+  extends: .base
+  stage: format
+  image: "registry1.dso.mil/ironbank/opensource/nodejs/nodejs18:18.16.0-slim"
+  script:
+    - npx prettier -c .
+
+shfmt:
+  extends: .base
+  stage: format
+  image: "registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.7"
+  script:
+    - dnf install wget -y
+    - wget https://github.com/mvdan/sh/releases/download/v3.1.2/shfmt_v3.1.2_linux_amd64
+    - chmod a+x shfmt_v3.1.2_linux_amd64
+    - "./shfmt_v3.1.2_linux_amd64 -d ."
+
+# Lint
 shellcheck:
   extends: .base
   stage: lint
@@ -56,20 +90,6 @@ shellcheck:
       done < <(find . \( -name '*.yaml' -o  -name '*.yml' ! -path './scripts/analysis/*' \) -print0)
       exit "$ret"
 
-black:
-  extends: .base
-  stage: format
-  script:
-    - pip install --user black
-    - black --check --diff --color -t py311 -- **/*.py
-
-docformatter:
-  extends: .base
-  stage: format
-  script:
-    - pip install --user docformatter
-    - docformatter --check --diff -r stages ironbank
-
 pylama:
   extends: .base
   stage: lint
@@ -78,13 +98,6 @@ pylama:
     - pip install --user pylama
     - pylama
 ## ignore line errors as black has been ran against code.
-
-prettier:
-  extends: .base
-  stage: format
-  image: "registry1.dso.mil/ironbank/opensource/nodejs/nodejs18:18.16.0-slim"
-  script:
-    - npx prettier -c .
 
 pylint:
   extends: .base
@@ -109,16 +122,8 @@ pylint:
     paths:
       - ./ironbank_1.stats
 
-shfmt:
-  extends: .base
-  stage: format
-  image: "registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.7"
-  script:
-    - dnf install wget -y
-    - wget https://github.com/mvdan/sh/releases/download/v3.1.2/shfmt_v3.1.2_linux_amd64
-    - chmod a+x shfmt_v3.1.2_linux_amd64
-    - "./shfmt_v3.1.2_linux_amd64 -d ."
 
+# Test
 unit-testing:
   needs:
     - job: trufflehog
