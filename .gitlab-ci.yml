@@ -121,7 +121,7 @@ pylint:
     key: pylint-cache
     paths:
       - ./ironbank_1.stats
-      
+
 # Test
 unit-testing:
   needs:
