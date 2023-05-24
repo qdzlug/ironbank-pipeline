@@ -6,9 +6,7 @@ log = logger.setup(name="vat_container_status")
 
 
 def log_unverified_findings(vat_response: dict) -> int:
-    """
-    Log unverified findings from vat response
-    """
+    """Log unverified findings from vat response."""
     vat_image = vat_response["image"]
     log.info(
         "VAT image %s:%s %s",
@@ -33,9 +31,7 @@ def log_unverified_findings(vat_response: dict) -> int:
 
 
 def log_findings(findings: list, log_type: str) -> None:
-    """
-    Logs findings for the Check CVE stage of the pipeline
-    """
+    """Logs findings for the Check CVE stage of the pipeline."""
     colors = {
         "bright_yellow": "\x1b[38;5;226m",
         "bright_red": "\x1b[38;5;196m",
@@ -76,13 +72,12 @@ def log_findings_header(log_level: int) -> None:
 
 
 def sort_justifications(vat_response: dict) -> tuple[dict, dict, dict, dict]:
-    """
-    Findings are sorted into dictionary whose key is the scan source of the given finding
+    """Findings are sorted into dictionary whose key is the scan source of the
+    given finding.
 
-    Returns
-        tuple of dictionaries, one for each scan source
+    Returns     tuple of dictionaries, one for each scan source
 
-        oscap, twistlock, anchore cve, anchore compliance
+    oscap, twistlock, anchore cve, anchore compliance
     """
 
     # use new scan source formats for vat report parsing

@@ -10,7 +10,7 @@ log = logger.setup(name="s3upload")
 
 
 def upload_file(file_name: str, bucket: str, object_name=None) -> None:
-    """Upload a file to an S3 bucket
+    """Upload a file to an S3 bucket.
 
     :param file_name: File to upload
     :param bucket: Bucket to upload to

@@ -15,9 +15,7 @@ from ironbank.pipeline.container_tools.container_tool import ContainerTool
 
 @dataclass
 class Cosign(ContainerTool):
-    """
-    Perform cosign operations
-    """
+    """Perform cosign operations."""
 
     log = logger.setup(name="cosign")
     cosign_cert: str = field(default_factory=lambda: os.environ["COSIGN_CERT"])
@@ -34,9 +32,7 @@ class Cosign(ContainerTool):
     def sign(
         self, image: Image | ImageFile, attachment=None, log_cmd: bool = False
     ) -> None:
-        """
-        Perform cosign image or image attachment signature
-        """
+        """Perform cosign image or image attachment signature."""
         cmd = [
             "cosign",
             "sign",
@@ -63,9 +59,7 @@ class Cosign(ContainerTool):
 
     @subprocess_error_handler(logging_message="Cosign.clean failed")
     def clean(self, image: Image | ImageFile, log_cmd: bool = False) -> None:
-        """
-        Remove existing signatures from the image.
-        """
+        """Remove existing signatures from the image."""
         cmd = [
             "cosign",
             "clean",
@@ -96,9 +90,7 @@ class Cosign(ContainerTool):
         replace: bool,
         log_cmd: bool = False,
     ) -> None:
-        """
-        Add attestation
-        """
+        """Add attestation."""
         cmd = [
             "cosign",
             "attest",

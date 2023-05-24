@@ -9,9 +9,8 @@ from ironbank.pipeline.vat_container_status import log_unverified_findings
 
 
 def main() -> None:
-    """
-    Calls log_findings_by_status method in ironbank.pipeline.vat_container_status
-    """
+    """Calls log_findings_by_status method in
+    ironbank.pipeline.vat_container_status."""
     vat_response: dict = json.loads(
         Path(f"{os.environ['ARTIFACT_STORAGE']}/vat/vat_response.json").read_text(
             encoding="utf-8"

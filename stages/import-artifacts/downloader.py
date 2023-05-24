@@ -22,7 +22,7 @@ log = logger.setup("import_artifacts")
 
 
 def main():
-    """Main function"""
+    """Main function."""
 
     # Read hardening_manifest.yaml file
     dsop_project = DsopProject()

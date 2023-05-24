@@ -90,10 +90,7 @@ def _get_column_index(sheet, value):
 
 
 def _colorize_sheet(sheet):
-    """
-    Colorize justifications column
-
-    """
+    """Colorize justifications column."""
     justification_column = _get_column_index(sheet=sheet, value="Justification")
     results_column = None
     if sheet.title == "OpenSCAP - DISA Compliance":
@@ -179,10 +176,7 @@ def convert_to_excel(csv_dir, justification_sheet):
 
 
 def _set_column_width(sheet, column_value, width, wrap=False):
-    """
-    Set column width and enable text wrap
-
-    """
+    """Set column width and enable text wrap."""
     column = _get_column_index(sheet=sheet, value=column_value)
     sheet.column_dimensions[get_column_letter(column)].width = width
     if wrap:

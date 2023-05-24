@@ -15,7 +15,7 @@ log = logger.setup("pipeline_trigger")
 
 
 def template_type(os_type: str) -> None:
-    """Writes the template type to an env file, based on the os_type var"""
+    """Writes the template type to an env file, based on the os_type var."""
     template_dict = {
         "alpine317-container": "alpine.yaml",
         "chainguard-container": "chainguard.yaml",
@@ -41,7 +41,7 @@ def template_type(os_type: str) -> None:
 
 
 def get_registry_info() -> tuple[str, str]:
-    """returns a tuple of pull auth file path and registry project"""
+    """Returns a tuple of pull auth file path and registry project."""
     return (
         (
             os.environ["DOCKER_AUTH_FILE_PRE_PUBLISH"],
@@ -56,7 +56,7 @@ def get_registry_info() -> tuple[str, str]:
 
 
 def main():
-    """image-inspect main method"""
+    """Image-inspect main method."""
     os_label = "mil.dso.ironbank.os-type"
     dsop_project = DsopProject()
     manifest = HardeningManifest(dsop_project.hardening_manifest_path)
