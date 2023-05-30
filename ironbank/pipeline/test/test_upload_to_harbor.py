@@ -1,13 +1,21 @@
 #!/usr/bin/env python3
 
+import os
+from pathlib import Path
+from unittest import mock
 import pytest
+from ironbank.pipeline.harbor import generate_attestation_predicates
 from unittest.mock import patch
 
-
-# Import the module under test
+from ironbank.pipeline.utils import logger
+from unittest.mock import patch
 from ironbank.pipeline import upload_to_harbor
+from ironbank.pipeline.test.mocks.mock_classes import MockPaginatedRequest
 
-def test_compare_digests(monkeypatch):
+log = logger.setup("test_upload_to_harbor")
+
+@patch("ironbank.pipeline.harbor.PaginatedRequest", new=MockPaginatedRequest)
+def test_compare_digests(monkeypatch: MonkeyPatch):
     # Mock the necessary environment variables
     monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "/path/to/auth_file")
     monkeypatch.setenv("IMAGE_PODMAN_SHA", "image_digest")
@@ -37,8 +45,9 @@ def test_compare_digests(monkeypatch):
     mock_info.assert_called_with("Inspecting image in registry")
     mock_error.assert_not_called()
     assert mock_info.call_count == 2
-
-def test_promote_tags(monkeypatch):
+    
+@patch("ironbank.pipeline.harbor.PaginatedRequest", new=MockPaginatedRequest)
+def test_promote_tags(monkeypatch: MonkeyPatch):
     # Mock the necessary environment variables
     monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "/path/to/auth_file")
     monkeypatch.setenv("DOCKER_AUTH_FILE_PUBLISH", "/path/to/auth_file")
@@ -67,17 +76,36 @@ def test_promote_tags(monkeypatch):
         log_cmd=True
     )
 
-def test_generate_attestation_predicates(monkeypatch, tmp_path):
-    # Mock the necessary environment variables
+@pytest.fixture
+def mock_environ(monkeypatch: MonkeyPatch):
     monkeypatch.setenv("CI_PROJECT_DIR", "/path/to/project_dir")
-    monkeypatch.setenv("SBOM_DIR", "/path/to/sbom_dir")
     monkeypatch.setenv("ACCESS_LOG_DIR", "/path/to/access_log_dir")
+    monkeypatch.setenv("SBOM_DIR", "/path/to/sbom_dir")
 
-    # Create temporary files
-    predicate_file1 = tmp_path / "predicate1.txt"
-    predicate_file1.write_text("predicate1 content")
-    predicate_file2 = tmp_path / "predicate2.txt"
-    predicate2_content = "predicate2 content"
-    predicate_file2.write_text(predicate2_content)
 
-    # Patch
+def test_generate_attestation_predicates(mock_environ: None, monkeypatch: MonkeyPatch, tmp_path: Path):
+    mock_listdir = mock.Mock(return_value=["file1.txt", "file2.txt"])
+    monkeypatch.setattr("os.listdir", mock_listdir)
+
+    predicates = mock.Mock(unattached_predicates=["file2.txt"])
+
+    mock_convert_artifacts = mock.Mock()
+    monkeypatch.setattr("your_module._convert_artifacts_to_hardening_manifest", mock_convert_artifacts)
+
+    mock_generate_vat_response_lineage = mock.Mock(return_value="vat_response_lineage_file")
+    monkeypatch.setattr("your_module._generate_vat_response_lineage_file", mock_generate_vat_response_lineage)
+
+    attestation_predicates = generate_attestation_predicates(predicates)
+
+    assert attestation_predicates == [
+        Path("/path/to/sbom_dir", "file1.txt"),
+        Path("/path/to/project_dir", "hardening_manifest.json"),
+        "vat_response_lineage_file"
+    ]
+
+    mock_listdir.assert_called_with("/path/to/sbom_dir")
+    mock_convert_artifacts.assert_called_with(
+        [Path("/path/to/project_dir", "LICENSE"), Path("/path/to/project_dir", "README.md")],
+        Path("/path/to/project_dir", "hardening_manifest.yaml"),
+    )
+    mock_generate_vat_response_lineage.assert_called_once()
