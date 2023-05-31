@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from unittest import mock
 import pytest
+from conftest import mock_responses
 from ironbank.pipeline.harbor import generate_attestation_predicates
 from unittest.mock import patch
 
@@ -14,8 +15,7 @@ from ironbank.pipeline.test.mocks.mock_classes import MockPaginatedRequest
 
 log = logger.setup("test_upload_to_harbor")
 
-@patch("ironbank.pipeline.harbor.PaginatedRequest", new=MockPaginatedRequest)
-def test_compare_digests(monkeypatch: MonkeyPatch):
+def test_compare_digests(monkeypatch: mock_responses):
     # Mock the necessary environment variables
     monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "/path/to/auth_file")
     monkeypatch.setenv("IMAGE_PODMAN_SHA", "image_digest")
@@ -45,8 +45,7 @@ def test_compare_digests(monkeypatch: MonkeyPatch):
     mock_info.assert_called_with("Inspecting image in registry")
     mock_error.assert_not_called()
     assert mock_info.call_count == 2
-    
-@patch("ironbank.pipeline.harbor.PaginatedRequest", new=MockPaginatedRequest)
+
 def test_promote_tags(monkeypatch: MonkeyPatch):
     # Mock the necessary environment variables
     monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "/path/to/auth_file")
