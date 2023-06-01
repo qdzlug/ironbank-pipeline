@@ -1,3 +1,7 @@
+class ArtifactNotFound(Exception):
+    pass
+
+
 class InvalidURLList(Exception):
     pass
 

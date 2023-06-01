@@ -99,6 +99,15 @@ pylama:
     - pylama
 ## ignore line errors as black has been ran against code.
 
+radon:
+  extends: .base
+  stage: lint
+  allow_failure: true
+  image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.9.8"
+  script:
+    - python3 -m pip install radon radon[toml]
+    - python3 -m radon cc ironbank/ stages/
+
 pylint:
   extends: .base
   stage: lint

@@ -7,7 +7,11 @@ from botocore.exceptions import ClientError
 from requests.exceptions import HTTPError
 
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.exceptions import GenericSubprocessError, InvalidURLList
+from ironbank.pipeline.utils.exceptions import (
+    GenericSubprocessError,
+    InvalidURLList,
+    ArtifactNotFound,
+)
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.abstract_artifacts import AbstractFileArtifact
@@ -19,6 +23,42 @@ from ironbank.pipeline.artifacts import (
 )
 
 log = logger.setup("import_artifacts")
+
+
+def get_artifact_type(resource, scheme, netloc):
+    github_current = "ghcr.io"
+    github_deprecated = "docker.pkg.github.com"
+
+    if "s3" in scheme:
+        artifact = S3Artifact(**resource)
+    elif github_current in netloc:
+        artifact = GithubArtifact(**resource)
+    elif github_deprecated in netloc:
+        log.warning(
+            "{github_deprecated} has been deprecated. Please switch to {github_current} when possible."
+        )
+        artifact = GithubArtifact(**resource)
+    elif "docker" in scheme:
+        artifact = ContainerArtifact(**resource)
+    elif "http" in scheme:
+        artifact = HttpArtifact(**resource)
+    else:
+        raise ArtifactNotFound
+
+    return artifact
+
+
+def set_artifact_path(artifact):
+    if isinstance(artifact, AbstractFileArtifact):
+        artifact.dest_path = artifact.dest_path / "external-resources"
+        artifact.artifact_path = artifact.dest_path / artifact.filename
+    elif isinstance(artifact, ContainerArtifact):
+        artifact.dest_path = artifact.dest_path / "images"
+        artifact.artifact_path = (
+            artifact.dest_path
+            / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar"
+        )
+    return artifact
 
 
 def main():
@@ -45,37 +85,8 @@ def main():
             )
             scheme = parsed_url.scheme
             netloc = parsed_url.netloc
-
-            github_current = "ghcr.io"
-            github_deprecated = "docker.pkg.github.com"
-
-            if "s3" in scheme:
-                artifact = S3Artifact(**resource)
-            elif github_current in netloc:
-                artifact = GithubArtifact(**resource)
-            elif github_deprecated in netloc:
-                log.warning(
-                    "{github_deprecated} has been deprecated. Please switch to {github_current} when possible."
-                )
-                artifact = GithubArtifact(**resource)
-            elif "docker" in scheme:
-                artifact = ContainerArtifact(**resource)
-            elif "http" in scheme:
-                artifact = HttpArtifact(**resource)
-            else:
-                log.error("Invalid scheme %s for artifact %s", scheme, resource["url"])
-                sys.exit(1)
-
-            if isinstance(artifact, AbstractFileArtifact):
-                artifact.dest_path = artifact.dest_path / "external-resources"
-                artifact.artifact_path = artifact.dest_path / artifact.filename
-            elif isinstance(artifact, ContainerArtifact):
-                artifact.dest_path = artifact.dest_path / "images"
-                artifact.artifact_path = (
-                    artifact.dest_path
-                    / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar"
-                )
-
+            artifact_type = get_artifact_type(resource, scheme, netloc)
+            artifact = set_artifact_path(artifact_type)
             # download also gathers any relevant auth and runs any pre download validation
             artifact.download()
             if isinstance(artifact, AbstractFileArtifact):
@@ -83,6 +94,8 @@ def main():
             log.info("")
         # all resources are downloaded successfully
         exit_code = 0
+    except ArtifactNotFound:
+        log.error("Invalid scheme %s for artifact %s", scheme, resource["url"])
     except KeyError as ke:
         log.error("The following key does not have a value: %s", ke)
     except AssertionError as ae:
