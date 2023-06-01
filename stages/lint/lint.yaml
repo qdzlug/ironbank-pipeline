@@ -30,5 +30,6 @@ lint:
         exit 1
       fi
     - 'pip install --user --no-deps "${PIPELINE_REPO_DIR}"'
+    - "pip install radon radon[toml]"
     - set +e
     - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/lint_jobs.py"'
