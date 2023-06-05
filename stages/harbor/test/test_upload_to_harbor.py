@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 import sys
 from unittest import mock
+
+from requests import patch
 from ironbank.pipeline.test.mocks.mock_classes import MockPath
 
 # sys.path.append(Path(__file__).parents[2])
