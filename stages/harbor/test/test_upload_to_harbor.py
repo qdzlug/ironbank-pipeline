@@ -109,8 +109,16 @@ def test_generate_attestation_predicates(mock_environ, monkeypatch, tmp_path):
 
     # Mock the environment variables
     sbom_dir = "/mock/sbom/dir"
+    monkeypatch.setenv("CI_PROJECT_DIR" , "hardening_manifest.yaml")
     monkeypatch.setenv("SBOM_DIR", sbom_dir)
 
-    # set attributes
+    
     unattached_predicates = ["file3.txt", "file4.txt"]
+    # set attributes
     monkeypatch.setattr(predicates, "unattached_predicates", unattached_predicates)
+
+    #assertions
+    with pytest.raise(SystemExit) as se:
+        unattached_predicates("file3.text, file4.text")
+    assert se.value.code == 0
+
