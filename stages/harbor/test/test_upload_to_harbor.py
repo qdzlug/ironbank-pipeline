@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import asyncio
 import os
 
 from pathlib import Path
@@ -103,21 +104,28 @@ def mock_convert_artifacts(path):
 @pytest.mark.only
 @patch(upload_to_harbor.Path, new=MockPath)
 def test_generate_attestation_predicates(mock_environ, monkeypatch, tmp_path):
+    # set attributes
     monkeypatch.setattr(
         upload_to_harbor, "_convert_artifacts_to_hardening_manifest", lambda a, b: None
+    )
+    monkeypatch.setattr(
+        upload_to_harbor, "attestation_predicates", lambda a, b: "SBOM_DIR, file2.txt"
     )
 
     # Mock the environment variables
     sbom_dir = "/mock/sbom/dir"
-    monkeypatch.setenv("CI_PROJECT_DIR" , "hardening_manifest.yaml")
+    ci_project_dir = "/mock/ci/project/dir"
+    monkeypatch.setenv("CI_PROJECT_DIR", "hardening_manifest.yaml")
     monkeypatch.setenv("SBOM_DIR", sbom_dir)
 
-    unattached_predicates = ["file3.txt", "file4.txt"]
-    # set attributes
-    monkeypatch.setattr(upload_to_harbor, "attestation_predicates", lambda a, b: "SBOM_DIR, file2.txt")
+    # unattached_predicates = ["file3.txt", "file4.txt"]
 
-    #assertions
-    with pytest.raise(SystemExit) as se:
-        unattached_predicates("file3.text, file4.text")
-    assert se.value.code == 2
+    # assertions
+    asyncio.run(generate_attestation_predicates.main())
+    assert "file3.text" in caplog.text
+    assert "file4.text" in caplog.text
+    caplog.clear()
 
+    with pytest.raises(SystemExit) as se:
+        asyncio.run(generate_attestation_predicates.main())
+    assert se.value.code == 1
