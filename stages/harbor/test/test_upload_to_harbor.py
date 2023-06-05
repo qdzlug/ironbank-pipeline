@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+
 from pathlib import Path
 import sys
 from unittest import mock
@@ -95,6 +96,10 @@ def mock_listdir(path):
     return ["file1.txt", "file2.txt", "file3.txt", "file4.txt"]
 
 
+def mock_convert_artifacts(path):
+    return ["artifact1.txt, artifact2.txt, artifact3.txt"]
+
+
 @pytest.mark.only
 @patch(upload_to_harbor.Path, new=MockPath)
 def test_generate_attestation_predicates(mock_environ, monkeypatch, tmp_path):
@@ -106,34 +111,6 @@ def test_generate_attestation_predicates(mock_environ, monkeypatch, tmp_path):
     sbom_dir = "/mock/sbom/dir"
     monkeypatch.setenv("SBOM_DIR", sbom_dir)
 
-    # Mock the predicates.unattached_predicates list
+    # set attributes
     unattached_predicates = ["file3.txt", "file4.txt"]
     monkeypatch.setattr(predicates, "unattached_predicates", unattached_predicates)
-    # Mock the os.listdir function
-    monkeypatch.setattr(os, "listdir", mock_listdir)
-
-    # mock_listdir = mock.Mock(return_value=["file1.txt", "file2.txt"])
-    # monkeypatch.setattr("os.listdir", mock_listdir)
-
-    # predicates = mock.Mock(unattached_predicates=["file2.txt"])
-
-    # mock_convert_artifacts = mock.Mock()
-    # monkeypatch.setattr("stages.harbor.upload_to_harbor._convert_artifacts_to_hardening_manifest", mock_convert_artifacts)
-
-    # mock_generate_vat_response_lineage = mock.Mock(return_value="vat_response_lineage_file")
-    # monkeypatch.setattr("stages.harbor.upload_to_harbor._generate_vat_response_lineage_file", mock_generate_vat_response_lineage)
-
-    # attestation_predicates = generate_attestation_predicates(predicates)
-
-    # assert attestation_predicates == [
-    #     Path("SBOM_DIR", "file1.txt"),
-    #     Path("CI_PROJECT_DIR", "hardening_manifest.json"),
-    #     "vat_response_lineage_file"
-    # ]
-
-    # mock_listdir.assert_called_with("SBOM_DIR")
-    # mock_convert_artifacts.assert_called_with(
-    #     [Path("CI_PROJECT_DIR", "LICENSE"), Path("CI_PROJECT_DIR", "README.md")],
-    #     Path("CI_PROJECT_DIR", "hardening_manifest.yaml"),
-    # )
-    # mock_generate_vat_response_lineage.assert_called_once()
