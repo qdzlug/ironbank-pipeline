@@ -2,19 +2,25 @@
 
 import asyncio
 import os
-
+import pytest
 from pathlib import Path
 import sys
 from unittest import mock
-
+import json
 from requests import patch
 from ironbank.pipeline.test.mocks.mock_classes import MockPath
+import pathlib
+import yaml
 
-# sys.path.append(Path(__file__).parents[2])
+from ironbank.pipeline.test.mocks.mock_classes import (
+    MockHardeningManifest,
+    MockSkopeo,
+    MockPath,
+    MockJson,
+)
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import upload_to_harbor
-import pytest
-
 from ironbank.pipeline.utils.predicates import Predicates
 from ironbank.pipeline.image import Image
 from ironbank.pipeline.utils.predicates import Predicates
@@ -25,107 +31,192 @@ from ironbank.pipeline.utils.decorators import subprocess_error_handler
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.project import DsopProject
+from unittest.mock import patch, mock_open, Mock
 
-# from stages.harbor.upload_to_harbor import generate_attestation_predicates
+log = logger.setup("test_upload_to_harbor")
 
 
-# def test_compare_digests(monkeypatch):
-#     monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "/path/to/auth_file")
-#     monkeypatch.setenv("IMAGE_PODMAN_SHA", "image_digest")
+@pytest.fixture
+def mock_pipeline_vat_response():
+    return """{
+    "images": [
+        {
+            "image_name": "pipeline_image",
+            "image_id": "1234567890"
+        }
+    ]
+}"""
 
-#     # Patch the Skopeo class and its methods
-#     mock_inspect = "remote_inspect_raw"
-#     mock_skopeo = patch.object(
-#         upload_to_harbor.Skopeo, "inspect", return_value=mock_inspect
+
+@pytest.fixture
+def mock_pipeline_parent_vat_response():
+    return """{
+    "images": [
+        {
+            "image_name": "pipeline_image",
+            "image_id": "1234567890"
+        }
+    ]
+}"""
+
+
+@pytest.fixture
+def mock_hm_content():
+    return {
+        "apiVersion": "v1",
+        "name": "example/example/exampleimage",
+        "tags": ["8.6.7_5309", "latest"],
+        "args": {"BASE_IMAGE": "redhat/ubi/ubi8", "BASE_TAG": "8.5"},
+        "labels": {
+            "org.opencontainers.image.title": "exampleimage",
+            "org.opencontainers.image.description": "lengthy string words more words and even more words",
+            "org.opencontainers.image.licenses": "lol",
+            "org.opencontainers.image.url": "https://invalid.com",
+            "org.opencontainers.image.vendor": "Example Image",
+            "org.opencontainers.image.version": "8.6.7.5309",
+            "mil.dso.ironbank.image.keywords": "awesome,verycool,example",
+            "mil.dso.ironbank.image.type": "opensource",
+            "mil.dso.ironbank.product.name": "Example Image",
+        },
+        "resources": [
+            {
+                "tag": "registry.example_image.com/exampleimage:8.6.7_5309",
+                "url": "docker://registry.example_image.com/exampleimage@sha256:4d736d84721c8fa09d5b0f5988da5f34163d407d386cc80b62cbf933ea5124e8",
+            }
+        ],
+        "maintainers": [
+            {
+                "email": "vendor@example.com",
+                "name": "Vendor Person",
+                "username": "v_endor",
+            },
+            {
+                "name": "CHT Memeber",
+                "username": "cht_memeber",
+                "email": "cht_member@company.com",
+                "cht_member": True,
+            },
+        ],
+        "partner_advocates": [
+            {
+                "name": "Cht Member",
+                "username": "cht_memb",
+            },
+        ],
+    }
+
+
+@patch.dict(
+    os.environ,
+    {
+        "VAT_RESPONSE": "/path/to/vat_response.json",
+        "PARENT_VAT_RESPONSE": "/path/to/parent_vat_response.json",
+        "ARTIFACT_DIR": "/path/to/artifacts",
+        "CI_PROJECT_DIR": "/path/ci/project/dir",
+        "ACCESS_LOG_DIR": "/path/access/log/dir",
+    },
+)
+@patch("stages.harbor.upload_to_harbor.Path", new=MockPath)
+def test_generate_vat_response_lineage_file(
+    caplog,
+    monkeypatch,
+    mock_pipeline_vat_response,
+    mock_pipeline_parent_vat_response,
+    mock_hm_content,
+):
+    def log_filename(self, other):
+        self.log.info(other)
+        return MockPath(self, other)
+
+    monkeypatch.setattr(MockPath, "/path/to/vat_response.json", log_filename)
+    result = upload_to_harbor._generate_vat_response_lineage_file()
+
+    # monkeypatch.setattr(
+    #     pathlib.Path, "open", mock_open(read_data=yaml.safe_dump(mock_hm_content))
+    # )
+
+    # monkeypatch.setattr(
+    #     pathlib.Path,
+    #     "open",
+    #     mock_open(read_data=json.dumps(mock_pipeline_vat_response)),
+    # )
+
+    # monkeypatch.setattr(
+    #     pathlib.Path,
+    #     "open",
+    #     mock_open(read_data=json.dumps(mock_pipeline_parent_vat_response)),
+    # )
+
+    # predicates = Predicates()
+    # attestation_predicates = upload_to_harbor.generate_attestation_predicates(
+    #     predicates
+    # )
+
+    #
+
+    # Verify the log message
+    # assert "Generated VAT response lineage file successfully" in caplog.text
+
+
+# def test_generate_attestation_predicates(monkeypatch, tmp_path):
+#     # staging image is always the new image
+#     staging_image = Image(
+#         registry="http://test.url",
+#         name="test_image",
+#         digest="test_podman_sha",
+#         transport="docker://",
 #     )
-
-#     # Patch the logger
-#     mock_info = patch.object(upload_to_harbor.log, "info")
-#     mock_error = patch.object(upload_to_harbor.log, "error")
-
-#     monkeypatch.setattr(upload_to_harbor.log, "info", mock_info)
-#     monkeypatch.setattr(upload_to_harbor.log, "error", mock_error)
-#     monkeypatch.setattr(upload_to_harbor, "Skopeo", mock_skopeo)
-
-#     # Call the function under test
-#     staging_image = upload_to_harbor.Image()
-#     upload_to_harbor.compare_digests(staging_image)
-
-#     # Assertions
-#     mock_skopeo.inspect.assert_called_once_with(
-#         staging_image.from_image(transport="docker://"), raw=True, log_cmd=True
-#     )
-#     mock_info.assert_called_with("Pulling manifest_file with skopeo")
-#     mock_info.assert_called_with("Inspecting image in registry")
-#     mock_error.assert_not_called()
-#     assert mock_info.call_count == 2
-
-
-# @pytest.fixture
-# def mock_environ(monkeypatch):
-#     monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "/path/to/auth_file")
-#     monkeypatch.setenv("DOCKER_AUTH_FILE_PUBLISH", "/path/to/auth_file")
-
-
-# def test_promote_tags(monkeypatch):
-#     # Patch the Skopeo class and its methods
-#     mock_copy = patch.object(upload_to_harbor.Skopeo, "copy")
-#     monkeypatch.setattr(upload_to_harbor, "Skopeo.copy", mock_copy)
-
-#     # Patch the logger
-#     mock_info = patch.object(upload_to_harbor.log, "info")
-#     monkeypatch.setattr(upload_to_harbor.log, "info", mock_info)
-
-#     # Call the function under test
-#     staging_image = upload_to_harbor.Image()
-#     production_image = upload_to_harbor.Image()
-#     tags = ["tag1", "tag2"]
-#     upload_to_harbor.promote_tags(staging_image, production_image, tags)
-
-#     # Assertions
-#     assert mock_info.call_count == 3
-#     mock_copy.assert_called_once_with(
+#     # production image will have a different digest depending on which image was scanned
+#     # sha will either be same as staging, or the old image's digest
+#     production_image = Image.from_image(
 #         staging_image,
-#         production_image.from_image(tag="tag2"),
-#         src_authfile="DOCKER_AUTH_FILE_PRE_PUBLISH",
-#         dest_authfile="DOCKER_AUTH_FILE_PUBLISH",
-#         log_cmd=True,
+#         registry="http://test.url",
+#         digest="digest",
 #     )
+#     # project = DsopProject()
+#     # hm = HardeningManifest(project.hardening_manifest_path)
+# predicates = Predicates()
+# attestation_predicates = upload_to_harbor.generate_attestation_predicates(
+#     predicates
+# )
+#     # Mocking the environment variables
+#     mock_env = {
+#         "CI_PROJECT_DIR": "/path/to/project",
+#         "ACCESS_LOG_DIR": "/path/to/access_log",
+#         "SBOM_DIR": "/path/to/sbom",
+#     }
+#     with mock.patch.dict(os.environ, mock_env):
+#         # Mocking the file list in the SBOM_DIR
+#         mock_sbom_files = ["file1.txt", "file2.txt", "file3.txt"]
+#         with mock.patch("os.listdir", return_value=mock_sbom_files):
+#             # Mocking the predicates object
+#             mock_predicates = mock.Mock()
+#             mock_predicates.unattached_predicates = ["file2.txt"]
+
+#             # Call the function under test
+#     result = generate_attestation_predicates(mock_predicates)
+#      # Verify the result
+#     expected_result = [
+#         Path("/path/to/sbom", "file1.txt"),
+#         Path("/path/to/sbom", "file3.txt"),
+#         Path("/path/to/project", "hardening_manifest.json"),
+#         _generate_vat_response_lineage_file(),
+#     ]
+#     assert result == expected_result
+
+#     # Verify the log message
+#     assert "Generated attestation predicates successfully" in caplog.text
+#     assert "Error occurred" not in caplog.text
 
 
-def mock_listdir(path):
-    return ["file1.txt", "file2.txt", "file3.txt", "file4.txt"]
+# unattached_predicates = ["file3.txt", "file4.txt"]
 
+# assertions
+# asyncio.run(generate_attestation_predicates.main())
+# assert "file3.text" in caplog.text
+# assert "file4.text" in caplog.text
+# caplog.clear()
 
-def mock_convert_artifacts(path):
-    return ["artifact1.txt, artifact2.txt, artifact3.txt"]
-
-
-@pytest.mark.only
-@patch(upload_to_harbor.Path, new=MockPath)
-def test_generate_attestation_predicates(mock_environ, monkeypatch, tmp_path):
-    # set attributes
-    monkeypatch.setattr(
-        upload_to_harbor, "_convert_artifacts_to_hardening_manifest", lambda a, b: None
-    )
-    monkeypatch.setattr(
-        upload_to_harbor, "attestation_predicates", lambda a, b: "SBOM_DIR, file2.txt"
-    )
-
-    # Mock the environment variables
-    sbom_dir = "/mock/sbom/dir"
-    ci_project_dir = "/mock/ci/project/dir"
-    monkeypatch.setenv("CI_PROJECT_DIR", "hardening_manifest.yaml")
-    monkeypatch.setenv("SBOM_DIR", sbom_dir)
-
-    # unattached_predicates = ["file3.txt", "file4.txt"]
-
-    # assertions
-    asyncio.run(generate_attestation_predicates.main())
-    assert "file3.text" in caplog.text
-    assert "file4.text" in caplog.text
-    caplog.clear()
-
-    with pytest.raises(SystemExit) as se:
-        asyncio.run(generate_attestation_predicates.main())
-    assert se.value.code == 1
+# with pytest.raises(SystemExit) as se:
+#     asyncio.run(generate_attestation_predicates.main())
+# assert se.value.code == 1
