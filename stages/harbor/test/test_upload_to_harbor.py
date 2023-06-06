@@ -6,17 +6,20 @@ import pytest
 from pathlib import Path
 import sys
 from unittest import mock
+import base64
 import json
 from requests import patch
 from ironbank.pipeline.test.mocks.mock_classes import MockPath
 import pathlib
 import yaml
-
+import subprocess
+from dataclasses import dataclass
+from ironbank.pipeline.image import Image
 from ironbank.pipeline.test.mocks.mock_classes import (
-    MockHardeningManifest,
-    MockSkopeo,
+    MockImage,
+    MockOutput,
     MockPath,
-    MockJson,
+    MockPopen,
 )
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -106,79 +109,97 @@ def mock_hm_content():
     }
 
 
-@patch.dict(
-    os.environ,
-    {
-        "VAT_RESPONSE": "/path/to/vat_response.json",
-        "PARENT_VAT_RESPONSE": "/path/to/parent_vat_response.json",
-        "ARTIFACT_DIR": "/path/to/artifacts",
-        "CI_PROJECT_DIR": "/path/ci/project/dir",
-        "ACCESS_LOG_DIR": "/path/access/log/dir",
-    },
-)
-@patch("stages.harbor.upload_to_harbor.Path", new=MockPath)
-def test_generate_vat_response_lineage_file(
-    caplog,
-    monkeypatch,
-    mock_pipeline_vat_response,
-    mock_pipeline_parent_vat_response,
-    mock_hm_content,
-):
-    def log_filename(self, other):
-        self.log.info(other)
-        return MockPath(self, other)
+# @patch.dict(
+#     os.environ,
+#     {
+#         "VAT_RESPONSE": "",
+#         "PARENT_VAT_RESPONSE": "",
+#         "ARTIFACT_DIR": "",
+#         "CI_PROJECT_DIR": "",
+#         "ACCESS_LOG_DIR": "",
+#     },
+# )
+# @patch("stages.harbor.upload_to_harbor.Path", new=MockPath)
+# # @patch("stages.harbor.upload_to_harbor.json", new=MockJson)
+# def test_generate_vat_response_lineage_file(
+#     caplog,
+#     monkeypatch,
+#     mock_pipeline_vat_response,
+#     mock_pipeline_parent_vat_response,
+#     mock_hm_content,
+# ):
+#     monkeypatch.setenv("CI_PROJECT_DIR", "dir")
+#     monkeypatch.setenv("ACCESS_LOG_DIR", "dir")
 
-    monkeypatch.setattr(MockPath, "/path/to/vat_response.json", log_filename)
-    result = upload_to_harbor._generate_vat_response_lineage_file()
+#     mock_output_dir = MockPath("./example")
+#     mock_docker_conf_dir = MockPath("./")
 
-    # monkeypatch.setattr(
-    #     pathlib.Path, "open", mock_open(read_data=yaml.safe_dump(mock_hm_content))
-    # )
-
-    # monkeypatch.setattr(
-    #     pathlib.Path,
-    #     "open",
-    #     mock_open(read_data=json.dumps(mock_pipeline_vat_response)),
-    # )
-
-    # monkeypatch.setattr(
-    #     pathlib.Path,
-    #     "open",
-    #     mock_open(read_data=json.dumps(mock_pipeline_parent_vat_response)),
-    # )
-
-    # predicates = Predicates()
-    # attestation_predicates = upload_to_harbor.generate_attestation_predicates(
-    #     predicates
-    # )
-
-    #
-
-    # Verify the log message
-    # assert "Generated VAT response lineage file successfully" in caplog.text
-
-
-# def test_generate_attestation_predicates(monkeypatch, tmp_path):
-#     # staging image is always the new image
-#     staging_image = Image(
-#         registry="http://test.url",
-#         name="test_image",
-#         digest="test_podman_sha",
-#         transport="docker://",
+#     monkeypatch.setattr(
+#         subprocess,
+#         "Popen",
+#         lambda *args, **kwargs: MockPopen(
+#             stdout=MockOutput(mock_data="{}"), poll_counter=0, returncode=1
+#         ),
 #     )
-#     # production image will have a different digest depending on which image was scanned
-#     # sha will either be same as staging, or the old image's digest
-#     production_image = Image.from_image(
-#         staging_image,
-#         registry="http://test.url",
-#         digest="digest",
-#     )
-#     # project = DsopProject()
-#     # hm = HardeningManifest(project.hardening_manifest_path)
+#     monkeypatch.setattr(json, "loads", lambda x: x)
+#     monkeypatch.setattr(base64, "b64decode", lambda x: x)
+
+#     result = upload_to_harbor._generate_vat_response_lineage_file()
+
+# monkeypatch.setattr(
+#     pathlib.Path, "open", mock_open(read_data=yaml.safe_dump(mock_hm_content))
+# )
+
+# monkeypatch.setattr(
+#     pathlib.Path,
+#     "open",
+#     mock_open(read_data=json.dumps(mock_pipeline_vat_response)),
+# )
+
+# monkeypatch.setattr(
+#     pathlib.Path,
+#     "open",
+#     mock_open(read_data=json.dumps(mock_pipeline_parent_vat_response)),
+# )
+
 # predicates = Predicates()
 # attestation_predicates = upload_to_harbor.generate_attestation_predicates(
 #     predicates
 # )
+
+#
+
+# Verify the log message
+# assert "Generated VAT response lineage file successfully" in caplog.text
+
+
+@patch("stages.harbor.upload_to_harbor.Path", new=MockPath)
+def test_generate_attestation_predicates(monkeypatch, tmp_path):
+    monkeypatch.setenv("CI_PROJECT_DIR", "dir")
+    monkeypatch.setenv("ACCESS_LOG_DIR", "dir")
+    # staging image is always the new image
+    staging_image = Image(
+        registry="http://test.url",
+        name="test_image",
+        digest="test_podman_sha",
+        transport="docker://",
+    )
+    # production image will have a different digest depending on which image was scanned
+    # sha will either be same as staging, or the old image's digest
+    # production_image = Image.from_image(
+    #     staging_image,
+    #     registry="http://test.url",
+    #     digest="digest",
+    # )
+    # project = DsopProject()
+    # hm = HardeningManifest(project.hardening_manifest_path)
+
+    predicates = Predicates()
+    attestation_predicates = upload_to_harbor.generate_attestation_predicates(
+        predicates
+    )
+
+
 #     # Mocking the environment variables
 #     mock_env = {
 #         "CI_PROJECT_DIR": "/path/to/project",
