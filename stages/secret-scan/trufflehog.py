@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
 import os
-import sys
 import subprocess
+import sys
+from pathlib import Path
+from typing import Optional
+
 import git
 import yaml
-from typing import Optional
-from pathlib import Path
 
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.utils import logger
@@ -31,14 +32,13 @@ def get_commit_diff(repo_dir: str, diff_branch: str) -> str:
 
 def get_history_cmd(commits: str) -> list[str]:
     """Splits a string of newline separated commit SHAs Returns a list of
-    truffleHog3 flags [--since, the oldest sha in the commits list] if list is
-    empty [--no-history]"""
+    truffleHog flags [--since-commit, the oldest sha in the commits list]"""
     commit_lst = commits.split("\n")
     for commit in commit_lst:
         log.info(commit)
     # if no data is returned to commits, since_commit will be an empty string
     since_commit: str = commit_lst[-1]
-    return ["--since", since_commit] if since_commit else ["--no-history"]
+    return ["--since-commit", since_commit] if since_commit else []
 
 
 def get_config(config_file: Path, expand_vars: bool = False) -> list:
@@ -126,15 +126,14 @@ def main() -> None:  # pylint: disable=subprocess-decorator-missing
     )
 
     cmd = [
-        "trufflehog3",
-        "--no-entropy",
-        "--ignore-nosecret",
+        "trufflehog",
+        "git file://.",
         "--branch",
         branch_name,
+        "--fail",
         *history_cmd,
-        "--config",
-        dsop_project.trufflehog_conf_path.as_posix(),
-        ".",
+       f"--config={dsop_project.trufflehog_conf_path.as_posix()}",
+        "--no-update",
     ]
 
     # if project has a config file and the config variable is set,
