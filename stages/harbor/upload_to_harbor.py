@@ -58,7 +58,8 @@ def promote_tags(
         production_image = production_image.from_image(tag=tag)
 
         log.info(f"Copy from staging to {production_image}")
-        Skopeo.copy(
+        skopeo = Skopeo()
+        skopeo.copy(
             staging_image,
             production_image,
             src_authfile=Path(os.environ["DOCKER_AUTH_FILE_PRE_PUBLISH"]),

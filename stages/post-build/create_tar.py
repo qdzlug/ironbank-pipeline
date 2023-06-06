@@ -16,8 +16,8 @@ def main():
         file_path=f"{os.environ['IMAGE_FILE']}.tar",
         transport="docker-archive:",
     )
-
-    Skopeo.copy(
+    skopeo = Skopeo()
+    skopeo.copy(
         src=src,
         src_authfile=os.environ["DOCKER_AUTH_FILE_PRE_PUBLISH"],
         dest=dest,
