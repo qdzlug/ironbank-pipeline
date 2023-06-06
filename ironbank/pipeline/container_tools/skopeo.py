@@ -50,11 +50,9 @@ class Skopeo(ContainerTool):
         )
         return json.loads(inspect_result.stdout) if not raw else inspect_result.stdout
 
-    # the order of these decorators matters, the classmethod descriptor should exist at the top of the list of decorators (i.e. should be applied last)
-    @classmethod
     @subprocess_error_handler(logging_message="Skopeo.copy failed")
     def copy(
-        cls,
+        self,
         src: Image | ImageFile,
         dest: Image | ImageFile,
         digestfile: Path = None,
@@ -78,14 +76,14 @@ class Skopeo(ContainerTool):
 
         cmd = ["skopeo", "copy"]
         cmd += ["--digestfile", digestfile] if digestfile else []
-        cmd += ["--authfile", cls.authfile] if cls.authfile else []
+        cmd += ["--authfile", self.authfile] if self.authfile else []
         cmd += ["--remove-signatures"] if remove_signatures else []
         # get additional tags
         tags = ["--additional-tag", additional_tags]
         cmd += (
             tags
             if isinstance(additional_tags, str)
-            else cls._generate_arg_list_from_list(*tags)
+            else self._generate_arg_list_from_list(*tags)
         )
         cmd += ["--src-authfile", src_authfile] if src_authfile else []
         cmd += [f"{src}"]
