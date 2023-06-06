@@ -158,7 +158,7 @@ def main() -> None:  # pylint: disable=subprocess-decorator-missing
         )
         assert findings.returncode == 0
     except subprocess.CalledProcessError as e:
-        if e.returncode == 2 and e.stdout:
+        if e.returncode != 0 and e.stdout:
             log.error(f"Return code: {e.returncode}")
             log.error("truffleHog found secrets")
             msg = f"docker run -it --rm -v $(pwd):/proj {job_image} {th_flags} /proj"

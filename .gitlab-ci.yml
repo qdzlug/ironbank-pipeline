@@ -15,6 +15,7 @@ stages:
 trufflehog:
   extends: .base
   stage: secret-scanning
+  image: "registry1.dso.mil/ironbank-staging/ironbank-pipelines/pipeline-runner-dev:v0.0.3"
   variables:
     # This forces the trufflehog job to NOT perform a shallow clone
     GIT_DEPTH: 0
