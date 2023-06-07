@@ -177,6 +177,9 @@ def mock_hm_content():
 def test_generate_attestation_predicates(monkeypatch, tmp_path):
     monkeypatch.setenv("CI_PROJECT_DIR", "dir")
     monkeypatch.setenv("ACCESS_LOG_DIR", "dir")
+    monkeypatch.setattr(
+        Path, "_convert_artifacts_to_hardening_manifest", lambda a, b: None
+    )
     # staging image is always the new image
     staging_image = Image(
         registry="http://test.url",
@@ -184,20 +187,26 @@ def test_generate_attestation_predicates(monkeypatch, tmp_path):
         digest="test_podman_sha",
         transport="docker://",
     )
-    # production image will have a different digest depending on which image was scanned
-    # sha will either be same as staging, or the old image's digest
-    # production_image = Image.from_image(
-    #     staging_image,
-    #     registry="http://test.url",
-    #     digest="digest",
-    # )
+
+    asyncio.run(generate_attestation_predicates.main())
+    assert "test image" in caplog.text
+
+    monkeypatch.delenv("CI_PROJECT_DIR")
+    monkeypatch.delenv("ACCESS_LOG_DIR")
+
+    monkeypatch.setenv("SBOM_DIR", "file")
+    monkeypatch.setenv("CI_CI_PROJECT_DIR", "hardening_manifest.json")
+    monkeypatch.setatt(
+        attestation_predicates, "attestation_predicates.append", lambda a, b: __file__
+    )
+
     # project = DsopProject()
     # hm = HardeningManifest(project.hardening_manifest_path)
 
-    predicates = Predicates()
-    attestation_predicates = upload_to_harbor.generate_attestation_predicates(
-        predicates
-    )
+    # predicates = Predicates()
+    # attestation_predicates = upload_to_harbor.generate_attestation_predicates(
+    #     predicates
+    # )
 
 
 #     # Mocking the environment variables
