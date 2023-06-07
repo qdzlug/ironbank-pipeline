@@ -128,7 +128,9 @@ class ContainerArtifact(AbstractArtifact):
     # artifact_path: Path = Path(f'{os.environ.get('ARTIFACT_DIR')/images/')
     log: logger = logger.setup("ContainerArtifact")
     # the authfile attribute is provided since skopeo can take an authfile but this file isn't created/used in the pipeline
-    authfile: Path = field(default_factory=lambda: Path(os.environ["DOCKER_AUTH_FILE_PULL"]))
+    authfile: Path = field(
+        default_factory=lambda: Path(os.environ["DOCKER_AUTH_FILE_PULL"])
+    )
 
     def __post_init__(self):
         super().__post_init__()
