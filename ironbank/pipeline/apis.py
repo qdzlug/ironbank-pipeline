@@ -47,6 +47,7 @@ class VatAPI(API):
         self.response = requests.get(
             f"{self.url}{self.container_route}",
             params={"name": image_name, "tag": image_tag},
+            timeout=(30, 30)
         )
         try:
             self.response.raise_for_status()
@@ -59,6 +60,23 @@ class VatAPI(API):
 
     @vat_request_error_handler
     def check_access(self, image_name, auth, create_request=False) -> None:
+        """
+        Checks the access rights to the specified image. Sends a GET request to the import access route.
+
+        Parameters
+        ----------
+        image_name : str
+            Name of the image for which access rights are to be checked.
+        auth : str
+            The authorization token used to authenticate the request.
+        create_request : bool, optional
+            A flag to determine whether a new request should be created if it does not exist (default is False).
+
+        Raises
+        ------
+        HTTPError
+            If the request to the import access route returns a status indicating an error.
+        """
         self.log.info(f"Checking access to {image_name}")
         self.log.info(f"{self.url}{self.import_access_route}/?name={image_name}")
         self.response = requests.get(
@@ -68,5 +86,6 @@ class VatAPI(API):
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {auth}",
             },
+            timeout=(30, 30)
         )
         self.response.raise_for_status()

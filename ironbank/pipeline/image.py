@@ -4,10 +4,12 @@ from typing import Optional
 
 
 class MissingTagAndDigestError(Exception):
+    """Exception raised when tag and digest are missing for an artifact."""
     pass
 
 
 class MissingNameAndUrlError(Exception):
+    """Exception raised when name and url are missing for an artifact."""
     pass
 
 

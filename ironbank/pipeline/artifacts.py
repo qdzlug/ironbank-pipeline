@@ -20,10 +20,35 @@ from .utils.exceptions import InvalidURLList
 
 @dataclass
 class S3Artifact(AbstractFileArtifact):
-    log: logger = logger.setup("S3Artifact")
+    """
+    An S3Artifact is a representation of a specific file (or artifact) stored in an AWS S3 bucket.
 
-    def __post_init__(self):
-        super().__post_init__()
+    Attributes
+    ----------
+    log: logger
+        A logger instance used to log messages during class operation.
+
+    Methods
+    -------
+    get_credentials():
+        Gets the access credentials for AWS S3. Access credentials include the username (access key), 
+        password (secret key), and region. These values are fetched from environment variables.
+
+    download():
+        Validates the filename and downloads the file from the S3 bucket. The file is stored at the 
+        path specified by `self.artifact_path`. If the parsed URL includes a version ID, this is passed 
+        as an extra argument during download. If the auth property is not set, an exception is raised.
+        
+        Retries on request failure.
+
+    Notes
+    -----
+    * The 'log' attribute is initialized with a logger setup for "S3Artifact".
+    * Currently, 'get_credentials' and 'download' methods require no parameters and rely on object 
+      properties for necessary information.
+    * The 'download' method uses Boto3 for interacting with AWS S3.
+    """
+    log: logger = logger.setup("S3Artifact")
 
     # credentials are just username and password
     def get_credentials(self):
@@ -80,6 +105,36 @@ class S3Artifact(AbstractFileArtifact):
 
 @dataclass
 class HttpArtifact(AbstractFileArtifact):
+    """
+    HttpArtifact represents a file artifact available for download via HTTP or HTTPS.
+
+    Attributes
+    ----------
+    urls: list
+        List of URLs from which the artifact can be downloaded.
+    log: logger
+        A logger instance for logging messages during class operation.
+
+    Methods
+    -------
+    __post_init__():
+        Initialization step that sets `urls` attribute. If `urls` is not provided,
+        it defaults to a list containing the `url` attribute from the parent class.
+
+    get_credentials() -> HTTPBasicAuth:
+        Retrieves the username and password from the authentication information
+        and returns an HTTPBasicAuth object for requests authentication.
+
+    download() -> Union[int, None]:
+        Downloads the file artifact from the provided URLs. Tries each URL sequentially
+        until a successful download (HTTP status code 200). If no URLs are valid, 
+        raises an InvalidURLList exception.
+        
+    Notes
+    -----
+    * 'log' attribute is initialized with a logger setup for "HttpArtifact".
+    * 'download' method retries once on request failure.
+    """
     # could also be urls
     urls: list = None
     log: logger = logger.setup("HttpArtifact")
@@ -108,6 +163,7 @@ class HttpArtifact(AbstractFileArtifact):
                 allow_redirects=True,
                 stream=True,
                 auth=self.get_credentials() if self.auth else None,
+                timeout=(30, 30),
             ) as response:
                 # exception will be caught in main
                 # need unit tests for multiple response statuses
@@ -125,6 +181,32 @@ class HttpArtifact(AbstractFileArtifact):
 
 @dataclass
 class ContainerArtifact(AbstractArtifact):
+    """
+    ContainerArtifact is a representation of a Docker container image as an artifact.
+    This class allows to download and manage Docker images, leveraging skopeo tool.
+
+    Attributes
+    ----------
+    log : logger
+        Logger for the class.
+    authfile : Path
+        Path to the authentication file for Docker.
+
+    Methods
+    -------
+    __post_init__():
+        Overrides the inherited method to setup 'url', '__tar_name', and 'artifact_path'.
+    get_credentials() -> str:
+        Gets the username and password for authentication.
+    download():
+        Pulls and stores the Docker image from the specified url.
+
+    Notes
+    -----
+    The 'log' attribute is set up for "ContainerArtifact".
+    If the artifact file already exists when download is called, it will be deleted before downloading again.
+    Skopeo tool is used for Docker image operations.
+    """
     # artifact_path: Path = Path(f'{os.environ.get('ARTIFACT_DIR')/images/')
     log: logger = logger.setup("ContainerArtifact")
     # the authfile attribute is provided since skopeo can take an authfile but this file isn't created/used in the pipeline
@@ -170,10 +252,31 @@ class ContainerArtifact(AbstractArtifact):
 
 @dataclass
 class GithubArtifact(ContainerArtifact):
-    log: logger = logger.setup("GithubArtifact")
+    """
+    GithubArtifact represents a Docker container image as an artifact stored on GitHub.
 
-    def __post_init__(self):
-        super().__post_init__()
+    This class extends the ContainerArtifact class to add GitHub specific functionalities 
+    such as fetching GitHub authentication credentials.
+
+    Attributes
+    ----------
+    log : logger
+        Logger for the class.
+
+    Methods
+    -------
+    __post_init__():
+        Overrides the inherited method, calling the super() method for initialization.
+    get_username_password() -> tuple:
+        Gets the GitHub username and token for authentication from environment variables.
+
+    Notes
+    -----
+    The 'log' attribute is set up for "GithubArtifact".
+    GitHub authentication is performed using a robot user, the credentials of which are expected 
+    to be base64 encoded and stored in the environment variables "GITHUB_ROBOT_USER" and "GITHUB_ROBOT_TOKEN".
+    """
+    log: logger = logger.setup("GithubArtifact")
 
     def get_username_password(self) -> tuple:
         username = b64decode(os.environ["GITHUB_ROBOT_USER"]).decode("utf-8")
