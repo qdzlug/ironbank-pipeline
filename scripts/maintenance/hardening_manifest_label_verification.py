@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
-import gitlab
-import yaml
 import json
+import logging
 import os
 import sys
-import logging
 from pathlib import Path
+
+import gitlab
+import yaml
 
 
 def set_log_level():

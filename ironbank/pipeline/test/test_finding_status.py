@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
-import pytest
-from ironbank.pipeline.utils import logger
-from ironbank.pipeline import vat_container_status
 import random
 import string
 
+import pytest
+
+from ironbank.pipeline import vat_container_status
+from ironbank.pipeline.utils import logger
 
 log = logger.setup("test_finding_status")
 

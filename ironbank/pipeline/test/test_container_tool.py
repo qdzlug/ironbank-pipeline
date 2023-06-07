@@ -1,5 +1,5 @@
-from ironbank.pipeline.utils import logger, flatten
 from ironbank.pipeline.container_tools.container_tool import ContainerTool
+from ironbank.pipeline.utils import flatten, logger
 
 log = logger.setup("test_container_tool")
 

@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 
-from ironbank.pipeline.test.mocks.mock_classes import MockSession
-from ironbank.pipeline.utils import logger
-from requests import HTTPError
-from ironbank.pipeline.utils import decorators
 import pytest
-from ironbank.pipeline.utils.paginated_request import PaginatedRequest
-from ironbank.pipeline.utils.exceptions import (
-    MaxRetriesException,
-)
+from requests import HTTPError
 
+from ironbank.pipeline.test.mocks.mock_classes import MockSession
+from ironbank.pipeline.utils import decorators, logger
+from ironbank.pipeline.utils.exceptions import MaxRetriesException
+from ironbank.pipeline.utils.paginated_request import PaginatedRequest
 
 log = logger.setup("test_paginated_request")
 

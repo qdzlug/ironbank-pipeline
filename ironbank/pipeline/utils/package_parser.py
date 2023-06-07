@@ -1,9 +1,10 @@
 import re
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from typing import Optional
+
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.types import Package
-from typing import Optional
-from dataclasses import dataclass, field
 
 log = logger.setup(name="package_parser")
 

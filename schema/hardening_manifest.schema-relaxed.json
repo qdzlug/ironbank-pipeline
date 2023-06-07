@@ -63,14 +63,8 @@
     "tags": {
       "description": "Tags to tag an image with when pushed to registry1",
       "type": "array",
-      "items": [
-        {
-          "$ref": "#/definitions/docker-TagRegexp-non-latest"
-        }
-      ],
-      "additionalItems": {
-        "$ref": "#/definitions/docker-TagRegexp"
-      },
+      "items": [{ "$ref": "#/definitions/docker-TagRegexp-non-latest" }],
+      "additionalItems": { "$ref": "#/definitions/docker-TagRegexp" },
       "minItems": 1,
       "maxItems": 10,
       "uniqueItems": true
@@ -82,32 +76,22 @@
         "BASE_IMAGE": {
           "$comment": "May be an empty string if the Dockerfile does not use this variable",
           "oneOf": [
-            {
-              "$ref": "#/definitions/docker-NameRegexp-without-domain"
-            },
-            {
-              "const": ""
-            }
+            { "$ref": "#/definitions/docker-NameRegexp-without-domain" },
+            { "const": "" }
           ]
         },
         "BASE_TAG": {
           "$comment": "May be an empty string if the Dockerfile does not use this variable",
           "oneOf": [
-            {
-              "$ref": "#/definitions/docker-TagRegexp"
-            },
-            {
-              "const": ""
-            }
+            { "$ref": "#/definitions/docker-TagRegexp" },
+            { "const": "" }
           ]
         }
       },
       "additionalProperties": {
         "$ref": "#/definitions/printable-characters-without-newlines"
       },
-      "propertyNames": {
-        "$ref": "#/definitions/environment-variable-name"
-      },
+      "propertyNames": { "$ref": "#/definitions/environment-variable-name" },
       "required": ["BASE_IMAGE", "BASE_TAG"]
     },
     "labels": {
@@ -147,9 +131,7 @@
           "$ref": "#/definitions/printable-characters-without-newlines"
         }
       },
-      "propertyNames": {
-        "$ref": "#/definitions/docker-label-name"
-      },
+      "propertyNames": { "$ref": "#/definitions/docker-label-name" },
       "additionalProperties": false,
       "required": [
         "org.opencontainers.image.title",
@@ -164,10 +146,7 @@
           {
             "type": "object",
             "properties": {
-              "url": {
-                "type": "string",
-                "pattern": "^https?://.+$"
-              },
+              "url": { "type": "string", "pattern": "^https?://.+$" },
               "filename": {
                 "$ref": "#/definitions/printable-characters-without-newlines-or-slashes"
               },
@@ -192,10 +171,7 @@
                   "id": {
                     "$ref": "#/definitions/environment-variable-name"
                   },
-                  "type": {
-                    "type": "string",
-                    "const": "basic"
-                  }
+                  "type": { "type": "string", "const": "basic" }
                 },
                 "additionalProperties": false,
                 "required": ["id"]
@@ -207,10 +183,7 @@
           {
             "type": "object",
             "properties": {
-              "url": {
-                "type": "string",
-                "pattern": "^s3://.+$"
-              },
+              "url": { "type": "string", "pattern": "^s3://.+$" },
               "filename": {
                 "$ref": "#/definitions/printable-characters-without-newlines-or-slashes"
               },
@@ -254,22 +227,15 @@
           {
             "type": "object",
             "properties": {
-              "url": {
-                "$ref": "#/definitions/docker-ReferenceRegexp-url"
-              },
-              "tag": {
-                "$ref": "#/definitions/docker-name-and-tag"
-              },
+              "url": { "$ref": "#/definitions/docker-ReferenceRegexp-url" },
+              "tag": { "$ref": "#/definitions/docker-name-and-tag" },
               "auth": {
                 "type": "object",
                 "properties": {
                   "id": {
                     "$ref": "#/definitions/environment-variable-name"
                   },
-                  "type": {
-                    "type": "string",
-                    "const": "basic"
-                  }
+                  "type": { "type": "string", "const": "basic" }
                 },
                 "additionalProperties": false,
                 "required": ["id"]
@@ -298,9 +264,7 @@
             "$ref": "#/definitions/printable-characters-without-newlines",
             "format": "email"
           },
-          "cht_member": {
-            "type": "boolean"
-          }
+          "cht_member": { "type": "boolean" }
         },
         "additionalProperties": false,
         "required": ["email"]

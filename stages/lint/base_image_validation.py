@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 
-import os
-import sys
-import json
-import shutil
 import asyncio
+import json
+import os
+import shutil
+import sys
 import tempfile
-
 from pathlib import Path
-from ironbank.pipeline.project import DsopProject
-from ironbank.pipeline.hardening_manifest import HardeningManifest
-from ironbank.pipeline.utils import logger
-from ironbank.pipeline.image import Image
-from ironbank.pipeline.container_tools.skopeo import Skopeo
-from ironbank.pipeline.utils.exceptions import GenericSubprocessError
+
 from ironbank.pipeline.container_tools.cosign import Cosign
+from ironbank.pipeline.container_tools.skopeo import Skopeo
+from ironbank.pipeline.hardening_manifest import HardeningManifest
+from ironbank.pipeline.image import Image
+from ironbank.pipeline.project import DsopProject
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 
 log = logger.setup(name="lint.base_image_validation")
 

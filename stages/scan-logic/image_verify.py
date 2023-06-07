@@ -1,14 +1,15 @@
+import json
 import os
 import sys
-import json
 from pathlib import Path
 from typing import Optional
-from ironbank.pipeline.image import Image
-from ironbank.pipeline.utils import logger
-from ironbank.pipeline.project import DsopProject
-from ironbank.pipeline.container_tools.skopeo import Skopeo
+
 from ironbank.pipeline.container_tools.cosign import Cosign
+from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.hardening_manifest import HardeningManifest
+from ironbank.pipeline.image import Image
+from ironbank.pipeline.project import DsopProject
+from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 
 log = logger.setup("image_verify")

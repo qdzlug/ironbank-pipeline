@@ -1,7 +1,8 @@
-import sys
 import argparse
-from .utils.package_parser import AccessLogFileParser
+import sys
+
 from .utils import logger
+from .utils.package_parser import AccessLogFileParser
 
 log = logger.setup(name="access_log_parser")
 

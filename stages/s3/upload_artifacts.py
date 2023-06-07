@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 
-from datetime import datetime
+import logging
 import os
-from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
-import shutil
-import logging
-import requests
-from ironbank.pipeline.project import DsopProject
-from ironbank.pipeline.hardening_manifest import HardeningManifest
-from ironbank.pipeline.utils import s3upload
+from datetime import datetime
+from pathlib import Path
 
-from ironbank.pipeline.utils import logger
+import requests
+
+from ironbank.pipeline.hardening_manifest import HardeningManifest
+from ironbank.pipeline.project import DsopProject
+from ironbank.pipeline.utils import logger, s3upload
 from ironbank.pipeline.utils.decorators import subprocess_error_handler
 
 log: logging.Logger = logger.setup("vat_artifact_post")

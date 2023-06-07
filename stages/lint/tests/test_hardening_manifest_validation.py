@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 
-import sys
 import asyncio
 import os
-import pytest
+import sys
 from unittest.mock import patch
+
+import pytest
+
 from ironbank.pipeline.hardening_manifest import HardeningManifest
-from ironbank.pipeline.utils import logger
 from ironbank.pipeline.test.mocks.mock_classes import (
-    MockProject,
     MockHardeningManifest,
     MockPath,
+    MockProject,
 )
+from ironbank.pipeline.utils import logger
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import hardening_manifest_validation  # noqa E402

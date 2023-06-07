@@ -1,22 +1,22 @@
-import re
-import os
 import json
+import os
+import re
+from dataclasses import dataclass
+from pathlib import Path
 
 from .utils import logger
-from pathlib import Path
-from dataclasses import dataclass
-from .utils.types import FileParser, Package
 from .utils.exceptions import RepoTypeNotSupported
 from .utils.package_parser import (
-    GoPackage,
-    RpmPackage,
     ApkPackage,
-    PypiPackage,
-    NpmPackage,
-    RubyGemPackage,
-    NullPackage,
     DebianPackage,
+    GoPackage,
+    NpmPackage,
+    NullPackage,
+    PypiPackage,
+    RpmPackage,
+    RubyGemPackage,
 )
+from .utils.types import FileParser, Package
 
 log = logger.setup(name="package_parser")
 

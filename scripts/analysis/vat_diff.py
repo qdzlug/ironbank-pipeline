@@ -3,16 +3,16 @@ Use Case: find all of the recent jobs run from trigger that failed on the "vat c
 Status: done? It doesn't do very much but accomplished what we needed it for when analyzing the VAT API vs VAT query. Also, another solid example of spaghetti code
 """
 
-import gitlab
-import os
-import sys
-import logging
-import zipfile
-import shutil
-import glob
 import csv
+import glob
 import json
+import logging
+import os
+import shutil
+import zipfile
 from pathlib import Path
+
+import gitlab
 
 
 def get_project(gl, group, project):

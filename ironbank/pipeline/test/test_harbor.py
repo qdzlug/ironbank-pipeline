@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 
-from ironbank.pipeline.test.mocks.mock_classes import (
-    MockPaginatedRequest,
-    MockSession,
-    MockHarborRobot,
-    MockHarborRobotPermissions,
-)
+from unittest.mock import patch
+
 from ironbank.pipeline.harbor import (
     HarborProject,
     HarborRepository,
-    HarborSystem,
     HarborRobot,
     HarborRobotPermissions,
+    HarborSystem,
+)
+from ironbank.pipeline.test.mocks.mock_classes import (
+    MockHarborRobot,
+    MockHarborRobotPermissions,
+    MockPaginatedRequest,
+    MockSession,
 )
 from ironbank.pipeline.utils import logger
-from unittest.mock import patch
-
 
 log = logger.setup("test_harbor")
 

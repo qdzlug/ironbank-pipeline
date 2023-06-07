@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-import pytest
 import inspect
-from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils import package_parser
+
+import pytest
+
+from ironbank.pipeline.utils import logger, package_parser
 
 log = logger.setup(name="test_package_parser")
 

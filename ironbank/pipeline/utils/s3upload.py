@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
-import os
 import mimetypes
+import os
+
 import boto3
 from botocore.exceptions import ClientError
+
 from ironbank.pipeline.utils import logger
 
 log = logger.setup(name="s3upload")
@@ -14,7 +16,8 @@ def upload_file(file_name: str, bucket: str, object_name=None) -> None:
 
     :param file_name: File to upload
     :param bucket: Bucket to upload to
-    :param object_name: S3 object name. If not specified then file_name is used
+    :param object_name: S3 object name. If not specified then file_name
+        is used
     :return: True if file was uploaded, else False
     """
 

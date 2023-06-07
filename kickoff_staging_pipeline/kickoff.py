@@ -1,26 +1,25 @@
+import functools
 import os
+import shutil
 import subprocess
 import sys
-from typing import Any, Callable
 import typing
-import yaml
-from pathlib import Path
-from git import Repo, Remote, IndexFile
-from git.exc import GitError
-from git.config import GitConfigParser
-from jinja2 import Environment, FileSystemLoader, Template
-import shutil
-import gitlab
-import functools
-from gitlab.v4.objects import (
-    Project as GLProject,
-    Group as GLGroup,
-    ProjectPipeline as GLPipeline,
-)
-import requests
 import urllib
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Callable
+
+import gitlab
+import requests
+import yaml
+from git import IndexFile, Remote, Repo
+from git.config import GitConfigParser
+from git.exc import GitError
+from gitlab.v4.objects import Group as GLGroup
+from gitlab.v4.objects import Project as GLProject
+from gitlab.v4.objects import ProjectPipeline as GLPipeline
+from jinja2 import Environment, FileSystemLoader, Template
 
 
 def git_error_handler(func: Callable) -> Callable:
@@ -421,8 +420,8 @@ def kickoff_pipelines(config: Config) -> Config:
 def open_urls(config: Config) -> None:
     # need to do imports here to avoid breaking this for people who don't have selenium/geckodriver installed
     from selenium import webdriver
-    from selenium.webdriver.firefox.options import Options
     from selenium.webdriver.common.proxy import Proxy
+    from selenium.webdriver.firefox.options import Options
 
     options = Options()
     # options.headless = True

@@ -1,40 +1,39 @@
 #!/usr/bin/env python3
 
 
-import requests
-from ironbank.pipeline.scan_report_parsers.oscap import (
-    OscapReportParser,
-    OscapFinding,
-    OscapOVALFinding,
-    RuleInfo,
-    OscapComplianceFinding,
-    RuleInfoOVAL,
-)
-
-import pytest
 from unittest.mock import patch
 from xml.etree import ElementTree
-import ironbank
 
-from ironbank.pipeline.utils import logger
+import pytest
+import requests
+
+import ironbank
+from ironbank.pipeline.scan_report_parsers.oscap import (
+    OscapComplianceFinding,
+    OscapFinding,
+    OscapOVALFinding,
+    OscapReportParser,
+    RuleInfo,
+    RuleInfoOVAL,
+)
 from ironbank.pipeline.test.mocks.mock_classes import (
-    MockRuleInfo,
-    MockRuleInfoOVAL,
     MockElement,
     MockElementTree,
-    MockOscapFinding,
     MockOscapComplianceFinding,
+    MockOscapFinding,
     MockOscapOVALFinding,
-    MockReportParser,
     MockOutput,
     MockPath,
+    MockReportParser,
+    MockRuleInfo,
+    MockRuleInfoOVAL,
     TestUtils,
 )
+from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.exceptions import (
     NoMatchingOvalUrl,
     OvalDefinitionDownloadFailure,
 )
-
 
 log = logger.setup("test_oscap")
 

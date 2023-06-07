@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import json
-import sys
 import os
+import sys
 from pathlib import Path
 
 from ironbank.pipeline.vat_container_status import log_unverified_findings

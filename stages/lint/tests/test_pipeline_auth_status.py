@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 
+import asyncio
 import os
 import sys
-import asyncio
-import pytest
 from unittest.mock import patch
-from ironbank.pipeline.utils import logger
+
+import pytest
+
 from ironbank.pipeline.test.mocks.mock_classes import (
-    MockHardeningManifest,
-    MockVatAPI,
-    MockResponse,
     MockGoodResponse,
+    MockHardeningManifest,
+    MockResponse,
+    MockVatAPI,
 )
+from ironbank.pipeline.utils import logger
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pipeline_auth_status  # noqa E402

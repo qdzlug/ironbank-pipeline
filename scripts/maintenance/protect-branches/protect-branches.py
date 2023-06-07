@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
-import gitlab
-import os
 import logging
+import os
+
+import gitlab
 
 
 def getProjects(gl, token, id):

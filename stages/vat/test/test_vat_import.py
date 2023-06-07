@@ -1,17 +1,16 @@
 import shutil
 import sys
-
 from pathlib import Path
-from unittest.mock import patch, MagicMock
-from ironbank.pipeline.container_tools.cosign import Cosign
+from unittest.mock import MagicMock, patch
 
-from ironbank.pipeline.utils import logger
+from ironbank.pipeline.container_tools.cosign import Cosign
 from ironbank.pipeline.test.mocks.mock_classes import (
     MockHardeningManifest,
     MockImage,
     MockPath,
     MockTempDirectory,
 )
+from ironbank.pipeline.utils import logger
 
 log = logger.setup("test_vat_import")
 

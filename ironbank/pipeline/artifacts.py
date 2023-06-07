@@ -1,21 +1,21 @@
 import os
-import requests
-import boto3
-from pathlib import Path
-from urllib.parse import urlparse
-from requests.auth import HTTPBasicAuth
-from .utils import logger
-from dataclasses import dataclass, field
 from base64 import b64decode
+from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Union
+from urllib.parse import urlparse
+
+import boto3
+import requests
+from requests.auth import HTTPBasicAuth
+
+from ironbank.pipeline.container_tools.skopeo import Skopeo
+from ironbank.pipeline.image import Image, ImageFile
+
+from .abstract_artifacts import AbstractArtifact, AbstractFileArtifact
+from .utils import logger
 from .utils.decorators import request_retry
 from .utils.exceptions import InvalidURLList
-from .abstract_artifacts import (
-    AbstractArtifact,
-    AbstractFileArtifact,
-)
-from ironbank.pipeline.image import Image, ImageFile
-from ironbank.pipeline.container_tools.skopeo import Skopeo
 
 
 @dataclass

@@ -1,23 +1,24 @@
 #!/usr/bin/env python3
 
-import os
-import sys
-import json
-import yaml
 import hashlib
-import tempfile
+import json
+import os
 import shutil
+import sys
+import tempfile
 from pathlib import Path
 
-from ironbank.pipeline.image import Image
-from ironbank.pipeline.utils.predicates import Predicates
-from ironbank.pipeline.container_tools.skopeo import Skopeo
+import yaml
+
 from ironbank.pipeline.container_tools.cosign import Cosign
+from ironbank.pipeline.container_tools.skopeo import Skopeo
+from ironbank.pipeline.hardening_manifest import HardeningManifest
+from ironbank.pipeline.image import Image
+from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.decorators import subprocess_error_handler
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
-from ironbank.pipeline.hardening_manifest import HardeningManifest
-from ironbank.pipeline.project import DsopProject
+from ironbank.pipeline.utils.predicates import Predicates
 
 log = logger.setup("upload_to_harbor")
 

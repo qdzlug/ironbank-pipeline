@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Generator, Optional
-from astroid import nodes, AstroidError
-from astroid.util import Uninferable
 
+from astroid import AstroidError, nodes
+from astroid.util import Uninferable
 from pylint.checkers import BaseChecker
 
 if TYPE_CHECKING:

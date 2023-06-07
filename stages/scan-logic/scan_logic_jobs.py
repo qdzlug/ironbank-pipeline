@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 
-import os
-import sys
 import json
+import os
 import pathlib
 import shutil
+import sys
 import tempfile
-import image_verify
 from pathlib import Path
-from ironbank.pipeline.image import Image
 
-from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.types import Package
+import image_verify
+
 from ironbank.pipeline.container_tools.cosign import Cosign
-from ironbank.pipeline.utils.exceptions import CosignDownloadError
 from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
+from ironbank.pipeline.image import Image
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.exceptions import CosignDownloadError
+from ironbank.pipeline.utils.types import Package
 
 log = logger.setup("scan_logic_jobs")
 

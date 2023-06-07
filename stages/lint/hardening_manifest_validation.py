@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
+import asyncio
 import sys
 from pathlib import Path
-import asyncio
 
+from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.hardening_manifest import HardeningManifest
 
 log = logger.setup(name="lint.metadata")
 

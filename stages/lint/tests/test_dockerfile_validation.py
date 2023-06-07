@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
 
+import asyncio
+import os
+import pathlib
 import subprocess
 import sys
-import os
-import pytest
-import asyncio
-import pathlib
 from unittest.mock import patch
-from ironbank.pipeline.utils import logger
+
+import pytest
+
 from ironbank.pipeline.file_parser import DockerfileParser
+from ironbank.pipeline.test.mocks.mock_classes import MockHardeningManifest, MockProject
+from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
-from ironbank.pipeline.test.mocks.mock_classes import (
-    MockProject,
-    MockHardeningManifest,
-)
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import dockerfile_validation  # noqa E402

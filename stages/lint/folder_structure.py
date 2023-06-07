@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-import sys
 import asyncio
+import sys
 
-from ironbank.pipeline.utils import logger
 from ironbank.pipeline.project import DsopProject
+from ironbank.pipeline.utils import logger
 
 log = logger.setup("lint.folder_structure")
 

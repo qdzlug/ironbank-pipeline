@@ -1,18 +1,18 @@
 import bz2
-from dataclasses import InitVar, dataclass, field
 import os
-from pathlib import Path
 import re
+import xml.etree.ElementTree as etree
+from dataclasses import InitVar, dataclass, field
+from pathlib import Path
 from typing import Any, Callable, ClassVar, Generator, Optional
+from xml.etree.ElementTree import Element, ElementTree
 
 import requests
-from ironbank.pipeline.scan_report_parsers.report_parser import (
-    ReportParser,
-    AbstractFinding,
-)
-import xml.etree.ElementTree as etree
-from xml.etree.ElementTree import ElementTree, Element
 
+from ironbank.pipeline.scan_report_parsers.report_parser import (
+    AbstractFinding,
+    ReportParser,
+)
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.exceptions import (
     NoMatchingOvalUrl,

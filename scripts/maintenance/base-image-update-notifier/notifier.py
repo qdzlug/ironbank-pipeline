@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
 import argparse
-import gitlab
-import yaml
-import sys
 import os
+import sys
+
+import gitlab
 import jinja2
-from pyrate_limiter import Duration, Limiter, RequestRate
 import requests
+import yaml
+from pyrate_limiter import Duration, Limiter, RequestRate
 
 # VAT config
 vat_api_url = f"{os.environ['VAT_BACKEND_URL']}/p1"

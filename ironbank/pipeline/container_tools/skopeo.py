@@ -1,13 +1,13 @@
-import os
 import json
+import os
 import subprocess
+from dataclasses import dataclass
 from pathlib import Path
 
-from ironbank.pipeline.utils import logger
 from ironbank.pipeline.container_tools.container_tool import ContainerTool
 from ironbank.pipeline.image import Image, ImageFile
+from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.decorators import subprocess_error_handler
-from dataclasses import dataclass
 
 log = logger.setup(name="skopeo")
 

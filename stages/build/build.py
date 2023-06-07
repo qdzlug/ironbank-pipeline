@@ -114,9 +114,7 @@ def start_squid(squid_conf: Path):
     time.sleep(5)
 
 
-def generate_build_env(
-    image_details: dict, image_name: str, image: Image, digest: str
-):
+def generate_build_env(image_details: dict, image_name: str, image: Image, digest: str):
     """Creates env file to be used later in pipeline."""
     build_envs = [
         f"IMAGE_ID=sha256:{image_details['FromImageID']}\n",
@@ -128,7 +126,10 @@ def generate_build_env(
     ]
     for env_ in build_envs:
         log.info(env_.strip())
-    with Path("build.env").open(mode="a+", encoding="utf-8",) as f:
+    with Path("build.env").open(
+        mode="a+",
+        encoding="utf-8",
+    ) as f:
         f.writelines(build_envs)
 
 
@@ -196,9 +197,16 @@ def main():
                 Path(docker_config_dir, "config.json"),
             )
             # TODO: Find a workaround for getting Cosign Verify passing with no network
-            if not Cosign.verify(image=parent_image, docker_config_dir=docker_config_dir, use_key=False, log_cmd=True):
+            if not Cosign.verify(
+                image=parent_image,
+                docker_config_dir=docker_config_dir,
+                use_key=False,
+                log_cmd=True,
+            ):
                 log.debug("Failed to verify parent image signature")
-                log.debug("Cosign is unable to initialize properly without network access")
+                log.debug(
+                    "Cosign is unable to initialize properly without network access"
+                )
 
     ib_labels = {
         "maintainer": "ironbank@dsop.io",
@@ -228,7 +236,10 @@ def main():
     )
 
     # TODO: use the NEXUS_HOST_URL env variable for the values pulled from this file
-    with Path(pipeline_build_dir, "build-args.json").open(mode="r", encoding="utf-8",) as f:
+    with Path(pipeline_build_dir, "build-args.json").open(
+        mode="r",
+        encoding="utf-8",
+    ) as f:
         build_args = json.load(f)
         # create list of lists, with each sublist containing an arg
         # sublist needed for f.writelines() on arg substitution in Dockerfile

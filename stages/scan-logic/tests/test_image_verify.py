@@ -1,21 +1,22 @@
-import os
-import sys
 import json
-import pytest
+import os
 import pathlib
+import sys
 from unittest.mock import mock_open, patch
+
+import pytest
+
 from ironbank.pipeline.test.mocks.mock_classes import (
     MockHardeningManifest,
     MockImage,
     MockProject,
     MockSkopeo,
 )
-from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import image_verify  # noqa E402
-
 
 log = logger.setup("test_image_verify")
 mock_path = pathlib.Path(pathlib.Path(__file__).absolute().parent, "mocks")

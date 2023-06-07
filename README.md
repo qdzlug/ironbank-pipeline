@@ -281,3 +281,14 @@ The artifacts uploaded include scan reports, project README, project LICENSE, an
 
 - Stage and module removed on 03/06/2023
 - Last commit SHA: `f5a439a9237ce9ec05b8a6f4ce7e91c96c44f1d5`
+
+## Local Development
+
+- Linting, formatting, and secret checking of this repo can be done via `make` commands locally.
+- Run `make install_dependencies` to install depdencies on your Mac, this will install brew packages and install python depdencies via brew
+- Run `poetry shell` to activate the python virtual environment
+- `make lint_all` - will run all linters we use against your code
+- `make format_check_all` - will run formatting checks without making changes
+- `make format_in_place` - will make formatting fixes to your code
+- `make run_unit_tests` - will run the unittests
+- `make check_secrets` - will run trufflehog in a container and will check your commit history for secreets since you branched from master.

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 import os
-from ironbank.pipeline.image import Image, ImageFile
+
 from ironbank.pipeline.container_tools.skopeo import Skopeo
+from ironbank.pipeline.image import Image, ImageFile
 
 
 def main():

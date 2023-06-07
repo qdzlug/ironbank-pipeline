@@ -1,8 +1,8 @@
+import csv
 from abc import ABC
 from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
-import csv
 from typing import Any
 
 

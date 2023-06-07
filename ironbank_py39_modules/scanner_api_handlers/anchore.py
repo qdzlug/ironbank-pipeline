@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
-import os
-import sys
 import json
-import pathlib
 import logging
-import requests
+import os
+import pathlib
 import subprocess
+import sys
+
+import requests
 
 
 # TODO: move this module to the `ironbank/pipelines` dir once anchore/enterprise moves to 3.10
