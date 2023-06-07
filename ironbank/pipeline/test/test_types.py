@@ -1,9 +1,11 @@
 import json
-import pytest
 from unittest.mock import patch
+
+import pytest
+
+from ironbank.pipeline.test.mocks.mock_classes import MockPath
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.types import FileParser
-from ironbank.pipeline.test.mocks.mock_classes import MockPath
 
 log = logger.setup("test_types")
 

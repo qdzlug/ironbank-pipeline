@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 
 import csv
-import sys
 import json
 import os
+import sys
 from pathlib import Path
 
 from ironbank.pipeline.scan_report_parsers.anchore import AnchoreReportParser
 from ironbank.pipeline.scan_report_parsers.oscap import OscapReportParser
-
 from ironbank.pipeline.scan_report_parsers.report_parser import ReportParser
 from ironbank.pipeline.utils import logger
-
 from ironbank.pipeline.vat_container_status import sort_justifications
 
 log = logger.setup("csv_gen")

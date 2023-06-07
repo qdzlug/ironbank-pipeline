@@ -1,26 +1,27 @@
 #!/usr/bin/env python3
 
-import os
 import csv
-import sys
 import json
-import pytest
-from pathlib import Path
-from io import TextIOWrapper
-from typing import Any, Iterable
+import os
+import sys
 from dataclasses import dataclass
+from io import TextIOWrapper
+from pathlib import Path
+from typing import Any, Iterable
 from unittest.mock import mock_open
-from ironbank.pipeline.utils import logger
-from ironbank.pipeline.scan_report_parsers.report_parser import ReportParser
+
+import pytest
+
+from ironbank.pipeline.scan_report_parsers.anchore import (
+    AnchoreCVEFinding,
+    AnchoreReportParser,
+)
 from ironbank.pipeline.scan_report_parsers.oscap import (
     OscapComplianceFinding,
     OscapReportParser,
 )
-from ironbank.pipeline.scan_report_parsers.anchore import (
-    AnchoreReportParser,
-    AnchoreCVEFinding,
-)
-
+from ironbank.pipeline.scan_report_parsers.report_parser import ReportParser
+from ironbank.pipeline.utils import logger
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pipeline_csv_gen  # noqa E402

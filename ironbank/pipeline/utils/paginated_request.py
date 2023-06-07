@@ -1,10 +1,11 @@
+import math
+from dataclasses import dataclass
+
 from requests import Session
 
-import math
-
-from dataclasses import dataclass
-from .decorators import request_retry
 from ironbank.pipeline.utils import logger
+
+from .decorators import request_retry
 
 log = logger.setup("paginated_request")
 

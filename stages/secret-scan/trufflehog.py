@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
 import os
-import sys
 import subprocess
+import sys
+from pathlib import Path
+from typing import Optional
+
 import git
 import yaml
-from typing import Optional
-from pathlib import Path
 
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.utils import logger
@@ -32,7 +33,7 @@ def get_commit_diff(repo_dir: str, diff_branch: str) -> str:
 def get_history_cmd(commits: str) -> list[str]:
     """Splits a string of newline separated commit SHAs Returns a list of
     truffleHog3 flags [--since, the oldest sha in the commits list] if list is
-    empty [--no-history]"""
+    empty [--no- history]"""
     commit_lst = commits.split("\n")
     for commit in commit_lst:
         log.info(commit)

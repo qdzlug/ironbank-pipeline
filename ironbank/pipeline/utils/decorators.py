@@ -1,13 +1,15 @@
+import functools
 import os
 import subprocess
-import functools
 from logging import Logger
+
 import requests
+
+from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.exceptions import (
     GenericSubprocessError,
     MaxRetriesException,
 )
-from ironbank.pipeline.utils import logger
 
 log: Logger = logger.setup(name="Exception")
 

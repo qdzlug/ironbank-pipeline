@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 
-import os
-import sys
-import pytest
-import shutil
 import asyncio
+import os
+import shutil
+import sys
 from unittest.mock import patch
+
+import pytest
+
 from ironbank.pipeline.test.mocks.mock_classes import (
     MockHardeningManifest,
-    MockSkopeo,
-    MockPath,
     MockJson,
+    MockPath,
+    MockSkopeo,
 )
-from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import base_image_validation  # noqa E402

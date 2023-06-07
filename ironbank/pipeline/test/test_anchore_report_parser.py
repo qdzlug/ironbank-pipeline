@@ -1,12 +1,13 @@
 import json
+
 import pytest
+
+from ironbank.pipeline.scan_report_parsers.anchore import (
+    AnchoreCVEFinding,
+    AnchoreReportParser,
+)
 from ironbank.pipeline.test.mocks.mock_classes import MockPath, TestUtils
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.scan_report_parsers.anchore import (
-    AnchoreReportParser,
-    AnchoreCVEFinding,
-)
-
 
 log = logger.setup(name="anchore_report_parser")
 

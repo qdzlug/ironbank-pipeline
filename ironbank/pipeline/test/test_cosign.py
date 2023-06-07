@@ -2,10 +2,13 @@
 
 import base64
 import json
-from unittest.mock import patch
-import pytest
 import subprocess
 from dataclasses import dataclass
+from unittest.mock import patch
+
+import pytest
+
+from ironbank.pipeline.container_tools.cosign import Cosign
 from ironbank.pipeline.image import Image
 from ironbank.pipeline.test.mocks.mock_classes import (
     MockImage,
@@ -14,9 +17,7 @@ from ironbank.pipeline.test.mocks.mock_classes import (
     MockPopen,
 )
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.container_tools.cosign import Cosign
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
-
 
 log = logger.setup("test_cosign")
 

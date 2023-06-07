@@ -1,5 +1,5 @@
-from ironbank.pipeline.utils.predicates import Predicates
 from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.predicates import Predicates
 
 log = logger.setup("test_predicates")
 

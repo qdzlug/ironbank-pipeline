@@ -1,5 +1,6 @@
 exclude:
-  - message: Standard pipeline config
-    pattern: airflow_conf_set
+  - message: Default exclude paths
     paths:
-      - stages/lint/README.md
+      - ${ARTIFACT_STORAGE}/
+      - trufflehog-config.yaml
+      - trufflehog-config.yml

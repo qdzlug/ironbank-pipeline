@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
 import os
-import git
-import sys
-import yaml
-import pytest
 import pathlib
+import sys
 from unittest.mock import mock_open
+
+import git
+import pytest
+import yaml
+
 from ironbank.pipeline.utils import logger
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import trufflehog  # noqa E402
-from trufflehog import (
-    get_commit_diff,
-    get_history_cmd,
-    create_trufflehog_config,
-    get_config,
-)  # noqa E402
+from trufflehog import get_commit_diff  # noqa E402
+from trufflehog import get_config  # noqa E402
+from trufflehog import create_trufflehog_config, get_history_cmd  # noqa E042
 
 log = logger.setup("test_trufflehog")
 

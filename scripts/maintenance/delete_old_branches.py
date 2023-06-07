@@ -13,8 +13,9 @@ Expected environment variables:
 import os
 from datetime import datetime
 from typing import NamedTuple
-from dateutil.relativedelta import relativedelta
+
 import gitlab
+from dateutil.relativedelta import relativedelta
 
 
 class ProjectBranch(NamedTuple):

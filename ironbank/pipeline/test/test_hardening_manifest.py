@@ -1,26 +1,27 @@
 #!/usr/bin/env python3
 
-import os
+import json
 import logging
+import multiprocessing
+import os
 import pathlib
 import time
-import json
-import multiprocessing
 from dataclasses import dataclass
-from unittest.mock import patch, mock_open, Mock
+from unittest.mock import Mock, mock_open, patch
+
+import jsonschema
 import pytest
 import yaml
-import jsonschema
 from mocks import mock_classes
 from mocks.mock_classes import MockHardeningManifest, MockPath, MockProcess
-from ironbank.pipeline.utils import logger
+
 from ironbank.pipeline.hardening_manifest import (
     HardeningManifest,
-    source_values,
-    get_source_keys_values,
     get_approval_status,
+    get_source_keys_values,
+    source_values,
 )
-
+from ironbank.pipeline.utils import logger
 
 mock_path = pathlib.Path(pathlib.Path(__file__).absolute().parent, "mocks")
 

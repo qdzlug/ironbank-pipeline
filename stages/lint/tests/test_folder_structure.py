@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 
-import sys
-import os
 import asyncio
-import pytest
+import os
+import sys
 from unittest.mock import patch
-from ironbank.pipeline.utils import logger
+
+import pytest
+
 from ironbank.pipeline.project import DsopProject
-from ironbank.pipeline.test.mocks.mock_classes import (
-    MockProject,
-)
+from ironbank.pipeline.test.mocks.mock_classes import MockProject
+from ironbank.pipeline.utils import logger
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import folder_structure  # noqa E402

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
+import asyncio
 import os
 import sys
-import asyncio
 
-from ironbank.pipeline.project import DsopProject
-from ironbank.pipeline.utils import logger
 from ironbank.pipeline.apis import VatAPI
 from ironbank.pipeline.hardening_manifest import HardeningManifest
+from ironbank.pipeline.project import DsopProject
+from ironbank.pipeline.utils import logger
 
 log = logger.setup(name="lint.pipeline_auth_status")
 

@@ -1,31 +1,33 @@
 #!/usr/bin/env python3
 
-from dataclasses import dataclass, field
 import inspect
-from pathlib import PosixPath
+import random
 import subprocess
 import tempfile
+from dataclasses import dataclass, field
+from pathlib import PosixPath
 from typing import Any, Callable
+from xml.etree.ElementTree import Element, ElementTree
+
 import requests
-import random
 from requests import Session
+
+from ironbank.pipeline.apis import VatAPI
+from ironbank.pipeline.container_tools.skopeo import Skopeo
+from ironbank.pipeline.harbor import HarborRobot, HarborRobotPermissions
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.image import Image, ImageFile
-from ironbank.pipeline.apis import VatAPI
 from ironbank.pipeline.project import DsopProject
-from ironbank.pipeline.harbor import HarborRobot, HarborRobotPermissions
-from ironbank.pipeline.container_tools.skopeo import Skopeo
-from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.types import Package
-from ironbank.pipeline.scan_report_parsers.report_parser import ReportParser
-from xml.etree.ElementTree import ElementTree, Element
 from ironbank.pipeline.scan_report_parsers.oscap import (
     OscapComplianceFinding,
-    OscapOVALFinding,
     OscapFinding,
+    OscapOVALFinding,
     RuleInfo,
     RuleInfoOVAL,
 )
+from ironbank.pipeline.scan_report_parsers.report_parser import ReportParser
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.types import Package
 
 
 class MockSet(set):

@@ -1,29 +1,29 @@
 #!/usr/bin/env python3
 
 import json
-import pytest
 import pathlib
 import random
 from unittest.mock import patch
-from ironbank.pipeline.test.mocks.mock_classes import MockOutput, MockPackage, MockPath
-from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.package_parser import (
-    NullPackage,
-    GoPackage,
-    RpmPackage,
-    PypiPackage,
-    NpmPackage,
-    RubyGemPackage,
-    DebianPackage,
-    ApkPackage,
-)
+
+import pytest
+
 from ironbank.pipeline.file_parser import (
     AccessLogFileParser,
     DockerfileParser,
     SbomFileParser,
 )
-from ironbank.pipeline.utils.exceptions import (
-    RepoTypeNotSupported,
+from ironbank.pipeline.test.mocks.mock_classes import MockOutput, MockPackage, MockPath
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.exceptions import RepoTypeNotSupported
+from ironbank.pipeline.utils.package_parser import (
+    ApkPackage,
+    DebianPackage,
+    GoPackage,
+    NpmPackage,
+    NullPackage,
+    PypiPackage,
+    RpmPackage,
+    RubyGemPackage,
 )
 
 mock_path = pathlib.Path(pathlib.Path(__file__).absolute().parent, "mocks")

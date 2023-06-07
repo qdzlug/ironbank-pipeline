@@ -22,3 +22,7 @@ kickoff_staging_pipeline/staging_projects*
 **geckodriver.log**
 secrets.yaml
 config.yaml
+node_modules/*
+package-lock.json
+package.json
+pylint/

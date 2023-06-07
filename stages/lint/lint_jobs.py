@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
 import asyncio
-import hardening_manifest_validation
-import folder_structure
-import dockerfile_validation
-import base_image_validation
-import pipeline_auth_status
 import sys
+
+import base_image_validation
+import dockerfile_validation
+import folder_structure
+import hardening_manifest_validation
+import pipeline_auth_status
 
 from ironbank.pipeline.utils import logger  # noqa E402
 from ironbank.pipeline.utils.exceptions import SymlinkFoundError

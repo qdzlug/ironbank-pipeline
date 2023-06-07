@@ -1,22 +1,20 @@
 #!/usr/bin/env python3
 
 import os
-import sys
-import yaml
-import pytest
 import pathlib
+import sys
 from subprocess import CalledProcessError
-from requests.exceptions import HTTPError
-from ironbank.pipeline.utils import logger
+
+import pytest
+import yaml
 from botocore.exceptions import ClientError
-from ironbank.pipeline.project import DsopProject
-from ironbank.pipeline.utils.exceptions import InvalidURLList
+from requests.exceptions import HTTPError
+
+from ironbank.pipeline.artifacts import ContainerArtifact, HttpArtifact, S3Artifact
 from ironbank.pipeline.hardening_manifest import HardeningManifest
-from ironbank.pipeline.artifacts import (
-    S3Artifact,
-    HttpArtifact,
-    ContainerArtifact,
-)
+from ironbank.pipeline.project import DsopProject
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.exceptions import InvalidURLList
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import downloader  # noqa E402

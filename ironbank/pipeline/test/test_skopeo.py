@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
 import json
-import pytest
 import subprocess
-from ironbank.pipeline.utils import logger
-from ironbank.pipeline.test.mocks.mock_classes import MockImage
-from ironbank.pipeline.utils.exceptions import GenericSubprocessError
+
+import pytest
+
 from ironbank.pipeline.container_tools.skopeo import CopyException, Skopeo
+from ironbank.pipeline.test.mocks.mock_classes import MockImage
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 
 log = logger.setup("test_skopeo")
 

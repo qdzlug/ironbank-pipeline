@@ -4,10 +4,11 @@
 #   PRIVATE_TOKEN=qwertyuiopasdfghjklz ./gitlab-project-settings.py dsop/opensource/pipeline-test-project
 #   PRIVATE_TOKEN=qwertyuiopasdfghjklz ./gitlab-project-settings.py dsop
 
-import gitlab
+import logging
 import os
 import sys
-import logging
+
+import gitlab
 
 CI_CONFIG_PATH = "templates/default.yaml@ironbank-tools/ironbank-pipeline"
 

@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 
-import os
-import pytest
 import logging
-from unittest import mock
+import os
 from dataclasses import dataclass
-from ironbank.pipeline.apis import API
 from subprocess import CalledProcessError
-from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.exceptions import MaxRetriesException
-from ironbank.pipeline.utils.decorators import request_retry, vat_request_error_handler
+from unittest import mock
 
+import pytest
+
+from ironbank.pipeline.apis import API
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.decorators import request_retry, vat_request_error_handler
+from ironbank.pipeline.utils.exceptions import MaxRetriesException
 
 log = logger.setup("test_decorators")
 

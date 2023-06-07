@@ -72,14 +72,8 @@
     "tags": {
       "description": "Tags to tag an image with when pushed to registry1",
       "type": "array",
-      "items": [
-        {
-          "$ref": "#/definitions/docker-TagRegexp-non-latest"
-        }
-      ],
-      "additionalItems": {
-        "$ref": "#/definitions/docker-TagRegexp"
-      },
+      "items": [{ "$ref": "#/definitions/docker-TagRegexp-non-latest" }],
+      "additionalItems": { "$ref": "#/definitions/docker-TagRegexp" },
       "minItems": 1,
       "maxItems": 10,
       "uniqueItems": true
@@ -91,23 +85,15 @@
         "BASE_IMAGE": {
           "$comment": "May be an empty string if the Dockerfile does not use this variable",
           "oneOf": [
-            {
-              "$ref": "#/definitions/docker-NameRegexp-without-domain"
-            },
-            {
-              "const": ""
-            }
+            { "$ref": "#/definitions/docker-NameRegexp-without-domain" },
+            { "const": "" }
           ]
         },
         "BASE_TAG": {
           "$comment": "May be an empty string if the Dockerfile does not use this variable",
           "oneOf": [
-            {
-              "$ref": "#/definitions/docker-TagRegexp"
-            },
-            {
-              "const": ""
-            }
+            { "$ref": "#/definitions/docker-TagRegexp" },
+            { "const": "" }
           ]
         }
       },
@@ -154,9 +140,7 @@
           "$ref": "#/definitions/printable-characters-without-newlines"
         }
       },
-      "propertyNames": {
-        "$ref": "#/definitions/docker-label-name"
-      },
+      "propertyNames": { "$ref": "#/definitions/docker-label-name" },
       "additionalProperties": false,
       "required": [
         "org.opencontainers.image.description",
@@ -174,10 +158,7 @@
           {
             "type": "object",
             "properties": {
-              "url": {
-                "type": "string",
-                "pattern": "^https?://.+$"
-              },
+              "url": { "type": "string", "pattern": "^https?://.+$" },
               "filename": {
                 "$ref": "#/definitions/printable-characters-without-newlines-or-slashes"
               },
@@ -202,10 +183,7 @@
                   "id": {
                     "$ref": "#/definitions/environment-variable-name"
                   },
-                  "type": {
-                    "type": "string",
-                    "const": "basic"
-                  }
+                  "type": { "type": "string", "const": "basic" }
                 },
                 "additionalProperties": false,
                 "required": ["id"]
@@ -217,10 +195,7 @@
           {
             "type": "object",
             "properties": {
-              "url": {
-                "type": "string",
-                "pattern": "^s3://.+$"
-              },
+              "url": { "type": "string", "pattern": "^s3://.+$" },
               "filename": {
                 "$ref": "#/definitions/printable-characters-without-newlines-or-slashes"
               },
@@ -264,22 +239,15 @@
           {
             "type": "object",
             "properties": {
-              "url": {
-                "$ref": "#/definitions/docker-ReferenceRegexp-url"
-              },
-              "tag": {
-                "$ref": "#/definitions/docker-name-and-tag"
-              },
+              "url": { "$ref": "#/definitions/docker-ReferenceRegexp-url" },
+              "tag": { "$ref": "#/definitions/docker-name-and-tag" },
               "auth": {
                 "type": "object",
                 "properties": {
                   "id": {
                     "$ref": "#/definitions/environment-variable-name"
                   },
-                  "type": {
-                    "type": "string",
-                    "const": "basic"
-                  }
+                  "type": { "type": "string", "const": "basic" }
                 },
                 "additionalProperties": false,
                 "required": ["id"]
@@ -291,12 +259,8 @@
           {
             "type": "object",
             "properties": {
-              "url": {
-                "$ref": "#/definitions/github-ReferenceRegexp-url"
-              },
-              "tag": {
-                "$ref": "#/definitions/docker-name-and-tag"
-              }
+              "url": { "$ref": "#/definitions/github-ReferenceRegexp-url" },
+              "tag": { "$ref": "#/definitions/docker-name-and-tag" }
             },
             "additionalProperties": false,
             "required": ["url"]
@@ -306,10 +270,7 @@
             "properties": {
               "urls": {
                 "type": "array",
-                "items": {
-                  "type": "string",
-                  "pattern": "^https?://.+$"
-                }
+                "items": { "type": "string", "pattern": "^https?://.+$" }
               },
               "filename": {
                 "$ref": "#/definitions/printable-characters-without-newlines-or-slashes"
@@ -353,9 +314,7 @@
             "$ref": "#/definitions/printable-characters-without-newlines",
             "format": "email"
           },
-          "cht_member": {
-            "type": "boolean"
-          }
+          "cht_member": { "type": "boolean" }
         },
         "additionalProperties": false,
         "required": ["name", "username"]

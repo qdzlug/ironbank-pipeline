@@ -1,11 +1,12 @@
-import pytest
 import pathlib
 from pathlib import Path
 from unittest.mock import mock_open
-from ironbank.pipeline.utils import logger
-from mocks.mock_classes import MockProject, MockPath
-from ironbank.pipeline.utils.exceptions import SymlinkFoundError
 
+import pytest
+from mocks.mock_classes import MockPath, MockProject
+
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.exceptions import SymlinkFoundError
 
 log = logger.setup("test_project")
 

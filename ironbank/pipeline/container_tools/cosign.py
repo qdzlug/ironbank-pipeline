@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 
-import os
-import json
 import base64
+import json
+import os
 import subprocess
-from pathlib import Path
 from dataclasses import dataclass, field
-from ironbank.pipeline.utils import logger
-from ironbank.pipeline.image import Image, ImageFile
-from ironbank.pipeline.utils.predicates import Predicates
-from ironbank.pipeline.utils.decorators import subprocess_error_handler
+from pathlib import Path
+
 from ironbank.pipeline.container_tools.container_tool import ContainerTool
+from ironbank.pipeline.image import Image, ImageFile
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.decorators import subprocess_error_handler
+from ironbank.pipeline.utils.predicates import Predicates
 
 
 @dataclass
@@ -148,8 +149,7 @@ class Cosign(ContainerTool):
             env={
                 "PATH": os.environ["PATH"],
                 "DOCKER_CONFIG": docker_config_dir,
-            }
-
+            },
         ) as proc:
             # Check if child process has terminated and no data piped to stdout
             for line in iter(proc.stdout.readline, ""):

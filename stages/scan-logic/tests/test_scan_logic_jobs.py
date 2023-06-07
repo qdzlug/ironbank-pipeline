@@ -1,19 +1,21 @@
+import json
 import os
 import shutil
 import sys
-import json
-import pytest
 from pathlib import Path
 from unittest.mock import mock_open, patch
-from ironbank.pipeline.utils import logger
+
+import pytest
+
 from ironbank.pipeline.container_tools.cosign import Cosign
-from ironbank.pipeline.utils.exceptions import CosignDownloadError
+from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
 from ironbank.pipeline.test.mocks.mock_classes import (
-    MockPath,
     MockImage,
+    MockPath,
     MockTempDirectory,
 )
-from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.exceptions import CosignDownloadError
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import image_verify  # noqa E402

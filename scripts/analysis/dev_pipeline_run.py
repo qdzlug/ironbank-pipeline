@@ -7,14 +7,14 @@ Potential Related Uses (would need to update script or just pull relevant code f
     - Automate rerunning a pipeline after another one finishes
     - A solid example of spaghetti code
 """
-import gitlab
-import os
-import sys
-import logging
-import glob
 import csv
+import glob
+import logging
+import os
 import time
 from pathlib import Path
+
+import gitlab
 
 
 def get_vat_compare_failed(gl):
@@ -23,15 +23,12 @@ def get_vat_compare_failed(gl):
     """
     extension = "csv"
     files = glob.glob("finished_pipleines_*.{}".format(extension))
-    vat_diff = {}
     for file in files:
         with Path(file).open(newline="") as csvfile:
             csv_reader = csv.reader(csvfile, delimiter=",", quotechar="|")
             proj_pipeline_list = []
             for row in csv_reader:
                 if "vat compare" in row and ("success" in row or "harbor" in row):
-                    proj_name = str(row[0]).split("/")[-1]
-                    pipeline_job_id = row[1]
                     project = gl.projects.get(row[0])
                     # print(project)
                     pipeline = project.pipelines.create({"ref": "development"})

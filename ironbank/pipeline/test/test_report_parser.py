@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 
 import csv
-from pathlib import Path
-from io import TextIOWrapper
 from dataclasses import dataclass
-from ironbank.pipeline.utils import logger
+from io import TextIOWrapper
+from pathlib import Path
 from unittest.mock import mock_open
+
 from ironbank.pipeline.scan_report_parsers.report_parser import (
-    ReportParser,
     AbstractFinding,
+    ReportParser,
 )
+from ironbank.pipeline.utils import logger
 
 log = logger.setup("test_report_parser")
 

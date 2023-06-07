@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 
+import json
+import multiprocessing
 import os
 import sys
 import time
-import multiprocessing
 from pathlib import Path
 from typing import Optional
-import json
-import yaml
+
 import jsonschema
+import yaml
 
 from ironbank.pipeline.utils import logger
 

@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-import pytest
 from pathlib import Path
-from ironbank.pipeline.utils import logger
+
+import pytest
+
 from ironbank.pipeline.image import (
     Image,
     ImageFile,
     MissingNameAndUrlError,
     MissingTagAndDigestError,
 )
-
+from ironbank.pipeline.utils import logger
 
 log = logger.setup("test_image")
 

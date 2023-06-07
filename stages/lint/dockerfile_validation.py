@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 
+import asyncio
 import re
 import subprocess
 import sys
-import asyncio
 
+from ironbank.pipeline.file_parser import DockerfileParser
+from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.decorators import subprocess_error_handler
-from ironbank.pipeline.hardening_manifest import HardeningManifest
-from ironbank.pipeline.file_parser import DockerfileParser
 
 log = logger.setup(name="lint.dockerfile_validation")
 

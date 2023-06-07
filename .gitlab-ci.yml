@@ -1,4 +1,4 @@
-image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.9.8"
+image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner-dev:v0.0.2"
 
 stages:
   - secret-scanning
@@ -11,11 +11,10 @@ stages:
   tags:
     - ironbank-tools
 
-# Secret Scanning
 trufflehog:
   extends: .base
-  stage: secret-scanning
   image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6
+  stage: secret-scanning
   variables:
     # This forces the trufflehog job to NOT perform a shallow clone
     GIT_DEPTH: 0
@@ -24,105 +23,11 @@ trufflehog:
     - 'git config --global --add safe.directory "${CI_PROJECT_DIR}"'
     - python3 stages/secret-scan/trufflehog.py
 
-# Format
-black:
-  extends: .base
-  stage: format
-  script:
-    - pip install --user black
-    - black --check --diff --color -t py311 -- **/*.py
-
-docformatter:
-  extends: .base
-  stage: format
-  script:
-    - pip install --user docformatter
-    - docformatter --check --diff -r stages ironbank
-
-prettier:
-  extends: .base
-  stage: format
-  image: "registry1.dso.mil/ironbank/opensource/nodejs/nodejs18:18.16.0-slim"
-  script:
-    - npx prettier -c .
-
-shfmt:
-  extends: .base
-  stage: format
-  image: "registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.7"
-  script:
-    - dnf install wget -y
-    - wget https://github.com/mvdan/sh/releases/download/v3.1.2/shfmt_v3.1.2_linux_amd64
-    - chmod a+x shfmt_v3.1.2_linux_amd64
-    - "./shfmt_v3.1.2_linux_amd64 -d ."
-
-# Lint
-shellcheck:
-  extends: .base
-  stage: lint
-  image: registry1.dso.mil/ironbank/ironbank-pipelines/shellcheck:v0.8.0
-  script:
-    - |
-      set -o pipefail
-      set +e # remove gitlab ci setting
-      shopt -s nullglob
-      files=()
-      while IFS='' read -r -d '' line; do
-          files+=("$line")
-      done < <(find ./stages -name '*.sh' -print0)
-      if [ -n "${files[0]}" ]
-      then
-        echo " Scanning shell scripts..."
-        ( IFS=$'\n'; echo "${files[*]}" )
-        shellcheck --exclude=SC2153 --format=gcc -- "${files[@]}"
-        ret=$?
-      fi
-
-      echo "# Scanning embedded scripts..."
-      while IFS= read -r -d '' file; do
-        echo "# $file"
-        yq -r '.[] | objects | .before_script, .script, .after_script | select(. != null) | join("\n")' "$file" | shellcheck --exclude=SC2153 --format=gcc -s bash -
-        yq_ret=$?
-        if [ $yq_ret -ne 0 ]
-        then
-          ret=$yq_ret
-        fi
-      done < <(find . \( -name '*.yaml' -o  -name '*.yml' ! -path './scripts/analysis/*' \) -print0)
-      exit "$ret"
-
-pylama:
+lint:
   extends: .base
   stage: lint
   script:
-    - pip install --user pyflakes==2.4.0
-    - pip install --user pylama
-    - pylama
-## ignore line errors as black has been ran against code.
-
-radon:
-  extends: .base
-  stage: lint
-  allow_failure: true
-  image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.9.8"
-  script:
-    - python3 -m pip install radon radon[toml]
-    - python3 -m radon cc ironbank/ stages/
-
-pylint:
-  extends: .base
-  stage: lint
-  allow_failure: true
-  variables:
-    PYLINTHOME: $CI_PROJECT_DIR
-  before_script:
-    - python3 -m pip install --user pylint pylint-exit anybadge
-    - python3 -m pip install --user .
-  script:
-    - mkdir ./pylint
-    - pylint stages/ ironbank/ | tee ./pylint/pylint.log || pylint-exit $?
-    - PYLINT_SCORE=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' ./pylint/pylint.log)
-    - anybadge --label=Pylint --file=pylint/pylint.svg --value="${PYLINT_SCORE}" 3=red 6=orange 9=yellow 10=green
-    - echo "Pylint score is '${PYLINT_SCORE}'"
+    - make lint_all
   artifacts:
     paths:
       - ./pylint/
@@ -131,24 +36,17 @@ pylint:
     paths:
       - ./ironbank_1.stats
 
-# Test
+format:
+  extends: .base
+  stage: format
+  script:
+    - make format_check_all
+
 unit-testing:
-  needs:
-    - job: trufflehog
-      artifacts: false
-    - job: black
-      artifacts: false
-    - job: docformatter
-      artifacts: false
-    - job: pylama
-      artifacts: false
-    - job: pylint
-      artifacts: false
+  extends: .base
   stage: test
   script:
-    - python3 -m pip install --user pytest-cov
-    - python3 -m pip install --user .
-    - python3 -m pytest -m "not slow"
+    - make run_unit_tests
   coverage: '/^TOTAL.+?(\d+\%)$/'
   variables:
     ARTIFACT_DIR: "stages/lint/tests/mock"

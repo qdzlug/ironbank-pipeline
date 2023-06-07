@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 
-import os
-import sys
 import argparse
 import logging
+import os
+import sys
 
 
 def get_oscap_guide(scap_version, image_type):

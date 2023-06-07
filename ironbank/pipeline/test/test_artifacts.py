@@ -1,24 +1,25 @@
 #!/usr/bin/env python3
 
-import boto3
-import pytest
 import pathlib
-import requests
 import subprocess
 from dataclasses import dataclass
-from unittest.mock import mock_open
-from requests.auth import HTTPBasicAuth
 from subprocess import CalledProcessError
-from ironbank.pipeline.utils import logger
+from unittest.mock import mock_open
+
+import boto3
+import pytest
+import requests
+from requests.auth import HTTPBasicAuth
+
 from ironbank.pipeline.abstract_artifacts import AbstractArtifact
-from ironbank.pipeline.utils.exceptions import GenericSubprocessError, InvalidURLList
 from ironbank.pipeline.artifacts import (
-    S3Artifact,
-    HttpArtifact,
     ContainerArtifact,
     GithubArtifact,
+    HttpArtifact,
+    S3Artifact,
 )
-
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.exceptions import GenericSubprocessError, InvalidURLList
 
 log = logger.setup("test_artifacts")
 

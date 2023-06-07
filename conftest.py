@@ -1,8 +1,10 @@
+from dataclasses import dataclass
+
 import pytest
 import requests
-from dataclasses import dataclass
+
+from ironbank.pipeline.test.mocks.mock_classes import MockCompletedProcess, MockResponse
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.test.mocks.mock_classes import MockResponse, MockCompletedProcess
 
 
 class MockJsonDecodeError(requests.JSONDecodeError):
