@@ -20,10 +20,8 @@ from ironbank.pipeline.test.mocks.mock_classes import (
     MockOutput,
     MockPath,
     MockPopen,
+    MockJson,
 )
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import upload_to_harbor
 from ironbank.pipeline.utils.predicates import Predicates
 from ironbank.pipeline.image import Image
 from ironbank.pipeline.utils.predicates import Predicates
@@ -35,6 +33,10 @@ from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.project import DsopProject
 from unittest.mock import patch, mock_open, Mock
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import upload_to_harbor
+
 
 log = logger.setup("test_upload_to_harbor")
 
@@ -120,102 +122,79 @@ def mock_hm_content():
 #     },
 # )
 
-# @patch("stages.harbor.upload_to_harbor.Path", new=MockPath)
-# # @patch("stages.harbor.upload_to_harbor.json", new=MockJson)
-# def test_generate_vat_response_lineage_file(
-#     caplog,
-#     monkeypatch,
-#     mock_pipeline_vat_response,
-#     mock_pipeline_parent_vat_response,
-#     mock_hm_content,
-# ):
-#     monkeypatch.setenv("CI_PROJECT_DIR", "dir")
-#     monkeypatch.setenv("ACCESS_LOG_DIR", "dir")
 
-#     mock_output_dir = MockPath("./example")
-#     mock_docker_conf_dir = MockPath("./")
+@patch("upload_to_harbor.json", new=MockJson)
+@patch("upload_to_harbor.Path", new=MockPath)
+# @patch("stages.harbor.upload_to_harbor.json", new=MockJson)
+def test_generate_vat_response_lineage_file(
+    caplog,
+    monkeypatch,
+    mock_pipeline_vat_response,
+    mock_pipeline_parent_vat_response,
+    mock_hm_content,
+):
+    monkeypatch.setenv("VAT_RESPONSE", "dir")
+    monkeypatch.setenv("CI_PROJECT_DIR", "dir")
+    monkeypatch.setenv("ACCESS_LOG_DIR", "dir")
+    monkeypatch.setenv("PARENT_VAT_RESPONSE", "dir")
+    monkeypatch.setenv("ARTIFACT_DIR", "dir")
 
-#     monkeypatch.setattr(
-#         subprocess,
-#         "Popen",
-#         lambda *args, **kwargs: MockPopen(
-#             stdout=MockOutput(mock_data="{}"), poll_counter=0, returncode=1
-#         ),
-#     )
-#     monkeypatch.setattr(json, "loads", lambda x: x)
-#     monkeypatch.setattr(base64, "b64decode", lambda x: x)
+    upload_to_harbor._generate_vat_response_lineage_file()
+    assert "Generated VAT response lineage file" in caplog.text
 
-#     result = upload_to_harbor._generate_vat_response_lineage_file()
 
-# monkeypatch.setattr(
-#     pathlib.Path, "open", mock_open(read_data=yaml.safe_dump(mock_hm_content))
+@patch("upload_to_harbor.json", new=MockJson)
+@patch("upload_to_harbor.Path", new=MockPath)
+def test_generate_attestation_predicates(monkeypatch):
+    monkeypatch.setenv("CI_PROJECT_DIR", "dir")
+    monkeypatch.setenv("ACCESS_LOG_DIR", "dir")
+    monkeypatch.setenv("SBOM_DIR", "file")
+
+    def mock_convert_artifacts_to_hardening_manifest(hm_resources, manifest_path):
+        pass
+
+    monkeypatch.setattr(
+        upload_to_harbor,
+        "_convert_artifacts_to_hardening_manifest",
+        mock_convert_artifacts_to_hardening_manifest,
+    )
+    predicates = Predicates()
+    upload_to_harbor.generate_attestation_predicates(predicates)
+
+
+# # staging image is always the new image
+# staging_image = Image(
+#     registry="http://test.url",
+#     name="test_image",
+#     digest="test_podman_sha",
+#     transport="docker://",
 # )
 
-# monkeypatch.setattr(
-#     pathlib.Path,
-#     "open",
-#     mock_open(read_data=json.dumps(mock_pipeline_vat_response)),
+# mock_result = generate_attestation_predicates()
+# assert mock_result == MockOutput().mock_data
+
+# monkeypatch.delenv("CI_PROJECT_DIR")
+# monkeypatch.delenv("ACCESS_LOG_DIR")
+
+# monkeypatch.setenv("CI_CI_PROJECT_DIR", "hardening_manifest.json")
+# monkeypatch.setatt(
+#     upload_to_harbor, "attestation_predicate", lambda a, b: mock_hm_content
 # )
 
-# monkeypatch.setattr(
-#     pathlib.Path,
-#     "open",
-#     mock_open(read_data=json.dumps(mock_pipeline_parent_vat_response)),
-# )
+# log.info("Test predicates exist")
+# mock_result = attestation_predicate.append("mock_hm_content")
+# assert mock_result == MockOutput().mock_data
+
+# monkeypatch.delenv("CI_PROJECT_DIR")
+# monkeypatch.delenv("SBOM_DIR")
+
+# project = DsopProject()
+# hm = HardeningManifest(project.hardening_manifest_path)
 
 # predicates = Predicates()
 # attestation_predicates = upload_to_harbor.generate_attestation_predicates(
 #     predicates
 # )
-
-#
-
-# Verify the log message
-# assert "Generated VAT response lineage file successfully" in caplog.text
-
-
-@patch("stages.harbor.upload_to_harbor.Path", new=MockPath)
-def test_generate_attestation_predicates(monkeypatch):
-    monkeypatch.setenv("CI_PROJECT_DIR", "dir")
-    monkeypatch.setenv("ACCESS_LOG_DIR", "dir")
-    monkeypatch.setattr(
-        Path,
-        "_convert_artifacts_to_hardening_manifest",
-        lambda a, b: mock_hm_content,
-    )
-
-    # staging image is always the new image
-    staging_image = Image(
-        registry="http://test.url",
-        name="test_image",
-        digest="test_podman_sha",
-        transport="docker://",
-    )
-
-    mock_result = _convert_artifacts_to_hardening_manifest.Path("mock_hm_content")
-    assert mock_result == MockOutput().mock_data
-
-    monkeypatch.delenv("CI_PROJECT_DIR")
-    monkeypatch.delenv("ACCESS_LOG_DIR")
-
-    monkeypatch.setenv("SBOM_DIR", "file")
-    monkeypatch.setenv("CI_CI_PROJECT_DIR", "hardening_manifest.json")
-    monkeypatch.setatt(Path, "attestation_predicate", lambda a, b: mock_hm_content)
-
-    log.info("Test predicates exist")
-    mock_result = attestation_predicate.append("mock_hm_content")
-    assert mock_result == MockOutput().mock_data
-
-    monkeypatch.delenv("CI_PROJECT_DIR")
-    monkeypatch.delenv("SBOM_DIR")
-
-    # project = DsopProject()
-    # hm = HardeningManifest(project.hardening_manifest_path)
-
-    # predicates = Predicates()
-    # attestation_predicates = upload_to_harbor.generate_attestation_predicates(
-    #     predicates
-    # )
 
 
 #     # Mocking the environment variables

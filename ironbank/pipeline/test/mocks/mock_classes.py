@@ -75,6 +75,9 @@ class MockOutput:
 
 @dataclass
 class MockJson:
+    def load(*args, **kwargs):
+        pass
+
     def dump(*args, **kwargs):
         pass
 
