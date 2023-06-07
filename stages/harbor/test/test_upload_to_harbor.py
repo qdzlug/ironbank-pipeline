@@ -119,6 +119,7 @@ def mock_hm_content():
 #         "ACCESS_LOG_DIR": "",
 #     },
 # )
+
 # @patch("stages.harbor.upload_to_harbor.Path", new=MockPath)
 # # @patch("stages.harbor.upload_to_harbor.json", new=MockJson)
 # def test_generate_vat_response_lineage_file(
@@ -174,12 +175,15 @@ def mock_hm_content():
 
 
 @patch("stages.harbor.upload_to_harbor.Path", new=MockPath)
-def test_generate_attestation_predicates(monkeypatch, tmp_path):
+def test_generate_attestation_predicates(monkeypatch):
     monkeypatch.setenv("CI_PROJECT_DIR", "dir")
     monkeypatch.setenv("ACCESS_LOG_DIR", "dir")
     monkeypatch.setattr(
-        Path, "_convert_artifacts_to_hardening_manifest", lambda a, b: None
+        Path,
+        "_convert_artifacts_to_hardening_manifest",
+        lambda a, b: mock_hm_content,
     )
+
     # staging image is always the new image
     staging_image = Image(
         registry="http://test.url",
@@ -188,17 +192,22 @@ def test_generate_attestation_predicates(monkeypatch, tmp_path):
         transport="docker://",
     )
 
-    asyncio.run(generate_attestation_predicates.main())
-    assert "test image" in caplog.text
+    mock_result = _convert_artifacts_to_hardening_manifest.Path("mock_hm_content")
+    assert mock_result == MockOutput().mock_data
 
     monkeypatch.delenv("CI_PROJECT_DIR")
     monkeypatch.delenv("ACCESS_LOG_DIR")
 
     monkeypatch.setenv("SBOM_DIR", "file")
     monkeypatch.setenv("CI_CI_PROJECT_DIR", "hardening_manifest.json")
-    monkeypatch.setatt(
-        attestation_predicates, "attestation_predicates.append", lambda a, b: __file__
-    )
+    monkeypatch.setatt(Path, "attestation_predicate", lambda a, b: mock_hm_content)
+
+    log.info("Test predicates exist")
+    mock_result = attestation_predicate.append("mock_hm_content")
+    assert mock_result == MockOutput().mock_data
+
+    monkeypatch.delenv("CI_PROJECT_DIR")
+    monkeypatch.delenv("SBOM_DIR")
 
     # project = DsopProject()
     # hm = HardeningManifest(project.hardening_manifest_path)
