@@ -17,6 +17,8 @@ format_in_place:
 	./code_checker.sh format_in_place
 run_radon:
 	./code_checker.sh run_radon
+run_shellcheck:
+	./code_checker.sh run_shellcheck
 run_unit_tests:
 	./code_checker.sh run_unit_tests
 check_secrets:
