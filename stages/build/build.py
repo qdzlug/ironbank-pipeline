@@ -218,6 +218,7 @@ def main():
         "org.opencontainers.image.source": os.environ["CI_PROJECT_URL"],
         "org.opencontainers.image.revision": os.environ["CI_COMMIT_SHA"],
         "mil.dso.ironbank.image.parent": parent_label,
+        "mil.dso.ironbank.ci.id": os.environ["CI_PIPELINE_ID"],
     }
 
     log.info("Converting build args from hardening manifest into command line args")
