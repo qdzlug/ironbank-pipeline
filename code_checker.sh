@@ -56,11 +56,11 @@ run_radon() {
   tempfile=$(mktemp)
   python3 -m radon cc ironbank/ stages/ -e "*test_*.py" -n "D" | tee "$tempfile"
   if [[ -s "$tempfile" ]]; then
-    echo "Output received."
+    echo "Compexity greater than 'D' found."
     rm "$tempfile"
     exit 1
   else
-    echo "No output returned from the Python program."
+    echo "All files passed complexity requirement."
     rm "$tempfile"
   fi
 }
