@@ -106,6 +106,7 @@ def _generate_vat_response_lineage_file():
     )
     with lineage_vat_response_file.open("w", encoding="utf-8") as f:
         json.dump(lineage_vat_response, f)
+
     log.info("Generated VAT response lineage file")
     return lineage_vat_response_file
 
@@ -114,9 +115,9 @@ def generate_attestation_predicates(predicates):
     """Generates a list of predicates to be attached to the image as Cosign
     Attestations."""
     hm_resources = [
-        Path(os.environ["CI_PROJECT_DIR"], "LICENSE"),
-        Path(os.environ["CI_PROJECT_DIR"], "README.md"),
-        Path(os.environ["ACCESS_LOG_DIR"], "access_log"),
+        # Path(os.environ["CI_PROJECT_DIR"], "LICENSE"),
+        # Path(os.environ["CI_PROJECT_DIR"], "README.md"),
+        # Path(os.environ["ACCESS_LOG_DIR"], "access_log"),
     ]
 
     # Convert non-empty artifacts to hardening manifest

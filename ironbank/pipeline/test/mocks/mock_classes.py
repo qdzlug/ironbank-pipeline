@@ -370,6 +370,30 @@ class MockOscapFinding(OscapFinding):
 
 
 @dataclass
+class MockPredicates:
+    types: dict = field(
+        default_factory=lambda: {
+            "mock_sbom-cyclonedx-json.json": "mock_cyclonedx",
+            "mock_sbom-spdx.xml": "mock_spdx",
+            "mock_sbom-spdx-json.json": "mock_spdxjson",
+            "mock_sbom-syft-json.json": "registry.example.com",
+            "mock_vat_response_lineage.json": "registry.example.com",
+            "mock_hardening_manifest.json": "registry.example.com",
+        }
+    )
+    unattached_predicates: list[str] = field(
+        default_factory=lambda: [
+            "mock_sbom-spdx-tag-value.txt",
+            "mock_sbom-cyclonedx.xml",
+        ]
+    )
+
+    # Defines a map of SBOM output formats provided by syft to their corresponding mediatypes
+    def get_predicate_files(self):
+        return {v: k for k, v in self.types.items()}
+
+
+@dataclass
 class MockElementTree:
     def find(self, *args, **kwargs) -> None:
         return (

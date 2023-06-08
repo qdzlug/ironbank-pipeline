@@ -146,20 +146,23 @@ def test_generate_vat_response_lineage_file(
 @patch("upload_to_harbor.json", new=MockJson)
 @patch("upload_to_harbor.Path", new=MockPath)
 def test_generate_attestation_predicates(monkeypatch):
-    monkeypatch.setenv("CI_PROJECT_DIR", "dir")
-    monkeypatch.setenv("ACCESS_LOG_DIR", "dir")
-    monkeypatch.setenv("SBOM_DIR", "file")
+    monkeypatch.setenv("CI_PROJECT_DIR", "mock_dir")
+    monkeypatch.setenv("ACCESS_LOG_DIR", "mock_dir")
+    monkeypatch.setenv("SBOM_DIR", "mock_dir")
 
-    def mock_convert_artifacts_to_hardening_manifest(hm_resources, manifest_path):
-        pass
+    # def mock_convert_artifacts_to_hardening_manifest(hm_resources, manifest_path):
+    #     pass
+    monkeypatch.setattr(os, "listdir", lambda a: [])
 
     monkeypatch.setattr(
         upload_to_harbor,
         "_convert_artifacts_to_hardening_manifest",
-        mock_convert_artifacts_to_hardening_manifest,
+        lambda a, b: None,
     )
     predicates = Predicates()
     upload_to_harbor.generate_attestation_predicates(predicates)
+
+    # monkeypatch.setattr(upload_to_harbor, "attestation_predicates", lambda a: __file__)
 
 
 # # staging image is always the new image
@@ -190,12 +193,6 @@ def test_generate_attestation_predicates(monkeypatch):
 
 # project = DsopProject()
 # hm = HardeningManifest(project.hardening_manifest_path)
-
-# predicates = Predicates()
-# attestation_predicates = upload_to_harbor.generate_attestation_predicates(
-#     predicates
-# )
-
 
 #     # Mocking the environment variables
 #     mock_env = {
