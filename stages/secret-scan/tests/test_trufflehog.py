@@ -8,13 +8,13 @@ import git
 import pytest
 import yaml
 
-from ironbank.pipeline.utils import logger
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import trufflehog  # noqa E402
 from trufflehog import get_commit_diff  # noqa E402
 from trufflehog import get_config  # noqa E402
 from trufflehog import create_trufflehog_config, get_history_cmd  # noqa E042
+from ironbank.pipeline.utils import logger
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 log = logger.setup("test_trufflehog")
 
@@ -41,10 +41,9 @@ def test_projects(projects):
         repo_dir = (
             pathlib.Path("test_projects", project.split("/")[-1]).absolute().as_posix()
         )
-        # don't clone if already cloned
-        git.Repo.clone_from(project, repo_dir) if not pathlib.Path(
-            repo_dir
-        ).is_dir() else None
+        if not pathlib.Path(repo_dir).is_dir():
+             git.Repo.clone_from(project, repo_dir)
+
         repo_dirs.append(repo_dir)
     return repo_dirs
 
@@ -130,7 +129,7 @@ def test_create_trufflehog_config(monkeypatch):
             "./",
             ["TRUFFLEHOG"],
         )
-        == True  # noqa E712
+        is True  # noqa E712
     )
     assert (
         create_trufflehog_config(
@@ -138,5 +137,5 @@ def test_create_trufflehog_config(monkeypatch):
             pathlib.Path(mock_path, "test-th-config.yaml"),
             "./",
         )
-        == False  # noqa E712
+        is False  # noqa E712
     )

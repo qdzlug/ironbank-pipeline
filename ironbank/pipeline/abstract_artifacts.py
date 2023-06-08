@@ -11,11 +11,10 @@ from .utils import logger
 
 @dataclass
 class AbstractArtifact(ABC):
-    """
-    Abstract base class representing a generic artifact.
+    """Abstract base class representing a generic artifact.
 
     This class provides a base for other classes representing specific types of artifacts (like S3, HTTP, etc).
-    It provides a common interface and some base functionality (like handling of authentication, deletion of 
+    It provides a common interface and some base functionality (like handling of authentication, deletion of
     artifacts, and basic setup).
 
     Attributes
@@ -42,6 +41,7 @@ class AbstractArtifact(ABC):
     get_username_password():
         Decodes the authentication details and returns username and password.
     """
+
     url: str = None
     filename: str = None
     validation: dict = None
@@ -57,8 +57,7 @@ class AbstractArtifact(ABC):
         self.artifact_path = pathlib.Path(self.dest_path, self.filename or self.tag)
 
     def delete_artifact(self):
-        """
-        Delete the artifact file from the local file system.
+        """Delete the artifact file from the local file system.
 
         Raises
         ------
@@ -70,9 +69,9 @@ class AbstractArtifact(ABC):
             self.log.error(f"File deleted: {self.artifact_path}")
 
     def get_username_password(self) -> tuple:
-        """
-        Retrieves and decodes username and password from environment variables.
-        
+        """Retrieves and decodes username and password from environment
+        variables.
+
         Returns
         -------
         tuple
@@ -89,11 +88,10 @@ class AbstractArtifact(ABC):
 
     @abstractmethod
     def get_credentials(self):
-        """
-        Abstract method for getting credentials.
+        """Abstract method for getting credentials.
 
         This method needs to be implemented by any concrete class that inherits from this class.
-        The implementation should return the credentials necessary for authorizing operations 
+        The implementation should return the credentials necessary for authorizing operations
         related to the specific type of artifact.
 
         Returns
@@ -108,10 +106,9 @@ class AbstractArtifact(ABC):
 
     @abstractmethod
     def download(self):
-        """
-        Abstract method to be overridden in subclasses. 
-        This method is expected to handle the download process of the artifact.
-        
+        """Abstract method to be overridden in subclasses. This method is
+        expected to handle the download process of the artifact.
+
         Returns
         -------
         To be defined by the concrete implementation.
@@ -125,13 +122,13 @@ class AbstractArtifact(ABC):
 
 @dataclass
 class AbstractFileArtifact(AbstractArtifact):
-    """
-    An abstract class representing a File Artifact, extending the AbstractArtifact base class.
+    """An abstract class representing a File Artifact, extending the
+    AbstractArtifact base class.
 
-    This class implements additional methods to handle file artifacts, including the 
+    This class implements additional methods to handle file artifacts, including the
     calculation and validation of file checksums, and validation of file names. These methods
     are implemented based on the requirements of handling file-based artifacts in the system.
-    
+
     Attributes
     ----------
     Inherits all attributes from the parent class `AbstractArtifact`.
@@ -147,16 +144,17 @@ class AbstractFileArtifact(AbstractArtifact):
     validate_filename():
         Validates the filename for illegal or unsafe characters.
     """
+
     def __post_init__(self):
         super().__post_init__()
         self.artifact_path = pathlib.Path(self.dest_path, self.filename)
 
     def validate_checksum(self):
-        """
-        Validates the checksum of the downloaded file against the expected value.
+        """Validates the checksum of the downloaded file against the expected
+        value.
 
         The checksum is calculated using the method defined in `self.validation["type"]`.
-        If this method is not a 'sha' type, a ValueError is raised. The calculated checksum 
+        If this method is not a 'sha' type, a ValueError is raised. The calculated checksum
         is then compared to the expected value in `self.validation["value"]`.
 
         Raises
@@ -185,8 +183,7 @@ class AbstractFileArtifact(AbstractArtifact):
         self.log.info("Checksum validated")
 
     def generate_checksum(self):
-        """
-        Calculates and returns the checksum of the artifact file.
+        """Calculates and returns the checksum of the artifact file.
 
         The hashing algorithm is determined by `self.validation["type"]`.
         The artifact file is read in 4KB chunks to optimize memory usage.
@@ -205,11 +202,10 @@ class AbstractFileArtifact(AbstractArtifact):
         return sha_hash
 
     def validate_filename(self):
-        """
-        Validates the filename for illegal or unsafe characters.
+        """Validates the filename for illegal or unsafe characters.
 
-        This method uses a regular expression to verify that the filename starts with a 
-        letter or a number and does not contain any slash or null byte characters. 
+        This method uses a regular expression to verify that the filename starts with a
+        letter or a number and does not contain any slash or null byte characters.
 
         Raises
         ------

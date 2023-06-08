@@ -8,10 +8,9 @@ from .utils.decorators import vat_request_error_handler
 
 @dataclass
 class API:
-    """
-    A dataclass for handling API interactions.
+    """A dataclass for handling API interactions.
 
-    This class is used to setup the API endpoint, provide authentication, handle responses 
+    This class is used to setup the API endpoint, provide authentication, handle responses
     and any additional requirements.
 
     Attributes
@@ -40,6 +39,7 @@ class API:
 
     Note: The methods are not implemented in this snippet.
     """
+
     log = logger.setup(name="API")
     # maybe use urllib type?
     url: str
@@ -64,8 +64,7 @@ class API:
 
 @dataclass
 class VatAPI(API):
-    """
-    A dataclass representing the VAT API.
+    """A dataclass representing the VAT API.
 
     This class is used to interact with the VAT API. It provides methods for getting image details,
     checking access rights to an image, and handling VAT API requests.
@@ -94,6 +93,7 @@ class VatAPI(API):
     check_access(image_name: str, auth: str, create_request: bool = False) -> None
         Checks the access rights to the specified image. Sends a GET request to the import access route.
     """
+
     log = logger.setup(name="API.VatAPI")
     app: str = "VAT"
     container_route: str = "/p1/container"
@@ -143,8 +143,8 @@ class VatAPI(API):
 
     @vat_request_error_handler
     def check_access(self, image_name, auth, create_request=False) -> None:
-        """
-        Checks the access rights to the specified image. Sends a GET request to the import access route.
+        """Checks the access rights to the specified image. Sends a GET request
+        to the import access route.
 
         Parameters
         ----------
@@ -169,6 +169,6 @@ class VatAPI(API):
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {auth}",
             },
-            timeout=(30, 30)
+            timeout=(30, 30),
         )
         self.response.raise_for_status()

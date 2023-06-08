@@ -23,7 +23,7 @@ from ironbank.pipeline.utils.exceptions import GenericSubprocessError, InvalidUR
 
 log = logger.setup("test_artifacts")
 
-mock_http_url = "http://example.com/example.txt"
+MOCK_HTTP_URL = "http://example.com/example.txt"
 mock_s3_url = "s3://example-test/example.txt"
 mock_s3_url_version_id = "s3://example-test/example.txt?versionId=1.0"
 mock_s3_url_extra_args_unused = "s3://example-test/example.txt?versionId=1.0&test=test"
@@ -87,7 +87,7 @@ def mock_s3_artifact_no_auth():
 
 @pytest.fixture
 def mock_http_artifact():
-    return HttpArtifact(url=mock_http_url, filename=mock_filename)
+    return HttpArtifact(url=MOCK_HTTP_URL, filename=mock_filename)
 
 
 @pytest.fixture

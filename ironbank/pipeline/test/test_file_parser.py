@@ -57,7 +57,7 @@ def test_access_log_file_parser(monkeypatch, mock_packages):
 
     monkeypatch.setattr(json, "load", lambda x: valid_repos)
     monkeypatch.setattr(AccessLogFileParser, "handle_file_obj", lambda x: x)
-    assert AccessLogFileParser.parse([f"500 {mock_url}\n"]) == []
+    assert not AccessLogFileParser.parse([f"500 {mock_url}\n"])
 
     log.info("Test 200 CONNECT is skipped")
     mock_nexus_host = "https://nexus-example.com/"
@@ -71,11 +71,11 @@ def test_access_log_file_parser(monkeypatch, mock_packages):
 
     monkeypatch.setattr(json, "load", lambda x: valid_repos)
     monkeypatch.setattr(AccessLogFileParser, "handle_file_obj", lambda x: x)
-    assert AccessLogFileParser.parse(["200 CONNECT"]) == []
+    assert not AccessLogFileParser.parse(["200 CONNECT"])
 
     log.info("Test value error raised on unparseable url")
     with pytest.raises(ValueError) as ve:
-        assert AccessLogFileParser.parse(["200  \n"]) == []
+        assert not AccessLogFileParser.parse(["200  \n"])
     assert "Could not parse" in ve.value.args[0]
 
     log.info("Test repo type not supported raised on key missing from repos")
@@ -87,7 +87,7 @@ def test_access_log_file_parser(monkeypatch, mock_packages):
 
     log.info("Test repo type not supported raised on default match case")
     with pytest.raises(RepoTypeNotSupported) as e:
-        assert AccessLogFileParser.parse([f"200 {mock_url}\n"]) == []
+        assert not AccessLogFileParser.parse([f"200 {mock_url}\n"])
     assert f"Repository type not supported: {mock_pkg}" in e.value.args
 
     test_cases = {

@@ -154,7 +154,7 @@ def main():
         digest=os.environ["DIGEST_TO_SCAN"],
     )
     project = DsopProject()
-    hm = HardeningManifest(project.hardening_manifest_path)
+    hardening_manifest = HardeningManifest(project.hardening_manifest_path)
     predicates = Predicates()
     attestation_predicates = generate_attestation_predicates(predicates)
 
@@ -170,7 +170,7 @@ def main():
             # if the new image was scanned
             if "ironbank-staging" in os.environ["IMAGE_TO_SCAN"]:
                 # Promote image and tags from staging project
-                promote_tags(staging_image, production_image, hm.image_tags)
+                promote_tags(staging_image, production_image, hardening_manifest.image_tags)
                 # Sign image
                 cosign.sign(production_image, log_cmd=True)
             log.info("Adding attestations")

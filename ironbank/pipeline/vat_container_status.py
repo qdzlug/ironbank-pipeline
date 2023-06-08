@@ -57,7 +57,7 @@ def log_findings(findings: list, log_type: str) -> None:
 
 
 def log_findings_header(log_level: int) -> None:
-    """Log finding headers"""
+    """Log finding headers."""
     values = {
         "identifier": "Identifier",
         "scannerName": "Scanner Name",

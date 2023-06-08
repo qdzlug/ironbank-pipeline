@@ -1,38 +1,38 @@
 class ArtifactNotFound(Exception):
-    pass
+    """ArtifactNotFound Exception"""
 
 
 class InvalidURLList(Exception):
-    pass
+    """InvalidURLList Exception"""
 
 
 class DockerfileParseError(Exception):
-    pass
+    """DockerfileParseError Exception"""
 
 
 class SymlinkFoundError(Exception):
-    pass
+    """SymlinkFoundError Exception"""
 
 
 class CosignDownloadError(Exception):
-    pass
+    """CosignDownloadError Exception"""
 
 
 class MaxRetriesException(Exception):
-    pass
+    """MaxRetriesException( Exception"""
 
 
 class GenericSubprocessError(Exception):
-    pass
+    """GenericSubprocessError Exception"""
 
 
 class RepoTypeNotSupported(Exception):
-    pass
+    """RepoTypeNotSupported( Exception"""
 
 
 class NoMatchingOvalUrl(Exception):
-    pass
+    """NoMatchingOvalUrl Exception"""
 
 
 class OvalDefinitionDownloadFailure(Exception):
-    pass
+    """OvalDefinitionDownloadFailure Exception"""

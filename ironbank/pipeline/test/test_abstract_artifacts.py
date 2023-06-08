@@ -128,9 +128,9 @@ def test_validate_checksum(
         def hexdigest(self):
             return self.checksum
 
-    with pytest.raises(ValueError) as ve:
+    with pytest.raises(ValueError) as value_error:
         mock_file_artifact_bad_validation.validate_checksum()
-    assert ve.type == ValueError
+    assert value_error.type == ValueError
 
     # match sha
     monkeypatch.setattr(
@@ -144,7 +144,7 @@ def test_validate_checksum(
     assert "Checksum validated" in caplog.text
     caplog.clear()
     # no match sha
-    with pytest.raises(AssertionError) as ae:
+    with pytest.raises(AssertionError) as e:
         monkeypatch.setattr(
             AbstractFileArtifact,
             "generate_checksum",
@@ -153,7 +153,7 @@ def test_validate_checksum(
             ),
         )
         mock_file_artifact.validate_checksum()
-    assert ae.type == AssertionError
+    assert e.type == AssertionError
     assert "Checksum validated" not in caplog.text
 
 
@@ -189,14 +189,14 @@ def test_validate_filename():
 
     mock_filename_artifact2.validate_filename()
 
-    with pytest.raises(ValueError) as ve:
+    with pytest.raises(ValueError) as e:
         mock_bad_filename_artifact1.validate_filename()
-    assert ve.type == ValueError
+    assert e.type == ValueError
 
-    with pytest.raises(ValueError) as ve:
+    with pytest.raises(ValueError) as e:
         mock_bad_filename_artifact2.validate_filename()
-    assert ve.type == ValueError
+    assert e.type == ValueError
 
-    with pytest.raises(ValueError) as ve:
+    with pytest.raises(ValueError) as e:
         mock_bad_filename_artifact3.validate_filename()
-    assert ve.type == ValueError
+    assert e.type == ValueError

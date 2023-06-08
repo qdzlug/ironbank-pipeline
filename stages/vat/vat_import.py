@@ -276,26 +276,26 @@ def generate_twistlock_findings(twistlock_cve_path: Path) -> list[dict[str, Any]
 
     findings = []
     try:
-        for v in twistlock_data.get("vulnerabilities", []):
-            key = v["packageName"], v["packageVersion"]
+        for value in twistlock_data.get("vulnerabilities", []):
+            key = value["packageName"], value["packageVersion"]
             severity = (
                 "low"
-                if v.get("severity").lower() == "unimportant"
-                else v.get("severity").lower()
+                if value.get("severity").lower() == "unimportant"
+                else value.get("severity").lower()
             )
             for path in packages.get(key, [None]):
                 findings.append(
                     {
-                        "finding": v["id"],
+                        "finding": value["id"],
                         "severity": severity,
-                        "description": v.get("description"),
-                        "link": v.get("link"),
-                        "score": v.get("cvss"),
-                        "package": f"{v['packageName']}-{v['packageVersion']}",
+                        "description": value.get("description"),
+                        "link": value.get("link"),
+                        "score": value.get("cvss"),
+                        "package": f"{value['packageName']}-{value['packageVersion']}",
                         "packagePath": path,
                         "scanSource": "twistlock_cve",
-                        "reportDate": v.get("publishedDate"),
-                        "identifiers": [v["id"]],
+                        "reportDate": value.get("publishedDate"),
+                        "identifiers": [value["id"]],
                     }
                 )
     except KeyError as e:
