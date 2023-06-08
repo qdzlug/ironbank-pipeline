@@ -19,6 +19,36 @@ log = logger.setup(name="hardening_manifest")
 
 # Not using dataclass because post_init is required for file load and parameter initialization
 class HardeningManifest:
+    """
+    A class used to represent and validate a hardening manifest file.
+
+    Attributes
+    ----------
+    hm_path : Path
+        The file path to the hardening manifest.
+    schema_path : Path
+        The file path to the schema.
+    image_name : str
+        The image name specified in the manifest.
+    image_tags : list[str]
+        The image tags specified in the manifest.
+    image_tag : str
+        The first image tag in the list of tags, if any.
+    args : dict
+        A dictionary containing argument names and their values.
+    base_image_name : str
+        The base image name.
+    base_image_tag : str
+        The base image tag.
+    labels : dict
+        A dictionary containing label names and their values.
+    resources : list[dict]
+        A list of resources.
+    maintainers : list[dict]
+        A list of maintainers.
+    partner_advocates : list[dict]
+        A list of partner advocates.
+    """
     def __init__(
         self, hm_path: str | Path, schema_path: str = "./", validate: bool = False
     ):
@@ -49,6 +79,9 @@ class HardeningManifest:
             self.validate()
 
     def validate(self):
+        """
+        Validates the hardening manifest against its schema.
+        """
         self.validate_schema_with_timeout()
         # verify no labels have a value of fixme (case insensitive)
         log.info("Checking for FIXME values in labels/maintainers")
@@ -59,6 +92,9 @@ class HardeningManifest:
         self.invalid_image_sources = self.reject_invalid_image_sources()
 
     def validate_schema_with_timeout(self):
+        """
+        Validates the hardening manifest against its schema within a timeout period.
+        """
         parent_conn, child_conn = multiprocessing.Pipe()
         process = multiprocessing.Process(
             target=self.validate_schema, args=(child_conn,)
@@ -91,6 +127,14 @@ class HardeningManifest:
             sys.exit(1)
 
     def validate_schema(self, conn: multiprocessing.Pipe) -> None:
+        """
+        Validates the hardening manifest against its schema.
+
+        Parameters
+        ----------
+        conn : multiprocessing.Pipe
+            The pipe connection to use for communicating with the parent process.
+        """
         log.info("Validating schema")
         with self.hm_path.open("r", encoding="utf-8") as f:
             hm_content = yaml.safe_load(f)
@@ -130,23 +174,39 @@ class HardeningManifest:
         return invalid_labels
 
     def check_for_invalid_image_source(self, subcontent: dict) -> str:
-        for k, v in subcontent.items():
-            if k != "auth":
-                if "registry1.dso.mil" in v.lower():
-                    return v
+        """
+        Checks if an invalid image source exists in the given subcontent.
+
+        The method iterates over all key-value pairs in the provided dictionary (subcontent). 
+        If the key is not 'auth' and the value contains 'registry1.dso.mil', the value is returned.
+
+        Parameters
+        ----------
+        subcontent : dict
+            A dictionary containing key-value pairs to be checked for invalid image source.
+
+        Returns
+        -------
+        str
+            The value containing the invalid image source if it exists, otherwise None.
+        """
+        for key, value in subcontent.items():
+            if key != "auth":
+                if "registry1.dso.mil" in value.lower():
+                    return value
 
     def reject_invalid_image_sources(self) -> list:
         """Returns list of tags in the hardening manifest's resource list that
         are invalid, i.e. contain 'registry1.dso.mil'."""
         log.info("Checking image resource sources")
         invalid_sources = []
-        for x in self.resources:
+        for resource in self.resources:
             urls = []
-            urls += [x.get("url")] if x.get("url") else x.get("urls")
+            urls += [resource.get("url")] if resource.get("url") else resource.get("urls")
             log.debug(urls)
             for url in urls:
                 if url.startswith("docker://") or url.startswith("github://"):
-                    invalid_source = self.check_for_invalid_image_source(x)
+                    invalid_source = self.check_for_invalid_image_source(resource)
                     if invalid_source:
                         log.info("Invalid image found: %s", invalid_source)
                         invalid_sources.append(invalid_source)
@@ -176,6 +236,10 @@ class HardeningManifest:
 
     # TODO: Deprecate this once CI variables are replaced by modules with reusable methods
     def create_artifacts(self) -> None:
+        """
+        Orchestrates the creation of all necessary artifacts, including environment variables, tags and keywords.
+        Artifacts are stored in a directory defined by the environment variable 'ARTIFACT_DIR'.
+        """
         artifact_dir = Path(os.environ["ARTIFACT_DIR"])
         self.create_env_var_artifacts(artifact_dir)
         self.create_tags_artifact(artifact_dir)
@@ -183,6 +247,10 @@ class HardeningManifest:
 
     # TODO: Deprecate this once CI variables are replaced by modules with reusable methods
     def create_env_var_artifacts(self, artifact_dir: Path) -> None:
+        """
+        Writes key image attributes to environment variable artifacts.
+        Artifacts are written to 'variables.env', 'args.env', and 'labels.env' in the provided directory.
+        """
         with (artifact_dir / "variables.env").open("w") as f:
             f.write(f"IMAGE_NAME={self.image_name}\n")
             f.write(f"IMAGE_VERSION={self.image_tag}\n")
@@ -207,6 +275,9 @@ class HardeningManifest:
 
     # TODO: Deprecate this once CI variables are replaced by modules with reusable methods
     def create_tags_artifact(self, artifact_dir: Path) -> None:
+        """
+        Writes the image's tags to a 'tags.txt' artifact in the provided directory.
+        """
         with (artifact_dir / "tags.txt").open("w") as f:
             for tag in self.image_tags:
                 f.write(tag)
@@ -214,7 +285,20 @@ class HardeningManifest:
 
     # TODO: Deprecate this once CI variables are replaced by modules with reusable methods
     def create_keywords_artifact(self, artifact_dir: Path) -> None:
-        # optional field,if keywords key in yaml, create file. source_values() in create_repo_map checks if file exists, if not pass empty list
+        """
+        Generates a 'keywords.txt' artifact from image labels if present.
+
+        If the key "mil.dso.ironbank.image.keywords" exists in the image labels, this method writes the keywords to 
+        'keywords.txt' in the given artifact directory, one keyword per line. If the key does not exist, no artifact is 
+        created and an information log is issued. This is in line with the optional nature of the keywords field.
+
+        Parameters
+        ----------
+        artifact_dir : pathlib.Path
+            The directory where the 'keywords.txt' artifact file should be created if relevant keywords exist.
+
+        Note: This function is slated for deprecation once CI variables are replaced by modules with reusable methods.
+        """
         if "mil.dso.ironbank.image.keywords" in self.labels:
             with (artifact_dir / "keywords.txt").open("w") as f:
                 labels = [
@@ -240,12 +324,31 @@ class HardeningManifest:
 # Get values generated by process_yaml() in metadata.py
 # Currently used to retrieve keywords and tags
 def source_values(source_file, key) -> list:
+    """
+    Reads the specified source file line by line and returns the contents as a list.
+
+    Each line in the source file is treated as a separate value and added to the list. The number of values 
+    detected is logged as informational output. If the specified source file does not exist, an informational 
+    log entry is made and an empty list is returned.
+
+    Parameters
+    ----------
+    source_file : str
+        Path to the file containing values to be read.
+    key : str
+        Key or description for the type of values being read (for logging purposes).
+
+    Returns
+    -------
+    list
+        A list containing values read from the source file. Empty list if the file does not exist.
+    """
     num_vals = 0
     val_list = []
     source_file_path = Path(source_file)
     if source_file_path.exists():
-        with source_file_path.open("r", encoding="utf-8") as sf:
-            for line in sf:
+        with source_file_path.open("r", encoding="utf-8") as f:
+            for line in f:
                 val_entry = line.strip()
                 val_list.append(val_entry)
                 num_vals += 1
@@ -267,8 +370,8 @@ def get_source_keys_values(source_file) -> dict:
     """
     hm_labels = {}
     if Path(source_file).exists():
-        with Path(source_file).open("r", encoding="utf-8") as sf:
-            for line in sf:
+        with Path(source_file).open("r", encoding="utf-8") as f:
+            for line in f:
                 key, value = line.rstrip().split("=", 1)
                 if key != "mil.dso.ironbank.image.keywords":
                     hm_labels[key] = value
@@ -276,10 +379,39 @@ def get_source_keys_values(source_file) -> dict:
 
 
 def get_approval_status(source_file) -> tuple[str, str]:
-    if Path(source_file).exists():
-        with Path(source_file).open("r", encoding="utf-8") as sf:
-            approval_object = json.load(sf)
-    # TODO: Add error handling if file does not exist
+    """
+    Retrieves the approval status and text from a source file.
+
+    This function reads the given source file and parses it as a JSON object.
+    From this object, it extracts the approval status and text. If the file does not exist, 
+    an error is raised.
+
+    Parameters
+    ----------
+    source_file : str
+        Path to the source file to read.
+
+    Returns
+    -------
+    tuple[str, str]
+        A tuple of two strings. The first string represents the approval status,
+        the second string represents the approval text.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the source file does not exist.
+    json.JSONDecodeError
+        If the source file cannot be decoded as JSON.
+    """
+    if not Path(source_file).exists():
+        raise FileNotFoundError(f"Source file {source_file} does not exist.")
+
+    try:
+        with Path(source_file).open("r", encoding="utf-8") as f:
+            approval_object = json.load(f)
+    except json.JSONDecodeError as e:
+        raise json.JSONDecodeError(f"Source file {source_file} cannot be decoded as JSON.", e.doc, e.pos)
     approval_status = approval_object["image"]["state"]["imageStatus"]
     approval_text = approval_object["image"]["state"].get("reason", "")
     return approval_status, approval_text

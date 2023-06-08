@@ -5,13 +5,9 @@ from typing import Optional
 
 class MissingTagAndDigestError(Exception):
     """Exception raised when tag and digest are missing for an artifact."""
-    pass
-
 
 class MissingNameAndUrlError(Exception):
     """Exception raised when name and url are missing for an artifact."""
-    pass
-
 
 @dataclass
 class Image:
@@ -51,7 +47,28 @@ class Image:
         )
 
     def from_image(self, **kwargs):
-        # prioritize passed args
+        """
+        Constructs an Image object either from the provided arguments or instance attributes.
+
+        Note: The method prioritizes provided arguments over instance attributes.
+
+        Parameters
+        ----------
+        kwargs: dict, optional
+            A dictionary that may contain keys 'registry', 'name', 'digest', 'tag', 'url', 'transport'.
+            The values corresponding to these keys are used to construct the Image object.
+            If a key is not present in kwargs, the corresponding attribute from the current instance is used.
+
+        Returns
+        -------
+        Image
+            The newly constructed Image object.
+
+        Example
+        --------
+        >>> image = Image(...)
+        >>> new_image = image.from_image(name="new_name")
+        """
         # TODO: Should work with both self for instance and passed in image
         passed_keys = list(kwargs.keys())
 
@@ -67,23 +84,38 @@ class Image:
         )
 
     def tag_str(self):
+        """Returns the image artifact in 'registry_path:tag' format."""
         return f"{self.registry_path}:{self.tag}"
 
     def digest_str(self):
+        """Returns the image artifact in 'registry_path@digest' format."""
         return f"{self.registry_path}@{self.digest}"
 
     def __str__(self):
         # default to tag, else use digest
         if self.url:
             return f"{self.transport}{self.url}"
-        elif self.tag:
+        if self.tag:
             return f"{self.transport}{self.tag_str()}"
-        elif self.digest:
+        if self.digest:
             return f"{self.transport}{self.digest_str()}"
+        return None
 
 
 @dataclass
 class ImageFile:
+    """
+    Represents an image file. This class includes properties related to the image file's path and transport type.
+    
+    Attributes
+    ----------
+    file_path : Path or str
+        The path of the image file.
+    transport : str
+        The transport protocol used. Skopeo tool uses this property. 
+        Supported transports include: containers-storage, dir, docker, docker-archive, 
+        docker-daemon, oci, oci-archive, ostree, tarball. The default is an empty string.
+    """
     file_path: Path | str
     # skopeo cares about transport (e.g. docker://, container-storage:, etc.)
     # skopeo supported transports: containers-storage, dir, docker, docker-archive, docker-daemon, oci, oci-archive, ostree, tarball
