@@ -59,3 +59,4 @@ show_complexity = "True"
 
 [tool.isort]
 line_length = 80
+profile = "black"
