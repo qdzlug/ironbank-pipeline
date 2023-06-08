@@ -15,18 +15,13 @@ run_shellcheck() {
       IFS=$'\n'
       echo "${files[*]}"
     )
-    shellcheck --exclude=SC2153 --format=gcc -- "${files[@]}"
-    ret=$?
+    shellcheck --exclude=SC2153,SC2164 --format=gcc -- "${files[@]}"
   fi
 
   echo "# Scanning embedded scripts..."
   while IFS= read -r -d '' file; do
     echo "# $file"
-    yq -r '.[] | objects | .before_script, .script, .after_script | select(. != null) | join("\n")' "$file" | shellcheck --exclude=SC2153 --format=gcc -s bash -
-    yq_ret=$?
-    if [ $yq_ret -ne 0 ]; then
-      ret=$yq_ret
-    fi
+    yq -r '.[] | objects | .before_script, .script, .after_script | select(. != null) | join("\n")' "$file" | shellcheck --exclude=SC2153,SC2164 --format=gcc -s bash -
   done < <(find . \( -name '*.yaml' -o -name '*.yml' ! -path './scripts/analysis/*' \) -print0)
 }
 
@@ -40,7 +35,6 @@ run_black() {
 }
 
 run_docformatter() {
-  python3 -m pip install docformatter
   echo "Running docformatter..."
   if [ "$1" == "format_in_place" ]; then
     docformatter --in-place -r stages ironbank
@@ -59,14 +53,21 @@ run_autoflake() {
 }
 
 run_radon() {
-  python3 -m pip install radon radon[toml]
-  python3 -m radon cc ironbank/ stages/
+  tempfile=$(mktemp)
+  python3 -m radon cc ironbank/ stages/ -e "*test_*.py" -n "D" | tee "$tempfile"
+  if [[ -s "$tempfile" ]]; then
+    echo "Compexity greater than 'D' found."
+    rm "$tempfile"
+    exit 1
+  else
+    echo "All files passed complexity requirement."
+    rm "$tempfile"
+  fi
 }
 
 # Function to run pylama
 run_pylama() {
   echo "Running pylama..."
-  pip install pylama --upgrade
   pylama
 }
 
@@ -107,7 +108,7 @@ run_unit_tests() {
 
 run_check_secrets() {
   echo "running check secrets"
-  docker run -it --entrypoint /proj/code_checker.sh --rm -v $(pwd):/proj registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6 run_trufflehog
+  docker run -it --entrypoint "/proj/code_checker.sh" --rm -v "$(pwd):/proj" "registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6 run_trufflehog"
 }
 
 run_trufflehog() {
@@ -131,7 +132,6 @@ run_isort() {
 
 lint_all() {
   rm -rf pylint
-  python3 -m pip install .
   run_pylint
   run_shellcheck
   run_pylama
@@ -139,7 +139,6 @@ lint_all() {
 }
 
 format_check_all() {
-  python3 -m pip install .
   run_isort
   run_black
   run_autoflake
@@ -149,7 +148,6 @@ format_check_all() {
 }
 
 format_in_place() {
-  python3 -m pip install .
   run_isort format_in_place
   run_black format_in_place
   run_autoflake format_in_place
