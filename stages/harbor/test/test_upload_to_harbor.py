@@ -150,8 +150,6 @@ def test_generate_attestation_predicates(monkeypatch):
     monkeypatch.setenv("ACCESS_LOG_DIR", "mock_dir")
     monkeypatch.setenv("SBOM_DIR", "mock_dir")
 
-    # def mock_convert_artifacts_to_hardening_manifest(hm_resources, manifest_path):
-    #     pass
     monkeypatch.setattr(os, "listdir", lambda a: [])
 
     monkeypatch.setattr(
@@ -159,10 +157,9 @@ def test_generate_attestation_predicates(monkeypatch):
         "_convert_artifacts_to_hardening_manifest",
         lambda a, b: None,
     )
+
     predicates = Predicates()
     upload_to_harbor.generate_attestation_predicates(predicates)
-
-    # monkeypatch.setattr(upload_to_harbor, "attestation_predicates", lambda a: __file__)
 
 
 # # staging image is always the new image
