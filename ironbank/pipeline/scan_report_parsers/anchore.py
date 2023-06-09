@@ -113,14 +113,14 @@ class AnchoreCVEFinding(AbstractFinding):
     @key_index_error_handler
     def set_vendor_nvd_scores(self, version: str) -> None:
         """Set nvd vendor vector scores for multiple versions."""
-        for d in self.extra["vendor_data"]:
-            if d.get(f"cvss_{version}") and d.get(f"cvss_{version}").get(
+        for data in self.extra["vendor_data"]:
+            if data.get(f"cvss_{version}") and data.get(f"cvss_{version}").get(
                 "vector_string"
             ):
                 setattr(
                     self,
                     f"vendor_cvss_{version}_vector",
-                    d[f"cvss_{version}"]["vector_string"],
+                    data[f"cvss_{version}"]["vector_string"],
                 )
 
     @key_index_error_handler
