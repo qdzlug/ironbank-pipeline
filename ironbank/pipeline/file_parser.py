@@ -22,8 +22,22 @@ log = logger.setup(name="package_parser")
 
 
 class AccessLogFileParser(FileParser):
+    """Parses access log files to extract and classify packages."""
     @classmethod
     def parse(cls, access_log: list[str] | Path) -> list[Package]:
+        """
+        Parses the log file and returns a list of packages.
+
+        Parameters:
+        access_log: Log to parse. Can be list of strings or a Path object.
+        
+        Returns:
+        List of Package objects found in the access log.
+
+        Raises:
+        ValueError: If a URL in the log cannot be parsed.
+        RepoTypeNotSupported: If the repository type from a URL is not supported.
+        """
         with Path(os.environ["ACCESS_LOG_REPOS"]).open(mode="r", encoding="utf-8") as f:
             repos = json.load(f)
         packages: list[Package] = []
@@ -83,6 +97,7 @@ class AccessLogFileParser(FileParser):
 
 @dataclass
 class SbomFileParser(FileParser):
+    """A parser for Sbom."""
     @classmethod
     def parse(cls, sbom: dict | Path) -> list[Package]:
         packages: list[Package] = []
@@ -101,8 +116,22 @@ class SbomFileParser(FileParser):
 
 @dataclass
 class DockerfileParser(FileParser):
+    """A parser for Dockerfiles."""
     @classmethod
     def parse(cls, filepath) -> None:
+        """
+        Parse the given Dockerfile and return a list of invalid FROM statements.
+
+        Parameters
+        ----------
+        filepath : str
+            The path to the Dockerfile to parse.
+
+        Returns
+        -------
+        List[str]
+            A list of invalid FROM statements in the Dockerfile.
+        """
         with Path(filepath).open("r", encoding="utf-8") as f:
             parsed_dockerfile = f.readlines()
         from_statement_list = cls.remove_non_from_statements(parsed_dockerfile)
@@ -111,6 +140,19 @@ class DockerfileParser(FileParser):
 
     @staticmethod
     def remove_non_from_statements(dockerfile_lines: tuple) -> list:
+        """
+        Remove any lines in the Dockerfile that are not FROM statements.
+
+        Parameters
+        ----------
+        dockerfile_lines : List[str]
+            The lines in the Dockerfile.
+
+        Returns
+        -------
+        List[str]
+            The FROM statements in the Dockerfile.
+        """
         return [
             line.rstrip().replace('"', "")
             for line in dockerfile_lines

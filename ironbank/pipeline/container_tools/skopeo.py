@@ -13,6 +13,7 @@ log = logger.setup(name="skopeo")
 
 
 class CopyException(Exception):
+    """Copy Exception"""
     pass
 
 
@@ -64,6 +65,27 @@ class Skopeo(ContainerTool):
         dest_creds: str = None,
         log_cmd: bool = False,
     ) -> None:
+        """
+        Copies an image from a source to a destination using the Skopeo utility.
+
+        Parameters:
+        src: Source image or file.
+        dest: Destination image or file.
+        digestfile: Path to the digest file.
+        src_authfile: Path to the auth file for the source.
+        dest_authfile: Path to the auth file for the destination.
+        remove_signatures: Whether to remove signatures from the image.
+        additional_tags: Additional tags for the image, can be a string or list of strings.
+        src_creds: Credentials for the source.
+        dest_creds: Credentials for the destination.
+        log_cmd: Whether to log the command.
+
+        Raises:
+        CopyException: If source or destination, or their transports are missing.
+
+        Returns:
+        The standard output and error output from the Skopeo copy command.
+        """
         if not src or not dest:
             # TODO: Figure out why it isn't logging
             raise CopyException(
