@@ -9,6 +9,7 @@ import pytest
 import yaml
 from botocore.exceptions import ClientError
 from requests.exceptions import HTTPError
+from pathlib import Path
 
 from ironbank.pipeline.artifacts import ContainerArtifact, HttpArtifact, S3Artifact
 from ironbank.pipeline.hardening_manifest import HardeningManifest
@@ -16,7 +17,7 @@ from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.exceptions import InvalidURLList
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import downloader  # noqa E402
 
 log = logger.setup("test_downloader")
