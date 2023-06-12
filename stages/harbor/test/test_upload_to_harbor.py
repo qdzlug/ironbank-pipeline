@@ -133,11 +133,11 @@ def test_generate_vat_response_lineage_file(
     mock_pipeline_parent_vat_response,
     mock_hm_content,
 ):
-    monkeypatch.setenv("VAT_RESPONSE", "dir")
-    monkeypatch.setenv("CI_PROJECT_DIR", "dir")
-    monkeypatch.setenv("ACCESS_LOG_DIR", "dir")
-    monkeypatch.setenv("PARENT_VAT_RESPONSE", "dir")
-    monkeypatch.setenv("ARTIFACT_DIR", "dir")
+    monkeypatch.setenv("VAT_RESPONSE", "mock_dir")
+    monkeypatch.setenv("CI_PROJECT_DIR", "mock_dir")
+    monkeypatch.setenv("ACCESS_LOG_DIR", "mock_dir")
+    monkeypatch.setenv("PARENT_VAT_RESPONSE", "mock_dir")
+    monkeypatch.setenv("ARTIFACT_DIR", "mock_dir")
 
     upload_to_harbor._generate_vat_response_lineage_file()
     assert "Generated VAT response lineage file" in caplog.text
