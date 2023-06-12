@@ -158,8 +158,22 @@ def test_generate_attestation_predicates(monkeypatch):
         lambda a, b: None,
     )
 
+    mock_license_files = ["LICENSE", "README.md"]
+    monkeypatch.setattr(
+        os,
+        "listdir",
+        lambda path: mock_license_files if path == os.environ["CI_PROJECT_DIR"] else [],
+    )
+
     predicates = Predicates()
     upload_to_harbor.generate_attestation_predicates(predicates)
+
+    expected_predicates.append(
+        Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json")
+    )
+    expected_predicates.append(_generate_vat_response_lineage_file())
+
+    assert attestation_predicates == expected_predicates
 
 
 # mock_result = generate_attestation_predicates()
