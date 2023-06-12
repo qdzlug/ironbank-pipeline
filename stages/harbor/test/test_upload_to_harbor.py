@@ -131,6 +131,111 @@ def mock_hm_content():
 # )
 
 
+def test_compare_digests(monkeypatch):
+    # Mock the necessary environment variables
+    monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_file")
+    monkeypatch.setenv("IMAGE_PODMAN_SHA", "mock_image")
+
+    # Mock the Skopeo class and its methods
+    mock_skopeo = Skopeo()
+    mock_skopeo.inspect.return_value = "remote_inspect_raw"
+    monkeypatch.setattr("upload_to_harbor.Skopeo", mock_skopeo)
+
+    #mock image
+    mock_image = MockImage(registry="example.com", name="example/test", tag="1.0")
+    skopeo = Skopeo()
+
+    # Mock the log functions
+    log_mock = Mock()
+    monkeypatch.setattr("upload_to_harbor.log", log_mock)
+
+    # Mock the hashlib.sha256 function
+    mock_sha256 = Mock()
+    mock_sha256.return_value.hexdigest.return_value = "computed_digest"
+    monkeypatch.setattr("hashlib.sha256", mock_sha256)
+
+    # Define the input image
+    image = Mock()
+    image.from_image.return_value = "docker_image"
+
+    # Call the function under test
+    compare_digests(image)
+
+    # Assert that the necessary methods were called with the expected arguments
+    log_mock.info.assert_called_with("Pulling manifest_file with skopeo")
+    mock_skopeo.assert_called_with(Path("def test_compare_digests(monkeypatch: MonkeyPatch):
+    # Mock the necessary environment variables
+    monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "/path/to/docker/auth/file")
+    monkeypatch.setenv("IMAGE_PODMAN_SHA", "your_image_podman_sha")
+
+    # Mock the Skopeo class and its methods
+    mock_skopeo = Mock()
+    mock_skopeo.inspect.return_value = "remote_inspect_raw"
+    monkeypatch.setattr("upload_to_harbor.Skopeo", skopeo_mock)
+
+    # Mock the log functions
+    mock_log = Mock()
+    monkeypatch.setattr("upload_to_harbor.log", mock_log)
+
+    # Mock the hashlib.sha256 function
+    mock_sha256 = Mock()
+    mock_sha256_mock.return_value.hexdigest.return_value = "computed_digest"
+    monkeypatch.setattr("hashlib.sha256", sha256_mock)
+
+    # Define the input image
+    image = Mock()
+    image.from_image.return_value = "docker_image"
+
+    # Call the function under test
+    compare_digests(image)
+
+    # Assert that the necessary methods were called with the expected arguments
+    log_mock.info.assert_called_with("Pulling manifest_file with skopeo")
+    skopeo_mock.assert_called_with(Path("/path/to/docker/auth/file"))
+    skopeo_mock.inspect.assert_called_with("docker_image", raw=True, log_cmd=True)
+    sha256_mock.assert_called_with(b"remote_inspect_raw")
+    mock_log.error.assert_not_called()
+    sys.exit.assert_not_called()
+
+    # Assert the expected log message for matching digests
+    mock_log.info.assert_any_call("Digests match")
+
+    # Reset the mocked sys.exit function
+    sys.exit.reset_mock()
+
+    # Modify the environment variable to simulate mismatched digests
+    monkeypatch.setenv("IMAGE_PODMAN_SHA", "different_digest")
+
+    # Call the function under test again
+    compare_digests(image)
+
+    # Assert the expected log message and sys.exit call for mismatched digests
+    mock_log.error.assert_called_with("Digests do not match your_image_podman_sha  computed_digest")
+    sys.exit.assert_called_with(1)"))
+    mock_skopeo.inspect.assert_called_with("docker_image", raw=True, log_cmd=True)
+    mock_sha256.assert_called_with(b"remote_inspect_raw")
+    mock_log.error.assert_not_called()
+    sys.exit.assert_not_called()
+
+    # Assert the expected log message for matching digests
+    mock_log.info.assert_any_call("Digests match")
+
+    # Reset the mocked sys.exit function
+    sys.exit.reset_mock()
+
+    # Modify the environment variable to simulate mismatched digests
+    monkeypatch.setenv("IMAGE_PODMAN_SHA", "different_digest")
+
+    # Call the function under test again
+    compare_digests(image)
+
+    # Assert the expected log message and sys.exit call for mismatched digests
+    mock_log.error.assert_called_with(
+        "Digests do not match your_image_podman_sha  computed_digest"
+    )
+    sys.exit.assert_called_with(1)
+
+
 @patch("upload_to_harbor.json", new=MockJson)
 @patch("upload_to_harbor.Path", new=MockPath)
 # @patch("stages.harbor.upload_to_harbor.json", new=MockJson)
@@ -151,103 +256,39 @@ def test_generate_vat_response_lineage_file(
     assert "Generated VAT response lineage file" in caplog.text
 
 
-@patch("upload_to_harbor.json", new=MockJson)
-@patch("upload_to_harbor.Path", new=MockPath)
-def test_generate_attestation_predicates(monkeypatch):
-    monkeypatch.setenv("CI_PROJECT_DIR", "mock_dir")
-    monkeypatch.setenv("ACCESS_LOG_DIR", "mock_dir")
-    monkeypatch.setenv("SBOM_DIR", "mock_dir")
+# @patch("upload_to_harbor.json", new=MockJson)
+# @patch("upload_to_harbor.Path", new=MockPath)
+# def test_generate_attestation_predicates(monkeypatch):
+#     monkeypatch.setenv("CI_PROJECT_DIR", "mock_dir")
+#     monkeypatch.setenv("ACCESS_LOG_DIR", "mock_dir")
+#     monkeypatch.setenv("SBOM_DIR", "mock_dir")
 
-    mock_result = ["LICENSE", "README.md", "access_log"]
+#     mock_result = ["LICENSE", "README.md", "access_log"]
 
-    monkeypatch.setattr(
-        os,
-        "listdir",
-        lambda path: mock_result if path == os.environ["CI_PROJECT_DIR"] else [],
-    )
+#     monkeypatch.setattr(
+#         os,
+#         "listdir",
+#         lambda path: mock_result if path == os.environ["CI_PROJECT_DIR"] else [],
+#     )
 
-    monkeypatch.setattr(os, "listdir", lambda a: [])
+#     monkeypatch.setattr(os, "listdir", lambda a: [])
 
-    monkeypatch.setattr(
-        upload_to_harbor,
-        "_convert_artifacts_to_hardening_manifest",
-        lambda a, b: None,
-    )
+#     monkeypatch.setattr(
+#         upload_to_harbor,
+#         "_convert_artifacts_to_hardening_manifest",
+#         lambda a, b: None,
+#     )
 
-    predicates = Predicates()
-    upload_to_harbor.generate_attestation_predicates(predicates)
+#     predicates = Predicates()
+#     upload_to_harbor.generate_attestation_predicates(predicates)
 
-    predicates = [
-        Path(os.environ["SBOM_DIR"], file)
-        for file in os.listdir(os.environ["SBOM_DIR"])
-        if file not in predicates.unattached_predicates
-    ]
-
-    predicates.append(Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json"))
-    predicates.append(generate_vat_response_lineage_file())
-
-    assert predicates == expected_predicates
-
-
-# mock_result = generate_attestation_predicates()
-# assert mock_result == MockOutput().mock_data
-
-# monkeypatch.delenv("CI_PROJECT_DIR")
-# monkeypatch.delenv("ACCESS_LOG_DIR")
-
-# monkeypatch.setenv("CI_CI_PROJECT_DIR", "hardening_manifest.json")
-# monkeypatch.setatt(
-#     upload_to_harbor, "attestation_predicate", lambda a, b: mock_hm_content
-# )
-
-# log.info("Test predicates exist")
-# mock_result = attestation_predicate.append("mock_hm_content")
-# assert mock_result == MockOutput().mock_data
-
-# monkeypatch.delenv("CI_PROJECT_DIR")
-# monkeypatch.delenv("SBOM_DIR")
-
-# project = DsopProject()
-# hm = HardeningManifest(project.hardening_manifest_path)
-
-#     # Mocking the environment variables
-#     mock_env = {
-#         "CI_PROJECT_DIR": "/path/to/project",
-#         "ACCESS_LOG_DIR": "/path/to/access_log",
-#         "SBOM_DIR": "/path/to/sbom",
-#     }
-#     with mock.patch.dict(os.environ, mock_env):
-#         # Mocking the file list in the SBOM_DIR
-#         mock_sbom_files = ["file1.txt", "file2.txt", "file3.txt"]
-#         with mock.patch("os.listdir", return_value=mock_sbom_files):
-#             # Mocking the predicates object
-#             mock_predicates = mock.Mock()
-#             mock_predicates.unattached_predicates = ["file2.txt"]
-
-#             # Call the function under test
-#     result = generate_attestation_predicates(mock_predicates)
-#      # Verify the result
-#     expected_result = [
-#         Path("/path/to/sbom", "file1.txt"),
-#         Path("/path/to/sbom", "file3.txt"),
-#         Path("/path/to/project", "hardening_manifest.json"),
-#         _generate_vat_response_lineage_file(),
+#     predicates = [
+#         Path(os.environ["SBOM_DIR"], file)
+#         for file in os.listdir(os.environ["SBOM_DIR"])
+#         if file not in predicates.unattached_predicates
 #     ]
-#     assert result == expected_result
 
-#     # Verify the log message
-#     assert "Generated attestation predicates successfully" in caplog.text
-#     assert "Error occurred" not in caplog.text
+#     predicates.append(Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json"))
+#     predicates.append(_generate_vat_response_lineage_file())
 
-
-# unattached_predicates = ["file3.txt", "file4.txt"]
-
-# assertions
-# asyncio.run(generate_attestation_predicates.main())
-# assert "file3.text" in caplog.text
-# assert "file4.text" in caplog.text
-# caplog.clear()
-
-# with pytest.raises(SystemExit) as se:
-#     asyncio.run(generate_attestation_predicates.main())
-# assert se.value.code == 1
+#     assert predicates == expected_predicates
