@@ -14,7 +14,7 @@ from ironbank.pipeline.test.mocks.mock_classes import MockHardeningManifest, Moc
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(pathlib.Path(__file__).absolute().parents[1].as_posix())
 import dockerfile_validation  # noqa E402
 
 log = logger.setup("test_dockerfile_validation")
