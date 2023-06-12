@@ -66,6 +66,14 @@ def mock_pipeline_parent_vat_response():
 
 
 @pytest.fixture
+def mock_dir():
+    return {
+        "license": "v1",
+        "readme.md": "exampleread",
+    }
+
+
+@pytest.fixture
 def mock_hm_content():
     return {
         "apiVersion": "v1",
@@ -150,6 +158,14 @@ def test_generate_attestation_predicates(monkeypatch):
     monkeypatch.setenv("ACCESS_LOG_DIR", "mock_dir")
     monkeypatch.setenv("SBOM_DIR", "mock_dir")
 
+    mock_result = ["LICENSE", "README.md", "access_log"]
+
+    monkeypatch.setattr(
+        os,
+        "listdir",
+        lambda path: mock_result if path == os.environ["CI_PROJECT_DIR"] else [],
+    )
+
     monkeypatch.setattr(os, "listdir", lambda a: [])
 
     monkeypatch.setattr(
@@ -158,22 +174,19 @@ def test_generate_attestation_predicates(monkeypatch):
         lambda a, b: None,
     )
 
-    mock_license_files = ["LICENSE", "README.md"]
-    monkeypatch.setattr(
-        os,
-        "listdir",
-        lambda path: mock_license_files if path == os.environ["CI_PROJECT_DIR"] else [],
-    )
-
     predicates = Predicates()
     upload_to_harbor.generate_attestation_predicates(predicates)
 
-    expected_predicates.append(
-        Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json")
-    )
-    expected_predicates.append(_generate_vat_response_lineage_file())
+    predicates = [
+        Path(os.environ["SBOM_DIR"], file)
+        for file in os.listdir(os.environ["SBOM_DIR"])
+        if file not in predicates.unattached_predicates
+    ]
 
-    assert attestation_predicates == expected_predicates
+    predicates.append(Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json"))
+    predicates.append(generate_vat_response_lineage_file())
+
+    assert predicates == expected_predicates
 
 
 # mock_result = generate_attestation_predicates()
