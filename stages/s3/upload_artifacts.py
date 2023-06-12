@@ -25,7 +25,7 @@ def copy_path(src: Path, dest: Path) -> None:
     # Path traversal not safe in this function
     assert ".." not in src.as_posix(), "Path traversal not safe in this function"
     if src.is_dir():
-        shutil.copytree(src, dest, dirs_exist_ok=True) 
+        shutil.copytree(src, dest, dirs_exist_ok=True)
     else:
         shutil.copy2(src, dest)
 

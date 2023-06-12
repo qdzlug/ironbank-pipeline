@@ -22,13 +22,13 @@ def handle_system_exit(func):
     async def _handle_system_exit(*args, **kwargs):
         try:
             return await func()
-        except SystemExit as se:
-            system_exits[se.code] = (
-                system_exits[se.code] if system_exits.get(se.code) else []
+        except SystemExit as e:
+            system_exits[e.code] = (
+                system_exits[e.code] if system_exits.get(se.code) else []
             )
             system_exits[se.code].append(func.__module__)
-        except SymlinkFoundError as sfe:
-            log.error(sfe)
+        except SymlinkFoundError as e:
+            log.error(e)
             sys.exit(1)
 
     return _handle_system_exit
@@ -52,10 +52,10 @@ async def main():
         for stage in stages:
             log.error(f"\t- {stage}")
 
-    if HARD_FAIL_CODE in system_exits.keys():
+    if HARD_FAIL_CODE in system_exits:
         log.error("Failing pipeline")
         sys.exit(HARD_FAIL_CODE)
-    elif SOFT_FAIL_CODE in system_exits.keys():
+    elif SOFT_FAIL_CODE in system_exits:
         log.warning("Failing pipeline")
         sys.exit(SOFT_FAIL_CODE)
     else:

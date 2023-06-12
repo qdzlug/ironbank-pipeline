@@ -10,6 +10,12 @@ log = logger.setup("lint.folder_structure")
 
 
 async def main():
+    """
+    Asynchronously validates the folder structure of a DsopProject.
+
+    Initializes a DsopProject object and attempts to validate it.
+    If validation fails (i.e., an AssertionError is raised), logs the error and terminates the program with status 1.
+    """
     log.info("Validating folder structure")
     dsop_project = DsopProject()
 
