@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import asyncio
-import os
 import pathlib
 import subprocess
 import sys
