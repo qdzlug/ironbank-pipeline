@@ -162,14 +162,6 @@ def test_generate_attestation_predicates(monkeypatch):
     upload_to_harbor.generate_attestation_predicates(predicates)
 
 
-# # staging image is always the new image
-# staging_image = Image(
-#     registry="http://test.url",
-#     name="test_image",
-#     digest="test_podman_sha",
-#     transport="docker://",
-# )
-
 # mock_result = generate_attestation_predicates()
 # assert mock_result == MockOutput().mock_data
 

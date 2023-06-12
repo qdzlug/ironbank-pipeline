@@ -115,9 +115,9 @@ def generate_attestation_predicates(predicates):
     """Generates a list of predicates to be attached to the image as Cosign
     Attestations."""
     hm_resources = [
-        # Path(os.environ["CI_PROJECT_DIR"], "LICENSE"),
-        # Path(os.environ["CI_PROJECT_DIR"], "README.md"),
-        # Path(os.environ["ACCESS_LOG_DIR"], "access_log"),
+        Path(os.environ["CI_PROJECT_DIR"], "LICENSE"),
+        Path(os.environ["CI_PROJECT_DIR"], "README.md"),
+        Path(os.environ["ACCESS_LOG_DIR"], "access_log"),
     ]
 
     # Convert non-empty artifacts to hardening manifest
