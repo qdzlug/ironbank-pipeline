@@ -25,7 +25,7 @@ class AccessLogFileParser(FileParser):
     """Parses access log files to extract and classify packages."""
 
     @classmethod
-    def parse(cls, access_log: list[str] | Path) -> list[Package]:
+    def parse(cls, access_log: list[str] | Path) -> list[Package]:  # W0237
         """Parses the log file and returns a list of packages.
 
         Parameters:
@@ -100,7 +100,7 @@ class SbomFileParser(FileParser):
     """A parser for Sbom."""
 
     @classmethod
-    def parse(cls, sbom: dict | Path) -> list[Package]:
+    def parse(cls, sbom: dict | Path) -> list[Package]:  # W0237
         packages: list[Package] = []
 
         for artifact in cls.handle_file_obj(sbom)["artifacts"]:
@@ -120,7 +120,7 @@ class DockerfileParser(FileParser):
     """A parser for Dockerfiles."""
 
     @classmethod
-    def parse(cls, filepath) -> None:
+    def parse(cls, filepath) -> None:  # W0237
         """Parse the given Dockerfile and return a list of invalid FROM
         statements.
 

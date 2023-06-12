@@ -66,7 +66,6 @@ run_radon() {
 # Function to run pylama
 run_pylama() {
   echo "Running pylama..."
-  pip install pylama --upgrade
   pylama
 }
 

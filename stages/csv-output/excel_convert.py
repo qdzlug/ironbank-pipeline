@@ -12,6 +12,16 @@ from openpyxl.utils import get_column_letter
 
 
 def main(argv):
+    """
+    Main function for CSV to Excel transformation and formatting tool.
+    
+    Takes CSV files from a specified directory, converts them to Excel format, applies colorization and formatting, 
+    and saves the resulting data as an Excel file. Logging level and certain actions are controlled by environment 
+    variables.
+    
+    Args:
+        argv (list): Command-line arguments.
+    """
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
     if loglevel == "DEBUG":
@@ -54,6 +64,12 @@ def main(argv):
 
 
 def _add_sheet_banners(wb):
+    """
+    Apply colorization to all relevant worksheets in the workbook.
+    
+    Args:
+        wb (openpyxl.workbook): The Excel workbook object to apply colorization to.
+    """
     for sheet in wb.sheetnames:
         ws = wb[sheet]
         ws.insert_rows(1)
@@ -67,6 +83,19 @@ def _add_sheet_banners(wb):
 
 
 def _colorize_full(wb):
+    """
+    Returns the column index of a given value in the Excel worksheet.
+    
+    Args:
+        sheet (openpyxl.worksheet): The Excel worksheet to search in.
+        value (str): The column name to find.
+        
+    Returns:
+        int: The column index.
+        
+    Raises:
+        SystemExit: If the specified value is not found in the worksheet.
+    """
     _colorize_sheet(wb["Anchore CVE Results"])
     _colorize_sheet(wb["Anchore Compliance Results"])
     _colorize_sheet(wb["Twistlock Vulnerability Results"])
@@ -76,6 +105,12 @@ def _colorize_full(wb):
 
 
 def _get_column_index(sheet, value):
+    """
+    Apply colorization to a single worksheet based on cell values.
+    
+    Args:
+        sheet (openpyxl.worksheet): The Excel worksheet to apply colorization to.
+    """
     justification_column = None
     for i, col in enumerate(sheet.columns):
         if col[0].value == value:
@@ -124,6 +159,13 @@ def _colorize_sheet(sheet):
 # convert all csvs to Excel file
 # Generates output_file (w/ justifications) and all_scans.xlsx (w/o justifications)
 def convert_to_excel(csv_dir, justification_sheet):
+    """
+    Convert CSV files from a given directory to an Excel file.
+    
+    Args:
+        csv_dir (str): The path to the directory containing the CSV files.
+        justification_sheet (str): The name of the Excel file to save the data to.
+    """
     read_sum = pd.read_csv(csv_dir + "summary.csv")
     read_oscap = pd.read_csv(csv_dir + "oscap.csv")
     read_tl = pd.read_csv(csv_dir + "tl.csv")
@@ -185,6 +227,12 @@ def _set_column_width(sheet, column_value, width, wrap=False):
 
 
 def _set_all_column_widths(wb):
+    """
+    Set the width of specified columns in all relevant worksheets in the workbook.
+    
+    Args:
+        wb (openpyxl.workbook): The Excel workbook object to modify.
+    """
     if not os.environ.get("SKIP_OPENSCAP"):
         openscap_disa = wb["OpenSCAP - DISA Compliance"]
         _set_column_width(

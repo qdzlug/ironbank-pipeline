@@ -36,15 +36,16 @@ def request_retry(retry_count):
                         raise MaxRetriesException() from None
                     log.warning("Resource failed to pull, retrying...")
             return None
+
         return wrapper
 
     return decorate
 
 
 def key_index_error_handler(func):
-    """
-    This decorator function is used to wrap a function that may raise KeyError or IndexError. 
-    In case of these exceptions, it logs the error message and doesn't interrupt the program.
+    """This decorator function is used to wrap a function that may raise
+    KeyError or IndexError. In case of these exceptions, it logs the error
+    message and doesn't interrupt the program.
 
     Args:
         func (function): The function to be wrapped.
@@ -52,6 +53,7 @@ def key_index_error_handler(func):
     Returns:
         function: The wrapped function.
     """
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         try:
@@ -61,14 +63,14 @@ def key_index_error_handler(func):
         except IndexError as e:
             log.debug("IndexError: %s", e.args[0])
         return None
+
     return wrapper
 
 
 def subprocess_error_handler(logging_message: str):
-    """
-    A decorator to wrap a function that may raise CalledProcessError or SubprocessError.
-    When these exceptions occur, it logs the specified error message and raises a 
-    GenericSubprocessError exception.
+    """A decorator to wrap a function that may raise CalledProcessError or
+    SubprocessError. When these exceptions occur, it logs the specified error
+    message and raises a GenericSubprocessError exception.
 
     Args:
         logging_message (str): The error message to be logged.
@@ -76,6 +78,7 @@ def subprocess_error_handler(logging_message: str):
     Returns:
         function: The decorator.
     """
+
     def decorate(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -98,10 +101,9 @@ def subprocess_error_handler(logging_message: str):
 # using class specific decorator since the error handler is less generic and requires VAT class metadata
 # TODO: decide if this belongs here, or would be better suited to the apis module
 def vat_request_error_handler(func):
-    """
-    A decorator for handling various HTTP errors that may occur when making VAT requests.
-    Logs the appropriate messages based on the response status code and raises an exception
-    if an unexpected exception is encountered.
+    """A decorator for handling various HTTP errors that may occur when making
+    VAT requests. Logs the appropriate messages based on the response status
+    code and raises an exception if an unexpected exception is encountered.
 
     Args:
         func (function): The function to be decorated.
@@ -109,6 +111,7 @@ def vat_request_error_handler(func):
     Returns:
         function: The decorated function.
     """
+
     @functools.wraps(func)
     def wrapper(self, image_name: str = "", *args, **kwargs):
         try:
