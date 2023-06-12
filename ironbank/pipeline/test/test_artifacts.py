@@ -24,7 +24,7 @@ from ironbank.pipeline.utils.exceptions import GenericSubprocessError, InvalidUR
 log = logger.setup("test_artifacts")
 
 MOCK_HTTP_URL = "http://example.com/example.txt"
-mock_s3_url = "s3://example-test/example.txt"
+MOCK_S3_URL = "s3://example-test/example.txt"
 mock_s3_url_version_id = "s3://example-test/example.txt?versionId=1.0"
 mock_s3_url_extra_args_unused = "s3://example-test/example.txt?versionId=1.0&test=test"
 mock_docker_url = "docker://example.com/example:1.0"
@@ -56,7 +56,7 @@ def mock_pull_auth(monkeypatch):
 def mock_s3_artifact(monkeypatch):
     add_s3_vars(monkeypatch)
     return S3Artifact(
-        url=mock_s3_url, filename=mock_filename, auth={"id": "test", "region": "test"}
+        url=MOCK_S3_URL, filename=mock_filename, auth={"id": "test", "region": "test"}
     )
 
 
@@ -82,7 +82,7 @@ def mock_s3_artifact_extra_args_unused(monkeypatch):
 
 @pytest.fixture
 def mock_s3_artifact_no_auth():
-    return S3Artifact(url=mock_s3_url, filename=mock_filename)
+    return S3Artifact(url=MOCK_S3_URL, filename=mock_filename)
 
 
 @pytest.fixture
@@ -147,9 +147,9 @@ def test_s3_artifact_download(
 
     monkeypatch.setattr(boto3, "client", mock_boto3)
 
-    with pytest.raises(ValueError) as ve:
+    with pytest.raises(ValueError) as value_error:
         mock_s3_artifact_no_auth.download()
-    assert ve.type == ValueError
+    assert value_error.type == ValueError
     caplog.clear()
 
     mock_s3_artifact.download()

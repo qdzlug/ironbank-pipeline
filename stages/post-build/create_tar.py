@@ -7,9 +7,8 @@ from ironbank.pipeline.image import Image, ImageFile
 
 
 def main():
-    """
-    This function is the entry point for a script that copies a docker image from a registry
-    and saves it as a tarball file.
+    """This function is the entry point for a script that copies a docker image
+    from a registry and saves it as a tarball file.
 
     The script requires the following environment variables to be set:
     - 'REGISTRY_PRE_PUBLISH_URL': The URL of the registry where the source image is stored.
@@ -17,7 +16,7 @@ def main():
     - 'IMAGE_PODMAN_SHA': The digest of the image (typically a SHA256 hash).
     - 'IMAGE_FILE': The base name of the file where the image will be saved (without the '.tar' extension).
 
-    The function uses the Skopeo tool to copy the image from the source to the destination. 
+    The function uses the Skopeo tool to copy the image from the source to the destination.
 
     The script does not return anything.
 

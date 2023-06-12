@@ -11,7 +11,7 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
 
-def main(argv):
+def main():
     """Main function for CSV to Excel transformation and formatting tool.
 
     Takes CSV files from a specified directory, converts them to Excel format, applies colorization and formatting,
@@ -225,7 +225,7 @@ def _set_all_column_widths(workbook):
         workbook (openpyxl.workbook): The Excel workbook object to modify.
     """
     if not os.environ.get("SKIP_OPENSCAP"):
-        openscap_disa = wb["OpenSCAP - DISA Compliance"]
+        openscap_disa = workbook["OpenSCAP - DISA Compliance"]
         _set_column_width(
             openscap_disa, column_value="scanned_date", width=20
         )  # scanned_date
@@ -244,7 +244,7 @@ def _set_all_column_widths(workbook):
         twistlock, column_value="Justification", width=100
     )  # justification
 
-    anchore_cve = wb["Anchore CVE Results"]
+    anchore_cve = workbook["Anchore CVE Results"]
     _set_column_width(anchore_cve, column_value="cve", width=25)  # CVE
     _set_column_width(anchore_cve, column_value="url", width=60)  # url
     _set_column_width(

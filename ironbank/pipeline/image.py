@@ -6,10 +6,8 @@ from typing import Optional
 class MissingTagAndDigestError(Exception):
     """Exception raised when tag and digest are missing for an artifact."""
 
-
 class MissingNameAndUrlError(Exception):
     """Exception raised when name and url are missing for an artifact."""
-
 
 @dataclass
 class Image:
@@ -49,8 +47,8 @@ class Image:
         )
 
     def from_image(self, **kwargs):
-        """Constructs an Image object either from the provided arguments or
-        instance attributes.
+        """
+        Constructs an Image object either from the provided arguments or instance attributes.
 
         Note: The method prioritizes provided arguments over instance attributes.
 
@@ -106,16 +104,16 @@ class Image:
 
 @dataclass
 class ImageFile:
-    """Represents an image file. This class includes properties related to the
-    image file's path and transport type.
-
+    """
+    Represents an image file. This class includes properties related to the image file's path and transport type.
+    
     Attributes
     ----------
     file_path : Path or str
         The path of the image file.
     transport : str
-        The transport protocol used. Skopeo tool uses this property.
-        Supported transports include: containers-storage, dir, docker, docker-archive,
+        The transport protocol used. Skopeo tool uses this property. 
+        Supported transports include: containers-storage, dir, docker, docker-archive, 
         docker-daemon, oci, oci-archive, ostree, tarball. The default is an empty string.
     """
 

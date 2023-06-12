@@ -139,6 +139,35 @@ def generate_attestation_predicates(predicates):
 
 
 def main():
+    """Main function to perform image promotion, signing, and attestation
+    process in a secure software supply chain.
+
+    This function is responsible for the image handling process in a secure software supply chain. It promotes an image
+    from staging to production, signs it and attests the image.
+
+    The function creates the staging and production images based on environment variables, generates predicates for attestation,
+    and sets up a temporary Docker configuration directory.
+
+    It then compares the staging and production image digests to ensure image integrity, and if the image scanned was a
+    new one, it promotes the image and tags from staging to production, then signs the image.
+
+    Finally, the function attests the production image with all generated predicates.
+
+    Environment Variables:
+        REGISTRY_PRE_PUBLISH_URL (str): The registry url for staging image.
+        IMAGE_NAME (str): The name of the image.
+        IMAGE_PODMAN_SHA (str): The digest of the staging image.
+        REGISTRY_PUBLISH_URL (str): The registry url for production image.
+        DIGEST_TO_SCAN (str): The digest of the production image.
+        DOCKER_AUTH_FILE_PUBLISH (str): The path to Docker authentication file for publishing.
+        IMAGE_TO_SCAN (str): Indicates which image is being scanned.
+
+    Raises:
+        SystemExit: Exits the process if a GenericSubprocessError is raised, indicating a subprocess call failed.
+
+    Returns:
+        None
+    """
     # staging image is always the new image
     staging_image = Image(
         registry=os.environ["REGISTRY_PRE_PUBLISH_URL"],

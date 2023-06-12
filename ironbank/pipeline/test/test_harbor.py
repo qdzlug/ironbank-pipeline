@@ -79,21 +79,21 @@ def test_harbor_repository(monkeypatch):  # noqa W0404
 @patch("ironbank.pipeline.harbor.HarborRobot", MockHarborRobot)
 def test_harbor_robot_payload():  # noqa W0404
     log.info("Test generation of robot account payload")
-    hr = HarborRobot(permissions=[MockHarborRobotPermissions().__dict__])
+    harbor_robot = HarborRobot(permissions=[MockHarborRobotPermissions().__dict__])
     for permission in hr.permissions:
         assert isinstance(permission, HarborRobotPermissions)
-    payload = hr.payload()
+    payload = harbor_robot.payload()
     assert payload["name"] == HarborRobot.name
 
 
 @patch("ironbank.pipeline.harbor.HarborRobot", MockHarborRobot)
 def test_harbor_robot_create(monkeypatch, mock_responses):
     log.info("Test generation of robot account creation success")
-    hr = HarborRobot(
+    harbor_robot = HarborRobot(
         permissions=[MockHarborRobotPermissions().__dict__], session=MockSession()
     )
     monkeypatch.setattr(MockSession, "post", mock_responses["200"])
-    resp = hr.create_robot()
+    resp = harbor_robot.create_robot()
     assert resp["text"] == "successful_request"
 
 

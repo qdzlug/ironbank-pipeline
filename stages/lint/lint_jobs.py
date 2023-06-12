@@ -27,7 +27,7 @@ def handle_system_exit(func):
     :return: Wrapped function that can handle SystemExit
     """
 
-    async def _handle_system_exit(*args, **kwargs):  #pylint: disable=W0613
+    async def _handle_system_exit(*args, **kwargs):  # pylint: disable=W0613
         try:
             return await func()
         except SystemExit as e:
