@@ -170,7 +170,9 @@ def main():
             # if the new image was scanned
             if "ironbank-staging" in os.environ["IMAGE_TO_SCAN"]:
                 # Promote image and tags from staging project
-                promote_tags(staging_image, production_image, hardening_manifest.image_tags)
+                promote_tags(
+                    staging_image, production_image, hardening_manifest.image_tags
+                )
                 # Sign image
                 cosign.sign(production_image, log_cmd=True)
             log.info("Adding attestations")

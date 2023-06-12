@@ -23,14 +23,14 @@ log = logger.setup(name="package_parser")
 
 class AccessLogFileParser(FileParser):
     """Parses access log files to extract and classify packages."""
+
     @classmethod
     def parse(cls, access_log: list[str] | Path) -> list[Package]:
-        """
-        Parses the log file and returns a list of packages.
+        """Parses the log file and returns a list of packages.
 
         Parameters:
         access_log: Log to parse. Can be list of strings or a Path object.
-        
+
         Returns:
         List of Package objects found in the access log.
 
@@ -98,6 +98,7 @@ class AccessLogFileParser(FileParser):
 @dataclass
 class SbomFileParser(FileParser):
     """A parser for Sbom."""
+
     @classmethod
     def parse(cls, sbom: dict | Path) -> list[Package]:
         packages: list[Package] = []
@@ -117,10 +118,11 @@ class SbomFileParser(FileParser):
 @dataclass
 class DockerfileParser(FileParser):
     """A parser for Dockerfiles."""
+
     @classmethod
     def parse(cls, filepath) -> None:
-        """
-        Parse the given Dockerfile and return a list of invalid FROM statements.
+        """Parse the given Dockerfile and return a list of invalid FROM
+        statements.
 
         Parameters
         ----------
@@ -140,8 +142,7 @@ class DockerfileParser(FileParser):
 
     @staticmethod
     def remove_non_from_statements(dockerfile_lines: tuple) -> list:
-        """
-        Remove any lines in the Dockerfile that are not FROM statements.
+        """Remove any lines in the Dockerfile that are not FROM statements.
 
         Parameters
         ----------

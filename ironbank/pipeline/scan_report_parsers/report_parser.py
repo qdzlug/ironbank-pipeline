@@ -8,8 +8,9 @@ from typing import Any
 
 @dataclass
 class AbstractFinding(ABC):
-    # this class can hold similar attributes between different vuln
-    # will be used for typing until we can start tying similarities between vulns
+    """This class can hold similar attributes between different vuln will be
+    used for typing until we can start tying similarities between vulns."""
+
     identifier: str
     severity: str
     description: str = ""
@@ -53,6 +54,18 @@ class AbstractFinding(ABC):
         return dict(finding_dict)
 
     def get_justification(self, justifications: dict) -> str:
+        """Retrieves the justification for a specific package from a dictionary
+        of justifications.
+
+        The function constructs an identifier for the package and checks if it is in the justifications dictionary.
+        If the dictionary is not provided or if the identifier is not found in the dictionary, an empty string is returned.
+
+        Parameters:
+        justifications (dict): A dictionary where keys are tuples (identifier, package, package_path) and values are justifications.
+
+        Returns:
+        str: The justification corresponding to the constructed identifier, or an empty string if not found.
+        """
         id_ = (
             self.identifier,
             self.package,
@@ -75,7 +88,7 @@ class ReportParser(ABC):
         for finding in findings:
             if not (attr_val := getattr(finding, attribute)) in unique_findings:
                 unique_findings[attr_val] = finding
-        return [v for v in unique_findings.values()]
+        return list(unique_findings.values())
 
     @classmethod
     def write_csv_from_dict_list(

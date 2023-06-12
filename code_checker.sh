@@ -131,7 +131,6 @@ run_isort() {
 
 lint_all() {
   rm -rf pylint
-  python3 -m pip install .
   run_pylint
   run_shellcheck
   run_pylama

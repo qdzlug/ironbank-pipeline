@@ -42,7 +42,7 @@ def test_projects(projects):
             pathlib.Path("test_projects", project.split("/")[-1]).absolute().as_posix()
         )
         if not pathlib.Path(repo_dir).is_dir():
-             git.Repo.clone_from(project, repo_dir)
+            git.Repo.clone_from(project, repo_dir)
 
         repo_dirs.append(repo_dir)
     return repo_dirs

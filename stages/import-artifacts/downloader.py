@@ -27,6 +27,19 @@ log = logger.setup("import_artifacts")
 
 
 def get_artifact_type(resource, scheme, netloc):
+    """Returns an artifact object based on the scheme and net location.
+
+    Parameters:
+    resource (dict): Dictionary containing artifact data.
+    scheme (str): String indicating the type of the artifact (e.g. "s3", "docker", "http").
+    netloc (str): Network location of the artifact.
+
+    Returns:
+    An instance of an Artifact subclass based on the scheme and network location.
+
+    Raises:
+    ArtifactNotFound: If the scheme doesn't match any known types.
+    """
     github_current = "ghcr.io"
     github_deprecated = "docker.pkg.github.com"
 
@@ -50,6 +63,14 @@ def get_artifact_type(resource, scheme, netloc):
 
 
 def set_artifact_path(artifact):
+    """Sets the destination path and artifact path for the provided artifact.
+
+    Parameters:
+    artifact (Artifact): An instance of an Artifact subclass.
+
+    Returns:
+    The provided artifact with updated destination path and artifact path.
+    """
     if isinstance(artifact, AbstractFileArtifact):
         artifact.dest_path = artifact.dest_path / "external-resources"
         artifact.artifact_path = artifact.dest_path / artifact.filename
@@ -97,20 +118,20 @@ def main():
         exit_code = 0
     except ArtifactNotFound:
         log.error("Invalid scheme %s for artifact %s", scheme, resource["url"])
-    except KeyError as ke:
-        log.error("The following key does not have a value: %s", ke)
-    except AssertionError as ae:
-        log.error("Assertion Error: %s", ae)
+    except KeyError as e:
+        log.error("The following key does not have a value: %s", e)
+    except AssertionError as e:
+        log.error("Assertion Error: %s", e)
     except InvalidURLList:
         log.error(
             "No valid urls provided for %s. Please ensure the url(s) for this resource exists and is not password protected. If you require basic authentication to download this resource, please open a ticket in this repository.",
             artifact.filename,
         )
-    except HTTPError as he:
+    except HTTPError as e:
         log.error(
             "Error downloading %s, Status code: %s",
             artifact.url,
-            he.response.status_code,
+            e.response.status_code,
         )
     except ClientError:
         log.error("S3 client error occurred")

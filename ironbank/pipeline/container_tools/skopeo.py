@@ -13,8 +13,7 @@ log = logger.setup(name="skopeo")
 
 
 class CopyException(Exception):
-    """Copy Exception"""
-    pass
+    """Copy Exception."""
 
 
 @dataclass
@@ -65,8 +64,8 @@ class Skopeo(ContainerTool):
         dest_creds: str = None,
         log_cmd: bool = False,
     ) -> None:
-        """
-        Copies an image from a source to a destination using the Skopeo utility.
+        """Copies an image from a source to a destination using the Skopeo
+        utility.
 
         Parameters:
         src: Source image or file.

@@ -78,6 +78,7 @@ class AnchoreCVEFinding(AbstractFinding):
 
     @property
     def vuln(self) -> str:
+        """Return idenfitier for vuln."""
         return self.identifier
 
     @property
@@ -127,7 +128,7 @@ class AnchoreCVEFinding(AbstractFinding):
     def set_identifiers(self) -> None:
         """Set identifiers from additional nvd data."""
         if self.nvd_data:
-            if isinstance(self.nvd_data, list) and len(self.nvd_data):
+            if isinstance(self.nvd_data, list):
                 if self.nvd_data[0]["id"] != self.identifier:
                     self.identifiers.append(self.nvd_data[0]["id"])
             elif self.nvd_data["id"] != self.identifier:

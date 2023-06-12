@@ -18,12 +18,25 @@ class PayloadString(str):
 
 @dataclass
 class Harbor(ABC):
-    session: requests.Session = field(default_factory=lambda: Session())
+    """
+    An abstract base class representing a connection to a Harbor container registry. 
+
+    Attributes:
+        session (requests.Session): A session object used for making HTTP requests.
+        api_url (str): The base URL of the Harbor API.
+        registry (str): The URL of the Harbor registry.
+    """
+    session: requests.Session = field(default_factory=Session)
     api_url: str = "https://registry1.dso.mil/api/v2.0"
     registry: str = "registry1.dso.mil"
 
     def get_robot_accounts(self):
-        # Don't call this method for Harbor Classes without a robots attribute
+        """
+        Retrieve robot accounts associated with this Harbor instance.
+
+        This method should not be called if the Harbor instance does not have a 'robots' attribute.
+        The method uses the Harbor API to fetch robot accounts, depending on whether the instance is a HarborSystem or HarborProject.
+        """
         assert getattr(self, "robots", "not_defined") != "not_defined"
         if isinstance(self, HarborSystem):
             robots_url = f"{self.api_url}/robots"
@@ -47,6 +60,15 @@ class Harbor(ABC):
 
 @dataclass
 class HarborSystem(Harbor):
+    """
+    A class representing the system-level operations in Harbor.
+
+    Attributes:
+        robots (list): A list of robots associated with the Harbor system.
+
+    Inherits from:
+        Harbor: The parent class representing a connection to Harbor container registry.
+    """
     robots: list = field(default_factory=lambda: [])
 
     def get_projects(self):
@@ -65,6 +87,17 @@ class HarborSystem(Harbor):
 
 @dataclass
 class HarborProject(Harbor):
+    """
+    A class representing project-level operations in Harbor.
+
+    Attributes:
+        name (str): The name of the Harbor project.
+        repositories (list): A list of repositories associated with the Harbor project.
+        robots (list): A list of robots associated with the Harbor project.
+
+    Inherits from:
+        Harbor: The parent class representing a connection to Harbor container registry.
+    """
     name: str = ""
     repositories: list = field(default_factory=lambda: [])
     robots: list = field(default_factory=lambda: [])
@@ -88,6 +121,17 @@ class HarborProject(Harbor):
 
 @dataclass
 class HarborRepository(Harbor):
+    """
+    A class representing repository-level operations in Harbor.
+
+    Attributes:
+        name (str): The name of the repository in the Harbor project.
+        project (str): The project name to which the repository belongs.
+        artifacts (list): A list of artifacts associated with the Harbor repository.
+
+    Inherits from:
+        Harbor: The parent class representing a connection to Harbor container registry.
+    """
     name: str = ""
     project: str = ""
     artifacts: list = field(default_factory=lambda: [])
@@ -112,6 +156,22 @@ class HarborRepository(Harbor):
 
 @dataclass
 class HarborRobot(Harbor):
+    """
+    A class representing a robot in Harbor, which can be used to perform operations on the Harbor registry.
+
+    Attributes:
+        name (str): The name of the robot.
+        email (str): The email associated with the robot.
+        description (str): The description of the robot.
+        expires_at (str): The expiration date of the robot.
+        duration (int): The duration of the robot.
+        disable (bool): A flag indicating if the robot is disabled.
+        level (str): The level of the robot.
+        permissions (list[HarborRobotPermissions]): A list of permissions associated with the robot.
+
+    Inherits from:
+        Harbor: The parent class representing a connection to Harbor container registry.
+    """
     name: str = ""
     email: str = ""
     description: str = ""
@@ -149,6 +209,14 @@ class HarborRobot(Harbor):
 
 @dataclass
 class HarborRobotPermissions:
+    """
+    A class representing permissions of a Harbor robot.
+
+    Attributes:
+        access (list[dict]): A list of access permissions for the robot.
+        kind (str): The kind of the permission.
+        namespace (str): The namespace to which the permission is applied.
+    """
     access: list[dict] = field(default_factory=lambda: [{}])
     kind: str = ""
     namespace: str = ""
@@ -156,6 +224,17 @@ class HarborRobotPermissions:
 
 @dataclass
 class HarborArtifact:
+    """
+    A class representing an artifact in a Harbor repository.
+
+    Attributes:
+        name (str): The name of the artifact.
+        repository (str): The repository in which the artifact is located.
+        project (str): The project to which the artifact belongs.
+        digest (str): The digest of the artifact.
+        tags (list): A list of tags associated with the artifact.
+        push_time (str): The time when the artifact was pushed to the repository.
+    """
     name: str = ""
     repository: str = ""
     project: str = ""
