@@ -40,7 +40,6 @@ run_black() {
 }
 
 run_docformatter() {
-  python3 -m pip install docformatter
   echo "Running docformatter..."
   if [ "$1" == "format_in_place" ]; then
     docformatter --in-place -r stages ironbank
@@ -59,7 +58,7 @@ run_autoflake() {
 }
 
 run_radon() {
-  python3 -m pip install radon radon[toml]
+  echo "Running radon"
   python3 -m radon cc ironbank/ stages/
 }
 

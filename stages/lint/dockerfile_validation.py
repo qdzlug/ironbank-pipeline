@@ -15,9 +15,8 @@ log = logger.setup(name="lint.dockerfile_validation")
 
 
 async def main():
-    """
-    Asynchronous main function that validates the Dockerfile of a DSOP (Data Standard for Operational Parameters) project
-    against a hardening manifest.
+    """Asynchronous main function that validates the Dockerfile of a DSOP (Data
+    Standard for Operational Parameters) project against a hardening manifest.
 
     The function performs the following steps:
     1. Initializes a DsopProject and a HardeningManifest object using the hardening_manifest_path from the DsopProject.

@@ -13,8 +13,8 @@ log = logger.setup(name="lint.pipeline_auth_status")
 
 
 async def main() -> None:
-    """
-    Asynchronous main function to validate an image name against a VAT (Versioned Artifact Tracker) backend.
+    """Asynchronous main function to validate an image name against a VAT
+    (Versioned Artifact Tracker) backend.
 
     The function performs the following steps:
     1. Initializes a DsopProject and a HardeningManifest object using the hardening_manifest_path from the DsopProject.

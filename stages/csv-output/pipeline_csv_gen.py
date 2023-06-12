@@ -16,6 +16,12 @@ log = logger.setup("csv_gen")
 
 
 def main() -> None:
+    """
+    Main function to perform security report processing. It fetches security scan reports
+    from different sources, segregates the justification, counts the number of failings
+    from each tool and finally generates a summary report. Also handles exceptions during
+    reading the findings file and logs necessary information.
+    """
     # Get logging level, set manually when running pipeline
 
     anchore_cve_path = Path(f"{os.environ['ANCHORE_SCANS']}/anchore_security.json")
@@ -98,7 +104,10 @@ def generate_summary_report(
     image_id: str,
     csv_output_dir: Path,
 ) -> None:
-    """Creates a summary CSV with the finding totals from each scan."""
+    """
+    Generates a CSV summary report for the findings from each scan tool. Takes failure counts
+    from each tool as parameters, and writes the data into a CSV file with appropriate headers.
+    """
     with Path(csv_output_dir, "summary.csv").open(mode="w", encoding="utf-8") as f:
         csv_writer = csv.writer(f)
 
@@ -210,22 +219,22 @@ def generate_anchore_compliance_report(
     gates = []
     stop_count = 0
     image_id = "unable_to_determine"
-    for ad in anchore_data:
+    for data in anchore_data:
         gate = {
-            "image_id": ad[0],
-            "repo_tag": ad[1],
-            "trigger_id": ad[2],
-            "gate": ad[3],
-            "trigger": ad[4],
-            "check_output": ad[5],
-            "gate_action": ad[6],
-            "policy_id": ad[8],
+            "image_id": data[0],
+            "repo_tag": data[1],
+            "trigger_id": data[2],
+            "gate": data[3],
+            "trigger": data[4],
+            "check_output": data[5],
+            "gate_action": data[6],
+            "policy_id": data[8],
         }
 
         if ad[7]:
-            gate["matched_rule_id"] = ad[7]["matched_rule_id"]
-            gate["whitelist_id"] = ad[7]["whitelist_id"]
-            gate["whitelist_name"] = ad[7]["whitelist_name"]
+            gate["matched_rule_id"] = data[7]["matched_rule_id"]
+            gate["whitelist_id"] = data[7]["whitelist_id"]
+            gate["whitelist_name"] = data[7]["whitelist_name"]
         else:
             gate["matched_rule_id"] = ""
             gate["whitelist_id"] = ""
@@ -233,8 +242,8 @@ def generate_anchore_compliance_report(
 
         cve_justification = ""
         # ad[2] is trigger_id -- e.g. CVE-2020-####
-        id = (ad[2], None, None)
-        if ad[4] == "package":
+        id = (data[2], None, None)
+        if data[4] == "package":
             cve_justification = "See Anchore CVE Results sheet"
 
         if id in justifications:

@@ -24,7 +24,7 @@ def write_env_vars(
     image_name_tag: str, commit_sha: str, digest: str, build_date: str
 ) -> None:
     log.info("Writing env variables to file")
-    with pathlib.Path("scan_logic.env").open("w") as f:
+    with pathlib.Path("scan_logic.env").open("w", encoding="utf-8") as f:
         f.writelines(
             [
                 f"IMAGE_TO_SCAN={image_name_tag}\n",
@@ -98,17 +98,21 @@ def get_old_pkgs(
             old_sbom = Path(cosign_download, "sbom-syft-json.json")
 
             # Parse access log from hardening manifest
-            with Path(cosign_download, "hardening_manifest.json").open("r") as hm:
-                old_access_log = json.load(hm).get("access_log", "").split("\n")
+            with Path(cosign_download, "hardening_manifest.json").open(
+                "r", encoding="utf-8"
+            ) as hardening_manifest:
+                old_access_log = (
+                    json.load(hardening_manifest).get("access_log", "").split("\n")
+                )
 
             # prevent old_access_log from having single value of '' if access log is missing
             old_access_log = [] if old_access_log == [""] else old_access_log
 
             log.info("Parsing old packages")
             return parse_packages(old_sbom, old_access_log)
-        else:
-            log.info("Download attestations failed")
-            return []
+
+        log.info("Download attestations failed")
+        return []
 
 
 def main():

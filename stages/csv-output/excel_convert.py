@@ -53,34 +53,34 @@ def main(argv):
     # Convert all csvs to excel sheets
     # Generates two .xlsx spreadsheets, one with justifications (output_file) and one without justifications (all_scans.xlsx)
     convert_to_excel(csv_dir, output_file)
-    wb = openpyxl.load_workbook(output_file)
+    workbook = openpyxl.load_workbook(output_file)
     # Colorize justifications for output_file
-    _colorize_full(wb)
-    _set_all_column_widths(wb)
+    _colorize_full(workbook)
+    _set_all_column_widths(workbook)
     if os.environ["CI_COMMIT_BRANCH"] not in ["development", "master"]:
-        _add_sheet_banners(wb)
-    wb.save(output_file)
+        _add_sheet_banners(workbook)
+    workbook.save(output_file)
 
 
-def _add_sheet_banners(wb):
+def _add_sheet_banners(workbook):
     """Apply colorization to all relevant worksheets in the workbook.
 
     Args:
-        wb (openpyxl.workbook): The Excel workbook object to apply colorization to.
+        workbook (openpyxl.workbook): The Excel workbook object to apply colorization to.
     """
-    for sheet in wb.sheetnames:
-        ws = wb[sheet]
-        ws.insert_rows(1)
-        cell = ws.cell(row=1, column=1)
+    for sheet in workbook.sheetnames:
+        worksheet = workbook[sheet]
+        worksheet.insert_rows(1)
+        cell = worksheet.cell(row=1, column=1)
         cell.value = "THESE FINDINGS ARE UNOFFICIAL AS THEY HAVE BEEN GENERATED ON A BRANCH OTHER THAN DEVELOPMENT OR MASTER. ONLY JUSTIFICATIONS FOR DEVELOPMENT OR MASTER BRANCH FINDINGS ARE CONSIDERED OFFICIAL."
         cell.font = Font(name="Calibri", size=11, bold=True)
         cell.fill = PatternFill(
             start_color="00ff00ff", end_color="00ff00ff", fill_type="solid"
         )
-        ws.merge_cells("A1:Z1")
+        worksheet.merge_cells("A1:Z1")
 
 
-def _colorize_full(wb):
+def _colorize_full(workbook):
     """Returns the column index of a given value in the Excel worksheet.
 
     Args:
@@ -93,12 +93,12 @@ def _colorize_full(wb):
     Raises:
         SystemExit: If the specified value is not found in the worksheet.
     """
-    _colorize_sheet(wb["Anchore CVE Results"])
-    _colorize_sheet(wb["Anchore Compliance Results"])
-    _colorize_sheet(wb["Twistlock Vulnerability Results"])
+    _colorize_sheet(workbook["Anchore CVE Results"])
+    _colorize_sheet(workbook["Anchore Compliance Results"])
+    _colorize_sheet(workbook["Twistlock Vulnerability Results"])
 
     if not os.environ.get("SKIP_OPENSCAP"):
-        _colorize_sheet(wb["OpenSCAP - DISA Compliance"])
+        _colorize_sheet(workbook["OpenSCAP - DISA Compliance"])
 
 
 def _get_column_index(sheet, value):
@@ -126,10 +126,10 @@ def _colorize_sheet(sheet):
     results_column = None
     if sheet.title == "OpenSCAP - DISA Compliance":
         results_column = _get_column_index(sheet=sheet, value="result")
-    for r in range(1, sheet.max_row + 1):
-        justification_cell = sheet.cell(row=r, column=justification_column)
+    for row in range(1, sheet.max_row + 1):
+        justification_cell = sheet.cell(row=row, column=justification_column)
         # Apply appropriate highlighting to justification cell
-        result = sheet.cell(row=r, column=results_column) if results_column else None
+        result = sheet.cell(row=row, column=results_column) if results_column else None
         if (not result or result.value == "fail") and justification_cell.value is None:
             # Fill cell in yellow
             justification_cell.fill = PatternFill(
@@ -172,9 +172,7 @@ def convert_to_excel(csv_dir, justification_sheet):
     read_security_no_justifications = read_security.iloc[:, :-1]
     read_gates_no_justifications = read_gates.iloc[:, :-1]
     # create all_scan.xlsx file (no justification or coloring used)
-    with pd.ExcelWriter(
-        csv_dir + "all_scans.xlsx"
-    ) as writer:  # pylint: disable=abstract-class-instantiated
+    with pd.ExcelWriter(csv_dir + "all_scans.xlsx") as writer:  # pylint: disable=abstract-class-instantiated
         read_sum.to_excel(writer, sheet_name="Summary", header=True, index=False)
         read_oscap_no_justifications.to_excel(
             writer, sheet_name="OpenSCAP - DISA Compliance", header=True, index=False
@@ -191,9 +189,7 @@ def convert_to_excel(csv_dir, justification_sheet):
         read_gates_no_justifications.to_excel(
             writer, sheet_name="Anchore Compliance Results", header=True, index=False
         )
-    with pd.ExcelWriter(
-        justification_sheet
-    ) as writer:  # pylint: disable=abstract-class-instantiated
+    with pd.ExcelWriter(justification_sheet) as writer:  # pylint: disable=abstract-class-instantiated
         read_sum.to_excel(writer, sheet_name="Summary", header=True, index=False)
         read_oscap.to_excel(
             writer, sheet_name="OpenSCAP - DISA Compliance", header=True, index=False
@@ -221,12 +217,12 @@ def _set_column_width(sheet, column_value, width, wrap=False):
             cell.alignment = Alignment(wrap_text=True)
 
 
-def _set_all_column_widths(wb):
+def _set_all_column_widths(workbook):
     """Set the width of specified columns in all relevant worksheets in the
     workbook.
 
     Args:
-        wb (openpyxl.workbook): The Excel workbook object to modify.
+        workbook (openpyxl.workbook): The Excel workbook object to modify.
     """
     if not os.environ.get("SKIP_OPENSCAP"):
         openscap_disa = wb["OpenSCAP - DISA Compliance"]
@@ -237,7 +233,7 @@ def _set_all_column_widths(wb):
             openscap_disa, column_value="Justification", width=30
         )  # justification
 
-    twistlock = wb["Twistlock Vulnerability Results"]
+    twistlock = workbook["Twistlock Vulnerability Results"]
     _set_column_width(twistlock, column_value="id", width=25)  # CVE
     _set_column_width(twistlock, column_value="packageName", width=20)  # packageName
     _set_column_width(
@@ -255,7 +251,7 @@ def _set_all_column_widths(wb):
         anchore_cve, column_value="Justification", width=100
     )  # justification
 
-    anchore_compliance = wb["Anchore Compliance Results"]
+    anchore_compliance = workbook["Anchore Compliance Results"]
     _set_column_width(
         anchore_compliance, column_value="whitelist_name", width=30
     )  # whitelist_name
