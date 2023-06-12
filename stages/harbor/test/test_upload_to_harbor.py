@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import asyncio
+import hashlib
 import os
 import pytest
 from pathlib import Path
@@ -33,6 +33,7 @@ from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.project import DsopProject
 from unittest.mock import patch, mock_open, Mock
+from stages.harbor.upload_to_harbor import compare_digests
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import upload_to_harbor
@@ -133,20 +134,16 @@ def mock_hm_content():
 
 def test_compare_digests(monkeypatch):
     # Mock the necessary environment variables
-    monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_file")
-    monkeypatch.setenv("IMAGE_PODMAN_SHA", "mock_image")
+    monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "/path/to/docker/auth/file")
+    monkeypatch.setenv("IMAGE_PODMAN_SHA", "your_image_podman_sha")
 
     # Mock the Skopeo class and its methods
-    mock_skopeo = Skopeo()
+    mock_skopeo = Mock()
     mock_skopeo.inspect.return_value = "remote_inspect_raw"
-    monkeypatch.setattr("upload_to_harbor.Skopeo", mock_skopeo)
-
-    #mock image
-    mock_image = MockImage(registry="example.com", name="example/test", tag="1.0")
-    skopeo = Skopeo()
+    monkeypatch.setattr("upload_to_harbor", mock_skopeo)
 
     # Mock the log functions
-    log_mock = Mock()
+    mock_log = Mock()
     monkeypatch.setattr("upload_to_harbor.log", log_mock)
 
     # Mock the hashlib.sha256 function
@@ -162,56 +159,8 @@ def test_compare_digests(monkeypatch):
     compare_digests(image)
 
     # Assert that the necessary methods were called with the expected arguments
-    log_mock.info.assert_called_with("Pulling manifest_file with skopeo")
-    mock_skopeo.assert_called_with(Path("def test_compare_digests(monkeypatch: MonkeyPatch):
-    # Mock the necessary environment variables
-    monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "/path/to/docker/auth/file")
-    monkeypatch.setenv("IMAGE_PODMAN_SHA", "your_image_podman_sha")
-
-    # Mock the Skopeo class and its methods
-    mock_skopeo = Mock()
-    mock_skopeo.inspect.return_value = "remote_inspect_raw"
-    monkeypatch.setattr("upload_to_harbor.Skopeo", skopeo_mock)
-
-    # Mock the log functions
-    mock_log = Mock()
-    monkeypatch.setattr("upload_to_harbor.log", mock_log)
-
-    # Mock the hashlib.sha256 function
-    mock_sha256 = Mock()
-    mock_sha256_mock.return_value.hexdigest.return_value = "computed_digest"
-    monkeypatch.setattr("hashlib.sha256", sha256_mock)
-
-    # Define the input image
-    image = Mock()
-    image.from_image.return_value = "docker_image"
-
-    # Call the function under test
-    compare_digests(image)
-
-    # Assert that the necessary methods were called with the expected arguments
-    log_mock.info.assert_called_with("Pulling manifest_file with skopeo")
-    skopeo_mock.assert_called_with(Path("/path/to/docker/auth/file"))
-    skopeo_mock.inspect.assert_called_with("docker_image", raw=True, log_cmd=True)
-    sha256_mock.assert_called_with(b"remote_inspect_raw")
-    mock_log.error.assert_not_called()
-    sys.exit.assert_not_called()
-
-    # Assert the expected log message for matching digests
-    mock_log.info.assert_any_call("Digests match")
-
-    # Reset the mocked sys.exit function
-    sys.exit.reset_mock()
-
-    # Modify the environment variable to simulate mismatched digests
-    monkeypatch.setenv("IMAGE_PODMAN_SHA", "different_digest")
-
-    # Call the function under test again
-    compare_digests(image)
-
-    # Assert the expected log message and sys.exit call for mismatched digests
-    mock_log.error.assert_called_with("Digests do not match your_image_podman_sha  computed_digest")
-    sys.exit.assert_called_with(1)"))
+    mock_log.info.assert_called_with("Pulling manifest_file with skopeo")
+    mock_skopeo.assert_called_with(Path("/path/to/docker/auth/file"))
     mock_skopeo.inspect.assert_called_with("docker_image", raw=True, log_cmd=True)
     mock_sha256.assert_called_with(b"remote_inspect_raw")
     mock_log.error.assert_not_called()
