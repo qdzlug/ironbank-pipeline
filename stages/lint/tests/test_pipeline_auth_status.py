@@ -4,6 +4,7 @@ import asyncio
 import os
 import sys
 from unittest.mock import patch
+from pathlib import Path
 
 import pytest
 
@@ -15,7 +16,7 @@ from ironbank.pipeline.test.mocks.mock_classes import (
 )
 from ironbank.pipeline.utils import logger
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import pipeline_auth_status  # noqa E402
 
 log = logger.setup(name="test_pipeline_auth_status")
