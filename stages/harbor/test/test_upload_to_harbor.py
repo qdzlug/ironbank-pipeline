@@ -9,7 +9,7 @@ from unittest import mock
 import base64
 import json
 from requests import patch
-from ironbank.pipeline.test.mocks.mock_classes import MockPath
+from ironbank.pipeline.test.mocks.mock_classes import MockPath, MockSkopeo
 import pathlib
 import yaml
 import subprocess
@@ -120,36 +120,36 @@ def mock_hm_content():
     }
 
 
-# @patch.dict(
-#     os.environ,
-#     {
-#         "VAT_RESPONSE": "",
-#         "PARENT_VAT_RESPONSE": "",
-#         "ARTIFACT_DIR": "",
-#         "CI_PROJECT_DIR": "",
-#         "ACCESS_LOG_DIR": "",
-#     },
-# )
+# @pytest.fixture
+# def mock_digest():
 
 
+@patch("upload_to_harbor.Skopeo", new=MockSkopeo)
+@patch("upload_to_harbor.Path", new=MockPath)
 def test_compare_digests(monkeypatch):
     # Mock the necessary environment variables
-    monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "docker://")
-    monkeypatch.setenv("IMAGE_PODMAN_SHA", "your_image_podman_sha")
+    monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_file_path")
+    monkeypatch.setenv("IMAGE_PODMAN_SHA", "mock_our_image_podman_sha")
+    monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_skopeo")
 
-    # Mock the Skopeo class and its methods
-    mock_skopeo = Mock()
-    mock_skopeo.inspect.return_value = "remote_inspect_raw"
-    monkeypatch.setattr("DOCKER_AUTH_FILE_PRE_PUBLISH", mock_skopeo)
+    monkeypatch.setattr(
+        MockSkopeo, "inspect", lambda *args, **kwargs: {"Digest": "1234qwer"}
+    )
+
+    asyncio.run(compare_digests.main())
+    assert "Pulling manifest_file with skopeo" in caplog.text
+
+    monkeypatch.delenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_skopeo")
+
+    monkeypatch.setattr(upload_to_harbor, "hashlib.sha256", lambda a: [])
+    monkeypatch.setattr(upload_to_harbor, "remote_inspect_raw", mock_digest)
 
     # Mock the log functions
     mock_log = Mock()
-    monkeypatch.setattr("DOCKER_AUTH_FILE_PRE_PUBLISH.log", mock_log)
 
     # Mock the hashlib.sha256 function
     mock_sha256 = Mock()
     mock_sha256.return_value.hexdigest.return_value = "computed_digest"
-    monkeypatch.setattr("hashlib.sha256", mock_sha256)
 
     # Define the input image
     image = Mock()
