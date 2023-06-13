@@ -17,7 +17,7 @@ from ironbank.pipeline.test.mocks.mock_classes import (
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.exceptions import CosignDownloadError
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import image_verify  # noqa E402
 import scan_logic_jobs  # noqa E402
 
