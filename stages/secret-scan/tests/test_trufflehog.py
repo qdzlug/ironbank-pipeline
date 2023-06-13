@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import os
 import sys
 from unittest.mock import mock_open
 from pathlib import Path

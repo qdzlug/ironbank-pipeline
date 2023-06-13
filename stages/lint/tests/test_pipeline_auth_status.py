@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import asyncio
-import os
 import sys
 from unittest.mock import patch
 from pathlib import Path

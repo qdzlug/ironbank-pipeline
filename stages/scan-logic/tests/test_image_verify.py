@@ -1,5 +1,4 @@
 import json
-import os
 import pathlib
 import sys
 from unittest.mock import mock_open, patch
