@@ -80,7 +80,7 @@ def test_harbor_repository(monkeypatch):  # noqa W0404
 def test_harbor_robot_payload():  # noqa W0404
     log.info("Test generation of robot account payload")
     harbor_robot = HarborRobot(permissions=[MockHarborRobotPermissions().__dict__])
-    for permission in hr.permissions:
+    for permission in harbor_robot.permissions:
         assert isinstance(permission, HarborRobotPermissions)
     payload = harbor_robot.payload()
     assert payload["name"] == HarborRobot.name

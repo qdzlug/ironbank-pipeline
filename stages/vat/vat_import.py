@@ -309,8 +309,8 @@ def generate_twistlock_findings(twistlock_cve_path: Path) -> list[dict[str, Any]
 
 
 def create_api_call() -> dict:
-    """
-    Creates the data for an API call based on various environmental variables and findings.
+    """Creates the data for an API call based on various environmental
+    variables and findings.
 
     This function gathers keyword, tag, label data from a predefined storage location.
     Then it imports the findings from different scanning tools if their specific arguments
@@ -318,7 +318,7 @@ def create_api_call() -> dict:
 
     Environment Variables:
     - ARTIFACT_STORAGE: The storage location for keywords, tags, and label data.
-    - VAT_FINDING_FIELDS: (Optional) The fields to be included in the findings from VAT. 
+    - VAT_FINDING_FIELDS: (Optional) The fields to be included in the findings from VAT.
                           Defaults to a predefined list of fields.
     - IMAGE_TO_SCAN: The image to be scanned.
 
@@ -403,11 +403,10 @@ def create_api_call() -> dict:
 def get_parent_vat_response(
     output_dir: str, hardening_manifest: HardeningManifest
 ) -> None:
-    """
-    Pulls the parent VAT response for a particular image from a registry.
+    """Pulls the parent VAT response for a particular image from a registry.
 
-    This function takes an output directory and a hardening manifest. It then sets up 
-    the necessary docker configurations and uses Cosign to download the base image, 
+    This function takes an output directory and a hardening manifest. It then sets up
+    the necessary docker configurations and uses Cosign to download the base image,
     then it moves the VAT predicate file to the appropriate path.
 
     Environment Variables:
@@ -443,14 +442,13 @@ def get_parent_vat_response(
 
 
 def main() -> None:
-    """
-    Main function to run the application.
+    """Main function to run the application.
 
-    This function collects data for an API call and sends a POST request to the API 
-    with the gathered data. If the base image name exists in the hardening manifest, 
+    This function collects data for an API call and sends a POST request to the API
+    with the gathered data. If the base image name exists in the hardening manifest,
     it also fetches the parent VAT response.
 
-    The function will exit the application and log an error if it encounters an 
+    The function will exit the application and log an error if it encounters an
     exception during the API call.
 
     Environment Variables:
@@ -486,7 +484,9 @@ def main() -> None:
     headers["Content-Type"] = "application/json"
     headers["Authorization"] = f"Bearer {os.environ['VAT_TOKEN']}"
     try:
-        resp = requests.post(args.api_url, headers=headers, json=large_data, timeout=(30, 30))
+        resp = requests.post(
+            args.api_url, headers=headers, json=large_data, timeout=(30, 30)
+        )
         resp.raise_for_status()
         logging.debug("API Response:\n%s", resp.text)
         logging.debug("POST Response: %s", resp.status_code)
@@ -506,7 +506,7 @@ def main() -> None:
     except requests.exceptions.RequestException:
         logging.exception("Error submitting data to VAT scan import API")
         sys.exit(1)
-    except Exception: #pylint disable: broad-exception-caught
+    except Exception:  # pylint disable: broad-exception-caught
         logging.exception("Exception: Unknown exception")
         sys.exit(1)
 
