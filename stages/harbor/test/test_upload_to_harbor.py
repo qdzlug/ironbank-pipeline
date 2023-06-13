@@ -134,17 +134,17 @@ def mock_hm_content():
 
 def test_compare_digests(monkeypatch):
     # Mock the necessary environment variables
-    monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "/path/to/docker/auth/file")
+    monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "docker://")
     monkeypatch.setenv("IMAGE_PODMAN_SHA", "your_image_podman_sha")
 
     # Mock the Skopeo class and its methods
     mock_skopeo = Mock()
     mock_skopeo.inspect.return_value = "remote_inspect_raw"
-    monkeypatch.setattr("upload_to_harbor", mock_skopeo)
+    monkeypatch.setattr("DOCKER_AUTH_FILE_PRE_PUBLISH", mock_skopeo)
 
     # Mock the log functions
     mock_log = Mock()
-    monkeypatch.setattr("upload_to_harbor.log", log_mock)
+    monkeypatch.setattr("DOCKER_AUTH_FILE_PRE_PUBLISH.log", mock_log)
 
     # Mock the hashlib.sha256 function
     mock_sha256 = Mock()
@@ -160,7 +160,7 @@ def test_compare_digests(monkeypatch):
 
     # Assert that the necessary methods were called with the expected arguments
     mock_log.info.assert_called_with("Pulling manifest_file with skopeo")
-    mock_skopeo.assert_called_with(Path("/path/to/docker/auth/file"))
+    mock_skopeo.assert_called_with(Path("docker://"))
     mock_skopeo.inspect.assert_called_with("docker_image", raw=True, log_cmd=True)
     mock_sha256.assert_called_with(b"remote_inspect_raw")
     mock_log.error.assert_not_called()
