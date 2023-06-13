@@ -172,7 +172,9 @@ def convert_to_excel(csv_dir, justification_sheet):
     read_security_no_justifications = read_security.iloc[:, :-1]
     read_gates_no_justifications = read_gates.iloc[:, :-1]
     # create all_scan.xlsx file (no justification or coloring used)
-    with pd.ExcelWriter(csv_dir + "all_scans.xlsx") as writer:  # pylint: disable=abstract-class-instantiated
+    with pd.ExcelWriter(
+        csv_dir + "all_scans.xlsx"
+    ) as writer:  # pylint: disable=abstract-class-instantiated
         read_sum.to_excel(writer, sheet_name="Summary", header=True, index=False)
         read_oscap_no_justifications.to_excel(
             writer, sheet_name="OpenSCAP - DISA Compliance", header=True, index=False
@@ -189,7 +191,9 @@ def convert_to_excel(csv_dir, justification_sheet):
         read_gates_no_justifications.to_excel(
             writer, sheet_name="Anchore Compliance Results", header=True, index=False
         )
-    with pd.ExcelWriter(justification_sheet) as writer:  # pylint: disable=abstract-class-instantiated
+    with pd.ExcelWriter(
+        justification_sheet
+    ) as writer:  # pylint: disable=abstract-class-instantiated
         read_sum.to_excel(writer, sheet_name="Summary", header=True, index=False)
         read_oscap.to_excel(
             writer, sheet_name="OpenSCAP - DISA Compliance", header=True, index=False

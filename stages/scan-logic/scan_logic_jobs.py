@@ -23,6 +23,18 @@ log = logger.setup("scan_logic_jobs")
 def write_env_vars(
     image_name_tag: str, commit_sha: str, digest: str, build_date: str
 ) -> None:
+    """Writes environment variables into a file named 'scan_logic.env'.
+
+    This function takes the image name and tag, commit SHA, image digest,
+    and the build date. It then writes these as environment variables
+    into a file named 'scan_logic.env'.
+
+    Arguments:
+    - image_name_tag: The name and tag of the image to scan.
+    - commit_sha: The SHA of the commit to scan.
+    - digest: The digest of the image to scan.
+    - build_date: The date when the build was created.
+    """
     log.info("Writing env variables to file")
     with pathlib.Path("scan_logic.env").open("w", encoding="utf-8") as f:
         f.writelines(
@@ -116,6 +128,24 @@ def get_old_pkgs(
 
 
 def main():
+    """Main function that performs package comparison between a new image and a
+    previously scanned image.
+
+    It fetches the new image's details from the environment, including its name, tag, digest, and build date.
+    It then writes these details into an environment variable file using the `write_env_vars` function.
+
+    The function also fetches the packages in the new image and checks if there are any differences
+    between the packages in the new image and a previously scanned image. If differences are found,
+    the function writes the old image details into the environment variable file.
+
+    In certain scenarios such as when the image cannot be verified, when there are no old packages to
+    compare, or when the new image is forced to be scanned, the function logs appropriate messages
+    and continues to the next step or exits.
+
+    Note:
+    This function expects certain environment variables to be set. It can exit the program based on
+    the evaluation of certain conditions.
+    """
     image_name = os.environ["IMAGE_NAME"]
     image_name_tag = os.environ["IMAGE_FULLTAG"]
     new_sbom = Path(os.environ["ARTIFACT_STORAGE"], "sbom/sbom-syft-json.json")

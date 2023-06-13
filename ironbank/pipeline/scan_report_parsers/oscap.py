@@ -55,7 +55,9 @@ class RuleInfo:
     _log: logger = logger.setup("RuleInfo")
 
     # TODO: consider making a separate factory for this purpose
-    def __new__(cls, root: ElementTree, rule_result: Element, *args, **kwargs) -> Callable:  # pylint: disable=unused-argument
+    def __new__(
+        cls, root: ElementTree, rule_result: Element, *args, **kwargs
+    ) -> Callable:  # pylint: disable=unused-argument
         """RuleInfo constructor Supports using generic RuleInfo to select the
         appropriate class for constructing (RuleInfo or RuleInfoOVAL)
         Constructor accepts *args and **kwargs to support unit testing (setting
@@ -260,7 +262,7 @@ class RuleInfoOVAL(RuleInfo):
             r"suse\.linux\.enterprise\.(?P<version>(15))", finding_href
         ):
             return f"https://ftp.suse.com/pub/projects/security/oval/suse.linux.enterprise.server.{sle_match.group('version')}-patch.xml"
-        
+
         cls._log.error("OVAL findings found for unknown image type")
         raise NoMatchingOvalUrl
 
@@ -364,16 +366,16 @@ class OscapFinding(AbstractFinding):
 
 @dataclass(eq=True)
 class OscapComplianceFinding(OscapFinding):
-    """
-    The OscapComplianceFinding class extends the OscapFinding class, and 
+    """The OscapComplianceFinding class extends the OscapFinding class, and
     represents a single compliance finding from OpenSCAP.
 
-    It is initialized with a logger object. 
+    It is initialized with a logger object.
 
     Class Method:
     - get_findings_from_rule_info(cls, rule_info: RuleInfo) -> Generator[object, None, None]:
         Given a RuleInfo object, it generates a single compliance finding.
     """
+
     _log: logger = logger.setup("OscapComplianceFinding")
 
     @classmethod
@@ -391,14 +393,15 @@ class OscapComplianceFinding(OscapFinding):
 
 @dataclass
 class OscapOVALFinding(OscapFinding):
-    """
-    The OscapOVALFinding class extends the OscapFinding class, and 
-    represents a list of OVAL (Open Vulnerability and Assessment Language) findings from OpenSCAP.
+    """The OscapOVALFinding class extends the OscapFinding class, and
+    represents a list of OVAL (Open Vulnerability and Assessment Language)
+    findings from OpenSCAP.
 
     Class Method:
     - get_findings_from_rule_info(cls, rule_info: RuleInfoOVAL) -> Generator[object, None, None]:
         Given a RuleInfoOVAL object, it generates a list of OVAL findings.
     """
+
     link: str = None
     _log: logger = logger.setup("OscapOVALFinding")
 

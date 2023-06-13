@@ -59,11 +59,14 @@ def verify_image_properties(img_json: dict, manifest: HardeningManifest) -> bool
     new_image_sha = os.environ["CI_COMMIT_SHA"].lower()
 
     old_parent = img_json["Labels"]["mil.dso.ironbank.image.parent"]
+
     if manifest.base_image_name:
-        with Path(
-            os.environ["ARTIFACT_STORAGE"], "lint", "base_image.json"
-        ).open() as f:
-            base_sha = json.load(f)["BASE_SHA"]
+        json_file_path = (
+            Path(os.environ["ARTIFACT_STORAGE"]) / "lint" / "base_image.json"
+        )
+        with json_file_path.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+            base_sha = data["BASE_SHA"]
 
         new_parent = f"{os.environ['BASE_REGISTRY']}/{manifest.base_image_name}:{manifest.base_image_tag}@{base_sha}"
     else:
@@ -74,10 +77,9 @@ def verify_image_properties(img_json: dict, manifest: HardeningManifest) -> bool
         # Check if the parent digest changed
         if old_parent == new_parent:
             return True
-        else:
-            log.info("Parent digest difference detected")
-            log.info(f"Old parent digest: {old_parent}")
-            log.info(f"New parent digest: {new_parent}")
+        log.info("Parent digest difference detected")
+        log.info(f"Old parent digest: {old_parent}")
+        log.info(f"New parent digest: {new_parent}")
     else:
         log.info("Git commit SHA difference detected")
         log.info(f"Old image SHA: {old_image_sha}")
@@ -147,8 +149,8 @@ def diff_needed(docker_config_dir: Path) -> Optional[dict]:
                     "org.opencontainers.image.created"
                 ],
             }
-    except KeyError as ke:
+    except KeyError as e:
         log.info("Digest or label missing for old image")
-        log.info(ke)
+        log.info(e)
         sys.exit(1)
     return None
