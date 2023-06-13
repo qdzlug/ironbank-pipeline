@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import os
-import pathlib
 import sys
 from unittest.mock import mock_open
+from pathlib import Path
 
 import git
 import pytest
@@ -10,7 +10,7 @@ import yaml
 
 from ironbank.pipeline.utils import logger
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import trufflehog  # noqa E402
 from trufflehog import get_commit_diff  # noqa E402
 from trufflehog import get_config  # noqa E402
@@ -18,8 +18,8 @@ from trufflehog import create_trufflehog_config, get_history_cmd  # noqa E042
 
 log = logger.setup("test_trufflehog")
 
-mock_path = pathlib.Path(
-    pathlib.Path(__file__).absolute().parent.parent.parent.parent,
+mock_path = Path(
+    Path(__file__).absolute().parent.parent.parent.parent,
     "ironbank/pipeline/test/mocks",
 )
 
@@ -39,10 +39,10 @@ def test_projects(projects):
     repo_dirs = []
     for project in projects:
         repo_dir = (
-            pathlib.Path("test_projects", project.split("/")[-1]).absolute().as_posix()
+            Path("test_projects", project.split("/")[-1]).absolute().as_posix()
         )
         # don't clone if already cloned
-        git.Repo.clone_from(project, repo_dir) if not pathlib.Path(
+        git.Repo.clone_from(project, repo_dir) if not Path(
             repo_dir
         ).is_dir() else None
         repo_dirs.append(repo_dir)
@@ -107,7 +107,7 @@ def test_get_commit_diff():
 
 
 def test_get_config():
-    assert get_config(pathlib.Path(mock_path, "test-th-config.yaml")) == [
+    assert get_config(Path(mock_path, "test-th-config.yaml")) == [
         {
             "message": "Standard pipeline config",
             "paths": ["stages/lint/README.md"],
@@ -121,12 +121,12 @@ def test_get_config():
 
 def test_create_trufflehog_config(monkeypatch):
     monkeypatch.setattr(trufflehog, "get_config", lambda *args, **kwargs: [])
-    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data="data"))
+    monkeypatch.setattr(Path, "open", mock_open(read_data="data"))
     monkeypatch.setattr(yaml, "safe_dump", lambda *args, **kwargs: True)
     assert (
         create_trufflehog_config(
-            pathlib.Path(mock_path, "test-th-config-concat.yaml"),
-            pathlib.Path(mock_path, "test-th-config.yaml"),
+            Path(mock_path, "test-th-config-concat.yaml"),
+            Path(mock_path, "test-th-config.yaml"),
             "./",
             ["TRUFFLEHOG"],
         )
@@ -134,8 +134,8 @@ def test_create_trufflehog_config(monkeypatch):
     )
     assert (
         create_trufflehog_config(
-            pathlib.Path(mock_path, "test-th-config-concat.yaml"),
-            pathlib.Path(mock_path, "test-th-config.yaml"),
+            Path(mock_path, "test-th-config-concat.yaml"),
+            Path(mock_path, "test-th-config.yaml"),
             "./",
         )
         == False  # noqa E712
