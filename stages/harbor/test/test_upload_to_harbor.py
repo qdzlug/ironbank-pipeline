@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import asyncio
 import hashlib
 import os
 import pytest
@@ -136,13 +137,13 @@ def test_compare_digests(monkeypatch):
         MockSkopeo, "inspect", lambda *args, **kwargs: {"Digest": "1234qwer"}
     )
 
-    asyncio.run(compare_digests.main())
+    asyncio.run(compare_digests)
     assert "Pulling manifest_file with skopeo" in caplog.text
 
     monkeypatch.delenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_skopeo")
 
     monkeypatch.setattr(upload_to_harbor, "hashlib.sha256", lambda a: [])
-    monkeypatch.setattr(upload_to_harbor, "remote_inspect_raw", mock_digest)
+    monkeypatch.setattr(upload_to_harbor, "remote_inspect_raw", lambda a: None)
 
     # Mock the log functions
     mock_log = Mock()
