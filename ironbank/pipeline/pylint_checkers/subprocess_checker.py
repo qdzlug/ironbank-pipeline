@@ -107,7 +107,7 @@ class SubprocessChecker(BaseChecker):
         for assign in (
             subnode
             for subnode in self.get_func_def().get_children()
-            if isinstance(subnode, nodes.Assign) or isinstance(subnode, nodes.AnnAssign)
+            if isinstance(subnode, (nodes.Assign, nodes.AnnAssign))
         ):
             sub_assign = assign.get_children()
             # assign name and val are astroid node types (i.e. AssignName and some astroid node.TYPE)
@@ -153,7 +153,7 @@ class SubprocessChecker(BaseChecker):
                 inferred_value = next(inferred_val_gen)
                 # if inferred value found, skip next iteration
                 # else, get last assignment for args passed to subprocess
-                inferred_value = inferred_value or [val for val in inferred_val_gen][-1]
+                inferred_value = inferred_value or list(inferred_val_gen)[-1]
 
                 # skip adding error if Uninferable
                 # skip adding error if assignment is to function call (need fallback still)

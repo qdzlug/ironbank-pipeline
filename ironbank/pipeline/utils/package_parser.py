@@ -20,8 +20,7 @@ class ParsedURLPackage(ABC, Package):  # pylint: disable=R0903
     @classmethod
     @abstractmethod
     def parse(cls, url) -> Optional[Package]:
-        pass
-
+        """Abstract parse method"""
 
 @dataclass(slots=True, frozen=True)
 class RpmPackage(ParsedURLPackage):

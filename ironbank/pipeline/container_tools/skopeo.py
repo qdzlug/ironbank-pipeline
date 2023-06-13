@@ -43,8 +43,7 @@ class Skopeo(ContainerTool):
     def inspect(
         self, image: Image | ImageFile, raw: bool = False, log_cmd: bool = False
     ) -> dict:
-        """
-        Inspects an image using 'skopeo inspect'.
+        """Inspects an image using 'skopeo inspect'.
 
         Args:
             image (Image | ImageFile): Image to inspect.

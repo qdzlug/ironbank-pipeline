@@ -19,7 +19,7 @@ class Buildah(ContainerTool):
         self,
         image: Image,
         storage_driver: str = "vfs",
-        format: str = None,
+        output_format: str = None,
         log_cmd: bool = False,
     ):
         """Inspects an image using the Buildah tool.
@@ -45,7 +45,7 @@ class Buildah(ContainerTool):
             "inspect",
         ]
         cmd += ["--storage-driver", storage_driver] if storage_driver else []
-        cmd += ["--format", format] if format else []
+        cmd += ["--format", format] if output_format else []
         cmd += [str(image)]
         if log_cmd:
             log.info(cmd)

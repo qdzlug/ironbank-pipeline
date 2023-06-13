@@ -128,12 +128,14 @@ class Cosign(ContainerTool):
         predicate_types: list[str],
         log_cmd: bool = False,
     ) -> None:
-        """
-        Download attestation of an image using cosign and save to the output directory.
+        """Download attestation of an image using cosign and save to the output
+        directory.
 
         :param image: Image to be downloaded.
-        :param output_dir: Directory where the attestation should be saved.
-        :param docker_config_dir: Path to the Docker configuration directory.
+        :param output_dir: Directory where the attestation should be
+            saved.
+        :param docker_config_dir: Path to the Docker configuration
+            directory.
         :param predicate_types: List of predicate types.
         :param log_cmd: Flag to indicate whether to log the command.
         """
@@ -247,7 +249,7 @@ class Cosign(ContainerTool):
         except subprocess.CalledProcessError as e:
             if e.args[0] == 1:
                 cls.log.error("Failed to verify %s", str(image))
-                return False   
+                return False
             raise e
         cls.log.info("%s Verified", str(image))
         return True

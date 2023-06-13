@@ -109,7 +109,7 @@ class HarborProject(Harbor):
     repositories: list = field(default_factory=lambda: [])
     robots: list = field(default_factory=lambda: [])
 
-    def get_project_repository(self, repository: str = "", all: bool = False):
+    def get_project_repository(self, repository: str = "", all_repos: bool = False):
         """Fetches and stores a specific repository or all repositories in a
         Harbor project.
 
@@ -122,7 +122,7 @@ class HarborProject(Harbor):
         repository_url = (
             f"{self.api_url}/projects/{self.name}/repositories/{quote_plus(repository)}"
         )
-        if all:
+        if all_repos:
             repository_url = f"{self.api_url}/projects/{self.name}/repositories"
         paginated_request = PaginatedRequest(self.session, repository_url)
         for page in paginated_request.get():
@@ -152,7 +152,7 @@ class HarborRepository(Harbor):
     project: str = ""
     artifacts: list = field(default_factory=lambda: [])
 
-    def get_repository_artifact(self, reference: str = "", all: bool = False):
+    def get_repository_artifact(self, reference: str = "", all_artifacts: bool = False):
         """Fetches and stores a specific artifact or all artifacts in a Harbor
         repository.
 
@@ -163,7 +163,7 @@ class HarborRepository(Harbor):
         This method sets the artifacts attribute with a list of HarborArtifact objects.
         """
         artifact_url = f"{self.api_url}/projects/{self.project}/repositories/{quote_plus(self.name)}/artifacts/{reference}"
-        if all:
+        if all_artifacts:
             artifact_url = f"{self.api_url}/projects/{self.project}/repositories/{quote_plus(self.name)}/artifacts"
         paginated_request = PaginatedRequest(self.session, artifact_url)
         for page in paginated_request.get():
