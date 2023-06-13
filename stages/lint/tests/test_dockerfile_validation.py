@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 import asyncio
-import pathlib
 import subprocess
 import sys
 from unittest.mock import patch
+from pathlib import Path
 
 import pytest
 
@@ -13,30 +13,30 @@ from ironbank.pipeline.test.mocks.mock_classes import MockHardeningManifest, Moc
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 
-sys.path.append(pathlib.Path(__file__).absolute().parents[1].as_posix())
+sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import dockerfile_validation  # noqa E402
 
 log = logger.setup("test_dockerfile_validation")
 
-mock_path = pathlib.Path(
-    pathlib.Path(__file__).absolute().parent.parent.parent.parent,
+mock_path = Path(
+    Path(__file__).absolute().parent.parent.parent.parent,
     "ironbank/pipeline/test/mocks",
 )
 
 
 @pytest.fixture
 def good_dockerfile_path():
-    return pathlib.Path(mock_path, "Dockerfile.test-good").as_posix()
+    return Path(mock_path, "Dockerfile.test-good").as_posix()
 
 
 @pytest.fixture
 def bad_dockerfile_path():
-    return pathlib.Path(mock_path, "Dockerfile.test-bad").as_posix()
+    return Path(mock_path, "Dockerfile.test-bad").as_posix()
 
 
 @pytest.fixture
 def nonexistent_dockerfile_path():
-    return pathlib.Path(mock_path, "Dockerfile").as_posix()
+    return Path(mock_path, "Dockerfile").as_posix()
 
 
 @patch("dockerfile_validation.DsopProject", new=MockProject)
