@@ -6,7 +6,6 @@ class Predicates:
     types: dict = field(
         default_factory=lambda: {
             "sbom-cyclonedx-json.json": "https://cyclonedx.org/bom",
-            "sbom-spdx.xml": "https://spdx.dev/Document",
             "sbom-spdx-json.json": "https://spdx.dev/Document",
             "sbom-syft-json.json": "https://github.com/anchore/syft#output-formats",
             "vat_response_lineage.json": "https://vat.dso.mil/api/p1/predicate/beta1",
