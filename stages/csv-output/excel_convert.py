@@ -264,4 +264,4 @@ def _set_all_column_widths(workbook):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])  # pylint disable=E1121
+    main(sys.argv[1:])  # pylint: disable=E1121

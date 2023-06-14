@@ -24,8 +24,9 @@ log = logger.setup(name="package_parser")
 class AccessLogFileParser(FileParser):
     """Parses access log files to extract and classify packages."""
 
+    # pylint: disable=W0237
     @classmethod
-    def parse(cls, access_log: list[str] | Path) -> list[Package]:  # pylint: disable=W0237
+    def parse(cls, access_log: list[str] | Path) -> list[Package]:
         """Parses the log file and returns a list of packages.
 
         Parameters:
@@ -93,6 +94,8 @@ class AccessLogFileParser(FileParser):
 
         log.info("Access log successfully parsed")
         return packages
+
+    # pylint: enable=W0237
 
 
 @dataclass

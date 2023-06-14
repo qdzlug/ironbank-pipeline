@@ -110,8 +110,12 @@ class SubprocessChecker(BaseChecker):
             if isinstance(subnode, (nodes.Assign, nodes.AnnAssign))
         ):
             sub_assign = assign.get_children()
+            try:
+                assign_name = next(sub_assign)
+                assign_val = next(sub_assign)
+            except StopIteration:
+                continue
             # assign name and val are astroid node types (i.e. AssignName and some astroid node.TYPE)
-            assign_name, assign_val = next(sub_assign), next(sub_assign)
             # deal with type hint
             # subscript can be a type hint or an assignment of a subscript (e.g. a slice of a list)
             if isinstance(assign_val, nodes.Subscript):

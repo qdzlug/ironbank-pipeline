@@ -250,8 +250,11 @@ def get_twistlock_package_paths(twistlock_data: dict[str, Any]) -> dict:
         # Python/RPM/Go/etc package versions are in "packages"
         yield from twistlock_data.get("packages", [])
 
+    def keyfunc(key):
+        return key["name"], key["version"]
+
     # Sort and group by name and version
-    keyfunc = lambda x: (x["name"], x["version"])  # noqa E731
+    # keyfunc = lambda x: (x["name"], x["version"])  # noqa E731
 
     pkg_paths = {}
     sorted_pkgs = sorted(packages(), key=keyfunc)
@@ -506,7 +509,7 @@ def main() -> None:
     except requests.exceptions.RequestException:
         logging.exception("Error submitting data to VAT scan import API")
         sys.exit(1)
-    except Exception:  # pylint disable=W0718
+    except Exception:  # pylint: disable=W0718
         logging.exception("Exception: Unknown exception")
         sys.exit(1)
 

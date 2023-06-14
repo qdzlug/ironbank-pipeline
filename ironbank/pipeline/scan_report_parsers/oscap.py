@@ -53,11 +53,12 @@ class RuleInfo:
     oval_name: str = ""
     oval_href: str = ""
     _log: logger = logger.setup("RuleInfo")
+
     # TODO: consider making a separate factory for this purpose
-    # pylint: disable=unused-argument
+    # pylint: disable=W0613
     def __new__(
         cls, root: ElementTree, rule_result: Element, *args, **kwargs
-    ) -> Callable:  # pylint: disable=unused-argument
+    ) -> Callable:
         """RuleInfo constructor Supports using generic RuleInfo to select the
         appropriate class for constructing (RuleInfo or RuleInfoOVAL)
         Constructor accepts *args and **kwargs to support unit testing (setting
@@ -68,6 +69,8 @@ class RuleInfo:
             and (cls.get_result(rule_result) not in cls.pass_results)
             else RuleInfo
         )
+
+    # pylint: enable=W0613
 
     def __post_init__(self, root: ElementTree, rule_result: Element) -> None:
         """
