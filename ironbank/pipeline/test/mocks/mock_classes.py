@@ -131,7 +131,9 @@ class MockSession(Session):
 
 @dataclass
 class MockPopen(subprocess.Popen):
-    stdout: MockOutput = field(default_factory=lambda: MockOutput()) # pylint: disable=W4902
+    stdout: MockOutput = field(
+        default_factory=lambda: MockOutput()
+    )  # pylint: disable=W4902
     stderr: MockOutput = field(
         default_factory=lambda: MockOutput(mock_data=["err1\n", "err2\n"])
     )

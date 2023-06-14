@@ -87,7 +87,6 @@ run_pylint() {
   anybadge --label=Pylint --file=pylint/pylint.svg --value="${PYLINT_SCORE}" 3=red 6=orange 9=yellow 10=green
   echo "Pylint score is '${PYLINT_SCORE}'"
   echo "Running pylint with tests and mocks"
-  pytest --fixtures --collect-only
   pylint stages/ ironbank/ --rcfile=.pylinttestrc | tee ./pylint/pylinttests.log || pylint-exit $?
 }
 
