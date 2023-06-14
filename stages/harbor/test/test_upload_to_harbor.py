@@ -134,29 +134,31 @@ def mock_hm_content():
 @patch("upload_to_harbor.Path", new=MockPath)
 def test_compare_digests(monkeypatch, caplog):
     # Mock the necessary environment variables
-
-    monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_file_path")
-    monkeypatch.setenv("IMAGE_PODMAN_SHA", "mock_our_image_podman_sha")
     monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_skopeo")
+    monkeypatch.setenv("IMAGE_PODMAN_SHA", "mock_our_image_podman_sha")
 
     log.info("Test pulling manifest_file with skopeo")
     monkeypatch.setattr(
         MockSkopeo,
         "inspect",
-        lambda *args, **kwargs: {"DOCKER_AUTH_FILE_PRE_PUBLISH": "1234qwer"},
+        lambda *args, **kwargs: {"mock_skopeo": "1234qwer"},
     )
-    upload_to_harbor.compare_digests(Image)
-    assert "Pulling manifest_file with skopeo" in caplog.text
-
-    monkeypatch.delenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_skopeo")
+    upload_to_harbor.compare_digests()
+    assert "dump SHA to file" in caplog.text
 
     log.info("Test inspecting image in registry")
     monkeypatch.setattr(upload_to_harbor, "remote_inspect_raw", lambda a: None)
 
-    upload_to_harbor.compare_digests(Image)
-    assert "Inspecting image in registry" in caplog.text
+    upload_to_harbor.compare_digests("IMAGE_PODMAN_SHA")
+    assert "dump SHA to file" in caplog.text
 
+    monkeypatch.delenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_skopeo")
+
+    monkeypatch.setattr(os, "image_podman_sha", lambda a: [])
     monkeypatch.setattr(upload_to_harbor, "hashlib.sha256", lambda a: [])
+
+    manifest = upload_to_harbor("")
+    assert manifest["manifest"] == "test_manifeset"
 
     # # Assert that the necessary methods were called with the expected arguments
     # mock_log.info.assert_called_with("Pulling manifest_file with skopeo")
