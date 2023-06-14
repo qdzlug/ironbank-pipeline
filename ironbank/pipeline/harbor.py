@@ -168,6 +168,7 @@ class HarborRobotsApi(HarborApi):
         resp.raise_for_status()
         return resp.json()
 
+
 @dataclass
 class HarborRepositoryApi(HarborApi):
     """A class representing repository-level operations in Harbor.
@@ -210,6 +211,7 @@ class HarborRepositoryApi(HarborApi):
                         push_time=item["push_time"],
                     )
                 )
+
 
 @dataclass
 class HarborProjectApi(HarborRobotsApi):
@@ -256,6 +258,7 @@ class HarborProjectApi(HarborRobotsApi):
                     )
                 )
 
+
 @dataclass
 class HarborSystemApi(HarborRobotsApi):
     """A class representing the system-level operations in Harbor.
@@ -269,7 +272,6 @@ class HarborSystemApi(HarborRobotsApi):
 
     projects: list[HarborProjectApi] = field(default_factory=lambda: [])
     robots_urls: str = field(init=False)
-
 
     def __post_init__(self):
         self.robots_url = f"{self.api_url}/robots"
