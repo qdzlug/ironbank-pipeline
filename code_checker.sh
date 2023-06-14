@@ -86,6 +86,9 @@ run_pylint() {
   PYLINT_SCORE=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' ./pylint/pylint.log)
   anybadge --label=Pylint --file=pylint/pylint.svg --value="${PYLINT_SCORE}" 3=red 6=orange 9=yellow 10=green
   echo "Pylint score is '${PYLINT_SCORE}'"
+  echo "Running pylint with tests and mocks"
+  pytest --fixtures --collect-only
+  pylint stages/ ironbank/ --rcfile=.pylinttestrc | tee ./pylint/pylinttests.log || pylint-exit $?
 }
 
 run_shfmt() {
@@ -129,6 +132,7 @@ run_isort() {
 
 lint_all() {
   rm -rf pylint
+  python3 -m pip install .
   run_pylint
   run_shellcheck
   run_pylama
@@ -146,7 +150,6 @@ format_check_all() {
 }
 
 format_in_place() {
-  python3 -m pip install .
   run_isort format_in_place
   run_black format_in_place
   run_autoflake format_in_place

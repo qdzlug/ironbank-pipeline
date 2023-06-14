@@ -43,7 +43,7 @@ def test_harbor_project(monkeypatch):  # noqa W0404
         lambda x: [{"name": "test/ironbank"}, {"name": "next/ironbank"}],
     )
     harbor_project = HarborProject(MockSession(), name="ironbank")
-    harbor_project.get_project_repository(all=True)
+    harbor_project.get_project_repository(all_repos=True)
     for harbor_repo in harbor_project.repositories:
         assert "ironbank" in harbor_repo.name
 
@@ -71,7 +71,7 @@ def test_harbor_repository(monkeypatch):  # noqa W0404
         ],
     )
     harbor_repository = HarborRepository(session=MockSession(), name="ironbank")
-    harbor_repository.get_repository_artifact(all=True)
+    harbor_repository.get_repository_artifact(all_artifacts=True)
     assert "test" == harbor_repository.artifacts[0].digest
     assert harbor_repository.artifacts[1].tags is None
 

@@ -160,7 +160,7 @@ def mock_bad_image_sources():
 
 
 @pytest.fixture
-def hm():
+def hardening_manifest():
     return HardeningManifest(
         pathlib.Path(
             mock_path,
@@ -247,7 +247,7 @@ def test_init(monkeypatch, caplog, mock_hm_content):
     assert "validated" in caplog.text
 
 
-def test_validate(monkeypatch, caplog, hm, mock_empty):
+def test_validate(monkeypatch, caplog, hardening_manifest, mock_empty):
     caplog.set_level(logging.INFO)
     monkeypatch.setattr(
         HardeningManifest, "validate_schema_with_timeout", mock_empty["none"]
@@ -259,14 +259,14 @@ def test_validate(monkeypatch, caplog, hm, mock_empty):
     monkeypatch.setattr(
         HardeningManifest, "reject_invalid_image_sources", mock_empty["arr"]
     )
-    hm.validate()
+    hardening_manifest.validate()
     logging.info(caplog.text)
     assert "Checking for" in caplog.text
     caplog.clear()
 
 
 @patch.dict(os.environ, {"HM_VERIFY_TIMEOUT": "1"})
-def test_validate_schema_with_timeout(monkeypatch, caplog, hm):
+def test_validate_schema_with_timeout(monkeypatch, caplog, hardening_manifest):
     def mock_pipe():
         return (MockConnection(), MockConnection())
 
@@ -288,15 +288,15 @@ def test_validate_schema_with_timeout(monkeypatch, caplog, hm):
     logging.info("It should successfully validate the hardening manifest")
     monkeypatch.setattr(multiprocessing, "Pipe", mock_pipe)
     monkeypatch.setattr(multiprocessing, "Process", mock_successful_process)
-    hm.validate_schema_with_timeout()
+    hardening_manifest.validate_schema_with_timeout()
     for record in caplog.records:
-        assert record.levelname != "ERROR" and record.levelname != "WARNING"
+        assert record.levelname not in ("ERROR", "WARNING")
     caplog.clear()
 
     with pytest.raises(SystemExit) as exc_info1:
         logging.info("It should cause catastrophic backtracking")
         monkeypatch.setattr(multiprocessing, "Process", mock_backtracking_process)
-        hm.validate_schema_with_timeout()
+        hardening_manifest.validate_schema_with_timeout()
     assert exc_info1.type == SystemExit
     assert "Hardening Manifest validation timeout exceeded" in caplog.text
     caplog.clear()
@@ -304,13 +304,13 @@ def test_validate_schema_with_timeout(monkeypatch, caplog, hm):
     with pytest.raises(SystemExit) as exc_info2:
         logging.info("It should fail to validate the hardening manifest")
         monkeypatch.setattr(multiprocessing, "Process", mock_failed_process)
-        hm.validate_schema_with_timeout()
+        hardening_manifest.validate_schema_with_timeout()
     assert exc_info2.type == SystemExit
     assert "Hardening Manifest failed jsonschema validation" in caplog.text
     caplog.clear()
 
 
-def test_validate_schema(monkeypatch, caplog, hm):
+def test_validate_schema(monkeypatch, caplog, hardening_manifest):
     def mock_yaml_load(f):
         # intentionally returning str instead of dict from yaml to ensure jsonschema is being mocked correctly
         return "a"
@@ -324,7 +324,7 @@ def test_validate_schema(monkeypatch, caplog, hm):
     # mocking instance method: jsonschema.Draft201909Validator().validate()
     logging.info("It should successfully validate the schema")
     with patch(target="jsonschema.Draft201909Validator", new=MockJsonschema):
-        hm.validate_schema(MockConnection())
+        hardening_manifest.validate_schema(MockConnection())
 
         logging.info(
             "It should successfully validate the schema, and pattern properties"
@@ -332,17 +332,17 @@ def test_validate_schema(monkeypatch, caplog, hm):
         with patch.dict(
             os.environ, {"LABEL_ALLOWLIST_REGEX": r"^mil\.dso\.ironbank\.os-type$"}
         ):
-            hm.validate_schema(MockConnection())
+            hardening_manifest.validate_schema(MockConnection())
 
     logging.info("It should exit on schema validation errors")
     with pytest.raises(SystemExit) as exc_info:
         with patch("jsonschema.Draft201909Validator", new=MockJsonschemaFailure):
-            hm.validate_schema(MockConnection())
+            hardening_manifest.validate_schema(MockConnection())
     assert exc_info.type == SystemExit
 
 
 def test_find_fixme(
-    hm,
+    hardening_manifest,
     mock_good_labels,
     mock_good_maintainers,
     mock_bad_labels,
@@ -350,16 +350,18 @@ def test_find_fixme(
     mock_bad_partner_advocates,
     mock_good_partner_advocates,
 ):
-    assert hm.check_for_fixme(mock_good_labels) == []
-    assert hm.check_for_fixme(mock_good_maintainers) == []
-    assert hm.check_for_fixme(mock_good_partner_advocates) == []
-    assert hm.check_for_fixme(mock_bad_labels) == ["org.opencontainers.image.licenses"]
-    assert hm.check_for_fixme(mock_bad_maintainers) == ["name"]
-    assert hm.check_for_fixme(mock_bad_partner_advocates) == ["name"]
+    assert hardening_manifest.check_for_fixme(mock_good_labels) == []
+    assert hardening_manifest.check_for_fixme(mock_good_maintainers) == []
+    assert hardening_manifest.check_for_fixme(mock_good_partner_advocates) == []
+    assert hardening_manifest.check_for_fixme(mock_bad_labels) == [
+        "org.opencontainers.image.licenses"
+    ]
+    assert hardening_manifest.check_for_fixme(mock_bad_maintainers) == ["name"]
+    assert hardening_manifest.check_for_fixme(mock_bad_partner_advocates) == ["name"]
 
 
 def test_reject_invalid_labels(
-    monkeypatch, caplog, hm, mock_good_labels, mock_bad_labels
+    monkeypatch, caplog, hardening_manifest, mock_good_labels, mock_bad_labels
 ):
     def mock_good_check_for_fixme(_, subcontent):
         return []
@@ -369,34 +371,37 @@ def test_reject_invalid_labels(
 
     logging.info("It should accept valid labels")
     monkeypatch.setattr(HardeningManifest, "check_for_fixme", mock_good_check_for_fixme)
-    assert hm.reject_invalid_labels(mock_good_labels) == []
+    assert hardening_manifest.reject_invalid_labels(mock_good_labels) == []
 
     logging.info("It should reject invalid labels")
     monkeypatch.setattr(HardeningManifest, "check_for_fixme", mock_bad_check_for_fixme)
-    assert hm.reject_invalid_labels(mock_bad_labels) == mock_bad_labels.keys()
+    assert (
+        hardening_manifest.reject_invalid_labels(mock_bad_labels)
+        == mock_bad_labels.keys()
+    )
     assert "FIXME found in" in caplog.text
     caplog.clear()
 
 
 def test_check_for_invalid_image_source(
-    hm, mock_good_image_sources, mock_bad_image_sources
+    hardening_manifest, mock_good_image_sources, mock_bad_image_sources
 ):
     logging.info("It should accept valid image sources")
     for image_source in mock_good_image_sources:
-        assert hm.check_for_invalid_image_source(image_source) is None
+        assert hardening_manifest.check_for_invalid_image_source(image_source) is None
 
     logging.info("It should reject invalid image sources")
     assert (
-        hm.check_for_invalid_image_source(mock_bad_image_sources[0])
+        hardening_manifest.check_for_invalid_image_source(mock_bad_image_sources[0])
         == mock_bad_image_sources[0]["tag"]
     )
     assert (
-        hm.check_for_invalid_image_source(mock_bad_image_sources[1])
+        hardening_manifest.check_for_invalid_image_source(mock_bad_image_sources[1])
         == mock_bad_image_sources[1]["url"]
     )
     # should return first value fourd
     assert (
-        hm.check_for_invalid_image_source(mock_bad_image_sources[2])
+        hardening_manifest.check_for_invalid_image_source(mock_bad_image_sources[2])
         == mock_bad_image_sources[2]["tag"]
     )
 
@@ -407,7 +412,7 @@ def test_reject_invalid_image_sources(monkeypatch, mock_good_image_sources):
     )
     mock_hm = MockHardeningManifest(resources=mock_good_image_sources)
     invalid_sources = mock_hm.reject_invalid_image_sources()
-    assert invalid_sources == []
+    assert not invalid_sources
 
     monkeypatch.setattr(
         HardeningManifest, "check_for_invalid_image_source", lambda self, y: ["example"]

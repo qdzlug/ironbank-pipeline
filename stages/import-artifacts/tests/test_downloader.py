@@ -17,7 +17,7 @@ from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.exceptions import InvalidURLList
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import downloader  # noqa E402
+import downloader  # pylint: disable=C0411, C0413
 
 log = logger.setup("test_downloader")
 
@@ -100,7 +100,7 @@ def mock_bad_auth_type():
 def mock_downloads():
     with pathlib.Path(
         os.getcwd(), "stages", "import-artifacts", "tests", "mhm.yaml"
-    ).open() as f:
+    ).open(encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -149,11 +149,11 @@ def test_main_class_assignment(
         monkeypatch.setattr(HardeningManifest, "__init__", mock_hm)
 
     log.info("Test exit 0 on empty resources section")
-    with pytest.raises(SystemExit) as se:
+    with pytest.raises(SystemExit) as e:
         monkeypatch.setattr(DsopProject, "__init__", mock_dsop_init)
         monkeypatch.setattr(HardeningManifest, "__init__", mock_hm_init)
         downloader.main()
-    assert se.value.code == 0
+    assert e.value.code == 0
     caplog.clear()
 
     log.info("Test exit 0 on bad URL scheme")
@@ -161,11 +161,11 @@ def test_main_class_assignment(
     def mock_hm_init_bad_scheme(self, hm_path):
         self.resources = mock_bad_scheme_resources
 
-    with pytest.raises(SystemExit) as se:
+    with pytest.raises(SystemExit) as e:
         monkeypatch.setattr(DsopProject, "__init__", mock_dsop_init)
         monkeypatch.setattr(HardeningManifest, "__init__", mock_hm_init_bad_scheme)
         downloader.main()
-    assert se.value.code == 1
+    assert e.value.code == 1
     caplog.clear()
 
     log.info("Test use of correct class for each HTTP scheme")
@@ -188,7 +188,7 @@ def test_main_class_assignment(
     def mock_hm_init_github(self, hm_path):
         self.resources = mock_github_resources
 
-    with pytest.raises(SystemExit) as se:
+    with pytest.raises(SystemExit) as e:
         patch_artifact(ContainerArtifact, mock_dsop_init, mock_hm_init_github)
         downloader.main()
     assert se.value.code == 0
@@ -199,7 +199,7 @@ def test_main_class_assignment(
     def mock_hm_init_docker(self, hm_path):
         self.resources = mock_docker_resources
 
-    with pytest.raises(SystemExit) as se:
+    with pytest.raises(SystemExit) as e:
         patch_artifact(ContainerArtifact, mock_dsop_init, mock_hm_init_docker)
         downloader.main()
     assert se.value.code == 0
@@ -214,7 +214,7 @@ def test_main_class_assignment(
     def mock_hm_init_http(self, hm_path):
         self.resources = mock_http_resources
 
-    with pytest.raises(SystemExit) as se:
+    with pytest.raises(SystemExit) as e:
         patch_artifact(HttpArtifact, mock_dsop_init, mock_hm_init_http)
         downloader.main()
     assert se.value.code == 0

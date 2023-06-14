@@ -25,13 +25,13 @@ log = logger.setup("test_artifacts")
 
 MOCK_HTTP_URL = "http://example.com/example.txt"
 MOCK_S3_URL = "s3://example-test/example.txt"
-mock_s3_url_version_id = "s3://example-test/example.txt?versionId=1.0"
-mock_s3_url_extra_args_unused = "s3://example-test/example.txt?versionId=1.0&test=test"
-mock_docker_url = "docker://example.com/example:1.0"
-mock_github_url = "docker://ghcr.io/example:1.0"
-mock_github_deprecated_url = "docker://docker.pkg.github.com/example:1.0"
-mock_filename = "example.txt"
-mock_tag = "example:1.0"
+MOCK_S3_URL_VERSION_ID = "s3://example-test/example.txt?versionId=1.0"
+MOCK_S3_URL_EXTRA_ARGS_UNUSED = "s3://example-test/example.txt?versionId=1.0&test=test"
+MOCK_DOCKER_URL = "docker://example.com/example:1.0"
+MOCK_GITHUB_URL = "docker://ghcr.io/example:1.0"
+MOCK_GITHUB_DEPRECATED_URL = "docker://docker.pkg.github.com/example:1.0"
+MOCK_FILENAME = "example.txt"
+MOCK_TAG = "example:1.0"
 
 
 def add_s3_vars(monkeypatch):
@@ -56,7 +56,7 @@ def mock_pull_auth(monkeypatch):
 def mock_s3_artifact(monkeypatch):
     add_s3_vars(monkeypatch)
     return S3Artifact(
-        url=MOCK_S3_URL, filename=mock_filename, auth={"id": "test", "region": "test"}
+        url=MOCK_S3_URL, filename=MOCK_FILENAME, auth={"id": "test", "region": "test"}
     )
 
 
@@ -64,8 +64,8 @@ def mock_s3_artifact(monkeypatch):
 def mock_s3_artifact_version_id(monkeypatch):
     add_s3_vars(monkeypatch)
     return S3Artifact(
-        url=mock_s3_url_version_id,
-        filename=mock_filename,
+        url=MOCK_S3_URL_VERSION_ID,
+        filename=MOCK_FILENAME,
         auth={"id": "test", "region": "test"},
     )
 
@@ -74,25 +74,25 @@ def mock_s3_artifact_version_id(monkeypatch):
 def mock_s3_artifact_extra_args_unused(monkeypatch):
     add_s3_vars(monkeypatch)
     return S3Artifact(
-        url=mock_s3_url_extra_args_unused,
-        filename=mock_filename,
+        url=MOCK_S3_URL_EXTRA_ARGS_UNUSED,
+        filename=MOCK_FILENAME,
         auth={"id": "test", "region": "test"},
     )
 
 
 @pytest.fixture
 def mock_s3_artifact_no_auth():
-    return S3Artifact(url=MOCK_S3_URL, filename=mock_filename)
+    return S3Artifact(url=MOCK_S3_URL, filename=MOCK_FILENAME)
 
 
 @pytest.fixture
 def mock_http_artifact():
-    return HttpArtifact(url=MOCK_HTTP_URL, filename=mock_filename)
+    return HttpArtifact(url=MOCK_HTTP_URL, filename=MOCK_FILENAME)
 
 
 @pytest.fixture
 def mock_container_artifact():
-    return ContainerArtifact(url=mock_docker_url, tag=mock_tag)
+    return ContainerArtifact(url=MOCK_DOCKER_URL, tag=MOCK_TAG)
 
 
 @pytest.fixture
@@ -107,12 +107,12 @@ def mock_github_artifact(monkeypatch):
         "GITHUB_ROBOT_TOKEN",
         "bW9ja19rZXkxMjM=",
     )
-    return GithubArtifact(url=mock_github_url, tag=mock_tag)
+    return GithubArtifact(url=MOCK_GITHUB_URL, tag=MOCK_TAG)
 
 
 @pytest.fixture
 def mock_deprecated_github_artifact():
-    return GithubArtifact(url=mock_github_deprecated_url, tag=mock_tag)
+    return GithubArtifact(url=MOCK_GITHUB_DEPRECATED_URL, tag=MOCK_TAG)
 
 
 @dataclass

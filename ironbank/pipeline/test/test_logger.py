@@ -27,4 +27,4 @@ def test_setup():
     )
     assert log.level == logging.ERROR
     assert log.handlers[0].level == logging.DEBUG
-    assert type(log.handlers[0]) == logging.FileHandler
+    assert isinstance(log.handlers[0], logging.FileHandler)

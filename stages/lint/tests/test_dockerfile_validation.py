@@ -83,9 +83,9 @@ def test_dockerfile_validation_main(monkeypatch, caplog, raise_):
             "MockSubprocessResponse", (), {"stdout": "Mock hard failure output"}
         ),
     )
-    with pytest.raises(SystemExit) as se:
+    with pytest.raises(SystemExit) as e:
         asyncio.run(dockerfile_validation.main())
-    assert se.value.code == 1
+    assert e.value.code == 1
     assert "Mock hard failure output" in caplog.text
     assert "Dockerfile is validated" not in caplog.text
     caplog.clear()
@@ -97,9 +97,9 @@ def test_dockerfile_validation_main(monkeypatch, caplog, raise_):
         lambda *args, **kwargs: type("MockSubprocessResponse", (), {"stdout": ""}),
     )
     monkeypatch.setattr(DockerfileParser, "parse", lambda x: True)
-    with pytest.raises(SystemExit) as se:
+    with pytest.raises(SystemExit) as e:
         asyncio.run(dockerfile_validation.main())
-    assert se.value.code == 100
+    assert e.value.code == 100
     caplog.clear()
 
     log.info("Test raise subprocess exception")

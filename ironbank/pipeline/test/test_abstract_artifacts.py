@@ -16,9 +16,6 @@ log = logger.setup("test_abstract_artifacts")
 
 @dataclass
 class MockArtifact(AbstractArtifact):
-    def __post_init__(self):
-        super().__post_init__()
-
     def get_credentials():
         pass
 
@@ -28,9 +25,6 @@ class MockArtifact(AbstractArtifact):
 
 @dataclass
 class MockFileArtifact(AbstractFileArtifact):
-    def __post_init__(self):
-        super().__post_init__()
-
     def get_credentials():
         pass
 
@@ -38,19 +32,19 @@ class MockFileArtifact(AbstractFileArtifact):
         pass
 
 
-example_url = "http://example.com/example.test"
+EXAMPLE_URL = "http://example.com/example.test"
 
 
 @pytest.fixture
 def mock_artifact(monkeypatch):
     monkeypatch.delenv("ARTIFACT_DIR", raising=False)
-    return MockArtifact(url=example_url, filename="example.txt")
+    return MockArtifact(url=EXAMPLE_URL, filename="example.txt")
 
 
 @pytest.fixture
 def mock_artifact_with_dir(monkeypatch):
     monkeypatch.setenv("ARTIFACT_DIR", "example")
-    return MockArtifact(url=example_url, filename="example.txt")
+    return MockArtifact(url=EXAMPLE_URL, filename="example.txt")
 
 
 @pytest.fixture
@@ -59,14 +53,14 @@ def mock_artifact_with_basic_auth(monkeypatch):
     monkeypatch.setenv("CREDENTIAL_USERNAME_test", "ZXhhbXBsZV91bg==")
     # encoded text is example_pw
     monkeypatch.setenv("CREDENTIAL_PASSWORD_test", "ZXhhbXBsZV9wdw==")
-    return MockArtifact(url=example_url, filename="example.txt", auth={"id": "test"})
+    return MockArtifact(url=EXAMPLE_URL, filename="example.txt", auth={"id": "test"})
 
 
 @pytest.fixture
 def mock_file_artifact(monkeypatch):
     monkeypatch.setenv("ARTIFACT_DIR", "example")
     return MockFileArtifact(
-        url=example_url,
+        url=EXAMPLE_URL,
         filename="abc",
         validation={
             "type": "sha256",
@@ -79,7 +73,7 @@ def mock_file_artifact(monkeypatch):
 def mock_file_artifact_bad_validation(monkeypatch):
     monkeypatch.setenv("ARTIFACT_DIR", "example")
     return MockFileArtifact(
-        url=example_url,
+        url=EXAMPLE_URL,
         filename="abc",
         validation={
             "type": "md5",
@@ -174,15 +168,15 @@ def test_generate_checksum(monkeypatch, mock_file_artifact):
 
 
 def test_validate_filename():
-    mock_filename_artifact1 = MockFileArtifact(url=example_url, filename="abc.txt")
-    mock_filename_artifact2 = MockFileArtifact(url=example_url, filename="1abc.txt")
+    mock_filename_artifact1 = MockFileArtifact(url=EXAMPLE_URL, filename="abc.txt")
+    mock_filename_artifact2 = MockFileArtifact(url=EXAMPLE_URL, filename="1abc.txt")
     mock_bad_filename_artifact1 = MockFileArtifact(
-        url=example_url, filename="../../abc.txt"
+        url=EXAMPLE_URL, filename="../../abc.txt"
     )
     mock_bad_filename_artifact2 = MockFileArtifact(
-        url=example_url, filename="\\/../abc.txt"
+        url=EXAMPLE_URL, filename="\\/../abc.txt"
     )
-    mock_bad_filename_artifact3 = MockFileArtifact(url=example_url, filename="@abc.txt")
+    mock_bad_filename_artifact3 = MockFileArtifact(url=EXAMPLE_URL, filename="@abc.txt")
 
     # shouldn't throw error for valid file
     mock_filename_artifact1.validate_filename()

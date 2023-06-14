@@ -74,9 +74,9 @@ def test_access_log_file_parser(monkeypatch, mock_packages):
     assert not AccessLogFileParser.parse(["200 CONNECT"])
 
     log.info("Test value error raised on unparseable url")
-    with pytest.raises(ValueError) as ve:
+    with pytest.raises(ValueError) as e:
         assert not AccessLogFileParser.parse(["200  \n"])
-    assert "Could not parse" in ve.value.args[0]
+    assert "Could not parse" in e.value.args[0]
 
     log.info("Test repo type not supported raised on key missing from repos")
     with pytest.raises(RepoTypeNotSupported) as e:

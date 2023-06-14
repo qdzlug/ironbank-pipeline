@@ -17,7 +17,7 @@ from ironbank.pipeline.utils import logger, s3upload
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import upload_artifacts  # noqa E402
+import upload_artifacts  # pylint: disable=C0411
 
 log: Logger = logger.setup("test_upload_artifacts")
 
@@ -28,9 +28,9 @@ def test_copy_path(monkeypatch):
     mock_dest: MockPath = MockPath("./dest")
 
     log.info("Test path traversal caught")
-    with pytest.raises(AssertionError) as ae:
+    with pytest.raises(AssertionError) as e:
         upload_artifacts.copy_path(mock_src, mock_dest)
-    assert "Path traversal not safe in this function" in ae.value.args[0]
+    assert "Path traversal not safe in this function" in e.value.args[0]
 
     log.info("Test copy directory contents")
     mock_src = MockPath("./src/")
@@ -84,9 +84,9 @@ def test_main(monkeypatch, mock_responses, caplog, raise_):
         upload_artifacts, "post_artifact_data_vat", mock_responses["200"]
     )
     log.info("Test image_path decision tree")
-    with pytest.raises(AssertionError) as ae:
+    with pytest.raises(AssertionError) as e:
         upload_artifacts.main()
-    assert "No match found for image path" in ae.value.args[0]
+    assert "No match found for image path" in e.value.args[0]
 
     log.info("Test subprocessing and s3upload")
 
@@ -132,9 +132,9 @@ def test_main(monkeypatch, mock_responses, caplog, raise_):
         "post_artifact_data_vat",
         lambda *args, **kwargs: raise_(requests.exceptions.Timeout),
     )
-    with pytest.raises(SystemExit) as se:
+    with pytest.raises(SystemExit) as e:
         upload_artifacts.main()
-    assert se.value.code == 1
+    assert e.value.code == 1
     assert "Unable to reach the VAT API, TIMEOUT." in caplog.text
 
     caplog.clear()
@@ -143,7 +143,7 @@ def test_main(monkeypatch, mock_responses, caplog, raise_):
     monkeypatch.setattr(
         upload_artifacts, "post_artifact_data_vat", mock_responses["404"]
     )
-    with pytest.raises(SystemExit) as se:
+    with pytest.raises(SystemExit) as e:
         upload_artifacts.main()
-    assert se.value.code == 1
+    assert e.value.code == 1
     assert "VAT HTTP error" in caplog.text

@@ -98,14 +98,14 @@ def test_init_all_package_types(package_classes):
             assert pkg.version == "1.0"
 
             log.info("Test kind provided in init for %s package fails", pkg_type)
-            with pytest.raises(TypeError) as te:
+            with pytest.raises(TypeError) as e:
                 PackageType(
                     kind="abc",
                     name="example",
                     version="1.0",
                     url="http://registry.com/example-1.0.abc",
                 )
-            assert "got an unexpected keyword argument 'kind'" in te.value.args[0]
+            assert "got an unexpected keyword argument 'kind'" in e.value.args[0]
 
 
 def test_all_successful_parse_methods(package_classes):
