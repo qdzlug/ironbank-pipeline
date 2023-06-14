@@ -37,13 +37,9 @@ def projects():
 def test_projects(projects):
     repo_dirs = []
     for project in projects:
-        repo_dir = (
-            Path("test_projects", project.split("/")[-1]).absolute().as_posix()
-        )
+        repo_dir = Path("test_projects", project.split("/")[-1]).absolute().as_posix()
         # don't clone if already cloned
-        git.Repo.clone_from(project, repo_dir) if not Path(
-            repo_dir
-        ).is_dir() else None
+        git.Repo.clone_from(project, repo_dir) if not Path(repo_dir).is_dir() else None
         repo_dirs.append(repo_dir)
     return repo_dirs
 
