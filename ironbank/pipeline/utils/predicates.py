@@ -5,9 +5,9 @@ from dataclasses import dataclass, field
 class Predicates:
     types: dict = field(
         default_factory=lambda: {
-            "sbom-cyclonedx-json.json": "cyclonedx",
-            "sbom-spdx.xml": "spdx",
-            "sbom-spdx-json.json": "spdxjson",
+            "sbom-cyclonedx-json.json": "https://cyclonedx.org/bom",
+            "sbom-spdx.xml": "https://spdx.dev/Document",
+            "sbom-spdx-json.json": "https://spdx.dev/Document",
             "sbom-syft-json.json": "https://github.com/anchore/syft#output-formats",
             "vat_response_lineage.json": "https://vat.dso.mil/api/p1/predicate/beta1",
             "hardening_manifest.json": "https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md",

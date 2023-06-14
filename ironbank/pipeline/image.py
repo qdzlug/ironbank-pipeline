@@ -11,7 +11,7 @@ class MissingNameAndUrlError(Exception):
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class Image:
     """The Image Dataclass contains commonly used image attributes.
 
@@ -32,7 +32,7 @@ class Image:
     # skopeo supported transports: containers-storage, dir, docker, docker-archive, docker-daemon, oci, oci-archive, ostree, tarball
     transport: str = ""
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # enforce at least one of digest/tag is defined
         # both may be defined
         if self.name:
@@ -44,8 +44,10 @@ class Image:
             raise MissingNameAndUrlError(
                 "Missing name and url for Image type. One must be provided at instantiation"
             )
-        self.registry_path = (
-            f"{self.registry}/{self.name}" if self.registry else self.name
+        object.__setattr__(
+            self,
+            "registry_path",
+            f"{self.registry}/{self.name}" if self.registry else self.name,
         )
 
     def from_image(self, **kwargs):

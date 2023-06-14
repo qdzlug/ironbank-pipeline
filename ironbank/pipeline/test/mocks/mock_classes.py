@@ -285,7 +285,7 @@ class MockPackage(Package):
     url: str = "mock_url"
 
 
-@dataclass
+@dataclass(frozen=True)
 class MockImage(Image):
     registry: str = "registry.example.com"
     name: str = "example1/example"
