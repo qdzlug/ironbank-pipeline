@@ -113,8 +113,9 @@ def vat_request_error_handler(func):
     """
 
     @functools.wraps(func)
-    def wrapper(self, image_name: str = "", *args, **kwargs):
+    def wrapper(self, image_name, *args, **kwargs):
         try:
+            image_name = ""
             return func(self, image_name, *args, **kwargs)
         except requests.exceptions.HTTPError:
             if self.response.status_code == 400:
@@ -141,5 +142,6 @@ def vat_request_error_handler(func):
             log.warning("Could not access VAT API: %s", self.url)
         except RuntimeError as runerr:
             log.warning("Unexpected exception thrown %s", runerr)
+        return None
 
     return wrapper

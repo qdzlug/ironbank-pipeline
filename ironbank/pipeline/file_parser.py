@@ -25,7 +25,7 @@ class AccessLogFileParser(FileParser):
     """Parses access log files to extract and classify packages."""
 
     @classmethod
-    def parse(cls, access_log: list[str] | Path) -> list[Package]:  # W0237
+    def parse(cls, access_log: list[str] | Path) -> list[Package]:  # pylint: disable=W0237
         """Parses the log file and returns a list of packages.
 
         Parameters:
@@ -100,7 +100,7 @@ class SbomFileParser(FileParser):
     """A parser for Sbom."""
 
     @classmethod
-    def parse(cls, sbom: dict | Path) -> list[Package]:  # W0237
+    def parse(cls, sbom: dict | Path) -> list[Package]:  # pylint: disable=W0237
         packages: list[Package] = []
 
         for artifact in cls.handle_file_obj(sbom)["artifacts"]:
@@ -120,13 +120,13 @@ class DockerfileParser(FileParser):
     """A parser for Dockerfiles."""
 
     @classmethod
-    def parse(cls, filepath) -> None:  # W0237
+    def parse(cls, file) -> None:  # W0237
         """Parse the given Dockerfile and return a list of invalid FROM
         statements.
 
         Parameters
         ----------
-        filepath : str
+        file : str
             The path to the Dockerfile to parse.
 
         Returns
@@ -134,7 +134,7 @@ class DockerfileParser(FileParser):
         List[str]
             A list of invalid FROM statements in the Dockerfile.
         """
-        with Path(filepath).open("r", encoding="utf-8") as f:
+        with Path(file).open("r", encoding="utf-8") as f:
             parsed_dockerfile = f.readlines()
         from_statement_list = cls.remove_non_from_statements(parsed_dockerfile)
         invalid_from = cls.validate_final_from(from_statement_list)

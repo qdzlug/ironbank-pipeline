@@ -174,7 +174,7 @@ class Cosign(ContainerTool):
                 for predicate_type in predicate_types:
                     if predicate["predicateType"] == predicate_type:
                         with Path(output_dir, predicate_files[predicate_type]).open(
-                            "w+"
+                            "w+", encoding="utf-8"
                         ) as f:
                             json.dump(predicate["predicate"], f, indent=4)
             if proc.poll() != 0:
@@ -210,6 +210,30 @@ class Cosign(ContainerTool):
         signature_digest_algorithm="sha256",
         log_cmd: bool = False,
     ):
+        """Verifies a Docker image using the Cosign tool.
+
+        This class method constructs and executes a Cosign command based on provided parameters.
+        If Cosign verification succeeds, it returns True; if it fails, it logs the error and returns False.
+        Other exceptions during execution are re-raised.
+
+        Args:
+            image (Image): Docker image to verify.
+            docker_config_dir (str): Directory for Docker configuration.
+            use_key (bool): Use public key (True) or certificate (False) for verification.
+            pubkey (Path, optional): Public key file path.
+            certificate (Path, optional): Certificate file path.
+            certificate_chain (Path, optional): Certificate chain file path.
+            certificate_identity (str, optional): Identity in the certificate.
+            certificate_oidc_issuer_regexp (str, optional): OIDC issuer regexp for certificate verification.
+            signature_digest_algorithm (str, optional): Signature digest algorithm.
+            log_cmd (bool, optional): Whether to log the command.
+
+        Returns:
+            bool: Verification result.
+
+        Raises:
+            subprocess.CalledProcessError: For errors during subprocess execution.
+        """
         cmd = [
             "cosign",
             "verify",
@@ -231,6 +255,7 @@ class Cosign(ContainerTool):
                 "--insecure-ignore-sct",
             ]
         )
+
         cmd += ["--insecure-ignore-tlog=true", str(image)]
         if log_cmd:
             cls.log.info(cmd)

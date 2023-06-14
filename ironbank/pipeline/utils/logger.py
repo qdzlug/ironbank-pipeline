@@ -5,6 +5,8 @@ import os
 import sys
 
 
+# Disabling redefined-builtin because the native logging also violates this
+# pylint: disable=redefined-builtin
 def setup(name="main", level=None, format=None, debug_file=None):
     """Setup a logger with the given parameters. If parameters are not
     provided, it will use environment variables or defaults.

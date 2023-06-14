@@ -53,8 +53,8 @@ class RuleInfo:
     oval_name: str = ""
     oval_href: str = ""
     _log: logger = logger.setup("RuleInfo")
-
     # TODO: consider making a separate factory for this purpose
+    # pylint: disable=unused-argument
     def __new__(
         cls, root: ElementTree, rule_result: Element, *args, **kwargs
     ) -> Callable:  # pylint: disable=unused-argument

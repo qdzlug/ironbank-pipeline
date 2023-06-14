@@ -8,10 +8,6 @@ from pathlib import Path
 
 @dataclass(slots=True, frozen=True)
 class Package:
-    kind: str
-    name: str
-    version: str
-    url: str = field(compare=False, default=None)
     """A simple representation of a software package.
 
     Attributes:
@@ -21,6 +17,11 @@ class Package:
         url (str): the url of the package. This attribute is optional and
                     is not used for comparison between `Package` instances.
     """
+
+    kind: str
+    name: str
+    version: str
+    url: str = field(compare=False, default=None)
 
 
 class FileParser(ABC):
