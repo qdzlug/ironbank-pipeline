@@ -35,30 +35,39 @@ run_shellcheck() {
 }
 
 run_black() {
+  echo "*********************"
   echo "Running black..."
+  echo "*********************"
   if [ "$1" == "format_in_place" ]; then
     black -t py311 -- .
   else
     black --check --diff --color -t py311 .
   fi
+  echo -e "\n"
 }
 
 run_docformatter() {
+  echo "*********************"
   echo "Running docformatter..."
+  echo "*********************"
   if [ "$1" == "format_in_place" ]; then
     docformatter --in-place -r stages ironbank
   else
     docformatter --check --diff -r stages ironbank
   fi
+  echo -e "\n"
 }
 
 run_autoflake() {
+  echo "*********************"
   echo "Running autoflake..."
+  echo "*********************"
   if [ "$1" == "format_in_place" ]; then
     autoflake --in-place --remove-unused-variables --remove-all-unused-imports --remove-duplicate-keys --recursive .
   else
     autoflake --check-diff --quiet --recursive .
   fi
+  echo -e "\n"
 }
 
 run_radon() {
@@ -73,16 +82,20 @@ run_radon() {
     echo -e "\n"
     exit 1
   fi
+  echo -e "\n"
 }
 
 # Function to run prettier
 run_prettier() {
+  echo "*********************"
   echo "Running prettier..."
+  echo "*********************"
   if [ "$1" == "format_in_place" ]; then
     npx prettier --write .
   else
     npx prettier -c .
   fi
+  echo -e "\n"
 }
 
 # Function to run pylint
@@ -102,23 +115,32 @@ run_pylint() {
 }
 
 run_shfmt() {
+  echo "*****************"
   echo "Running shfmt..."
+  echo "*****************"
   if [ "$1" == "format_in_place" ]; then
     shfmt -w .
   else
     shfmt -d .
   fi
+  echo -e "\n"
 }
 
 run_unit_tests() {
-  echo "Running unit testing..."
+  echo "********************"
+  echo "Running unit tests"
+  echo "********************"
   python3 -m pip install . --quiet
   python3 -m pytest -m "not slow"
+  echo -e "\n"
 }
 
 run_check_secrets() {
+  echo "*********************"
   echo "running check secrets"
+  echo "*********************"
   docker run -it --entrypoint /proj/code_checker.sh --rm -v $(pwd):/proj registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6 run_trufflehog
+  echo -e "\n"
 }
 
 run_trufflehog() {
@@ -132,12 +154,15 @@ run_trufflehog() {
 }
 
 run_isort() {
+  echo "*********************"
   echo "Running isort..."
+  echo "*********************"
   if [ "$1" == "format_in_place" ]; then
     isort **/*.py -v --overwrite-in-place
   else
     isort **/*.py --check-only --diff
   fi
+  echo -e "\n"
 }
 
 lint_all() {
