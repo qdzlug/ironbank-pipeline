@@ -30,7 +30,9 @@ def test_skopeo_init():
 
 
 def test_inspect(monkeypatch, caplog, raise_):
-    inspect_mock_image = MockImage(registry="example.com", name="example/test", tag="1.0")
+    inspect_mock_image = MockImage(
+        registry="example.com", name="example/test", tag="1.0"
+    )
     skopeo = Skopeo()
 
     log.info("Test default value for raw returns dictionary of json output")

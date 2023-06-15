@@ -14,7 +14,11 @@ from requests import Session
 
 from ironbank.pipeline.apis import VatAPI
 from ironbank.pipeline.container_tools.skopeo import Skopeo
-from ironbank.pipeline.harbor import HarborRobot, HarborRobotsApi, HarborRobotPermissions
+from ironbank.pipeline.harbor import (
+    HarborRobot,
+    HarborRobotsApi,
+    HarborRobotPermissions,
+)
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.image import Image, ImageFile
 from ironbank.pipeline.project import DsopProject
@@ -131,7 +135,9 @@ class MockSession(Session):
 
 @dataclass
 class MockPopen(subprocess.Popen):
-    stdout: MockOutput = field(default_factory=lambda: MockOutput())  # pylint: disable=W0108
+    stdout: MockOutput = field(
+        default_factory=lambda: MockOutput()
+    )  # pylint: disable=W0108
     stderr: MockOutput = field(
         default_factory=lambda: MockOutput(mock_data=["err1\n", "err2\n"])
     )
@@ -523,7 +529,6 @@ class MockHarborRobot(HarborRobot):
 
 
 class MockHarborRobotsApi(HarborRobotsApi):
-
     robots: list[MockHarborRobot] = field(default_factory=lambda: [])
 
     def get_robot_accounts(self):
