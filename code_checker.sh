@@ -50,6 +50,7 @@ run_docformatter() {
   echo "*********************"
   echo "Running docformatter..."
   echo "*********************"
+  python3 -m pip install docformatter
   if [ "$1" == "format_in_place" ]; then
     docformatter --in-place -r stages ironbank
   else
