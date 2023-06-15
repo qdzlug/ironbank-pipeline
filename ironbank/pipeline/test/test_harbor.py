@@ -99,15 +99,12 @@ def test_harbor_robots_api_create_robot(monkeypatch, mock_responses):
     assert resp["text"] == "successful_request"
 
 @patch("ironbank.pipeline.harbor.HarborRobotsApi", MockHarborRobotsApi)
-def test_harbor_robots_api_get_ronbot_accounts(monkeypatch, mock_responses):
+def test_harbor_robots_api_get_robot_accounts(monkeypatch, mock_responses):
     log.info("Test generation of robot account creation success")
-    harbor_robots_api = HarborRobotsApi(session=MockSession())
+    harbor_robots_api = MockHarborRobotsApi(session=MockSession())
     monkeypatch.setattr(MockSession, "post", mock_responses["200"])
-    resp = harbor_robots_api.get_robot_accounts(
-        HarborRobot(permissions=[MockHarborRobotPermissions().__dict__])
-    )
-    assert harbor_robots_api.robots == "dssdsd"
-    assert resp["text"] == "successful_request"
+    harbor_robots_api.get_robot_accounts()
+    assert len(harbor_robots_api.robots) == 2
 
 @patch("ironbank.pipeline.harbor.PaginatedRequest", new=MockPaginatedRequest)
 def test_harbor_robots(monkeypatch):  # noqa W0404
