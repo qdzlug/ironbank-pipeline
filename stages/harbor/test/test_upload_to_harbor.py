@@ -145,13 +145,13 @@ def mock_hm_content():
 #         "inspect",
 #         lambda *args, **kwargs: {"mock_skopeo": "1234qwer"},
 #     )
-#     upload_to_harbor.compare_digests()
+#     upload_to_harbor.compare_digests(image=Image)
 #     assert "dump SHA to file" in caplog.text
 
 #     log.info("Test inspecting image in registry")
 #     monkeypatch.setattr(upload_to_harbor, "remote_inspect_raw", lambda a: None)
 
-#     upload_to_harbor.compare_digests("IMAGE_PODMAN_SHA")
+#     upload_to_harbor.compare_digests(image=Image)
 #     assert "dump SHA to file" in caplog.text
 
 #     monkeypatch.delenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_skopeo")
@@ -167,12 +167,15 @@ def mock_hm_content():
 @patch("upload_to_harbor.Skopeo", new=MockSkopeo)
 @patch("upload_to_harbor.Path", new=MockPath)
 def test_promote_tags(monkeypatch, caplog):
+    #set the env 
     monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_pre_publish_file")
     monkeypatch.setenv("DOCKER_AUTH_FILE_PUBLISH", "mock_file")
+
+    #set the attributes
     monkeypatch.setattr(
         MockSkopeo, "copy", lambda *args, **kwargs: {"Digest": "1234qwert"}
     )
-    monkeypatch.setattr(upload_to_harbor, "copy", lambda *args, **kwargs: None)
+    monkeypatch.setattr(upload_to_harbor, "production_image", lambda a: )
 
 
 # @patch("upload_to_harbor.Predicates", new=MockPredicates)
