@@ -96,18 +96,7 @@ def test_harbor_robots_api_create(monkeypatch, mock_responses):
     resp = harbor_robots_api.create_robot(
         HarborRobot(permissions=[MockHarborRobotPermissions().__dict__])
     )
-    assert resp["text"] == "Mock robot successfully created"
-
-
-# @patch("ironbank.pipeline.harbor.HarborRobot", MockHarborRobot)
-# def test_harbor_robot_create(monkeypatch, mock_responses):
-#     log.info("Test generation of robot account creation success")
-#     harbor_robot = HarborRobot(
-#         permissions=[MockHarborRobotPermissions().__dict__], session=MockSession()
-#     )
-#     monkeypatch.setattr(MockSession, "post", mock_responses["200"])
-#     resp = harbor_robot.create_robot()
-#     assert resp["text"] == "successful_request"
+    assert resp["text"] == "successful_request"
 
 
 @patch("ironbank.pipeline.harbor.PaginatedRequest", new=MockPaginatedRequest)

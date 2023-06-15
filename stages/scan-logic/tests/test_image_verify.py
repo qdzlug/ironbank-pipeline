@@ -53,8 +53,8 @@ def test_inspect_old_image(monkeypatch, mock_hm, raise_):
 
 
 def test_verify_image_properties(monkeypatch, caplog, mock_hm):
-    log.info("Test new parent digest set to empty on missing base_IMAGE_NAME")
-    mock_hm.base_IMAGE_NAME = ""
+    log.info("Test new parent digest set to empty on missing base_image_name")
+    mock_hm.base_image_name = ""
     monkeypatch.setenv("CI_COMMIT_SHA", MOCK_SHA)
     img_json = {
         "Labels": {
@@ -86,11 +86,11 @@ def test_verify_image_properties(monkeypatch, caplog, mock_hm):
     monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data=""))
     monkeypatch.setattr(json, "load", lambda x: {"BASE_SHA": MOCK_SHA})
     monkeypatch.setenv("BASE_REGISTRY", base_registry)
-    mock_hm.base_IMAGE_NAME = "example/test"
-    mock_hm.base_IMAGE_TAG = "1.0"
+    mock_hm.base_image_name = "example/test"
+    mock_hm.base_image_tag = "1.0"
     img_json["Labels"][
         "mil.dso.ironbank.image.parent"
-    ] = f"{base_registry}/{mock_hm.base_IMAGE_NAME}:{mock_hm.base_IMAGE_TAG}@{MOCK_SHA}"
+    ] = f"{base_registry}/{mock_hm.base_image_name}:{mock_hm.base_image_tag}@{MOCK_SHA}"
     verify_result = image_verify.verify_image_properties(img_json, mock_hm)
     assert verify_result is True
 

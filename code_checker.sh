@@ -3,6 +3,9 @@
 set -e
 
 run_shellcheck() {
+  echo "*******************"
+  Echo "Running shellcheck"
+  echo "*******************"
   set -o pipefail
   shopt -s nullglob
   files=()
@@ -28,6 +31,7 @@ run_shellcheck() {
       ret=$yq_ret
     fi
   done < <(find . \( -name '*.yaml' -o -name '*.yml' ! -path './scripts/analysis/*' \) -print0)
+  echo -e "\n"
 }
 
 run_black() {
@@ -58,14 +62,17 @@ run_autoflake() {
 }
 
 run_radon() {
+  echo "*****************"
   echo "Running radon"
-  python3 -m radon cc ironbank/ stages/
-}
-
-# Function to run pylama
-run_pylama() {
-  echo "Running pylama..."
-  pylama
+  echo "*****************"
+  output=$(python3 -m radon cc ironbank/ stages/)
+  if [[ -z "$output" ]]; then
+    echo "radon found no problems"
+  else
+    echo "$output"
+    echo -e "\n"
+    exit 1
+  fi
 }
 
 # Function to run prettier
@@ -80,14 +87,18 @@ run_prettier() {
 
 # Function to run pylint
 run_pylint() {
+  echo "*****************"
   echo "Running pylint..."
+  echo "*****************"
   mkdir ./pylint
   pylint stages/ ironbank/ | tee ./pylint/pylint.log || pylint-exit $?
   PYLINT_SCORE=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' ./pylint/pylint.log)
   anybadge --label=Pylint --file=pylint/pylint.svg --value="${PYLINT_SCORE}" 3=red 6=orange 9=yellow 10=green
   echo "Pylint score is '${PYLINT_SCORE}'"
+  echo -e "\n"
   echo "Running pylint with tests and mocks"
   pylint stages/ ironbank/ --rcfile=.pylinttestrc | tee ./pylint/pylinttests.log || pylint-exit $?
+  echo -e "\n"
 }
 
 run_shfmt() {
@@ -101,7 +112,7 @@ run_shfmt() {
 
 run_unit_tests() {
   echo "Running unit testing..."
-  python3 -m pip install .
+  python3 -m pip install . --quiet
   python3 -m pytest -m "not slow"
 }
 

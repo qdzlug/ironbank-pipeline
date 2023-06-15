@@ -41,8 +41,8 @@ def main() -> None:
     try:
         with vat_findings_file.open(mode="r", encoding="utf-8") as f:
             vat_findings = json.load(f)
-    except (FileNotFoundError, PermissionError, json.JSONDecodeError) as e:
-        log.exception(f"Error reading findings file. {e}")
+    except Exception:  # pylint: disable=W0718
+        log.exception("Error reading findings file.")
         sys.exit(1)
 
     log.info("Gathering list of all justifications...")
@@ -249,7 +249,7 @@ def generate_anchore_compliance_report(
             cve_justification = "See Anchore CVE Results sheet"
 
         if trigger_id in justifications:
-            cve_justification = justifications[id]
+            cve_justification = justifications[trigger_id]
         gate["Justification"] = cve_justification
 
         gates.append(gate)

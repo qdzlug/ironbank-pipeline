@@ -113,9 +113,8 @@ def vat_request_error_handler(func):
     """
 
     @functools.wraps(func)
-    def wrapper(self, image_name, *args, **kwargs):
+    def wrapper(self, image_name: str = "", *args, **kwargs):  # pylint: disable=W1113
         try:
-            image_name = ""
             return func(self, image_name, *args, **kwargs)
         except requests.exceptions.HTTPError:
             if self.response.status_code == 400:
