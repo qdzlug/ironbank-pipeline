@@ -130,6 +130,10 @@ class HarborRobotsApi(HarborApi):
     """
 
     robots: list[HarborRobot] = field(default_factory=lambda: [])
+    robots_url: field(init=False)
+
+    def __post_init__(self):
+        self.robots_url = None
 
     def get_robot_accounts(self):
         """Retrieve robot accounts associated with this Harbor instance.
@@ -139,14 +143,7 @@ class HarborRobotsApi(HarborApi):
         fetch robot accounts, depending on whether the instance is a
         HarborSystem or HarborProjectApi.
         """
-        assert getattr(self, "robots", "not_defined") != "not_defined"
-        if isinstance(self, HarborSystemApi):
-            robots_url = f"{self.api_url}/robots"
-        elif isinstance(self, HarborProjectApi):
-            robots_url = f"{self.api_url}/projects/{quote_plus(self.name)}/robots"
-        else:
-            return
-        paginated_request = PaginatedRequest(self.session, robots_url)
+        paginated_request = PaginatedRequest(self.session, self.robots_url)
         for page in paginated_request.get():
             for item in [page] if isinstance(page, dict) else page:
                 self.robots.append(
@@ -278,7 +275,7 @@ class HarborSystemApi(HarborRobotsApi):
     """
 
     projects: list[HarborProjectApi] = field(default_factory=lambda: [])
-    robots_urls: str = field(init=False)
+    robots_url: str = field(init=False)
 
     def __post_init__(self):
         self.robots_url = f"{self.api_url}/robots"
