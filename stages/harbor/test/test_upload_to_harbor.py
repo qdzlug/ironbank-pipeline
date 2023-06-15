@@ -12,7 +12,11 @@ import base64
 import json
 from requests import patch
 from traitlets import Any
-from ironbank.pipeline.test.mocks.mock_classes import MockPath, MockSkopeo
+from ironbank.pipeline.test.mocks.mock_classes import (
+    MockPath,
+    MockPredicates,
+    MockSkopeo,
+)
 import pathlib
 import yaml
 import subprocess
@@ -131,57 +135,59 @@ def mock_hm_content():
 #         self.error_messages = []
 
 
-# @patch("upload_to_harbor.Image", new=MockImage)
-# @patch("upload_to_harbor.Skopeo", new=MockSkopeo)
-# @patch("upload_to_harbor.Path", new=MockPath)
-# def test_compare_digests(monkeypatch, caplog):
-#     # Mock the necessary environment variables
-#     monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_skopeo")
-#     monkeypatch.setenv("IMAGE_PODMAN_SHA", "mock_our_image_podman_sha")
-
-#     log.info("Test pulling manifest_file with skopeo")
-#     monkeypatch.setattr(
-#         MockSkopeo,
-#         "inspect",
-#         lambda *args, **kwargs: {"mock_skopeo": "1234qwer"},
-#     )
-#     upload_to_harbor.compare_digests(image=Image)
-#     assert "dump SHA to file" in caplog.text
-
-#     log.info("Test inspecting image in registry")
-#     monkeypatch.setattr(upload_to_harbor, "remote_inspect_raw", lambda a: None)
-
-#     upload_to_harbor.compare_digests(image=Image)
-#     assert "dump SHA to file" in caplog.text
-
-#     monkeypatch.delenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_skopeo")
-
-#     monkeypatch.setattr(os, "image_podman_sha", lambda a: [])
-#     monkeypatch.setattr(upload_to_harbor, "hashlib.sha256", lambda a: [])
-
-# manifest = upload_to_harbor("")
-# assert manifest["manifest"] == "test_manifeset"
-
-
 @patch("upload_to_harbor.Image", new=MockImage)
 @patch("upload_to_harbor.Skopeo", new=MockSkopeo)
 @patch("upload_to_harbor.Path", new=MockPath)
-def test_promote_tags(monkeypatch, caplog):
-    #set the env 
-    monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_pre_publish_file")
-    monkeypatch.setenv("DOCKER_AUTH_FILE_PUBLISH", "mock_file")
+def test_compare_digests(monkeypatch, caplog):
+    # Mock the necessary environment variables
+    monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_skopeo")
+    monkeypatch.setenv("IMAGE_PODMAN_SHA", "mock_our_image_podman_sha")
 
-    #set the attributes
+    log.info("Test pulling manifest_file with skopeo")
     monkeypatch.setattr(
-        MockSkopeo, "copy", lambda *args, **kwargs: {"Digest": "1234qwert"}
+        MockSkopeo,
+        "inspect",
+        lambda *args, **kwargs: {"mock_skopeo": "1234qwer"},
     )
-    monkeypatch.setattr(upload_to_harbor, "production_image", lambda a: )
+    upload_to_harbor.compare_digests(image=Image)
+    assert "dump SHA to file" in caplog.text
+
+    log.info("Test inspecting image in registry")
+    monkeypatch.setattr(upload_to_harbor, "remote_inspect_raw", lambda a: None)
+
+    upload_to_harbor.compare_digests(image=Image)
+    assert "dump SHA to file" in caplog.text
+
+    monkeypatch.delenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_skopeo")
+
+    monkeypatch.setattr(os, "image_podman_sha", lambda a: [])
+    monkeypatch.setattr(upload_to_harbor, "hashlib.sha256", lambda a: [])
+
+    manifest = upload_to_harbor.compare_digests(image=Image)
+    assert manifest["manifest"] == "test_manifeset"
 
 
-# @patch("upload_to_harbor.Predicates", new=MockPredicates)
-# @patch("stages.harbor.upload_to_harbor.json", new=MockJson)
+# @patch("upload_to_harbor.Image", new=MockImage)
+# @patch("upload_to_harbor.Skopeo", new=MockSkopeo)
 # @patch("upload_to_harbor.Path", new=MockPath)
-# def test_convert_artifacts_to_hardening_manifest(monkeypatch, caplog):
+# def test_promote_tags(monkeypatch, caplog):
+#     # set the env
+#     monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_pre_publish_file")
+#     monkeypatch.setenv("DOCKER_AUTH_FILE_PUBLISH", "mock_file")
+
+#     # set the attributes
+#     monkeypatch.setattr(
+#         MockSkopeo, "copy", lambda *args, **kwargs: {"Digest": "1234qwert"}
+#     )
+#     monkeypatch.setattr(upload_to_harbor, "production_image", lambda a: [])
+
+
+@patch("upload_to_harbor.Predicates", new=MockPredicates)
+@patch("stages.harbor.upload_to_harbor.json", new=MockJson)
+@patch("upload_to_harbor.Path", new=MockPath)
+def test_convert_artifacts_to_hardening_manifest(monkeypatch, caplog):
+    monkeypatch.setenv("CI_PROJECT_DIR", "mock_dir")
+    monkeypatch.setenv("CI_PROJECT_DIR", "mock_dir")
 
 
 # @patch("upload_to_harbor.json", new=MockJson)
