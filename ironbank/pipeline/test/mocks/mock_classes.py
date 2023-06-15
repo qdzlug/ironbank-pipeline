@@ -133,11 +133,10 @@ class MockSession(Session):
         return MockResponse()
 
 
+# pylint: disable=W0108
 @dataclass
 class MockPopen(subprocess.Popen):
-    stdout: MockOutput = field(
-        default_factory=lambda: MockOutput()
-    )  # pylint: disable=W0108
+    stdout: MockOutput = field(default_factory=lambda: MockOutput())
     stderr: MockOutput = field(
         default_factory=lambda: MockOutput(mock_data=["err1\n", "err2\n"])
     )
@@ -156,6 +155,9 @@ class MockPopen(subprocess.Popen):
         # allow poll to run multiple times without getting stuck in while loop
         self.poll_counter -= 1
         return None if self.poll_counter >= 0 else self.returncode
+
+
+# pylint: enable=W0108
 
 
 @dataclass
