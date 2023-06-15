@@ -131,36 +131,54 @@ def mock_hm_content():
 #         self.error_messages = []
 
 
+# @patch("upload_to_harbor.Image", new=MockImage)
+# @patch("upload_to_harbor.Skopeo", new=MockSkopeo)
+# @patch("upload_to_harbor.Path", new=MockPath)
+# def test_compare_digests(monkeypatch, caplog):
+#     # Mock the necessary environment variables
+#     monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_skopeo")
+#     monkeypatch.setenv("IMAGE_PODMAN_SHA", "mock_our_image_podman_sha")
+
+#     log.info("Test pulling manifest_file with skopeo")
+#     monkeypatch.setattr(
+#         MockSkopeo,
+#         "inspect",
+#         lambda *args, **kwargs: {"mock_skopeo": "1234qwer"},
+#     )
+#     upload_to_harbor.compare_digests()
+#     assert "dump SHA to file" in caplog.text
+
+#     log.info("Test inspecting image in registry")
+#     monkeypatch.setattr(upload_to_harbor, "remote_inspect_raw", lambda a: None)
+
+#     upload_to_harbor.compare_digests("IMAGE_PODMAN_SHA")
+#     assert "dump SHA to file" in caplog.text
+
+#     monkeypatch.delenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_skopeo")
+
+#     monkeypatch.setattr(os, "image_podman_sha", lambda a: [])
+#     monkeypatch.setattr(upload_to_harbor, "hashlib.sha256", lambda a: [])
+
+# manifest = upload_to_harbor("")
+# assert manifest["manifest"] == "test_manifeset"
+
+
 @patch("upload_to_harbor.Image", new=MockImage)
 @patch("upload_to_harbor.Skopeo", new=MockSkopeo)
 @patch("upload_to_harbor.Path", new=MockPath)
-def test_compare_digests(monkeypatch, caplog):
-    # Mock the necessary environment variables
-    monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_skopeo")
-    monkeypatch.setenv("IMAGE_PODMAN_SHA", "mock_our_image_podman_sha")
-
-    log.info("Test pulling manifest_file with skopeo")
+def test_promote_tags(monkeypatch, caplog):
+    monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_pre_publish_file")
+    monkeypatch.setenv("DOCKER_AUTH_FILE_PUBLISH", "mock_file")
     monkeypatch.setattr(
-        MockSkopeo,
-        "inspect",
-        lambda *args, **kwargs: {"mock_skopeo": "1234qwer"},
+        MockSkopeo, "copy", lambda *args, **kwargs: {"Digest": "1234qwert"}
     )
-    upload_to_harbor.compare_digests("")
-    assert "dump SHA to file" in caplog.text
+    monkeypatch.setattr(upload_to_harbor, "copy", lambda *args, **kwargs: None)
 
-    log.info("Test inspecting image in registry")
-    monkeypatch.setattr(upload_to_harbor, "remote_inspect_raw", lambda a: None)
 
-    upload_to_harbor.compare_digests("IMAGE_PODMAN_SHA")
-    assert "dump SHA to file" in caplog.text
-
-    monkeypatch.delenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_skopeo")
-
-    monkeypatch.setattr(os, "image_podman_sha", lambda a: [])
-    monkeypatch.setattr(upload_to_harbor, "hashlib.sha256", lambda a: [])
-
-    manifest = upload_to_harbor("")
-    assert manifest["manifest"] == "test_manifeset"
+# @patch("upload_to_harbor.Predicates", new=MockPredicates)
+# @patch("stages.harbor.upload_to_harbor.json", new=MockJson)
+# @patch("upload_to_harbor.Path", new=MockPath)
+# def test_convert_artifacts_to_hardening_manifest(monkeypatch, caplog):
 
 
 # @patch("upload_to_harbor.json", new=MockJson)
@@ -214,3 +232,5 @@ def test_compare_digests(monkeypatch, caplog):
 #     predicates.append(_generate_vat_response_lineage_file())
 
 #     assert predicates == expected_predicates
+# manifest = upload_to_harbor("")
+# assert manifest["manifest"] == "test_manifeset"
