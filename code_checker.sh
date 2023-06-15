@@ -75,6 +75,7 @@ run_radon() {
   echo "*****************"
   echo "Running radon"
   echo "*****************"
+  python3 -m pip install radon --quiet
   output=$(python3 -m radon cc ironbank/ stages/)
   if [[ -z "$output" ]]; then
     echo "radon found no problems"
