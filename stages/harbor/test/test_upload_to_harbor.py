@@ -145,7 +145,7 @@ def test_compare_digests(monkeypatch, caplog):
         "inspect",
         lambda *args, **kwargs: {"mock_skopeo": "1234qwer"},
     )
-    upload_to_harbor.compare_digests(caplog)
+    upload_to_harbor.compare_digests("")
     assert "dump SHA to file" in caplog.text
 
     log.info("Test inspecting image in registry")
