@@ -130,7 +130,6 @@ class HarborRobotsApi(HarborApi):
     """
 
     robots: list[HarborRobot] = field(default_factory=lambda: [])
-    robots_url: field(init=False)
 
     def __post_init__(self):
         self.robots_url = None
@@ -165,7 +164,7 @@ class HarborRobotsApi(HarborApi):
         """
         robot_url = f"{self.api_url}/robots"
         resp = self.session.post(
-            robot_url,
+            url=robot_url,
             json=robot.payload(),
             headers={"Content-Type": "application/json"},
         )
