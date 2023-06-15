@@ -4,7 +4,7 @@ set -e
 
 run_shellcheck() {
   echo "*******************"
-  Echo "Running shellcheck"
+  echo "Running shellcheck"
   echo "*******************"
   set -o pipefail
   shopt -s nullglob
