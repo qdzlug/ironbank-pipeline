@@ -122,6 +122,13 @@ class HarborApi(ABC):
 
 @dataclass
 class HarborRobotsApi(HarborApi):
+    """A data class that represents the Robots API for a Harbor instance.
+
+    Attributes:
+        robots (list[HarborRobot]): A list of robot accounts associated with the Harbor instance.
+            Defaults to an empty list.
+    """
+
     robots: list[HarborRobot] = field(default_factory=lambda: [])
 
     def get_robot_accounts(self):
@@ -133,7 +140,7 @@ class HarborRobotsApi(HarborApi):
         HarborSystem or HarborProjectApi.
         """
         assert getattr(self, "robots", "not_defined") != "not_defined"
-        if isinstance(self, HarborSystem):
+        if isinstance(self, HarborSystemApi):
             robots_url = f"{self.api_url}/robots"
         elif isinstance(self, HarborProjectApi):
             robots_url = f"{self.api_url}/projects/{quote_plus(self.name)}/robots"

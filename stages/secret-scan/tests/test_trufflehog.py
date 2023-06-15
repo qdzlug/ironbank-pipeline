@@ -8,13 +8,13 @@ import git
 import pytest
 import yaml
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import trufflehog  # noqa E402
 from trufflehog import get_commit_diff  # noqa E402
 from trufflehog import get_config  # noqa E402
 from trufflehog import create_trufflehog_config, get_history_cmd  # noqa E042
 from ironbank.pipeline.utils import logger
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 log = logger.setup("test_trufflehog")
 

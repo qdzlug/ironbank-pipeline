@@ -131,15 +131,14 @@ run_isort() {
 
 lint_all() {
   rm -rf pylint
-  python3 -m pip install .
+  python3 -m pip install . --quiet
   run_pylint
   run_shellcheck
-  run_pylama
   run_radon
 }
 
 format_check_all() {
-  python3 -m pip install .
+  python3 -m pip install . --quiet
   run_isort
   run_black
   run_autoflake

@@ -16,8 +16,9 @@ from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.exceptions import InvalidURLList
 
+# pylint: disable=C0411, C0413
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import downloader  # pylint: disable=C0411, C0413
+import downloader # E402
 
 log = logger.setup("test_downloader")
 
@@ -173,10 +174,10 @@ def test_main_class_assignment(
     def mock_hm_init_s3(self, hm_path):
         self.resources = mock_s3_resources
 
-    with pytest.raises(SystemExit) as se:
+    with pytest.raises(SystemExit) as e:
         patch_artifact(S3Artifact, mock_dsop_init, mock_hm_init_s3)
         downloader.main()
-    assert se.value.code == 0
+    assert e.value.code == 0
     assert "S3Artifact" in caplog.text
     assert (
         "HttpArtifact" not in caplog.text
@@ -191,7 +192,7 @@ def test_main_class_assignment(
     with pytest.raises(SystemExit) as e:
         patch_artifact(ContainerArtifact, mock_dsop_init, mock_hm_init_github)
         downloader.main()
-    assert se.value.code == 0
+    assert e.value.code == 0
     assert "GithubArtifact" in caplog.text
     assert "HttpArtifact" not in caplog.text and "S3Artifact" not in caplog.text
     caplog.clear()
@@ -202,7 +203,7 @@ def test_main_class_assignment(
     with pytest.raises(SystemExit) as e:
         patch_artifact(ContainerArtifact, mock_dsop_init, mock_hm_init_docker)
         downloader.main()
-    assert se.value.code == 0
+    assert e.value.code == 0
     assert "ContainerArtifact" in caplog.text
     assert (
         "S3Artifact" not in caplog.text
@@ -217,7 +218,7 @@ def test_main_class_assignment(
     with pytest.raises(SystemExit) as e:
         patch_artifact(HttpArtifact, mock_dsop_init, mock_hm_init_http)
         downloader.main()
-    assert se.value.code == 0
+    assert e.value.code == 0
     assert "HttpArtifact" in caplog.text
     assert (
         "S3Artifact" not in caplog.text

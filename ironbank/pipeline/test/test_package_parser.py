@@ -88,7 +88,7 @@ def test_init_all_package_types(package_classes):
     # get list of modules with name container "Package"
     for pkg_type in list(package_classes.keys()):
         # cast string to type
-        PackageType = getattr(package_parser, pkg_type)
+        PackageType = getattr(package_parser, pkg_type) # pylint: disable=C0103
         if not inspect.isabstract(PackageType):
             log.info("Test successful init for %s package", pkg_type)
             pkg = PackageType(
@@ -110,7 +110,7 @@ def test_init_all_package_types(package_classes):
 
 def test_all_successful_parse_methods(package_classes):
     for pkg_type, obj in package_classes.items():
-        PackageType = getattr(package_parser, pkg_type)
+        PackageType = getattr(package_parser, pkg_type) # pylint: disable=C0103
         if not inspect.isabstract(PackageType):
             log.info("Test %s successfully parses %s", pkg_type, obj["good_url"])
             pkg = PackageType.parse(obj["good_url"])

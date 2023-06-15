@@ -17,7 +17,7 @@ from ironbank.pipeline.utils import logger, s3upload
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import upload_artifacts  # pylint: disable=C0411
+import upload_artifacts
 
 log: Logger = logger.setup("test_upload_artifacts")
 
@@ -114,7 +114,7 @@ def test_main(monkeypatch, mock_responses, caplog, raise_):
         "run",
         lambda *args, **kwargs: raise_(subprocess.CalledProcessError(1, [])),
     )
-    with pytest.raises(GenericSubprocessError) as se:
+    with pytest.raises(GenericSubprocessError) as e:
         upload_artifacts.main()
     assert "Failed to compress file" in caplog.text
     caplog.clear()
