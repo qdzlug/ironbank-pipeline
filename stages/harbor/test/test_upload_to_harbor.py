@@ -3,6 +3,7 @@
 import asyncio
 import hashlib
 import os
+from typing import Literal
 import pytest
 from pathlib import Path
 import sys
@@ -10,6 +11,7 @@ from unittest import mock
 import base64
 import json
 from requests import patch
+from traitlets import Any
 from ironbank.pipeline.test.mocks.mock_classes import MockPath, MockSkopeo
 import pathlib
 import yaml
@@ -143,7 +145,7 @@ def test_compare_digests(monkeypatch, caplog):
         "inspect",
         lambda *args, **kwargs: {"mock_skopeo": "1234qwer"},
     )
-    upload_to_harbor.compare_digests()
+    upload_to_harbor.compare_digests(caplog)
     assert "dump SHA to file" in caplog.text
 
     log.info("Test inspecting image in registry")
@@ -160,52 +162,17 @@ def test_compare_digests(monkeypatch, caplog):
     manifest = upload_to_harbor("")
     assert manifest["manifest"] == "test_manifeset"
 
-    # # Assert that the necessary methods were called with the expected arguments
-    # mock_log.info.assert_called_with("Pulling manifest_file with skopeo")
-    # mock_skopeo.assert_called_with(Path("docker://"))
-    # mock_skopeo.inspect.assert_called_with("docker_image", raw=True, log_cmd=True)
-    # mock_sha256.assert_called_with(b"remote_inspect_raw")
-    # mock_log.error.assert_not_called()
-    # sys.exit.assert_not_called()
-
-    # # Assert the expected log message for matching digests
-    # mock_log.info.assert_any_call("Digests match")
-
-    # # Reset the mocked sys.exit function
-    # sys.exit.reset_mock()
-
-    # # Modify the environment variable to simulate mismatched digests
-    # monkeypatch.setenv("IMAGE_PODMAN_SHA", "different_digest")
-
-    # # Call the function under test again
-    # compare_digests(image)
-
-    # # Assert the expected log message and sys.exit call for mismatched digests
-    # mock_log.error.assert_called_with(
-    #     "Digests do not match your_image_podman_sha  computed_digest"
-    # )
-    # sys.exit.assert_called_with(1)
-
 
 # @patch("upload_to_harbor.json", new=MockJson)
 # @patch("upload_to_harbor.Path", new=MockPath)
 # @patch("stages.harbor.upload_to_harbor.json", new=MockJson)
-# def test_generate_vat_response_lineage_file(
-#     caplog: LogCaptureFixture,
-#     monkeypatch: MonkeyPatch,
-#     mock_pipeline_vat_response: Literal[
-#         '{\n    "images": [\n        {\n            "image_nam…'
-#     ],
-#     mock_pipeline_parent_vat_response: Literal[
-#         '{\n    "images": [\n        {\n            "image_nam…'
-#     ],
-#     mock_hm_content: dict[str, Any],
-# ):
+# def test_generate_vat_response_lineage_file(caplog, monkeypatch):
 #     monkeypatch.setenv("VAT_RESPONSE", "mock_dir")
 #     monkeypatch.setenv("CI_PROJECT_DIR", "mock_dir")
 #     monkeypatch.setenv("ACCESS_LOG_DIR", "mock_dir")
 #     monkeypatch.setenv("PARENT_VAT_RESPONSE", "mock_dir")
 #     monkeypatch.setenv("ARTIFACT_DIR", "mock_dir")
+
 
 #     upload_to_harbor._generate_vat_response_lineage_file()
 #     assert "Generated VAT response lineage file" in caplog.text
