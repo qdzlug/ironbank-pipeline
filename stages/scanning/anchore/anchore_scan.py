@@ -2,8 +2,12 @@
 
 import os
 from pathlib import Path
+import sys
 
-from ironbank_py39_modules.scanner_api_handlers.anchore import Anchore
+# need to keep this path append until this repo migrates to using ironbank-modules
+sys.path.append(Path(__file__).absolute().parents[3].as_posix())
+
+from ironbank_py39_modules.scanner_api_handlers.anchore import Anchore # pylint: disable=C0413
 
 
 def main() -> None:
