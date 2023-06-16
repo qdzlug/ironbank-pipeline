@@ -14,10 +14,10 @@ from openpyxl.utils import get_column_letter
 def main():
     """Main function for CSV to Excel transformation and formatting tool.
 
-    Takes CSV files from a specified directory, converts them to Excel format, applies colorization and formatting,
-    and saves the resulting data as an Excel file. Logging level and certain actions are controlled by environment
-    variables.
-
+    Takes CSV files from a specified directory, converts them to Excel
+    format, applies colorization and formatting, and saves the resulting
+    data as an Excel file. Logging level and certain actions are
+    controlled by environment variables.
     """
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
