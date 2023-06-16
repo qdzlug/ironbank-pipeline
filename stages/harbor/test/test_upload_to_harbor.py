@@ -163,14 +163,14 @@ def test_compare_digests(monkeypatch, caplog):
     monkeypatch.setattr(os, "image_podman_sha", lambda a: [])
     monkeypatch.setattr(upload_to_harbor, "hashlib.sha256", lambda a: [])
 
-    manifest = upload_to_harbor.compare_digests(image=Image)
-    assert manifest["manifest"] == "test_manifeset"
+    digest = upload_to_harbor.hexdigest(image=Image)
+    assert digest["digest"] == "test_digest"
 
 
 @patch("upload_to_harbor.Image", new=MockImage)
 @patch("upload_to_harbor.Skopeo", new=MockSkopeo)
 @patch("upload_to_harbor.Path", new=MockPath)
-def test_promote_tags(monkeypatch, caplog):
+def test_promote_tags(monkeypatch):
     # set the env
     monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_pre_publish_file")
     monkeypatch.setenv("DOCKER_AUTH_FILE_PUBLISH", "mock_file")
@@ -193,14 +193,23 @@ def test_convert_artifacts_to_hardening_manifest(monkeypatch):
 @patch("upload_to_harbor.json", new=MockJson)
 @patch("upload_to_harbor.Path", new=MockPath)
 @patch("stages.harbor.upload_to_harbor.json", new=MockJson)
-def test_generate_vat_response_lineage_file(caplog, monkeypatch):
+def test_generate_vat_response_lineage_file(monkeypatch, caplog):
     monkeypatch.setenv("VAT_RESPONSE", "mock_dir")
     monkeypatch.setenv("CI_PROJECT_DIR", "mock_dir")
     monkeypatch.setenv("ACCESS_LOG_DIR", "mock_dir")
     monkeypatch.setenv("PARENT_VAT_RESPONSE", "mock_dir")
     monkeypatch.setenv("ARTIFACT_DIR", "mock_dir")
 
-    upload_to_harbor._generate_vat_response_lineage_file()
+    monkeypatch.setattr(upload_to_harbor, "pipeline_vat_response", lambda a: MockJson)
+    assert "Dump VAT to file" in caplog.text
+
+    monkeypatch.delenv("VAT_RESPONSE", "mock_dir")
+
+    monkeypatch.setattr(upload_to_harbor, "lineage_vat_response", lambda a, b: [])
+    monkeypatch.setattr(
+        upload_to_harbor.open, "parent_vat_response_file", lambda a, b: []
+    )
+
     assert "Generated VAT response lineage file" in caplog.text
 
 
@@ -236,10 +245,11 @@ def test_generate_attestation_predicates(monkeypatch):
         if file not in predicates.unattached_predicates
     ]
 
-    predicates.append(Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json"))
-    predicates.append(_generate_vat_response_lineage_file())
+    predicates = upload_to_harbor._generate_vat_response_lineage_file(
+        predicates=Predicates
+    )
+    assert predicates["CI_Project_DIR"] == "mock_dir"
 
-
-assert predicates == expected_predicates
-manifest = upload_to_harbor("")
-assert manifest["manifest"] == "test_manifeset"
+    monkeypatch.delenv("CI_PROJECT_DIR", "mock_dir")
+    monkeypatch.delenv("ACCESS_LOG_DIR", "mock_dir")
+    monkeypatch.delenv("SBOM_DIR", "mock_dir")
