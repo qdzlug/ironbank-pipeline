@@ -18,8 +18,6 @@ def main():
     and saves the resulting data as an Excel file. Logging level and certain actions are controlled by environment
     variables.
 
-    Args:
-        argv (list): Command-line arguments.
     """
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
@@ -264,4 +262,4 @@ def _set_all_column_widths(workbook):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])  # pylint: disable=E1121
+    main()
