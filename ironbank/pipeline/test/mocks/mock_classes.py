@@ -529,7 +529,7 @@ class MockHarborRobot(HarborRobot):
     permissions: list["HarborRobotPermissions"] = field(default_factory=lambda: [])
 
 
-# this isn't currently used, but will be needed for refactor changes in !1101
+# this isn't currently used, but will be needed for refactor changes in !1181
 # will need to inherit from HarborRobotsApi once available
 @dataclass
 class MockHarborRobotsApi:
