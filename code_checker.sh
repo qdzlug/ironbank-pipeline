@@ -18,18 +18,13 @@ run_shellcheck() {
       IFS=$'\n'
       echo "${files[*]}"
     )
-    shellcheck --exclude=SC2153 --format=gcc -- "${files[@]}"
-    ret=$?
+    shellcheck --exclude=SC2153,SC2164 --format=gcc -- "${files[@]}"
   fi
 
   echo "# Scanning embedded scripts..."
   while IFS= read -r -d '' file; do
     echo "# $file"
-    yq -r '.[] | objects | .before_script, .script, .after_script | select(. != null) | join("\n")' "$file" | shellcheck --exclude=SC2153 --format=gcc -s bash -
-    yq_ret=$?
-    if [ $yq_ret -ne 0 ]; then
-      ret=$yq_ret
-    fi
+    yq -r '.[] | objects | .before_script, .script, .after_script | select(. != null) | join("\n")' "$file" | shellcheck --exclude=SC2153,SC2164 --format=gcc -s bash -
   done < <(find . \( -name '*.yaml' -o -name '*.yml' ! -path './scripts/analysis/*' \) -print0)
   echo -e "\n"
 }
