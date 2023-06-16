@@ -105,9 +105,7 @@ class Cosign(ContainerTool):
         # default for cosign is actually --tlog-upload=true, but for our purposes it should be false for now
         cmd += [f"--tlog-upload={str(tlog_upload).lower()}"]
         # this is just a flag, no bool option to set and defaults to false if not provided
-        cmd += (
-            ["--allow-insecure-registry"] if allow_insecure_registry else []
-        )
+        cmd += ["--allow-insecure-registry"] if allow_insecure_registry else []
         # use key if provided, else default to kms_key_arn
         cmd += (
             ["--key", key]
