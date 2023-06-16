@@ -9,7 +9,7 @@ import sys
 
 import requests
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=os.environ.get("PYTHON_LOG_LEVEL", "INFO"))
 
 # TODO: move this module to the `ironbank/pipelines` dir once anchore/enterprise moves to 3.10
 class Anchore:
@@ -229,9 +229,6 @@ class Anchore:
         add_cmd.append(image)
 
         try:
-            print(f"{' '.join(add_cmd[0:3])} {' '.join(add_cmd[5:])}")
-            current_level = logging.getLogger().getEffectiveLevel()
-            print(f"Current logging level: {current_level}")
             logging.info(f"{' '.join(add_cmd[0:3])} {' '.join(add_cmd[5:])}")
             image_add = subprocess.run(
                 add_cmd,
@@ -239,8 +236,6 @@ class Anchore:
                 stderr=subprocess.PIPE,
                 encoding="utf-8",
             )
-            print("stdout:", image_add.stdout)
-            print("stderr:", image_add.stderr)
         except subprocess.SubprocessError:
             logging.exception("Could not add image to Anchore")
             sys.exit(1)
