@@ -89,6 +89,9 @@ class Cosign(ContainerTool):
         predicate_path: str,
         predicate_type: str,
         replace: bool,
+        key: str | None = None,
+        allow_insecure_registry: bool = False,
+        tlog_upload: bool = False,
         log_cmd: bool = False,
     ) -> None:
         """Add attestation."""
@@ -99,7 +102,20 @@ class Cosign(ContainerTool):
         cmd += ["--replace"] if replace else []
         cmd += ["--predicate", predicate_path]
         cmd += ["--type", predicate_type]
-        cmd += ["--key", self.kms_key_arn] if self.kms_key_arn else []
+        # default for cosign is actually --tlog-upload=true, but for our purposes it should be false for now
+        cmd += [f"--tlog-upload={str(tlog_upload).lower()}"]
+        # this is just a flag, no bool option to set and defaults to false if not provided
+        cmd += (
+            ["--allow-insecure-registry"] if allow_insecure_registry else []
+        )
+        # use key if provided, else default to kms_key_arn
+        cmd += (
+            ["--key", key]
+            if key
+            else ["--key", self.kms_key_arn]
+            if self.kms_key_arn
+            else []
+        )
         cmd += ["--cert", self.cosign_cert] if self.cosign_cert else []
         cmd += [f"{image.registry}/{image.name}@{image.digest}"]
         if log_cmd:
