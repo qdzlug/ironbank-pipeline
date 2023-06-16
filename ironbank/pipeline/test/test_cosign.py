@@ -111,7 +111,7 @@ def test_cosign_attest(monkeypatch, caplog):
         log_cmd=True,
     )
     assert (
-        "['cosign', 'attest', '--predicate', 'testPath', '--type', 'testType', '--key', 'kmsKey', '--cert', 'cert', 'testRegistry/testName@testDigest']"
+        "['cosign', 'attest', '--predicate', 'testPath', '--type', 'testType', '--tlog-upload=false', '--key', 'kmsKey', '--cert', 'cert', 'testRegistry/testName@testDigest']"
         in caplog.text
     )
     caplog.clear()
@@ -126,7 +126,7 @@ def test_cosign_attest(monkeypatch, caplog):
         log_cmd=True,
     )
     assert (
-        "['cosign', 'attest', '--replace', '--predicate', 'testPath', '--type', 'testType', '--key', 'kmsKey', '--cert', 'cert', 'testRegistry/testName@testDigest']"
+        "['cosign', 'attest', '--replace', '--predicate', 'testPath', '--type', 'testType', '--tlog-upload=false', '--key', 'kmsKey', '--cert', 'cert', 'testRegistry/testName@testDigest']"
         in caplog.text
     )
     caplog.clear()
