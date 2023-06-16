@@ -45,7 +45,6 @@ run_docformatter() {
   echo "*********************"
   echo "Running docformatter..."
   echo "*********************"
-  python3 -m pip install docformatter
   if [ "$1" == "format_in_place" ]; then
     docformatter --in-place -r stages ironbank
   else
@@ -70,8 +69,7 @@ run_radon() {
   echo "*****************"
   echo "Running radon"
   echo "*****************"
-  python3 -m pip install radon --quiet
-  output=$(python3 -m radon cc ironbank/ stages/)
+  output=$(python3 -m radon cc -e "*test_*.py" -n "D" ironbank/ stages/)
   if [[ -z "$output" ]]; then
     echo "radon found no problems"
   else
@@ -127,7 +125,6 @@ run_unit_tests() {
   echo "********************"
   echo "Running unit tests"
   echo "********************"
-  python3 -m pip install . --quiet
   python3 -m pytest -m "not slow"
   echo -e "\n"
 }
@@ -164,14 +161,12 @@ run_isort() {
 
 lint_all() {
   rm -rf pylint
-  python3 -m pip install . --quiet
   run_pylint
   run_shellcheck
   run_radon
 }
 
 format_check_all() {
-  python3 -m pip install . --quiet
   run_isort
   run_black
   run_autoflake
