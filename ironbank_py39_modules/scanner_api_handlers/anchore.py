@@ -228,6 +228,7 @@ class Anchore:
         add_cmd.append(image)
 
         try:
+            print(f"{' '.join(add_cmd[0:3])} {' '.join(add_cmd[5:])}")
             logging.info(f"{' '.join(add_cmd[0:3])} {' '.join(add_cmd[5:])}")
             image_add = subprocess.run(
                 add_cmd,
