@@ -9,6 +9,7 @@ import sys
 
 import requests
 
+logging.basicConfig(level=logging.INFO)
 
 # TODO: move this module to the `ironbank/pipelines` dir once anchore/enterprise moves to 3.10
 class Anchore:
