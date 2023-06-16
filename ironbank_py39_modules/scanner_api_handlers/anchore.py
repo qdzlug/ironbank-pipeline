@@ -239,6 +239,8 @@ class Anchore:
                 stderr=subprocess.PIPE,
                 encoding="utf-8",
             )
+            print("stdout:", image_add.stdout)
+            print("stderr:", image_add.stderr)
         except subprocess.SubprocessError:
             logging.exception("Could not add image to Anchore")
             sys.exit(1)
