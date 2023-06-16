@@ -6,7 +6,6 @@ import os
 import pathlib
 import subprocess
 import sys
-
 import requests
 
 logging.basicConfig(level=os.environ.get("PYTHON_LOG_LEVEL", "INFO"))
