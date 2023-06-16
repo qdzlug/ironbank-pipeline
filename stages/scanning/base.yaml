@@ -21,7 +21,6 @@ anchore-scan:
   image: "registry1.dso.mil/ironbank/anchore/enterprise/enterprise:4.4.1"
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/scanning/anchore/anchore_scan.py"'
-    - "sleep inf"
   artifacts:
     paths:
       - "${ANCHORE_SCANS}/"
