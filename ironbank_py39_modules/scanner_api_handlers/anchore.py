@@ -229,6 +229,8 @@ class Anchore:
 
         try:
             print(f"{' '.join(add_cmd[0:3])} {' '.join(add_cmd[5:])}")
+            current_level = logging.getLogger().getEffectiveLevel()
+            print(f"Current logging level: {current_level}")
             logging.info(f"{' '.join(add_cmd[0:3])} {' '.join(add_cmd[5:])}")
             image_add = subprocess.run(
                 add_cmd,
