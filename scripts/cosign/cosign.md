@@ -163,7 +163,7 @@ The attestations for any given image in Registry1 contain a body of evidence inc
 #!/bin/bash
 image=registry1.dso.mil/ironbank/redhat/ubi/ubi8:8.6
 
-declare -a predicate_types=("https://vat.dso.mil/api/p1/predicate/beta1" "https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md" "https://spdx.dev/Document" "https://cyclonedx.org/schema")
+declare -a predicate_types=("https://vat.dso.mil/api/p1/predicate/beta1" "https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md" "https://spdx.dev/Document" "https://cyclonedx.org/bom")
 
 for predicate_type in "${predicate_types[@]}"; do
   echo $predicate_type
@@ -177,7 +177,7 @@ for predicate_type in "${predicate_types[@]}"; do
     'https://spdx.dev/Document')
       filename=spdx.json
       ;;
-    'https://cyclonedx.org/schema')
+    'https://cyclonedx.org/bom')
       filename=cyclonedx.json
       ;;
   esac
