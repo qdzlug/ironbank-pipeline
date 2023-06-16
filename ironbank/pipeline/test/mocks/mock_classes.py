@@ -16,7 +16,6 @@ from ironbank.pipeline.apis import VatAPI
 from ironbank.pipeline.container_tools.skopeo import Skopeo
 from ironbank.pipeline.harbor import (
     HarborRobot,
-    HarborRobotsApi,
     HarborRobotPermissions,
 )
 from ironbank.pipeline.hardening_manifest import HardeningManifest
@@ -530,7 +529,10 @@ class MockHarborRobot(HarborRobot):
     permissions: list["HarborRobotPermissions"] = field(default_factory=lambda: [])
 
 
-class MockHarborRobotsApi(HarborRobotsApi):
+# this isn't currently used, but will be needed for refactor changes in !1101
+# will need to inherit from HarborRobotsApi once available
+@dataclass
+class MockHarborRobotsApi:
     robots: list[MockHarborRobot] = field(default_factory=lambda: [])
 
     def get_robot_accounts(self):
