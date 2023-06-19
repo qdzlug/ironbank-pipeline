@@ -66,7 +66,7 @@ class DebianPackage(ParsedURLPackage):
             return None
 
         match = re.match(
-            r"(?:^|.+/)(?P<name>[^/0-9]*[^/0-9_-])(?:-|_)?(?P<version>\d+.*)(?:.deb)*.deb$",
+            r"(?:^|.+/)(?P<name>[^/_]+)(?:_)?(?P<version>\d+.*)(?:.deb)*.deb$",
             url,
         )
 
