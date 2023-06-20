@@ -18,7 +18,7 @@ from trufflehog import create_trufflehog_config, get_history_cmd  # noqa E042
 log = logger.setup("test_trufflehog")
 
 mock_path = Path(
-    Path(__file__).absolute().parent.parent.parent.parent,
+    Path(__file__).absolute().parents[3],
     "ironbank/pipeline/test/mocks",
 )
 
