@@ -25,9 +25,7 @@ def main() -> None:
 
     image = os.environ["IMAGE_TO_SCAN"]
 
-    print(f"Adding Image {image}")
     digest = anchore_scan.image_add(image)
-    print(f"Waiting for image {image} to be Scanned")
     anchore_scan.image_wait(digest=digest)
     anchore_scan.get_vulns(digest=digest, image=image, artifacts_path=artifacts_path)
     anchore_scan.get_compliance(
