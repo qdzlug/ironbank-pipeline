@@ -37,6 +37,10 @@ def compare_digests(image: Image) -> None:
 
     digest = os.environ["IMAGE_PODMAN_SHA"].split(":")[-1]
     manifest = hashlib.sha256(remote_inspect_raw.encode())
+    log.info("digest")
+    log.info(digest)
+    log.info("manifest")
+    log.info(manifest)
 
     if digest == manifest.hexdigest():
         log.info("Digests match")
@@ -115,7 +119,7 @@ def generate_attestation_predicates(predicates):
     """Generates a list of predicates to be attached to the image as Cosign
     Attestations."""
     hm_resources = [
-        Path(os.environ["CI_PROJECT_DIR"], "LICENSE"),
+        # Path(os.environ["CI_PROJECT_DIR"], "LICENSE"),
         Path(os.environ["CI_PROJECT_DIR"], "README.md"),
         Path(os.environ["ACCESS_LOG_DIR"], "access_log"),
     ]
