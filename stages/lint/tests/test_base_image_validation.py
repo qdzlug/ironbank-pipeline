@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 import asyncio
-import os
 import shutil
 import sys
 from unittest.mock import patch
+from pathlib import Path
 
 import pytest
 
@@ -17,7 +17,7 @@ from ironbank.pipeline.test.mocks.mock_classes import (
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import base_image_validation  # noqa E402
 
 log = logger.setup("test_base_image_validation")
