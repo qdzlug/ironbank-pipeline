@@ -7,7 +7,6 @@ run_shellcheck() {
   echo "*******************"
   echo "Running shellcheck"
   echo "*******************"
-  set -o pipefail
   shopt -s nullglob
   files=()
   while IFS='' read -r -d '' line; do
