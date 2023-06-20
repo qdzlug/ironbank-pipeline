@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+set -o pipefail
 
 run_shellcheck() {
   echo "*******************"
@@ -99,7 +100,7 @@ run_pylint() {
   echo "Running pylint..."
   echo "*****************"
   mkdir ./pylint
-  pylint stages/ ironbank/ | tee ./pylint/pylint.log || pylint-exit $?
+  pylint stages/ ironbank/ | tee ./pylint/pylint.log
   PYLINT_SCORE=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' ./pylint/pylint.log)
   anybadge --label=Pylint --file=pylint/pylint.svg --value="${PYLINT_SCORE}" 3=red 6=orange 9=yellow 10=green
   echo "Pylint score is '${PYLINT_SCORE}'"
