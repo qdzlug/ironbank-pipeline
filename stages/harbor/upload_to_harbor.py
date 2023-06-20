@@ -58,13 +58,15 @@ def promote_tags(
     """Promote image from staging project to production project, tagging it
     according the the tags defined in tags.txt."""
 
+    log.info("HERE!!!! ")
     for tag in tags:
         production_image = production_image.from_image(tag=tag)
-
-        log.info(f"Copy from staging to {production_image}")
+        log.info("HERE!!!! ")
+        log.info(production_image)
+        log.info("Copy from staging to {production_image}")
         Skopeo.copy(
-            staging_image,
-            production_image,
+            src=staging_image,
+            dest=production_image,
             src_authfile=Path(os.environ["DOCKER_AUTH_FILE_PRE_PUBLISH"]),
             dest_authfile=Path(os.environ["DOCKER_AUTH_FILE_PUBLISH"]),
             log_cmd=True,

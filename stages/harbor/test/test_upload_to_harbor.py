@@ -42,6 +42,7 @@ from ironbank.pipeline.project import DsopProject
 from unittest.mock import patch, mock_open, Mock
 from stages.harbor.upload_to_harbor import compare_digests
 import pytest
+import logging
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import upload_to_harbor
@@ -226,19 +227,51 @@ def test_compare_digests_nonmatch(monkeypatch, caplog):
     # assert digest["digest"] == "test_digest"
 
 
-# @patch("upload_to_harbor.Image", new=MockImage)
-# @patch("upload_to_harbor.Skopeo", new=MockSkopeo)
-# @patch("upload_to_harbor.Path", new=MockPath)
-# def test_promote_tags(monkeypatch):
-#     # set the env
-#     monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_pre_publish_file")
-#     monkeypatch.setenv("DOCKER_AUTH_FILE_PUBLISH", "mock_file")
+@patch("upload_to_harbor.Image", new=MockImage)
+@patch("upload_to_harbor.Skopeo", new=MockSkopeo)
+@patch("upload_to_harbor.Path", new=MockPath)
+def test_promote_tags(monkeypatch, caplog):
+    # set the env
+    monkeypatch.setenv(
+        "DOCKER_AUTH_FILE_PRE_PUBLISH",
+        "file_1, file_2",
+    )
+    monkeypatch.setenv(
+        "DOCKER_AUTH_FILE_PUBLISH",
+        "file_1, file_2",
+    )
 
-#     # set the attributes
-#     monkeypatch.setattr(
-#         MockSkopeo, "copy", lambda *args, **kwargs: {"Digest": "1234qwert"}
-#     )
-#     monkeypatch.setattr(upload_to_harbor, "production_image", lambda a: [])
+    # set the attributes
+    monkeypatch.setattr(upload_to_harbor, "promote_tags", lambda a, b, c: True)
+    monkeypatch.setattr(
+        MockSkopeo, "copy", lambda *args, **kwargs: ("file_1", "file_2")
+    )
+    # monkeypatch.setattr(MockPath, "exists", lambda: True)
+
+    staging_image = Image(
+        registry="REGISTRY_PRE_PUBLISH_URL",
+        name="IMAGE_NAME",
+        digest="IMAGE_PODMAN_SHA",
+        transport="docker://",
+        tag="TAG_1",
+    )
+    production_image = Image(
+        registry="REGISTRY_PRE_PUBLISH_URL",
+        name="IMAGE_NAME_2",
+        digest="IMAGE_PODMAN_SHA",
+        transport="docker://",
+        tag="TAG_2",
+    )
+
+    upload_to_harbor.promote_tags(
+        staging_image,
+        production_image,
+        ["TAG_1", "TAG_2"],
+    )
+    print(caplog.text)
+    log.info(caplog.text)
+    assert "Copy from staging to IMAGE_NAME" in caplog.text
+    assert "Copy from staging to IMAGE_NAME_2" in caplog.text
 
 
 # @patch("upload_to_harbor.Predicates", new=MockPredicates)
