@@ -19,7 +19,7 @@ import dockerfile_validation  # noqa E402
 log = logger.setup("test_dockerfile_validation")
 
 mock_path = Path(
-    Path(__file__).absolute().parent.parent.parent.parent,
+    Path(__file__).absolute().parents[3],
     "ironbank/pipeline/test/mocks",
 )
 
