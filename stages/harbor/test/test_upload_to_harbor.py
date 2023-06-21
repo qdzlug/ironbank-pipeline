@@ -28,6 +28,7 @@ from ironbank.pipeline.test.mocks.mock_classes import (
     MockPath,
     MockPopen,
     MockJson,
+    MockResponse
 )
 from ironbank.pipeline.utils.predicates import Predicates
 from ironbank.pipeline.image import Image
@@ -43,6 +44,8 @@ from unittest.mock import patch, mock_open, Mock
 from stages.harbor.upload_to_harbor import compare_digests
 import pytest
 import logging
+from ironbank.pipeline.utils.predicates import Predicates
+
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import upload_to_harbor
@@ -227,59 +230,54 @@ def test_compare_digests_nonmatch(monkeypatch, caplog):
     # assert digest["digest"] == "test_digest"
 
 
-@patch("upload_to_harbor.Image", new=MockImage)
-@patch("upload_to_harbor.Skopeo", new=MockSkopeo)
-@patch("upload_to_harbor.Path", new=MockPath)
-def test_promote_tags(monkeypatch, caplog):
-    # set the env
-    monkeypatch.setenv(
-        "DOCKER_AUTH_FILE_PRE_PUBLISH",
-        "file_1, file_2",
-    )
-    monkeypatch.setenv(
-        "DOCKER_AUTH_FILE_PUBLISH",
-        "file_1, file_2",
-    )
-
-    # set the attributes
-    monkeypatch.setattr(upload_to_harbor, "promote_tags", lambda a, b, c: True)
-    monkeypatch.setattr(
-        MockSkopeo, "copy", lambda *args, **kwargs: ("file_1", "file_2")
-    )
-    # monkeypatch.setattr(MockPath, "exists", lambda: True)
-
-    staging_image = Image(
-        registry="REGISTRY_PRE_PUBLISH_URL",
-        name="IMAGE_NAME",
-        digest="IMAGE_PODMAN_SHA",
-        transport="docker://",
-        tag="TAG_1",
-    )
-    production_image = Image(
-        registry="REGISTRY_PRE_PUBLISH_URL",
-        name="IMAGE_NAME_2",
-        digest="IMAGE_PODMAN_SHA",
-        transport="docker://",
-        tag="TAG_2",
-    )
-
-    upload_to_harbor.promote_tags(
-        staging_image,
-        production_image,
-        ["TAG_1", "TAG_2"],
-    )
-    print(caplog.text)
-    log.info(caplog.text)
-    assert "Copy from staging to IMAGE_NAME" in caplog.text
-    assert "Copy from staging to IMAGE_NAME_2" in caplog.text
-
-
-# @patch("upload_to_harbor.Predicates", new=MockPredicates)
-# @patch("stages.harbor.upload_to_harbor.json", new=MockJson)
+# @patch("upload_to_harbor.Image", new=MockImage)
+# @patch("upload_to_harbor.Skopeo", new=MockSkopeo)
 # @patch("upload_to_harbor.Path", new=MockPath)
-# def test_convert_artifacts_to_hardening_manifest(monkeypatch):
-#     monkeypatch.setenv("CI_PROJECT_DIR", "mock_dir")
-#     monkeypatch.setenv("CI_PROJECT_DIR", "mock_dir")
+# def test_promote_tags(monkeypatch, caplog):
+#     # set the env
+#     monkeypatch.setenv(
+#         "DOCKER_AUTH_FILE_PRE_PUBLISH",
+#         "file_1, file_2",
+#     )
+#     monkeypatch.setenv(
+#         "DOCKER_AUTH_FILE_PUBLISH",
+#         "file_1, file_2",
+#     )
+
+#     # set the attributes
+#     monkeypatch.setattr(upload_to_harbor, "promote_tags", lambda a, b, c: True)
+#     monkeypatch.setattr(
+#         MockSkopeo, "copy", lambda *args, **kwargs: ("file_1", "file_2")
+#     )
+#     # monkeypatch.setattr(MockPath, "exists", lambda: True)
+
+#     staging_image = Image(
+#         registry="REGISTRY_PRE_PUBLISH_URL",
+#         name="IMAGE_NAME",
+#         digest="IMAGE_PODMAN_SHA",
+#         transport="docker://",
+#         tag="TAG_1",
+#     )
+#     production_image = Image(
+#         registry="REGISTRY_PRE_PUBLISH_URL",
+#         name="IMAGE_NAME_2",
+#         digest="IMAGE_PODMAN_SHA",
+#         transport="docker://",
+#         tag="TAG_2",
+#     )
+
+#     upload_to_harbor.promote_tags(
+#         staging_image,
+#         production_image,
+#         ["TAG_1", "TAG_2"],
+#     )
+#     print(caplog.text)
+#     log.info(caplog.text)
+#     assert "Copy from staging to IMAGE_NAME" in caplog.text
+#     assert "Copy from staging to IMAGE_NAME_2" in caplog.text
+
+
+# def test_generate_attestation_predicates(monkeypatch):
 
 
 # @patch("upload_to_harbor.json", new=MockJson)
@@ -305,43 +303,63 @@ def test_promote_tags(monkeypatch, caplog):
 #     assert "Generated VAT response lineage file" in caplog.text
 
 
-# @patch("upload_to_harbor.json", new=MockJson)
+@patch("upload_to_harbor.json", new=MockJson)
+@patch("upload_to_harbor.Path", new=MockPath)
+def test_generate_attestation_predicates(monkeypatch, mock_responses):
+    mock_readme_path: str = "test_readme"
+    mock_license_path str = "test_license"
+    mock_access_log_path: str = "test_license"
+
+    monkeypatch.setenv("CI_PROJECT_DIR", "mock_dir")
+    monkeypatch.setenv("ACCESS_LOG_DIR", "mock_dir")
+    monkeypatch.setenv("SBOM_DIR", "mock_dir")
+
+    mock_result = ["LICENSE", "README.md", "access_log"]
+    monkeypatch.setattr(MockPath, "exists", lambda x: True)
+    monkeypatch.setattr(
+        os,
+        "listdir",
+        lambda path: mock_result if path == os.environ["CI_PROJECT_DIR"] else [],
+    )
+
+    monkeypatch.setattr(os, "listdir", lambda a: [])
+
+    monkeypatch.setattr(
+        upload_to_harbor,
+        "_convert_artifacts_to_hardening_manifest",
+        lambda a, b: None,
+    )
+
+    predicates = Predicates()
+    upload_to_harbor.generate_attestation_predicates(predicates)
+
+    # predicates = [
+    #     Path(os.environ["SBOM_DIR"], file)
+    #     for file in os.listdir(os.environ["SBOM_DIR"])
+    #     if file not in predicates.unattached_predicates
+    # ]
+
+    # predicates = upload_to_harbor._generate_vat_response_lineage_file(
+    #     predicates=Predicates
+    # )
+    assert predicates["CI_Project_DIR"] == "mock_dir"
+
+    monkeypatch.delenv("CI_PROJECT_DIR", "mock_dir")
+    monkeypatch.delenv("ACCESS_LOG_DIR", "mock_dir")
+    monkeypatch.delenv("SBOM_DIR", "mock_dir")
+
+
+# @patch("stages.harbor.upload_to_harbor.json", new=MockJson)
 # @patch("upload_to_harbor.Path", new=MockPath)
-# def test_generate_attestation_predicates(monkeypatch):
-#     monkeypatch.setenv("CI_PROJECT_DIR", "mock_dir")
-#     monkeypatch.setenv("ACCESS_LOG_DIR", "mock_dir")
-#     monkeypatch.setenv("SBOM_DIR", "mock_dir")
+# def test_convert_artifacts_to_hardening_manifest(monkeypatch):
+#     # set env
+#     monkeypatch.setenv("CI_PROJECT_DIR", "hardening_manifest.yaml")
 
-#     mock_result = ["LICENSE", "README.md", "access_log"]
-
-#     monkeypatch.setattr(
-#         os,
-#         "listdir",
-#         lambda path: mock_result if path == os.environ["CI_PROJECT_DIR"] else [],
-#     )
-
-#     monkeypatch.setattr(os, "listdir", lambda a: [])
-
-#     monkeypatch.setattr(
-#         upload_to_harbor,
-#         "_convert_artifacts_to_hardening_manifest",
-#         lambda a, b: None,
-#     )
-
+#     # set attributes
+#     # monkeypatch.setattr(upload_to_harbor, "safe_load", lambda a: None)
+#     monkeypatch.setattr(MockPath, "exists", lambda x: True)
 #     predicates = Predicates()
-#     upload_to_harbor.generate_attestation_predicates(predicates)
 
-#     predicates = [
-#         Path(os.environ["SBOM_DIR"], file)
-#         for file in os.listdir(os.environ["SBOM_DIR"])
-#         if file not in predicates.unattached_predicates
-#     ]
-
-#     predicates = upload_to_harbor._generate_vat_response_lineage_file(
-#         predicates=Predicates
+#     upload_to_harbor._convert_artifacts_to_hardening_manifest(
+#         predicates, MockPath("mock/path", {mock: "data"})
 #     )
-#     assert predicates["CI_Project_DIR"] == "mock_dir"
-
-#     monkeypatch.delenv("CI_PROJECT_DIR", "mock_dir")
-#     monkeypatch.delenv("ACCESS_LOG_DIR", "mock_dir")
-#     monkeypatch.delenv("SBOM_DIR", "mock_dir")
