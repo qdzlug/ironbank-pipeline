@@ -434,7 +434,7 @@ def test_reject_invalid_maintainers(monkeypatch, caplog):
 
 
 def test_create_env_var_artifacts(monkeypatch):
-    monkeypatch.setattrPath, "open", mock_open(read_data="data"))
+    monkeypatch.setattr(Path, "open", mock_open(read_data="data"))
     mock_hm = MockHardeningManifest()
     assert mock_hm.create_env_var_artifacts(Path("some_path")) is None
 
