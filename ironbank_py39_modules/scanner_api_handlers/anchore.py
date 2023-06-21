@@ -3,7 +3,7 @@
 import json
 import logging
 import os
-import pathlib
+from pathlib import Path
 import subprocess
 import sys
 import requests
@@ -94,7 +94,7 @@ class Anchore:
         logging.info(
             f"Anchore Enterprise Version: {version_json['service']['version']}"
         )
-        filename = pathlib.Path(artifacts_path, "anchore-version.txt")
+        filename = Path(artifacts_path, "anchore-version.txt")
         logging.debug(f"Writing to {filename}")
         with filename.open(mode="w") as f:
             json.dump(version_json["service"]["version"], f)
@@ -149,7 +149,7 @@ class Anchore:
         vuln_dict = self._get_anchore_api_json(url)
         vuln_dict["imageFullTag"] = image
 
-        filename = pathlib.Path(artifacts_path, "anchore_api_security_full.json")
+        filename = Path(artifacts_path, "anchore_api_security_full.json")
         logging.debug(f"Writing to {filename}")
         with filename.open(mode="w") as f:
             json.dump(vuln_dict, f)
@@ -160,7 +160,7 @@ class Anchore:
             vuln_dict["vulnerabilities"][i]["extra"] = extra.get("vuln_data", {})
 
         # Create json report called anchore_security.json
-        filename = pathlib.Path(artifacts_path, "anchore_security.json")
+        filename = Path(artifacts_path, "anchore_security.json")
         logging.debug(f"Writing to {filename}")
         with filename.open(mode="w") as f:
             json.dump(vuln_dict, f)
@@ -186,7 +186,7 @@ class Anchore:
         body_json = self._get_anchore_api_json(url)
 
         # Save the API response
-        filename = pathlib.Path(artifacts_path, "anchore_api_gates_full.json")
+        filename = Path(artifacts_path, "anchore_api_gates_full.json")
         logging.debug(f"Writing to {filename}")
         with filename.open(mode="w") as f:
             json.dump(body_json, f)
@@ -198,7 +198,7 @@ class Anchore:
         results_dict = {}
         results_dict[imageid] = results[imageid]
 
-        filename = pathlib.Path(artifacts_path, "anchore_gates.json")
+        filename = Path(artifacts_path, "anchore_gates.json")
         logging.debug(f"Writing to {filename}")
         with filename.open(mode="w") as f:
             json.dump(results_dict, f)
@@ -223,7 +223,7 @@ class Anchore:
             "--noautosubscribe",
         ]
 
-        if pathlib.Path("./Dockerfile").is_file():
+        if Path("./Dockerfile").is_file():
             add_cmd += ["--dockerfile", "./Dockerfile"]
 
         add_cmd.append(image)
@@ -318,7 +318,7 @@ class Anchore:
 
         cmd = ["syft", image, "--scope", "all-layers", "-o", f"{output_format}"]
 
-        sbom_dir = pathlib.Path(artifacts_path)
+        sbom_dir = Path(artifacts_path)
         sbom_dir.mkdir(parents=True, exist_ok=True)
         with (sbom_dir / f"sbom-{filename}.{file_type}").open("wb") as f:
             try:
