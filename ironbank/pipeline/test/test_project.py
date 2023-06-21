@@ -75,9 +75,7 @@ def test_validate_dockerfile(monkeypatch, caplog):
     assert "LABEL" not in caplog.text
 
     with pytest.raises(AssertionError):
-        monkeypatch.setattr(
-            Path, "open", mock_open(read_data="FROM a\nLABEL b\nRUN c")
-        )
+        monkeypatch.setattr(Path, "open", mock_open(read_data="FROM a\nLABEL b\nRUN c"))
         mock_project = MockProject(dockerfile_path=Path("."))
         mock_project.validate_dockerfile()
         assert "LABEL" in caplog.text
