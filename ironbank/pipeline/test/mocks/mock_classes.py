@@ -217,7 +217,7 @@ class MockPath(PosixPath):
     def write_text(self, mock_data, encoding=None, errors=None, newline=None):
         return ""
 
-    def read_text(self, encoding=None, *args, **kwargs): # pylint: disable=W1113
+    def read_text(self, encoding=None, *args, **kwargs):  # pylint: disable=W1113
         return self.mock_data
 
     def __eq__(self, path) -> bool:
