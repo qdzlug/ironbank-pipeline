@@ -20,9 +20,7 @@ class AbstractArtifact(ABC):
     dest_path: Path = None
 
     def __post_init__(self):
-        self.dest_path = self.dest_path or Path(
-            f"{os.environ.get('ARTIFACT_DIR')}"
-        )
+        self.dest_path = self.dest_path or Path(f"{os.environ.get('ARTIFACT_DIR')}")
         self.artifact_path = Path(self.dest_path, self.filename or self.tag)
 
     def delete_artifact(self):
