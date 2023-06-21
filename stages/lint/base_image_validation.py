@@ -20,6 +20,23 @@ log = logger.setup(name="lint.base_image_validation")
 
 
 async def main():
+    """This script is designed to perform validation on a base image specified
+    in a hardening manifest file.
+
+    The validation process includes inspecting the base image and verifying its signature. If these checks pass,
+    the script extracts the SHA of the base image and writes it to a JSON file.
+
+    This script expects to find the Docker authentication files and relevant environment variables properly set in
+    the running environment.
+
+    Functions:
+        main(): Performs the main functionality of the script. It creates a DsopProject object and a
+                HardeningManifest object, inspects the base image specified in the hardening manifest,
+                verifies the base image's signature, and writes the SHA of the base image to a JSON file.
+
+    Usage:
+        To run the script, navigate to its location and execute the command: python3 base_image_validation.py
+    """
     #
     # Hardening manifest is expected for all of the current repos that are being processed.
     # At the very least the hardening_manifest.yaml should be generated if it has not been
@@ -72,7 +89,9 @@ async def main():
 
         base_image_info = {"BASE_SHA": base_img_inspect["Digest"]}
         log.info("Dump SHA to file")
-        with Path(os.environ["ARTIFACT_DIR"], "base_image.json").open("w") as f:
+        with Path(os.environ["ARTIFACT_DIR"], "base_image.json").open(
+            "w", encoding="utf-8"
+        ) as f:
             json.dump(base_image_info, f)
 
 

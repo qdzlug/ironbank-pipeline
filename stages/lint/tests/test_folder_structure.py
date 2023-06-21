@@ -26,6 +26,6 @@ def test_folder_structure_main(monkeypatch, caplog, raise_):
 
     log.info("Test raise AssertionError")
     monkeypatch.setattr(DsopProject, "validate", lambda x: raise_(AssertionError))
-    with pytest.raises(SystemExit) as se:
+    with pytest.raises(SystemExit) as e:
         asyncio.run(folder_structure.main())
-    assert se.value.code == 1
+    assert e.value.code == 1

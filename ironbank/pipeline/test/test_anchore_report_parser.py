@@ -192,9 +192,9 @@ def test_get_truncated_url(caplog, mock_anchore_finding, mock_finding_data):
     assert mock_anchore_finding.url == prior_url
 
     mock_urls = [{"source": f"{i}", "url": f"{i}"} for i in range(50)]
-    expected_iterations = lambda x: "".join(  # noqa E731
-        [f"{i}:{i}\n" for i in range(x)]
-    )
+
+    def expected_iterations(iterations):
+        return "".join([f"{i}:{i}\n" for i in range(iterations)])
 
     log.info("Test url is a list and url will not be truncated")
     mock_anchore_finding_short_url = MockAnchoreCVEFinding(

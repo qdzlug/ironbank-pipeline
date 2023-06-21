@@ -77,15 +77,40 @@ def create_trufflehog_config(
     project_exclude_list = get_config(project_config_path) if config_variable else []
     config = {"exclude": default_exclude_list + project_exclude_list}
     outfile = Path(repo_dir, project_config_path)
-    with outfile.open(mode="w") as of:
-        yaml.safe_dump(config, of, indent=2, sort_keys=False)
-    return True if config_variable and project_config_path.is_file() else False
+    with outfile.open(mode="w", encoding="utf-8") as f:
+        yaml.safe_dump(config, f, indent=2, sort_keys=False)
+    return bool(config_variable and project_config_path.is_file())
 
 
 # reenable if/when we add requests to the trufflehog image
 # this is safe for now because we catch the exception directly
 # @subprocess_error_handler("Failed to run trufflehog")
 def main() -> None:  # pylint: disable=subprocess-decorator-missing
+    """Main function that runs the truffleHog secret scanning tool on a Git
+    repository. The function configures the truffleHog command, checks for an
+    existing trufflehog.yaml file, retrieves commit differences, and generates
+    a history command based on these differences. Then it creates a trufflehog
+    configuration by merging project-level and default configurations. The
+    truffleHog tool is then run with the configured command. The scanning
+    results are analyzed and handled differently based on the return code. If
+    secrets are found, the user is advised to remove the offending commits and
+    rotate the exposed secrets. If the scan fails for any other reason, an
+    error message is displayed.
+
+    Environment variables:
+        CI_PROJECT_DIR (str): The directory of the project in question.
+        PIPELINE_REPO_DIR (str): The directory of the pipeline repository.
+        CI_COMMIT_BRANCH (str): The branch on which the scan is performed.
+        CI_JOB_IMAGE (str): The docker image used for the job.
+        TRUFFLEHOG_CONFIG (str): The environment variable for trufflehog configuration.
+        TRUFFLEHOG_TARGET (str): The origin target for trufflehog.
+
+    Raises:
+        SystemExit: If any error occurs in the process, including if secrets are found or the scan fails, the function terminates the process with a non-zero status code.
+
+    Returns:
+        None
+    """
     repo_dir = os.environ["CI_PROJECT_DIR"]
     pipeline_repo_dir = os.environ.get(
         "PIPELINE_REPO_DIR",

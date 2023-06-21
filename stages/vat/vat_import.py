@@ -250,8 +250,11 @@ def get_twistlock_package_paths(twistlock_data: dict[str, Any]) -> dict:
         # Python/RPM/Go/etc package versions are in "packages"
         yield from twistlock_data.get("packages", [])
 
+    def keyfunc(key):
+        return key["name"], key["version"]
+
     # Sort and group by name and version
-    keyfunc = lambda x: (x["name"], x["version"])  # noqa E731
+    # keyfunc = lambda x: (x["name"], x["version"])  # noqa E731
 
     pkg_paths = {}
     sorted_pkgs = sorted(packages(), key=keyfunc)
@@ -276,26 +279,26 @@ def generate_twistlock_findings(twistlock_cve_path: Path) -> list[dict[str, Any]
 
     findings = []
     try:
-        for v in twistlock_data.get("vulnerabilities", []):
-            key = v["packageName"], v["packageVersion"]
+        for value in twistlock_data.get("vulnerabilities", []):
+            key = value["packageName"], value["packageVersion"]
             severity = (
                 "low"
-                if v.get("severity").lower() == "unimportant"
-                else v.get("severity").lower()
+                if value.get("severity").lower() == "unimportant"
+                else value.get("severity").lower()
             )
             for path in packages.get(key, [None]):
                 findings.append(
                     {
-                        "finding": v["id"],
+                        "finding": value["id"],
                         "severity": severity,
-                        "description": v.get("description"),
-                        "link": v.get("link"),
-                        "score": v.get("cvss"),
-                        "package": f"{v['packageName']}-{v['packageVersion']}",
+                        "description": value.get("description"),
+                        "link": value.get("link"),
+                        "score": value.get("cvss"),
+                        "package": f"{value['packageName']}-{value['packageVersion']}",
                         "packagePath": path,
                         "scanSource": "twistlock_cve",
-                        "reportDate": v.get("publishedDate"),
-                        "identifiers": [v["id"]],
+                        "reportDate": value.get("publishedDate"),
+                        "identifiers": [value["id"]],
                     }
                 )
     except KeyError as e:
@@ -309,6 +312,22 @@ def generate_twistlock_findings(twistlock_cve_path: Path) -> list[dict[str, Any]
 
 
 def create_api_call() -> dict:
+    """Creates the data for an API call based on various environmental
+    variables and findings.
+
+    This function gathers keyword, tag, label data from a predefined storage location.
+    Then it imports the findings from different scanning tools if their specific arguments
+    are provided. Finally, all this data is assembled into a dictionary.
+
+    Environment Variables:
+    - ARTIFACT_STORAGE: The storage location for keywords, tags, and label data.
+    - VAT_FINDING_FIELDS: (Optional) The fields to be included in the findings from VAT.
+                          Defaults to a predefined list of fields.
+    - IMAGE_TO_SCAN: The image to be scanned.
+
+    Returns:
+    - large_data: The dictionary containing all the assembled data.
+    """
     artifact_storage = os.environ["ARTIFACT_STORAGE"]
     keyword_list = source_values(f"{artifact_storage}/lint/keywords.txt", "keywords")
     tag_list = source_values(f"{artifact_storage}/lint/tags.txt", "tags")
@@ -387,6 +406,20 @@ def create_api_call() -> dict:
 def get_parent_vat_response(
     output_dir: str, hardening_manifest: HardeningManifest
 ) -> None:
+    """Pulls the parent VAT response for a particular image from a registry.
+
+    This function takes an output directory and a hardening manifest. It then sets up
+    the necessary docker configurations and uses Cosign to download the base image,
+    then it moves the VAT predicate file to the appropriate path.
+
+    Environment Variables:
+    - BASE_REGISTRY: The registry from where to pull the base image.
+    - DOCKER_AUTH_FILE_PULL: The path to the docker authentication file.
+
+    Arguments:
+    - output_dir: The directory where the output will be stored.
+    - hardening_manifest: The hardening manifest for the base image.
+    """
     base_image = Image(
         registry=os.environ["BASE_REGISTRY"],
         name=hardening_manifest.base_image_name,
@@ -412,6 +445,20 @@ def get_parent_vat_response(
 
 
 def main() -> None:
+    """Main function to run the application.
+
+    This function collects data for an API call and sends a POST request to the API
+    with the gathered data. If the base image name exists in the hardening manifest,
+    it also fetches the parent VAT response.
+
+    The function will exit the application and log an error if it encounters an
+    exception during the API call.
+
+    Environment Variables:
+    - LOGLEVEL: (Optional) The logging level. Defaults to 'INFO'.
+    - ARTIFACT_DIR: The directory where artifacts will be stored.
+    - VAT_TOKEN: The token used for authorization with the VAT API.
+    """
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
 
@@ -440,7 +487,9 @@ def main() -> None:
     headers["Content-Type"] = "application/json"
     headers["Authorization"] = f"Bearer {os.environ['VAT_TOKEN']}"
     try:
-        resp = requests.post(args.api_url, headers=headers, json=large_data)
+        resp = requests.post(
+            args.api_url, headers=headers, json=large_data, timeout=(30, 30)
+        )
         resp.raise_for_status()
         logging.debug("API Response:\n%s", resp.text)
         logging.debug("POST Response: %s", resp.status_code)
@@ -460,7 +509,7 @@ def main() -> None:
     except requests.exceptions.RequestException:
         logging.exception("Error submitting data to VAT scan import API")
         sys.exit(1)
-    except Exception:
+    except Exception:  # pylint: disable=W0718
         logging.exception("Exception: Unknown exception")
         sys.exit(1)
 

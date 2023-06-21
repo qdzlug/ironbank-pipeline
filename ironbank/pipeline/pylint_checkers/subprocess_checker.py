@@ -80,12 +80,17 @@ class SubprocessChecker(BaseChecker):
                     self.add_message("using-subprocess-with-shell", node=node)
 
     def set_expr_desc(self, node: nodes.Expr | nodes.Assign) -> None:
+        """Sets the expression description for a node if it has a function
+        attribute."""
         self._expr_desc = node.func.as_string() if getattr(node, "func", None) else ""
 
     def get_func_def(self) -> nodes.FunctionDef:
+        """Gets the current function definition from the function stack."""
         return self._function_stack[-1] if self._function_stack else None
 
     def get_args_from_node(self, node: nodes.NodeNG) -> nodes.NodeNG:
+        """Gets the arguments from the node if the expression description
+        matches subprocess commands."""
         args_: nodes.NodeNG | None = None
         if self._expr_desc in self.subproc_cmds:
             args_ = node.args[0] if getattr(node, "args", None) else None
@@ -96,15 +101,21 @@ class SubprocessChecker(BaseChecker):
     def get_assignments(
         self,
     ) -> Generator[tuple[nodes.AssignName, nodes.NodeNG], None, None]:
+        """Yields tuples of assignment name and value nodes from the current
+        function definition."""
         # get nodes from func which are either explict assigns or assigns with type hint
         for assign in (
             subnode
             for subnode in self.get_func_def().get_children()
-            if isinstance(subnode, nodes.Assign) or isinstance(subnode, nodes.AnnAssign)
+            if isinstance(subnode, (nodes.Assign, nodes.AnnAssign))
         ):
             sub_assign = assign.get_children()
+            try:
+                assign_name = next(sub_assign)
+                assign_val = next(sub_assign)
+            except StopIteration:
+                continue
             # assign name and val are astroid node types (i.e. AssignName and some astroid node.TYPE)
-            assign_name, assign_val = next(sub_assign), next(sub_assign)
             # deal with type hint
             # subscript can be a type hint or an assignment of a subscript (e.g. a slice of a list)
             if isinstance(assign_val, nodes.Subscript):
@@ -117,6 +128,8 @@ class SubprocessChecker(BaseChecker):
     def get_inferred_value(
         self, args_: nodes.NodeNG, node: nodes.NodeNG
     ) -> Generator[nodes.NodeNG, None, None]:
+        """Attempts to infer the values from arguments and yields those values
+        or their assignments."""
         try:
             # try to infer values from argument
             # this will be Uninferable unless the value is passed in directly
@@ -135,6 +148,8 @@ class SubprocessChecker(BaseChecker):
             self.add_message("kenn-goofed-on-arg-checks", node=node)
 
     def check_subproc_using_string_arg(self, node: nodes.NodeNG) -> None:
+        """Checks if a subprocess command is using a string argument instead of
+        a list and adds a message if it does."""
         args_: nodes.NodeNG | None = self.get_args_from_node(node)
         if args_ and not isinstance(args_, nodes.List):
             if isinstance(args_, nodes.Name):
@@ -142,7 +157,7 @@ class SubprocessChecker(BaseChecker):
                 inferred_value = next(inferred_val_gen)
                 # if inferred value found, skip next iteration
                 # else, get last assignment for args passed to subprocess
-                inferred_value = inferred_value or [val for val in inferred_val_gen][-1]
+                inferred_value = inferred_value or list(inferred_val_gen)[-1]
 
                 # skip adding error if Uninferable
                 # skip adding error if assignment is to function call (need fallback still)
@@ -158,6 +173,8 @@ class SubprocessChecker(BaseChecker):
                 self.add_message("use-list-for-subprocess-args", node=node)
 
     def check_subproc_popen_not_using_with(self, node: nodes.NodeNG) -> None:
+        """Checks if a subprocess.Popen command is being used outside of a
+        'with' statement and adds a message if it is."""
         if self._expr_desc == "subprocess.Popen":
             if not getattr(node, "parent", None) or not isinstance(
                 node.parent, nodes.With

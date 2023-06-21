@@ -1,9 +1,12 @@
 #!/bin/bash
 
 set -e
+set -o pipefail
 
 run_shellcheck() {
-  set -o pipefail
+  echo "*******************"
+  echo "Running shellcheck"
+  echo "*******************"
   shopt -s nullglob
   files=()
   while IFS='' read -r -d '' line; do
@@ -23,92 +26,116 @@ run_shellcheck() {
     echo "# $file"
     yq -r '.[] | objects | .before_script, .script, .after_script | select(. != null) | join("\n")' "$file" | shellcheck --exclude=SC2153,SC2164 --format=gcc -s bash -
   done < <(find . \( -name '*.yaml' -o -name '*.yml' ! -path './scripts/analysis/*' \) -print0)
+  echo -e "\n"
 }
 
 run_black() {
+  echo "*********************"
   echo "Running black..."
+  echo "*********************"
   if [ "$1" == "format_in_place" ]; then
     black -t py311 -- .
   else
     black --check --diff --color -t py311 .
   fi
+  echo -e "\n"
 }
 
 run_docformatter() {
+  echo "*********************"
   echo "Running docformatter..."
+  echo "*********************"
   if [ "$1" == "format_in_place" ]; then
     docformatter --in-place -r stages ironbank
   else
     docformatter --check --diff -r stages ironbank
   fi
+  echo -e "\n"
 }
 
 run_autoflake() {
+  echo "*********************"
   echo "Running autoflake..."
+  echo "*********************"
   if [ "$1" == "format_in_place" ]; then
     autoflake --in-place --remove-unused-variables --remove-all-unused-imports --remove-duplicate-keys --recursive .
   else
     autoflake --check-diff --quiet --recursive .
   fi
+  echo -e "\n"
 }
 
 run_radon() {
-  tempfile=$(mktemp)
-  python3 -m radon cc ironbank/ stages/ -e "*test_*.py" -n "D" | tee "$tempfile"
-  if [[ -s "$tempfile" ]]; then
-    echo "Compexity greater than 'D' found."
-    rm "$tempfile"
-    exit 1
+  echo "*****************"
+  echo "Running radon"
+  echo "*****************"
+  output=$(python3 -m radon cc -e "*test_*.py" -n "D" ironbank/ stages/)
+  if [[ -z "$output" ]]; then
+    echo "radon found no problems"
   else
-    echo "All files passed complexity requirement."
-    rm "$tempfile"
+    echo "$output"
+    echo -e "\n"
+    exit 1
   fi
-}
-
-# Function to run pylama
-run_pylama() {
-  echo "Running pylama..."
-  pylama
+  echo -e "\n"
 }
 
 # Function to run prettier
 run_prettier() {
+  echo "*********************"
   echo "Running prettier..."
+  echo "*********************"
   if [ "$1" == "format_in_place" ]; then
     npx prettier --write .
   else
     npx prettier -c .
   fi
+  echo -e "\n"
 }
 
 # Function to run pylint
 run_pylint() {
+  python3 -m pip install . --quiet
+  echo "*****************"
   echo "Running pylint..."
+  echo "*****************"
   mkdir ./pylint
-  pylint stages/ ironbank/ | tee ./pylint/pylint.log || pylint-exit $?
+  pylint stages/ ironbank/ | tee ./pylint/pylint.log
   PYLINT_SCORE=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' ./pylint/pylint.log)
   anybadge --label=Pylint --file=pylint/pylint.svg --value="${PYLINT_SCORE}" 3=red 6=orange 9=yellow 10=green
   echo "Pylint score is '${PYLINT_SCORE}'"
+  echo -e "\n"
+  echo "Running pylint with tests and mocks"
+  pylint stages/ ironbank/ --rcfile=.pylinttestrc | tee ./pylint/pylinttests.log || true
+  echo -e "\n"
 }
 
 run_shfmt() {
+  echo "*****************"
   echo "Running shfmt..."
+  echo "*****************"
   if [ "$1" == "format_in_place" ]; then
     shfmt -w .
   else
     shfmt -d .
   fi
+  echo -e "\n"
 }
 
 run_unit_tests() {
-  echo "Running unit testing..."
-  python3 -m pip install .
+  echo "********************"
+  echo "Running unit tests"
+  echo "********************"
   python3 -m pytest -m "not slow"
+  echo -e "\n"
 }
 
 run_check_secrets() {
+  echo "*********************"
   echo "running check secrets"
-  docker run -it --entrypoint "/proj/code_checker.sh" --rm -v "$(pwd):/proj" "registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6 run_trufflehog"
+  echo "*********************"
+  docker run -it --entrypoint /proj/code_checker.sh --rm -v $(pwd):/proj registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6 run_trufflehog
+  echo -e "\n"
 }
 
 run_trufflehog() {
@@ -122,19 +149,21 @@ run_trufflehog() {
 }
 
 run_isort() {
+  echo "*********************"
   echo "Running isort..."
+  echo "*********************"
   if [ "$1" == "format_in_place" ]; then
     isort **/*.py -v --overwrite-in-place
   else
     isort **/*.py --check-only --diff
   fi
+  echo -e "\n"
 }
 
 lint_all() {
   rm -rf pylint
   run_pylint
   run_shellcheck
-  run_pylama
   run_radon
 }
 

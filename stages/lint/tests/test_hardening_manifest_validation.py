@@ -34,26 +34,26 @@ def test_hardening_manifest_validation_main(monkeypatch, caplog):
     monkeypatch.setattr(
         MockHardeningManifest, "invalid_image_sources", "bad_image_source"
     )
-    with pytest.raises(SystemExit) as se:
+    with pytest.raises(SystemExit) as e:
         asyncio.run(hardening_manifest_validation.main())
-    assert se.value.code == 100
+    assert e.value.code == 100
 
     log.info("Test invalid labels")
     monkeypatch.setattr(MockHardeningManifest, "invalid_labels", "bad_label")
-    with pytest.raises(SystemExit) as se:
+    with pytest.raises(SystemExit) as e:
         asyncio.run(hardening_manifest_validation.main())
-    assert se.value.code == 1
+    assert e.value.code == 1
 
     log.info("Test invalid maintainers")
     monkeypatch.setattr(MockHardeningManifest, "invalid_maintainers", "bad_maintainer")
-    with pytest.raises(SystemExit) as se:
+    with pytest.raises(SystemExit) as e:
         asyncio.run(hardening_manifest_validation.main())
-    assert se.value.code == 1
+    assert e.value.code == 1
 
     log.info("Test invalid member advocates")
     monkeypatch.setattr(
         MockHardeningManifest, "invalid_partner_advocates", "bad_partner_advocates"
     )
-    with pytest.raises(SystemExit) as se:
+    with pytest.raises(SystemExit) as e:
         asyncio.run(hardening_manifest_validation.main())
-    assert se.value.code == 1
+    assert e.value.code == 1

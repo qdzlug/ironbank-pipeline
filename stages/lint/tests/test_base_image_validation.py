@@ -63,9 +63,9 @@ def test_base_image_validation_main(monkeypatch, caplog, raise_):
     monkeypatch.setattr(
         base_image_validation.Cosign, "verify", lambda *args, **kwargs: False
     )
-    with pytest.raises(SystemExit) as se:
+    with pytest.raises(SystemExit) as e:
         asyncio.run(base_image_validation.main())
-    assert se.value.code == 1
+    assert e.value.code == 1
 
     log.info("Test base image validation throws exception")
     monkeypatch.setattr(
@@ -74,6 +74,6 @@ def test_base_image_validation_main(monkeypatch, caplog, raise_):
     monkeypatch.setattr(
         MockSkopeo, "inspect", lambda *args, **kwargs: raise_(GenericSubprocessError)
     )
-    with pytest.raises(SystemExit) as se:
+    with pytest.raises(SystemExit) as e:
         asyncio.run(base_image_validation.main())
-    assert se.value.code == 1
+    assert e.value.code == 1

@@ -13,15 +13,46 @@ log = logger.setup(name="skopeo")
 
 
 class CopyException(Exception):
-    pass
+    """Copy Exception."""
 
 
 @dataclass
 class Skopeo(ContainerTool):
+    """A class used to perform operations using the Cosign tool, which is used
+    to sign and verify container images.
+
+    This class inherits from the ContainerTool base class and provides methods to sign, attest and verify images.
+
+    Attributes
+    ----------
+    log : Logger object
+        Logging object for this class.
+    cosign_cert : str
+        Path to the Cosign certificate.
+    kms_key_arn : str
+        ARN of the AWS KMS key.
+    aws_access_key_id : str
+        AWS access key ID for authentication.
+    aws_secret_access_key : str
+        AWS secret access key for authentication.
+    aws_region : str
+        AWS region to use. Defaults to 'us-gov-west-1'.
+    """
+
     @subprocess_error_handler(logging_message="Skopeo.inspect failed")
     def inspect(
         self, image: Image | ImageFile, raw: bool = False, log_cmd: bool = False
     ) -> dict:
+        """Inspects an image using 'skopeo inspect'.
+
+        Args:
+            image (Image | ImageFile): Image to inspect.
+            raw (bool, optional): If True, return the raw manifest. Default is False.
+            log_cmd (bool, optional): If True, log the command. Default is False.
+
+        Returns:
+            dict: Image inspection result. If 'raw' is True, returns raw manifest as a string.
+        """
         # use tag by default, else use digest
         cmd = [
             "skopeo",
@@ -59,11 +90,35 @@ class Skopeo(ContainerTool):
         src_authfile: Path = None,
         dest_authfile: Path = None,
         remove_signatures: bool = False,
-        additional_tags: str | list[str] = [],
+        additional_tags: str | list[str] = None,
         src_creds: str = None,
         dest_creds: str = None,
         log_cmd: bool = False,
     ) -> None:
+        """Copies an image from a source to a destination using the Skopeo
+        utility.
+
+        Parameters:
+        src: Source image or file.
+        dest: Destination image or file.
+        digestfile: Path to the digest file.
+        src_authfile: Path to the auth file for the source.
+        dest_authfile: Path to the auth file for the destination.
+        remove_signatures: Whether to remove signatures from the image.
+        additional_tags: Additional tags for the image, can be a string or list of strings.
+        src_creds: Credentials for the source.
+        dest_creds: Credentials for the destination.
+        log_cmd: Whether to log the command.
+
+        Raises:
+        CopyException: If source or destination, or their transports are missing.
+
+        Returns:
+        The standard output and error output from the Skopeo copy command.
+        """
+
+        if additional_tags is None:
+            additional_tags = []
         if not src or not dest:
             # TODO: Figure out why it isn't logging
             raise CopyException(
