@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import json
-import pathlib
 import subprocess
 import sys
 from pathlib import Path
@@ -168,7 +167,7 @@ def test_get_version(monkeypatch, caplog, anchore_object):
         "_get_anchore_api_json",
         lambda *args, **kwargs: {"service": {"version": "4.0.2"}},
     )
-    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data="data"))
+    monkeypatch.setattr(Path, "open", mock_open(read_data="data"))
 
     log.info("Test successfully gather version info")
     anchore_object.get_version("./test-artifacts")
@@ -221,7 +220,7 @@ def test_get_vulns(
         # using the or to allow the append to execute and then return the full mock data
         lambda self, url: urls.append(url) or full_mock_vulnerability_resp,
     )
-    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data="data"))
+    monkeypatch.setattr(Path, "open", mock_open(read_data="data"))
     monkeypatch.setattr(json, "dump", lambda x, y: None)
     monkeypatch.setattr(
         Anchore, "_get_extra_vuln_data", lambda self, x: extra_data_vulnerability_resp
@@ -255,7 +254,7 @@ def test_get_compliance(monkeypatch, mock_compliance_data_resp, anchore_object):
         "_get_anchore_api_json",
         lambda self, url: urls.append(url) or mock_compliance_data_resp,
     )
-    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data="data"))
+    monkeypatch.setattr(Path, "open", mock_open(read_data="data"))
     results_data = []
     monkeypatch.setattr(json, "dump", lambda x, y: results_data.append(x))
     mock_digest = list(mock_compliance_data_resp[0].keys())[0]
@@ -289,7 +288,7 @@ def test_get_compliance(monkeypatch, mock_compliance_data_resp, anchore_object):
 
 
 def test_image_add(monkeypatch, caplog, mock_completed_process, anchore_object, raise_):
-    monkeypatch.setattr(pathlib.Path, "is_file", lambda _: True)
+    monkeypatch.setattr(Path, "is_file", lambda _: True)
     mock_image = "image.dso.mil/imagename/tag"
     mock_digest = "sha256-12345678910"
     log.info("Test subprocess call returns 0 on successful image add")
@@ -369,7 +368,7 @@ def test_image_wait(monkeypatch, caplog, anchore_object, raise_):
     assert mock_failed_proc.stderr.read() in caplog.text
 
 
-@patch("pathlib.Path", new=MockPath)
+@patch("Path", new=MockPath)
 def test_generate_sbom(monkeypatch, caplog, anchore_object, raise_):
     log.info("Test write sbom to default filename")
     monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: None)
