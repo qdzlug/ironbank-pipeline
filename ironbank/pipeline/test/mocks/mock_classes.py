@@ -226,9 +226,19 @@ class MockPath(PosixPath):
     def __repr__(self):
         return self.path
 
+    def stat(self):
+        return MockStat()
+
     # overload div (/)
     def __truediv__(self, other):
         return MockPath(self, other)
+
+
+@dataclass
+class MockStat:
+    @property
+    def st_size(self) -> int:
+        return 1
 
 
 @dataclass

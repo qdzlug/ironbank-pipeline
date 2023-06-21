@@ -120,11 +120,20 @@ def _generate_vat_response_lineage_file():
 def generate_attestation_predicates(predicates):
     """Generates a list of predicates to be attached to the image as Cosign
     Attestations."""
+    log.info(predicates)
     hm_resources = [
-        # Path(os.environ["CI_PROJECT_DIR"], "LICENSE"),
+        Path(os.environ["CI_PROJECT_DIR"], "LICENSE"),
         Path(os.environ["CI_PROJECT_DIR"], "README.md"),
         Path(os.environ["ACCESS_LOG_DIR"], "access_log"),
     ]
+
+    # Predicates(types={'sbom-cyclonedx-json.json': 'cyclonedx',
+    # 'sbom-spdx.xml': 'spdx', 'sbom-spdx-json.json': 'spdxjson',
+    # 'sbom-syft-json.json': 'https://github.com/anchore/syft#output-formats',
+    # 'vat_response_lineage.json': 'https://vat.dso.mil/api/p1/predicate/beta1',
+    # 'hardening_manifest.json':
+    # 'https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md'},
+    # unattached_predicates=['sbom-spdx-tag-value.txt', 'sbom-cyclonedx.xml'])
 
     # Convert non-empty artifacts to hardening manifest
     _convert_artifacts_to_hardening_manifest(

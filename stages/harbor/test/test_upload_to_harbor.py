@@ -28,7 +28,7 @@ from ironbank.pipeline.test.mocks.mock_classes import (
     MockPath,
     MockPopen,
     MockJson,
-    MockResponse
+    MockResponse,
 )
 from ironbank.pipeline.utils.predicates import Predicates
 from ironbank.pipeline.image import Image
@@ -305,21 +305,26 @@ def test_compare_digests_nonmatch(monkeypatch, caplog):
 
 @patch("upload_to_harbor.json", new=MockJson)
 @patch("upload_to_harbor.Path", new=MockPath)
-def test_generate_attestation_predicates(monkeypatch, mock_responses):
-    mock_readme_path: str = "test_readme"
-    mock_license_path str = "test_license"
-    mock_access_log_path: str = "test_license"
-
+def test_generate_attestation_predicates(monkeypatch):
     monkeypatch.setenv("CI_PROJECT_DIR", "mock_dir")
     monkeypatch.setenv("ACCESS_LOG_DIR", "mock_dir")
     monkeypatch.setenv("SBOM_DIR", "mock_dir")
 
-    mock_result = ["LICENSE", "README.md", "access_log"]
     monkeypatch.setattr(MockPath, "exists", lambda x: True)
+    ci_project_dir_files = ["file1.txt", "file2.txt"]
     monkeypatch.setattr(
         os,
         "listdir",
-        lambda path: mock_result if path == os.environ["CI_PROJECT_DIR"] else [],
+        lambda path: ci_project_dir_files
+        if path == os.environ["CI_PROJECT_DIR"]
+        else [],
+    )
+
+    sbom_dir_files = ["sbom_file1.txt", "sbom_file2.txt"]
+    monkeypatch.setattr(
+        os,
+        "listdir",
+        lambda path: sbom_dir_files if path == os.environ["SBOM_DIR"] else [],
     )
 
     monkeypatch.setattr(os, "listdir", lambda a: [])
@@ -329,9 +334,16 @@ def test_generate_attestation_predicates(monkeypatch, mock_responses):
         "_convert_artifacts_to_hardening_manifest",
         lambda a, b: None,
     )
+    monkeypatch.setattr(
+        upload_to_harbor,
+        "_generate_vat_response_lineage_file",
+        lambda: None,
+    )
 
     predicates = Predicates()
-    upload_to_harbor.generate_attestation_predicates(predicates)
+    attestation_predicates = upload_to_harbor.generate_attestation_predicates(
+        predicates
+    )
 
     # predicates = [
     #     Path(os.environ["SBOM_DIR"], file)
@@ -342,7 +354,10 @@ def test_generate_attestation_predicates(monkeypatch, mock_responses):
     # predicates = upload_to_harbor._generate_vat_response_lineage_file(
     #     predicates=Predicates
     # )
-    assert predicates["CI_Project_DIR"] == "mock_dir"
+
+    log.info(predicates)
+
+    assert attestation_predicates == [mock_dir]
 
     monkeypatch.delenv("CI_PROJECT_DIR", "mock_dir")
     monkeypatch.delenv("ACCESS_LOG_DIR", "mock_dir")
