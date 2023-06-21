@@ -95,6 +95,7 @@ run_prettier() {
 
 # Function to run pylint
 run_pylint() {
+  python3 -m pip install .
   echo "*****************"
   echo "Running pylint..."
   echo "*****************"
