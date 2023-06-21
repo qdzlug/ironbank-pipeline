@@ -50,20 +50,29 @@ class Image:
             f"{self.registry}/{self.name}" if self.registry else self.name,
         )
 
-    def from_image(self, **kwargs):
+    def _get_init_args(self, **kwargs: str) -> dict:
+        potential_args = [
+            "registry",
+            "name",
+            "digest",
+            "tag",
+            "url",
+            "transport",
+        ]
+
+        init_args = {}
+
+
+        for arg in potential_args:
+            # check if key was passed, using "or" instead of ternary would prevent intentionally setting values to falsey things
+            init_args[arg] = kwargs[arg] if arg in kwargs else  getattr(self, arg)
+        return init_args
+
+    def from_image(self, **kwargs: str) -> object:
         # prioritize passed args
         # TODO: Should work with both self for instance and passed in image
-        passed_keys = list(kwargs.keys())
-
-        return Image(
-            registry=kwargs["registry"] if "registry" in passed_keys else self.registry,
-            name=kwargs["name"] if "name" in passed_keys else self.name,
-            digest=kwargs["digest"] if "digest" in passed_keys else self.digest,
-            tag=kwargs["tag"] if "tag" in passed_keys else self.tag,
-            url=kwargs["url"] if "url" in passed_keys else self.url,
-            transport=kwargs["transport"]
-            if "transport" in passed_keys
-            else self.transport,
+        return type(self)(
+            **self._get_init_args(**kwargs)
         )
 
     def tag_str(self):

@@ -82,7 +82,7 @@ class Cosign(ContainerTool):
             },
         )
 
-    @subprocess_error_handler(logging_message="Cosign.attest failed")
+    # @subprocess_error_handler(logging_message="Cosign.attest failed")
     def attest(
         self,
         image: Image | ImageFile,
@@ -120,7 +120,6 @@ class Cosign(ContainerTool):
             self.log.info(cmd)
         subprocess.run(
             args=cmd,
-            capture_output=True,
             check=True,
             encoding="utf-8",
             env={
