@@ -2,7 +2,6 @@
 
 set -e
 
-
 run_shellcheck() {
   set -o pipefail
   echo "*******************"
