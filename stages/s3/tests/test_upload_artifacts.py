@@ -3,6 +3,7 @@ import subprocess
 import sys
 from logging import Logger
 from unittest.mock import MagicMock, patch
+from pathlib import Path
 
 import pytest
 import requests
@@ -16,8 +17,8 @@ from ironbank.pipeline.test.mocks.mock_classes import (
 from ironbank.pipeline.utils import logger, s3upload
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import upload_artifacts
+sys.path.append(Path(__file__).absolute().parents[1].as_posix())
+import upload_artifacts  # noqa E402
 
 log: Logger = logger.setup("test_upload_artifacts")
 

@@ -2,7 +2,6 @@
 
 import csv
 import json
-import os
 import sys
 from dataclasses import dataclass
 from io import TextIOWrapper
@@ -23,7 +22,7 @@ from ironbank.pipeline.scan_report_parsers.oscap import (
 from ironbank.pipeline.scan_report_parsers.report_parser import ReportParser
 from ironbank.pipeline.utils import logger
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import pipeline_csv_gen  # noqa E402
 
 log = logger.setup("test_pipeline_csv_gen")

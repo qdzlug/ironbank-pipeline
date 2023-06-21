@@ -6,8 +6,9 @@ import os
 import pathlib
 import subprocess
 import sys
-
 import requests
+
+logging.basicConfig(level=os.environ.get("PYTHON_LOG_LEVEL", "INFO"))
 
 
 # TODO: move this module to the `ironbank/pipelines` dir once anchore/enterprise moves to 3.10
