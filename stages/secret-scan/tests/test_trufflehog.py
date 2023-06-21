@@ -14,7 +14,6 @@ import trufflehog  # noqa E402
 from trufflehog import get_commit_diff  # noqa E402
 from trufflehog import get_config  # noqa E402
 from trufflehog import create_trufflehog_config, get_history_cmd  # noqa E042
-from ironbank.pipeline.utils import logger
 
 
 log = logger.setup("test_trufflehog")
@@ -41,7 +40,8 @@ def test_projects(projects):
     for project in projects:
         repo_dir = Path("test_projects", project.split("/")[-1]).absolute().as_posix()
         # don't clone if already cloned
-        git.Repo.clone_from(project, repo_dir) if not Path(repo_dir).is_dir() else None
+        if not Path(repo_dir).is_dir():
+            git.Repo.clone_from(project, repo_dir)
         repo_dirs.append(repo_dir)
     return repo_dirs
 
