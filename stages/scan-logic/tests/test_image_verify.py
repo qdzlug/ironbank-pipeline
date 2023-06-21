@@ -1,8 +1,8 @@
 import json
-import os
 import pathlib
 import sys
 from unittest.mock import mock_open, patch
+from pathlib import Path
 
 import pytest
 
@@ -15,7 +15,7 @@ from ironbank.pipeline.test.mocks.mock_classes import (
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.exceptions import GenericSubprocessError
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import image_verify  # noqa E402
 
 log = logger.setup("test_image_verify")
