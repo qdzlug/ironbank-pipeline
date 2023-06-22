@@ -201,34 +201,6 @@ def test_compare_digests_nonmatch(monkeypatch, caplog):
 
     assert "Digests do not match" in caplog.text
 
-    # log.info("Test inspecting image in registry")
-    # monkeypatch.setattr(upload_to_harbor, "remote_inspect_raw", lambda a: None)
-
-    # upload_to_harbor.compare_digests(
-    #     image=Image(
-    #         registry="registry",
-    #         name="image_name",
-    #         digest="digest",
-    #         transport="docker://",
-    #     )
-    # )
-    # assert "dump SHA to file" in caplog.text
-
-    # monkeypatch.delenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_skopeo")
-
-    # monkeypatch.setattr(os, "image_podman_sha", lambda a: [])
-    # monkeypatch.setattr(upload_to_harbor, "hashlib.sha256", lambda a: [])
-
-    # digest = upload_to_harbor.hexdigest(
-    #     image=Image(
-    #         registry="registry",
-    #         name="image_name",
-    #         digest="digest",
-    #         transport="docker://",
-    #     )
-    # )
-    # assert digest["digest"] == "test_digest"
-
 
 # @patch("upload_to_harbor.Image", new=MockImage)
 # @patch("upload_to_harbor.Skopeo", new=MockSkopeo)
@@ -345,19 +317,18 @@ def test_generate_attestation_predicates(monkeypatch):
         predicates
     )
 
-    # predicates = [
-    #     Path(os.environ["SBOM_DIR"], file)
-    #     for file in os.listdir(os.environ["SBOM_DIR"])
-    #     if file not in predicates.unattached_predicates
-    # ]
+    _generate_vat_response_lineage_file = (
+        upload_to_harbor.generate_attestation_predicates(predicates)
+    )
 
     # predicates = upload_to_harbor._generate_vat_response_lineage_file(
     #     predicates=Predicates
     # )
 
-    log.info(predicates)
+    # log.info(predicates)
 
-    assert attestation_predicates == [mock_dir]
+    assert upload_to_harbor.attestation_predicates(pathlib.Path("some_path")) is None
+    # assert upload_to_harbor.attestation_predicates(pathlib.Path("some_path")) is None
 
     monkeypatch.delenv("CI_PROJECT_DIR", "mock_dir")
     monkeypatch.delenv("ACCESS_LOG_DIR", "mock_dir")
