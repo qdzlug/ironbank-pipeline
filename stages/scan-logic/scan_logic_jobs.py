@@ -2,7 +2,6 @@
 
 import json
 import os
-import pathlib
 import shutil
 import sys
 import tempfile
@@ -24,7 +23,7 @@ def write_env_vars(
     image_name_tag: str, commit_sha: str, digest: str, build_date: str
 ) -> None:
     log.info("Writing env variables to file")
-    with pathlib.Path("scan_logic.env").open("w") as f:
+    with Path("scan_logic.env").open("w") as f:
         f.writelines(
             [
                 f"IMAGE_TO_SCAN={image_name_tag}\n",
