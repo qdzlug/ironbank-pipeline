@@ -64,6 +64,7 @@ class Skopeo(ContainerTool):
         dest_creds: str = None,
         src_tls_verify: bool = True,
         dest_tls_verify: bool = True,
+        suppress_stdout: bool = False,
         log_cmd: bool = False,
     ) -> None:
         if not src or not dest:
@@ -103,6 +104,7 @@ class Skopeo(ContainerTool):
         copy_result = subprocess.run(
             args=cmd,
             check=True,
+            capture_output=suppress_stdout
         )
 
         return (copy_result.stdout, copy_result.stderr)

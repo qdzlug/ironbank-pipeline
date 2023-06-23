@@ -31,15 +31,23 @@ class Cosign(ContainerTool):
 
     @subprocess_error_handler(logging_message="Cosign.sign failed")
     def sign(
-        self, image: Image | ImageFile, attachment=None, log_cmd: bool = False
+        self, image: Image | ImageFile, key: str | None = None, tlog_upload: bool = False, attachment=None, log_cmd: bool = False
     ) -> None:
         """Perform cosign image or image attachment signature."""
         cmd = [
             "cosign",
             "sign",
         ]
-        cmd += ["--key", self.kms_key_arn] if self.kms_key_arn else []
+        cmd += (
+            ["--key", key]
+            if key
+            else ["--key", self.kms_key_arn]
+            if self.kms_key_arn
+            else []
+        )
         cmd += ["--cert", self.cosign_cert] if self.cosign_cert else []
+        # default for cosign is actually --tlog-upload=true, but for our purposes it should be false for now
+        cmd += [f"--tlog-upload={str(tlog_upload).lower()}"]
         cmd += ["--attachment", attachment] if attachment else []
         cmd += [f"{image.digest_str()}"]
         if log_cmd:
@@ -82,7 +90,7 @@ class Cosign(ContainerTool):
             },
         )
 
-    # @subprocess_error_handler(logging_message="Cosign.attest failed")
+    @subprocess_error_handler(logging_message="Cosign.attest failed")
     def attest(
         self,
         image: Image | ImageFile,
@@ -92,6 +100,7 @@ class Cosign(ContainerTool):
         key: str | None = None,
         allow_insecure_registry: bool = False,
         tlog_upload: bool = False,
+        suppress_output: bool = False,
         log_cmd: bool = False,
     ) -> None:
         """Add attestation."""
@@ -121,6 +130,7 @@ class Cosign(ContainerTool):
         subprocess.run(
             args=cmd,
             check=True,
+            capture_output=suppress_output,
             encoding="utf-8",
             env={
                 "AWS_ACCESS_KEY_ID": self.aws_access_key_id or "",
