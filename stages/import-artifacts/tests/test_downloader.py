@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os
-import pathlib
 import sys
 from subprocess import CalledProcessError
 
@@ -99,7 +98,7 @@ def mock_bad_auth_type():
 
 @pytest.fixture
 def mock_downloads():
-    with pathlib.Path(
+    with Path(
         os.getcwd(), "stages", "import-artifacts", "tests", "mhm.yaml"
     ).open() as f:
         return yaml.safe_load(f)
