@@ -371,7 +371,7 @@ def test_image_wait(monkeypatch, caplog, anchore_object, raise_):
 @patch("anchore.Path", new=MockPath)
 def test_generate_sbom(monkeypatch, caplog, anchore_object, raise_):
     # TODO: use magic mock to spy on setting the filename to check conditional
-    
+
     log.info("Test write sbom to default filename")
     monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: None)
 
