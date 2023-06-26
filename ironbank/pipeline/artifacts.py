@@ -174,7 +174,6 @@ class GithubArtifact(ContainerArtifact):
 
     def __post_init__(self):
         super().__post_init__()
-
     def get_username_password(self) -> tuple:
         username = b64decode(os.environ["GITHUB_ROBOT_USER"]).decode("utf-8")
         password = b64decode(os.environ["GITHUB_ROBOT_TOKEN"]).decode("utf-8")
