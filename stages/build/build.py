@@ -84,6 +84,7 @@ def load_resources(
                 manifest_json = json.loads(manifest.stdout)
                 image_url = manifest_json[0]["RepoTags"][0]
                 log.info("loading image %s", resource_file_obj)
+                print(f"loading image {resource_file_obj}, {image_url}")
                 skopeo.copy(
                     ImageFile(file_path=resource_file_obj, transport="docker-archive:"),
                     Image(url=image_url, transport="containers-storage:"),
@@ -290,6 +291,9 @@ def main():
     src = staging_image.from_image(transport="containers-storage:")
     dest = staging_image.from_image(transport="docker://")
 
+    print(
+        f"Image {src.name}:{src.tag} built to {dest.name} {dest}, {staging_auth_path}, {build_artifact_dir}"
+    )
     # TODO: skip the following skopeo copies on local build, maybe change the copy to local dir?
     skopeo.copy(
         src=src,
