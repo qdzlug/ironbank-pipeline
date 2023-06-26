@@ -202,77 +202,77 @@ def test_compare_digests_nonmatch(monkeypatch, caplog):
     assert "Digests do not match" in caplog.text
 
 
-# @patch("upload_to_harbor.Image", new=MockImage)
-# @patch("upload_to_harbor.Skopeo", new=MockSkopeo)
-# @patch("upload_to_harbor.Path", new=MockPath)
-# def test_promote_tags(monkeypatch, caplog):
-#     # set the env
-#     monkeypatch.setenv(
-#         "DOCKER_AUTH_FILE_PRE_PUBLISH",
-#         "file_1, file_2",
-#     )
-#     monkeypatch.setenv(
-#         "DOCKER_AUTH_FILE_PUBLISH",
-#         "file_1, file_2",
-#     )
+@patch("upload_to_harbor.Image", new=MockImage)
+@patch("upload_to_harbor.Skopeo", new=MockSkopeo)
+@patch("upload_to_harbor.Path", new=MockPath)
+def test_promote_tags(monkeypatch, caplog):
+    # set the env
+    monkeypatch.setenv(
+        "DOCKER_AUTH_FILE_PRE_PUBLISH",
+        "file_1, file_2",
+    )
+    monkeypatch.setenv(
+        "DOCKER_AUTH_FILE_PUBLISH",
+        "file_1, file_2",
+    )
 
-#     # set the attributes
-#     monkeypatch.setattr(upload_to_harbor, "promote_tags", lambda a, b, c: True)
-#     monkeypatch.setattr(
-#         MockSkopeo, "copy", lambda *args, **kwargs: ("file_1", "file_2")
-#     )
-#     # monkeypatch.setattr(MockPath, "exists", lambda: True)
+    # set the attributes
+    monkeypatch.setattr(upload_to_harbor, "promote_tags", lambda a, b, c: True)
+    monkeypatch.setattr(
+        MockSkopeo, "copy", lambda *args, **kwargs: ("file_1", "file_2")
+    )
+    # monkeypatch.setattr(MockPath, "exists", lambda: True)
 
-#     staging_image = Image(
-#         registry="REGISTRY_PRE_PUBLISH_URL",
-#         name="IMAGE_NAME",
-#         digest="IMAGE_PODMAN_SHA",
-#         transport="docker://",
-#         tag="TAG_1",
-#     )
-#     production_image = Image(
-#         registry="REGISTRY_PRE_PUBLISH_URL",
-#         name="IMAGE_NAME_2",
-#         digest="IMAGE_PODMAN_SHA",
-#         transport="docker://",
-#         tag="TAG_2",
-#     )
+    staging_image = Image(
+        registry="REGISTRY_PRE_PUBLISH_URL",
+        name="IMAGE_NAME",
+        digest="IMAGE_PODMAN_SHA",
+        transport="docker://",
+        tag="TAG_1",
+    )
+    production_image = Image(
+        registry="REGISTRY_PRE_PUBLISH_URL",
+        name="IMAGE_NAME_2",
+        digest="IMAGE_PODMAN_SHA",
+        transport="docker://",
+        tag="TAG_2",
+    )
 
-#     upload_to_harbor.promote_tags(
-#         staging_image,
-#         production_image,
-#         ["TAG_1", "TAG_2"],
-#     )
-#     print(caplog.text)
-#     log.info(caplog.text)
-#     assert "Copy from staging to IMAGE_NAME" in caplog.text
-#     assert "Copy from staging to IMAGE_NAME_2" in caplog.text
-
-
-# def test_generate_attestation_predicates(monkeypatch):
+    upload_to_harbor.promote_tags(
+        staging_image,
+        production_image,
+        ["TAG_1", "TAG_2"],
+    )
+    print(caplog.text)
+    log.info(caplog.text)
+    assert "Copy from staging to IMAGE_NAME" in caplog.text
+    assert "Copy from staging to IMAGE_NAME_2" in caplog.text
 
 
-# @patch("upload_to_harbor.json", new=MockJson)
-# @patch("upload_to_harbor.Path", new=MockPath)
-# @patch("stages.harbor.upload_to_harbor.json", new=MockJson)
-# def test_generate_vat_response_lineage_file(monkeypatch, caplog):
-#     monkeypatch.setenv("VAT_RESPONSE", "mock_dir")
-#     monkeypatch.setenv("CI_PROJECT_DIR", "mock_dir")
-#     monkeypatch.setenv("ACCESS_LOG_DIR", "mock_dir")
-#     monkeypatch.setenv("PARENT_VAT_RESPONSE", "mock_dir")
-#     monkeypatch.setenv("ARTIFACT_DIR", "mock_dir")
+def test_generate_attestation_predicates(monkeypatch):
 
-#     monkeypatch.setattr(upload_to_harbor, "pipeline_vat_response", lambda a: MockJson)
-#     assert "Dump VAT to file" in caplog.text
 
-#     monkeypatch.delenv("VAT_RESPONSE", "mock_dir")
+@patch("upload_to_harbor.json", new=MockJson)
+@patch("upload_to_harbor.Path", new=MockPath)
+@patch("stages.harbor.upload_to_harbor.json", new=MockJson)
+def test_generate_vat_response_lineage_file(monkeypatch, caplog):
+    monkeypatch.setenv("VAT_RESPONSE", "mock_dir")
+    monkeypatch.setenv("CI_PROJECT_DIR", "mock_dir")
+    monkeypatch.setenv("ACCESS_LOG_DIR", "mock_dir")
+    monkeypatch.setenv("PARENT_VAT_RESPONSE", "mock_dir")
+    monkeypatch.setenv("ARTIFACT_DIR", "mock_dir")
 
-#     monkeypatch.setattr(upload_to_harbor, "lineage_vat_response", lambda a, b: [])
-#     monkeypatch.setattr(
-#         upload_to_harbor.open, "parent_vat_response_file", lambda a, b: []
-#     )
+    monkeypatch.setattr(upload_to_harbor, "pipeline_vat_response", lambda a: MockJson)
+    assert "Dump VAT to file" in caplog.text
 
-#     assert "Generated VAT response lineage file" in caplog.text
+    monkeypatch.delenv("VAT_RESPONSE", "mock_dir")
+
+    monkeypatch.setattr(upload_to_harbor, "lineage_vat_response", lambda a, b: [])
+    monkeypatch.setattr(
+        upload_to_harbor.open, "parent_vat_response_file", lambda a, b: []
+    )
+
+    assert "Generated VAT response lineage file" in caplog.text
 
 
 @patch("upload_to_harbor.json", new=MockJson)
@@ -316,7 +316,6 @@ def test_generate_attestation_predicates(monkeypatch):
     attestation_predicates = upload_to_harbor.generate_attestation_predicates(
         predicates
     )
-
     _generate_vat_response_lineage_file = (
         upload_to_harbor.generate_attestation_predicates(predicates)
     )
@@ -335,17 +334,17 @@ def test_generate_attestation_predicates(monkeypatch):
     monkeypatch.delenv("SBOM_DIR", "mock_dir")
 
 
-# @patch("stages.harbor.upload_to_harbor.json", new=MockJson)
-# @patch("upload_to_harbor.Path", new=MockPath)
-# def test_convert_artifacts_to_hardening_manifest(monkeypatch):
-#     # set env
-#     monkeypatch.setenv("CI_PROJECT_DIR", "hardening_manifest.yaml")
+@patch("stages.harbor.upload_to_harbor.json", new=MockJson)
+@patch("upload_to_harbor.Path", new=MockPath)
+def test_convert_artifacts_to_hardening_manifest(monkeypatch):
+    # set env
+    monkeypatch.setenv("CI_PROJECT_DIR", "hardening_manifest.yaml")
 
-#     # set attributes
-#     # monkeypatch.setattr(upload_to_harbor, "safe_load", lambda a: None)
-#     monkeypatch.setattr(MockPath, "exists", lambda x: True)
-#     predicates = Predicates()
+    # set attributes
+    # monkeypatch.setattr(upload_to_harbor, "safe_load", lambda a: None)
+    monkeypatch.setattr(MockPath, "exists", lambda x: True)
+    predicates = Predicates()
 
-#     upload_to_harbor._convert_artifacts_to_hardening_manifest(
-#         predicates, MockPath("mock/path", {mock: "data"})
-#     )
+    upload_to_harbor._convert_artifacts_to_hardening_manifest(
+        predicates, MockPath("mock/path", {mock: "data"})
+    )
