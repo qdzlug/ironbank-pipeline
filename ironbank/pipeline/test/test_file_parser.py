@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import json
-import pathlib
+from pathlib import Path
 import random
 from unittest.mock import patch
 
@@ -26,7 +26,7 @@ from ironbank.pipeline.utils.package_parser import (
     RubyGemPackage,
 )
 
-mock_path = pathlib.Path(pathlib.Path(__file__).absolute().parent, "mocks")
+mock_path = Path(Path(__file__).absolute().parent, "mocks")
 
 log = logger.setup("test_file_parser")
 

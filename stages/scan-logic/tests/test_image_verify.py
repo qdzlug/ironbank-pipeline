@@ -1,5 +1,4 @@
 import json
-import pathlib
 import sys
 from unittest.mock import mock_open, patch
 from pathlib import Path
@@ -19,7 +18,7 @@ sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import image_verify  # noqa E402
 
 log = logger.setup("test_image_verify")
-mock_path = pathlib.Path(pathlib.Path(__file__).absolute().parent, "mocks")
+mock_path = Path(Path(__file__).absolute().parent, "mocks")
 IMAGE_NAME = "example/test"
 IMAGE_TAG = "1.0"
 MOCK_SHA = "abcdefg123"
@@ -83,7 +82,7 @@ def test_verify_image_properties(monkeypatch, caplog, mock_hm):
     log.info("Test return True if parent exists and commit shas/digests match")
     base_registry = "registry.example.com"
     monkeypatch.setenv("ARTIFACT_STORAGE", "ci-artifacts")
-    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data=""))
+    monkeypatch.setattr(Path, "open", mock_open(read_data=""))
     monkeypatch.setattr(json, "load", lambda x: {"BASE_SHA": MOCK_SHA})
     monkeypatch.setenv("BASE_REGISTRY", base_registry)
     mock_hm.base_image_name = "example/test"

@@ -4,7 +4,7 @@ import json
 import logging
 import multiprocessing
 import os
-import pathlib
+from pathlib import Path
 import time
 from dataclasses import dataclass
 from unittest.mock import Mock, mock_open, patch
@@ -23,7 +23,7 @@ from ironbank.pipeline.hardening_manifest import (
 )
 from ironbank.pipeline.utils import logger
 
-mock_path = pathlib.Path(pathlib.Path(__file__).absolute().parent, "mocks")
+mock_path = Path(Path(__file__).absolute().parent, "mocks")
 
 log = logger.setup("test_hardening_manifest")
 
@@ -162,7 +162,7 @@ def mock_bad_image_sources():
 @pytest.fixture
 def hardening_manifest():
     return HardeningManifest(
-        pathlib.Path(
+        Path(
             mock_path,
             "mock_hardening_manifest.yaml",
         )
@@ -235,7 +235,7 @@ def test_init(monkeypatch, caplog, mock_hm_content):
 
     monkeypatch.setattr(HardeningManifest, "validate", mock_validate)
     monkeypatch.setattr(
-        pathlib.Path, "open", mock_open(read_data=yaml.safe_dump(mock_hm_content))
+        Path, "open", mock_open(read_data=yaml.safe_dump(mock_hm_content))
     )
     mock_hm = HardeningManifest("")
     assert "validated" not in caplog.text
@@ -318,7 +318,7 @@ def test_validate_schema(monkeypatch, caplog, hardening_manifest):
     def mock_json_load(f):
         return {"properties": {"labels": {"patternProperties": ""}}}
 
-    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data="data"))
+    monkeypatch.setattr(Path, "open", mock_open(read_data="data"))
     monkeypatch.setattr(yaml, "safe_load", mock_yaml_load)
     monkeypatch.setattr(json, "load", mock_json_load)
     # mocking instance method: jsonschema.Draft201909Validator().validate()
@@ -439,34 +439,34 @@ def test_reject_invalid_maintainers(monkeypatch, caplog):
 
 
 def test_create_env_var_artifacts(monkeypatch):
-    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data="data"))
+    monkeypatch.setattr(Path, "open", mock_open(read_data="data"))
     mock_hm = MockHardeningManifest()
-    assert mock_hm.create_env_var_artifacts(pathlib.Path("some_path")) is None
+    assert mock_hm.create_env_var_artifacts(Path("some_path")) is None
 
 
 def test_create_tags_artifact(monkeypatch):
-    monkeypatch.setattr(pathlib.Path, "open", mock_open())
+    monkeypatch.setattr(Path, "open", mock_open())
     mock_hm = MockHardeningManifest()
-    assert mock_hm.create_tags_artifact(pathlib.Path("some_path")) is None
+    assert mock_hm.create_tags_artifact(Path("some_path")) is None
 
 
 def test_create_keywords_artifact(
     monkeypatch, caplog, mock_labels_missing_keywords, mock_good_labels
 ):
-    monkeypatch.setattr(pathlib.Path, "open", mock_open())
+    monkeypatch.setattr(Path, "open", mock_open())
     mock_hm = MockHardeningManifest(labels=mock_labels_missing_keywords)
-    mock_hm.create_keywords_artifact(pathlib.Path(""))
+    mock_hm.create_keywords_artifact(Path(""))
     assert "Keywords field does not exist in hardening_manifest.yaml" in caplog.text
     caplog.clear()
     mock_hm = MockHardeningManifest(labels=mock_good_labels)
-    mock_hm.create_keywords_artifact(pathlib.Path(""))
+    mock_hm.create_keywords_artifact(Path(""))
     assert "Keywords field does not exist in hardening_manifest.yaml" not in caplog.text
     caplog.clear()
 
 
 def test___repr__(monkeypatch, mock_hm_content):
     monkeypatch.setattr(
-        pathlib.Path, "open", mock_open(read_data=yaml.safe_dump(mock_hm_content))
+        Path, "open", mock_open(read_data=yaml.safe_dump(mock_hm_content))
     )
     mock_hm = HardeningManifest("")
     logging.info(repr(mock_hm))
@@ -475,7 +475,7 @@ def test___repr__(monkeypatch, mock_hm_content):
 
 def test___str__(monkeypatch, mock_hm_content):
     monkeypatch.setattr(
-        pathlib.Path, "open", mock_open(read_data=yaml.safe_dump(mock_hm_content))
+        Path, "open", mock_open(read_data=yaml.safe_dump(mock_hm_content))
     )
     mock_hm = HardeningManifest("")
     assert str(mock_hm) == f"{mock_hm.image_name}:{mock_hm.image_tag}"
