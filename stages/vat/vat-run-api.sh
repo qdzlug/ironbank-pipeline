@@ -28,8 +28,3 @@ python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
   --anchore-sec "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json" \
   --anchore-gates "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json"
 
-#below are changes that will be deleted 
-#using for initial commit 
-REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${COMMIT_SHA_TO_SCAN}"
-export REMOTE_REPORT_DIRECTORY
-export VAT_API_URL="${VAT_BACKEND_URL}/internal/import/scan"
