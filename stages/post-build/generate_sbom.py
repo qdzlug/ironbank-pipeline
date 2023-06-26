@@ -4,12 +4,31 @@ import os
 import sys
 from pathlib import Path
 
+# pylint: disable=C0413
 sys.path.append(Path(__file__).absolute().parents[2].as_posix())
-
-from ironbank_py39_modules.scanner_api_handlers.anchore import Anchore  # noqa: E402
+from ironbank_py39_modules.scanner_api_handlers.anchore import (
+    Anchore,
+)
 
 
 def main() -> None:
+    """Main function that initializes an Anchore scanner and generates Software
+    Bill of Materials (SBOM) in multiple formats for a specified image.
+
+    The function retrieves configuration parameters from environment variables including the Anchore scanner
+    details and the full tag of the image for scanning. It also gets the path for storing SBOM files which
+    defaults to "/tmp/sbom_dir" if not provided.
+
+    The SBOMs are generated in the following formats:
+    - cyclonedx-json
+    - spdx-tag-value
+    - spdx-json
+    - json (using Syft tool)
+
+    All SBOM files are saved in the specified path or the default path if not provided.
+
+    :raises KeyError: If required environment variables are not set.
+    """
     # Get logging level, set manually when running pipeline
 
     anchore_scan = Anchore(

@@ -24,11 +24,11 @@ ignore=CVS
 
 # Add files or directories matching the regex patterns to the ignore-list. The
 # regex matches against paths and can be in Posix or Windows format.
-ignore-paths=.*/mocks/mock_classes.py
+ignore-paths=
 
 # Files or directories matching the regex patterns are skipped. The regex
 # matches against base names, not paths.
-ignore-patterns=.*test_.*.py
+ignore-patterns=
 
 # Python code to execute, usually for sys.path manipulation such as
 # pygtk.require().
@@ -88,9 +88,23 @@ disable=raw-checker-failed,
         too-many-locals,
         use-symbolic-message-instead,
         import-error,
+        missing-function-docstring,
+        unused-argument,
+        missing-class-docstring,
+        arguments-renamed,
+        too-few-public-methods,
+        no-self-argument,
+        arguments-differ,
+        protected-access,
+        no-method-argument,
+        super-init-not-called,
         C0114, # missing-module-docstring
         C0301, # line-too-long
         W1203, # Lazy formatting f"string in logger
+        F6401, # Collect test fixtures
+        C0413, # Import order
+        C0411, # Third party import
+
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -571,3 +585,4 @@ min-public-methods=2
 # "BaseException, Exception".
 overgeneral-exceptions=builtins.BaseException,
                        builtins.Exception
+

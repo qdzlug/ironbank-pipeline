@@ -233,7 +233,7 @@ def test_cosign_verify(caplog, monkeypatch):
         use_key=True,
         pubkey=mock_pubkey,
     )
-    assert "Failed to verify %s", str(mock_image) in caplog.text
+    assert f"Failed to verify {str(mock_image)}" in caplog.text
     caplog.clear()
 
     log.info("Test successful download")

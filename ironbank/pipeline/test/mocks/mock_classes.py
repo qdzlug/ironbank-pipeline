@@ -14,7 +14,10 @@ from requests import Session
 
 from ironbank.pipeline.apis import VatAPI
 from ironbank.pipeline.container_tools.skopeo import Skopeo
-from ironbank.pipeline.harbor import HarborRobot, HarborRobotPermissions
+from ironbank.pipeline.harbor import (
+    HarborRobot,
+    HarborRobotPermissions,
+)
 from ironbank.pipeline.hardening_manifest import HardeningManifest
 from ironbank.pipeline.image import Image, ImageFile
 from ironbank.pipeline.project import DsopProject
@@ -129,6 +132,7 @@ class MockSession(Session):
         return MockResponse()
 
 
+# pylint: disable=W0108
 @dataclass
 class MockPopen(subprocess.Popen):
     stdout: MockOutput = field(default_factory=lambda: MockOutput())
@@ -150,6 +154,9 @@ class MockPopen(subprocess.Popen):
         # allow poll to run multiple times without getting stuck in while loop
         self.poll_counter -= 1
         return None if self.poll_counter >= 0 else self.returncode
+
+
+# pylint: enable=W0108
 
 
 @dataclass
@@ -210,7 +217,7 @@ class MockPath(PosixPath):
     def write_text(self, mock_data, encoding=None, errors=None, newline=None):
         return ""
 
-    def read_text(self, encoding=None, *args, **kwargs):
+    def read_text(self, encoding=None, *args, **kwargs):  # pylint: disable=W1113
         return self.mock_data
 
     def __eq__(self, path) -> bool:
@@ -459,7 +466,7 @@ class MockRuleInfoOVAL(MockRuleInfo, RuleInfoOVAL):
         pass
 
     def set_oval_val_from_ref(self, val: str, rule_result: Element) -> None:
-        self._log.warn("%s set for %s", rule_result.attrib[val], val)
+        self._log.warning("%s set for %s", rule_result.attrib[val], val)
 
     def set_oval_name(self, rule_obj: MockElement):
         self.oval_name = "mock_oval_name"
@@ -520,6 +527,32 @@ class MockHarborRobot(HarborRobot):
     disable: bool = False
     level: str = "highest"
     permissions: list["HarborRobotPermissions"] = field(default_factory=lambda: [])
+
+
+# this isn't currently used, but will be needed for refactor changes in !1181
+# will need to inherit from HarborRobotsApi once available
+@dataclass
+class MockHarborRobotsApi:
+    robots: list[MockHarborRobot] = field(default_factory=lambda: [])
+
+    def get_robot_accounts(self):
+        self.robots.append(
+            MockHarborRobot(
+                name="mock_robot_1",
+                description="This is a mock robot.",
+                expires_at="never",
+            )
+        )
+        self.robots.append(
+            MockHarborRobot(
+                name="mock_robot_2",
+                description="This is another mock robot.",
+                expires_at="never",
+            )
+        )
+
+    def create_robot(self, robot: MockHarborRobot):
+        return {"message": "Mock robot successfully created"}
 
 
 @dataclass

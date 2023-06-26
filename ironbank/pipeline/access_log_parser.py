@@ -1,8 +1,8 @@
 import argparse
 import sys
 
-from .utils import logger
-from .utils.package_parser import AccessLogFileParser
+from utils import logger
+from utils.package_parser import AccessLogFileParser
 
 log = logger.setup(name="access_log_parser")
 
@@ -32,7 +32,7 @@ if __name__ == "__main__":
         log.error(e)
         if not args.allow_errors:
             sys.exit(1)
-    except Exception:
+    except Exception:  # pylint: disable=broad-exception-caught
         log.exception("Exception: Unknown exception")
         # TODO: Consider adding custom exception handler to reduce repetition
         if not args.allow_errors:

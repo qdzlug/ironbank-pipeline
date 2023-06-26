@@ -1,4 +1,4 @@
-image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner-dev:v0.0.4"
+image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner-dev:v0.0.5"
 
 stages:
   - secret-scanning

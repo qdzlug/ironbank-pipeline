@@ -18,6 +18,15 @@ log = logger.setup("image_verify")
 def inspect_old_image(
     manifest: HardeningManifest, docker_config_dir: Path
 ) -> Optional[dict]:
+    """Inspects the old image using skopeo tool.
+
+    :param manifest: The HardeningManifest object containing image
+        details.
+    :param docker_config_dir: Path object indicating the directory of
+        the Docker config file.
+    :return: A dictionary containing the inspection data of the old
+        image or None if GenericSubprocessError is raised.
+    """
     try:
         skopeo = Skopeo(docker_config_dir=docker_config_dir)
         old_image = Image(
@@ -36,15 +45,28 @@ def inspect_old_image(
 
 
 def verify_image_properties(img_json: dict, manifest: HardeningManifest) -> bool:
+    """Verifies the properties of the image such as Git commit SHA and parent
+    digest.
+
+    :param img_json: A dictionary containing the inspection data of the
+        image.
+    :param manifest: The HardeningManifest object containing image
+        details.
+    :return: True if both the old image git commit SHA and the parent
+        digest remain the same, False otherwise.
+    """
     old_image_sha = img_json["Labels"]["org.opencontainers.image.revision"].lower()
     new_image_sha = os.environ["CI_COMMIT_SHA"].lower()
 
     old_parent = img_json["Labels"]["mil.dso.ironbank.image.parent"]
+
     if manifest.base_image_name:
-        with Path(
-            os.environ["ARTIFACT_STORAGE"], "lint", "base_image.json"
-        ).open() as f:
-            base_sha = json.load(f)["BASE_SHA"]
+        json_file_path = (
+            Path(os.environ["ARTIFACT_STORAGE"]) / "lint" / "base_image.json"
+        )
+        with json_file_path.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+            base_sha = data["BASE_SHA"]
 
         new_parent = f"{os.environ['BASE_REGISTRY']}/{manifest.base_image_name}:{manifest.base_image_tag}@{base_sha}"
     else:
@@ -55,10 +77,9 @@ def verify_image_properties(img_json: dict, manifest: HardeningManifest) -> bool
         # Check if the parent digest changed
         if old_parent == new_parent:
             return True
-        else:
-            log.info("Parent digest difference detected")
-            log.info(f"Old parent digest: {old_parent}")
-            log.info(f"New parent digest: {new_parent}")
+        log.info("Parent digest difference detected")
+        log.info(f"Old parent digest: {old_parent}")
+        log.info(f"New parent digest: {new_parent}")
     else:
         log.info("Git commit SHA difference detected")
         log.info(f"Old image SHA: {old_image_sha}")
@@ -68,6 +89,19 @@ def verify_image_properties(img_json: dict, manifest: HardeningManifest) -> bool
 
 
 def diff_needed(docker_config_dir: Path) -> Optional[dict]:
+    """Checks if a diff is needed by inspecting the old image and verifying its
+    properties.
+
+    The function also verifies the image signature with Cosign if the
+    image repository is not in staging environment.
+
+    :param docker_config_dir: Path object indicating the directory of
+        the Docker config file.
+    :return: A dictionary containing the old image's tag, commit SHA,
+        digest, and build date if no changes are found, None otherwise.
+    :raises KeyError: If a key is missing in the old image's JSON
+        representation.
+    """
     try:
         dsop_project = DsopProject()
         manifest = HardeningManifest(dsop_project.hardening_manifest_path)
@@ -115,8 +149,8 @@ def diff_needed(docker_config_dir: Path) -> Optional[dict]:
                     "org.opencontainers.image.created"
                 ],
             }
-    except KeyError as ke:
+    except KeyError as e:
         log.info("Digest or label missing for old image")
-        log.info(ke)
+        log.info(e)
         sys.exit(1)
     return None

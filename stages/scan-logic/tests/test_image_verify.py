@@ -19,14 +19,14 @@ import image_verify  # noqa E402
 
 log = logger.setup("test_image_verify")
 mock_path = Path(Path(__file__).absolute().parent, "mocks")
-image_name = "example/test"
-image_tag = "1.0"
-mock_sha = "abcdefg123"
+IMAGE_NAME = "example/test"
+IMAGE_TAG = "1.0"
+MOCK_SHA = "abcdefg123"
 
 
 @pytest.fixture
 def mock_hm():
-    return MockHardeningManifest(image_name=image_name, image_tag=image_tag)
+    return MockHardeningManifest(image_name=IMAGE_NAME, image_tag=IMAGE_TAG)
 
 
 @patch("image_verify.Skopeo", new=MockSkopeo)
@@ -39,7 +39,7 @@ def test_inspect_old_image(monkeypatch, mock_hm, raise_):
     assert (
         result
         == MockImage(
-            registry=example_url, name=image_name, tag=image_tag, transport="docker://"
+            registry=example_url, name=IMAGE_NAME, tag=IMAGE_TAG, transport="docker://"
         ).__dict__
     )
 
@@ -54,11 +54,11 @@ def test_inspect_old_image(monkeypatch, mock_hm, raise_):
 def test_verify_image_properties(monkeypatch, caplog, mock_hm):
     log.info("Test new parent digest set to empty on missing base_image_name")
     mock_hm.base_image_name = ""
-    monkeypatch.setenv("CI_COMMIT_SHA", mock_sha)
+    monkeypatch.setenv("CI_COMMIT_SHA", MOCK_SHA)
     img_json = {
         "Labels": {
-            "mil.dso.ironbank.image.parent": mock_sha,
-            "org.opencontainers.image.revision": mock_sha,
+            "mil.dso.ironbank.image.parent": MOCK_SHA,
+            "org.opencontainers.image.revision": MOCK_SHA,
         }
     }
     verify_result = image_verify.verify_image_properties(img_json, mock_hm)
@@ -73,7 +73,7 @@ def test_verify_image_properties(monkeypatch, caplog, mock_hm):
     caplog.clear()
 
     log.info("Test return True if no parent for image")
-    monkeypatch.setenv("CI_COMMIT_SHA", mock_sha)
+    monkeypatch.setenv("CI_COMMIT_SHA", MOCK_SHA)
     # technically already done above, but included for clarity
     img_json["Labels"]["mil.dso.ironbank.image.parent"] = ""
     verify_result = image_verify.verify_image_properties(img_json, mock_hm)
@@ -83,13 +83,13 @@ def test_verify_image_properties(monkeypatch, caplog, mock_hm):
     base_registry = "registry.example.com"
     monkeypatch.setenv("ARTIFACT_STORAGE", "ci-artifacts")
     monkeypatch.setattr(Path, "open", mock_open(read_data=""))
-    monkeypatch.setattr(json, "load", lambda x: {"BASE_SHA": mock_sha})
+    monkeypatch.setattr(json, "load", lambda x: {"BASE_SHA": MOCK_SHA})
     monkeypatch.setenv("BASE_REGISTRY", base_registry)
     mock_hm.base_image_name = "example/test"
     mock_hm.base_image_tag = "1.0"
     img_json["Labels"][
         "mil.dso.ironbank.image.parent"
-    ] = f"{base_registry}/{mock_hm.base_image_name}:{mock_hm.base_image_tag}@{mock_sha}"
+    ] = f"{base_registry}/{mock_hm.base_image_name}:{mock_hm.base_image_tag}@{MOCK_SHA}"
     verify_result = image_verify.verify_image_properties(img_json, mock_hm)
     assert verify_result is True
 
@@ -104,9 +104,9 @@ def test_diff_needed(monkeypatch, caplog, raise_):
     monkeypatch.setenv("CI_SERVER_URL", "repo1.dso.mil")
     mock_old_img_json = {
         "Extra Key": "something",
-        "Tag": image_tag,
-        "Commit": mock_sha,
-        "Digest": mock_sha,
+        "Tag": IMAGE_TAG,
+        "Commit": MOCK_SHA,
+        "Digest": MOCK_SHA,
         "Labels": {
             "org.opencontainers.image.created": "sure",
             "org.opencontainers.image.revision": "abcdefg123",

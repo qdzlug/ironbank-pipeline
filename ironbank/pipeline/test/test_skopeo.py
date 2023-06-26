@@ -30,11 +30,13 @@ def test_skopeo_init():
 
 
 def test_inspect(monkeypatch, caplog, raise_):
-    mock_image = MockImage(registry="example.com", name="example/test", tag="1.0")
+    inspect_mock_image = MockImage(
+        registry="example.com", name="example/test", tag="1.0"
+    )
     skopeo = Skopeo()
 
     log.info("Test default value for raw returns dictionary of json output")
-    mock_dict_result = {"image": str(mock_image)}
+    mock_dict_result = {"image": str(inspect_mock_image)}
     mock_raw_result = str(mock_dict_result)
     # define and instantiate object with one property
     mock_subprocess_response = type(
@@ -44,11 +46,11 @@ def test_inspect(monkeypatch, caplog, raise_):
         subprocess, "run", lambda *args, **kwargs: mock_subprocess_response
     )
     monkeypatch.setattr(json, "loads", lambda x: mock_dict_result)
-    result = skopeo.inspect(mock_image)
+    result = skopeo.inspect(inspect_mock_image)
     assert result == mock_dict_result
 
     log.info("Test raw=True returns different value ")
-    result = skopeo.inspect(mock_image, raw=True)
+    result = skopeo.inspect(inspect_mock_image, raw=True)
     assert result == mock_raw_result
 
     log.info(
@@ -58,7 +60,7 @@ def test_inspect(monkeypatch, caplog, raise_):
         subprocess, "run", lambda *args, **kwargs: raise_(subprocess.SubprocessError)
     )
     with pytest.raises(GenericSubprocessError):
-        result = skopeo.inspect(mock_image)
+        result = skopeo.inspect(inspect_mock_image)
     assert "Skopeo.inspect failed" in caplog.text
     caplog.clear()
 

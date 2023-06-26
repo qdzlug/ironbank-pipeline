@@ -36,12 +36,12 @@ def test_validate_files_exist(monkeypatch):
     monkeypatch.setattr(Path, "exists", lambda self: False)
     mock_project.validate_files_exist()
 
-    with pytest.raises(AssertionError) as ae:
+    with pytest.raises(AssertionError) as e:
         monkeypatch.setattr(MockPath, "exists", lambda self: True)
         monkeypatch.setattr(Path, "exists", lambda self: True)
         mock_project.validate_files_exist()
 
-    assert "Jenkinsfile found" in ae.value.args[0]
+    assert "Jenkinsfile found" in e.value.args[0]
 
 
 def test_validate_trufflehog_config(monkeypatch, caplog):
@@ -55,12 +55,12 @@ def test_validate_trufflehog_config(monkeypatch, caplog):
     mock_project = MockProject()
     mock_project.validate_trufflehog_config()
 
-    with pytest.raises(SystemExit) as se:
+    with pytest.raises(SystemExit) as e:
         monkeypatch.setattr(MockPath, "exists", lambda self: True)
         monkeypatch.setenv("TRUFFLEHOG_CONFIG", "")
         mock_project = MockProject()
         mock_project.validate_trufflehog_config()
-    assert se.value.code == 1
+    assert e.value.code == 1
     assert (
         "trufflehog-config file found but TRUFFLEHOG_CONFIG CI variable does not exist"
         in caplog.text

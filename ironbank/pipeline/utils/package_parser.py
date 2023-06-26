@@ -9,15 +9,25 @@ from ironbank.pipeline.utils.types import Package
 log = logger.setup(name="package_parser")
 
 
-class ParsedURLPackage(ABC, Package):
+class ParsedURLPackage(ABC, Package):  # pylint: disable=R0903
+    """This is an abstract base class for different types of packages that can
+    be parsed from a URL.
+
+    The abstract method
+    `parse` must be implemented in any class that inherits from this one.
+    """
+
     @classmethod
     @abstractmethod
     def parse(cls, url) -> Optional[Package]:
-        pass
+        """Abstract parse method."""
 
 
 @dataclass(slots=True, frozen=True)
 class RpmPackage(ParsedURLPackage):
+    """This class represents an RPM package and includes a method to parse an
+    RPM package from a URL."""
+
     kind: str = field(init=False, default="rpm")
 
     @classmethod
@@ -38,6 +48,9 @@ class RpmPackage(ParsedURLPackage):
 
 @dataclass(slots=True, frozen=True)
 class ApkPackage(ParsedURLPackage):
+    """This class represents an APK package and includes a method to parse an
+    APK package from a URL."""
+
     kind: str = field(init=False, default="apk")
 
     @classmethod
@@ -58,6 +71,9 @@ class ApkPackage(ParsedURLPackage):
 
 @dataclass(slots=True, frozen=True)
 class DebianPackage(ParsedURLPackage):
+    """This class represents a Debian package and includes a method to parse a
+    Debian package from a URL."""
+
     kind: str = field(init=False, default="deb")
 
     @classmethod
@@ -78,6 +94,9 @@ class DebianPackage(ParsedURLPackage):
 
 @dataclass(slots=True, frozen=True)
 class GoPackage(ParsedURLPackage):
+    """This class represents a Go package and includes a method to parse a Go
+    package from a URL."""
+
     kind: str = field(init=False, default="go")
 
     @classmethod
@@ -89,22 +108,22 @@ class GoPackage(ParsedURLPackage):
 
         if not match:
             raise ValueError(f"Could not parse go URL: {url}")
-        elif (
+        if (
             match.group("ext") in ["zip", "info"]
             or match.group("latest")
             or match.group("list")
         ):
             return None
-        elif match.group("ext") and match.group("ext") != "mod":
+        if match.group("ext") and match.group("ext") != "mod":
             raise ValueError(f"Unexpected go mod extension: {url}")
-        else:
-            return cls(
-                name=match.group("name"), version=match.group("version"), url=url
-            )
+        return cls(name=match.group("name"), version=match.group("version"), url=url)
 
 
 @dataclass(slots=True, frozen=True)
 class PypiPackage(ParsedURLPackage):
+    """This class represents a PyPi package and includes a method to parse a
+    PyPi package from a URL."""
+
     kind: str = field(init=False, default="python")
 
     @classmethod
@@ -125,6 +144,9 @@ class PypiPackage(ParsedURLPackage):
 
 @dataclass(slots=True, frozen=True)
 class NpmPackage(ParsedURLPackage):
+    """This class represents an NPM package and includes a method to parse an
+    NPM package from a URL."""
+
     kind: str = field(init=False, default="npm")
 
     @classmethod
@@ -145,6 +167,9 @@ class NpmPackage(ParsedURLPackage):
 
 @dataclass(slots=True, frozen=True)
 class RubyGemPackage(ParsedURLPackage):
+    """This class represents a RubyGem package and includes a method to parse a
+    RubyGem package from a URL."""
+
     kind: str = field(init=False, default="rubygem")
 
     @classmethod
@@ -165,6 +190,12 @@ class RubyGemPackage(ParsedURLPackage):
 
 @dataclass(slots=True, frozen=True)
 class NullPackage(ParsedURLPackage):
+    """This class represents a null package and includes a method to parse a
+    null package from a URL.
+
+    Parsing a null package always returns None.
+    """
+
     kind: str = field(init=False, default=None)
 
     @classmethod

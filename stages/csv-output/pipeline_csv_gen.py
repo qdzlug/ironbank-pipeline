@@ -16,6 +16,13 @@ log = logger.setup("csv_gen")
 
 
 def main() -> None:
+    """Main function to perform security report processing.
+
+    It fetches security scan reports from different sources, segregates
+    the justification, counts the number of failings from each tool and
+    finally generates a summary report. Also handles exceptions during
+    reading the findings file and logs necessary information.
+    """
     # Get logging level, set manually when running pipeline
 
     anchore_cve_path = Path(f"{os.environ['ANCHORE_SCANS']}/anchore_security.json")
@@ -34,7 +41,7 @@ def main() -> None:
     try:
         with vat_findings_file.open(mode="r", encoding="utf-8") as f:
             vat_findings = json.load(f)
-    except Exception:
+    except Exception:  # pylint: disable=W0718
         log.exception("Error reading findings file.")
         sys.exit(1)
 
@@ -98,7 +105,11 @@ def generate_summary_report(
     image_id: str,
     csv_output_dir: Path,
 ) -> None:
-    """Creates a summary CSV with the finding totals from each scan."""
+    """Generates a CSV summary report for the findings from each scan tool.
+
+    Takes failure counts from each tool as parameters, and writes the
+    data into a CSV file with appropriate headers.
+    """
     with Path(csv_output_dir, "summary.csv").open(mode="w", encoding="utf-8") as f:
         csv_writer = csv.writer(f)
 
@@ -144,7 +155,7 @@ def generate_summary_report(
 
         totals_row: list[str | int] = ["Totals"]
         # for each column, combine totals for each row if value in cell is int
-        totals_row += [sum([row[i] for row in scan_rows if isinstance(row[i], int)]) for i in range(1, len(header))]  # type: ignore
+        totals_row += [sum((row[i] for row in scan_rows if isinstance(row[i], int))) for i in range(1, len(header))]  # type: ignore
 
         csv_writer.writerow(totals_row)
         csv_writer.writerow("")
@@ -210,35 +221,35 @@ def generate_anchore_compliance_report(
     gates = []
     stop_count = 0
     image_id = "unable_to_determine"
-    for ad in anchore_data:
+    for data in anchore_data:
         gate = {
-            "image_id": ad[0],
-            "repo_tag": ad[1],
-            "trigger_id": ad[2],
-            "gate": ad[3],
-            "trigger": ad[4],
-            "check_output": ad[5],
-            "gate_action": ad[6],
-            "policy_id": ad[8],
+            "image_id": data[0],
+            "repo_tag": data[1],
+            "trigger_id": data[2],
+            "gate": data[3],
+            "trigger": data[4],
+            "check_output": data[5],
+            "gate_action": data[6],
+            "policy_id": data[8],
         }
 
-        if ad[7]:
-            gate["matched_rule_id"] = ad[7]["matched_rule_id"]
-            gate["whitelist_id"] = ad[7]["whitelist_id"]
-            gate["whitelist_name"] = ad[7]["whitelist_name"]
+        if data[7]:
+            gate["matched_rule_id"] = data[7]["matched_rule_id"]
+            gate["whitelist_id"] = data[7]["whitelist_id"]
+            gate["whitelist_name"] = data[7]["whitelist_name"]
         else:
             gate["matched_rule_id"] = ""
             gate["whitelist_id"] = ""
             gate["whitelist_name"] = ""
 
         cve_justification = ""
-        # ad[2] is trigger_id -- e.g. CVE-2020-####
-        id = (ad[2], None, None)
-        if ad[4] == "package":
+        # data[2] is trigger_id -- e.g. CVE-2020-####
+        trigger_id = (data[2], None, None)
+        if data[4] == "package":
             cve_justification = "See Anchore CVE Results sheet"
 
-        if id in justifications:
-            cve_justification = justifications[id]
+        if trigger_id in justifications:
+            cve_justification = justifications[trigger_id]
         gate["Justification"] = cve_justification
 
         gates.append(gate)
@@ -281,12 +292,12 @@ def generate_twistlock_cve_report(
         json_data = json.load(f)
         cves = []
         if "vulnerabilities" in json_data["results"][0]:
-            for d in json_data["results"][0]["vulnerabilities"]:
+            for data in json_data["results"][0]["vulnerabilities"]:
                 # get associated justification if one exists
                 cve_justification = ""
                 identifier = (
-                    d["id"],
-                    f"{d['packageName']}-{d['packageVersion']}",
+                    data["id"],
+                    f"{data['packageName']}-{data['packageVersion']}",
                     None,
                 )
                 if identifier in justifications.keys():
@@ -294,15 +305,15 @@ def generate_twistlock_cve_report(
                 try:
                     cves.append(
                         {
-                            "id": d["id"],
-                            "cvss": d.get("cvss"),
-                            "desc": d.get("description"),
-                            "link": d.get("link"),
-                            "packageName": d["packageName"],
-                            "packageVersion": d["packageVersion"],
-                            "severity": d["severity"],
-                            "status": d.get("status"),
-                            "vecStr": d.get("vector"),
+                            "id": data["id"],
+                            "cvss": data.get("cvss"),
+                            "desc": data.get("description"),
+                            "link": data.get("link"),
+                            "packageName": data["packageName"],
+                            "packageVersion": data["packageVersion"],
+                            "severity": data["severity"],
+                            "status": data.get("status"),
+                            "vecStr": data.get("vector"),
                             "Justification": cve_justification,
                         }
                     )

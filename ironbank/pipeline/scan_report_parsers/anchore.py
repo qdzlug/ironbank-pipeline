@@ -78,6 +78,7 @@ class AnchoreCVEFinding(AbstractFinding):
 
     @property
     def vuln(self) -> str:
+        """Return idenfitier for vuln."""
         return self.identifier
 
     @property
@@ -113,21 +114,21 @@ class AnchoreCVEFinding(AbstractFinding):
     @key_index_error_handler
     def set_vendor_nvd_scores(self, version: str) -> None:
         """Set nvd vendor vector scores for multiple versions."""
-        for d in self.extra["vendor_data"]:
-            if d.get(f"cvss_{version}") and d.get(f"cvss_{version}").get(
+        for data in self.extra["vendor_data"]:
+            if data.get(f"cvss_{version}") and data.get(f"cvss_{version}").get(
                 "vector_string"
             ):
                 setattr(
                     self,
                     f"vendor_cvss_{version}_vector",
-                    d[f"cvss_{version}"]["vector_string"],
+                    data[f"cvss_{version}"]["vector_string"],
                 )
 
     @key_index_error_handler
     def set_identifiers(self) -> None:
         """Set identifiers from additional nvd data."""
         if self.nvd_data:
-            if isinstance(self.nvd_data, list) and len(self.nvd_data):
+            if isinstance(self.nvd_data, list):
                 if self.nvd_data[0]["id"] != self.identifier:
                     self.identifiers.append(self.nvd_data[0]["id"])
             elif self.nvd_data["id"] != self.identifier:

@@ -61,6 +61,17 @@ def create_mounts(mount_conf_path: Path, pipeline_build_dir: Path):
 def load_resources(
     resource_dir: str, resource_type: str = "file", skopeo: Skopeo = None
 ):
+    """Load resources from a specified directory.
+
+    This function handles both file and image type resources. If the resource
+    type is an image and a Skopeo instance is provided, it will use Skopeo
+    to copy the image.
+
+    Arguments:
+    - resource_dir: The directory where resources are stored.
+    - resource_type: (Optional) The type of resources in the directory. Defaults to 'file'.
+    - skopeo: (Optional) An instance of the Skopeo class. Required if the resource_type is 'image'.
+    """
     for resource_file in os.listdir(resource_dir):
         resource_file_obj = Path(resource_dir, resource_file)
         if resource_file_obj.is_file() and not resource_file_obj.is_symlink():

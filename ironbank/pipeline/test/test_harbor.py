@@ -43,7 +43,7 @@ def test_harbor_project(monkeypatch):  # noqa W0404
         lambda x: [{"name": "test/ironbank"}, {"name": "next/ironbank"}],
     )
     harbor_project = HarborProject(MockSession(), name="ironbank")
-    harbor_project.get_project_repository(all=True)
+    harbor_project.get_project_repository(all_repos=True)
     for harbor_repo in harbor_project.repositories:
         assert "ironbank" in harbor_repo.name
 
@@ -71,7 +71,7 @@ def test_harbor_repository(monkeypatch):  # noqa W0404
         ],
     )
     harbor_repository = HarborRepository(session=MockSession(), name="ironbank")
-    harbor_repository.get_repository_artifact(all=True)
+    harbor_repository.get_repository_artifact(all_artifacts=True)
     assert "test" == harbor_repository.artifacts[0].digest
     assert harbor_repository.artifacts[1].tags is None
 
@@ -79,21 +79,19 @@ def test_harbor_repository(monkeypatch):  # noqa W0404
 @patch("ironbank.pipeline.harbor.HarborRobot", MockHarborRobot)
 def test_harbor_robot_payload():  # noqa W0404
     log.info("Test generation of robot account payload")
-    hr = HarborRobot(permissions=[MockHarborRobotPermissions().__dict__])
-    for permission in hr.permissions:
+    harbor_robot = HarborRobot(permissions=[MockHarborRobotPermissions().__dict__])
+    for permission in harbor_robot.permissions:
         assert isinstance(permission, HarborRobotPermissions)
-    payload = hr.payload()
+    payload = harbor_robot.payload()
     assert payload["name"] == HarborRobot.name
 
 
 @patch("ironbank.pipeline.harbor.HarborRobot", MockHarborRobot)
-def test_harbor_robot_create(monkeypatch, mock_responses):
+def test_harbor_robot_create_robot(monkeypatch, mock_responses):
     log.info("Test generation of robot account creation success")
-    hr = HarborRobot(
-        permissions=[MockHarborRobotPermissions().__dict__], session=MockSession()
-    )
+    harbor_robot = HarborRobot(session=MockSession())
     monkeypatch.setattr(MockSession, "post", mock_responses["200"])
-    resp = hr.create_robot()
+    resp = harbor_robot.create_robot()
     assert resp["text"] == "successful_request"
 
 

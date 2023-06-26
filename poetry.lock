@@ -1300,6 +1300,20 @@ spelling = ["pyenchant (>=3.2,<4.0)"]
 testutils = ["gitpython (>3)"]
 
 [[package]]
+name = "pylint-pytest"
+version = "1.1.2"
+description = "A Pylint plugin to suppress pytest-related false positives."
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "pylint_pytest-1.1.2-py2.py3-none-any.whl", hash = "sha256:fb20ef318081cee3d5febc631a7b9c40fa356b05e4f769d6e60a337e58c8879b"},
+]
+
+[package.dependencies]
+pylint = "*"
+pytest = ">=4.6"
+
+[[package]]
 name = "pyrsistent"
 version = "0.19.3"
 description = "Persistent/Functional/Immutable data structures"
@@ -1916,4 +1930,4 @@ tests = ["build", "coverage", "mypy", "ruff", "wheel"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "4582c54f4acbaeff4533ed869395fb10bfd43bd2051274faa79a11f20bc2c3d4"
+content-hash = "c05655e71c4fa0d69606916429e47dcab46f09a2012f83024165c8d43e712ded"
