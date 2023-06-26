@@ -5,6 +5,7 @@ from ironbank.pipeline.utils import logger
 
 log = logger.setup("s3_irsa_authenticator")
 
+
 def authenticate(region):
     # authenticate the session client
     sts_client = boto3.client("sts")
@@ -24,14 +25,12 @@ def authenticate(region):
         )
         session = boto3.Session(
             aws_access_key_id=assumed_role_object["Credentials"]["AccessKeyId"],
-            aws_secret_access_key=assumed_role_object["Credentials"][
-                "SecretAccessKey"
-            ],
+            aws_secret_access_key=assumed_role_object["Credentials"]["SecretAccessKey"],
             aws_session_token=assumed_role_object["Credentials"]["SessionToken"],
-            region=region
+            region=region,
         )
         return session.client("s3")
     except Exception as e:
         log.error("An Error Occured While Authenticating The S3 Client")
         log.error(e)
-        raise 
+        raise

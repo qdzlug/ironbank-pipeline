@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
 import mimetypes
-import os
-
-import boto3
 from botocore.exceptions import ClientError
 
 from ironbank.pipeline.utils import logger
@@ -45,7 +42,6 @@ def upload_file(file_name: str, bucket: str, object_name=None) -> None:
     if object_name is None:
         object_name = file_name
 
-    
     # Upload the file
     s3_client = authenticate(region="us-gov-west-1")
     try:
