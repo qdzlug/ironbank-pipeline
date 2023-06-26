@@ -22,8 +22,6 @@ from .utils.exceptions import InvalidURLList
 class S3Artifact(AbstractFileArtifact):
     log: logger = logger.setup("S3Artifact")
 
-    def __post_init__(self):
-        super().__post_init__()
 
     # credentials are just username and password
     def get_credentials(self):
