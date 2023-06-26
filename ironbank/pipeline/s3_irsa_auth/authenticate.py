@@ -6,7 +6,7 @@ from ironbank.pipeline.utils import logger
 log = logger.setup("s3_irsa_authenticator")
 
 
-def authenticate(region):
+def authenticate_client(region):
     # authenticate the session client
     sts_client = boto3.client("sts")
     web_token = None

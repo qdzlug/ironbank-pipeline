@@ -4,7 +4,7 @@ import mimetypes
 from botocore.exceptions import ClientError
 
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.s3_irsa_auth import authenticate
+from ironbank.pipeline.s3_irsa_auth.authenticate import authenticate_client
 
 log = logger.setup(name="s3upload")
 
@@ -43,7 +43,7 @@ def upload_file(file_name: str, bucket: str, object_name=None) -> None:
         object_name = file_name
 
     # Upload the file
-    s3_client = authenticate(region="us-gov-west-1")
+    s3_client = authenticate_client(region="us-gov-west-1")
     try:
         s3_client.upload_file(file_name, bucket, object_name, extra_args)
     except ClientError as e:
