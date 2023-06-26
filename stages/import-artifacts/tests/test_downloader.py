@@ -98,9 +98,9 @@ def mock_bad_auth_type():
 
 @pytest.fixture
 def mock_downloads():
-    with Path(
-        os.getcwd(), "stages", "import-artifacts", "tests", "mhm.yaml"
-    ).open(encoding="utf-8") as f:
+    with Path(os.getcwd(), "stages", "import-artifacts", "tests", "mhm.yaml").open(
+        encoding="utf-8"
+    ) as f:
         return yaml.safe_load(f)
 
 
