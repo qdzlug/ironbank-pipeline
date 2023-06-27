@@ -16,7 +16,10 @@ from ironbank.pipeline.container_tools.buildah import Buildah
 from ironbank.pipeline.container_tools.cosign import Cosign
 from ironbank.pipeline.image import Image, ImageFile
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.decorators import subprocess_error_handler
+from ironbank.pipeline.utils.decorators import (
+    subprocess_error_handler,
+    cosign_error_handler,
+)
 
 log = logger.setup("build")
 
@@ -147,6 +150,7 @@ def generate_build_env(image_details: dict, image_name: str, image: Image, diges
 
 # decorate main to capture all subprocess errors
 @subprocess_error_handler(logging_message="Unexpected subprocess error caught")
+@cosign_error_handler
 def main():
     """Main method."""
     dsop_project = DsopProject()

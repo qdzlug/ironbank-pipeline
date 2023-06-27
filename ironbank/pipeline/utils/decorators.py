@@ -144,3 +144,19 @@ def vat_request_error_handler(func):
         return None
 
     return wrapper
+
+
+def cosign_error_handler(logging_message: str):
+    def log_custom_error(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except subprocess.CalledProcessError:
+                log.error(logging_message)
+                # prevent exception chaining by using from None
+                raise GenericSubprocessError() from None
+
+        return wrapper
+
+    return log_custom_error
