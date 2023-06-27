@@ -20,6 +20,35 @@ from .utils.exceptions import InvalidURLList
 
 @dataclass
 class S3Artifact(AbstractFileArtifact):
+    """An S3Artifact is a representation of a specific file (or artifact)
+    stored in an AWS S3 bucket.
+
+    Attributes
+    ----------
+    log: logger
+        A logger instance used to log messages during class operation.
+
+    Methods
+    -------
+    get_credentials():
+        Gets the access credentials for AWS S3. Access credentials include the username (access key),
+        password (secret key), and region. These values are fetched from environment variables.
+
+    download():
+        Validates the filename and downloads the file from the S3 bucket. The file is stored at the
+        path specified by `self.artifact_path`. If the parsed URL includes a version ID, this is passed
+        as an extra argument during download. If the auth property is not set, an exception is raised.
+
+        Retries on request failure.
+
+    Notes
+    -----
+    * The 'log' attribute is initialized with a logger setup for "S3Artifact".
+    * Currently, 'get_credentials' and 'download' methods require no parameters and rely on object
+      properties for necessary information.
+    * The 'download' method uses Boto3 for interacting with AWS S3.
+    """
+
     log: logger = logger.setup("S3Artifact")
 
     # credentials are just username and password
@@ -77,7 +106,6 @@ class S3Artifact(AbstractFileArtifact):
 
 @dataclass
 class HttpArtifact(AbstractFileArtifact):
-
     """HttpArtifact represents a file artifact available for download via HTTP
     or HTTPS.
 
@@ -137,6 +165,7 @@ class HttpArtifact(AbstractFileArtifact):
                 allow_redirects=True,
                 stream=True,
                 auth=self.get_credentials() if self.auth else None,
+                timeout=(30, 30),
             ) as response:
                 # exception will be caught in main
                 # need unit tests for multiple response statuses
@@ -154,7 +183,6 @@ class HttpArtifact(AbstractFileArtifact):
 
 @dataclass
 class ContainerArtifact(AbstractArtifact):
-
     """ContainerArtifact is a representation of a Docker container image as an
     artifact. This class allows to download and manage Docker images,
     leveraging skopeo tool.
@@ -229,7 +257,6 @@ class ContainerArtifact(AbstractArtifact):
 
 @dataclass
 class GithubArtifact(ContainerArtifact):
-
     """GithubArtifact represents a Docker container image as an artifact stored
     on GitHub.
 
@@ -256,9 +283,6 @@ class GithubArtifact(ContainerArtifact):
     """
 
     log: logger = logger.setup("GithubArtifact")
-
-    def __post_init__(self):
-        super().__post_init__()
 
     def get_username_password(self) -> tuple:
         username = b64decode(os.environ["GITHUB_ROBOT_USER"]).decode("utf-8")
