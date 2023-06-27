@@ -9,8 +9,10 @@ from typing import Optional
 import git
 import yaml
 
-from pipeline.project import DsopProject
-from common.utils import logger
+# pylint: disable=C0413
+sys.path.append(Path(__file__).absolute().parents[2].as_posix())
+from ironbank.pipeline.project import DsopProject
+from ironbank.pipeline.utils import logger
 
 log = logger.setup(name="lint.trufflehog")
 
