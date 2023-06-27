@@ -53,7 +53,9 @@ def authenticate_client(region):
             aws_session_token=assumed_role_object["Credentials"]["SessionToken"],
             region_name=region,
         )
-        return session.client("s3")
+        s3_client = session.client("s3")
+        log.info("Authenticated S3 Client")
+        return s3_client
     except Exception as e:
         log.error("An Error Occured While Authenticating The S3 Client")
         log.error(e)
