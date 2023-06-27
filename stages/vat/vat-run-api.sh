@@ -1,8 +1,5 @@
 import os
 import sys
-
-import os
-import sys
 import datetime
 
 CI_PROJECT_DIR = os.getenv('CI_PROJECT_DIR')
