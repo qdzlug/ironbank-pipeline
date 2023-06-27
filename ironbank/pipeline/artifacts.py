@@ -22,7 +22,6 @@ from .utils.exceptions import InvalidURLList
 class S3Artifact(AbstractFileArtifact):
     log: logger = logger.setup("S3Artifact")
 
-
     # credentials are just username and password
     def get_credentials(self):
         credential_id = self.auth["id"].replace("-", "_")
@@ -78,7 +77,7 @@ class S3Artifact(AbstractFileArtifact):
 
 @dataclass
 class HttpArtifact(AbstractFileArtifact):
-    
+
     """HttpArtifact represents a file artifact available for download via HTTP
     or HTTPS.
 
@@ -155,7 +154,7 @@ class HttpArtifact(AbstractFileArtifact):
 
 @dataclass
 class ContainerArtifact(AbstractArtifact):
-        
+
     """ContainerArtifact is a representation of a Docker container image as an
     artifact. This class allows to download and manage Docker images,
     leveraging skopeo tool.
@@ -260,6 +259,7 @@ class GithubArtifact(ContainerArtifact):
 
     def __post_init__(self):
         super().__post_init__()
+
     def get_username_password(self) -> tuple:
         username = b64decode(os.environ["GITHUB_ROBOT_USER"]).decode("utf-8")
         password = b64decode(os.environ["GITHUB_ROBOT_TOKEN"]).decode("utf-8")
