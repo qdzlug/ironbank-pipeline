@@ -3,9 +3,9 @@
 import sys
 from pathlib import Path
 
-from ironbank.pipeline.hardening_manifest import HardeningManifest
-from ironbank.pipeline.project import DsopProject
-from ironbank.pipeline.utils import logger
+from pipeline.hardening_manifest import HardeningManifest
+from pipeline.project import DsopProject
+from common.utils import logger
 
 log = logger.setup(name="lint.metadata")
 

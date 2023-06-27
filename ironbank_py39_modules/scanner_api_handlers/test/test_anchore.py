@@ -9,8 +9,8 @@ from unittest.mock import mock_open, patch
 import pytest
 import requests
 
-from ironbank.pipeline.test.mocks.mock_classes import MockPath, MockPopen
-from ironbank.pipeline.utils import logger
+from pipeline.test.mocks.mock_classes import MockPath, MockPopen
+from common.utils import logger
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 from ironbank_py39_modules.scanner_api_handlers.anchore import Anchore  # noqa: E402

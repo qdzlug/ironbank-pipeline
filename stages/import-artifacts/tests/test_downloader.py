@@ -10,11 +10,11 @@ from botocore.exceptions import ClientError
 from requests.exceptions import HTTPError
 from pathlib import Path
 
-from ironbank.pipeline.artifacts import ContainerArtifact, HttpArtifact, S3Artifact
-from ironbank.pipeline.hardening_manifest import HardeningManifest
-from ironbank.pipeline.project import DsopProject
-from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.exceptions import InvalidURLList
+from pipeline.artifacts import ContainerArtifact, HttpArtifact, S3Artifact
+from pipeline.hardening_manifest import HardeningManifest
+from pipeline.project import DsopProject
+from pipeline.utils.exceptions import InvalidURLList
+from common.utils import logger
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import downloader  # noqa E402

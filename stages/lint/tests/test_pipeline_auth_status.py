@@ -7,13 +7,13 @@ from pathlib import Path
 
 import pytest
 
-from ironbank.pipeline.test.mocks.mock_classes import (
+from pipeline.test.mocks.mock_classes import (
     MockGoodResponse,
     MockHardeningManifest,
     MockResponse,
     MockVatAPI,
 )
-from ironbank.pipeline.utils import logger
+from common.utils import logger
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import pipeline_auth_status  # noqa E402

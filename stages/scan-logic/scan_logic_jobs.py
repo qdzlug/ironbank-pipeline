@@ -9,12 +9,12 @@ from pathlib import Path
 
 import image_verify
 
-from ironbank.pipeline.container_tools.cosign import Cosign
-from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
-from ironbank.pipeline.image import Image
-from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.exceptions import CosignDownloadError
-from ironbank.pipeline.utils.types import Package
+from pipeline.container_tools.cosign import Cosign
+from pipeline.file_parser import AccessLogFileParser, SbomFileParser
+from pipeline.image import Image
+from pipeline.utils.exceptions import CosignDownloadError
+from pipeline.utils.types import Package
+from common.utils import logger
 
 log = logger.setup("scan_logic_jobs")
 

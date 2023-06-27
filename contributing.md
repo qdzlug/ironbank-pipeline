@@ -447,7 +447,7 @@ Every file should provide a `log` object and every class should have a `_log` cl
 For example:
 
 ```python
-from ironbank.pipeline.utils import logger
+from common.utils import logger
 import logging
 from typing import ClassVar
 

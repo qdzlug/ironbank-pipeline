@@ -8,14 +8,15 @@ from pathlib import Path
 import pytest
 import requests
 
-from ironbank.pipeline.test.mocks.mock_classes import (
+from pipeline.test.mocks.mock_classes import (
     MockHardeningManifest,
     MockPath,
     MockProject,
     MockResponse,
 )
-from ironbank.pipeline.utils import logger, s3upload
-from ironbank.pipeline.utils.exceptions import GenericSubprocessError
+from pipeline.utils import s3upload
+from pipeline.utils.exceptions import GenericSubprocessError
+from common.utils import logger
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import upload_artifacts  # noqa E402
