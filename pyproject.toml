@@ -19,6 +19,7 @@ yq = "^3.2.2"
 isort = "^5.12.0"
 ibmodules = { git = "https://repo1.dso.mil/ironbank-tools/ironbank-modules.git", subdirectory = "ironbank", tag = "0.0.5", python = ">=3.10"}
 pylint-pytest = "^1.1.2"
+moto = "^4.1.12"
 
 [tool.poetry.dev-dependencies]
 black = "^23.1.0"
