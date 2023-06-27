@@ -7,8 +7,7 @@ log = logger.setup("s3_irsa_authenticator")
 
 
 def authenticate_client(region):
-    """
-    Authenticates and returns an AWS S3 client for a specific region.
+    """Authenticates and returns an AWS S3 client for a specific region.
 
     This function uses AWS Security Token Service (STS) to assume a role with
     web identity and create an authenticated session. It then returns an S3
