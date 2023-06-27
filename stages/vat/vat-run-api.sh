@@ -1,12 +1,26 @@
-#!/bin/bash
-set -Eeuo pipefail
-if echo "${CI_PROJECT_DIR}" | grep -q -F 'pipeline-test-project'; then
-  echo "Skipping vat. Cannot push to VAT when working with pipeline test projects..."
-  exit 0
-fi
-REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${COMMIT_SHA_TO_SCAN}"
-export REMOTE_REPORT_DIRECTORY
-export VAT_API_URL="${VAT_BACKEND_URL}/internal/import/scan"
+import os
+import sys
+
+CI_PROJECT_DIR = os.getenv('CI_PROJECT_DIR')
+COMMIT_SHA_TO_SCAN = os.getenv('COMMIT_SHA_TO_SCAN')
+VAT_BACKEND_URL = os.getenv('VAT_BACKEND_URL')
+
+if 'pipeline-test-project' in CI_PROJECT_DIR:
+    print("Skipping vat. Cannot push to VAT when working with pipeline test projects...")
+    sys.exit(0)
+
+REMOTE_REPORT_DIRECTORY = f"{datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}_{COMMIT_SHA_TO_SCAN}"
+os.environ['REMOTE_REPORT_DIRECTORY'] = REMOTE_REPORT_DIRECTORY
+os.environ['VAT_API_URL'] = f"{VAT_BACKEND_URL}/internal/import/scan"
+
+# set -Eeuo pipefail
+# if echo "${CI_PROJECT_DIR}" | grep -q -F 'pipeline-test-project'; then
+#   echo "Skipping vat. Cannot push to VAT when working with pipeline test projects..."
+#   exit 0
+# fi
+# REMOTE_REPORT_DIRECTORY="$(date +%FT%T)_${COMMIT_SHA_TO_SCAN}"
+# export REMOTE_REPORT_DIRECTORY
+# export VAT_API_URL="${VAT_BACKEND_URL}/internal/import/scan"
 
 # output OSCAP link variables for the VAT stage to use
 python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py" \
