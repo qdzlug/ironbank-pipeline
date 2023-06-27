@@ -19,6 +19,7 @@ from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.decorators import (
     subprocess_error_handler,
     cosign_error_handler,
+    skopeo_error_handler,
 )
 
 log = logger.setup("build")
@@ -61,6 +62,7 @@ def create_mounts(mount_conf_path: Path, pipeline_build_dir: Path):
 # resource_type is not used unless value = image, but it is set to file for clarity of purpose
 # TODO: consider passing a true "type" for resource_type (i.e. resource_type = Image or resource_type = Path)
 @subprocess_error_handler("Failed to load resources")
+@skopeo_error_handler("Skopeo.copy failed")
 def load_resources(
     resource_dir: str, resource_type: str = "file", skopeo: Skopeo = None
 ):
@@ -150,7 +152,8 @@ def generate_build_env(image_details: dict, image_name: str, image: Image, diges
 
 # decorate main to capture all subprocess errors
 @subprocess_error_handler(logging_message="Unexpected subprocess error caught")
-@cosign_error_handler
+@cosign_error_handler(logging_message="Cosign failed")
+@skopeo_error_handler(logging_message="Skopeo.copy failed")
 def main():
     """Main method."""
     dsop_project = DsopProject()

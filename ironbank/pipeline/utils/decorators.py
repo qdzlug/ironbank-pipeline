@@ -160,3 +160,18 @@ def cosign_error_handler(logging_message: str):
         return wrapper
 
     return log_custom_error
+
+
+def skopeo_error_handler(logging_message: str):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except subprocess.CalledProcessError as e:
+                log.error(f"{logging_message}: {e.stderr.decode('utf-8')}")
+                raise
+
+        return wrapper
+
+    return decorator
