@@ -1,6 +1,6 @@
-import boto3
-from pathlib import Path
 import os
+from pathlib import Path
+import boto3
 from ironbank.pipeline.utils import logger
 
 log = logger.setup("s3_irsa_authenticator")
