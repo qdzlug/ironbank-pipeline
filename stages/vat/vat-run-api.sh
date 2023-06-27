@@ -1,6 +1,10 @@
 import os
 import sys
 
+import os
+import sys
+import datetime
+
 CI_PROJECT_DIR = os.getenv('CI_PROJECT_DIR')
 COMMIT_SHA_TO_SCAN = os.getenv('COMMIT_SHA_TO_SCAN')
 VAT_BACKEND_URL = os.getenv('VAT_BACKEND_URL')
@@ -9,10 +13,24 @@ if 'pipeline-test-project' in CI_PROJECT_DIR:
     print("Skipping vat. Cannot push to VAT when working with pipeline test projects...")
     sys.exit(0)
 
+PIPELINE_REPO_DIR = os.getenv('PIPELINE_REPO_DIR')
+CI_PIPELINE_ID = os.getenv('CI_PIPELINE_ID')
+BUILD_DATE = os.getenv('BUILD_DATE')
+BUILD_DATE_TO_SCAN = os.getenv('BUILD_DATE_TO_SCAN')
+IMAGE_NAME = os.getenv('IMAGE_NAME')
+IMAGE_VERSION = os.getenv('IMAGE_VERSION')
+DIGEST_TO_SCAN = os.getenv('DIGEST_TO_SCAN')
+BASE_IMAGE = os.getenv('BASE_IMAGE')
+BASE_TAG = os.getenv('BASE_TAG')
+OSCAP_COMPLIANCE_URL = os.getenv('OSCAP_COMPLIANCE_URL')
+CI_PROJECT_URL = os.getenv('CI_PROJECT_URL')
+ARTIFACT_STORAGE = os.getenv('ARTIFACT_STORAGE')
+
 REMOTE_REPORT_DIRECTORY = f"{datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}_{COMMIT_SHA_TO_SCAN}"
 os.environ['REMOTE_REPORT_DIRECTORY'] = REMOTE_REPORT_DIRECTORY
 os.environ['VAT_API_URL'] = f"{VAT_BACKEND_URL}/internal/import/scan"
 
+#!/bin/bash
 # set -Eeuo pipefail
 # if echo "${CI_PROJECT_DIR}" | grep -q -F 'pipeline-test-project'; then
 #   echo "Skipping vat. Cannot push to VAT when working with pipeline test projects..."
