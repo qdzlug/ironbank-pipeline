@@ -10,15 +10,15 @@ from pathlib import Path
 
 import yaml
 
-from ironbank.pipeline.container_tools.cosign import Cosign
-from ironbank.pipeline.container_tools.skopeo import Skopeo
-from ironbank.pipeline.hardening_manifest import HardeningManifest
-from ironbank.pipeline.image import Image
-from ironbank.pipeline.project import DsopProject
-from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.decorators import subprocess_error_handler
-from ironbank.pipeline.utils.exceptions import GenericSubprocessError
-from ironbank.pipeline.utils.predicates import Predicates
+from pipeline.container_tools.cosign import Cosign
+from pipeline.container_tools.skopeo import Skopeo
+from pipeline.hardening_manifest import HardeningManifest
+from pipeline.image import Image
+from pipeline.project import DsopProject
+from pipeline.utils.decorators import subprocess_error_handler
+from pipeline.utils.exceptions import GenericSubprocessError
+from pipeline.utils.predicates import Predicates
+from common.utils import logger
 
 log = logger.setup("upload_to_harbor")
 

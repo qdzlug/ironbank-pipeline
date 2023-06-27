@@ -9,8 +9,8 @@ import folder_structure
 import hardening_manifest_validation
 import pipeline_auth_status
 
-from ironbank.pipeline.utils import logger  # noqa E402
-from ironbank.pipeline.utils.exceptions import SymlinkFoundError
+from common.utils import logger
+from pipeline.utils.exceptions import SymlinkFoundError
 
 log = logger.setup("lint_jobs")
 

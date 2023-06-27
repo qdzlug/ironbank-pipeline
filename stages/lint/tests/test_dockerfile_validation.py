@@ -8,10 +8,10 @@ from pathlib import Path
 
 import pytest
 
-from ironbank.pipeline.file_parser import DockerfileParser
-from ironbank.pipeline.test.mocks.mock_classes import MockHardeningManifest, MockProject
-from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.exceptions import GenericSubprocessError
+from pipeline.file_parser import DockerfileParser
+from pipeline.test.mocks.mock_classes import MockHardeningManifest, MockProject
+from pipeline.utils.exceptions import GenericSubprocessError
+from common.utils import logger
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import dockerfile_validation  # noqa E402

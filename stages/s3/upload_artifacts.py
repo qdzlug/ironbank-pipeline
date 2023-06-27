@@ -11,10 +11,11 @@ from pathlib import Path
 
 import requests
 
-from ironbank.pipeline.hardening_manifest import HardeningManifest
-from ironbank.pipeline.project import DsopProject
-from ironbank.pipeline.utils import logger, s3upload
-from ironbank.pipeline.utils.decorators import subprocess_error_handler
+from pipeline.hardening_manifest import HardeningManifest
+from pipeline.project import DsopProject
+from pipeline.utils import s3upload
+from pipeline.utils.decorators import subprocess_error_handler
+from common.utils import logger
 
 log: logging.Logger = logger.setup("vat_artifact_post")
 

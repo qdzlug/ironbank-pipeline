@@ -5,7 +5,7 @@ import os
 import sys
 from pathlib import Path
 
-from ironbank.pipeline.vat_container_status import log_unverified_findings
+from pipeline.vat_container_status import log_unverified_findings
 
 
 def main() -> None:

@@ -7,7 +7,7 @@ import git
 import pytest
 import yaml
 
-from ironbank.pipeline.utils import logger
+from common.utils import logger
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import trufflehog  # noqa E402
@@ -18,10 +18,7 @@ from trufflehog import create_trufflehog_config, get_history_cmd  # noqa E042
 
 log = logger.setup("test_trufflehog")
 
-mock_path = Path(
-    Path(__file__).absolute().parents[3],
-    "ironbank/pipeline/test/mocks",
-)
+mock_path = Path(__file__).absolute().parent
 
 
 # list of test projects to be cloned and used for testing

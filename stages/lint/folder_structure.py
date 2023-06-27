@@ -3,8 +3,8 @@
 import asyncio
 import sys
 
-from ironbank.pipeline.project import DsopProject
-from ironbank.pipeline.utils import logger
+from pipeline.project import DsopProject
+from common.utils import logger
 
 log = logger.setup("lint.folder_structure")
 

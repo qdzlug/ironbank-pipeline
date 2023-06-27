@@ -9,8 +9,8 @@ from typing import Optional
 import git
 import yaml
 
-from ironbank.pipeline.project import DsopProject
-from ironbank.pipeline.utils import logger
+from pipeline.project import DsopProject
+from common.utils import logger
 
 log = logger.setup(name="lint.trufflehog")
 

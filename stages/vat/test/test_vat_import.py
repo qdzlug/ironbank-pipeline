@@ -3,14 +3,14 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from ironbank.pipeline.container_tools.cosign import Cosign
-from ironbank.pipeline.test.mocks.mock_classes import (
+from pipeline.container_tools.cosign import Cosign
+from pipeline.test.mocks.mock_classes import (
     MockHardeningManifest,
     MockImage,
     MockPath,
     MockTempDirectory,
 )
-from ironbank.pipeline.utils import logger
+from common.utils import logger
 
 log = logger.setup("test_vat_import")
 

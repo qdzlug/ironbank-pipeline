@@ -11,16 +11,16 @@ from unittest.mock import mock_open
 
 import pytest
 
-from ironbank.pipeline.scan_report_parsers.anchore import (
+from pipeline.scan_report_parsers.anchore import (
     AnchoreCVEFinding,
     AnchoreReportParser,
 )
-from ironbank.pipeline.scan_report_parsers.oscap import (
+from pipeline.scan_report_parsers.oscap import (
     OscapComplianceFinding,
     OscapReportParser,
 )
-from ironbank.pipeline.scan_report_parsers.report_parser import ReportParser
-from ironbank.pipeline.utils import logger
+from pipeline.scan_report_parsers.report_parser import ReportParser
+from common.utils import logger
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import pipeline_csv_gen  # noqa E402

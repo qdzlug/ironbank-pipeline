@@ -7,21 +7,21 @@ from urllib.parse import urlparse
 from botocore.exceptions import ClientError
 from requests.exceptions import HTTPError
 
-from ironbank.pipeline.abstract_artifacts import AbstractFileArtifact
-from ironbank.pipeline.artifacts import (
+from pipeline.abstract_artifacts import AbstractFileArtifact
+from pipeline.artifacts import (
     ContainerArtifact,
     GithubArtifact,
     HttpArtifact,
     S3Artifact,
 )
-from ironbank.pipeline.hardening_manifest import HardeningManifest
-from ironbank.pipeline.project import DsopProject
-from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.exceptions import (
+from pipeline.hardening_manifest import HardeningManifest
+from pipeline.project import DsopProject
+from pipeline.utils.exceptions import (
     ArtifactNotFound,
     GenericSubprocessError,
     InvalidURLList,
 )
+from common.utils import logger
 
 log = logger.setup("import_artifacts")
 
