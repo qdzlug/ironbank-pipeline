@@ -10,8 +10,8 @@ def authenticate_client(region):
     """
     Authenticates and returns an AWS S3 client for a specific region.
 
-    This function uses AWS Security Token Service (STS) to assume a role with 
-    web identity and create an authenticated session. It then returns an S3 
+    This function uses AWS Security Token Service (STS) to assume a role with
+    web identity and create an authenticated session. It then returns an S3
     client using the credentials from this session.
 
     The web identity token and role ARN are read from environment variables
@@ -23,18 +23,20 @@ def authenticate_client(region):
         region (str): The AWS region to authenticate the S3 client for.
 
     Returns:
-        botocore.client.S3: An instance of an S3 client authenticated for the 
+        botocore.client.S3: An instance of an S3 client authenticated for the
         specified region.
 
     Raises:
         KeyError: If the necessary environment variables are not set.
-        botocore.exceptions.BotoCoreError: If there is a problem in creating the 
+        botocore.exceptions.BotoCoreError: If there is a problem in creating the
         session or client, or in assuming the role with web identity.
     """
     sts_client = boto3.client("sts")
     web_token = None
     try:
-        web_token = Path(os.environ["AWS_WEB_IDENTITY_TOKEN_FILE"]).read_text(encoding='utf-8')
+        web_token = Path(os.environ["AWS_WEB_IDENTITY_TOKEN_FILE"]).read_text(
+            encoding="utf-8"
+        )
         role_arn = os.environ["AWS_ROLE_ARN"]
     except KeyError as key_error:
         log.error("Error while accessing environment variable")
