@@ -18,11 +18,12 @@ from pipeline.hardening_manifest import (
     get_source_keys_values,
     source_values,
 )
-from pipeline.image import Image
-from pipeline.project import DsopProject
-from pipeline.scan_report_parsers.anchore import AnchoreReportParser
-from pipeline.scan_report_parsers.oscap import OscapReportParser
-from pipeline.utils.predicates import Predicates
+from ironbank.pipeline.image import Image
+from ironbank.pipeline.project import DsopProject
+from ironbank.pipeline.scan_report_parsers.anchore import AnchoreReportParser
+from ironbank.pipeline.scan_report_parsers.oscap import OscapReportParser
+from ironbank.pipeline.utils.predicates import Predicates
+import parser
 
 # parser = argparse.ArgumentParser(
 #     description="DCCSCR processing of CVE reports from various sources"

@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
+from ironbank_py39_modules.scanner_api_handlers.anchore import (
+    Anchore,
+)
 import os
 import sys
 from pathlib import Path
 
 # pylint: disable=C0413
 sys.path.append(Path(__file__).absolute().parents[2].as_posix())
-from ironbank_py39_modules.scanner_api_handlers.anchore import (
-    Anchore,
-)
 
 
 def main() -> None:
