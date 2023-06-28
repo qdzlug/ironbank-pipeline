@@ -170,7 +170,6 @@ def skopeo_error_handler(logging_message: str):
                 return func(*args, **kwargs)
             except subprocess.CalledProcessError as e:
                 log.error(f"{logging_message}: {e.stderr.decode('utf-8')}")
-                raise
 
         return wrapper
 
@@ -180,12 +179,19 @@ def skopeo_error_handler(logging_message: str):
 def http_subprocess_error_handler(logging_message: str):
     def decorator(func):
         @functools.wraps(func)
-        def wrapper(cmd, url, *args, **kwargs):
+        def wrapper(*args, **kwargs):
             try:
-                return func(cmd, url, *args, **kwargs)
-            except (subprocess.SubprocessError, subprocess.CalledProcessError) as e:
+                return func(*args, **kwargs)
+            except requests.HTTPError as e:
                 if "connection reset by peer" in e.args:
-                    log.error(f"{logging_message}: Timeout connecting to {url}")
+                    log.error(f"{logging_message}: Timeout connecting")
+            except subprocess.CalledProcessError as e:
+                log.error(f"{logging_message}: {e.stderr.decode('utf-8')}")
+            except requests.exceptions.ConnectionError:
+                log.error(f"{logging_message}: {e.args}")
+            except Exception as e:
+                log.error(f"{logging_message}: {e.args}")
+                raise GenericSubprocessError() from None
 
         return wrapper
 
