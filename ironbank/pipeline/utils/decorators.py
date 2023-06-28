@@ -85,12 +85,14 @@ def subprocess_error_handler(logging_message: str):
             try:
                 return func(*args, **kwargs)
             except subprocess.CalledProcessError as e:
-                print(f"{str(e)} : {e.returncode} : {e.output}")
-                if e.returncode == 0:
-                    log.error(f"{logging_message}: Existed an error in the subprocess")
-                log.error(logging_message)
+                print(f"START: {str(e)} : {e.returncode} : {e.output} : END")
+                if e.returncode == 125:
+                    log.error(
+                        f"{logging_message}: Existed an error in buildah subprocess"
+                    )
+                # log.error(logging_message)
                 # prevent exception chaining by using from None
-                raise GenericSubprocessError() from None
+                # raise GenericSubprocessError() from None
             except subprocess.SubprocessError:
                 log.error(logging_message)
                 # prevent exception chaining by using from None
