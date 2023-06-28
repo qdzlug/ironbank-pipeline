@@ -87,13 +87,17 @@ def subprocess_error_handler(logging_message: str):
             except subprocess.CalledProcessError as e:
                 if "connection reset" in str(e):
                     log.error(logging_message)
-                    # prevent exception chaining by using from None
-                    raise GenericSubprocessError() from None
+                    raise ConnectionResetError() from None
+                log.error(logging_message)
+                # prevent exception chaining by using from None
+                raise GenericSubprocessError() from None
             except subprocess.SubprocessError as e:
                 if "connection reset" in str(e):
                     log.error(logging_message)
-                    # prevent exception chaining by using from None
-                    raise GenericSubprocessError() from None
+                    raise ConnectionResetError() from None
+                log.error(logging_message)
+                # prevent exception chaining by using from None
+                raise GenericSubprocessError() from None
 
         return wrapper
 
