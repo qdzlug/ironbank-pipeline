@@ -85,9 +85,9 @@ def subprocess_error_handler(logging_message: str):
             try:
                 return func(*args, **kwargs)
             except subprocess.CalledProcessError as e:
-                if e.returncode != 0:
-                    log.error(logging_message)
-                    raise ConnectionResetError() from None
+                print(f"{str(e)} : {e.returncode} : {e.output}")
+                if e.returncode == 0:
+                    log.error(f"{logging_message}: Existed an error in the subprocess")
                 log.error(logging_message)
                 # prevent exception chaining by using from None
                 raise GenericSubprocessError() from None
@@ -155,7 +155,12 @@ def cosign_error_handler(logging_message: str):
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
-            except subprocess.CalledProcessError:
+            except subprocess.CalledProcessError as e:
+                print(str(e))
+                if cosignError.ExitCode() == 1:
+                    log.error("generic cosign error successfully returned")
+                    return
+
                 log.error(logging_message)
                 # prevent exception chaining by using from None
                 raise GenericSubprocessError() from None
