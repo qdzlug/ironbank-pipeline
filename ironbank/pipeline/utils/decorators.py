@@ -85,18 +85,13 @@ def subprocess_error_handler(logging_message: str):
             try:
                 return func(*args, **kwargs)
             except subprocess.CalledProcessError as e:
-                log.error(f"THIS IS THE ERROR: {str(e)}")
-                if "connection reset" in str(e):
+                if e.returncode != 0:
                     log.error(logging_message)
                     raise ConnectionResetError() from None
                 log.error(logging_message)
                 # prevent exception chaining by using from None
                 raise GenericSubprocessError() from None
-            except subprocess.SubprocessError as e:
-                log.error(f"THIS IS THE ERROR 2: {str(e)}")
-                if "connection reset" in str(e):
-                    log.error(logging_message)
-                    raise ConnectionResetError() from None
+            except subprocess.SubprocessError:
                 log.error(logging_message)
                 # prevent exception chaining by using from None
                 raise GenericSubprocessError() from None
