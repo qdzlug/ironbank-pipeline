@@ -175,3 +175,18 @@ def skopeo_error_handler(logging_message: str):
         return wrapper
 
     return decorator
+
+
+def http_subprocess_error_handler(logging_message: str):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(cmd, url, *args, **kwargs):
+            try:
+                return func(cmd, url, *args, **kwargs)
+            except (subprocess.SubprocessError, subprocess.CalledProcessError) as e:
+                if "connection reset by peer" in e.args:
+                    log.error(f"{logging_message}: Timeout connecting to {url}")
+
+        return wrapper
+
+    return decorator

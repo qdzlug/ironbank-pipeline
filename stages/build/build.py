@@ -20,6 +20,7 @@ from ironbank.pipeline.utils.decorators import (
     subprocess_error_handler,
     cosign_error_handler,
     skopeo_error_handler,
+    http_subprocess_error_handler,
 )
 
 log = logger.setup("build")
@@ -63,6 +64,7 @@ def create_mounts(mount_conf_path: Path, pipeline_build_dir: Path):
 # TODO: consider passing a true "type" for resource_type (i.e. resource_type = Image or resource_type = Path)
 @subprocess_error_handler("Failed to load resources")
 @skopeo_error_handler("Skopeo.copy failed")
+@http_subprocess_error_handler("https connection failed")
 def load_resources(
     resource_dir: str, resource_type: str = "file", skopeo: Skopeo = None
 ):
