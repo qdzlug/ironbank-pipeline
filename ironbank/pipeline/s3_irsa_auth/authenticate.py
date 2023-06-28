@@ -30,7 +30,7 @@ def authenticate_client(region):
         botocore.exceptions.BotoCoreError: If there is a problem in creating the
         session or client, or in assuming the role with web identity.
     """
-    
+
     sts_client = boto3.client("sts")
     web_token = None
     try:
