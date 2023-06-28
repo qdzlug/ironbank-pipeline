@@ -156,6 +156,7 @@ def generate_build_env(image_details: dict, image_name: str, image: Image, diges
 @subprocess_error_handler(logging_message="Unexpected subprocess error caught")
 @cosign_error_handler(logging_message="Cosign failed")
 @skopeo_error_handler(logging_message="Skopeo.copy failed")
+@http_subprocess_error_handler(logging_message="https connection failed")
 def main():
     """Main method."""
     dsop_project = DsopProject()
