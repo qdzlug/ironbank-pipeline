@@ -27,120 +27,120 @@ from ironbank.pipeline.scan_report_parsers.oscap import OscapReportParser
 from ironbank.pipeline.utils.predicates import Predicates
 
 
-parser = argparse.ArgumentParser(
-    description="DCCSCR processing of CVE reports from various sources"
-)
-parser.add_argument(
-    "-a",
-    "--api_url",
-    help="Url for API POST",
-    default="http://localhost:4000/internal/import/scan",
-    required=False,
-)
-parser.add_argument(
-    "-j",
-    "--job_id",
-    help="Pipeline job ID",
-    required=True,
-)
-parser.add_argument(
-    "-ts",
-    "--timestamp",
-    help="Timestamp for current pipeline run",
-    required=True,
-)
-parser.add_argument(
-    "-sd",
-    "--scan_date",
-    help="Scan date for pipeline run",
-    required=True,
-)
-parser.add_argument(
-    "-bd",
-    "--build_date",
-    help="Build date for pipeline run",
-    required=True,
-)
-parser.add_argument(
-    "-ch",
-    "--commit_hash",
-    help="Commit hash for container build",
-    required=True,
-)
-parser.add_argument(
-    "-c",
-    "--container",
-    help="Container VENDOR/PRODUCT/CONTAINER",
-    required=True,
-)
-parser.add_argument(
-    "-v",
-    "--version",
-    help="Container Version from VENDOR/PRODUCT/CONTAINER/VERSION format",
-    required=True,
-)
-parser.add_argument(
-    "-dg",
-    "--digest",
-    help="Container Digest as SHA256 Hash",
-    required=True,
-)
-parser.add_argument(
-    "-tl",
-    "--twistlock",
-    help="location of the twistlock JSON scan file",
-    required=True,
-)
-parser.add_argument(
-    "-oc",
-    "--oscap",
-    help="location of the oscap scan XML file",
-    required=False,
-)
-parser.add_argument(
-    "-ac",
-    "--anchore-sec",
-    help="location of the anchore_security.json scan file",
-    required=True,
-)
-parser.add_argument(
-    "-ag",
-    "--anchore-gates",
-    help="location of the anchore_gates.json scan file",
-    required=True,
-)
-parser.add_argument(
-    "-pc",
-    "--parent",
-    help="Parent VENDOR/PRODUCT/CONTAINER",
-    required=False,
-)
-parser.add_argument(
-    "-pv",
-    "--parent_version",
-    help="Parent Version from VENDOR/PRODUCT/CONTAINER/VERSION format",
-    required=False,
-)
-parser.add_argument(
-    "-cl",
-    "--comp_link",
-    help="Link to openscap compliance reports directory",
-    required=True,
-)
-parser.add_argument(
-    "-rl",
-    "--repo_link",
-    help="Link to container repository",
-    default="",
-    required=False,
-)
-parser.add_argument(
-    "-uj",
-    "--use_json",
-    help="Dump payload for API to out.json file",
-    action="store_true",
-    required=False,
-)
+# parser = argparse.ArgumentParser(
+#     description="DCCSCR processing of CVE reports from various sources"
+# )
+# parser.add_argument(
+#     "-a",
+#     "--api_url",
+#     help="Url for API POST",
+#     default="http://localhost:4000/internal/import/scan",
+#     required=False,
+# )
+# parser.add_argument(
+#     "-j",
+#     "--job_id",
+#     help="Pipeline job ID",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-ts",
+#     "--timestamp",
+#     help="Timestamp for current pipeline run",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-sd",
+#     "--scan_date",
+#     help="Scan date for pipeline run",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-bd",
+#     "--build_date",
+#     help="Build date for pipeline run",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-ch",
+#     "--commit_hash",
+#     help="Commit hash for container build",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-c",
+#     "--container",
+#     help="Container VENDOR/PRODUCT/CONTAINER",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-v",
+#     "--version",
+#     help="Container Version from VENDOR/PRODUCT/CONTAINER/VERSION format",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-dg",
+#     "--digest",
+#     help="Container Digest as SHA256 Hash",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-tl",
+#     "--twistlock",
+#     help="location of the twistlock JSON scan file",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-oc",
+#     "--oscap",
+#     help="location of the oscap scan XML file",
+#     required=False,
+# )
+# parser.add_argument(
+#     "-ac",
+#     "--anchore-sec",
+#     help="location of the anchore_security.json scan file",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-ag",
+#     "--anchore-gates",
+#     help="location of the anchore_gates.json scan file",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-pc",
+#     "--parent",
+#     help="Parent VENDOR/PRODUCT/CONTAINER",
+#     required=False,
+# )
+# parser.add_argument(
+#     "-pv",
+#     "--parent_version",
+#     help="Parent Version from VENDOR/PRODUCT/CONTAINER/VERSION format",
+#     required=False,
+# )
+# parser.add_argument(
+#     "-cl",
+#     "--comp_link",
+#     help="Link to openscap compliance reports directory",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-rl",
+#     "--repo_link",
+#     help="Link to container repository",
+#     default="",
+#     required=False,
+# )
+# parser.add_argument(
+#     "-uj",
+#     "--use_json",
+#     help="Dump payload for API to out.json file",
+#     action="store_true",
+#     required=False,
+# )
 
 
 def generate_anchore_cve_findings(
@@ -517,7 +517,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    args = parser.parse_args()
+    # args = parser.parse_args()
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
     if loglevel == "DEBUG":
