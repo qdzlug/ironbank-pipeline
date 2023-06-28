@@ -187,11 +187,14 @@ def http_subprocess_error_handler(logging_message: str):
                     log.error(f"{logging_message}: Timeout connecting")
             except subprocess.CalledProcessError as e:
                 log.error(f"{logging_message}: {e.stderr.decode('utf-8')}")
-            except requests.exceptions.ConnectionError:
+            except requests.exceptions.ProxyError as e:
+                # Handle the ProxyError
                 log.error(f"{logging_message}: {e.args}")
-            except Exception as e:
+            except requests.exceptions.ConnectionError as e:
                 log.error(f"{logging_message}: {e.args}")
-                raise GenericSubprocessError() from None
+            except requests.exceptions.RequestException as e:
+                # Handle other request exceptions
+                log.error(f"{logging_message}: {e.args}")
 
         return wrapper
 
