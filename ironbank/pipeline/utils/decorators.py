@@ -195,6 +195,9 @@ def http_subprocess_error_handler(logging_message: str):
             except requests.exceptions.RequestException as e:
                 # Handle other request exceptions
                 log.error(f"{logging_message}: {e.args}")
+            except ConnectionResetError as e:
+                # Handle the "connection reset by peer" error
+                log.error(f"{logging_message}: Connection reset by peer: {e.args}.")
 
         return wrapper
 
