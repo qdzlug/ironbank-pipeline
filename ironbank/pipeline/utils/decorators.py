@@ -84,14 +84,16 @@ def subprocess_error_handler(logging_message: str):
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
-            except subprocess.CalledProcessError:
-                log.error(logging_message)
-                # prevent exception chaining by using from None
-                raise GenericSubprocessError() from None
-            except subprocess.SubprocessError:
-                log.error(logging_message)
-                # prevent exception chaining by using from None
-                raise GenericSubprocessError() from None
+            except subprocess.CalledProcessError as e:
+                if "connection reset" in str(e):
+                    log.error(logging_message)
+                    # prevent exception chaining by using from None
+                    raise GenericSubprocessError() from None
+            except subprocess.SubprocessError as e:
+                if "connection reset" in str(e):
+                    log.error(logging_message)
+                    # prevent exception chaining by using from None
+                    raise GenericSubprocessError() from None
 
         return wrapper
 
@@ -176,28 +178,18 @@ def skopeo_error_handler(logging_message: str):
     return decorator
 
 
-def http_subprocess_error_handler(logging_message: str):
+def http_error_handler(logging_message: str):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
-            except requests.HTTPError as e:
-                if "connection reset by peer" in e.args:
-                    log.error(f"{logging_message}: Timeout connecting")
             except subprocess.CalledProcessError as e:
                 log.error(f"{logging_message}: {e.stderr.decode('utf-8')}")
-            except requests.exceptions.ProxyError as e:
-                # Handle the ProxyError
-                log.error(f"{logging_message}: {e.args}")
-            except requests.exceptions.ConnectionError as e:
-                log.error(f"{logging_message}: {e.args}")
-            except requests.exceptions.RequestException as e:
-                # Handle other request exceptions
-                log.error(f"{logging_message}: {e.args}")
             except ConnectionResetError as e:
                 # Handle the "connection reset by peer" error
-                log.error(f"{logging_message}: Connection reset by peer: {e.args}.")
+                if "Conection reset" in str(e):
+                    log.error(f"{logging_message}: Connection reset by peer: {e.args}.")
 
         return wrapper
 
