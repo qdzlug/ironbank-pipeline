@@ -273,7 +273,7 @@ def create_api_call() -> dict:
         "jobId": CI_PIPELINE_ID.job_id,
         "digest": DIGEST_TO_SCAN.digest.replace("sha256:", ""),
         "timestamp": REMOTE_REPORT_DIRECTORY.timestamp,
-        "scanDate": SCAN_DATE.scan_date,
+        "scanDate": BUILD_DATE_TO_SCAN.scan_date,
         "buildDate": BUILD_DATE.build_date,
         "repo": {
             "url": VAT_BACKEND_URL.repo_link,
