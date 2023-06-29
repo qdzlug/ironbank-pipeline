@@ -1,4 +1,3 @@
-
 import pytest
 from moto import mock_sts, mock_s3
 import pathlib
