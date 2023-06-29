@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import argparse
 import json
 import logging
 import os
@@ -26,35 +25,6 @@ from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.scan_report_parsers.anchore import AnchoreReportParser
 from ironbank.pipeline.scan_report_parsers.oscap import OscapReportParser
 from ironbank.pipeline.utils.predicates import Predicates
-
-CI_PROJECT_DIR = os.getenv("CI_PROJECT_DIR")
-COMMIT_SHA_TO_SCAN = os.getenv("COMMIT_SHA_TO_SCAN")
-VAT_BACKEND_URL = os.getenv("VAT_BACKEND_URL")
-
-if "pipeline-test-project" in CI_PROJECT_DIR:
-    print(
-        "Skipping vat. Cannot push to VAT when working with pipeline test projects..."
-    )
-    sys.exit(0)
-
-PIPELINE_REPO_DIR = os.getenv("PIPELINE_REPO_DIR")
-CI_PIPELINE_ID = os.getenv("CI_PIPELINE_ID")
-BUILD_DATE = os.getenv("BUILD_DATE")
-BUILD_DATE_TO_SCAN = os.getenv("BUILD_DATE_TO_SCAN")
-IMAGE_NAME = os.getenv("IMAGE_NAME")
-IMAGE_VERSION = os.getenv("IMAGE_VERSION")
-DIGEST_TO_SCAN = os.getenv("DIGEST_TO_SCAN")
-BASE_IMAGE = os.getenv("BASE_IMAGE")
-BASE_TAG = os.getenv("BASE_TAG")
-OSCAP_COMPLIANCE_URL = os.getenv("OSCAP_COMPLIANCE_URL")
-CI_PROJECT_URL = os.getenv("CI_PROJECT_URL")
-ARTIFACT_STORAGE = os.getenv("ARTIFACT_STORAGE")
-
-REMOTE_REPORT_DIRECTORY = (
-    f"{datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}_{COMMIT_SHA_TO_SCAN}"
-)
-os.environ["REMOTE_REPORT_DIRECTORY"] = REMOTE_REPORT_DIRECTORY
-os.environ["VAT_API_URL"] = f"{VAT_BACKEND_URL}/internal/import/scan"
 
 
 def generate_anchore_cve_findings(
@@ -274,40 +244,40 @@ def create_api_call() -> dict:
 
     # if the SKIP_OPENSCAP variable exists, the oscap job was not run.
     # When not os.environ.get("SKIP_OPENSCAP"), this means this is not a SKIP_OPENSCAP project, and oscap findings should be imported
-    if args.oscap and not os.environ.get("SKIP_OPENSCAP"):
+    if CI_PROJECT_DIR.oscap and not os.environ.get("SKIP_OPENSCAP"):
         logging.debug("Importing oscap findings")
         os_findings = generate_oscap_findings(
-            args.oscap, vat_finding_fields=vat_finding_fields
+            CI_PROJECT_DIR.oscap, vat_finding_fields=vat_finding_fields
         )
         logging.debug("oscap finding count: %s", len(os_findings))
-    if args.anchore_sec:
+    if CI_PROJECT_DIR.anchore_sec:
         logging.debug("Importing anchore security findings")
         asec_findings = generate_anchore_cve_findings(
-            args.anchore_sec, vat_finding_fields=vat_finding_fields
+            CI_PROJECT_DIR.anchore_sec, vat_finding_fields=vat_finding_fields
         )
         logging.debug("Anchore security finding count: %s", len(asec_findings))
-    if args.anchore_gates:
+    if CI_PROJECT_DIR.anchore_gates:
         logging.debug("Importing importing anchore compliance findings")
-        acomp_findings = generate_anchore_comp_findings(args.anchore_gates)
+        acomp_findings = generate_anchore_comp_findings(CI_PROJECT_DIR.anchore_gates)
         logging.debug("Anchore compliance finding count: %s", len(acomp_findings))
-    if args.twistlock:
+    if CI_PROJECT_DIR.twistlock:
         logging.debug("Importing twistlock findings")
-        tl_findings = generate_twistlock_findings(args.twistlock)
+        tl_findings = generate_twistlock_findings(CI_PROJECT_DIR.twistlock)
         logging.debug("Twistlock finding count: %s", len(tl_findings))
     all_findings = tl_findings + asec_findings + acomp_findings + os_findings
     large_data = {
-        "imageName": args.container,
-        "imageTag": args.version,
-        "parentImageName": args.parent,
-        "parentImageTag": args.parent_version,
-        "jobId": args.job_id,
-        "digest": args.digest.replace("sha256:", ""),
-        "timestamp": args.timestamp,
-        "scanDate": args.scan_date,
-        "buildDate": args.build_date,
+        "imageName": IMAGE_NAME.container,
+        "imageTag": IMAGE_TAG.version,
+        "parentImageName": BASE_IMAGE.parent,
+        "parentImageTag": BASE_TAG.parent_version,
+        "jobId": CI_PIPELINE_ID.job_id,
+        "digest": DIGEST_TO_SCAN.digest.replace("sha256:", ""),
+        "timestamp": REMOTE_REPORT_DIRECTORY.timestamp,
+        "scanDate": SCAN_DATE.scan_date,
+        "buildDate": BUILD_DATE.build_date,
         "repo": {
-            "url": args.repo_link,
-            "commit": args.commit_hash,
+            "url": VAT_BACKEND_URL.repo_link,
+            "commit": COMMIT_SHA_TO_SCAN.commit_hash,
         },
         "findings": all_findings,
         "keywords": keyword_list,
@@ -390,7 +360,7 @@ def main() -> None:
         parent_vat_response_content = {"vatAttestationLineage": None}
 
     vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
-    if not args.use_json:
+    if not ARTIFACT_STORAGE.use_json:
         large_data = create_api_call()
         large_data.update(parent_vat_response_content)
         with vat_request_json.open("w", encoding="utf-8") as outfile:
@@ -404,7 +374,7 @@ def main() -> None:
     headers["Authorization"] = f"Bearer {os.environ['VAT_TOKEN']}"
     try:
         resp = requests.post(
-            args.api_url, headers=headers, json=large_data, timeout=(30, 30)
+            VAT_BACKEND_URL.api_url, headers=headers, json=large_data, timeout=(30, 30)
         )
         resp.raise_for_status()
         logging.debug("API Response:\n%s", resp.text)
@@ -431,8 +401,31 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    # args = parser.parse_args()
-    # oscap_var = os.getenv("SKIP_OPENSCAP")
+    # args = parser.argsparser()
+    CI_PROJECT_DIR = os.getenv("CI_PROJECT_DIR")
+    COMMIT_SHA_TO_SCAN = os.getenv("COMMIT_SHA_TO_SCAN")
+    VAT_BACKEND_URL = os.getenv("VAT_BACKEND_URL")
+
+    PIPELINE_REPO_DIR = os.getenv("PIPELINE_REPO_DIR")
+    CI_PIPELINE_ID = os.getenv("CI_PIPELINE_ID")
+    BUILD_DATE = os.getenv("BUILD_DATE")
+    BUILD_DATE_TO_SCAN = os.getenv("BUILD_DATE_TO_SCAN")
+    IMAGE_NAME = os.getenv("IMAGE_NAME")
+    IMAGE_TAG = os.getenv("IMAGE_TAG")
+    IMAGE_VERSION = os.getenv("IMAGE_VERSION")
+    DIGEST_TO_SCAN = os.getenv("DIGEST_TO_SCAN")
+    BASE_IMAGE = os.getenv("BASE_IMAGE")
+    BASE_TAG = os.getenv("BASE_TAG")
+    OSCAP_COMPLIANCE_URL = os.getenv("OSCAP_COMPLIANCE_URL")
+    CI_PROJECT_URL = os.getenv("CI_PROJECT_URL")
+    ARTIFACT_STORAGE = os.getenv("ARTIFACT_STORAGE")
+
+    REMOTE_REPORT_DIRECTORY = (
+        f"{datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}_{COMMIT_SHA_TO_SCAN}"
+    )
+    os.environ["REMOTE_REPORT_DIRECTORY"] = REMOTE_REPORT_DIRECTORY
+    os.environ["VAT_API_URL"] = f"{VAT_BACKEND_URL}/internal/import/scan"
+
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
     if loglevel == "DEBUG":
@@ -445,4 +438,5 @@ if __name__ == "__main__":
     else:
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
+
     main()
