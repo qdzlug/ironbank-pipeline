@@ -26,6 +26,21 @@ from ironbank.pipeline.scan_report_parsers.anchore import AnchoreReportParser
 from ironbank.pipeline.scan_report_parsers.oscap import OscapReportParser
 from ironbank.pipeline.utils.predicates import Predicates
 
+IMAGE_NAME = os.getenv("IMAGE_NAME")
+PIPELINE_REPO_DIR = os.getenv("PIPELINE_REPO_DIR")
+CI_PIPELINE_ID = os.getenv("CI_PIPELINE_ID")
+BUILD_DATE = os.getenv("BUILD_DATE")
+BUILD_DATE_TO_SCAN = os.getenv("BUILD_DATE_TO_SCAN")
+IMAGE_NAME = os.getenv("IMAGE_NAME")
+IMAGE_TAG = os.getenv("IMAGE_TAG")
+IMAGE_VERSION = os.getenv("IMAGE_VERSION")
+DIGEST_TO_SCAN = os.getenv("DIGEST_TO_SCAN")
+BASE_IMAGE = os.getenv("BASE_IMAGE")
+BASE_TAG = os.getenv("BASE_TAG")
+OSCAP_COMPLIANCE_URL = os.getenv("OSCAP_COMPLIANCE_URL")
+CI_PROJECT_URL = os.getenv("CI_PROJECT_URL")
+ARTIFACT_STORAGE = os.getenv("ARTIFACT_STORAGE")
+
 
 def generate_anchore_cve_findings(
     report_path: Path, vat_finding_fields: list[str]
@@ -266,7 +281,7 @@ def create_api_call() -> dict:
         logging.debug("Twistlock finding count: %s", len(tl_findings))
     all_findings = tl_findings + asec_findings + acomp_findings + os_findings
     large_data = {
-        "imageName": IMAGE_NAME.container,
+        "imageName": IMAGE_NAME,
         "imageTag": IMAGE_TAG.version,
         "parentImageName": BASE_IMAGE.parent,
         "parentImageTag": BASE_TAG.parent_version,
@@ -374,7 +389,7 @@ def main() -> None:
     headers["Authorization"] = f"Bearer {os.environ['VAT_TOKEN']}"
     try:
         resp = requests.post(
-            VAT_BACKEND_URL.api_url, headers=headers, json=large_data, timeout=(30, 30)
+            VAT_API_URL, headers=headers, json=large_data, timeout=(30, 30)
         )
         resp.raise_for_status()
         logging.debug("API Response:\n%s", resp.text)
@@ -402,7 +417,14 @@ def main() -> None:
 
 if __name__ == "__main__":
     # args = parser.argsparser()
-    CI_PROJECT_DIR = os.getenv("CI_PROJECT_DIR")
+    CI_PROJECT_DIR = os.getenv("CI_PROJECT_DIR", "")
+
+    if "pipeline-test-project" in CI_PROJECT_DIR:
+        logging.info(
+            "Skipping vat. Cannot push to VAT when working with pipeline test projects..."
+        )
+        sys.exit(0)
+
     COMMIT_SHA_TO_SCAN = os.getenv("COMMIT_SHA_TO_SCAN")
     VAT_BACKEND_URL = os.getenv("VAT_BACKEND_URL")
 
@@ -423,7 +445,7 @@ if __name__ == "__main__":
     REMOTE_REPORT_DIRECTORY = (
         f"{datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}_{COMMIT_SHA_TO_SCAN}"
     )
-    os.environ["REMOTE_REPORT_DIRECTORY"] = REMOTE_REPORT_DIRECTORY
+    os.environ["REMO TE_REPORT_DIRECTORY"] = REMOTE_REPORT_DIRECTORY
     os.environ["VAT_API_URL"] = f"{VAT_BACKEND_URL}/internal/import/scan"
 
     # Get logging level, set manually when running pipeline
