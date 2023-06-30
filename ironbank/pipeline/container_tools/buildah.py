@@ -67,6 +67,7 @@ class Buildah(ContainerTool):
         tag: Image | str = None,
         ulimit_args: dict = None,
         log_cmd: bool = False,
+        manifest: str = None,
     ):
         """Builds a Docker image using the Buildah tool.
 
@@ -92,6 +93,8 @@ class Buildah(ContainerTool):
             A dictionary of ulimit arguments.
         log_cmd : bool, optional
             If True, logs the build command. Defaults to False.
+        manifest : str, optional
+            Specifies the name of the "fat" manifest to add the built image to
 
         Returns
         -------
@@ -130,6 +133,7 @@ class Buildah(ContainerTool):
         # tag can either be a string or an Image object, cast to string to support both types
         cmd += ["-t", str(tag)] if tag else []
         cmd += [context]
+        cmd += ["--manifest", manifest] if manifest else []
         if log_cmd:
             log.info(cmd)
         return subprocess.run(args=cmd, check=True)
@@ -150,6 +154,50 @@ class Buildah(ContainerTool):
         # if proc.returncode != 0:
         #     log.error(f"Buildah failed to build the image. Exit code {proc.returncode}")
         #     sys.exit(1)
+
+    @subprocess_error_handler(logging_message="Buildah.manifest failed")
+    def manifest(
+        self,
+        verb,
+        manifest: str,
+        image: Image | str = None,
+        all: bool = False,
+        log_cmd: bool = False,
+    ):
+        """Creates a manifest using the Buildah tool.
+
+        Parameters
+        ----------
+        verb : str, manifest verb - one of add or create
+            Specifies the name of the "fat" manifest to add the built image to
+        manifest : str
+            Specifies the name of the "fat" manifest to add the built image to
+        image : Image, optional
+            Specifies image, or fat manifest, in transport://image:tag format, to add to the fat manifest
+        all : bool, optional
+            Specifies if all layers of the fat manifest referenced in the "add" command should be added to the manifest.  Only applies when "add" is used as the verb.
+        log_cmd : bool, optional
+            If True, logs the inspect command. Defaults to False.
+
+        Returns
+        -------
+        dict
+            A dictionary containing the image inspection results.
+        """
+        cmd = [
+            "buildah",
+            "manifest",
+            verb,
+            manifest
+        ]
+        if image:
+            cmd += [image]
+            cmd += ["--all"] if all else []
+        if log_cmd:
+            log.info(cmd)
+        return json.loads(
+            subprocess.run(args=cmd, check=True, capture_output=True).stdout
+        )
 
     # list images
     # list containers
