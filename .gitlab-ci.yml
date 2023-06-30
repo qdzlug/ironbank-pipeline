@@ -46,6 +46,7 @@ unit-testing:
   extends: .base
   stage: test
   script:
+    - pip install moto
     - make run_unit_tests
   coverage: '/^TOTAL.+?(\d+\%)$/'
   variables:
