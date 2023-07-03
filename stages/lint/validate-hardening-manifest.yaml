@@ -6,5 +6,4 @@ validate-hardening-manifest:
     max: 2
     when: runner_system_failure
   script:
-    - 'pip install --user --no-deps "${PIPELINE_REPO_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/validate_hardening_manifest.py"'

@@ -2,7 +2,7 @@
 
 import hashlib
 import os
-import pathlib
+from pathlib import Path
 from dataclasses import dataclass
 from unittest.mock import mock_open
 
@@ -83,19 +83,19 @@ def mock_file_artifact_bad_validation(monkeypatch):
 
 
 def test_artifact_init(mock_artifact, mock_artifact_with_dir):
-    assert mock_artifact.dest_path == pathlib.Path("None")
-    assert mock_artifact_with_dir.dest_path == pathlib.Path("example")
+    assert mock_artifact.dest_path == Path("None")
+    assert mock_artifact_with_dir.dest_path == Path("example")
 
 
 def test_artifact_delete(monkeypatch, caplog, mock_artifact):
-    monkeypatch.setattr(pathlib.Path, "exists", lambda x: False)
-    monkeypatch.setattr(pathlib.Path, "is_file", lambda x: False)
+    monkeypatch.setattr(Path, "exists", lambda x: False)
+    monkeypatch.setattr(Path, "is_file", lambda x: False)
     monkeypatch.setattr(os, "remove", lambda x: log.info("remove"))
     mock_artifact.delete_artifact()
     assert "File deleted" not in caplog.text
 
-    monkeypatch.setattr(pathlib.Path, "exists", lambda x: True)
-    monkeypatch.setattr(pathlib.Path, "is_file", lambda x: True)
+    monkeypatch.setattr(Path, "exists", lambda x: True)
+    monkeypatch.setattr(Path, "is_file", lambda x: True)
     monkeypatch.setattr(os, "remove", lambda x: log.info("remove"))
     mock_artifact.delete_artifact()
     assert "File deleted" in caplog.text
@@ -108,8 +108,8 @@ def test_username_password(mock_artifact_with_basic_auth):
 
 
 def test_file_artifact_init(mock_file_artifact):
-    assert mock_file_artifact.dest_path == pathlib.Path("example")
-    assert mock_file_artifact.artifact_path == pathlib.Path("example/abc")
+    assert mock_file_artifact.dest_path == Path("example")
+    assert mock_file_artifact.artifact_path == Path("example/abc")
 
 
 def test_validate_checksum(
@@ -162,7 +162,7 @@ def test_generate_checksum(monkeypatch, mock_file_artifact):
             self.fake_hash += chunk
 
     monkeypatch.setattr(hashlib, "new", lambda self: MockHashlib("sha256"))
-    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data="data"))
+    monkeypatch.setattr(Path, "open", mock_open(read_data="data"))
     result = mock_file_artifact.generate_checksum()
     assert result.fake_hash == "data"
 

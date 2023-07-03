@@ -4,12 +4,12 @@ import os
 import sys
 from pathlib import Path
 
-from ironbank.pipeline.container_tools.skopeo import Skopeo
-from ironbank.pipeline.hardening_manifest import HardeningManifest
-from ironbank.pipeline.image import Image
-from ironbank.pipeline.project import DsopProject
-from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.exceptions import GenericSubprocessError
+from pipeline.container_tools.skopeo import Skopeo
+from pipeline.hardening_manifest import HardeningManifest
+from pipeline.image import Image
+from pipeline.project import DsopProject
+from pipeline.utils.exceptions import GenericSubprocessError
+from common.utils import logger
 
 log = logger.setup("pipeline_trigger")
 

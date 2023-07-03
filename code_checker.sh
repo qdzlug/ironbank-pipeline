@@ -46,9 +46,9 @@ run_docformatter() {
   echo "Running docformatter..."
   echo "*********************"
   if [ "$1" == "format_in_place" ]; then
-    docformatter --in-place -r stages ironbank
+    docformatter --in-place -r stages
   else
-    docformatter --check --diff -r stages ironbank
+    docformatter --check --diff -r stages
   fi
   echo -e "\n"
 }
@@ -100,13 +100,13 @@ run_pylint() {
   echo "Running pylint..."
   echo "*****************"
   mkdir ./pylint
-  pylint stages/ ironbank/ | tee ./pylint/pylint.log
+  pylint stages/ | tee ./pylint/pylint.log
   PYLINT_SCORE=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' ./pylint/pylint.log)
   anybadge --label=Pylint --file=pylint/pylint.svg --value="${PYLINT_SCORE}" 3=red 6=orange 9=yellow 10=green
   echo "Pylint score is '${PYLINT_SCORE}'"
   echo -e "\n"
   echo "Running pylint with tests and mocks"
-  pylint stages/ ironbank/ --rcfile=.pylinttestrc | tee ./pylint/pylinttests.log || true
+  pylint stages/ --rcfile=.pylinttestrc | tee ./pylint/pylinttests.log || true
   echo -e "\n"
 }
 

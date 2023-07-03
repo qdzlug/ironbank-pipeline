@@ -7,9 +7,9 @@ from pathlib import Path
 
 import pytest
 
-from ironbank.pipeline.project import DsopProject
-from ironbank.pipeline.test.mocks.mock_classes import MockProject
-from ironbank.pipeline.utils import logger
+from pipeline.project import DsopProject
+from pipeline.test.mocks.mock_classes import MockProject
+from common.utils import logger
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import folder_structure  # noqa E402
