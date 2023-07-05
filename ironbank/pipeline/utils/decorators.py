@@ -179,7 +179,7 @@ def cosign_error_handler(logging_message: str):
     return log_custom_error
 
 
-def skopeo_subprocess_error_handler(logging_message: str):
+def skopeo_error_handler(logging_message: str):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
