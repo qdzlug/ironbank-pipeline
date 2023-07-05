@@ -153,6 +153,7 @@ def generate_build_env(image_details: dict, image_name: str, image: Image, diges
 
 
 # decorate main to capture all subprocess errors
+@skopeo_error_handler(logging_message="Unexpected subprocess error caught")
 @subprocess_error_handler(logging_message="Unexpected subprocess error caught")
 # @http_error_handler(logging_message="https connection failed")
 def main():
