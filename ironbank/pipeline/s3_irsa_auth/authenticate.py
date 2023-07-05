@@ -39,7 +39,7 @@ def authenticate_client(region):
         )
         role_arn = os.environ["AWS_ROLE_ARN"]
     except KeyError as key_error:
-        log.error("Error while accessing environment variable")
+        log.error("Error while accessing IRSA environment variables")
         log.error(key_error)
         raise key_error
     try:
