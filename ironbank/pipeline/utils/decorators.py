@@ -194,7 +194,7 @@ def skopeo_error_handler(logging_message: str):
             try:
                 return func(*args, **kwargs)
             except subprocess.CalledProcessError as e:
-                print(f"ERROR : {str(e)}")
+                print(f"ERROR : {str(e)} : {e.returncode} : {e.output} : END")
                 if e.returncode == 1:
                     log.error(f"{logging_message}: Cannot resolve to an image ID")
             except Exception:
