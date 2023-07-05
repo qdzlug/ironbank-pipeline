@@ -303,17 +303,17 @@ def main():
         f"Image {src.name}:{src.tag} built to {dest.name} {dest}, {staging_auth_path}, {build_artifact_dir}"
     )
     # TODO: skip the following skopeo copies on local build, maybe change the copy to local dir?
-    try:
-        skopeo.copy(
-            src=src,
-            dest=dest,
-            digestfile=Path(build_artifact_dir, "digest"),
-            dest_authfile=staging_auth_path,
-            log_cmd=True,
-        )
-    except Exception as e:
-        print(e)
-        log.error(f"Failed to copy {e}")
+    # try:
+    skopeo.copy(
+        src=src,
+        dest=dest,
+        digestfile=Path(build_artifact_dir, "digest"),
+        dest_authfile=staging_auth_path,
+        log_cmd=True,
+    )
+    # except Exception as e:
+    #     print(e)
+    #     log.error(f"Failed to copy {e}")
 
     if (
         os.environ.get("STAGING_BASE_IMAGE")
@@ -327,15 +327,11 @@ def main():
     local_image_details = buildah.inspect(image=src, storage_driver="vfs", log_cmd=True)
 
     # get digest from skopeo copy digestfile
-    try:
-        with Path(build_artifact_dir, "digest").open(
-            mode="r",
-            encoding="utf-8",
-        ) as f:
-            digest = f.read()
-    except FileNotFoundError as e:
-        log.error(f"{e.filename}: Digest file not found")
-        exit(1)
+    with Path(build_artifact_dir, "digest").open(
+        mode="r",
+        encoding="utf-8",
+    ) as f:
+        digest = f.read()
 
     generate_build_env(
         image_details=local_image_details,
