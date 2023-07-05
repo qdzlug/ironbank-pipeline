@@ -87,12 +87,19 @@ def subprocess_error_handler(logging_message: str):
             except subprocess.CalledProcessError as e:
                 print(f"START: {str(e)} : {e.returncode} : {e.output} : END")
                 if e.returncode == 125:
-                    log.error(
-                        f"{logging_message}: Existed an error in buildah subprocess"
-                    )
-                # log.error(logging_message)
-                # prevent exception chaining by using from None
-                # raise GenericSubprocessError() from None
+                    log.error(f"{logging_message}: Container failed to run error")
+                elif e.returncode == 126:
+                    log.error(f"{logging_message}: Command invoke error")
+                elif e.returncode == 127:
+                    log.error(f"{logging_message}: File or directory not found")
+                elif e.returncode == 128:
+                    log.error(f"{logging_message}: Invalid argument used on exit")
+                elif e.returncode in [134, 137, 139, 143, 255]:
+                    log.error(f"{logging_message}: Immediate termination")
+                else:
+                    log.error(f"{logging_message}: {e.returncode}")
+                    # prevent exception chaining by using from None
+                    raise GenericSubprocessError() from None
             except subprocess.SubprocessError:
                 log.error(logging_message)
                 # prevent exception chaining by using from None
@@ -172,14 +179,15 @@ def cosign_error_handler(logging_message: str):
     return log_custom_error
 
 
-def skopeo_error_handler(logging_message: str):
+def skopeo_subprocess_error_handler(logging_message: str):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
             except subprocess.CalledProcessError as e:
-                log.error(f"{logging_message}: {e.stderr.decode('utf-8')}")
+                if e.returncode == 1:
+                    log.error(f"{logging_message}: Cannot resolve to an image ID")
 
         return wrapper
 
