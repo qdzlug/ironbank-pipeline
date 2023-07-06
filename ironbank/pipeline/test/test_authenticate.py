@@ -3,7 +3,6 @@ from moto import mock_sts, mock_s3
 import pathlib
 import boto3
 from ironbank.pipeline.s3_irsa_auth.authenticate import authenticate_client
-import botocore.client
 from unittest.mock import MagicMock
 
 
@@ -95,7 +94,7 @@ def test_authenticate_client_missing_env_vars(monkeypatch, caplog):
     with pytest.raises(KeyError):
         authenticate_client("us-west-1")
 
-    assert "Error while accessing IRSA environment variables\" in caplog.text
+    assert "Error while accessing IRSA environment variables" in caplog.text
 
 
 @mock_sts
