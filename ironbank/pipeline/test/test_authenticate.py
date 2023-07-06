@@ -95,7 +95,7 @@ def test_authenticate_client_missing_env_vars(monkeypatch, caplog):
     with pytest.raises(KeyError):
         authenticate_client("us-west-1")
 
-    assert "Error while accessing environment variable" in caplog.text
+    assert "Error while accessing IRSA environment variables\" in caplog.text
 
 
 @mock_sts
