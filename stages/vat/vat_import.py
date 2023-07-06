@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import shutil
+import subprocess
 import sys
 import datetime
 from itertools import groupby
@@ -26,20 +27,33 @@ from ironbank.pipeline.scan_report_parsers.anchore import AnchoreReportParser
 from ironbank.pipeline.scan_report_parsers.oscap import OscapReportParser
 from ironbank.pipeline.utils.predicates import Predicates
 
-IMAGE_NAME = os.getenv("IMAGE_NAME")
-PIPELINE_REPO_DIR = os.getenv("PIPELINE_REPO_DIR")
-CI_PIPELINE_ID = os.getenv("CI_PIPELINE_ID")
-BUILD_DATE = os.getenv("BUILD_DATE")
-BUILD_DATE_TO_SCAN = os.getenv("BUILD_DATE_TO_SCAN")
-IMAGE_NAME = os.getenv("IMAGE_NAME")
-IMAGE_TAG = os.getenv("IMAGE_TAG")
-IMAGE_VERSION = os.getenv("IMAGE_VERSION")
-DIGEST_TO_SCAN = os.getenv("DIGEST_TO_SCAN")
-BASE_IMAGE = os.getenv("BASE_IMAGE")
-BASE_TAG = os.getenv("BASE_TAG")
-OSCAP_COMPLIANCE_URL = os.getenv("OSCAP_COMPLIANCE_URL")
-CI_PROJECT_URL = os.getenv("CI_PROJECT_URL")
-ARTIFACT_STORAGE = os.getenv("ARTIFACT_STORAGE")
+# Set the necessary environment variables
+os.environ["API_URL"] = os.environ.get("VAT_API_URL", "")
+os.environ["JOB_ID"] = os.environ.get("CI_PIPELINE_ID", "")
+os.environ["TIMESTAMP"] = (
+    subprocess.check_output('date --utc "+%FT%TZ"', shell=True).decode().strip()
+)
+os.environ["SCAN_DATE"] = os.environ.get("BUILD_DATE", "")
+os.environ["BUILD_DATE"] = os.environ.get("BUILD_DATE_TO_SCAN", "")
+os.environ["COMMIT_HASH"] = os.environ.get("COMMIT_SHA_TO_SCAN", "")
+os.environ["CONTAINER"] = os.environ.get("IMAGE_NAME", "")
+os.environ["VERSION"] = os.environ.get("IMAGE_VERSION", "")
+os.environ["DIGEST"] = os.environ.get("DIGEST_TO_SCAN", "")
+os.environ["PARENT"] = os.environ.get("BASE_IMAGE", "")
+os.environ["PARENT_VERSION"] = os.environ.get("BASE_TAG", "")
+os.environ["COMP_LINK"] = os.environ.get("OSCAP_COMPLIANCE_URL", "")
+os.environ["REPO_LINK"] = os.environ.get("CI_PROJECT_URL", "")
+os.environ["OSCAP"] = os.path.join(
+    os.environ.get("ARTIFACT_STORAGE"),
+    "scan-results/openscap/compliance_output_report.xml",
+)
+
+REMOTE_REPORT_DIRECTORY = (
+    f"{datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}_{COMMIT_SHA_TO_SCAN}"
+)
+
+os.environ["REMO TE_REPORT_DIRECTORY"] = REMOTE_REPORT_DIRECTORY
+os.environ["VAT_API_URL"] = f"{VAT_BACKEND_URL}/internal/import/scan"
 
 
 def generate_anchore_cve_findings(
@@ -259,30 +273,30 @@ def create_api_call() -> dict:
 
     # if the SKIP_OPENSCAP variable exists, the oscap job was not run.
     # When not os.environ.get("SKIP_OPENSCAP"), this means this is not a SKIP_OPENSCAP project, and oscap findings should be imported
-    if CI_PROJECT_DIR.oscap and not os.environ.get("SKIP_OPENSCAP"):
+    if .oscap and not os.environ.get("SKIP_OPENSCAP"):
         logging.debug("Importing oscap findings")
         os_findings = generate_oscap_findings(
-            CI_PROJECT_DIR.oscap, vat_finding_fields=vat_finding_fields
+            proc.oscap, vat_finding_fields=vat_finding_fields
         )
         logging.debug("oscap finding count: %s", len(os_findings))
-    if CI_PROJECT_DIR.anchore_sec:
+    if proc.anchore_sec:
         logging.debug("Importing anchore security findings")
         asec_findings = generate_anchore_cve_findings(
-            CI_PROJECT_DIR.anchore_sec, vat_finding_fields=vat_finding_fields
+            proc.anchore_sec, vat_finding_fields=vat_finding_fields
         )
         logging.debug("Anchore security finding count: %s", len(asec_findings))
-    if CI_PROJECT_DIR.anchore_gates:
+    if proc.anchore_gates:
         logging.debug("Importing importing anchore compliance findings")
-        acomp_findings = generate_anchore_comp_findings(CI_PROJECT_DIR.anchore_gates)
+        acomp_findings = generate_anchore_comp_findings(proc.anchore_gates)
         logging.debug("Anchore compliance finding count: %s", len(acomp_findings))
-    if CI_PROJECT_DIR.twistlock:
+    if proc.twistlock:
         logging.debug("Importing twistlock findings")
-        tl_findings = generate_twistlock_findings(CI_PROJECT_DIR.twistlock)
+        tl_findings = generate_twistlock_findings(proc.twistlock)
         logging.debug("Twistlock finding count: %s", len(tl_findings))
     all_findings = tl_findings + asec_findings + acomp_findings + os_findings
     large_data = {
         "imageName": IMAGE_NAME,
-        "imageTag": IMAGE_TAG.version,
+        "imageTag": IMAGE_TAG.parent,
         "parentImageName": BASE_IMAGE.parent,
         "parentImageTag": BASE_TAG.parent_version,
         "jobId": CI_PIPELINE_ID.job_id,
@@ -416,7 +430,64 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    # args = parser.argsparser()
+    # Set the necessary environment variables
+    os.environ["API_URL"] = os.environ.get("VAT_API_URL", "")
+    os.environ["JOB_ID"] = os.environ.get("CI_PIPELINE_ID", "")
+    os.environ["TIMESTAMP"] = (
+        subprocess.check_output('date --utc "+%FT%TZ"', shell=True).decode().strip()
+    )
+    os.environ["SCAN_DATE"] = os.environ.get("BUILD_DATE", "")
+    os.environ["BUILD_DATE"] = os.environ.get("BUILD_DATE_TO_SCAN", "")
+    os.environ["COMMIT_HASH"] = os.environ.get("COMMIT_SHA_TO_SCAN", "")
+    os.environ["CONTAINER"] = os.environ.get("IMAGE_NAME", "")
+    os.environ["VERSION"] = os.environ.get("IMAGE_VERSION", "")
+    os.environ["DIGEST"] = os.environ.get("DIGEST_TO_SCAN", "")
+    os.environ["PARENT"] = os.environ.get("BASE_IMAGE", "")
+    os.environ["PARENT_VERSION"] = os.environ.get("BASE_TAG", "")
+    os.environ["COMP_LINK"] = os.environ.get("OSCAP_COMPLIANCE_URL", "")
+    os.environ["REPO_LINK"] = os.environ.get("CI_PROJECT_URL", "")
+    os.environ["OSCAP"] = os.path.join(
+        os.environ.get("ARTIFACT_STORAGE"),
+        "scan-results/openscap/compliance_output_report.xml",
+    )
+
+    # Construct the command
+    command = [
+        "python3",
+        os.path.join(os.environ.get("PIPELINE_REPO_DIR"), "stages/vat/vat_import.py"),
+        "--api_url",
+        os.environ["API_URL"],
+        "--job_id",
+        os.environ["JOB_ID"],
+        "--timestamp",
+        os.environ["TIMESTAMP"],
+        "--scan_date",
+        os.environ["SCAN_DATE"],
+        "--build_date",
+        os.environ["BUILD_DATE"],
+        "--commit_hash",
+        os.environ["COMMIT_HASH"],
+        "--container",
+        os.environ["CONTAINER"],
+        "--version",
+        os.environ["VERSION"],
+        "--digest",
+        os.environ["DIGEST"],
+        "--parent",
+        os.environ["PARENT"],
+        "--parent_version",
+        os.environ["PARENT_VERSION"],
+        "--comp_link",
+        os.environ["COMP_LINK"],
+        "--repo_link",
+        os.environ["REPO_LINK"],
+        "--oscap",
+        os.environ["OSCAP"],
+    ]
+    # Run the command using subprocess.Popen
+    with subprocess.Popen(["ls", "-al"]) as proc:
+        proc.communicate()
+
     CI_PROJECT_DIR = os.getenv("CI_PROJECT_DIR", "")
 
     if "pipeline-test-project" in CI_PROJECT_DIR:
@@ -424,23 +495,6 @@ if __name__ == "__main__":
             "Skipping vat. Cannot push to VAT when working with pipeline test projects..."
         )
         sys.exit(0)
-
-    COMMIT_SHA_TO_SCAN = os.getenv("COMMIT_SHA_TO_SCAN")
-    VAT_BACKEND_URL = os.getenv("VAT_BACKEND_URL")
-
-    PIPELINE_REPO_DIR = os.getenv("PIPELINE_REPO_DIR")
-    CI_PIPELINE_ID = os.getenv("CI_PIPELINE_ID")
-    BUILD_DATE = os.getenv("BUILD_DATE")
-    BUILD_DATE_TO_SCAN = os.getenv("BUILD_DATE_TO_SCAN")
-    IMAGE_NAME = os.getenv("IMAGE_NAME")
-    IMAGE_TAG = os.getenv("IMAGE_TAG")
-    IMAGE_VERSION = os.getenv("IMAGE_VERSION")
-    DIGEST_TO_SCAN = os.getenv("DIGEST_TO_SCAN")
-    BASE_IMAGE = os.getenv("BASE_IMAGE")
-    BASE_TAG = os.getenv("BASE_TAG")
-    OSCAP_COMPLIANCE_URL = os.getenv("OSCAP_COMPLIANCE_URL")
-    CI_PROJECT_URL = os.getenv("CI_PROJECT_URL")
-    ARTIFACT_STORAGE = os.getenv("ARTIFACT_STORAGE")
 
     REMOTE_REPORT_DIRECTORY = (
         f"{datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}_{COMMIT_SHA_TO_SCAN}"
