@@ -28,25 +28,21 @@ from ironbank.pipeline.scan_report_parsers.oscap import OscapReportParser
 from ironbank.pipeline.utils.predicates import Predicates
 
 # Set the necessary environment variables
-os.environ["API_URL"] = os.environ.get("VAT_API_URL", "")
-os.environ["JOB_ID"] = os.environ.get("CI_PIPELINE_ID", "")
-os.environ["TIMESTAMP"] = (
-    subprocess.check_output('date --utc "+%FT%TZ"', shell=True).decode().strip()
-)
-os.environ["SCAN_DATE"] = os.environ.get("BUILD_DATE", "")
-os.environ["BUILD_DATE"] = os.environ.get("BUILD_DATE_TO_SCAN", "")
-os.environ["COMMIT_HASH"] = os.environ.get("COMMIT_SHA_TO_SCAN", "")
-os.environ["CONTAINER"] = os.environ.get("IMAGE_NAME", "")
-os.environ["VERSION"] = os.environ.get("IMAGE_VERSION", "")
-os.environ["DIGEST"] = os.environ.get("DIGEST_TO_SCAN", "")
-os.environ["PARENT"] = os.environ.get("BASE_IMAGE", "")
-os.environ["PARENT_VERSION"] = os.environ.get("BASE_TAG", "")
-os.environ["COMP_LINK"] = os.environ.get("OSCAP_COMPLIANCE_URL", "")
-os.environ["REPO_LINK"] = os.environ.get("CI_PROJECT_URL", "")
-os.environ["OSCAP"] = os.path.join(
-    os.environ.get("ARTIFACT_STORAGE"),
-    "scan-results/openscap/compliance_output_report.xml",
-)
+IMAGE_NAME = os.getenv("IMAGE_NAME", "")
+PIPELINE_REPO_DIR = os.getenv("PIPELINE_REPO_DIR", "")
+CI_PIPELINE_ID = os.getenv("CI_PIPELINE_ID", "")
+BUILD_DATE = os.getenv("BUILD_DATE", "")
+BUILD_DATE_TO_SCAN = os.getenv("BUILD_DATE_TO_SCAN", "")
+IMAGE_TAG = os.getenv("IMAGE_TAG", "")
+IMAGE_VERSION = os.getenv("IMAGE_VERSION")
+DIGEST_TO_SCAN = os.getenv("DIGEST_TO_SCAN", "")
+BASE_IMAGE = os.getenv("BASE_IMAGE", "")
+BASE_TAG = os.getenv("BASE_TAG", "")
+OSCAP_COMPLIANCE_URL = os.getenv("OSCAP_COMPLIANCE_URL", "")
+CI_PROJECT_URL = os.getenv("CI_PROJECT_URL", "")
+ARTIFACT_STORAGE = os.getenv("ARTIFACT_STORAGE", "")
+COMMIT_SHA_TO_SCAN = os.getenv("COMMIT_SHA_TO_SCAN", "")
+VAT_BACKEND_URL = os.getenv("VAT_BACKEND_URL", "")
 
 REMOTE_REPORT_DIRECTORY = (
     f"{datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}_{COMMIT_SHA_TO_SCAN}"
@@ -273,7 +269,7 @@ def create_api_call() -> dict:
 
     # if the SKIP_OPENSCAP variable exists, the oscap job was not run.
     # When not os.environ.get("SKIP_OPENSCAP"), this means this is not a SKIP_OPENSCAP project, and oscap findings should be imported
-    if .oscap and not os.environ.get("SKIP_OPENSCAP"):
+    if proc.oscap and not os.environ.get("SKIP_OPENSCAP"):
         logging.debug("Importing oscap findings")
         os_findings = generate_oscap_findings(
             proc.oscap, vat_finding_fields=vat_finding_fields
@@ -296,17 +292,17 @@ def create_api_call() -> dict:
     all_findings = tl_findings + asec_findings + acomp_findings + os_findings
     large_data = {
         "imageName": IMAGE_NAME,
-        "imageTag": IMAGE_TAG.parent,
-        "parentImageName": BASE_IMAGE.parent,
-        "parentImageTag": BASE_TAG.parent_version,
-        "jobId": CI_PIPELINE_ID.job_id,
-        "digest": DIGEST_TO_SCAN.digest.replace("sha256:", ""),
-        "timestamp": REMOTE_REPORT_DIRECTORY.timestamp,
-        "scanDate": BUILD_DATE_TO_SCAN.scan_date,
-        "buildDate": BUILD_DATE.build_date,
+        "imageTag": IMAGE_TAG,
+        "parentImageName": BASE_IMAGE,
+        "parentImageTag": BASE_TAG,
+        "jobId": CI_PIPELINE_ID,
+        "digest": DIGEST_TO_SCAN,
+        "timestamp": REMOTE_REPORT_DIRECTORY,
+        "scanDate": BUILD_DATE_TO_SCAN,
+        "buildDate": BUILD_DATE,
         "repo": {
-            "url": VAT_BACKEND_URL.repo_link,
-            "commit": COMMIT_SHA_TO_SCAN.commit_hash,
+            "url": VAT_BACKEND_URL,
+            "commit": COMMIT_SHA_TO_SCAN,
         },
         "findings": all_findings,
         "keywords": keyword_list,
@@ -389,7 +385,7 @@ def main() -> None:
         parent_vat_response_content = {"vatAttestationLineage": None}
 
     vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
-    if not ARTIFACT_STORAGE.use_json:
+    if not args.use_json:
         large_data = create_api_call()
         large_data.update(parent_vat_response_content)
         with vat_request_json.open("w", encoding="utf-8") as outfile:
@@ -447,14 +443,16 @@ if __name__ == "__main__":
     os.environ["COMP_LINK"] = os.environ.get("OSCAP_COMPLIANCE_URL", "")
     os.environ["REPO_LINK"] = os.environ.get("CI_PROJECT_URL", "")
     os.environ["OSCAP"] = os.path.join(
-        os.environ.get("ARTIFACT_STORAGE"),
+        os.environ.get("ARTIFACT_STORAGE", ""),
         "scan-results/openscap/compliance_output_report.xml",
     )
 
     # Construct the command
-    command = [
+    cmd = [
         "python3",
-        os.path.join(os.environ.get("PIPELINE_REPO_DIR"), "stages/vat/vat_import.py"),
+        os.path.join(
+            os.environ.get("PIPELINE_REPO_DIR", ""), "stages/vat/vat_import.py"
+        ),
         "--api_url",
         os.environ["API_URL"],
         "--job_id",
