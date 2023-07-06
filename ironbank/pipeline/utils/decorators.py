@@ -88,19 +88,19 @@ def subprocess_error_handler(logging_message: str):
                 print(f"START: {str(e)} : {e.returncode} : {e.output} : END")
                 if e.returncode == 125:
                     log.error(f"{logging_message}: Container failed to run error")
-                    # exit(1)
+                    exit(1)
                 elif e.returncode == 126:
                     log.error(f"{logging_message}: Command invoke error")
-                    # exit(1)
+                    exit(1)
                 elif e.returncode == 127:
                     log.error(f"{logging_message}: File or directory not found")
-                    # exit(1)
+                    exit(1)
                 elif e.returncode == 128:
                     log.error(f"{logging_message}: Invalid argument used on exit")
-                    # exit(1)
+                    exit(1)
                 elif e.returncode in [134, 137, 139, 143, 255]:
                     log.error(f"{logging_message}: Immediate termination")
-                    # exit(1)
+                    exit(1)
                 else:
                     log.error(f"{logging_message}: {e.returncode}")
                     # prevent exception chaining by using from None
@@ -111,7 +111,7 @@ def subprocess_error_handler(logging_message: str):
                 raise GenericSubprocessError() from None
             except FileNotFoundError as e:
                 log.error(f"{e.filename}: Digest file not found")
-                # exit(1)
+                exit(1)
 
         return wrapper
 
@@ -166,27 +166,6 @@ def vat_request_error_handler(func):
     return wrapper
 
 
-def cosign_error_handler(logging_message: str):
-    def log_custom_error(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except subprocess.CalledProcessError as e:
-                print(str(e))
-                if cosignError.ExitCode() == 1:
-                    log.error("generic cosign error successfully returned")
-                    return
-
-                log.error(logging_message)
-                # prevent exception chaining by using from None
-                raise GenericSubprocessError() from None
-
-        return wrapper
-
-    return log_custom_error
-
-
 def skopeo_error_handler(logging_message: str):
     def decorator(func):
         @functools.wraps(func)
@@ -194,30 +173,11 @@ def skopeo_error_handler(logging_message: str):
             try:
                 return func(*args, **kwargs)
             except subprocess.CalledProcessError as e:
-                print(f"ERROR : {str(e)} : {e.returncode} : {e.output} : END")
                 if e.returncode == 1:
-                    log.error(f"{logging_message}: Cannot resolve to an image ID")
+                    log.error(f"{logging_message}: Skopeo failed to run error: {e}")
+                    exit(1)
             except Exception:
-                log.error(f"{logging_message}: Failed to copy")
-                exit(1)
-
-        return wrapper
-
-    return decorator
-
-
-def http_error_handler(logging_message: str):
-    def decorator(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except subprocess.CalledProcessError as e:
-                log.error(f"{logging_message}: {e.stderr.decode('utf-8')}")
-            except ConnectionResetError as e:
-                # Handle the "connection reset by peer" error
-                if "Conection reset" in str(e):
-                    log.error(f"{logging_message}: Connection reset by peer: {e.args}.")
+                raise GenericSubprocessError() from None
 
         return wrapper
 

@@ -18,9 +18,7 @@ from ironbank.pipeline.image import Image, ImageFile
 from ironbank.pipeline.utils import logger
 from ironbank.pipeline.utils.decorators import (
     subprocess_error_handler,
-    cosign_error_handler,
     skopeo_error_handler,
-    http_error_handler,
 )
 
 log = logger.setup("build")
@@ -64,7 +62,6 @@ def create_mounts(mount_conf_path: Path, pipeline_build_dir: Path):
 # TODO: consider passing a true "type" for resource_type (i.e. resource_type = Image or resource_type = Path)
 @subprocess_error_handler("Failed to load resources")
 @skopeo_error_handler("Skopeo.copy failed")
-@http_error_handler("https connection failed")
 def load_resources(
     resource_dir: str, resource_type: str = "file", skopeo: Skopeo = None
 ):
@@ -300,11 +297,7 @@ def main():
     src = staging_image.from_image(transport="containers-storage:")
     dest = staging_image.from_image(transport="docker://")
 
-    print(
-        f"Image {src.name}:{src.tag} built to {dest.name} {dest}, {staging_auth_path}, {build_artifact_dir}"
-    )
     # TODO: skip the following skopeo copies on local build, maybe change the copy to local dir?
-    # try:
     skopeo.copy(
         src=src,
         dest=dest,
@@ -312,10 +305,6 @@ def main():
         dest_authfile=staging_auth_path,
         log_cmd=True,
     )
-    # except Exception as e:
-    #     print(e)
-    #     log.error(f"Failed to copy {e}")
-
     if (
         os.environ.get("STAGING_BASE_IMAGE")
         or os.environ["CI_COMMIT_BRANCH"] == "development"
