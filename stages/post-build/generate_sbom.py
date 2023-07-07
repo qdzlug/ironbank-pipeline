@@ -34,7 +34,7 @@ def main() -> None:
     anchore_scan = Anchore(
         url=os.environ["ANCHORE_URL"],
         username=os.environ["ANCHORE_USERNAME"],
-        password=os.environ["ANCHORE_PASSWORD"],
+        password="",
         verify=os.environ.get("ANCHORE_VERIFY", default=True),
     )
 
