@@ -206,10 +206,22 @@ def buildah_error_handler(logging_message: str):
                 log.error(logging_message)
                 # prevent exception chaining by using from None
                 raise GenericSubprocessError() from None
-            except FileNotFoundError as e:
-                log.error(f"{e.filename}: File not found")
-                # exit(1)
 
         return wrapper
 
     return decorate
+
+
+def file_error_handler(logging_message: str):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except FileNotFoundError as e:
+                log.error(f"{e.filename}: File not found")
+                # exit(1))
+
+        return wrapper
+
+    return decorator

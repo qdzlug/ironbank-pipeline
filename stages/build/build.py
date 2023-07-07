@@ -16,7 +16,10 @@ from ironbank.pipeline.container_tools.buildah import Buildah
 from ironbank.pipeline.container_tools.cosign import Cosign
 from ironbank.pipeline.image import Image, ImageFile
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.decorators import subprocess_error_handler
+from ironbank.pipeline.utils.decorators import (
+    subprocess_error_handler,
+    file_error_handler,
+)
 
 log = logger.setup("build")
 
@@ -57,6 +60,7 @@ def create_mounts(mount_conf_path: Path, pipeline_build_dir: Path):
 # resource_type set to file by default so image is explicitly set
 # resource_type is not used unless value = image, but it is set to file for clarity of purpose
 # TODO: consider passing a true "type" for resource_type (i.e. resource_type = Image or resource_type = Path)
+@file_error_handler("File not found")
 @subprocess_error_handler("Failed to load resources")
 def load_resources(
     resource_dir: str, resource_type: str = "file", skopeo: Skopeo = None
@@ -114,6 +118,7 @@ def get_parent_label(
     return ""
 
 
+@file_error_handler("File not found")
 @subprocess_error_handler("Failed to start squid")
 def start_squid(squid_conf: Path):
     """Start squid proxy to create access log file."""
