@@ -110,7 +110,7 @@ def subprocess_error_handler(logging_message: str):
                 # prevent exception chaining by using from None
                 raise GenericSubprocessError() from None
             except FileNotFoundError as e:
-                log.error(f"{e.filename}: Digest file not found")
+                log.error(f"{e.filename}: File not found")
                 exit(1)
 
         return wrapper
@@ -182,3 +182,54 @@ def skopeo_error_handler(logging_message: str):
         return wrapper
 
     return decorator
+
+
+def buildah_error_handler(logging_message: str):
+    """A decorator to wrap a function that may raise CalledProcessError or
+    SubprocessError. When these exceptions occur, it logs the specified error
+    message and raises a GenericSubprocessError exception.
+
+    Args:
+        logging_message (str): The error message to be logged.
+
+    Returns:
+        function: The decorator.
+    """
+
+    def decorate(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except subprocess.CalledProcessError as e:
+                print(f"START: {str(e)} : {e.returncode} : {e.output} : END")
+                if e.returncode == 125:
+                    log.error(f"{logging_message}: Container failed to run error")
+                    exit(1)
+                elif e.returncode == 126:
+                    log.error(f"{logging_message}: Command invoke error")
+                    exit(1)
+                elif e.returncode == 127:
+                    log.error(f"{logging_message}: File or directory not found")
+                    exit(1)
+                elif e.returncode == 128:
+                    log.error(f"{logging_message}: Invalid argument used on exit")
+                    exit(1)
+                elif e.returncode in [134, 137, 139, 143, 255]:
+                    log.error(f"{logging_message}: Immediate termination")
+                    exit(1)
+                else:
+                    log.error(f"{logging_message}: {e.returncode}")
+                    # prevent exception chaining by using from None
+                    raise GenericSubprocessError() from None
+            except subprocess.SubprocessError:
+                log.error(logging_message)
+                # prevent exception chaining by using from None
+                raise GenericSubprocessError() from None
+            except FileNotFoundError as e:
+                log.error(f"{e.filename}: File not found")
+                exit(1)
+
+        return wrapper
+
+    return decorate

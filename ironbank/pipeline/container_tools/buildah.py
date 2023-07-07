@@ -6,7 +6,7 @@ from pathlib import Path
 from ironbank.pipeline.container_tools.container_tool import ContainerTool
 from ironbank.pipeline.image import Image
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.decorators import subprocess_error_handler
+from ironbank.pipeline.utils.decorators import buildah_error_handler
 
 log = logger.setup(name="buildah")
 
@@ -14,7 +14,7 @@ log = logger.setup(name="buildah")
 class Buildah(ContainerTool):
     """A class used to interact with the Buildah container tool."""
 
-    @subprocess_error_handler(logging_message="Buildah.inspect failed")
+    @buildah_error_handler(logging_message="Buildah.inspect failed")
     def inspect(
         self,
         image: Image,
@@ -54,7 +54,7 @@ class Buildah(ContainerTool):
         )
 
     # TODO: add subprocess exception
-    @subprocess_error_handler(logging_message="Buildah.build failed")
+    @buildah_error_handler(logging_message="Buildah.build failed")
     def build(
         self,
         context: Path | str = ".",

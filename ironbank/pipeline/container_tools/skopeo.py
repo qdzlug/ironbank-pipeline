@@ -7,7 +7,7 @@ from pathlib import Path
 from ironbank.pipeline.container_tools.container_tool import ContainerTool
 from ironbank.pipeline.image import Image, ImageFile
 from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.decorators import subprocess_error_handler
+from ironbank.pipeline.utils.decorators import skopeo_error_handler
 
 log = logger.setup(name="skopeo")
 
@@ -39,7 +39,7 @@ class Skopeo(ContainerTool):
         AWS region to use. Defaults to 'us-gov-west-1'.
     """
 
-    @subprocess_error_handler(logging_message="Skopeo.inspect failed")
+    @skopeo_error_handler(logging_message="Skopeo.inspect failed")
     def inspect(
         self, image: Image | ImageFile, raw: bool = False, log_cmd: bool = False
     ) -> dict:
@@ -81,7 +81,7 @@ class Skopeo(ContainerTool):
         )
         return json.loads(inspect_result.stdout) if not raw else inspect_result.stdout
 
-    @subprocess_error_handler(logging_message="Skopeo.copy failed")
+    @skopeo_error_handler(logging_message="Skopeo.copy failed")
     def copy(
         self,
         src: Image | ImageFile,
