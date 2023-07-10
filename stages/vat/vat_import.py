@@ -269,7 +269,7 @@ def create_api_call() -> dict:
 
     # if the SKIP_OPENSCAP variable exists, the oscap job was not run.
     # When not os.environ.get("SKIP_OPENSCAP"), this means this is not a SKIP_OPENSCAP project, and oscap findings should be imported
-    if proc.oscap and not os.environ.get("SKIP_OPENSCAP"):
+    if communicate.oscap and not os.environ.get("SKIP_OPENSCAP"):
         logging.debug("Importing oscap findings")
         os_findings = generate_oscap_findings(
             proc.oscap, vat_finding_fields=vat_finding_fields
