@@ -27,7 +27,6 @@ from ironbank.pipeline.scan_report_parsers.anchore import AnchoreReportParser
 from ironbank.pipeline.scan_report_parsers.oscap import OscapReportParser
 from ironbank.pipeline.utils.decorators import subprocess_error_handler
 from ironbank.pipeline.utils.predicates import Predicates
-import parser
 
 # Set the necessary environment variables
 IMAGE_NAME = os.getenv("IMAGE_NAME", "")
@@ -45,6 +44,12 @@ CI_PROJECT_URL = os.getenv("CI_PROJECT_URL", "")
 ARTIFACT_STORAGE = os.getenv("ARTIFACT_STORAGE", "")
 COMMIT_SHA_TO_SCAN = os.getenv("COMMIT_SHA_TO_SCAN", "")
 VAT_BACKEND_URL = os.getenv("VAT_BACKEND_URL", "")
+
+SKIP_OPENSCAP = os.getenv("SKIP_OPENSCAP", "")
+anchore_sec = os.getenv("anchore_sec", "")
+anchore_gates = os.getenv("anchore_gates", "")
+twistlock = os.getenv("twistlock", "")
+
 
 REMOTE_REPORT_DIRECTORY = (
     f"{datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}_{COMMIT_SHA_TO_SCAN}"
@@ -226,99 +231,99 @@ def generate_twistlock_findings(twistlock_cve_path: Path) -> list[dict[str, Any]
     return findings
 
 
-@subprocess_error_handler(
-    "Failed to create data from API call based on the given environment"
-)
-def create_api_call() -> dict:
-    """Creates the data for an API call based on various environmental
-    variables and findings.
+# @subprocess_error_handler(
+#     "Failed to create data from API call based on the given environment"
+# )
+# def create_api_call() -> dict:
+#     """Creates the data for an API call based on various environmental
+#     variables and findings.
 
-    This function gathers keyword, tag, label data from a predefined storage location.
-    Then it imports the findings from different scanning tools if their specific arguments
-    are provided. Finally, all this data is assembled into a dictionary.
+#     This function gathers keyword, tag, label data from a predefined storage location.
+#     Then it imports the findings from different scanning tools if their specific arguments
+#     are provided. Finally, all this data is assembled into a dictionary.
 
-    Environment Variables:
-    - ARTIFACT_STORAGE: The storage location for keywords, tags, and label data.
-    - VAT_FINDING_FIELDS: (Optional) The fields to be included in the findings from VAT.
-                          Defaults to a predefined list of fields.
-    - IMAGE_TO_SCAN: The image to be scanned.
+#     Environment Variables:
+#     - ARTIFACT_STORAGE: The storage location for keywords, tags, and label data.
+#     - VAT_FINDING_FIELDS: (Optional) The fields to be included in the findings from VAT.
+#                           Defaults to a predefined list of fields.
+#     - IMAGE_TO_SCAN: The image to be scanned.
 
-    Returns:
-    - large_data: The dictionary containing all the assembled data.
-    """
-    artifact_storage = os.environ["ARTIFACT_STORAGE"]
-    keyword_list = source_values(f"{artifact_storage}/lint/keywords.txt", "keywords")
-    tag_list = source_values(f"{artifact_storage}/lint/tags.txt", "tags")
-    label_dict = get_source_keys_values(f"{artifact_storage}/lint/labels.env")
-    # get cves and justifications from VAT
-    # Get all justifications
-    logging.info("Gathering list of all justifications...")
+#     Returns:
+#     - large_data: The dictionary containing all the assembled data.
+#     """
+#     artifact_storage = os.environ["ARTIFACT_STORAGE"]
+#     keyword_list = source_values(f"{artifact_storage}/lint/keywords.txt", "keywords")
+#     tag_list = source_values(f"{artifact_storage}/lint/tags.txt", "tags")
+#     label_dict = get_source_keys_values(f"{artifact_storage}/lint/labels.env")
+#     # get cves and justifications from VAT
+#     # Get all justifications
+#     logging.info("Gathering list of all justifications...")
 
-    renovate_enabled = Path("renovate.json").is_file()
+#     renovate_enabled = Path("renovate.json").is_file()
 
-    os_findings = []
-    tl_findings = []
-    asec_findings = []
-    acomp_findings = []
+#     os_findings = []
+#     tl_findings = []
+#     asec_findings = []
+#     acomp_findings = []
 
-    vat_finding_fields = os.environ.get("VAT_FINDING_FIELDS") or [
-        "finding",
-        "severity",
-        "description",
-        "link",
-        "score",
-        "package",
-        "packagePath",
-        "scanSource",
-        "identifiers",
-    ]
-    assert isinstance(vat_finding_fields, list)
+#     vat_finding_fields = os.environ.get("VAT_FINDING_FIELDS") or [
+#         "finding",
+#         "severity",
+#         "description",
+#         "link",
+#         "score",
+#         "package",
+#         "packagePath",
+#         "scanSource",
+#         "identifiers",
+#     ]
+#     assert isinstance(vat_finding_fields, list)
 
-    # if the SKIP_OPENSCAP variable exists, the oscap job was not run.
-    # When not os.environ.get("SKIP_OPENSCAP"), this means this is not a SKIP_OPENSCAP project, and oscap findings should be imported
-    if args.oscap and not os.environ.get("SKIP_OPENSCAP"):
-        logging.debug("Importing oscap findings")
-        os_findings = generate_oscap_findings(
-            args.oscap, vat_finding_fields=vat_finding_fields
-        )
-        logging.debug("oscap finding count: %s", len(os_findings))
-    if args.anchore_sec:
-        logging.debug("Importing anchore security findings")
-        asec_findings = generate_anchore_cve_findings(
-            args.anchore_sec, vat_finding_fields=vat_finding_fields
-        )
-        logging.debug("Anchore security finding count: %s", len(asec_findings))
-    if args.anchore_gates:
-        logging.debug("Importing importing anchore compliance findings")
-        acomp_findings = generate_anchore_comp_findings(args.anchore_gates)
-        logging.debug("Anchore compliance finding count: %s", len(acomp_findings))
-    if args.twistlock:
-        logging.debug("Importing twistlock findings")
-        tl_findings = generate_twistlock_findings(args.twistlock)
-        logging.debug("Twistlock finding count: %s", len(tl_findings))
-    all_findings = tl_findings + asec_findings + acomp_findings + os_findings
-    large_data = {
-        "imageName": IMAGE_NAME,
-        "imageTag": IMAGE_TAG,
-        "parentImageName": BASE_IMAGE,
-        "parentImageTag": BASE_TAG,
-        "jobId": CI_PIPELINE_ID,
-        "digest": DIGEST_TO_SCAN,
-        "timestamp": REMOTE_REPORT_DIRECTORY,
-        "scanDate": BUILD_DATE_TO_SCAN,
-        "buildDate": BUILD_DATE,
-        "repo": {
-            "url": VAT_BACKEND_URL,
-            "commit": COMMIT_SHA_TO_SCAN,
-        },
-        "findings": all_findings,
-        "keywords": keyword_list,
-        "tags": tag_list,
-        "labels": label_dict,
-        "renovateEnabled": renovate_enabled,
-    }
-    logging.debug(large_data)
-    return large_data
+# if the SKIP_OPENSCAP variable exists, the oscap job was not run.
+# When not os.environ.get("SKIP_OPENSCAP"), this means this is not a SKIP_OPENSCAP project, and oscap findings should be imported
+# if args.oscap and not os.environ.get("SKIP_OPENSCAP"):
+#     logging.debug("Importing oscap findings")
+#     os_findings = generate_oscap_findings(
+#         args.oscap, vat_finding_fields=vat_finding_fields
+#     )
+#     logging.debug("oscap finding count: %s", len(os_findings))
+# if args.anchore_sec:
+#     logging.debug("Importing anchore security findings")
+#     asec_findings = generate_anchore_cve_findings(
+#         args.anchore_sec, vat_finding_fields=vat_finding_fields
+#     )
+#     logging.debug("Anchore security finding count: %s", len(asec_findings))
+# if args.anchore_gates:
+#     logging.debug("Importing importing anchore compliance findings")
+#     acomp_findings = generate_anchore_comp_findings(args.anchore_gates)
+#     logging.debug("Anchore compliance finding count: %s", len(acomp_findings))
+# if args.twistlock:
+#     logging.debug("Importing twistlock findings")
+#     tl_findings = generate_twistlock_findings(args.twistlock)
+#     logging.debug("Twistlock finding count: %s", len(tl_findings))
+# all_findings = tl_findings + asec_findings + acomp_findings + os_findings
+# large_data = {
+#     "imageName": IMAGE_NAME,
+#     "imageTag": IMAGE_TAG,
+#     "parentImageName": BASE_IMAGE,
+#     "parentImageTag": BASE_TAG,
+#     "jobId": CI_PIPELINE_ID,
+#     "digest": DIGEST_TO_SCAN,
+#     "timestamp": REMOTE_REPORT_DIRECTORY,
+#     "scanDate": BUILD_DATE_TO_SCAN,
+#     "buildDate": BUILD_DATE,
+#     "repo": {
+#         "url": VAT_BACKEND_URL,
+#         "commit": COMMIT_SHA_TO_SCAN,
+#     },
+#     "findings": all_findings,
+#     "keywords": keyword_list,
+#     "tags": tag_list,
+#     "labels": label_dict,
+#     "renovateEnabled": renovate_enabled,
+# }
+# logging.debug(large_data)
+# return large_data
 
 
 @subprocess_error_handler("Failed to pull from VAT")
@@ -432,8 +437,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    args = parser.parse_args()
-
+    # args = parser.parse_args()
     # Set the necessary environment variables
     os.environ["API_URL"] = os.environ.get("VAT_API_URL", "")
     os.environ["JOB_ID"] = os.environ.get("CI_PIPELINE_ID", "")
