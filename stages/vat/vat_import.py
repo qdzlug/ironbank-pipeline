@@ -26,6 +26,7 @@ from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.scan_report_parsers.anchore import AnchoreReportParser
 from ironbank.pipeline.scan_report_parsers.oscap import OscapReportParser
 from ironbank.pipeline.utils.predicates import Predicates
+import parser
 
 # Set the necessary environment variables
 IMAGE_NAME = os.getenv("IMAGE_NAME", "")
@@ -269,25 +270,25 @@ def create_api_call() -> dict:
 
     # if the SKIP_OPENSCAP variable exists, the oscap job was not run.
     # When not os.environ.get("SKIP_OPENSCAP"), this means this is not a SKIP_OPENSCAP project, and oscap findings should be imported
-    if communicate.oscap and not os.environ.get("SKIP_OPENSCAP"):
+    if args.oscap and not os.environ.get("SKIP_OPENSCAP"):
         logging.debug("Importing oscap findings")
         os_findings = generate_oscap_findings(
-            proc.oscap, vat_finding_fields=vat_finding_fields
+            args.oscap, vat_finding_fields=vat_finding_fields
         )
         logging.debug("oscap finding count: %s", len(os_findings))
-    if proc.anchore_sec:
+    if args.anchore_sec:
         logging.debug("Importing anchore security findings")
         asec_findings = generate_anchore_cve_findings(
-            proc.anchore_sec, vat_finding_fields=vat_finding_fields
+            args.anchore_sec, vat_finding_fields=vat_finding_fields
         )
         logging.debug("Anchore security finding count: %s", len(asec_findings))
-    if proc.anchore_gates:
+    if args.anchore_gates:
         logging.debug("Importing importing anchore compliance findings")
-        acomp_findings = generate_anchore_comp_findings(proc.anchore_gates)
+        acomp_findings = generate_anchore_comp_findings(args.anchore_gates)
         logging.debug("Anchore compliance finding count: %s", len(acomp_findings))
-    if proc.twistlock:
+    if args.twistlock:
         logging.debug("Importing twistlock findings")
-        tl_findings = generate_twistlock_findings(proc.twistlock)
+        tl_findings = generate_twistlock_findings(args.twistlock)
         logging.debug("Twistlock finding count: %s", len(tl_findings))
     all_findings = tl_findings + asec_findings + acomp_findings + os_findings
     large_data = {
@@ -398,9 +399,7 @@ def main() -> None:
     headers["Content-Type"] = "application/json"
     headers["Authorization"] = f"Bearer {os.environ['VAT_TOKEN']}"
     try:
-        resp = requests.post(
-            VAT_API_URL, headers=headers, json=large_data, timeout=(30, 30)
-        )
+        resp = requests.post(args, headers=headers, json=large_data, timeout=(30, 30))
         resp.raise_for_status()
         logging.debug("API Response:\n%s", resp.text)
         logging.debug("POST Response: %s", resp.status_code)
@@ -426,6 +425,8 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    args = parser.parse_args()
+
     # Set the necessary environment variables
     os.environ["API_URL"] = os.environ.get("VAT_API_URL", "")
     os.environ["JOB_ID"] = os.environ.get("CI_PIPELINE_ID", "")
