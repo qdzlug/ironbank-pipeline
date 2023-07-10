@@ -25,6 +25,7 @@ from ironbank.pipeline.image import Image
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.scan_report_parsers.anchore import AnchoreReportParser
 from ironbank.pipeline.scan_report_parsers.oscap import OscapReportParser
+from ironbank.pipeline.utils.decorators import subprocess_error_handler
 from ironbank.pipeline.utils.predicates import Predicates
 import parser
 
@@ -180,6 +181,8 @@ def get_twistlock_package_paths(twistlock_data: dict[str, Any]) -> dict:
 
 
 # Get results from Twistlock report for finding generation
+
+
 def generate_twistlock_findings(twistlock_cve_path: Path) -> list[dict[str, Any]]:
     """From an twistlock cve finding report, generate findings and use list of
     findings and their metadata to generate list of dictionaries."""
@@ -223,6 +226,9 @@ def generate_twistlock_findings(twistlock_cve_path: Path) -> list[dict[str, Any]
     return findings
 
 
+@subprocess_error_handler(
+    "Failed to create data from API call based on the given environment"
+)
 def create_api_call() -> dict:
     """Creates the data for an API call based on various environmental
     variables and findings.
@@ -315,6 +321,7 @@ def create_api_call() -> dict:
     return large_data
 
 
+@subprocess_error_handler("Failed to pull from VAT")
 def get_parent_vat_response(
     output_dir: str, hardening_manifest: HardeningManifest
 ) -> None:
