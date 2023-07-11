@@ -44,6 +44,8 @@ case "${securityGuide}" in
     ;;
 esac
 
+python3 "${PIPELINE_REPO_DIR}/stages/scanning/openscap/fix-ubi-oval-url.py"
+
 oscap-podman "${DOCKER_IMAGE_PATH}" xccdf eval --verbose ERROR --fetch-remote-resources --profile "${profile}" --stig-viewer compliance_output_report_stigviewer.xml --results compliance_output_report.xml --report report.html "${SCAP_CONTENT}/${securityGuide}" || true
 ls compliance_output_report.xml compliance_output_report_stigviewer.xml report.html
 rm -rf "${SCAP_CONTENT}"
