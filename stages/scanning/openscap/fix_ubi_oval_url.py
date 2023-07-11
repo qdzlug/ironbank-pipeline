@@ -24,7 +24,7 @@ def main() -> None:
                     f"{{{namespaces['xlink']}}}href",
                     f"https://access.redhat.com/security/data/oval/v2/RHEL{ubi_version}/rhel-{ubi_version}.oval.xml.bz2",
                 )
-        root.write("test2.xml")
+        root.write(scap_guide_path)
 
 
 if __name__ == "__main__":
