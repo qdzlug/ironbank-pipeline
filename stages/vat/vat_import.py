@@ -49,6 +49,7 @@ SKIP_OPENSCAP = os.getenv("SKIP_OPENSCAP", "")
 anchore_sec = os.getenv("anchore_sec", "")
 anchore_gates = os.getenv("anchore_gates", "")
 twistlock = os.getenv("twistlock", "")
+ARTIFACT_DIR = os.getenv("ARTIFACT_DIR", "")
 
 
 REMOTE_REPORT_DIRECTORY = (
@@ -225,7 +226,7 @@ def generate_twistlock_findings(twistlock_cve_path: Path) -> list[dict[str, Any]
         logging.error(
             "Missing key. Please contact the Iron Bank Pipeline and Ops (POPs) team"
         )
-        logging.error(e.args)
+        logging.error(e)
         sys.exit(1)
 
     return findings
@@ -397,21 +398,21 @@ def main() -> None:
     else:
         parent_vat_response_content = {"vatAttestationLineage": None}
 
-    vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
-    if not args.use_json:
-        large_data = create_api_call()
-        large_data.update(parent_vat_response_content)
-        with vat_request_json.open("w", encoding="utf-8") as outfile:
-            json.dump(large_data, outfile)
-    else:
-        with vat_request_json.open(encoding="utf-8") as infile:
-            large_data = json.load(infile)
+    # vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
+    # if not args.use_json:
+    #     # large_data = create_api_call()
+    #     large_data.update(parent_vat_response_content)
+    #     with vat_request_json.open("w", encoding="utf-8") as outfile:
+    #         json.dump(large_data, outfile)
+    # else:
+    #     with vat_request_json.open(encoding="utf-8") as infile:
+    #         large_data = json.load(infile)
 
     headers: CaseInsensitiveDict = CaseInsensitiveDict()
     headers["Content-Type"] = "application/json"
     headers["Authorization"] = f"Bearer {os.environ['VAT_TOKEN']}"
     try:
-        resp = requests.post(args, headers=headers, json=large_data, timeout=(30, 30))
+        # resp = requests.post(args, headers=headers, json=large_data, timeout=(30, 30))
         resp.raise_for_status()
         logging.debug("API Response:\n%s", resp.text)
         logging.debug("POST Response: %s", resp.status_code)
