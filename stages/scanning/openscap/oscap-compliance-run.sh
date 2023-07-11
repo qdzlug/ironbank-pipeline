@@ -21,7 +21,7 @@ fi
 
 oscap_container=$(python3 "${PIPELINE_REPO_DIR}/stages/scanning/openscap/compliance.py" --oscap-version "${OSCAP_VERSION}" --image-type "${BASE_IMAGE_TYPE}" | sed s/\'/\"/g)
 echo "${oscap_container}"
-SCAP_CONTENT="scap-content"
+export SCAP_CONTENT="scap-content"
 mkdir -p "${SCAP_CONTENT}"
 
 # If SCAP_URL var exists, use this to download scap content, else retrieve it based on BASE_IMAGE_TYPE
@@ -33,7 +33,7 @@ fi
 
 unzip -qq -o "${SCAP_CONTENT}/scap-security-guide.zip" -d "${SCAP_CONTENT}"
 profile=$(echo "${oscap_container}" | grep -o '"profile": "[^"]*' | grep -o '[^"]*$')
-securityGuide=$(echo "${oscap_container}" | grep -o '"securityGuide": "[^"]*' | grep -o '[^"]*$')
+export securityGuide=$(echo "${oscap_container}" | grep -o '"securityGuide": "[^"]*' | grep -o '[^"]*$')
 echo "profile: ${profile}"
 echo "securityGuide: ${securityGuide}"
 
