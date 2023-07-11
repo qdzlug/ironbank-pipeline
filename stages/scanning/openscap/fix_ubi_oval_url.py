@@ -3,9 +3,7 @@ import xml.etree.ElementTree as etree
 
 
 def main() -> None:
-    """
-    Handle ubi image oval link pointing to v1
-    """
+    """Handle ubi image oval link pointing to v1."""
     base_image_type = os.environ["BASE_IMAGE_TYPE"]
     if "ubi" in base_image_type:
         scap_guide_path = f"{os.environ['SCAP_CONTENT']}/{os.environ['securityGuide']}"
