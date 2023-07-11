@@ -14,14 +14,16 @@ log = logger.setup(name="buildah")
 class Buildah(ContainerTool):
     """A class used to interact with the Buildah container tool."""
 
-    @buildah_error_handler(logging_message="Buildah.inspect failed")
+    @buildah_error_handler(
+        logging_message="Buildah.inspect failed"
+    )  # pylint: disable=E1500
     def inspect(
         self,
         image: Image,
         storage_driver: str = "vfs",
         output_format: str = None,
         log_cmd: bool = False,
-    ):
+    ):  # pylint: disable=E1500
         """Inspects an image using the Buildah tool.
 
         Parameters
@@ -54,7 +56,9 @@ class Buildah(ContainerTool):
         )
 
     # TODO: add subprocess exception
-    @buildah_error_handler(logging_message="Buildah.build failed")
+    @buildah_error_handler(
+        logging_message="Buildah.build failed"
+    )  # pylint: disable=E1500
     def build(
         self,
         context: Path | str = ".",
@@ -67,7 +71,7 @@ class Buildah(ContainerTool):
         tag: Image | str = None,
         ulimit_args: dict = None,
         log_cmd: bool = False,
-    ):
+    ):  # pylint: disable=E1500
         """Builds a Docker image using the Buildah tool.
 
         Parameters

@@ -1,5 +1,6 @@
-import functools
 import os
+import sys
+import functools
 import subprocess
 from logging import Logger
 
@@ -160,15 +161,21 @@ def skopeo_error_handler(logging_message: str):
 
     def decorator(func):
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args, **kwargs):  # pylint: disable=R1710
             try:
                 return func(*args, **kwargs)
             except subprocess.CalledProcessError as e:
+                log.info(f"START: {str(e)} : {e.returncode} : {e.output} :")
                 if e.returncode == 1:
                     log.error(f"{logging_message}: Skopeo failed to run error: {e}")
-                    exit(1)
-            except Exception:
-                raise GenericSubprocessError() from None
+                    sys.exit(1)
+                else:
+                    log.error(
+                        f"{logging_message}: Skopeo failed non zero code: {e.returncode}"
+                    )
+                    sys.exit(1)
+            except Exception as e:
+                raise GenericSubprocessError() from e
 
         return wrapper
 
@@ -196,19 +203,19 @@ def buildah_error_handler(logging_message: str):
                 print(f"START: {str(e)} : {e.returncode} : {e.output} : END")
                 if e.returncode == 125:
                     log.error(f"{logging_message}: Container failed to run error")
-                    exit(1)
+                    sys.exit(1)
                 elif e.returncode == 126:
                     log.error(f"{logging_message}: Command invoke error")
-                    exit(1)
+                    sys.exit(1)
                 elif e.returncode == 127:
                     log.error(f"{logging_message}: File or directory not found")
-                    exit(1)
+                    sys.exit(1)
                 elif e.returncode == 128:
                     log.error(f"{logging_message}: Invalid argument used on exit")
-                    exit(1)
+                    sys.exit(1)
                 elif e.returncode in [134, 137, 139, 143, 255]:
                     log.error(f"{logging_message}: Immediate termination")
-                    exit(1)
+                    sys.exit(1)
                 else:
                     log.error(f"{logging_message}: {e.returncode}")
                     # prevent exception chaining by using from None
@@ -242,7 +249,7 @@ def file_error_handler(logging_message: str):
                 return func(*args, **kwargs)
             except FileNotFoundError as e:
                 log.error(f"{logging_message}: {e.filename}: File not found")
-                exit(1)
+                sys.exit(1)
 
         return wrapper
 

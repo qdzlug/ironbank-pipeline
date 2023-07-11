@@ -40,7 +40,7 @@ class Skopeo(ContainerTool):
     """
 
     @skopeo_error_handler(logging_message="Skopeo.inspect failed")
-    def inspect(
+    def inspect(  # pylint: disable=E1500
         self, image: Image | ImageFile, raw: bool = False, log_cmd: bool = False
     ) -> dict:
         """Inspects an image using 'skopeo inspect'.
@@ -82,7 +82,7 @@ class Skopeo(ContainerTool):
         return json.loads(inspect_result.stdout) if not raw else inspect_result.stdout
 
     @skopeo_error_handler(logging_message="Skopeo.copy failed")
-    def copy(
+    def copy(  # pylint: disable=E1500
         self,
         src: Image | ImageFile,
         dest: Image | ImageFile,
