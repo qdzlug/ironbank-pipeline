@@ -18,7 +18,7 @@ def main() -> None:
         for check in checks.findall("ds:component-ref", namespaces):
             if (
                 check.attrib["id"]
-                == "scap_org.open-scap_cref_security-data-oval-com.redhat.rhsa-RHEL{ubi_version}.xml.bz2"
+                == f"scap_org.open-scap_cref_security-data-oval-com.redhat.rhsa-RHEL{ubi_version}.xml.bz2"
             ):
                 check.set(
                     f"{{{namespaces['xlink']}}}href",

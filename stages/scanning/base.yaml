@@ -35,7 +35,6 @@ openscap-compliance:
   artifacts:
     paths:
       - "${OSCAP_SCANS}"
-      - "scap-content/ssg-rhel8-ds.xml"
     reports:
       dotenv: oscap-compliance.env
 
