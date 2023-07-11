@@ -46,11 +46,28 @@ ARTIFACT_STORAGE = os.getenv("ARTIFACT_STORAGE")
 COMMIT_SHA_TO_SCAN = os.getenv("COMMIT_SHA_TO_SCAN")
 VAT_BACKEND_URL = os.getenv("VAT_BACKEND_URL")
 
-SKIP_OPENSCAP = os.getenv("SKIP_OPENSCAP")
-anchore_sec = os.getenv("anchore_sec")
-anchore_gates = os.getenv("anchore_gates")
-twistlock = os.getenv("twistlock")
-ARTIFACT_DIR = os.getenv("ARTIFACT_DIR")
+
+api_url = os.getenv("{VAT_API_URL}")
+job_id = os.getenv("{CI_PIPELINE_ID}")
+timestamp = os.getenv("(date --utc '+%FT%TZ')")
+scan_date = os.getenv("{BUILD_DATE}")
+build_date = os.getenv("{BUILD_DATE_TO_SCAN}")
+commit_hash = os.getenv("{COMMIT_SHA_TO_SCAN}")
+container = os.getenv("{IMAGE_NAME}")
+version = os.getenv("{IMAGE_VERSION}")
+digest = os.getenv("{DIGEST_TO_SCAN}")
+parent = os.getenv("{BASE_IMAGE:-}")
+parent_version = os.getenv("{BASE_TAG:-}")
+comp_link = os.getenv("{OSCAP_COMPLIANCE_URL:-''}")
+repo_link = os.getenv("{CI_PROJECT_URL}")
+
+OSCAP = os.getenv(
+    "{ARTIFACT_STORAGE}/scan-results/openscap/compliance_output_report.xml"
+)
+VAT_API_URL = os.getenv("{VAT_BACKEND_URL}/internal/import/scan")
+anchore_sec = os.getenv("{ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json")
+anchore_gates = os.getenv("{ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json")
+twistlock = os.getenv("{ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json")
 
 
 REMOTE_REPORT_DIRECTORY = (
@@ -393,9 +410,10 @@ def create_api_call() -> dict:
     ]
     assert isinstance(vat_finding_fields, list)
 
-    """if the SKIP_OPENSCAP variable exists, the oscap job was not run.
-    When not os.environ.get("SKIP_OPENSCAP"), this means this is not a SKIP_OPENSCAP project, and oscap findings should be imported
-    """
+    # if the SKIP_OPENSCAP variable exists, the oscap job was not run.
+    # When not os.environ.get("SKIP_OPENSCAP"), this means this is not a SKIP_OPENSCAP project,
+    # and oscap findings should be imported
+
     if oscap and not os.environ.get("SKIP_OPENSCAP"):
         logging.debug("Importing oscap findings")
         os_findings = generate_oscap_findings(
