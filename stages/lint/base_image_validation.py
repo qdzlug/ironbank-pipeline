@@ -73,7 +73,9 @@ async def main():
             log.error(f"Failed 'skopeo inspect' of image: {base_image}")
             sys.exit(1)
         if not os.environ.get("STAGING_BASE_IMAGE"):
-            with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
+            with tempfile.TemporaryDirectory(
+                prefix="DOCKER_CONFIG-"
+            ) as docker_config_dir:
                 log.info("Verifying base image signature")
                 shutil.copy(
                     pull_auth,
