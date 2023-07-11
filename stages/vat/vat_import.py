@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import json
 import logging
 import os
@@ -30,26 +31,26 @@ from ironbank.pipeline.utils.predicates import Predicates
 
 # Set the necessary environment variables
 IMAGE_NAME = os.getenv("IMAGE_NAME", "")
-PIPELINE_REPO_DIR = os.getenv("PIPELINE_REPO_DIR", "")
-CI_PIPELINE_ID = os.getenv("CI_PIPELINE_ID", "")
-BUILD_DATE = os.getenv("BUILD_DATE", "")
-BUILD_DATE_TO_SCAN = os.getenv("BUILD_DATE_TO_SCAN", "")
-IMAGE_TAG = os.getenv("IMAGE_TAG", "")
+PIPELINE_REPO_DIR = os.getenv("PIPELINE_REPO_DIR")
+CI_PIPELINE_ID = os.getenv("CI_PIPELINE_ID")
+BUILD_DATE = os.getenv("BUILD_DATE")
+BUILD_DATE_TO_SCAN = os.getenv("BUILD_DATE_TO_SCAN")
+IMAGE_TAG = os.getenv("IMAGE_TAG")
 IMAGE_VERSION = os.getenv("IMAGE_VERSION")
-DIGEST_TO_SCAN = os.getenv("DIGEST_TO_SCAN", "")
+DIGEST_TO_SCAN = os.getenv("DIGEST_TO_SCAN")
 BASE_IMAGE = os.getenv("BASE_IMAGE", "")
 BASE_TAG = os.getenv("BASE_TAG", "")
-OSCAP_COMPLIANCE_URL = os.getenv("OSCAP_COMPLIANCE_URL", "")
-CI_PROJECT_URL = os.getenv("CI_PROJECT_URL", "")
-ARTIFACT_STORAGE = os.getenv("ARTIFACT_STORAGE", "")
-COMMIT_SHA_TO_SCAN = os.getenv("COMMIT_SHA_TO_SCAN", "")
-VAT_BACKEND_URL = os.getenv("VAT_BACKEND_URL", "")
+OSCAP_COMPLIANCE_URL = os.getenv("OSCAP_COMPLIANCE_URL")
+CI_PROJECT_URL = os.getenv("CI_PROJECT_URL")
+ARTIFACT_STORAGE = os.getenv("ARTIFACT_STORAGE")
+COMMIT_SHA_TO_SCAN = os.getenv("COMMIT_SHA_TO_SCAN")
+VAT_BACKEND_URL = os.getenv("VAT_BACKEND_URL")
 
-SKIP_OPENSCAP = os.getenv("SKIP_OPENSCAP", "")
-anchore_sec = os.getenv("anchore_sec", "")
-anchore_gates = os.getenv("anchore_gates", "")
-twistlock = os.getenv("twistlock", "")
-ARTIFACT_DIR = os.getenv("ARTIFACT_DIR", "")
+SKIP_OPENSCAP = os.getenv("SKIP_OPENSCAP")
+anchore_sec = os.getenv("anchore_sec")
+anchore_gates = os.getenv("anchore_gates")
+twistlock = os.getenv("twistlock")
+ARTIFACT_DIR = os.getenv("ARTIFACT_DIR")
 
 
 REMOTE_REPORT_DIRECTORY = (
@@ -58,6 +59,121 @@ REMOTE_REPORT_DIRECTORY = (
 
 os.environ["REMO TE_REPORT_DIRECTORY"] = REMOTE_REPORT_DIRECTORY
 os.environ["VAT_API_URL"] = f"{VAT_BACKEND_URL}/internal/import/scan"
+
+parser = argparse.ArgumentParser(
+    description="DCCSCR processing of CVE reports from various sources"
+)
+parser.add_argument(
+    "-a",
+    "--api_url",
+    help="Url for API POST",
+    default="http://localhost:4000/internal/import/scan",
+    required=False,
+)
+parser.add_argument(
+    "-j",
+    "--job_id",
+    help="Pipeline job ID",
+    required=True,
+)
+parser.add_argument(
+    "-ts",
+    "--timestamp",
+    help="Timestamp for current pipeline run",
+    required=True,
+)
+parser.add_argument(
+    "-sd",
+    "--scan_date",
+    help="Scan date for pipeline run",
+    required=True,
+)
+parser.add_argument(
+    "-bd",
+    "--build_date",
+    help="Build date for pipeline run",
+    required=True,
+)
+parser.add_argument(
+    "-ch",
+    "--commit_hash",
+    help="Commit hash for container build",
+    required=True,
+)
+parser.add_argument(
+    "-c",
+    "--container",
+    help="Container VENDOR/PRODUCT/CONTAINER",
+    required=True,
+)
+parser.add_argument(
+    "-v",
+    "--version",
+    help="Container Version from VENDOR/PRODUCT/CONTAINER/VERSION format",
+    required=True,
+)
+parser.add_argument(
+    "-dg",
+    "--digest",
+    help="Container Digest as SHA256 Hash",
+    required=True,
+)
+parser.add_argument(
+    "-tl",
+    "--twistlock",
+    help="location of the twistlock JSON scan file",
+    required=True,
+)
+parser.add_argument(
+    "-oc",
+    "--oscap",
+    help="location of the oscap scan XML file",
+    required=False,
+)
+parser.add_argument(
+    "-ac",
+    "--anchore-sec",
+    help="location of the anchore_security.json scan file",
+    required=True,
+)
+parser.add_argument(
+    "-ag",
+    "--anchore-gates",
+    help="location of the anchore_gates.json scan file",
+    required=True,
+)
+parser.add_argument(
+    "-pc",
+    "--parent",
+    help="Parent VENDOR/PRODUCT/CONTAINER",
+    required=False,
+)
+parser.add_argument(
+    "-pv",
+    "--parent_version",
+    help="Parent Version from VENDOR/PRODUCT/CONTAINER/VERSION format",
+    required=False,
+)
+parser.add_argument(
+    "-cl",
+    "--comp_link",
+    help="Link to openscap compliance reports directory",
+    required=True,
+)
+parser.add_argument(
+    "-rl",
+    "--repo_link",
+    help="Link to container repository",
+    default="",
+    required=False,
+)
+parser.add_argument(
+    "-uj",
+    "--use_json",
+    help="Dump payload for API to out.json file",
+    action="store_true",
+    required=False,
+)
 
 
 def generate_anchore_cve_findings(
@@ -232,102 +348,99 @@ def generate_twistlock_findings(twistlock_cve_path: Path) -> list[dict[str, Any]
     return findings
 
 
-# @subprocess_error_handler(
-#     "Failed to create data from API call based on the given environment"
-# )
-# def create_api_call() -> dict:
-#     """Creates the data for an API call based on various environmental
-#     variables and findings.
+def create_api_call() -> dict:
+    """Creates the data for an API call based on various environmental
+    variables and findings.
 
-#     This function gathers keyword, tag, label data from a predefined storage location.
-#     Then it imports the findings from different scanning tools if their specific arguments
-#     are provided. Finally, all this data is assembled into a dictionary.
+    This function gathers keyword, tag, label data from a predefined storage location.
+    Then it imports the findings from different scanning tools if their specific arguments
+    are provided. Finally, all this data is assembled into a dictionary.
 
-#     Environment Variables:
-#     - ARTIFACT_STORAGE: The storage location for keywords, tags, and label data.
-#     - VAT_FINDING_FIELDS: (Optional) The fields to be included in the findings from VAT.
-#                           Defaults to a predefined list of fields.
-#     - IMAGE_TO_SCAN: The image to be scanned.
+    Environment Variables:
+    - ARTIFACT_STORAGE: The storage location for keywords, tags, and label data.
+    - VAT_FINDING_FIELDS: (Optional) The fields to be included in the findings from VAT.
+                          Defaults to a predefined list of fields.
+    - IMAGE_TO_SCAN: The image to be scanned.
 
-#     Returns:
-#     - large_data: The dictionary containing all the assembled data.
-#     """
-#     artifact_storage = os.environ["ARTIFACT_STORAGE"]
-#     keyword_list = source_values(f"{artifact_storage}/lint/keywords.txt", "keywords")
-#     tag_list = source_values(f"{artifact_storage}/lint/tags.txt", "tags")
-#     label_dict = get_source_keys_values(f"{artifact_storage}/lint/labels.env")
-#     # get cves and justifications from VAT
-#     # Get all justifications
-#     logging.info("Gathering list of all justifications...")
+    Returns:
+    - large_data: The dictionary containing all the assembled data.
+    """
+    artifact_storage = os.environ["ARTIFACT_STORAGE"]
+    keyword_list = source_values(f"{artifact_storage}/lint/keywords.txt", "keywords")
+    tag_list = source_values(f"{artifact_storage}/lint/tags.txt", "tags")
+    label_dict = get_source_keys_values(f"{artifact_storage}/lint/labels.env")
+    # get cves and justifications from VAT
+    # Get all justifications
+    logging.info("Gathering list of all justifications...")
 
-#     renovate_enabled = Path("renovate.json").is_file()
+    renovate_enabled = Path("renovate.json").is_file()
 
-#     os_findings = []
-#     tl_findings = []
-#     asec_findings = []
-#     acomp_findings = []
+    os_findings = []
+    tl_findings = []
+    asec_findings = []
+    acomp_findings = []
 
-#     vat_finding_fields = os.environ.get("VAT_FINDING_FIELDS") or [
-#         "finding",
-#         "severity",
-#         "description",
-#         "link",
-#         "score",
-#         "package",
-#         "packagePath",
-#         "scanSource",
-#         "identifiers",
-#     ]
-#     assert isinstance(vat_finding_fields, list)
+    vat_finding_fields = os.environ.get("VAT_FINDING_FIELDS") or [
+        "finding",
+        "severity",
+        "description",
+        "link",
+        "score",
+        "package",
+        "packagePath",
+        "scanSource",
+        "identifiers",
+    ]
+    assert isinstance(vat_finding_fields, list)
 
-# if the SKIP_OPENSCAP variable exists, the oscap job was not run.
-# When not os.environ.get("SKIP_OPENSCAP"), this means this is not a SKIP_OPENSCAP project, and oscap findings should be imported
-# if args.oscap and not os.environ.get("SKIP_OPENSCAP"):
-#     logging.debug("Importing oscap findings")
-#     os_findings = generate_oscap_findings(
-#         args.oscap, vat_finding_fields=vat_finding_fields
-#     )
-#     logging.debug("oscap finding count: %s", len(os_findings))
-# if args.anchore_sec:
-#     logging.debug("Importing anchore security findings")
-#     asec_findings = generate_anchore_cve_findings(
-#         args.anchore_sec, vat_finding_fields=vat_finding_fields
-#     )
-#     logging.debug("Anchore security finding count: %s", len(asec_findings))
-# if args.anchore_gates:
-#     logging.debug("Importing importing anchore compliance findings")
-#     acomp_findings = generate_anchore_comp_findings(args.anchore_gates)
-#     logging.debug("Anchore compliance finding count: %s", len(acomp_findings))
-# if args.twistlock:
-#     logging.debug("Importing twistlock findings")
-#     tl_findings = generate_twistlock_findings(args.twistlock)
-#     logging.debug("Twistlock finding count: %s", len(tl_findings))
-# all_findings = tl_findings + asec_findings + acomp_findings + os_findings
-# large_data = {
-#     "imageName": IMAGE_NAME,
-#     "imageTag": IMAGE_TAG,
-#     "parentImageName": BASE_IMAGE,
-#     "parentImageTag": BASE_TAG,
-#     "jobId": CI_PIPELINE_ID,
-#     "digest": DIGEST_TO_SCAN,
-#     "timestamp": REMOTE_REPORT_DIRECTORY,
-#     "scanDate": BUILD_DATE_TO_SCAN,
-#     "buildDate": BUILD_DATE,
-#     "repo": {
-#         "url": VAT_BACKEND_URL,
-#         "commit": COMMIT_SHA_TO_SCAN,
-#     },
-#     "findings": all_findings,
-#     "keywords": keyword_list,
-#     "tags": tag_list,
-#     "labels": label_dict,
-#     "renovateEnabled": renovate_enabled,
-# }
-# logging.debug(large_data)
-# return large_data
+    """if the SKIP_OPENSCAP variable exists, the oscap job was not run.
+    When not os.environ.get("SKIP_OPENSCAP"), this means this is not a SKIP_OPENSCAP project, and oscap findings should be imported
+    """
+    if oscap and not os.environ.get("SKIP_OPENSCAP"):
+        logging.debug("Importing oscap findings")
+        os_findings = generate_oscap_findings(
+            oscap, vat_finding_fields=vat_finding_fields
+        )
+        logging.debug("oscap finding count: %s", len(os_findings))
+    if anchore_sec:
+        logging.debug("Importing anchore security findings")
+        asec_findings = generate_anchore_cve_findings(
+            anchore_sec, vat_finding_fields=vat_finding_fields
+        )
+        logging.debug("Anchore security finding count: %s", len(asec_findings))
+    if anchore_gates:
+        logging.debug("Importing importing anchore compliance findings")
+        acomp_findings = generate_anchore_comp_findings(anchore_gates)
+        logging.debug("Anchore compliance finding count: %s", len(acomp_findings))
+    if twistlock:
+        logging.debug("Importing twistlock findings")
+        tl_findings = generate_twistlock_findings(twistlock)
+        logging.debug("Twistlock finding count: %s", len(tl_findings))
+    all_findings = tl_findings + asec_findings + acomp_findings + os_findings
+    large_data = {
+        "imageName": IMAGE_NAME,
+        "imageTag": IMAGE_TAG,
+        "parentImageName": BASE_IMAGE,
+        "parentImageTag": BASE_TAG,
+        "jobId": CI_PIPELINE_ID,
+        "digest": DIGEST_TO_SCAN,
+        "timestamp": REMOTE_REPORT_DIRECTORY,
+        "scanDate": BUILD_DATE_TO_SCAN,
+        "buildDate": BUILD_DATE,
+        "repo": {
+            "url": VAT_BACKEND_URL,
+            "commit": COMMIT_SHA_TO_SCAN,
+        },
+        "findings": all_findings,
+        "keywords": keyword_list,
+        "tags": tag_list,
+        "labels": label_dict,
+        "renovateEnabled": renovate_enabled,
+    }
+    logging.debug(large_data)
+    return large_data
 
 
-@subprocess_error_handler("Failed to pull from VAT")
 def get_parent_vat_response(
     output_dir: str, hardening_manifest: HardeningManifest
 ) -> None:
@@ -398,21 +511,21 @@ def main() -> None:
     else:
         parent_vat_response_content = {"vatAttestationLineage": None}
 
-    # vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
-    # if not args.use_json:
-    #     # large_data = create_api_call()
-    #     large_data.update(parent_vat_response_content)
-    #     with vat_request_json.open("w", encoding="utf-8") as outfile:
-    #         json.dump(large_data, outfile)
-    # else:
-    #     with vat_request_json.open(encoding="utf-8") as infile:
-    #         large_data = json.load(infile)
+    vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
+    if not args.use_json:
+        # large_data = create_api_call()
+        large_data.update(parent_vat_response_content)
+        with vat_request_json.open("w", encoding="utf-8") as outfile:
+            json.dump(large_data, outfile)
+    else:
+        with vat_request_json.open(encoding="utf-8") as infile:
+            large_data = json.load(infile)
 
     headers: CaseInsensitiveDict = CaseInsensitiveDict()
     headers["Content-Type"] = "application/json"
     headers["Authorization"] = f"Bearer {os.environ['VAT_TOKEN']}"
     try:
-        # resp = requests.post(args, headers=headers, json=large_data, timeout=(30, 30))
+        resp = requests.post(args, headers=headers, json=large_data, timeout=(30, 30))
         resp.raise_for_status()
         logging.debug("API Response:\n%s", resp.text)
         logging.debug("POST Response: %s", resp.status_code)
@@ -440,64 +553,25 @@ def main() -> None:
 if __name__ == "__main__":
     # args = parser.parse_args()
     # Set the necessary environment variables
-    os.environ["API_URL"] = os.environ.get("VAT_API_URL", "")
-    os.environ["JOB_ID"] = os.environ.get("CI_PIPELINE_ID", "")
-    os.environ["TIMESTAMP"] = (
-        subprocess.check_output('date --utc "+%FT%TZ"', shell=True).decode().strip()
-    )
-    os.environ["SCAN_DATE"] = os.environ.get("BUILD_DATE", "")
-    os.environ["BUILD_DATE"] = os.environ.get("BUILD_DATE_TO_SCAN", "")
-    os.environ["COMMIT_HASH"] = os.environ.get("COMMIT_SHA_TO_SCAN", "")
-    os.environ["CONTAINER"] = os.environ.get("IMAGE_NAME", "")
-    os.environ["VERSION"] = os.environ.get("IMAGE_VERSION", "")
-    os.environ["DIGEST"] = os.environ.get("DIGEST_TO_SCAN", "")
-    os.environ["PARENT"] = os.environ.get("BASE_IMAGE", "")
-    os.environ["PARENT_VERSION"] = os.environ.get("BASE_TAG", "")
-    os.environ["COMP_LINK"] = os.environ.get("OSCAP_COMPLIANCE_URL", "")
-    os.environ["REPO_LINK"] = os.environ.get("CI_PROJECT_URL", "")
-    os.environ["OSCAP"] = os.path.join(
-        os.environ.get("ARTIFACT_STORAGE", ""),
-        "scan-results/openscap/compliance_output_report.xml",
-    )
-
-    # Construct the command
-    cmd = [
-        "python3",
-        os.path.join(
-            os.environ.get("PIPELINE_REPO_DIR", ""), "stages/vat/vat_import.py"
-        ),
-        "--api_url",
-        os.environ["API_URL"],
-        "--job_id",
-        os.environ["JOB_ID"],
-        "--timestamp",
-        os.environ["TIMESTAMP"],
-        "--scan_date",
-        os.environ["SCAN_DATE"],
-        "--build_date",
-        os.environ["BUILD_DATE"],
-        "--commit_hash",
-        os.environ["COMMIT_HASH"],
-        "--container",
-        os.environ["CONTAINER"],
-        "--version",
-        os.environ["VERSION"],
-        "--digest",
-        os.environ["DIGEST"],
-        "--parent",
-        os.environ["PARENT"],
-        "--parent_version",
-        os.environ["PARENT_VERSION"],
-        "--comp_link",
-        os.environ["COMP_LINK"],
-        "--repo_link",
-        os.environ["REPO_LINK"],
-        "--oscap",
-        os.environ["OSCAP"],
-    ]
-    # Run the command using subprocess.Popen
-    with subprocess.Popen(["ls", "-al"]) as proc:
-        proc.communicate()
+    # os.environ["API_URL"] = os.environ.get("VAT_API_URL", "")
+    # os.environ["JOB_ID"] = os.environ.get("CI_PIPELINE_ID", "")
+    # os.environ["TIMESTAMP"] = (
+    #     subprocess.check_output('date --utc "+%FT%TZ"', shell=True).decode().strip()
+    # )
+    # os.environ["SCAN_DATE"] = os.environ.get("BUILD_DATE", "")
+    # os.environ["BUILD_DATE"] = os.environ.get("BUILD_DATE_TO_SCAN", "")
+    # os.environ["COMMIT_HASH"] = os.environ.get("COMMIT_SHA_TO_SCAN", "")
+    # os.environ["CONTAINER"] = os.environ.get("IMAGE_NAME", "")
+    # os.environ["VERSION"] = os.environ.get("IMAGE_VERSION", "")
+    # os.environ["DIGEST"] = os.environ.get("DIGEST_TO_SCAN", "")
+    # os.environ["PARENT"] = os.environ.get("BASE_IMAGE", "")
+    # os.environ["PARENT_VERSION"] = os.environ.get("BASE_TAG", "")
+    # os.environ["COMP_LINK"] = os.environ.get("OSCAP_COMPLIANCE_URL", "")
+    # os.environ["REPO_LINK"] = os.environ.get("CI_PROJECT_URL", "")
+    # os.environ["OSCAP"] = os.path.join(
+    #     os.environ.get("ARTIFACT_STORAGE", ""),
+    #     "scan-results/openscap/compliance_output_report.xml",
+    # )
 
     CI_PROJECT_DIR = os.getenv("CI_PROJECT_DIR", "")
 
