@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import pathlib
+from pathlib import Path
 import subprocess
 from dataclasses import dataclass
 from subprocess import CalledProcessError
@@ -179,7 +179,7 @@ def test_http_artifact_get_credentials(monkeypatch, mock_http_artifact):
 def test_http_artifact_download(
     monkeypatch, mock_http_artifact, mock_responses  # noqa W0404
 ):
-    monkeypatch.setattr(pathlib.Path, "open", mock_open(read_data=b"example"))
+    monkeypatch.setattr(Path, "open", mock_open(read_data=b"example"))
     monkeypatch.setattr(HttpArtifact, "get_credentials", lambda self: "example")
 
     status_code = None
@@ -204,7 +204,7 @@ def test_container_artifact_get_credentials(monkeypatch, mock_container_artifact
 def test_container_artifact_download(
     monkeypatch, caplog, mock_container_artifact, raise_
 ):
-    monkeypatch.setattr(pathlib.Path, "exists", lambda self: False)
+    monkeypatch.setattr(Path, "exists", lambda self: False)
     monkeypatch.setattr(
         AbstractArtifact, "delete_artifact", lambda self: log.info("deleting artifact")
     )
@@ -221,7 +221,7 @@ def test_container_artifact_download(
     assert "Successfully pulled" in caplog.text
     caplog.clear()
 
-    monkeypatch.setattr(pathlib.Path, "exists", lambda self: True)
+    monkeypatch.setattr(Path, "exists", lambda self: True)
     mock_container_artifact.download()
     assert "Found existing container artifact, deleting file" in caplog.text
 

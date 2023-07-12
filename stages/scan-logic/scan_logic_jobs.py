@@ -2,7 +2,6 @@
 
 import json
 import os
-import pathlib
 import shutil
 import sys
 import tempfile
@@ -10,12 +9,12 @@ from pathlib import Path
 
 import image_verify
 
-from ironbank.pipeline.container_tools.cosign import Cosign
-from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
-from ironbank.pipeline.image import Image
-from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.exceptions import CosignDownloadError
-from ironbank.pipeline.utils.types import Package
+from pipeline.container_tools.cosign import Cosign
+from pipeline.file_parser import AccessLogFileParser, SbomFileParser
+from pipeline.image import Image
+from pipeline.utils.exceptions import CosignDownloadError
+from pipeline.utils.types import Package
+from common.utils import logger
 
 log = logger.setup("scan_logic_jobs")
 
@@ -36,7 +35,7 @@ def write_env_vars(
     - build_date: The date when the build was created.
     """
     log.info("Writing env variables to file")
-    with pathlib.Path("scan_logic.env").open("w", encoding="utf-8") as f:
+    with Path("scan_logic.env").open("w", encoding="utf-8") as f:
         f.writelines(
             [
                 f"IMAGE_TO_SCAN={image_name_tag}\n",

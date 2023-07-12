@@ -22,6 +22,7 @@ fi
 oscap_container=$(python3 "${PIPELINE_REPO_DIR}/stages/scanning/openscap/compliance.py" --oscap-version "${OSCAP_VERSION}" --image-type "${BASE_IMAGE_TYPE}" | sed s/\'/\"/g)
 echo "${oscap_container}"
 SCAP_CONTENT="scap-content"
+export SCAP_CONTENT
 mkdir -p "${SCAP_CONTENT}"
 
 # If SCAP_URL var exists, use this to download scap content, else retrieve it based on BASE_IMAGE_TYPE
@@ -34,6 +35,7 @@ fi
 unzip -qq -o "${SCAP_CONTENT}/scap-security-guide.zip" -d "${SCAP_CONTENT}"
 profile=$(echo "${oscap_container}" | grep -o '"profile": "[^"]*' | grep -o '[^"]*$')
 securityGuide=$(echo "${oscap_container}" | grep -o '"securityGuide": "[^"]*' | grep -o '[^"]*$')
+export securityGuide
 echo "profile: ${profile}"
 echo "securityGuide: ${securityGuide}"
 
@@ -43,6 +45,8 @@ case "${securityGuide}" in
     sed -i -e 's,/security/oval/suse\.linux\.enterprise\.15\.xml,/security/oval/suse.linux.enterprise.server.15-patch.xml,' "${SCAP_CONTENT}/${securityGuide}"
     ;;
 esac
+
+python3 "${PIPELINE_REPO_DIR}/stages/scanning/openscap/fix_ubi_oval_url.py"
 
 oscap-podman "${DOCKER_IMAGE_PATH}" xccdf eval --verbose ERROR --fetch-remote-resources --profile "${profile}" --stig-viewer compliance_output_report_stigviewer.xml --results compliance_output_report.xml --report report.html "${SCAP_CONTENT}/${securityGuide}" || true
 ls compliance_output_report.xml compliance_output_report_stigviewer.xml report.html

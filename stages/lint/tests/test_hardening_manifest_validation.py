@@ -7,13 +7,13 @@ from pathlib import Path
 
 import pytest
 
-from ironbank.pipeline.hardening_manifest import HardeningManifest
-from ironbank.pipeline.test.mocks.mock_classes import (
+from pipeline.hardening_manifest import HardeningManifest
+from pipeline.test.mocks.mock_classes import (
     MockHardeningManifest,
     MockPath,
     MockProject,
 )
-from ironbank.pipeline.utils import logger
+from common.utils import logger
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import hardening_manifest_validation  # noqa E402

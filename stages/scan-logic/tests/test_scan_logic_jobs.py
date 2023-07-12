@@ -6,15 +6,15 @@ from unittest.mock import mock_open, patch
 
 import pytest
 
-from ironbank.pipeline.container_tools.cosign import Cosign
-from ironbank.pipeline.file_parser import AccessLogFileParser, SbomFileParser
-from ironbank.pipeline.test.mocks.mock_classes import (
+from pipeline.container_tools.cosign import Cosign
+from pipeline.file_parser import AccessLogFileParser, SbomFileParser
+from pipeline.test.mocks.mock_classes import (
     MockImage,
     MockPath,
     MockTempDirectory,
 )
-from ironbank.pipeline.utils import logger
-from ironbank.pipeline.utils.exceptions import CosignDownloadError
+from pipeline.utils.exceptions import CosignDownloadError
+from common.utils import logger
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import image_verify  # noqa E402

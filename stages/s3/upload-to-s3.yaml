@@ -35,7 +35,6 @@ upload-to-s3:
     - job: harbor
       artifacts: false
   script:
-    - 'pip install --user --no-deps "${PIPELINE_REPO_DIR}"'
     - 'python "${PIPELINE_REPO_DIR}/stages/s3/upload_artifacts.py"'
   artifacts:
     paths:

@@ -1,12 +1,9 @@
 [tool.poetry]
-name = "ibmodules"
+name = "ibpipeline"
 version = "0.1.0"
 description = ""
 authors = ["Iron Bank Pipelines and Operations <ironbank@dsop.io>"]
-
-packages = [
-    { include = "ironbank" }
-]
+packages = [{include = "stages"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -20,6 +17,7 @@ requests = "^2.28.0"
 pyyaml = "^6.0"
 yq = "^3.2.2"
 isort = "^5.12.0"
+ibmodules = { git = "https://repo1.dso.mil/ironbank-tools/ironbank-modules.git", subdirectory = "ironbank", tag = "0.0.5", python = ">=3.10"}
 pylint-pytest = "^1.1.2"
 
 [tool.poetry.dev-dependencies]
@@ -41,7 +39,7 @@ docformatter = "^1.7.2"
 radon = "^6.0.1"
 
 [build-system]
-requires = ["poetry-core==1.0.8"]
+requires = ["poetry-core==1.6.1"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.mypy]

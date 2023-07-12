@@ -1,6 +1,6 @@
 import hashlib
 import os
-import pathlib
+from pathlib import Path
 import re
 from abc import ABC, abstractmethod
 from base64 import b64decode
@@ -48,13 +48,11 @@ class AbstractArtifact(ABC):
     auth: dict = None
     tag: str = None
     log: logger = logger.setup("Artifact")
-    dest_path: pathlib.Path = None
+    dest_path: Path = None
 
     def __post_init__(self):
-        self.dest_path = self.dest_path or pathlib.Path(
-            f"{os.environ.get('ARTIFACT_DIR')}"
-        )
-        self.artifact_path = pathlib.Path(self.dest_path, self.filename or self.tag)
+        self.dest_path = self.dest_path or Path(f"{os.environ.get('ARTIFACT_DIR')}")
+        self.artifact_path = Path(self.dest_path, self.filename or self.tag)
 
     def delete_artifact(self):
         """Delete the artifact file from the local file system.
@@ -147,7 +145,7 @@ class AbstractFileArtifact(AbstractArtifact):
 
     def __post_init__(self):
         super().__post_init__()
-        self.artifact_path = pathlib.Path(self.dest_path, self.filename)
+        self.artifact_path = Path(self.dest_path, self.filename)
 
     def validate_checksum(self):
         """Validates the checksum of the downloaded file against the expected
