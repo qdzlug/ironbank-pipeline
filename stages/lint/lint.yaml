@@ -29,5 +29,11 @@ lint:
         echo "Exiting"
         exit 1
       fi
+    - |
+      if [[ "${CI_COMMIT_BRANCH}" == "master" ]] && "${STAGING_BASE_IMAGE}"; then
+        echo "'STAGING_BASE_IMAGE' cannot be set on a 'master' branch."
+        echo "Exiting"
+        exit 1
+      fi
     - set +e
     - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/lint_jobs.py"'
