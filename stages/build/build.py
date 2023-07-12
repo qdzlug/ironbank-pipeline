@@ -109,7 +109,7 @@ def get_parent_label(
             name=hardening_manifest.base_image_name,
             tag=hardening_manifest.base_image_tag,
         )
-        return f"{base_image}@{skopeo.inspect(base_image.from_image(transport='docker://'))['Digest']}"
+        return f"{base_image}@{skopeo.inspect(base_image.from_image(transport='docker://'), log_cmd=True)['Digest']}"
     # if no base image, return empty string instead of None
     return ""
 
