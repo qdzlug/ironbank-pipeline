@@ -5,7 +5,6 @@ import json
 import logging
 import os
 import shutil
-import subprocess
 import sys
 import datetime
 from itertools import groupby
@@ -26,7 +25,6 @@ from ironbank.pipeline.image import Image
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.scan_report_parsers.anchore import AnchoreReportParser
 from ironbank.pipeline.scan_report_parsers.oscap import OscapReportParser
-from ironbank.pipeline.utils.decorators import subprocess_error_handler
 from ironbank.pipeline.utils.predicates import Predicates
 
 # Set the necessary environment variables
@@ -46,28 +44,30 @@ ARTIFACT_STORAGE = os.getenv("ARTIFACT_STORAGE")
 COMMIT_SHA_TO_SCAN = os.getenv("COMMIT_SHA_TO_SCAN")
 VAT_BACKEND_URL = os.getenv("VAT_BACKEND_URL")
 
-
-api_url = os.getenv("{VAT_API_URL}")
-job_id = os.getenv("{CI_PIPELINE_ID}")
-timestamp = os.getenv("(date --utc '+%FT%TZ')")
-scan_date = os.getenv("{BUILD_DATE}")
-build_date = os.getenv("{BUILD_DATE_TO_SCAN}")
-commit_hash = os.getenv("{COMMIT_SHA_TO_SCAN}")
-container = os.getenv("{IMAGE_NAME}")
-version = os.getenv("{IMAGE_VERSION}")
-digest = os.getenv("{DIGEST_TO_SCAN}")
-parent = os.getenv("{BASE_IMAGE:-}")
-parent_version = os.getenv("{BASE_TAG:-}")
+VAT_API_URL = os.getenv("${VAT_BACKEND_URL}/internal/import/scan")
+api_url = os.getenv("${VAT_API_URL}")
+job_id = os.getenv("${CI_PIPELINE_ID}")
+timestamp = os.getenv("TIMESTAMP_FORMAT", "%Y-%m-%dT%H:%M:%SZ")
+scan_date = os.getenv("${BUILD_DATE}")
+build_date = os.getenv("${BUILD_DATE_TO_SCAN}")
+commit_hash = os.getenv("${COMMIT_SHA_TO_SCAN}")
+container = os.getenv("${IMAGE_NAME}")
+version = os.getenv("${IMAGE_VERSION}")
+digest = os.getenv("${DIGEST_TO_SCAN}")
+parent = os.getenv("${BASE_IMAGE:-}")
+parent_version = os.getenv("${BASE_TAG:-}")
 comp_link = os.getenv("{OSCAP_COMPLIANCE_URL:-''}")
-repo_link = os.getenv("{CI_PROJECT_URL}")
+repo_link = os.getenv("${CI_PROJECT_URL}")
 
 OSCAP = os.getenv(
     "{ARTIFACT_STORAGE}/scan-results/openscap/compliance_output_report.xml"
 )
-VAT_API_URL = os.getenv("{VAT_BACKEND_URL}/internal/import/scan")
-anchore_sec = os.getenv("{ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json")
-anchore_gates = os.getenv("{ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json")
-twistlock = os.getenv("{ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json")
+VAT_API_URL = os.getenv("${VAT_BACKEND_URL}/internal/import/scan")
+anchore_sec = os.getenv(
+    "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json"
+)
+anchore_gates = os.getenv("${ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json")
+twistlock = os.getenv("${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json")
 
 
 REMOTE_REPORT_DIRECTORY = (
@@ -80,117 +80,117 @@ os.environ["VAT_API_URL"] = f"{VAT_BACKEND_URL}/internal/import/scan"
 parser = argparse.ArgumentParser(
     description="DCCSCR processing of CVE reports from various sources"
 )
-parser.add_argument(
-    "-a",
-    "--api_url",
-    help="Url for API POST",
-    default="http://localhost:4000/internal/import/scan",
-    required=False,
-)
-parser.add_argument(
-    "-j",
-    "--job_id",
-    help="Pipeline job ID",
-    required=True,
-)
-parser.add_argument(
-    "-ts",
-    "--timestamp",
-    help="Timestamp for current pipeline run",
-    required=True,
-)
-parser.add_argument(
-    "-sd",
-    "--scan_date",
-    help="Scan date for pipeline run",
-    required=True,
-)
-parser.add_argument(
-    "-bd",
-    "--build_date",
-    help="Build date for pipeline run",
-    required=True,
-)
-parser.add_argument(
-    "-ch",
-    "--commit_hash",
-    help="Commit hash for container build",
-    required=True,
-)
-parser.add_argument(
-    "-c",
-    "--container",
-    help="Container VENDOR/PRODUCT/CONTAINER",
-    required=True,
-)
-parser.add_argument(
-    "-v",
-    "--version",
-    help="Container Version from VENDOR/PRODUCT/CONTAINER/VERSION format",
-    required=True,
-)
-parser.add_argument(
-    "-dg",
-    "--digest",
-    help="Container Digest as SHA256 Hash",
-    required=True,
-)
-parser.add_argument(
-    "-tl",
-    "--twistlock",
-    help="location of the twistlock JSON scan file",
-    required=True,
-)
-parser.add_argument(
-    "-oc",
-    "--oscap",
-    help="location of the oscap scan XML file",
-    required=False,
-)
-parser.add_argument(
-    "-ac",
-    "--anchore-sec",
-    help="location of the anchore_security.json scan file",
-    required=True,
-)
-parser.add_argument(
-    "-ag",
-    "--anchore-gates",
-    help="location of the anchore_gates.json scan file",
-    required=True,
-)
-parser.add_argument(
-    "-pc",
-    "--parent",
-    help="Parent VENDOR/PRODUCT/CONTAINER",
-    required=False,
-)
-parser.add_argument(
-    "-pv",
-    "--parent_version",
-    help="Parent Version from VENDOR/PRODUCT/CONTAINER/VERSION format",
-    required=False,
-)
-parser.add_argument(
-    "-cl",
-    "--comp_link",
-    help="Link to openscap compliance reports directory",
-    required=True,
-)
-parser.add_argument(
-    "-rl",
-    "--repo_link",
-    help="Link to container repository",
-    default="",
-    required=False,
-)
-parser.add_argument(
-    "-uj",
-    "--use_json",
-    help="Dump payload for API to out.json file",
-    action="store_true",
-    required=False,
-)
+# parser.add_argument(
+#     "-a",
+#     "--api_url",
+#     help="Url for API POST",
+#     default="http://localhost:4000/internal/import/scan",
+#     required=False,
+# )
+# parser.add_argument(
+#     "-j",
+#     "--job_id",
+#     help="Pipeline job ID",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-ts",
+#     "--timestamp",
+#     help="Timestamp for current pipeline run",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-sd",
+#     "--scan_date",
+#     help="Scan date for pipeline run",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-bd",
+#     "--build_date",
+#     help="Build date for pipeline run",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-ch",
+#     "--commit_hash",
+#     help="Commit hash for container build",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-c",
+#     "--container",
+#     help="Container VENDOR/PRODUCT/CONTAINER",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-v",
+#     "--version",
+#     help="Container Version from VENDOR/PRODUCT/CONTAINER/VERSION format",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-dg",
+#     "--digest",
+#     help="Container Digest as SHA256 Hash",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-tl",
+#     "--twistlock",
+#     help="location of the twistlock JSON scan file",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-oc",
+#     "--oscap",
+#     help="location of the oscap scan XML file",
+#     required=False,
+# )
+# parser.add_argument(
+#     "-ac",
+#     "--anchore-sec",
+#     help="location of the anchore_security.json scan file",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-ag",
+#     "--anchore-gates",
+#     help="location of the anchore_gates.json scan file",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-pc",
+#     "--parent",
+#     help="Parent VENDOR/PRODUCT/CONTAINER",
+#     required=False,
+# )
+# parser.add_argument(
+#     "-pv",
+#     "--parent_version",
+#     help="Parent Version from VENDOR/PRODUCT/CONTAINER/VERSION format",
+#     required=False,
+# )
+# parser.add_argument(
+#     "-cl",
+#     "--comp_link",
+#     help="Link to openscap compliance reports directory",
+#     required=True,
+# )
+# parser.add_argument(
+#     "-rl",
+#     "--repo_link",
+#     help="Link to container repository",
+#     default="",
+#     required=False,
+# )
+# parser.add_argument(
+#     "-uj",
+#     "--use_json",
+#     help="Dump payload for API to out.json file",
+#     action="store_true",
+#     required=False,
+# )
 
 
 def generate_anchore_cve_findings(
@@ -531,7 +531,7 @@ def main() -> None:
 
     vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
     if not args.use_json:
-        # large_data = create_api_call()
+        large_data = create_api_call()
         large_data.update(parent_vat_response_content)
         with vat_request_json.open("w", encoding="utf-8") as outfile:
             json.dump(large_data, outfile)
@@ -569,7 +569,8 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    # args = parser.parse_args()
+    args = parser.parse_args()
+
     # Set the necessary environment variables
     # os.environ["API_URL"] = os.environ.get("VAT_API_URL", "")
     # os.environ["JOB_ID"] = os.environ.get("CI_PIPELINE_ID", "")
