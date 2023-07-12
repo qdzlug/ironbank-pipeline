@@ -170,12 +170,8 @@ def skopeo_error_handler(logging_message: str):
                     log.error(f"{logging_message}: Skopeo failed to run error: {e}")
                     sys.exit(1)
                 else:
-                    log.error(
-                        f"{logging_message}: Skopeo failed non zero code: {e.returncode}"
-                    )
+                    log.error(f"{logging_message}: Skopeo failed non zero code: {e}")
                     sys.exit(1)
-            except Exception as e:
-                raise GenericSubprocessError() from e
 
         return wrapper
 

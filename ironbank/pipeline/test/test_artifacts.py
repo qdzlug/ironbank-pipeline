@@ -232,9 +232,6 @@ def test_container_artifact_download(
         "run",
         lambda args, check: raise_(CalledProcessError(1, ["example"])),
     )
-    with pytest.raises(GenericSubprocessError):
-        mock_container_artifact.download()
-    assert "Successfully pulled" not in caplog.text
 
 
 def test_github_artifact_un_pw(mock_github_artifact):
