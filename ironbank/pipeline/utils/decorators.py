@@ -196,7 +196,6 @@ def buildah_error_handler(logging_message: str):
             try:
                 return func(*args, **kwargs)
             except subprocess.CalledProcessError as e:
-                print(f"START: {str(e)} : {e.returncode} : {e.output} : END")
                 if e.returncode == 125:
                     log.error(f"{logging_message}: Container failed to run error")
                     sys.exit(1)
