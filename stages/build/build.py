@@ -15,7 +15,7 @@ from pipeline.container_tools.skopeo import Skopeo
 from pipeline.container_tools.buildah import Buildah
 from pipeline.container_tools.cosign import Cosign
 from pipeline.image import Image, ImageFile
-from pipeline.utils.decorators import subprocess_error_handler
+from pipeline.utils.decorators import subprocess_error_handler, file_error_handler
 from common.utils import logger
 
 log = logger.setup("build")
