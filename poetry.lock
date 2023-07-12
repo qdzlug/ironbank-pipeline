@@ -645,8 +645,8 @@ yq = "^3.2.2"
 [package.source]
 type = "git"
 url = "https://repo1.dso.mil/ironbank-tools/ironbank-modules.git"
-reference = "0.0.4"
-resolved_reference = "7300e09346f98d7a1a1d2bba59da6448e71f2ded"
+reference = "0.0.5"
+resolved_reference = "3dacd1c7a88e1f039716e0c08062f1058b1cc2e5"
 subdirectory = "ironbank"
 [[package]]
 name = "idna"
@@ -781,14 +781,14 @@ files = [
 
 [[package]]
 name = "jsonschema"
-version = "4.18.1"
+version = "4.18.2"
 description = "An implementation of JSON Schema validation for Python"
 category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "jsonschema-4.18.1-py3-none-any.whl", hash = "sha256:e5fde3cb78f3be8cf49150390ee4efbb8e73c46ea467d42cd4ec16e364495eb3"},
-    {file = "jsonschema-4.18.1.tar.gz", hash = "sha256:b5896514b46cc9283e9951bfebf51cc72fa3eab229919c0469f94e11b4387776"},
+    {file = "jsonschema-4.18.2-py3-none-any.whl", hash = "sha256:159fdff1443b4c5ed900d4eeac6b928a3485f4aff5fba6edd1e25cd66bb46b39"},
+    {file = "jsonschema-4.18.2.tar.gz", hash = "sha256:af3855bfa30e83b2200a5fe12ab5eb92460e4d3b8e4efd34094aa637f7272a87"},
 ]
 
 [package.dependencies]
@@ -2176,4 +2176,4 @@ tests = ["build", "coverage", "mypy", "ruff", "wheel"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "de6c23a59d204754232e936771483ce9c0a302df788eabc2813f2c0f07e7192c"
+content-hash = "71fc62115e20a10ea861273013d3f75d6170e86eaac5a1fe1b8ba700bf15c5a2"
