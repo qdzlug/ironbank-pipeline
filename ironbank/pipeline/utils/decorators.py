@@ -148,9 +148,9 @@ def vat_request_error_handler(func):
 
 
 def skopeo_error_handler(logging_message: str):
-    """A decorator to wrap a function that may raise CalledProcessError.
-    When these exceptions occur, it logs the specified error
-    message and raises an based on the exit code.
+    """A decorator to wrap a function that may raise CalledProcessError. When
+    these exceptions occur, it logs the specified error message and raises an
+    based on the exit code.
 
     Args:
         logging_message (str): The error message to be logged.
