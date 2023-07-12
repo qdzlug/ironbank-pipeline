@@ -44,30 +44,28 @@ ARTIFACT_STORAGE = os.getenv("ARTIFACT_STORAGE")
 COMMIT_SHA_TO_SCAN = os.getenv("COMMIT_SHA_TO_SCAN")
 VAT_BACKEND_URL = os.getenv("VAT_BACKEND_URL")
 
-VAT_API_URL = os.getenv("${VAT_BACKEND_URL}/internal/import/scan")
-api_url = os.getenv("${VAT_API_URL}")
-job_id = os.getenv("${CI_PIPELINE_ID}")
+VAT_API_URL = os.getenv("{VAT_BACKEND_URL}/internal/import/scan")
+api_url = os.getenv("{VAT_API_URL}")
+job_id = os.getenv("{CI_PIPELINE_ID}")
 timestamp = os.getenv("TIMESTAMP_FORMAT", "%Y-%m-%dT%H:%M:%SZ")
-scan_date = os.getenv("${BUILD_DATE}")
-build_date = os.getenv("${BUILD_DATE_TO_SCAN}")
-commit_hash = os.getenv("${COMMIT_SHA_TO_SCAN}")
-container = os.getenv("${IMAGE_NAME}")
-version = os.getenv("${IMAGE_VERSION}")
-digest = os.getenv("${DIGEST_TO_SCAN}")
-parent = os.getenv("${BASE_IMAGE:-}")
-parent_version = os.getenv("${BASE_TAG:-}")
+scan_date = os.getenv("{BUILD_DATE}")
+build_date = os.getenv("{BUILD_DATE_TO_SCAN}")
+commit_hash = os.getenv("{COMMIT_SHA_TO_SCAN}")
+container = os.getenv("{IMAGE_NAME}")
+version = os.getenv("{IMAGE_VERSION}")
+digest = os.getenv("{DIGEST_TO_SCAN}")
+parent = os.getenv("{BASE_IMAGE:-}")
+parent_version = os.getenv("{BASE_TAG:-}")
 comp_link = os.getenv("{OSCAP_COMPLIANCE_URL:-''}")
-repo_link = os.getenv("${CI_PROJECT_URL}")
+repo_link = os.getenv("{CI_PROJECT_URL}")
 
-OSCAP = os.getenv(
+oscap = os.getenv(
     "{ARTIFACT_STORAGE}/scan-results/openscap/compliance_output_report.xml"
 )
-VAT_API_URL = os.getenv("${VAT_BACKEND_URL}/internal/import/scan")
-anchore_sec = os.getenv(
-    "${ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json"
-)
-anchore_gates = os.getenv("${ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json")
-twistlock = os.getenv("${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json")
+VAT_API_URL = os.getenv("{VAT_BACKEND_URL}/internal/import/scan")
+anchore_sec = os.getenv("{ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json")
+anchore_gates = os.getenv("{ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json")
+twistlock = os.getenv("{ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json")
 
 
 REMOTE_REPORT_DIRECTORY = (
