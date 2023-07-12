@@ -9,14 +9,17 @@ import datetime
 import subprocess
 from pathlib import Path
 
-from pipeline.project import DsopProject
-from pipeline.hardening_manifest import HardeningManifest
-from pipeline.container_tools.skopeo import Skopeo
-from pipeline.container_tools.buildah import Buildah
-from pipeline.container_tools.cosign import Cosign
-from pipeline.image import Image, ImageFile
-from pipeline.utils.decorators import subprocess_error_handler, file_error_handler
-from common.utils import logger
+from ironbank.pipeline.project import DsopProject
+from ironbank.pipeline.hardening_manifest import HardeningManifest
+from ironbank.pipeline.container_tools.skopeo import Skopeo
+from ironbank.pipeline.container_tools.buildah import Buildah
+from ironbank.pipeline.container_tools.cosign import Cosign
+from ironbank.pipeline.image import Image, ImageFile
+from ironbank.pipeline.utils import logger
+from ironbank.pipeline.utils.decorators import (
+    subprocess_error_handler,
+    file_error_handler,
+)
 
 log = logger.setup("build")
 
@@ -115,7 +118,6 @@ def get_parent_label(
     return ""
 
 
-@file_error_handler(logging_message="Unexpected file error caught")
 @subprocess_error_handler("Failed to start squid")
 def start_squid(squid_conf: Path):
     """Start squid proxy to create access log file."""
@@ -301,6 +303,7 @@ def main():
         dest_authfile=staging_auth_path,
         log_cmd=True,
     )
+
     if (
         os.environ.get("STAGING_BASE_IMAGE")
         or os.environ["CI_COMMIT_BRANCH"] == "development"
@@ -308,8 +311,7 @@ def main():
         for tag in hardening_manifest.image_tags:
             dest = dest.from_image(tag=tag)
             skopeo.copy(src, dest, dest_authfile=staging_auth_path, log_cmd=True)
-    log.info("SRC - {src} : ")
-    log.info("Buildah:  {buildah}")
+
     local_image_details = buildah.inspect(image=src, storage_driver="vfs", log_cmd=True)
 
     # get digest from skopeo copy digestfile
