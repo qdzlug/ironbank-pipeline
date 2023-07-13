@@ -31,7 +31,12 @@ class Cosign(ContainerTool):
 
     @subprocess_error_handler(logging_message="Cosign.sign failed")
     def sign(
-        self, image: Image | ImageFile, key: str | None = None, tlog_upload: bool = False, attachment=None, log_cmd: bool = False
+        self,
+        image: Image | ImageFile,
+        key: str | None = None,
+        tlog_upload: bool = False,
+        attachment=None,
+        log_cmd: bool = False,
     ) -> None:
         """Perform cosign image or image attachment signature."""
         cmd = [

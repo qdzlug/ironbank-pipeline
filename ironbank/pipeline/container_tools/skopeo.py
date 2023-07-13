@@ -103,9 +103,7 @@ class Skopeo(ContainerTool):
         cmd += ["--dest-creds", dest_creds] if dest_creds else []
 
         copy_result = subprocess.run(
-            args=cmd,
-            check=True,
-            capture_output=suppress_stdout
+            args=cmd, check=True, capture_output=suppress_stdout
         )
 
         return (copy_result.stdout, copy_result.stderr)
