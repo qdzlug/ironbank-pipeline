@@ -1,0 +1,11 @@
+version: "3"
+services:
+  work:
+    build:
+      context: ..
+      dockerfile: ./.devcontainer/Dockerfile
+    command: /bin/sh -c "while sleep 1000; do :; done"
+    hostname: work
+    user: python
+    volumes:
+      - ..:/workspace:cached
