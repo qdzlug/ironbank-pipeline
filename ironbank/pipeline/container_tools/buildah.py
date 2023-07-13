@@ -43,6 +43,7 @@ class Buildah(ContainerTool):
         format_: str = None,
         log_level: str = None,
         default_mounts_file: Path | str = None,
+        tls_verify: bool = True,
         storage_driver: str = None,
         tag: Image | str = None,
         ulimit_args: dict = {},
@@ -69,11 +70,15 @@ class Buildah(ContainerTool):
             if default_mounts_file
             else []
         )
+        # force verification unless flag explicity passed as false
+        cmd += (
+            ["--tls-verify=false"] if tls_verify is False else []
+        )
         cmd += ["--storage-driver", storage_driver] if storage_driver else []
         cmd += self._generate_arg_list_from_env("--ulimit", ulimit_args)
         # tag can either be a string or an Image object, cast to string to support both types
         cmd += ["-t", str(tag)] if tag else []
-        cmd += [context]
+        cmd += [context.as_posix()]
         if log_cmd:
             log.info(cmd)
         return subprocess.run(args=cmd, check=True)

@@ -93,8 +93,9 @@ class Skopeo(ContainerTool):
         cmd += ["--dest-authfile", dest_authfile] if dest_authfile else []
         cmd += [f"{dest}"]
 
-        cmd += ["--src-tls-verify=false"] if not src_tls_verify else []
-        cmd += ["--dest-tls-verify=false"] if not dest_tls_verify else []
+        # force verification unless flag explicity passed as false
+        cmd += ["--src-tls-verify=false"] if src_tls_verify is False else []
+        cmd += ["--dest-tls-verify=false"] if dest_tls_verify is False else []
         # Log cmd before adding creds
         if log_cmd:
             log.info(cmd)
