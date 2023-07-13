@@ -284,6 +284,19 @@ The artifacts uploaded include scan reports, project README, project LICENSE, an
 
 ## Local Development
 
+Using vscode? Try the [devcontainer](.devcontainer/) to bootstrap a containerized dev environment.
+
+- tested with docker desktop and colima
+- for colima, try:
+
+```shell
+colima start --cpu 4 --memory 8 --disk 128 --vm-type vz --mount-type virtiofs
+# or
+colima start --cpu 4 --memory 8 --disk 128 --cpu-type Haswell-v4 --mount-type virtiofs
+```
+
+To install tooling locally:
+
 - Linting, formatting, and secret checking of this repo can be done via `make` commands locally.
 - Run `make install_dependencies` to install depdencies on your Mac, this will install brew packages and install python depdencies via brew
 - Run `poetry shell` to activate the python virtual environment

@@ -1,0 +1,15 @@
+{
+  "dockerComposeFile": "docker-compose.yml",
+  "mounts": [
+    "source=${localEnv:HOME}/.gnupg,target=/home/dev/.gnupg,consistency=cached"
+  ],
+  "postAttachCommand": [
+    "/bin/bash",
+    "--login",
+    "-c",
+    "SHELL=/bin/bash PATH=$VENV/bin:$PATH VIRTUAL_ENV=$VENV poetry shell"
+  ],
+  "remoteUser": "python",
+  "service": "work",
+  "workspaceFolder": "/workspace"
+}
