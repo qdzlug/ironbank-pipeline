@@ -62,18 +62,15 @@ class Image:
 
         init_args = {}
 
-
         for arg in potential_args:
             # check if key was passed, using "or" instead of ternary would prevent intentionally setting values to falsey things
-            init_args[arg] = kwargs[arg] if arg in kwargs else  getattr(self, arg)
+            init_args[arg] = kwargs[arg] if arg in kwargs else getattr(self, arg)
         return init_args
 
     def from_image(self, **kwargs: str) -> object:
         # prioritize passed args
         # TODO: Should work with both self for instance and passed in image
-        return type(self)(
-            **self._get_init_args(**kwargs)
-        )
+        return type(self)(**self._get_init_args(**kwargs))
 
     def tag_str(self):
         return f"{self.registry_path}:{self.tag}"
