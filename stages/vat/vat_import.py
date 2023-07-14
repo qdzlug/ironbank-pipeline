@@ -75,9 +75,9 @@ REMOTE_REPORT_DIRECTORY = (
 os.environ["REMO TE_REPORT_DIRECTORY"] = REMOTE_REPORT_DIRECTORY
 os.environ["VAT_API_URL"] = f"{VAT_BACKEND_URL}/internal/import/scan"
 
-parser = argparse.ArgumentParser(
-    description="DCCSCR processing of CVE reports from various sources"
-)
+# parser = argparse.ArgumentParser(
+#     description="DCCSCR processing of CVE reports from various sources"
+# )
 # parser.add_argument(
 #     "-a",
 #     "--api_url",
@@ -567,7 +567,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    args = parser.parse_args()
+    # args = parser.parse_args()
 
     # Set the necessary environment variables
     # os.environ["API_URL"] = os.environ.get("VAT_API_URL", "")
