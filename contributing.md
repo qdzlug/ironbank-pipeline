@@ -8,7 +8,6 @@
    1. [Black](#black)
    1. [Pylint](#pylint)
    1. [Mypy](#mypy)
-   1. [Pylama](#pylama)
    1. [Configure pylint/mypy in vscode](#configure-pylintmypy-in-vscode)
    1. [Autoreloading in ipython (or jupyter notebooks)](#autoreloading-in-ipython-or-jupyter-notebooks)
 1. [Style guide](#style-guide)
@@ -138,12 +137,6 @@ example_text: int = "abc"
 $ mypy example.py
 examples.py:1: error: Incompatible types in assignment (expression has type "str", variable has type "int")
 ```
-
-### Pylama
-
-Wraps several linters together.
-
-TODO: decide if we're keeping this or getting rid of it in favor of pylint
 
 ### Configure pylint/mypy in vscode
 
