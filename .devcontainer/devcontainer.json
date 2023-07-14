@@ -11,5 +11,18 @@
   ],
   "remoteUser": "python",
   "service": "work",
-  "workspaceFolder": "/workspace"
+  "workspaceFolder": "/workspace",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.linting.enabled": true,
+        "python.linting.lintOnSave": true,
+        "python.linting.mypyEnabled": true,
+        "python.linting.pylintEnabled": true,
+        "python.defaultInterpreterPath": "~/.work/bin/python",
+        "python.testing.pytestEnabled": true
+      },
+      "extensions": ["ms-python.python", "ms-python.pylint", "my-python.mypy"]
+    }
+  }
 }
