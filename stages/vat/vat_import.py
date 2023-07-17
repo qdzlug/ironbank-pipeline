@@ -566,7 +566,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    # args = parser.parse_args()
+    args = parser.parse_args()
 
     # Set the necessary environment variables
     # os.environ["API_URL"] = os.environ.get("VAT_API_URL", "")
