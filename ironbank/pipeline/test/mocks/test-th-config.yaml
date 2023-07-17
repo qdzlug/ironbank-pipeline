@@ -1,5 +1,0 @@
-exclude:
-  - message: Standard pipeline config
-    pattern: airflow_conf_set
-    paths:
-      - stages/lint/README.md

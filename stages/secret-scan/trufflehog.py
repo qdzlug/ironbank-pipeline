@@ -5,16 +5,17 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import Optional
+import logging
 
 import git
 import yaml
 
-# pylint: disable=C0413
-sys.path.append(Path(__file__).absolute().parents[2].as_posix())
-from ironbank.pipeline.project import DsopProject
-from ironbank.pipeline.utils import logger
-
-log = logger.setup(name="lint.trufflehog")
+logging.basicConfig(
+    level=os.environ.get("LOGLEVEL", "INFO").upper(),
+    stream=sys.stdout,
+    format="| %(name)-28s | %(levelname)-8s | %(message)s",
+)
+log: logging.Logger = logging.getLogger(name="lint.trufflehog")
 
 
 def get_commit_diff(repo_dir: str, diff_branch: str) -> str:
@@ -122,11 +123,15 @@ def main() -> None:  # pylint: disable=subprocess-decorator-missing
     job_image = os.environ["CI_JOB_IMAGE"]
     config_variable = os.environ.get("TRUFFLEHOG_CONFIG")
 
-    dsop_project = DsopProject()
+    trufflehog_conf_path = (
+        Path("trufflehog-config.yaml")
+        if Path("trufflehog-config.yaml").exists()
+        else Path("trufflehog-config.yml")
+    )
 
     project_truffle_config = Path(
         repo_dir,
-        dsop_project.trufflehog_conf_path,
+        trufflehog_conf_path,
     )
     default_truffle_config = Path(
         pipeline_repo_dir,
@@ -161,7 +166,7 @@ def main() -> None:  # pylint: disable=subprocess-decorator-missing
         branch_name,
         *history_cmd,
         "--config",
-        dsop_project.trufflehog_conf_path.as_posix(),
+        trufflehog_conf_path.as_posix(),
         ".",
     ]
 
