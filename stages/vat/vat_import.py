@@ -27,45 +27,42 @@ from ironbank.pipeline.scan_report_parsers.oscap import OscapReportParser
 from ironbank.pipeline.utils.predicates import Predicates
 
 # Set the necessary environment variables
-IMAGE_NAME = os.getenv("IMAGE_NAME", "")
-PIPELINE_REPO_DIR = os.getenv("PIPELINE_REPO_DIR")
-CI_PIPELINE_ID = os.getenv("CI_PIPELINE_ID")
-BUILD_DATE = os.getenv("BUILD_DATE")
-BUILD_DATE_TO_SCAN = os.getenv("BUILD_DATE_TO_SCAN")
-IMAGE_TAG = os.getenv("IMAGE_TAG")
-IMAGE_VERSION = os.getenv("IMAGE_VERSION")
-DIGEST_TO_SCAN = os.getenv("DIGEST_TO_SCAN")
-BASE_IMAGE = os.getenv("BASE_IMAGE", "")
-BASE_TAG = os.getenv("BASE_TAG", "")
-OSCAP_COMPLIANCE_URL = os.getenv("OSCAP_COMPLIANCE_URL")
-CI_PROJECT_URL = os.getenv("CI_PROJECT_URL")
-ARTIFACT_STORAGE = os.getenv("ARTIFACT_STORAGE")
-COMMIT_SHA_TO_SCAN = os.getenv("COMMIT_SHA_TO_SCAN")
-VAT_BACKEND_URL = os.getenv("VAT_BACKEND_URL")
+IMAGE_NAME = os.environ.get("IMAGE_NAME", "")
+PIPELINE_REPO_DIR = os.environ.get("PIPELINE_REPO_DIR")
+CI_PIPELINE_ID = os.environ.get("CI_PIPELINE_ID")
+BUILD_DATE = os.environ.get("BUILD_DATE")
+BUILD_DATE_TO_SCAN = os.environ.get("BUILD_DATE_TO_SCAN")
+IMAGE_TAG = os.environ.get("IMAGE_TAG")
+IMAGE_VERSION = os.environ.get("IMAGE_VERSION")
+DIGEST_TO_SCAN = os.environ.get("DIGEST_TO_SCAN")
+BASE_IMAGE = os.environ.get("BASE_IMAGE", "")
+BASE_TAG = os.environ.get("BASE_TAG", "")
+OSCAP_COMPLIANCE_URL = os.environ.get("OSCAP_COMPLIANCE_URL")
+CI_PROJECT_URL = os.environ.get("CI_PROJECT_URL")
+ARTIFACT_STORAGE = os.environ.get("ARTIFACT_STORAGE")
+COMMIT_SHA_TO_SCAN = os.environ.get("COMMIT_SHA_TO_SCAN")
+VAT_BACKEND_URL = os.environ.get("VAT_BACKEND_URL")
 
-VAT_API_URL = os.getenv("{VAT_BACKEND_URL}/internal/import/scan")
-api_url = os.getenv("{VAT_API_URL}")
-job_id = os.getenv("{CI_PIPELINE_ID}")
-timestamp = os.getenv("TIMESTAMP_FORMAT", "%Y-%m-%dT%H:%M:%SZ")
-scan_date = os.getenv("{BUILD_DATE}")
-build_date = os.getenv("{BUILD_DATE_TO_SCAN}")
-commit_hash = os.getenv("{COMMIT_SHA_TO_SCAN}")
-container = os.getenv("{IMAGE_NAME}")
-version = os.getenv("{IMAGE_VERSION}")
-digest = os.getenv("{DIGEST_TO_SCAN}")
-parent = os.getenv("{BASE_IMAGE:-}")
-parent_version = os.getenv("{BASE_TAG:-}")
-comp_link = os.getenv("{OSCAP_COMPLIANCE_URL:-''}")
-repo_link = os.getenv("{CI_PROJECT_URL}")
+VAT_API_URL = os.environ.get("{VAT_BACKEND_URL}/internal/import/scan")
+api_url = os.environ.get("{VAT_API_URL}")
+job_id = os.environ.get("{CI_PIPELINE_ID}")
+timestamp = os.environ.get("TIMESTAMP_FORMAT", "%Y-%m-%dT%H:%M:%SZ")
+scan_date = os.environ.get("{BUILD_DATE}")
+build_date = os.environ.get("{BUILD_DATE_TO_SCAN}")
+commit_hash = os.environ.get("{COMMIT_SHA_TO_SCAN}")
+container = os.environ.get("{IMAGE_NAME}")
+version = os.environ.get("{IMAGE_VERSION}")
+digest = os.environ.get("{DIGEST_TO_SCAN}")
+parent = os.environ.get("{BASE_IMAGE:-}")
+parent_version = os.environ.get("{BASE_TAG:-}")
+comp_link = os.environ.get("{OSCAP_COMPLIANCE_URL:-''}")
+repo_link = os.environ.get("{CI_PROJECT_URL}")
 
-oscap = os.getenv(
-    "{ARTIFACT_STORAGE}/scan-results/openscap/compliance_output_report.xml"
-)
-VAT_API_URL = os.getenv("{VAT_BACKEND_URL}/internal/import/scan")
-anchore_sec = os.getenv("{ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json")
-anchore_gates = os.getenv("{ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json")
-twistlock = os.getenv("{ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json")
-
+oscap = f"{ARTIFACT_STORAGE}/scan-results/openscap/compliance_output_report.xml"
+VAT_API_URL = f"{VAT_BACKEND_URL}/internal/import/scan"
+anchore_sec = f"{ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json"
+anchore_gates = f"{ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json"
+twistlock = f"{ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json"
 
 REMOTE_REPORT_DIRECTORY = (
     f"{datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}_{COMMIT_SHA_TO_SCAN}"
@@ -566,28 +563,51 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    args = parser.parse_args()
+    # args = parser.parse_args()
 
-    # Set the necessary environment variables
-    # os.environ["API_URL"] = os.environ.get("VAT_API_URL", "")
-    # os.environ["JOB_ID"] = os.environ.get("CI_PIPELINE_ID", "")
-    # os.environ["TIMESTAMP"] = (
-    #     subprocess.check_output('date --utc "+%FT%TZ"', shell=True).decode().strip()
-    # )
-    # os.environ["SCAN_DATE"] = os.environ.get("BUILD_DATE", "")
-    # os.environ["BUILD_DATE"] = os.environ.get("BUILD_DATE_TO_SCAN", "")
-    # os.environ["COMMIT_HASH"] = os.environ.get("COMMIT_SHA_TO_SCAN", "")
-    # os.environ["CONTAINER"] = os.environ.get("IMAGE_NAME", "")
-    # os.environ["VERSION"] = os.environ.get("IMAGE_VERSION", "")
-    # os.environ["DIGEST"] = os.environ.get("DIGEST_TO_SCAN", "")
-    # os.environ["PARENT"] = os.environ.get("BASE_IMAGE", "")
-    # os.environ["PARENT_VERSION"] = os.environ.get("BASE_TAG", "")
-    # os.environ["COMP_LINK"] = os.environ.get("OSCAP_COMPLIANCE_URL", "")
-    # os.environ["REPO_LINK"] = os.environ.get("CI_PROJECT_URL", "")
-    # os.environ["OSCAP"] = os.path.join(
-    #     os.environ.get("ARTIFACT_STORAGE", ""),
-    #     "scan-results/openscap/compliance_output_report.xml",
-    # )
+    IMAGE_NAME = os.environ.get("IMAGE_NAME", "")
+    PIPELINE_REPO_DIR = os.environ.get("PIPELINE_REPO_DIR")
+    CI_PIPELINE_ID = os.environ.get("CI_PIPELINE_ID")
+    BUILD_DATE = os.environ.get("BUILD_DATE")
+    BUILD_DATE_TO_SCAN = os.environ.get("BUILD_DATE_TO_SCAN")
+    IMAGE_TAG = os.environ.get("IMAGE_TAG")
+    IMAGE_VERSION = os.environ.get("IMAGE_VERSION")
+    DIGEST_TO_SCAN = os.environ.get("DIGEST_TO_SCAN")
+    BASE_IMAGE = os.environ.get("BASE_IMAGE", "")
+    BASE_TAG = os.environ.get("BASE_TAG", "")
+    OSCAP_COMPLIANCE_URL = os.environ.get("OSCAP_COMPLIANCE_URL")
+    CI_PROJECT_URL = os.environ.get("CI_PROJECT_URL")
+    ARTIFACT_STORAGE = os.environ.get("ARTIFACT_STORAGE")
+    COMMIT_SHA_TO_SCAN = os.environ.get("COMMIT_SHA_TO_SCAN")
+    VAT_BACKEND_URL = os.environ.get("VAT_BACKEND_URL")
+
+    VAT_API_URL = os.environ.get("{VAT_BACKEND_URL}/internal/import/scan")
+    api_url = os.environ.get("{VAT_API_URL}")
+    job_id = os.environ.get("{CI_PIPELINE_ID}")
+    timestamp = os.environ.get("TIMESTAMP_FORMAT", "%Y-%m-%dT%H:%M:%SZ")
+    scan_date = os.environ.get("{BUILD_DATE}")
+    build_date = os.environ.get("{BUILD_DATE_TO_SCAN}")
+    commit_hash = os.environ.get("{COMMIT_SHA_TO_SCAN}")
+    container = os.environ.get("{IMAGE_NAME}")
+    version = os.environ.get("{IMAGE_VERSION}")
+    digest = os.environ.get("{DIGEST_TO_SCAN}")
+    parent = os.environ.get("{BASE_IMAGE:-}")
+    parent_version = os.environ.get("{BASE_TAG:-}")
+    comp_link = os.environ.get("{OSCAP_COMPLIANCE_URL:-''}")
+    repo_link = os.environ.get("{CI_PROJECT_URL}")
+
+    oscap = f"{ARTIFACT_STORAGE}/scan-results/openscap/compliance_output_report.xml"
+    VAT_API_URL = f"{VAT_BACKEND_URL}/internal/import/scan"
+    anchore_sec = f"{ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json"
+    anchore_gates = f"{ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json"
+    twistlock = f"{ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json"
+
+    REMOTE_REPORT_DIRECTORY = (
+        f"{datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}_{COMMIT_SHA_TO_SCAN}"
+    )
+
+    os.environ["REMO TE_REPORT_DIRECTORY"] = REMOTE_REPORT_DIRECTORY
+    os.environ["VAT_API_URL"] = f"{VAT_BACKEND_URL}/internal/import/scan"
 
     CI_PROJECT_DIR = os.getenv("CI_PROJECT_DIR", "")
 
