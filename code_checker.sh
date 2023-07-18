@@ -126,7 +126,6 @@ run_unit_tests() {
   echo "********************"
   echo "Running unit tests"
   echo "********************"
-  python3 -m pip install . --quiet
   python3 -m pytest -m "not slow"
   echo -e "\n"
 }
