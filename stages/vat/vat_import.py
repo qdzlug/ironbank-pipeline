@@ -364,11 +364,6 @@ def create_api_call() -> dict:
     # When not os.environ.get("SKIP_OPENSCAP"), this means this is not a SKIP_OPENSCAP project,
     # and oscap findings should be imported
 
-    # oscap = "/path/to/oscap"
-    # anchore_sec = "/path/to/anchore_sec"
-    # anchore_gates = "/path/to/anchore_gates"
-    # twistlock = "/path/to/twistlock"
-
     if oscap and not os.environ.get("SKIP_OPENSCAP"):
         logging.debug("Importing oscap findings")
         # oscap = "/path/to/oscap"
@@ -501,7 +496,9 @@ def main() -> None:
     headers["Content-Type"] = "application/json"
     headers["Authorization"] = f"Bearer {os.environ['VAT_TOKEN']}"
     try:
-        resp = requests.post(args, headers=headers, json=large_data, timeout=(30, 30))
+        resp = requests.post(
+            url=os.environ, headers=headers, json=large_data, timeout=(30, 30)
+        )
         resp.raise_for_status()
         logging.debug("API Response:\n%s", resp.text)
         logging.debug("POST Response: %s", resp.status_code)
@@ -563,7 +560,7 @@ if __name__ == "__main__":
     oscap = Path(
         f"{ARTIFACT_STORAGE}/scan-results/openscap/compliance_output_report.xml"
     )
-    VAT_API_URL = Path(f"{VAT_BACKEND_URL}/internal/import/scan")
+    VAT_API_URL = f"{VAT_BACKEND_URL}/internal/import/scan"
     anchore_sec = Path(f"{ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json")
     anchore_gates = Path(f"{ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json")
     twistlock = Path(f"{ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json")
