@@ -364,8 +364,14 @@ def create_api_call() -> dict:
     # When not os.environ.get("SKIP_OPENSCAP"), this means this is not a SKIP_OPENSCAP project,
     # and oscap findings should be imported
 
+    # oscap = "/path/to/oscap"
+    # anchore_sec = "/path/to/anchore_sec"
+    # anchore_gates = "/path/to/anchore_gates"
+    # twistlock = "/path/to/twistlock"
+
     if oscap and not os.environ.get("SKIP_OPENSCAP"):
         logging.debug("Importing oscap findings")
+        # oscap = "/path/to/oscap"
         os_findings = generate_oscap_findings(
             oscap, vat_finding_fields=vat_finding_fields
         )
@@ -554,11 +560,13 @@ if __name__ == "__main__":
     comp_link = os.environ.get("{OSCAP_COMPLIANCE_URL:-''}")
     repo_link = os.environ.get("{CI_PROJECT_URL}")
 
-    oscap = f"{ARTIFACT_STORAGE}/scan-results/openscap/compliance_output_report.xml"
-    VAT_API_URL = f"{VAT_BACKEND_URL}/internal/import/scan"
-    anchore_sec = f"{ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json"
-    anchore_gates = f"{ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json"
-    twistlock = f"{ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json"
+    oscap = Path(
+        f"{ARTIFACT_STORAGE}/scan-results/openscap/compliance_output_report.xml"
+    )
+    VAT_API_URL = Path(f"{VAT_BACKEND_URL}/internal/import/scan")
+    anchore_sec = Path(f"{ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json")
+    anchore_gates = Path(f"{ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json")
+    twistlock = Path(f"{ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json")
 
     REMOTE_REPORT_DIRECTORY = (
         f"{datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}_{COMMIT_SHA_TO_SCAN}"
