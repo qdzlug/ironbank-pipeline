@@ -575,12 +575,6 @@ if __name__ == "__main__":
         )
         sys.exit(0)
 
-    REMOTE_REPORT_DIRECTORY = (
-        f"{datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}_{COMMIT_SHA_TO_SCAN}"
-    )
-    os.environ["REMO TE_REPORT_DIRECTORY"] = REMOTE_REPORT_DIRECTORY
-    os.environ["VAT_API_URL"] = f"{VAT_BACKEND_URL}/internal/import/scan"
-
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
     if loglevel == "DEBUG":
