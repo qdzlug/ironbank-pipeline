@@ -184,12 +184,7 @@ class Buildah(ContainerTool):
         dict
             A dictionary containing the image inspection results.
         """
-        cmd = [
-            "buildah",
-            "manifest",
-            verb,
-            manifest
-        ]
+        cmd = ["buildah", "manifest", verb, manifest]
         if image:
             cmd += [image]
             cmd += ["--all"] if all else []
