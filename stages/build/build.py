@@ -284,20 +284,18 @@ def main():
         ulimit_args=buildah_ulimit_args,
         tag=staging_image,
         log_cmd=True,
+        manifest=staging_image.manifest
     )
 
     # Instantiate new objects from existing staging image attributes
     src = staging_image.from_image(transport="containers-storage:")
     dest = staging_image.from_image(transport="docker://")
 
-    # TODO: skip the following skopeo copies on local build, maybe change the copy to local dir?
-    skopeo.copy(
-        src=src,
-        dest=dest,
-        digestfile=Path(build_artifact_dir, "digest"),
-        dest_authfile=staging_auth_path,
-        log_cmd=True,
-    )
+    if os.environ.get("FIRST_ARCH"):
+        buildah.manifest("add", manifest=dest.manifest, image=dest, storage_dirver="vfs", all=True, log_cmd=True)
+
+    # TODO: skip the following buildah pushes on local build
+    buildah.manifest("push", manifest=dest.manifest, image=dest, storage_dirver="vfs", all=True, log_cmd=True)
 
     if (
         os.environ.get("STAGING_BASE_IMAGE")
@@ -305,7 +303,7 @@ def main():
     ):
         for tag in hardening_manifest.image_tags:
             dest = dest.from_image(tag=tag)
-            skopeo.copy(src, dest, dest_authfile=staging_auth_path, log_cmd=True)
+            buildah.manifest("push", manifest=dest.manifest, image=dest, storage_dirver="vfs", all=True,log_cmd=True)
 
     local_image_details = buildah.inspect(image=src, storage_driver="vfs", log_cmd=True)
 
