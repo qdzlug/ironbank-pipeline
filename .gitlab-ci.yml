@@ -13,7 +13,7 @@ stages:
 
 trufflehog:
   extends: .base
-  image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6
+  image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.7
   stage: secret-scanning
   variables:
     # This forces the trufflehog job to NOT perform a shallow clone
