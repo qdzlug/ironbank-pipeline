@@ -21,7 +21,8 @@ trufflehog:
   script:
     - python3 -m pip install --user .
     - 'git config --global --add safe.directory "${CI_PROJECT_DIR}"'
-    - python3 stages/secret-scan/trufflehog.py
+    # - python3 stages/secret-scan/trufflehog.py
+    - trufflehog3 --no-entropy --ignore-nosecret --branch "${CI_COMMIT_BRANCH}" .
 
 lint:
   extends: .base
