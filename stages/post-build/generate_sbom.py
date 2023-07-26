@@ -10,8 +10,6 @@ from ironbank_py39_modules.scanner_api_handlers.anchore import (
     Anchore,
 )
 
-# kladf
-
 
 def main() -> None:
     """Main function that initializes an Anchore scanner and generates Software
