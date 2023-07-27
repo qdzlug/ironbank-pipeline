@@ -58,12 +58,11 @@ unit-testing:
         path: coverage.xml
     paths:
       - ./coverage.xml
-
-generate_sbom:
-  extends: .base
-  stage: build
-  image: registry1.dso.mil/ironbank/anchore/enterprise/enterprise:4.4.1
-  script:
-    - python3 "${PIPELINE_REPO_DIR}/stages/post-build/generate_sbom.py"
-  variables:
-    ANCHORE_PASSWORD: "anchore_password_here"
+# generate_sbom:
+#   extends: .base
+#   stage: build
+#   image: registry1.dso.mil/ironbank/anchore/enterprise/enterprise:4.4.1
+#   script:
+#     - python3 "${PIPELINE_REPO_DIR}/stages/post-build/generate_sbom.py"
+#   variables:
+#     ANCHORE_PASSWORD: "anchore_password_here"
