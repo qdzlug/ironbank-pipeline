@@ -49,7 +49,6 @@ update-staging-attestations:
     VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/vat_response.json
     ACCESS_LOG_DIR: ${ARTIFACT_STORAGE}/build
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/harbor
-    PUBLISH_VAT_STAGING_PREDICATES: "True"
   script:
     - 'mkdir -p "${ARTIFACT_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/harbor/upload_to_harbor.py"'
