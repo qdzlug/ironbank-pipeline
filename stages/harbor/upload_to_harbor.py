@@ -218,6 +218,18 @@ def main():
 
 
 def publish_vat_staging_predicates():
+    """Publishes a VAT (Verified Access Token) on a staging image using the
+    cosign tool.
+
+    Reads various details from environment variables for this process. If the attestation fails,
+    the function exits with a non-zero status code.
+
+    Raises:
+        GenericSubprocessError: If an error occurs during the cosign attest command.
+
+    Returns:
+        None
+    """
     staging_image = Image(
         registry=os.environ["REGISTRY_PRE_PUBLISH_URL"],
         name=os.environ["IMAGE_NAME"],
@@ -230,7 +242,7 @@ def publish_vat_staging_predicates():
 
     with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
         shutil.copy(
-            os.environ["DOCKER_AUTH_PRE_PUBLISH"],
+            os.environ["DOCKER_AUTH_FILE_PRE_PUBLISH"],
             Path(docker_config_dir, "config.json"),
         )
         cosign = Cosign(docker_config_dir=docker_config_dir)
@@ -247,7 +259,7 @@ def publish_vat_staging_predicates():
 
 
 if __name__ == "__main__":
-    if os.environ.get("PUBLISH_STAGING_PREDICIATES"):
-        publish_staging_predicates()
+    if os.environ.get("PUBLISH_VAT_STAGING_PREDICATES"):
+        publish_vat_staging_predicates()
     else:
         main()
