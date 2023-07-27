@@ -217,49 +217,5 @@ def main():
         sys.exit(1)
 
 
-def publish_vat_staging_predicates():
-    """Publishes a VAT (Verified Access Token) on a staging image using the
-    cosign tool.
-
-    Reads various details from environment variables for this process. If the attestation fails,
-    the function exits with a non-zero status code.
-
-    Raises:
-        GenericSubprocessError: If an error occurs during the cosign attest command.
-
-    Returns:
-        None
-    """
-    staging_image = Image(
-        registry=os.environ["REGISTRY_PRE_PUBLISH_URL"],
-        name=os.environ["IMAGE_NAME"],
-        digest=os.environ["IMAGE_PODMAN_SHA"],
-        transport="docker://",
-    )
-
-    predicates = Predicates()
-    vat_predicate = _generate_vat_response_lineage_file()
-
-    with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
-        shutil.copy(
-            os.environ["DOCKER_AUTH_FILE_PRE_PUBLISH"],
-            Path(docker_config_dir, "config.json"),
-        )
-        cosign = Cosign(docker_config_dir=docker_config_dir)
-        try:
-            cosign.attest(
-                image=staging_image,
-                predicate_path=vat_predicate.as_posix(),
-                predicate_type=predicates.types[vat_predicate.name],
-                replace=True,
-                log_cmd=True,
-            )
-        except GenericSubprocessError:
-            sys.exit(1)
-
-
 if __name__ == "__main__":
-    if os.environ.get("PUBLISH_VAT_STAGING_PREDICATES"):
-        publish_vat_staging_predicates()
-    else:
-        main()
+    main()
