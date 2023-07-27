@@ -1,7 +1,7 @@
 .documentation:
   stage: documentation
   rules:
-    - if: $CI_COMMIT_BRANCH == "master"
+    - if: $CI_COMMIT_TAG
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/documentation"
     OPENSCAP_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/openscap/oscap-version.txt"
