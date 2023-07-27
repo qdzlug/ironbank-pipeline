@@ -66,4 +66,4 @@ generate_sbom:
   script:
     - python3 "${PIPELINE_REPO_DIR}/stages/post-build/generate_sbom.py"
   variables:
-    ANCHORE_PASSWORD: "your_anchore_password_here"
+    ANCHORE_PASSWORD: "anchore_password_here"
