@@ -31,7 +31,6 @@ harbor:
     max: 2
     when: runner_system_failure
 
-
 update-staging-attestations:
   stage: harbor
   rules:

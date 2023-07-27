@@ -216,14 +216,15 @@ def main():
     except GenericSubprocessError:
         sys.exit(1)
 
+
 def publish_vat_staging_predicates():
     staging_image = Image(
         registry=os.environ["REGISTRY_PRE_PUBLISH_URL"],
         name=os.environ["IMAGE_NAME"],
         digest=os.environ["IMAGE_PODMAN_SHA"],
         transport="docker://",
-        )
-    
+    )
+
     predicates = Predicates()
     vat_predicate = _generate_vat_response_lineage_file()
 
@@ -235,17 +236,18 @@ def publish_vat_staging_predicates():
         cosign = Cosign(docker_config_dir=docker_config_dir)
         try:
             cosign.attest(
-            image=staging_image,
-            predicate_path=vat_predicate.as_posix(),
-            predicate_type=predicates.types[vat_predicate.name],
-            replace=True,
-            log_cmd=True,
-        )
+                image=staging_image,
+                predicate_path=vat_predicate.as_posix(),
+                predicate_type=predicates.types[vat_predicate.name],
+                replace=True,
+                log_cmd=True,
+            )
         except GenericSubprocessError:
             sys.exit(1)
+
 
 if __name__ == "__main__":
     if os.environ.get("PUBLISH_STAGING_PREDICIATES"):
         publish_staging_predicates()
-    else:   
+    else:
         main()
