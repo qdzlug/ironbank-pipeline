@@ -20,6 +20,7 @@ from pipeline.hardening_manifest import (
     get_source_keys_values,
     source_values,
 )
+
 from ironbank.pipeline.image import Image
 from ironbank.pipeline.project import DsopProject
 from ironbank.pipeline.scan_report_parsers.anchore import AnchoreReportParser
