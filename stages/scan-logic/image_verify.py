@@ -121,15 +121,12 @@ def diff_needed(docker_config_dir: Path) -> Optional[dict]:
         # TODO: Investigate getting cosign verify working in staging environment
         if "repo1.dso.mil" in os.environ["CI_SERVER_URL"]:
             log.info("Verify old image signature")
-            try:
-                cosign_verify = Cosign.verify(
-                    image=old_image.from_image(transport=""),
-                    docker_config_dir=docker_config_dir,
-                    use_key=True,
-                    log_cmd=True,
-                )
-            except GenericSubprocessError:
-                cosign_verify = False
+            cosign_verify = Cosign.verify(
+                image=old_image.from_image(transport=""),
+                docker_config_dir=docker_config_dir,
+                use_key=True,
+                log_cmd=True,
+            )
 
         log.info("Verifying image properties")
         # Return old image information if all are true:
