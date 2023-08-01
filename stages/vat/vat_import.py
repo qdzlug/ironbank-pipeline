@@ -527,9 +527,7 @@ def main() -> None:
 if __name__ == "__main__":
     # args = parser.parse_args()
 
-    IMAGE_NAME = os.environ.get("IMAGE_NAME", "")
     PIPELINE_REPO_DIR = os.environ.get("PIPELINE_REPO_DIR")
-    BUILD_DATE = os.environ.get("BUILD_DATE")
     BUILD_DATE_TO_SCAN = os.environ.get("BUILD_DATE_TO_SCAN")
     IMAGE_TAG = os.environ.get("IMAGE_TAG")
     IMAGE_VERSION = os.environ.get("IMAGE_VERSION")
