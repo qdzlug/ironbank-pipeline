@@ -131,7 +131,6 @@ def diff_needed(docker_config_dir: Path) -> Optional[dict]:
             except GenericSubprocessError:
                 cosign_verify = False
 
-
         log.info("Verifying image properties")
         # Return old image information if all are true:
         #  - manifest exists for tag (i.e. this pipeline is not running to create a new tag)

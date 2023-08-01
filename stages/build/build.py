@@ -13,7 +13,6 @@ from pipeline.project import DsopProject
 from pipeline.hardening_manifest import HardeningManifest
 from pipeline.container_tools.skopeo import Skopeo
 from pipeline.container_tools.buildah import Buildah
-from pipeline.container_tools.cosign import Cosign
 from pipeline.image import Image, ImageFile
 from pipeline.utils.decorators import subprocess_error_handler
 from common.utils import logger
@@ -197,11 +196,6 @@ def main():
 
     if hardening_manifest.base_image_name:
         log.info("Verifying parent image signature")
-        parent_image = Image(
-            registry=base_registry,
-            name=hardening_manifest.base_image_name,
-            tag=hardening_manifest.base_image_tag,
-        )
         if not os.environ.get("STAGING_BASE_IMAGE"):
             with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
                 shutil.copy(
