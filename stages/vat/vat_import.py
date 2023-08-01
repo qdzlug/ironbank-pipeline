@@ -481,7 +481,7 @@ def main() -> None:
     else:
         parent_vat_response_content = {"vatAttestationLineage": None}
 
-    # vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
+    vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
 
     vat_request_json = Path(os.environ["ARTIFACT_DIR"]) / "vat_request.json"
     if not os.environ.get("USE_JSON"):
