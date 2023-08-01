@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Optional
 import logging
 
-import git
+from git.repo import Repo
 import yaml
 
 logging.basicConfig(
@@ -24,7 +24,7 @@ def get_commit_diff(repo_dir: str, diff_branch: str) -> str:
     in master when CI_COMMIT_BRANCH is development Returns a string of commit
     SHAs separated by newline characters."""
     # fetch origin before performing a git log
-    repo = git.Repo(repo_dir)
+    repo = Repo(repo_dir)
     commits = repo.git.rev_list(
         f"{diff_branch}..",
         "--no-merges",

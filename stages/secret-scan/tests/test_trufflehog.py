@@ -1,136 +1,168 @@
 #!/usr/bin/env python3
+from dataclasses import dataclass
 import sys
-from unittest.mock import mock_open
+from unittest.mock import patch
 from pathlib import Path
 
-import git
+import subprocess
+from subprocess import CalledProcessError
 import pytest
 import yaml
 
 from common.utils import logger
+from pipeline.test.mocks.mock_classes import (
+    MockPath,
+    MockCompletedProcess,
+)
+
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import trufflehog  # noqa E402
-from trufflehog import get_commit_diff  # noqa E402
-from trufflehog import get_config  # noqa E402
-from trufflehog import create_trufflehog_config, get_history_cmd  # noqa E042
-
 
 log = logger.setup("test_trufflehog")
 
 mock_path = Path(__file__).absolute().parent
 
 
-# list of test projects to be cloned and used for testing
-@pytest.fixture
-def projects():
-    return [
-        "https://repo1.dso.mil/dsop/opensource/pipeline-test-project/kubectl",
-        "https://repo1.dso.mil/dsop/opensource/pipeline-test-project/ubi8",
-    ]
+class MockGit:
+    def rev_list(self, *args, **kwargs):
+        if len(args) == 0:
+            return ""
+        if args[0] == "feature_branch..":
+            return "commit_sha_1\ncommit_sha_2\ncommit_sha_3"
+        elif args[0] == "development..":
+            return "commit_sha_4\ncommit_sha_5"
 
 
-# clone test projects and get test repo directories
-@pytest.fixture
-def test_projects(projects):
-    repo_dirs = []
-    for project in projects:
-        repo_dir = Path("test_projects", project.split("/")[-1]).absolute().as_posix()
-        # don't clone if already cloned
-        if not Path(repo_dir).is_dir():
-            git.Repo.clone_from(project, repo_dir)
-        repo_dirs.append(repo_dir)
-    return repo_dirs
+@dataclass
+class MockGitRepo:
+    repo_dir: str
+    git: MockGit = MockGit()
 
 
-# test the trufflehog get_history module
-# runs by default when running pytest but is excluded from pipeline ci with "not slow"
-@pytest.mark.slow
-def test_get_history(test_projects):
-    for repo_dir in test_projects:
-        diff_branch = "origin/master"
-        commit_diff = get_commit_diff(repo_dir, diff_branch)
-        history_cmd = get_history_cmd(commit_diff)
-        log.info(history_cmd)
-        assert (history_cmd[0] == "--since" and history_cmd[1] != "") or history_cmd[
-            0
-        ] == "--no-history"
+@patch("trufflehog.Repo", new=MockGitRepo)
+def test_get_commit_diff(monkeypatch, caplog):
+    repo_dir = "/path/to/repo"
+    feature_branch = "feature_branch"
+    commits = trufflehog.get_commit_diff(repo_dir, feature_branch)
+
+    assert commits == "commit_sha_1\ncommit_sha_2\ncommit_sha_3"
 
 
-# mock output for get_commit_diff, string of commits separated by \n
-@pytest.fixture
-def commits_string():
-    return (
-        "e72223cd59700b6dc45bf30d039fa8dd2055d1ec\n"
-        "a587dcd3acbf4de15d04da232afa63e3ef310e5d\n"
-        "1da1a44a7d300ca2d569b124e8cbd8577e8edf35\n"
-        "89555678fe7fe5c60835bf8ceed940368161d06f\n"
-        "ada42ed8b621044534e9e7f81faec74c8bcbadd8\n"
-        "a6e55bae9d4047c484452c09d849b5dfb44d154e\n"
-        "eeb256e29791f840432eeef7ba6c239406fa1c28"
+def test_get_history_cmd():
+    commits = "commit_sha_1\ncommit_sha_2\ncommit_sha_3"
+    results = trufflehog.get_history_cmd(commits)
+    assert results == ["--since", "commit_sha_3"]
+
+
+@patch("trufflehog.Path", new=MockPath)
+def test_get_config(monkeypatch, caplog):
+    monkeypatch.setattr(
+        yaml,
+        "safe_load",
+        lambda *args, **kwargs: {
+            "exclude": [
+                {"name": "Example1", "paths": ["/path/to/exclude1"]},
+                {
+                    "name": "Example2",
+                    "paths": ["/path/to/exclude2", "/path/to/exclude3"],
+                },
+            ]
+        },
     )
+    # Testing result if file not found
+    result = trufflehog.get_config(MockPath("."), False)
+    assert result == []
 
-
-# mock output for get_commit_diff, single commit string
-@pytest.fixture
-def single_commit():
-    return "e72223cd59700b6dc45bf30d039fa8dd2055d1ec"
-
-
-# mock output for get_commit_diff, empty string (no commit diff)
-@pytest.fixture
-def empty_string():
-    return ""
-
-
-def test_create_history_message(commits_string, single_commit, empty_string):
-    assert get_history_cmd(commits_string) == [
-        "--since",
-        "eeb256e29791f840432eeef7ba6c239406fa1c28",
-    ]
-    assert get_history_cmd(single_commit) == [
-        "--since",
-        "e72223cd59700b6dc45bf30d039fa8dd2055d1ec",
-    ]
-    assert get_history_cmd(empty_string) == ["--no-history"]
-
-
-def test_get_commit_diff():
-    # TODO implement this
-    pass
-
-
-def test_get_config():
-    assert get_config(Path(mock_path, "test-th-config.yaml")) == [
+    monkeypatch.setattr(MockPath, "is_file", lambda *args, **kwargs: True)
+    result = trufflehog.get_config(MockPath("."), True)
+    assert result == [
+        {"name": "Example1", "paths": ["/path/to/exclude1"]},
         {
-            "message": "Standard pipeline config",
-            "paths": ["stages/lint/README.md"],
-            "pattern": "airflow_conf_set",
-        }
+            "name": "Example2",
+            "paths": ["/path/to/exclude2", "/path/to/exclude3"],
+        },
     ]
 
-    # TODO finish this test
-    # assert get_config(Path("")) == None
 
-
+@patch("trufflehog.Path", new=MockPath)
 def test_create_trufflehog_config(monkeypatch):
-    monkeypatch.setattr(trufflehog, "get_config", lambda *args, **kwargs: [])
-    monkeypatch.setattr(Path, "open", mock_open(read_data="data"))
-    monkeypatch.setattr(yaml, "safe_dump", lambda *args, **kwargs: True)
-    assert (
-        create_trufflehog_config(
-            Path(mock_path, "test-th-config-concat.yaml"),
-            Path(mock_path, "test-th-config.yaml"),
-            "./",
-            ["TRUFFLEHOG"],
-        )
-        is True  # noqa E712
+    monkeypatch.setattr(
+        yaml,
+        "safe_load",
+        lambda *args, **kwargs: {
+            "exclude": [
+                {"name": "Example1", "paths": ["/path/to/exclude1"]},
+                {
+                    "name": "Example2",
+                    "paths": ["/path/to/exclude2", "/path/to/exclude3"],
+                },
+            ]
+        },
     )
-    assert (
-        create_trufflehog_config(
-            Path(mock_path, "test-th-config-concat.yaml"),
-            Path(mock_path, "test-th-config.yaml"),
-            "./",
-        )
-        is False  # noqa E712
+    monkeypatch.setattr(
+        yaml,
+        "safe_dump",
+        lambda *args, **kwargs: None,
     )
+    result = trufflehog.create_trufflehog_config(
+        MockPath("project"), MockPath("default"), "/path/to/repo", "True"
+    )
+    assert result == False
+    monkeypatch.setattr(MockPath, "is_file", lambda *args, **kwargs: True)
+    result = trufflehog.create_trufflehog_config(
+        MockPath("project"), MockPath("default"), "/path/to/repo", "True"
+    )
+    assert result == True
+
+
+@patch("trufflehog.Path", new=MockPath)
+def test_main(monkeypatch, raise_):
+    monkeypatch.setenv("CI_PROJECT_DIR", "mock_CI_PROJECT_DIR")
+    monkeypatch.setenv("PIPELINE_REPO_DIR", "mock_PIPELINE_REPO_DIR")
+    monkeypatch.setenv("CI_COMMIT_BRANCH", "mock_CI_COMMIT_BRANCH")
+    monkeypatch.setenv("CI_JOB_IMAGE", "mock_CI_JOB_IMAGE")
+    monkeypatch.setenv("TRUFFLEHOG_CONFIG", "mock_TRUFFLEHOG_CONFIG")
+    monkeypatch.setenv("TRUFFLEHOG_TARGET", "mock_TRUFFLEHOG_TARGET")
+
+    monkeypatch.setattr(trufflehog, "get_commit_diff", lambda *args, **kwargs: "")
+    monkeypatch.setattr(trufflehog, "get_history_cmd", lambda *args, **kwargs: [])
+    monkeypatch.setattr(
+        trufflehog, "create_trufflehog_config", lambda *args, **kwargs: True
+    )
+
+    ## Testing different return codes. Coverage for if/else statements embedded in the try/except blocks
+
+    # This should in theory raise an assertion error
+    with pytest.raises(SystemExit):
+        monkeypatch.setattr(
+            subprocess,
+            "run",
+            lambda *args, **kwargs: MockCompletedProcess(returncode=1),
+        )
+        trufflehog.main()
+
+    with pytest.raises(SystemExit):
+        monkeypatch.setattr(
+            subprocess,
+            "run",
+            lambda *args, **kwargs: raise_(
+                CalledProcessError(returncode=2, cmd="", output="this is an error")
+            ),
+        )
+        trufflehog.main()
+
+    with pytest.raises(SystemExit):
+        monkeypatch.setattr(
+            subprocess,
+            "run",
+            lambda *args, **kwargs: raise_(
+                CalledProcessError(returncode=1, cmd="", output="this is an error")
+            ),
+        )
+        trufflehog.main()
+
+    monkeypatch.setattr(
+        subprocess, "run", lambda *args, **kwargs: MockCompletedProcess(returncode=0)
+    )
+    trufflehog.main()
