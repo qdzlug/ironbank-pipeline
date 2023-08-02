@@ -56,6 +56,7 @@ def test_get_history_cmd():
     results = trufflehog.get_history_cmd("")
     assert results == ["--no-history"]
 
+
 @patch("trufflehog.Path", new=MockPath)
 def test_get_config(monkeypatch, caplog):
     monkeypatch.setattr(
