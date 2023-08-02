@@ -53,7 +53,8 @@ def test_get_history_cmd():
     commits = "commit_sha_1\ncommit_sha_2\ncommit_sha_3"
     results = trufflehog.get_history_cmd(commits)
     assert results == ["--since", "commit_sha_3"]
-
+    results = trufflehog.get_history_cmd("")
+    assert results == ["--no-history"]
 
 @patch("trufflehog.Path", new=MockPath)
 def test_get_config(monkeypatch, caplog):
@@ -106,7 +107,7 @@ def test_create_trufflehog_config(monkeypatch):
         lambda *args, **kwargs: None,
     )
     result = trufflehog.create_trufflehog_config(
-        MockPath("project"), MockPath("default"), "/path/to/repo", "True"
+        MockPath("project"), MockPath("default"), "/path/to/repo"
     )
     assert result == False
     monkeypatch.setattr(MockPath, "is_file", lambda *args, **kwargs: True)
@@ -123,7 +124,7 @@ def test_main(monkeypatch, raise_):
     monkeypatch.setenv("CI_COMMIT_BRANCH", "mock_CI_COMMIT_BRANCH")
     monkeypatch.setenv("CI_JOB_IMAGE", "mock_CI_JOB_IMAGE")
     monkeypatch.setenv("TRUFFLEHOG_CONFIG", "mock_TRUFFLEHOG_CONFIG")
-    monkeypatch.setenv("TRUFFLEHOG_TARGET", "mock_TRUFFLEHOG_TARGET")
+    monkeypatch.setenv("TRUFFLEHOG_TARGET", "pipeline")
 
     monkeypatch.setattr(trufflehog, "get_commit_diff", lambda *args, **kwargs: "")
     monkeypatch.setattr(trufflehog, "get_history_cmd", lambda *args, **kwargs: [])
@@ -143,6 +144,7 @@ def test_main(monkeypatch, raise_):
         trufflehog.main()
 
     with pytest.raises(SystemExit):
+        monkeypatch.setenv("TRUFFLEHOG_TARGET", "mock_TRUFFLEHOG_TARGET")
         monkeypatch.setattr(
             subprocess,
             "run",
@@ -165,4 +167,8 @@ def test_main(monkeypatch, raise_):
     monkeypatch.setattr(
         subprocess, "run", lambda *args, **kwargs: MockCompletedProcess(returncode=0)
     )
+    monkeypatch.setattr(
+        trufflehog, "create_trufflehog_config", lambda *args, **kwargs: False
+    )
+    monkeypatch.setenv("CI_COMMIT_BRANCH", "development")
     trufflehog.main()
