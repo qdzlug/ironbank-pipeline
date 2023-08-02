@@ -16,7 +16,6 @@ def set_tags_in_thread(repo: str, all_tags: dict, docker_api: DockerV2Api) -> No
     all_tags[repo] = [tag for tag in docker_api.get_tags(repo)]
 
 
-# auth should be base64 encoded un:pw
 repo_file_path = Path("repos.json")
 tags_file_path = Path("tags.json")
 latest_tags_file_path = Path("latest_tags.json")
@@ -26,6 +25,7 @@ MAX_ASYNC = 100
 REPO_API_URL = "https://registry1.dso.mil/api/v2.0/projects/ironbank/repositories"
 PAGE_SIZE = 100
 
+# auth should be base64 encoded un:pw
 docker_api = DockerV2Api(
     registry_url="https://registry1.dso.mil",
     basic_auth=os.environ["REGISTRY_AUTH"],
