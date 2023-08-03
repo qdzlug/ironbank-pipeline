@@ -544,7 +544,7 @@ if __name__ == "__main__":
 
     api_url = os.environ.get("VAT_API_URL}", "")
     job_id = os.environ.get("CI_PIPELINE_ID", "")
-    timestamp = os.environ.get("TIMESTAMP_FORMAT", "%Y-%m-%dT%H:%M:%SZ", "")
+    timestamp = os.environ.get("TIMESTAMP_FORMAT", "%Y-%m-%dT%H:%M:%SZ")
     scan_date = os.environ.get("BUILD_DATE", "")
     build_date = os.environ.get("BUILD_DATE_TO_SCAN", "")
     container = os.environ.get("IMAGE_NAME", "")
