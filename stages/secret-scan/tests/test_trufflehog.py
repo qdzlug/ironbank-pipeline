@@ -41,7 +41,7 @@ class MockGitRepo:
 
 
 @patch("trufflehog.Repo", new=MockGitRepo)
-def test_get_commit_diff(monkeypatch, caplog):
+def test_get_commit_diff():
     repo_dir = "/path/to/repo"
     feature_branch = "feature_branch"
     commits = trufflehog.get_commit_diff(repo_dir, feature_branch)
@@ -58,7 +58,7 @@ def test_get_history_cmd():
 
 
 @patch("trufflehog.Path", new=MockPath)
-def test_get_config(monkeypatch, caplog):
+def test_get_config(monkeypatch):
     monkeypatch.setattr(
         yaml,
         "safe_load",
@@ -133,7 +133,13 @@ def test_main(monkeypatch, raise_):
         trufflehog, "create_trufflehog_config", lambda *args, **kwargs: True
     )
 
+    monkeypatch.setattr(MockPath, "is_file", lambda *args, **kwargs: True)
+    # asserting the existence of a trufflehog.yaml file causes a system exit
+    with pytest.raises(SystemExit):
+        trufflehog.main()
     ## Testing different return codes. Coverage for if/else statements embedded in the try/except blocks
+
+    monkeypatch.setattr(MockPath, "is_file", lambda *args, **kwargs: False)
 
     # This should in theory raise an assertion error
     with pytest.raises(SystemExit):
