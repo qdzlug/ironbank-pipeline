@@ -498,7 +498,7 @@ def main() -> None:
     headers["Authorization"] = f"Bearer {os.environ['VAT_TOKEN']}"
     try:
         resp = requests.post(
-            CI_PROJECT_DIR, headers=headers, json=large_data, timeout=(30, 30)
+            "https://vat.dso.mil", headers=headers, json=large_data, timeout=(30, 30)
         )
         resp.raise_for_status()
         logging.debug("API Response:\n%s", resp.text)
