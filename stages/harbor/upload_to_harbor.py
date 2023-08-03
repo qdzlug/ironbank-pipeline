@@ -67,6 +67,7 @@ def promote_tags(
             dest_authfile=Path(os.environ["DOCKER_AUTH_FILE_PUBLISH"]),
             log_cmd=True,
         )
+        log.info(f"Successfully copied {staging_image} to {production_image}")
 
 
 def _convert_artifacts_to_hardening_manifest(
@@ -83,6 +84,7 @@ def _convert_artifacts_to_hardening_manifest(
         "w", encoding="utf-8"
     ) as f:
         json.dump(hm_object, f)
+        log.info("Converting artifacts to hardening manifest")
 
 
 def _generate_vat_response_lineage_file():
@@ -96,6 +98,7 @@ def _generate_vat_response_lineage_file():
     lineage_vat_response = {"images": []}
     if (parent_vat_response_file := Path(os.environ["PARENT_VAT_RESPONSE"])).exists():
         with parent_vat_response_file.open("r", encoding="utf-8") as f:
+            log.info("parent VAT response exists")
             parent_vat_response = json.load(f)
             # parent_vat_response.json will not be a list when we release this, make sure to convert it to one
             lineage_vat_response["images"] += parent_vat_response.get("images") or [
@@ -204,6 +207,7 @@ def main():
                 )
                 # Sign image
                 cosign.sign(production_image, log_cmd=True)
+                log.info("Promoting images and tags from staging and signing image")
             log.info("Adding attestations")
             for predicate in attestation_predicates:
                 cosign.attest(
