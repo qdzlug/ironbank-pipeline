@@ -498,7 +498,7 @@ def main() -> None:
     headers["Authorization"] = f"Bearer {os.environ['VAT_TOKEN']}"
     try:
         resp = requests.post(
-            "vat_request.json",
+            "https://vat.dso.mil/api/p1",
             headers=headers,
             json=large_data,
             timeout=(30, 30),
