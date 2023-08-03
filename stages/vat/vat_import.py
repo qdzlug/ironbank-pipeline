@@ -498,7 +498,7 @@ def main() -> None:
     headers["Authorization"] = f"Bearer {os.environ['VAT_TOKEN']}"
     try:
         resp = requests.post(
-            "https://vat.dso.mil/api/p1",
+            VAT_BACKEND_URL,
             headers=headers,
             json=large_data,
             timeout=(30, 30),
@@ -530,30 +530,30 @@ def main() -> None:
 if __name__ == "__main__":
     # args = parser.parse_args()
 
-    PIPELINE_REPO_DIR = os.environ.get("PIPELINE_REPO_DIR")
-    BUILD_DATE_TO_SCAN = os.environ.get("BUILD_DATE_TO_SCAN")
-    IMAGE_TAG = os.environ.get("IMAGE_TAG")
-    IMAGE_VERSION = os.environ.get("IMAGE_VERSION")
-    DIGEST_TO_SCAN = os.environ.get("DIGEST_TO_SCAN")
+    PIPELINE_REPO_DIR = os.environ.get("PIPELINE_REPO_DIR", "")
+    BUILD_DATE_TO_SCAN = os.environ.get("BUILD_DATE_TO_SCAN", "")
+    IMAGE_TAG = os.environ.get("IMAGE_TAG", "")
+    IMAGE_VERSION = os.environ.get("IMAGE_VERSION", "")
+    DIGEST_TO_SCAN = os.environ.get("DIGEST_TO_SCAN", "")
     BASE_IMAGE = os.environ.get("BASE_IMAGE", "")
     BASE_TAG = os.environ.get("BASE_TAG", "")
-    CI_PROJECT_URL = os.environ.get("CI_PROJECT_URL")
-    ARTIFACT_STORAGE = os.environ.get("ARTIFACT_STORAGE")
-    COMMIT_SHA_TO_SCAN = os.environ.get("COMMIT_SHA_TO_SCAN")
-    VAT_BACKEND_URL = os.environ.get("VAT_BACKEND_URL")
+    CI_PROJECT_URL = os.environ.get("CI_PROJECT_URL", "")
+    ARTIFACT_STORAGE = os.environ.get("ARTIFACT_STORAGE", "")
+    COMMIT_SHA_TO_SCAN = os.environ.get("COMMIT_SHA_TO_SCAN", "")
+    VAT_BACKEND_URL = os.environ.get("VAT_BACKEND_URL", "")
 
-    api_url = os.environ.get("VAT_API_URL}")
-    job_id = os.environ.get("CI_PIPELINE_ID")
-    timestamp = os.environ.get("TIMESTAMP_FORMAT", "%Y-%m-%dT%H:%M:%SZ")
-    scan_date = os.environ.get("BUILD_DATE")
-    build_date = os.environ.get("BUILD_DATE_TO_SCAN")
-    container = os.environ.get("IMAGE_NAME")
-    version = os.environ.get("IMAGE_VERSION")
-    digest = os.environ.get("DIGEST_TO_SCAN")
-    parent = os.environ.get("BASE_IMAGE:-")
-    parent_version = os.environ.get("BASE_TAG:-")
-    comp_link = os.environ.get("{OSCAP_COMPLIANCE_URL:-''}")
-    repo_link = os.environ.get("CI_PROJECT_URL")
+    api_url = os.environ.get("VAT_API_URL}", "")
+    job_id = os.environ.get("CI_PIPELINE_ID", "")
+    timestamp = os.environ.get("TIMESTAMP_FORMAT", "%Y-%m-%dT%H:%M:%SZ", "")
+    scan_date = os.environ.get("BUILD_DATE", "")
+    build_date = os.environ.get("BUILD_DATE_TO_SCAN", "")
+    container = os.environ.get("IMAGE_NAME", "")
+    version = os.environ.get("IMAGE_VERSION", "")
+    digest = os.environ.get("DIGEST_TO_SCAN", "")
+    parent = os.environ.get("BASE_IMAGE:-", "")
+    parent_version = os.environ.get("BASE_TAG:-", "")
+    comp_link = os.environ.get("{OSCAP_COMPLIANCE_URL:-''}", "")
+    repo_link = os.environ.get("CI_PROJECT_URL", "")
 
     oscap = Path(
         f"{ARTIFACT_STORAGE}/scan-results/openscap/compliance_output_report.xml"
