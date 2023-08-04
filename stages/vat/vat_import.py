@@ -498,7 +498,7 @@ def main() -> None:
     headers["Authorization"] = f"Bearer {os.environ['VAT_TOKEN']}"
     try:
         resp = requests.post(
-            VAT_BACKEND_URL,
+            VAT_API_URL,
             headers=headers,
             json=large_data,
             timeout=(30, 30),
