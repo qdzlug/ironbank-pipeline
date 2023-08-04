@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from pathlib import Path
 
 
 class Args:
@@ -53,19 +54,22 @@ class Args:
         return os.environ.get("DIGEST_TO_SCAN", "")
 
     @property
-    def twistlock(self) -> str:
+    def twistlock(self) -> Path:
         """Location of the twistlock JSON scan file."""
-        return f"{os.environ.get('ARTIFACT_STORAGE')}/scan-results/twistlock/twistlock_cve.json"
+        twistlock_path: str = f"{os.environ.get('ARTIFACT_STORAGE')}/scan-results/twistlock/twistlock_cve.json"
+        return Path(twistlock_path)
 
     @property
-    def anchore_sec(self) -> str:
+    def anchore_sec(self) -> Path:
         """Location of the anchore_security.json scan file."""
-        return f"{os.environ.get('ARTIFACT_STORAGE')}/scan-results/anchore/anchore_security.json"
+        anchore_sec_path: str = f"{os.environ.get('ARTIFACT_STORAGE')}/scan-results/anchore/anchore_security.json"
+        return Path(anchore_sec_path)
 
     @property
-    def anchore_gates(self) -> str:
+    def anchore_gates(self) -> Path:
         """Location of the anchore_gates.json scan file."""
-        return f"{os.environ.get('ARTIFACT_STORAGE')}/scan-results/anchore/anchore_gates.json"
+        anchore_gates_path: str = f"{os.environ.get('ARTIFACT_STORAGE')}/scan-results/anchore/anchore_gates.json"
+        return Path(anchore_gates_path)
 
     @property
     def comp_link(self) -> str:
@@ -86,9 +90,10 @@ class Args:
         )
 
     @property
-    def oscap(self) -> str:
+    def oscap(self) -> Path:
         """Location of the oscap scan XML file."""
-        return f"{os.environ.get('ARTIFACT_STORAGE')}/scan-results/openscap/compliance_output_report.xml"
+        oscap_path: str = f"{os.environ.get('ARTIFACT_STORAGE')}/scan-results/openscap/compliance_output_report.xml"
+        return Path(oscap_path)
 
     @property
     def parent(self) -> str:

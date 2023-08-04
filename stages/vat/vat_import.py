@@ -5,11 +5,9 @@ import logging
 import os
 import shutil
 import sys
-import datetime
 from itertools import groupby
 from pathlib import Path
-from typing import Any, Generator
-
+from typing import Any, Generator, Tuple
 
 import requests
 from requests.structures import CaseInsensitiveDict
@@ -20,128 +18,13 @@ from pipeline.hardening_manifest import (
     get_source_keys_values,
     source_values,
 )
-
 from pipeline.image import Image
 from pipeline.project import DsopProject
 from pipeline.scan_report_parsers.anchore import AnchoreReportParser
 from pipeline.scan_report_parsers.oscap import OscapReportParser
 from pipeline.utils.predicates import Predicates
 
-
-# parser = argparse.ArgumentParser(
-#     description="DCCSCR processing of CVE reports from various sources"
-# )
-# parser.add_argument(
-#     "-a",
-#     "--api_url",
-#     help="Url for API POST",
-#     default="http://localhost:4000/internal/import/scan",
-#     required=False,
-# )
-# parser.add_argument(
-#     "-j",
-#     "--job_id",
-#     help="Pipeline job ID",
-#     required=True,
-# )
-# parser.add_argument(
-#     "-ts",
-#     "--timestamp",
-#     help="Timestamp for current pipeline run",
-#     required=True,
-# )
-# parser.add_argument(
-#     "-sd",
-#     "--scan_date",
-#     help="Scan date for pipeline run",
-#     required=True,
-# )
-# parser.add_argument(
-#     "-bd",
-#     "--build_date",
-#     help="Build date for pipeline run",
-#     required=True,
-# )
-# parser.add_argument(
-#     "-ch",
-#     "--commit_hash",
-#     help="Commit hash for container build",
-#     required=True,
-# )
-# parser.add_argument(
-#     "-c",
-#     "--container",
-#     help="Container VENDOR/PRODUCT/CONTAINER",
-#     required=True,
-# )
-# parser.add_argument(
-#     "-v",
-#     "--version",
-#     help="Container Version from VENDOR/PRODUCT/CONTAINER/VERSION format",
-#     required=True,
-# )
-# parser.add_argument(
-#     "-dg",
-#     "--digest",
-#     help="Container Digest as SHA256 Hash",
-#     required=True,
-# )
-# parser.add_argument(
-#     "-tl",
-#     "--twistlock",
-#     help="location of the twistlock JSON scan file",
-#     required=True,
-# )
-# parser.add_argument(
-#     "-oc",
-#     "--oscap",
-#     help="location of the oscap scan XML file",
-#     required=False,
-# )
-# parser.add_argument(
-#     "-ac",
-#     "--anchore-sec",
-#     help="location of the anchore_security.json scan file",
-#     required=True,
-# )
-# parser.add_argument(
-#     "-ag",
-#     "--anchore-gates",
-#     help="location of the anchore_gates.json scan file",
-#     required=True,
-# )
-# parser.add_argument(
-#     "-pc",
-#     "--parent",
-#     help="Parent VENDOR/PRODUCT/CONTAINER",
-#     required=False,
-# )
-# parser.add_argument(
-#     "-pv",
-#     "--parent_version",
-#     help="Parent Version from VENDOR/PRODUCT/CONTAINER/VERSION format",
-#     required=False,
-# )
-# parser.add_argument(
-#     "-cl",
-#     "--comp_link",
-#     help="Link to openscap compliance reports directory",
-#     required=True,
-# )
-# parser.add_argument(
-#     "-rl",
-#     "--repo_link",
-#     help="Link to container repository",
-#     default="",
-#     required=False,
-# )
-# parser.add_argument(
-#     "-uj",
-#     "--use_json",
-#     help="Dump payload for API to out.json file",
-#     action="store_true",
-#     required=False,
-# )
+from args import Args
 
 
 def generate_anchore_cve_findings(
@@ -253,7 +136,7 @@ def get_twistlock_package_paths(twistlock_data: dict[str, Any]) -> dict:
         # Python/RPM/Go/etc package versions are in "packages"
         yield from twistlock_data.get("packages", [])
 
-    def keyfunc(key):
+    def keyfunc(key: Any) -> Tuple[str, str]:
         return key["name"], key["version"]
 
     # Sort and group by name and version
@@ -271,8 +154,6 @@ def get_twistlock_package_paths(twistlock_data: dict[str, Any]) -> dict:
 
 
 # Get results from Twistlock report for finding generation
-
-
 def generate_twistlock_findings(twistlock_cve_path: Path) -> list[dict[str, Any]]:
     """From an twistlock cve finding report, generate findings and use list of
     findings and their metadata to generate list of dictionaries."""
@@ -310,7 +191,7 @@ def generate_twistlock_findings(twistlock_cve_path: Path) -> list[dict[str, Any]
         logging.error(
             "Missing key. Please contact the Iron Bank Pipeline and Ops (POPs) team"
         )
-        logging.error(e)
+        logging.error(e.args)
         sys.exit(1)
 
     return findings
@@ -362,44 +243,41 @@ def create_api_call() -> dict:
     assert isinstance(vat_finding_fields, list)
 
     # if the SKIP_OPENSCAP variable exists, the oscap job was not run.
-    # When not os.environ.get("SKIP_OPENSCAP"), this means this is not a SKIP_OPENSCAP project,
-    # and oscap findings should be imported
-
-    if oscap and not os.environ.get("SKIP_OPENSCAP"):
+    # When not os.environ.get("SKIP_OPENSCAP"), this means this is not a SKIP_OPENSCAP project, and oscap findings should be imported
+    if args.oscap and not os.environ.get("SKIP_OPENSCAP"):
         logging.debug("Importing oscap findings")
-        # oscap = "/path/to/oscap"
         os_findings = generate_oscap_findings(
-            oscap, vat_finding_fields=vat_finding_fields
+            args.oscap, vat_finding_fields=vat_finding_fields
         )
         logging.debug("oscap finding count: %s", len(os_findings))
-    if anchore_sec:
+    if args.anchore_sec:
         logging.debug("Importing anchore security findings")
         asec_findings = generate_anchore_cve_findings(
-            anchore_sec, vat_finding_fields=vat_finding_fields
+            args.anchore_sec, vat_finding_fields=vat_finding_fields
         )
         logging.debug("Anchore security finding count: %s", len(asec_findings))
-    if anchore_gates:
+    if args.anchore_gates:
         logging.debug("Importing importing anchore compliance findings")
-        acomp_findings = generate_anchore_comp_findings(anchore_gates)
+        acomp_findings = generate_anchore_comp_findings(args.anchore_gates)
         logging.debug("Anchore compliance finding count: %s", len(acomp_findings))
-    if twistlock:
+    if args.twistlock:
         logging.debug("Importing twistlock findings")
-        tl_findings = generate_twistlock_findings(twistlock)
+        tl_findings = generate_twistlock_findings(args.twistlock)
         logging.debug("Twistlock finding count: %s", len(tl_findings))
     all_findings = tl_findings + asec_findings + acomp_findings + os_findings
     large_data = {
-        "imageName": container,
-        "imageTag": parent_version,
-        "parentImageName": parent,
-        "parentImageTag": BASE_TAG,
-        "jobId": job_id,
-        "digest": digest,
-        "timestamp": timestamp,
-        "scanDate": scan_date,
-        "buildDate": build_date,
+        "imageName": args.container,
+        "imageTag": args.version,
+        "parentImageName": args.parent,
+        "parentImageTag": args.parent_version,
+        "jobId": args.job_id,
+        "digest": args.digest.replace("sha256:", ""),
+        "timestamp": args.timestamp,
+        "scanDate": args.scan_date,
+        "buildDate": args.build_date,
         "repo": {
-            "url": CI_PROJECT_URL,
-            "commit": COMMIT_SHA_TO_SCAN,
+            "url": args.repo_link,
+            "commit": args.commit_hash,
         },
         "findings": all_findings,
         "keywords": keyword_list,
@@ -481,10 +359,8 @@ def main() -> None:
     else:
         parent_vat_response_content = {"vatAttestationLineage": None}
 
-    # vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
-
-    vat_request_json = Path(os.environ["ARTIFACT_DIR"]) / "vat_request.json"
-    if not os.environ.get("USE_JSON"):
+    vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
+    if not args.use_json:
         large_data = create_api_call()
         large_data.update(parent_vat_response_content)
         with vat_request_json.open("w", encoding="utf-8") as outfile:
@@ -498,10 +374,7 @@ def main() -> None:
     headers["Authorization"] = f"Bearer {os.environ['VAT_TOKEN']}"
     try:
         resp = requests.post(
-            VAT_API_URL,
-            headers=headers,
-            json=large_data,
-            timeout=(30, 30),
+            args.api_url, headers=headers, json=large_data, timeout=(30, 30)
         )
         resp.raise_for_status()
         logging.debug("API Response:\n%s", resp.text)
@@ -528,47 +401,12 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    # args = parser.parse_args()
+    args = Args()
 
-    PIPELINE_REPO_DIR = os.environ.get("PIPELINE_REPO_DIR", "")
-    BUILD_DATE_TO_SCAN = os.environ.get("BUILD_DATE_TO_SCAN", "")
-    IMAGE_TAG = os.environ.get("IMAGE_TAG", "")
-    IMAGE_VERSION = os.environ.get("IMAGE_VERSION", "")
-    DIGEST_TO_SCAN = os.environ.get("DIGEST_TO_SCAN", "")
-    BASE_IMAGE = os.environ.get("BASE_IMAGE", "")
-    BASE_TAG = os.environ.get("BASE_TAG", "")
-    CI_PROJECT_URL = os.environ.get("CI_PROJECT_URL", "")
-    ARTIFACT_STORAGE = os.environ.get("ARTIFACT_STORAGE", "")
-    COMMIT_SHA_TO_SCAN = os.environ.get("COMMIT_SHA_TO_SCAN", "")
-    VAT_BACKEND_URL = os.environ.get("VAT_BACKEND_URL", "")
-
-    api_url = os.environ.get("VAT_API_URL}", "")
-    job_id = os.environ.get("CI_PIPELINE_ID", "")
-    timestamp = os.environ.get("TIMESTAMP_FORMAT", "%Y-%m-%dT%H:%M:%SZ")
-    scan_date = os.environ.get("BUILD_DATE", "")
-    build_date = os.environ.get("BUILD_DATE_TO_SCAN", "")
-    container = os.environ.get("IMAGE_NAME", "")
-    version = os.environ.get("IMAGE_VERSION", "")
-    digest = os.environ.get("DIGEST_TO_SCAN", "")
-    parent = os.environ.get("BASE_IMAGE:-", "")
-    parent_version = os.environ.get("BASE_TAG:-", "")
-    comp_link = os.environ.get("{OSCAP_COMPLIANCE_URL:-''}", "")
-    repo_link = os.environ.get("CI_PROJECT_URL", "")
-
-    oscap = Path(
-        f"{ARTIFACT_STORAGE}/scan-results/openscap/compliance_output_report.xml"
-    )
-    VAT_API_URL = f"{VAT_BACKEND_URL}/internal/import/scan"
-    anchore_sec = Path(f"{ARTIFACT_STORAGE}/scan-results/anchore/anchore_security.json")
-    anchore_gates = Path(f"{ARTIFACT_STORAGE}/scan-results/anchore/anchore_gates.json")
-    twistlock = Path(f"{ARTIFACT_STORAGE}/scan-results/twistlock/twistlock_cve.json")
-
-    REMOTE_REPORT_DIRECTORY = (
-        f"{datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}_{COMMIT_SHA_TO_SCAN}"
-    )
+    REMOTE_REPORT_DIRECTORY = f"{args.timestamp}_{args.commit_hash}"
 
     os.environ["REMO TE_REPORT_DIRECTORY"] = REMOTE_REPORT_DIRECTORY
-    os.environ["VAT_API_URL"] = f"{VAT_BACKEND_URL}/internal/import/scan"
+    os.environ["VAT_API_URL"] = args.api_url
 
     CI_PROJECT_DIR = os.getenv("CI_PROJECT_DIR", "")
 
@@ -590,5 +428,4 @@ if __name__ == "__main__":
     else:
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
-
     main()
