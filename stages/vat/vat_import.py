@@ -398,7 +398,7 @@ def create_api_call() -> dict:
         "scanDate": scan_date,
         "buildDate": build_date,
         "repo": {
-            "url": VAT_BACKEND_URL,
+            "url": CI_PROJECT_URL,
             "commit": COMMIT_SHA_TO_SCAN,
         },
         "findings": all_findings,
