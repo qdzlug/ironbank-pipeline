@@ -21,6 +21,7 @@ harbor:
     ACCESS_LOG_DIR: ${ARTIFACT_STORAGE}/build
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/harbor
   script:
+    - 'python3 -m pip install --user --no-deps --no-build-isolation "${MODULES_REPO_DIR}"'
     - 'mkdir -p "${ARTIFACT_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/harbor/upload_to_harbor.py"'
   artifacts:
@@ -50,6 +51,7 @@ update-staging-attestations:
     ACCESS_LOG_DIR: ${ARTIFACT_STORAGE}/build
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/harbor
   script:
+    - 'python3 -m pip install --user --no-deps --no-build-isolation "${MODULES_REPO_DIR}"'
     - 'mkdir -p "${ARTIFACT_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/harbor/upload_to_harbor.py"'
   artifacts:

@@ -29,6 +29,7 @@
 ib-manifest:
   extends: .documentation
   script:
+    - 'python3 -m pip install --user --no-deps --no-build-isolation "${MODULES_REPO_DIR}"'
     - '"${PIPELINE_REPO_DIR}/stages/documentation/ib-manifest-run.sh"'
   retry:
     max: 2
@@ -37,6 +38,7 @@ ib-manifest:
 write-json-docs:
   extends: .documentation
   script:
+    - 'python3 -m pip install --user --no-deps --no-build-isolation "${MODULES_REPO_DIR}"'
     - '"${PIPELINE_REPO_DIR}/stages/documentation/write-json-docs-run.sh"'
   retry:
     max: 2

@@ -11,6 +11,7 @@ scan-logic:
     reports:
       dotenv: scan_logic.env
   script:
+    - 'python3 -m pip install --user --no-deps --no-build-isolation "${MODULES_REPO_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/scan-logic/scan_logic_jobs.py"'
   retry:
     max: 2

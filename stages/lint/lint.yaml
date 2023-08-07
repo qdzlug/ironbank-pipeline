@@ -23,6 +23,7 @@ lint:
     max: 2
     when: runner_system_failure
   script:
+    - 'python3 -m pip install --user --no-deps --no-build-isolation "${MODULES_REPO_DIR}"'
     - |
       if [[ "${CI_COMMIT_BRANCH}" == "master" || "${CI_COMMIT_BRANCH}" == "development" ]] && [[ "${CI_COMMIT_REF_PROTECTED}" != true ]]; then
         echo "This pipeline is running on an unprotected '${CI_COMMIT_BRANCH}' branch. Please protect '${CI_COMMIT_BRANCH}' before running the pipeline on this branch"
