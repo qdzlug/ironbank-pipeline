@@ -45,15 +45,17 @@ def test_get_commit_diff():
     repo_dir = "/path/to/repo"
     feature_branch = "feature_branch"
     commits = trufflehog.get_commit_diff(repo_dir, feature_branch)
-
+    log.info("Testing commit diff function")
     assert commits == "commit_sha_1\ncommit_sha_2\ncommit_sha_3"
 
 
 def test_get_history_cmd():
     commits = "commit_sha_1\ncommit_sha_2\ncommit_sha_3"
     results = trufflehog.get_history_cmd(commits)
+    log.info("Testing get_history_cmd functionality with valid string arguments")
     assert results == ["--since", "commit_sha_3"]
     results = trufflehog.get_history_cmd("")
+    log.info("Testing get_history_cmd functionality with empty string argument")
     assert results == ["--no-history"]
 
 
@@ -78,6 +80,7 @@ def test_get_config(monkeypatch):
 
     monkeypatch.setattr(MockPath, "is_file", lambda *args, **kwargs: True)
     result = trufflehog.get_config(MockPath("."), True)
+    log.info("Testing get_config for valid return value")
     assert result == [
         {"name": "Example1", "paths": ["/path/to/exclude1"]},
         {
@@ -111,6 +114,7 @@ def test_create_trufflehog_config(monkeypatch):
         MockPath("project"), MockPath("default"), "/path/to/repo"
     )
     assert result == False
+    log.info("Setting the is_file function to true for code coverage")
     monkeypatch.setattr(MockPath, "is_file", lambda *args, **kwargs: True)
     result = trufflehog.create_trufflehog_config(
         MockPath("project"), MockPath("default"), "/path/to/repo", "True"
@@ -132,16 +136,16 @@ def test_main(monkeypatch, raise_):
     monkeypatch.setattr(
         trufflehog, "create_trufflehog_config", lambda *args, **kwargs: True
     )
-
+    log.info("Mocking is_file return value to true for trufflehog.yaml file")
     monkeypatch.setattr(MockPath, "is_file", lambda *args, **kwargs: True)
-    # asserting the existence of a trufflehog.yaml file causes a system exit
+    log.info("asserting the existence of a trufflehog.yaml file causes a system exit")
     with pytest.raises(SystemExit):
         trufflehog.main()
     ## Testing different return codes. Coverage for if/else statements embedded in the try/except blocks
 
     monkeypatch.setattr(MockPath, "is_file", lambda *args, **kwargs: False)
 
-    # This should in theory raise an assertion error
+    log.info("Testing for system exit with non-zero return code from subprocess")
     with pytest.raises(SystemExit):
         monkeypatch.setattr(
             subprocess,
@@ -150,6 +154,9 @@ def test_main(monkeypatch, raise_):
         )
         trufflehog.main()
 
+    log.info(
+        "Testing for system exit with non-zero return code from subprocess. Entering nested if/else statements"
+    )
     with pytest.raises(SystemExit):
         monkeypatch.setenv("TRUFFLEHOG_TARGET", "mock_TRUFFLEHOG_TARGET")
         monkeypatch.setattr(
@@ -161,6 +168,7 @@ def test_main(monkeypatch, raise_):
         )
         trufflehog.main()
 
+    log.info("Testing for system exit with non-zero return code from subprocess")
     with pytest.raises(SystemExit):
         monkeypatch.setattr(
             subprocess,
@@ -171,6 +179,7 @@ def test_main(monkeypatch, raise_):
         )
         trufflehog.main()
 
+    log.info("Mocking subprocess return code to 0, implying successful code execution")
     monkeypatch.setattr(
         subprocess, "run", lambda *args, **kwargs: MockCompletedProcess(returncode=0)
     )
@@ -178,4 +187,5 @@ def test_main(monkeypatch, raise_):
         trufflehog, "create_trufflehog_config", lambda *args, **kwargs: False
     )
     monkeypatch.setenv("CI_COMMIT_BRANCH", "development")
+
     trufflehog.main()
