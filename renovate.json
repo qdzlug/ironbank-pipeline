@@ -1,13 +1,17 @@
 {
   "assignees": [
-    "@david.freeman",
     "@kenneth.maguire",
     "@cvernooy",
     "@seagren.tim",
     "@msimmons719"
   ],
-  "baseBranches": ["development"],
-  "ignorePaths": ["scripts/requirements.txt", ".gitlab-ci.yml"],
+  "baseBranches": [
+    "development"
+  ],
+  "ignorePaths": [
+    "scripts/requirements.txt",
+    ".gitlab-ci.yml"
+  ],
   "packageRules": [
     {
       "matchPackageNames": [
@@ -19,13 +23,19 @@
   ],
   "regexManagers": [
     {
-      "fileMatch": ["^stages/scanning/oscap-version.json$"],
-      "matchStrings": ["\"version\":\\s+\"(?<currentValue>.*?)\""],
+      "fileMatch": [
+        "^stages/scanning/oscap-version.json$"
+      ],
+      "matchStrings": [
+        "\"version\":\\s+\"(?<currentValue>.*?)\""
+      ],
       "depNameTemplate": "ComplianceAsCode/content",
       "datasourceTemplate": "github-releases"
     },
     {
-      "fileMatch": ["^templates/globals.yaml$"],
+      "fileMatch": [
+        "^templates/globals.yaml$"
+      ],
       "matchStrings": [
         "image:\\sregistry1\\.dso\\.mil/ironbank/ironbank-pipelines/pipeline-runner:(?<currentValue>.+)"
       ],
@@ -33,7 +43,9 @@
       "datasourceTemplate": "docker"
     },
     {
-      "fileMatch": ["^stages/build/base.yaml$"],
+      "fileMatch": [
+        "^stages/build/base.yaml$"
+      ],
       "matchStrings": [
         "image:\\s\"registry1\\.dso\\.mil/ironbank/ironbank-pipelines/rootless-podman:(?<currentValue>.+?)\""
       ],
@@ -41,7 +53,9 @@
       "datasourceTemplate": "docker"
     },
     {
-      "fileMatch": ["^stages/scan-artifacts/clamav-scan.yaml$"],
+      "fileMatch": [
+        "^stages/scan-artifacts/clamav-scan.yaml$"
+      ],
       "matchStrings": [
         "image:\\sregistry1\\.dso\\.mil/ironbank/opensource/clamav/clamav:(?<currentValue>.+)"
       ],
@@ -49,7 +63,9 @@
       "datasourceTemplate": "docker"
     },
     {
-      "fileMatch": ["^stages/scanning/anchore/anchore.yaml$"],
+      "fileMatch": [
+        "^stages/scanning/anchore/anchore.yaml$"
+      ],
       "matchStrings": [
         "image:\\sregistry1\\.dso\\.mil/ironbank/anchore/cli/cli:(?<currentValue>.+)"
       ],
