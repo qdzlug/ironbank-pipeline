@@ -9,7 +9,7 @@ import-artifacts:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/import-artifacts"
     REQUESTS_CA_BUNDLE: "/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt"
   script:
-    - 'python3 -m pip install --user --no-deps --no-build-isolation "${MODULES_REPO_DIR}"'
+    - 'python3 -m pip install --user --no-deps --no-build-isolation "${MODULES_IMPORT_PATH}"'
     - 'echo "${REQUESTS_CA_BUNDLE}"'
     - 'mkdir -p "${ARTIFACT_DIR}/external-resources/" "${ARTIFACT_DIR}/images/"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/import-artifacts/downloader.py"'
