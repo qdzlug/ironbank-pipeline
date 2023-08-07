@@ -24,7 +24,9 @@ from pipeline.scan_report_parsers.anchore import AnchoreReportParser
 from pipeline.scan_report_parsers.oscap import OscapReportParser
 from pipeline.utils.predicates import Predicates
 
-from args import Args
+# from pipeline.utils.envutils import EnvUtil
+
+from args import EnvUtil
 
 
 def generate_anchore_cve_findings(
@@ -401,16 +403,11 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    args = Args()
+    args = EnvUtil()
 
     REMOTE_REPORT_DIRECTORY = f"{args.timestamp}_{args.commit_hash}"
 
-    os.environ["REMO TE_REPORT_DIRECTORY"] = REMOTE_REPORT_DIRECTORY
-    os.environ["VAT_API_URL"] = args.api_url
-
-    CI_PROJECT_DIR = os.getenv("CI_PROJECT_DIR", "")
-
-    if "pipeline-test-project" in CI_PROJECT_DIR:
+    if "pipeline-test-project" in args.repo_link:
         logging.info(
             "Skipping vat. Cannot push to VAT when working with pipeline test projects..."
         )

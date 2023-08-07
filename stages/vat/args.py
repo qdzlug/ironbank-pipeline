@@ -3,7 +3,7 @@ from datetime import datetime
 from pathlib import Path
 
 
-class Args:
+class EnvUtil:
     """DCCSCR processing of CVE reports from various sources."""
 
     def __init__(self) -> None:
