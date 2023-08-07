@@ -6,7 +6,6 @@ load-scripts:
   extends: .preprocess
   cache: {}
   script:
-    - 'python3 -m pip install --user --no-deps --no-build-isolation "${MODULES_REPO_DIR}"'
     - |
       if [[ -z "${STAGING_PIPELINE:-}" ]]; then
         echo "Searching for ci-artifacts dir"
