@@ -145,7 +145,8 @@ def generate_build_env(image_details: dict, image_name: str, image: Image, diges
 
 # decorate main to capture all subprocess errors
 #@subprocess_error_handler(logging_message="Unexpected subprocess error caught")
-@stack_trace_handler(logging_message="Unexpected subprocess error caught")
+#@stack_trace_handler(logging_message="Unexpected subprocess error caught")
+@stack_trace_handler
 def main():
     """Main method."""
     dsop_project = DsopProject()
