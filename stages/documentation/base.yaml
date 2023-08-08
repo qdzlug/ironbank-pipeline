@@ -1,6 +1,6 @@
 .documentation:
   stage: documentation
-  .extends:
+  extends:
     - .base
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
