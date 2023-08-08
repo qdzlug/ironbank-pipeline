@@ -1,4 +1,4 @@
-image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.9
+image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner@sha256:321811246b1a481ed316c98f943f2c635bf15783d32b9a206e04cfea8b6f184f
 
 workflow:
   rules:
@@ -47,8 +47,8 @@ trigger:
     STAGING_BASE_IMAGE: $STAGING_BASE_IMAGE
     ARTIFACT_STORAGE: $ARTIFACT_STORAGE
     PIPELINE_REPO_DIR: $PIPELINE_REPO_DIR
-    MODULES_REPO_DIR: $MODULES_REPO_DIR
-    MODULES_IMPORT_PATH: $MODULES_IMPORT_PATH
+    MODULES_DEPS_DIR: $MODULES_REPO_DIR
+    MODULES_PACKAGE_PATH: $MODULES_IMPORT_PATH
 
   trigger:
     include:
@@ -61,8 +61,6 @@ variables:
   # Gitlab CI vars
   ARTIFACT_STORAGE: "ci-artifacts"
   PIPELINE_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank_pipeline"
-  MODULES_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank-modules"
-  MODULES_IMPORT_PATH: "${MODULES_REPO_DIR}/ironbank/"
   GIT_SSL_NO_VERIFY: "1"
   TARGET_BRANCH: master
   # Controls if ironbank-staging is the source registry for base images
