@@ -8,6 +8,7 @@ import sys
 from itertools import groupby
 from pathlib import Path
 from typing import Any, Generator, Tuple
+from venv import logger
 
 import requests
 from requests.structures import CaseInsensitiveDict
@@ -27,6 +28,8 @@ from pipeline.utils.predicates import Predicates
 # from pipeline.utils.envutils import EnvUtil
 
 from args import EnvUtil
+
+log = logger.setup("vat_import")
 
 
 def generate_anchore_cve_findings(
