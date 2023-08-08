@@ -1,6 +1,8 @@
 .base:
   before_script:
     # need to keep same path for poetry to use same virtual env
+    - pwd
+    - ls
     - ls ${MODULES_DEPS_PATH}
     - source $(poetry env info -C ${MODULES_DEPS_PATH} --path)/bin/activate
     - poetry install -C ${MODULES_PACKAGE_PATH} --only-root
