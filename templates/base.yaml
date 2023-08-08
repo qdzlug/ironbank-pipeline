@@ -1,9 +1,9 @@
 .base:
   before_script:
     # need to keep same path for poetry to use same virtual env
+    - ls ${MODULES_DEPS_PATH}
     - source $(poetry env info -C ${MODULES_DEPS_PATH} --path)/bin/activate
-    - ls ${MODULES_PACKAGE_PATH}
-    - pip install --no-deps --no-build-isolation ${MODULES_PACKAGE_PATH}
+    - poetry install -C ${MODULES_PACKAGE_PATH} --only-root
     # need to source the virtual env because `poetry shell` requires an interactive shell
 
 variables:
