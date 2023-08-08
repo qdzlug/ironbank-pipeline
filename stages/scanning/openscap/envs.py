@@ -1,18 +1,17 @@
 import os
 from pathlib import Path
 from dataclasses import dataclass
-from logger import LoggerMixin
-
+from log import log
 
 # pylint: disable=missing-function-docstring
 @dataclass
-class Envs(LoggerMixin):
+class Envs():
     """A class to get environment variables."""
 
     def _get(self, name: str) -> str:
         env = os.getenv(name.upper(), "")
         if not env:
-            self._log.info(f"Environment variable {name.upper()} is not set.")
+            log.info(f"Environment variable {name.upper()} is not set.")
         return env
 
     @property

@@ -6,8 +6,8 @@ import re
 import xml.etree.ElementTree as etree
 from dataclasses import dataclass, field
 from pathlib import Path
-from logger import LoggerMixin
 from envs import Envs
+from log import log
 
 VERSION_PATH: Path = Path("stages/scanning/oscap-version.json")
 SCAP_GUIDE_ZIP_PATH: Path = Path("scap-security-guide.zip")
@@ -30,7 +30,7 @@ XML_NAMESPACE = {
 
 
 @dataclass
-class OpenSCAP(LoggerMixin):
+class OpenSCAP():
     """
     A class to manage OpenSCAP configuration and resources.
 
@@ -59,7 +59,7 @@ class OpenSCAP(LoggerMixin):
             self.version = self._get_openscap_version()
         except FileNotFoundError as exc:
             error_message = "OpenSCAP version file not found. With OpenSCAP version, the scan is not possible."
-            self._log.error(f"{error_message}: {exc}")
+            log.error(f"{error_message}: {exc}")
             raise ValueError(NO_VERSION_ERROR) from exc
         except ValueError as exc:
             raise ValueError(NO_VERSION_ERROR) from exc
@@ -86,26 +86,26 @@ class OpenSCAP(LoggerMixin):
     def _download_file(self, url: str, scap_zip_path: Path) -> None:
         try:
             SCAP_CONTENT_DIR.mkdir(parents=True, exist_ok=True)
-            self._log.info(f"Downloading content from {url}.")
+            log.info(f"Downloading content from {url}.")
             urllib.request.urlretrieve(url, scap_zip_path)
-            self._log.info("Download completed.")
+            log.info("Download completed.")
         except (urllib.error.HTTPError, urllib.error.URLError) as exc:
-            self._log.error(f"Error occurred while downloading the SCAP content: {exc}")
+            log.error(f"Error occurred while downloading the SCAP content: {exc}")
             raise IOError("Failed to download content.") from exc
 
     def _extract_zip(self, scap_zip_path: Path) -> None:
         try:
-            self._log.info(f"Extracting content to {SCAP_CONTENT_DIR}.")
+            log.info(f"Extracting content to {SCAP_CONTENT_DIR}.")
             with zipfile.ZipFile(scap_zip_path, "r") as zip_ref:
                 zip_ref.extractall(SCAP_CONTENT_DIR)
-            self._log.info("Extraction complete.")
+            log.info("Extraction complete.")
         except zipfile.BadZipFile as exc:
-            self._log.error(f"The file is not a zip file or it is corrupt: {exc}")
+            log.error(f"The file is not a zip file or it is corrupt: {exc}")
             raise IOError(
                 "Failed to extract zip file: File is not a zip file or it is corrupt."
             ) from exc
         except zipfile.LargeZipFile as exc:
-            self._log.error(f"The file size is too large: {exc}")
+            log.error(f"The file size is too large: {exc}")
             raise IOError(
                 "Failed to extract zip file: File size is too large."
             ) from exc
@@ -115,7 +115,7 @@ class OpenSCAP(LoggerMixin):
             security_guide_path = SCAP_CONTENT_DIR / security_guide_path
             # Check if file exists
             if not security_guide_path.is_file():
-                self._log.error(f"File {security_guide_path} does not exist.")
+                log.error(f"File {security_guide_path} does not exist.")
                 raise IOError("Failed to limit scanning: File does not exist.")
 
             # Read the file
@@ -127,10 +127,10 @@ class OpenSCAP(LoggerMixin):
             # Write the file
             security_guide_path.write_text(data)
         except FileNotFoundError as exc:
-            self._log.error(f"File {security_guide_path} not found.")
+            log.error(f"File {security_guide_path} not found.")
             raise IOError("Failed to limit scanning: File not found.") from exc
         except PermissionError as exc:
-            self._log.error(f"No permission to read or write to {security_guide_path}.")
+            log.error(f"No permission to read or write to {security_guide_path}.")
             raise IOError(
                 "Failed to limit scanning: No permission to read or write to file."
             ) from exc
@@ -153,12 +153,12 @@ class OpenSCAP(LoggerMixin):
                     )
             root.write(full_path)
         except ValueError as exc:
-            self._log.error(f"Error updating the image oval link: {exc}")
+            log.error(f"Error updating the image oval link: {exc}")
             raise IOError(
                 "Failed to fix UBI oval URL: Error updating the image oval link."
             ) from exc
         except etree.ParseError as exc:
-            self._log.error(
+            log.error(
                 f"Error parsing XML file at {SCAP_CONTENT_DIR / security_guide_path}: {exc}"
             )
             raise IOError(
