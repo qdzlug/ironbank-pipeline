@@ -1,5 +1,7 @@
 .documentation:
   stage: documentation
+  .extends:
+    - .base
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
   variables:
@@ -29,7 +31,6 @@
 ib-manifest:
   extends: .documentation
   script:
-    - 'python3 -m pip install --user --no-deps --no-build-isolation "${MODULES_IMPORT_PATH}"'
     - '"${PIPELINE_REPO_DIR}/stages/documentation/ib-manifest-run.sh"'
   retry:
     max: 2
@@ -38,7 +39,6 @@ ib-manifest:
 write-json-docs:
   extends: .documentation
   script:
-    - 'python3 -m pip install --user --no-deps --no-build-isolation "${MODULES_IMPORT_PATH}"'
     - '"${PIPELINE_REPO_DIR}/stages/documentation/write-json-docs-run.sh"'
   retry:
     max: 2

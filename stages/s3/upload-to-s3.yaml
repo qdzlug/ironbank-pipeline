@@ -1,5 +1,7 @@
 upload-to-s3:
   stage: s3-publish
+  extends:
+    - .base
   resource_group: s3_phase
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
@@ -35,7 +37,6 @@ upload-to-s3:
     - job: harbor
       artifacts: false
   script:
-    - 'python3 -m pip install --user --no-deps --no-build-isolation "${MODULES_IMPORT_PATH}"'
     - 'python "${PIPELINE_REPO_DIR}/stages/s3/upload_artifacts.py"'
   artifacts:
     paths:

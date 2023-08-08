@@ -1,5 +1,7 @@
 check-cves:
   stage: check-cves
+  extends:
+    - .base
   allow_failure:
     exit_codes: 100
   needs:
@@ -10,7 +12,6 @@ check-cves:
     - anchore-scan
     - vat
   script:
-    - 'python3 -m pip install --user --no-deps --no-build-isolation "${MODULES_IMPORT_PATH}"'
     - set +e
     - 'python3 "${PIPELINE_REPO_DIR}/stages/check-cves/vat_response_parse.py"'
   retry:

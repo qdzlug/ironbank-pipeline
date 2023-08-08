@@ -16,6 +16,11 @@ stages:
   - harbor
   - s3-publish
 
+.base:
+  before_script:
+    - poetry install --root-only -C  ${MODULES_PATH}
+    - poetry shell -C ${MODULES_PATH}
+
 include:
   - local: stages/preprocess/load-scripts.yaml
   - local: stages/lint/lint.yaml

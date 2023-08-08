@@ -1,5 +1,7 @@
 harbor:
   stage: harbor
+  extends:
+    - .base
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
   resource_group: harbor_phase
@@ -21,7 +23,6 @@ harbor:
     ACCESS_LOG_DIR: ${ARTIFACT_STORAGE}/build
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/harbor
   script:
-    - 'python3 -m pip install --user --no-deps --no-build-isolation "${MODULES_IMPORT_PATH}"'
     - 'mkdir -p "${ARTIFACT_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/harbor/upload_to_harbor.py"'
   artifacts:
@@ -34,6 +35,8 @@ harbor:
 
 update-staging-attestations:
   stage: harbor
+  extends:
+    - .base
   rules:
     - if: $CI_COMMIT_BRANCH != "master" && $PUBLISH_VAT_STAGING_PREDICATES
   resource_group: harbor_phase
@@ -51,7 +54,6 @@ update-staging-attestations:
     ACCESS_LOG_DIR: ${ARTIFACT_STORAGE}/build
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/harbor
   script:
-    - 'python3 -m pip install --user --no-deps --no-build-isolation "${MODULES_IMPORT_PATH}"'
     - 'mkdir -p "${ARTIFACT_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/harbor/upload_to_harbor.py"'
   artifacts:

@@ -1,6 +1,8 @@
 # IMPORTANT: The name of this stage/job is must not be changed from "build" without first reconfiguring runners in the bootstrap
 build:
   stage: build
+  extends:
+    - .base
   tags:
     - ironbank-dsop-build
   needs:
@@ -10,7 +12,6 @@ build:
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
   script:
-    - 'python3 -m pip install --user --no-deps --no-build-isolation "${MODULES_IMPORT_PATH}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/build/build.py"'
   artifacts:
     when: always

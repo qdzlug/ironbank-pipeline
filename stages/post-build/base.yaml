@@ -1,5 +1,7 @@
 .post-build:
   stage: post-build
+  extends:
+    - .base
   needs:
     - load-scripts
     - build
@@ -12,7 +14,6 @@ create-tar:
   variables:
     IMAGE_FILE: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
   script:
-    - 'python3 -m pip install --user --no-deps --no-build-isolation "${MODULES_IMPORT_PATH}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/post-build/create_tar.py"'
   artifacts:
     when: always
@@ -31,5 +32,4 @@ create-sbom:
     expire_in: 1 week
   image: "registry1.dso.mil/ironbank/anchore/enterprise/enterprise:4.4.1"
   script:
-    - 'python3 -m pip install --user --no-deps --no-build-isolation "${MODULES_IMPORT_PATH}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/post-build/generate_sbom.py"'
