@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 
 import json
-import logging
 import os
 import shutil
 import sys
 from itertools import groupby
 from pathlib import Path
 from typing import Any, Generator, Tuple
-from venv import logger
+from common.utils import logger
 
 import requests
 from requests.structures import CaseInsensitiveDict
