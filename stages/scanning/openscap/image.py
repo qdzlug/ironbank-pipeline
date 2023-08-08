@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from envs import Envs
 from oscap import OpenSCAP
-from logger import LoggerMixin
+from log import log
 from pipeline.utils.decorators import subprocess_error_handler
 from pipeline.utils.exceptions import GenericSubprocessError
 
@@ -15,7 +15,7 @@ GET_IMAGE_PATH_ERROR = "Get image path command failed with error"
 
 
 @dataclass
-class Image(LoggerMixin):
+class Image():
     """A class to represent an Image object for OpenSCAP scanning.
 
     This class encapsulates an OpenSCAP object used for scanning and provides
@@ -89,7 +89,7 @@ class Image(LoggerMixin):
                 )
             return base_type
         except ValueError as e:
-            self._log.error("Failed to determine base image type: %s", str(e))
+            log.error("Failed to determine base image type: %s", str(e))
             raise
 
     @subprocess_error_handler(PULL_COMMAND_ERROR)
@@ -116,24 +116,24 @@ class Image(LoggerMixin):
         try:
             self._pull_image()
         except GenericSubprocessError as exc:
-            self._log.error(f"{PULL_COMMAND_ERROR}: {exc}")
+            log.error(f"{PULL_COMMAND_ERROR}: {exc}")
             raise
 
         try:
             docker_image_path: Path = self._get_image_path()
         except GenericSubprocessError as exc:
-            self._log.error(f"{GET_IMAGE_PATH_ERROR}: {exc}")
+            log.error(f"{GET_IMAGE_PATH_ERROR}: {exc}")
             raise
 
-        self._log.info(f"Docker image path: {docker_image_path}")
+        log.info(f"Docker image path: {docker_image_path}")
         return docker_image_path
 
     def _set_security_guide_path(self) -> Path:
         guide = Path(self._supported_images[self.base_type][SECURITY_GUIDE_KEY])
-        self._log.info(f"Security Guide: {guide}.")
+        log.info(f"Security Guide: {guide}.")
         return guide
 
     def _set_profile(self) -> str:
         profile: str = self._supported_images[self.base_type][PROFILE_KEY]
-        self._log.info(f"Profile: {profile}.")
+        log.info(f"Profile: {profile}.")
         return profile

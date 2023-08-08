@@ -3,13 +3,13 @@ from dataclasses import dataclass
 from typing import List
 from image import Image
 from envs import Envs
+from log import log
 from pipeline.utils.decorators import subprocess_error_handler
 from pipeline.utils.exceptions import GenericSubprocessError
-from logger import LoggerMixin
 
 
 @dataclass
-class Scanner(LoggerMixin):
+class Scanner():
     """Class to perform OpenSCAP scanning on a given image using oscap-podman.
 
     Methods
@@ -40,9 +40,9 @@ class Scanner(LoggerMixin):
         """
         try:
             self._run_subprocess()
-            self._log.info("Command completed successfully.")
+            log.info("Command completed successfully.")
         except GenericSubprocessError:
-            self._log.error("The scan failed: {exc}")
+            log.error("The scan failed: {exc}")
             raise
 
     @subprocess_error_handler("Scan failed.")
@@ -103,6 +103,6 @@ class Scanner(LoggerMixin):
     #         f"{scap_content}/{security_guide}",
     #     ]
 
-    #     self._log.info(f"Command: {command}")
+    #     log.info(f"Command: {command}")
 
     #     return command
