@@ -1,6 +1,6 @@
 .base:
   before_script:
-    - poetry install --root-only -C  ${MODULES_IMPORT_PATH}
+    - poetry install -C ${MODULES_IMPORT_PATH} --root-only
     - poetry shell -C ${MODULES_IMPORT_PATH}
 
 variables:

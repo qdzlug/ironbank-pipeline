@@ -16,7 +16,6 @@ stages:
   - harbor
   - s3-publish
 
-
 include:
   - local: templates/base.yaml
   - local: stages/preprocess/load-scripts.yaml
