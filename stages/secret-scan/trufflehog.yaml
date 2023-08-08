@@ -1,7 +1,5 @@
 trufflehog:
   stage: secret-scan
-  extends:
-    - .base
   image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6
   needs:
     - load-scripts
