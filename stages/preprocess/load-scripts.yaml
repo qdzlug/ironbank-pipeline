@@ -26,7 +26,7 @@ load-scripts:
         echo "Cloning pipeline branch: ${TARGET_BRANCH}";
       fi
     - 'git clone -q --depth 1 --branch "${TARGET_BRANCH}" "${CI_SERVER_URL}/ironbank-tools/ironbank-pipeline.git" "${PIPELINE_REPO_DIR}"'
-    - 'git clone -q --depth 1 --branch "${MODULES_TAG}" "${CI_SERVER_URL}/ironbank-tools/ironbank-modules.git" "${MODULES_REPO_DIR}"'
+    - 'git clone -q --depth 1 --branch "${MODULES_TAG}" "${CI_SERVER_URL}/ironbank-tools/${MODULES_PROJECT}.git" "${MODULES_CLONE_DIR}"'
     - 'rm -rf "${PIPELINE_REPO_DIR}/.git"'
   artifacts:
     when: always

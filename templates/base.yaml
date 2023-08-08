@@ -1,9 +1,15 @@
 .base:
   before_script:
-    - poetry install -C ${MODULES_IMPORT_PATH} --only-root
+    # need to keep same path for poetry to use same virtual env
+    - source $(poetry env info -C ${MODULES_DEPS_PATH} --path)/bin/activate
+    - poetry install -C ${MODULES_PACKAGE_PATH} --only-root
     # need to source the virtual env because `poetry shell` requires an interactive shell
-    - source $(poetry env info -C ${MODULES_IMPORT_PATH} --path)/bin/activate
 
 variables:
-  MODULES_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank-modules"
-  MODULES_IMPORT_PATH: "${MODULES_REPO_DIR}/ironbank"
+  # modules in image (used to get venv for the deps)
+  MODULES_PROJECT: "ironbank-modules"
+  # updated modules cloned down in load scripts (used for the package)
+  MODULES_CLONE_DIR: "${ARTIFACT_STORAGE}/${MODULES_PROJECT}"
+  MODULES_SUBDIR: "ironbank"
+  MODULES_DEPS_PATH: "${MODULES_PROJECT}/${MODULES_SUBDIR}"
+  MODULES_PACKAGE_PATH: "${MODULES_CLONE_DIR}/${MODULES_SUBDIR}"
