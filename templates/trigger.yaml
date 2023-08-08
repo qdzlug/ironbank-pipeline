@@ -19,6 +19,8 @@ include:
 
 image-inspect:
   stage: os-type
+  extends:
+    - .base
   needs:
     - load-scripts
     - job: validate-hardening-manifest
