@@ -1,0 +1,8 @@
+.base:
+  before_script:
+    - poetry install --root-only -C  ${MODULES_IMPORT_PATH}
+    - poetry shell -C ${MODULES_IMPORT_PATH}
+
+variables:
+  MODULES_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank-modules"
+  MODULES_IMPORT_PATH: "${MODULES_REPO_DIR}/ironbank"

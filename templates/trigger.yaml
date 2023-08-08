@@ -12,6 +12,7 @@ stages:
   - pipeline-trigger
 
 include:
+  - local: templates/base.yaml
   - local: stages/preprocess/load-scripts.yaml
   - local: stages/lint/validate-hardening-manifest.yaml
   - local: stages/secret-scan/trufflehog.yaml
