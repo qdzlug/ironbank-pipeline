@@ -33,5 +33,5 @@ load-scripts:
     expire_in: 1 week
     paths:
       - "${PIPELINE_REPO_DIR}"
-      - "${MODULES_REPO_DIR}"
+      - "${MODULES_CLONE_DIR}"
   retry: 2
