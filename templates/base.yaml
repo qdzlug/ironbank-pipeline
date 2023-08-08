@@ -1,7 +1,8 @@
 .base:
   before_script:
     - poetry install -C ${MODULES_IMPORT_PATH} --only-root
-    - poetry shell -C ${MODULES_IMPORT_PATH}
+    # need to source the virtual env because `poetry shell` requires an interactive shell
+    - source $(poetry env info -C ${MODULES_IMPORT_PATH} --path)/bin/activate
 
 variables:
   MODULES_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank-modules"
