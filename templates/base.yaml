@@ -1,8 +1,7 @@
 .base:
   before_script:
     # need to keep same path for poetry to use same virtual env
-    - pwd
-    - ls
+    - ls /home/python
     - ls ${MODULES_DEPS_PATH}
     - source $(poetry env info -C ${MODULES_DEPS_PATH} --path)/bin/activate
     - poetry install -C ${MODULES_PACKAGE_PATH} --only-root
@@ -14,5 +13,5 @@ variables:
   # updated modules cloned down in load scripts (used for the package)
   MODULES_CLONE_DIR: "${ARTIFACT_STORAGE}/${MODULES_PROJECT}"
   MODULES_SUBDIR: "ironbank"
-  MODULES_DEPS_PATH: "${MODULES_PROJECT}/${MODULES_SUBDIR}"
+  MODULES_DEPS_PATH: "/home/python/${MODULES_PROJECT}/${MODULES_SUBDIR}"
   MODULES_PACKAGE_PATH: "${MODULES_CLONE_DIR}/${MODULES_SUBDIR}"
