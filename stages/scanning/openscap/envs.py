@@ -72,6 +72,7 @@ class Envs:
         Source
         ------
         Hardening Manifest
+        Pulled from the image itself
         labels.mil.dso.ironbank.os-type
         Set by inspect_image.py using Gitlab dynamic environmental variables
         """
@@ -121,13 +122,13 @@ class Envs:
     @ci_var
     def docker_auth_file_pull(self) -> str:
         """
-        Not sure about this
+        Docker permissions as a file
 
         Source
         ------
-        tbd
+        Gitlab Variable
+        varible set in the dsop group
         """
-        # TODO: help, I don't understand
 
     @ci_var(default="0")
     def skip_openscap(self) -> str:
