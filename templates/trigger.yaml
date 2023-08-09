@@ -38,39 +38,9 @@ trigger:
   stage: pipeline-trigger
   needs:
     - image-inspect
-  variables:
-    BASE_IMAGE_TYPE: $BASE_IMAGE_TYPE
-    LOGLEVEL: $LOGLEVEL
-    STAGING_PIPELINE: $STAGING_PIPELINE
-    TARGET_BRANCH: $TARGET_BRANCH
-    TEMPLATE: $TEMPLATE
-    GIT_SSL_NO_VERIFY: $GIT_SSL_NO_VERIFY
-    STAGING_BASE_IMAGE: $STAGING_BASE_IMAGE
-    ARTIFACT_STORAGE: $ARTIFACT_STORAGE
-    PIPELINE_REPO_DIR: $PIPELINE_REPO_DIR
-    MODULES_CLONE_DIR: $MODULES_CLONE_DIR
-    MODULES_DEPS_DIR: $MODULES_DEPS_DIR
-    MODULES_PACKAGE_PATH: $MODULES_PACKAGE_PATH
-
   trigger:
     include:
       - project: ironbank-tools/ironbank-pipeline
-        file: "templates/${TEMPLATE}"
+        file: "templates/downstream/${TEMPLATE}"
         ref: $TARGET_BRANCH
     strategy: depend
-
-variables:
-  # Gitlab CI vars
-  ARTIFACT_STORAGE: "ci-artifacts"
-  PIPELINE_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank_pipeline"
-  GIT_SSL_NO_VERIFY: "1"
-  TARGET_BRANCH: master
-  # Controls if ironbank-staging is the source registry for base images
-  STAGING_BASE_IMAGE: ""
-  MODULES_PROJECT: "ironbank-modules"
-  MODULES_CLONE_DIR: "${ARTIFACT_STORAGE}/${MODULES_PROJECT}"
-  MODULES_SUBDIR: "ironbank"
-  # modules path in image (used to get venv for the deps)
-  MODULES_DEPS_PATH: "/home/python/${MODULES_PROJECT}/${MODULES_SUBDIR}"
-  # updated modules cloned down in load scripts (used to install the package)
-  MODULES_PACKAGE_PATH: "${MODULES_CLONE_DIR}/${MODULES_SUBDIR}"
