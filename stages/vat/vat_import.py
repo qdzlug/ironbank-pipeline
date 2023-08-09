@@ -415,16 +415,4 @@ if __name__ == "__main__":
         )
         sys.exit(0)
 
-    # Get log level, set manually when running pipeline
-    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
-    if loglevel == "DEBUG":
-        log.info(
-            level=loglevel,
-            filename="vat_import_log.out",
-            format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
-        )
-        log.debug("Log level set to debug")
-    else:
-        log.info(level=loglevel, format="%(levelname)s: %(message)s")
-        log.info("Log level set to info")
     main()
