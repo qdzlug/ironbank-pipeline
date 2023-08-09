@@ -38,8 +38,7 @@ trigger:
   stage: pipeline-trigger
   extends:
     - .base
-  # before script not needed from .base but vars are
-  before_script: []
+  # before script is not used from .base
   needs:
     - image-inspect
   variables:
