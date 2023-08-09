@@ -5,7 +5,7 @@ from log import log
 
 
 def fetch_env_var(func_name: str, docstring: str, default: str = "") -> str:
-    """Gets the env or returns the default"""
+    """Gets the env or returns the default."""
     uppercase_name = func_name.upper()
     env = os.getenv(uppercase_name, default)
 
@@ -19,8 +19,8 @@ def fetch_env_var(func_name: str, docstring: str, default: str = "") -> str:
 
 
 def ci_var(func=None, *, default: str = ""):
-    """
-    Decorator to fetch corresponding environment variable for a function's name.
+    """Decorator to fetch corresponding environment variable for a function's
+    name.
 
     Examples
     --------
@@ -45,8 +45,7 @@ def ci_var(func=None, *, default: str = ""):
 
 # pylint: disable=missing-function-docstring
 class Envs:
-    """
-    A class to represent the CI/CD environment variables.
+    """A class to represent the CI/CD environment variables.
 
     This class is designed to use decorators for fetching environment variables based on method names.
     Each method represents an environment variable, and when it's accessed, the corresponding
@@ -64,8 +63,7 @@ class Envs:
 
     @ci_var
     def ci_job_url(self) -> str:
-        """
-        Job details URL
+        """Job details URL.
 
         Source
         ------
@@ -74,8 +72,7 @@ class Envs:
 
     @ci_var
     def base_image_type(self) -> str:
-        """
-        Base image for the image being scanned
+        """Base image for the image being scanned.
 
         Source
         ------
@@ -87,8 +84,7 @@ class Envs:
 
     @ci_var
     def pipeline_repo_dir(self) -> str:
-        """
-        Directory for this repository
+        """Directory for this repository.
 
         Source
         ------
@@ -98,8 +94,7 @@ class Envs:
 
     @ci_var
     def oscap_scans(self) -> str:
-        """
-        Path for OpenSCAP stage artifacts
+        """Path for OpenSCAP stage artifacts.
 
         Source
         ------
@@ -109,8 +104,7 @@ class Envs:
 
     @ci_var
     def image_to_scan(self) -> str:
-        """
-        Name of the image to scan
+        """Name of the image to scan.
 
         Source
         ------
@@ -119,8 +113,7 @@ class Envs:
 
     @ci_var
     def scap_url(self) -> str:
-        """
-        The URI to download scap content from
+        """The URI to download scap content from.
 
         Source
         ------
@@ -129,8 +122,7 @@ class Envs:
 
     @ci_var
     def docker_auth_file_pull(self) -> str:
-        """
-        Docker permissions as a file
+        """Docker permissions as a file.
 
         Source
         ------
@@ -140,8 +132,7 @@ class Envs:
 
     @ci_var(default="0")
     def skip_openscap(self) -> str:
-        """
-        If the OpenSCAP scans should be skipped
+        """If the OpenSCAP scans should be skipped.
 
         Source
         ------
