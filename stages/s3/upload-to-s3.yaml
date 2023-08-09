@@ -31,8 +31,7 @@ upload-to-s3:
     - twistlock-scan
     - openscap-compliance
     - csv-output
-    - ib-manifest
-    - write-json-docs
+    - generate-documents
     - vat
     - job: harbor
       artifacts: false

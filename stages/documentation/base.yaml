@@ -1,11 +1,11 @@
-.documentation:
+generate-documents:
   stage: documentation
   extends:
     - .base
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
   variables:
-    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/documentation"
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/documentation/reports"
     OPENSCAP_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/openscap/oscap-version.txt"
     TWISTLOCK_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock-version.txt"
     ANCHORE_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/anchore/anchore-version.txt"
@@ -18,28 +18,14 @@
     - twistlock-scan
     - openscap-compliance
     - vat
-  before_script:
-    - 'mkdir -p "${ARTIFACT_DIR}/reports"'
+  script:
+    - 'mkdir -p "${ARTIFACT_DIR}"'
+    - '"${PIPELINE_REPO_DIR}/stages/documentation/ib-manifest-run.sh"'
+    - '"${PIPELINE_REPO_DIR}/stages/documentation/write-json-docs-run.sh"'
   artifacts:
     paths:
       - $ARTIFACT_DIR
     expire_in: 1 week
-  retry:
-    max: 2
-    when: runner_system_failure
-
-ib-manifest:
-  extends: .documentation
-  script:
-    - '"${PIPELINE_REPO_DIR}/stages/documentation/ib-manifest-run.sh"'
-  retry:
-    max: 2
-    when: runner_system_failure
-
-write-json-docs:
-  extends: .documentation
-  script:
-    - '"${PIPELINE_REPO_DIR}/stages/documentation/write-json-docs-run.sh"'
   retry:
     max: 2
     when: runner_system_failure

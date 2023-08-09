@@ -12,10 +12,6 @@ harbor:
     - create-sbom
     - scan-logic
     - vat
-    - job: ib-manifest
-      artifacts: false
-    - job: write-json-docs
-      artifacts: false
   variables:
     SBOM_DIR: ${ARTIFACT_STORAGE}/sbom
     PARENT_VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/parent_vat_response.json
