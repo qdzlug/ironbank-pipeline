@@ -38,12 +38,12 @@ trigger:
   stage: pipeline-trigger
   needs:
     - image-inspect
+  # dotenv vars can be passed but can't be used to configure the job
+  # https://docs.gitlab.com/ee/ci/pipelines/downstream_pipelines.html#pass-dotenv-variables-created-in-a-job
+  variables:
+    TEMPLATE: $TEMPLATE
+    BASE_IMAGE_TYPE: $BASE_IMAGE_TYPE
   trigger:
-    # dotenv vars can be passed but can't be used to configure the job
-    # https://docs.gitlab.com/ee/ci/pipelines/downstream_pipelines.html#pass-dotenv-variables-created-in-a-job
-    variables:
-      TEMPLATE: $TEMPLATE
-      BASE_IMAGE_TYPE: $BASE_IMAGE_TYPE
     include:
       - project: ironbank-tools/ironbank-pipeline
         file: "templates/downstream/${TEMPLATE}"
