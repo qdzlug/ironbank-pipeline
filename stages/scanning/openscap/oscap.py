@@ -65,7 +65,7 @@ class OpenSCAP():
             raise ValueError(NO_VERSION_ERROR) from exc
 
     def _get_openscap_version(self) -> str:
-        version_file_path = Envs().pipeline_repo_dir / VERSION_PATH
+        version_file_path: Path = Path(Envs().pipeline_repo_dir) / VERSION_PATH
         version: str = self._read_file_version(version_file_path)
         if not version:
             raise ValueError("Version not found in the version file.")

@@ -1,4 +1,4 @@
-# import pytest
+import pytest
 import sys
 from pathlib import Path
 
@@ -12,19 +12,20 @@ def test_envs(monkeypatch, caplog):  # type: ignore
     monkeypatch.setenv("BASE_IMAGE_TYPE", "set")
     monkeypatch.setenv("PIPELINE_REPO_DIR", "/temp/pipeline_repo")
     envs = Envs()
-    assert envs.ci_job_url == "set"
-    assert envs.base_image_type == "set"
-    assert envs.pipeline_repo_dir == Path("/temp/pipeline_repo")
+    assert envs.ci_job_url == "set", "Failed to set var properly"
+    assert envs.base_image_type == "set", "Failed to set var properly"
+    assert envs.pipeline_repo_dir == "/temp/pipeline_repo", "Failed to set var properly"
 
     # should log a warning when not set
-    assert envs.image_to_scan == ""
-    assert "is not set" in caplog.text
+    assert envs.image_to_scan == "", "Failed to set var properly"
+    assert "is not set" in caplog.text, f"Logging failure: {caplog.text}"
     caplog.clear()
 
-    # should default to the empty Path
-    assert envs.scap_content == Path(".")
-    assert "is not set" in caplog.text
+    # should default to the empty str
+    assert envs.docker_auth_file_pull == "", "Failed to set var properly"
+    assert "is not set" in caplog.text, f"Logging failure: {caplog.text}"
+    assert "Source" in caplog.text, f"Logging failure: {caplog.text}"
     caplog.clear()
 
-    # logger should be the name of the class
-    assert envs._log.name == envs.__class__.__name__
+    # should default to set
+    assert envs.skip_openscap == "0", "Default behavior failed"

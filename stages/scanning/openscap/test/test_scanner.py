@@ -28,9 +28,6 @@ def test_scanner_scan(monkeypatch, caplog):  # type: ignore
     # should log the command
     scanner.scan()
     assert "Command" in caplog.text, f"Logging failed. Log: {caplog.text}"
-    # TODO: add these tests again once the pylint plugin is updated
-    # assert isinstance(scanner.command, list)
-    # assert len(scanner.command) > 0
 
     # should log success
     assert "success" in caplog.text, f"Logging failed. Log: {caplog.text}"
@@ -40,5 +37,5 @@ def test_scanner_scan(monkeypatch, caplog):  # type: ignore
     scanner = MockScannerError(image)
     with pytest.raises(GenericSubprocessError):
         scanner.scan()
-    assert "Error" in caplog.text, f"Logging failed. Log: {caplog.text}"
+    assert "ERROR" in caplog.text, f"Logging failed. Log: {caplog.text}"
     caplog.clear()

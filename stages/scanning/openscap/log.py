@@ -4,5 +4,3 @@ import logging
 from common.utils import logger
 
 log: logging.Logger = logger.setup("OpenSCAP")
-
-# TODO: why does this docstring suck?

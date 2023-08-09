@@ -60,6 +60,7 @@ class Image():
                 PROFILE_KEY: "xccdf_org.ssgproject.content_profile_stig",
                 SECURITY_GUIDE_KEY: f"scap-security-guide-{self._oscap.version}/ssg-{image.rsplit('-', maxsplit=1)[-1]}-ds.xml",
             }
+            # TODO: should be a subset of list in image_inspect.py
             for image in [
                 "ubi9-container",
                 "ubi9-minimal-container",

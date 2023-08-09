@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from envs import Envs
 from log import log
 
+SCAP_CONTENT = "scap-content"
+
 @dataclass
 class Artifacts():
     """
@@ -25,7 +27,7 @@ class Artifacts():
     directory: Path = field(init=False)
 
     def __post_init__(self) -> None:
-        self.directory = Envs().oscap_scans
+        self.directory = Path(Envs().oscap_scans)
 
     def prepare(self, oscap_version: str) -> None:
         """Prepares the OSCAP artifacts."""
@@ -35,11 +37,10 @@ class Artifacts():
         self._save_job_url()
 
     def _remove_scap_content(self) -> None:
-        scap_content_dir = Envs().scap_content
-        scap_content_dir_str: str = scap_content_dir.as_posix()
+        scap_content_dir = SCAP_CONTENT
         try:
-            shutil.rmtree(scap_content_dir_str)
-            log.info(f"Directory {scap_content_dir_str} removed.")
+            shutil.rmtree(scap_content_dir)
+            log.info(f"Directory {scap_content_dir} removed.")
         except OSError as exc:
             log.warning(f"The {scap_content_dir} was not removed: {exc}")
 
