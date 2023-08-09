@@ -4,12 +4,3 @@
     # needed to ensure modules exist in the same env as their deps
     - source $(poetry env info -C ${MODULES_DEPS_PATH} --path)/bin/activate
     - poetry install -C ${MODULES_PACKAGE_PATH} --only-root
-
-variables:
-  MODULES_PROJECT: "ironbank-modules"
-  MODULES_CLONE_DIR: "${ARTIFACT_STORAGE}/${MODULES_PROJECT}"
-  MODULES_SUBDIR: "ironbank"
-  # modules path in image (used to get venv for the deps)
-  MODULES_DEPS_PATH: "/home/python/${MODULES_PROJECT}/${MODULES_SUBDIR}"
-  # updated modules cloned down in load scripts (used to install the package)
-  MODULES_PACKAGE_PATH: "${MODULES_CLONE_DIR}/${MODULES_SUBDIR}"
