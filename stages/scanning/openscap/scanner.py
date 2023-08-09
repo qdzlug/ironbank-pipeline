@@ -2,11 +2,11 @@ import subprocess
 from dataclasses import dataclass
 from typing import List
 from image import Image
-from envs import Envs
 from log import log
 from pipeline.utils.decorators import subprocess_error_handler
 from pipeline.utils.exceptions import GenericSubprocessError
 
+SCAP_CONTENT = "scap-content"
 
 @dataclass
 class Scanner():
@@ -24,11 +24,6 @@ class Scanner():
     """
 
     _image: Image
-    # command: List[str] = field(init=False)
-
-    # def __post_init__(self) -> None:
-    # TODO: update this once the pylint plugin is updated
-    # self.command = self._set_command()
 
     def scan(self) -> None:
         """Perform OpenSCAP scan on the provided Image object.
@@ -50,7 +45,7 @@ class Scanner():
         image = self._image
         docker_image_path: str = image.path.as_posix()
         profile: str = image.profile
-        scap_content: str = Envs().scap_content.as_posix()
+        scap_content: str = SCAP_CONTENT
         security_guide: str = image.security_guide_path.as_posix()
 
         command: List[str] = [
@@ -76,33 +71,3 @@ class Scanner():
             command,
             check=True,
         )
-
-    # def _set_command(self) -> List[str]:
-    #     image = self._image
-    #     docker_image_path: str = image.path.as_posix()
-    #     profile: str = image.profile
-    #     scap_content: str = Envs().scap_content.as_posix()
-    #     security_guide: str = image.security_guide_path.as_posix()
-
-    #     command: List[str] = [
-    #         "oscap-podman",
-    #         docker_image_path,
-    #         "xccdf",
-    #         "eval",
-    #         "--verbose",
-    #         "ERROR",
-    #         "--fetch-remote-resources",
-    #         "--profile",
-    #         profile,
-    #         "--stig-viewer",
-    #         "compliance_output_report_stigviewer.xml",
-    #         "--results",
-    #         "compliance_output_report.xml",
-    #         "--report",
-    #         "report.html",
-    #         f"{scap_content}/{security_guide}",
-    #     ]
-
-    #     log.info(f"Command: {command}")
-
-    #     return command

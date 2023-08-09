@@ -31,7 +31,7 @@ openscap-compliance:
   tags:
     - ironbank-dsop-privileged
   script:
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/scanning/openscap/oscap_compliance_run.py"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/scanning/openscap/main.py"'
   artifacts:
     paths:
       - "${OSCAP_SCANS}"
