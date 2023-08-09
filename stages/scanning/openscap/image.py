@@ -15,7 +15,7 @@ GET_IMAGE_PATH_ERROR = "Get image path command failed with error"
 
 
 @dataclass
-class Image():
+class Image:
     """A class to represent an Image object for OpenSCAP scanning.
 
     This class encapsulates an OpenSCAP object used for scanning and provides

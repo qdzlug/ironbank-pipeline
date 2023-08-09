@@ -21,7 +21,7 @@ class MockOpenSCAP(OpenSCAP):
 
 
 @pytest.fixture(scope="module")
-def openscap() -> OpenSCAP:
+def openscap_fixture() -> OpenSCAP:
     return MockOpenSCAP()
 
 

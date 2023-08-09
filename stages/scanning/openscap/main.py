@@ -7,6 +7,7 @@ from pipeline.utils.exceptions import GenericSubprocessError
 from scanner import Scanner
 from log import log
 
+
 def main() -> None:
     """This function runs the OpenSCAP scans."""
 

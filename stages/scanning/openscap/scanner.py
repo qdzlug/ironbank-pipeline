@@ -8,8 +8,9 @@ from pipeline.utils.exceptions import GenericSubprocessError
 
 SCAP_CONTENT = "scap-content"
 
+
 @dataclass
-class Scanner():
+class Scanner:
     """Class to perform OpenSCAP scanning on a given image using oscap-podman.
 
     Methods

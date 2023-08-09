@@ -6,8 +6,9 @@ from log import log
 
 SCAP_CONTENT = "scap-content"
 
+
 @dataclass
-class Artifacts():
+class Artifacts:
     """
     A class used to handle OSCAP artifacts and job cleanup.
 

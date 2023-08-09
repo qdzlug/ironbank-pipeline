@@ -30,7 +30,7 @@ XML_NAMESPACE = {
 
 
 @dataclass
-class OpenSCAP():
+class OpenSCAP:
     """
     A class to manage OpenSCAP configuration and resources.
 
