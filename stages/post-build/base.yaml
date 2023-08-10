@@ -1,7 +1,5 @@
 .post-build:
   stage: post-build
-  extends:
-    - .base
   needs:
     - load-scripts
     - build
@@ -10,7 +8,9 @@
     when: runner_system_failure
 
 create-tar:
-  extends: .post-build
+  extends:
+    - .post-build
+    - .base
   variables:
     IMAGE_FILE: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
   script:
