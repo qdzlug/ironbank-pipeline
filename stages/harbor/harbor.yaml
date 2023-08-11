@@ -1,7 +1,7 @@
 harbor:
   stage: harbor
   extends:
-    - .base
+    - .setup_modules
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
   resource_group: harbor_phase
@@ -32,7 +32,7 @@ harbor:
 update-staging-attestations:
   stage: harbor
   extends:
-    - .base
+    - .setup_modules
   rules:
     - if: $CI_COMMIT_BRANCH != "master" && $PUBLISH_VAT_STAGING_PREDICATES
   resource_group: harbor_phase

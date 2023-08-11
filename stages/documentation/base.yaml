@@ -1,7 +1,7 @@
 generate-documents:
   stage: documentation
   extends:
-    - .base
+    - .setup_modules
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
   variables:

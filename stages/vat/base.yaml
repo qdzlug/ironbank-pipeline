@@ -3,7 +3,7 @@ vat:
   # else, checks if the branch is development and if so, runs the job if all prior jobs succeed
   stage: vat
   extends:
-    - .base
+    - .setup_modules
   rules:
     - if: $CI_PROJECT_PATH =~ /pipeline-test-project/
       when: never

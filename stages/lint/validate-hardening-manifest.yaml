@@ -1,7 +1,7 @@
 validate-hardening-manifest:
   stage: lint
   extends:
-    - .base
+    - .setup_modules
   needs:
     - load-scripts
   retry:

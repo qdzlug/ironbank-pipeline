@@ -1,7 +1,7 @@
 upload-to-s3:
   stage: s3-publish
   extends:
-    - .base
+    - .setup_modules
   resource_group: s3_phase
   rules:
     - if: $CI_COMMIT_BRANCH == "master"

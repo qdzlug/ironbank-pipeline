@@ -1,7 +1,7 @@
 lint:
   stage: lint
   extends:
-    - .base
+    - .setup_modules
   needs:
     - load-scripts
   id_tokens:
