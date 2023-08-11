@@ -12,7 +12,6 @@ from typing import Any, Generator
 
 import requests
 from requests.structures import CaseInsensitiveDict
-
 from pipeline.container_tools.cosign import Cosign
 from pipeline.hardening_manifest import (
     HardeningManifest,
@@ -24,6 +23,7 @@ from pipeline.project import DsopProject
 from pipeline.scan_report_parsers.anchore import AnchoreReportParser
 from pipeline.scan_report_parsers.oscap import OscapReportParser
 from pipeline.utils.predicates import Predicates
+
 
 parser = argparse.ArgumentParser(
     description="DCCSCR processing of CVE reports from various sources"
@@ -276,7 +276,6 @@ def generate_twistlock_findings(twistlock_cve_path: Path) -> list[dict[str, Any]
     ][0]
 
     packages = get_twistlock_package_paths(twistlock_data)
-
     findings = []
     try:
         for value in twistlock_data.get("vulnerabilities", []):
@@ -328,6 +327,8 @@ def create_api_call() -> dict:
     Returns:
     - large_data: The dictionary containing all the assembled data.
     """
+
+    args = parser.parse_args()
     artifact_storage = os.environ["ARTIFACT_STORAGE"]
     keyword_list = source_values(f"{artifact_storage}/lint/keywords.txt", "keywords")
     tag_list = source_values(f"{artifact_storage}/lint/tags.txt", "tags")
@@ -459,6 +460,8 @@ def main() -> None:
     - ARTIFACT_DIR: The directory where artifacts will be stored.
     - VAT_TOKEN: The token used for authorization with the VAT API.
     """
+    set_log_level()
+    args = parser.parse_args()
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
 
@@ -480,7 +483,7 @@ def main() -> None:
         with vat_request_json.open("w", encoding="utf-8") as outfile:
             json.dump(large_data, outfile)
     else:
-        with vat_request_json.open(encoding="utf-8") as infile:
+        with vat_request_json.open("r", encoding="utf-8") as infile:
             large_data = json.load(infile)
 
     headers: CaseInsensitiveDict = CaseInsensitiveDict()
@@ -514,8 +517,7 @@ def main() -> None:
         sys.exit(1)
 
 
-if __name__ == "__main__":
-    args = parser.parse_args()
+def set_log_level():
     # Get logging level, set manually when running pipeline
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
     if loglevel == "DEBUG":
@@ -525,7 +527,11 @@ if __name__ == "__main__":
             format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
         )
         logging.debug("Log level set to debug")
+
     else:
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
+
+
+if __name__ == "__main__":
     main()
