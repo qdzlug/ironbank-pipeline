@@ -12,7 +12,7 @@ stages:
   - pipeline-trigger
 
 include:
-  - local: templates/base.yaml
+  - local: templates/shared_vars.yaml
   - local: stages/preprocess/load-scripts.yaml
   - local: stages/lint/validate-hardening-manifest.yaml
   - local: stages/secret-scan/trufflehog.yaml
@@ -20,7 +20,7 @@ include:
 image-inspect:
   stage: os-type
   extends:
-    - .base
+    - .setup_modules
   needs:
     - load-scripts
     - job: validate-hardening-manifest

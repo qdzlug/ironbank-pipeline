@@ -17,8 +17,7 @@ stages:
   - s3-publish
 
 include:
-
-  - local: templates/base.yaml
+  - local: templates/shared_vars.yaml
   - local: stages/preprocess/load-scripts.yaml
   - local: stages/lint/lint.yaml
   - local: stages/secret-scan/trufflehog.yaml
