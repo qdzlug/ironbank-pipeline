@@ -18,6 +18,7 @@ stages:
 
 include:
   - local: templates/shared_vars.yaml
+  - local: templates/setup_modules.yaml
   - local: stages/preprocess/load-scripts.yaml
   - local: stages/lint/lint.yaml
   - local: stages/secret-scan/trufflehog.yaml
