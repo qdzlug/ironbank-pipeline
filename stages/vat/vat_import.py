@@ -518,7 +518,11 @@ def main() -> None:
 
 
 def set_log_level():
-    # Get logging level, set manually when running pipeline
+    """Sets the log level for the vat_import stage.
+
+    Environment Variables:
+    - LOGLEVEL: Value to set the log level to.
+    """
     loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
     if loglevel == "DEBUG":
         logging.basicConfig(
