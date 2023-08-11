@@ -1,14 +1,34 @@
-# templates
+# Templates
 
-_This page is for informational purposes only to provide visibility into the Iron Bank pipeline. Contributors should work with the Iron Bank pipelines team in order to have the appropriate template selected for their project if it is different from the default pipeline configuration._
+## This page is for informational purposes only to provide visibility into the Iron Bank pipeline. Contributors should work with the Iron Bank pipelines team in order to have the appropriate template created if needed for their project
 
-This directory contains yaml files which dictate which pipeline steps should be run for particular projects. It is necessary to use pipeline templates due to the difference in hardened base images which are used to produce different containers. For example, the `distroless` base image is not compatible with OpenSCAP scanning features, so the `distroless` template omits those scanning jobs.
-
-There is a `globals.yaml` file which defines all of the possible stages which can be utilized in a pipeline. It also includes variables which are inherited by the pipelines. It is in the `globals.yaml` file where the default image is specified for use in each job. There are certain jobs which specify another image, which overrides the default image. Each of the pipeline templates specify the base file for each of the stages defined in the `globals.yaml` file.
+This directory contains the pipeline templates for the upstream/downstream components of the container hardening pipeline. The files in the root of this directory contain general configuration used in all pipelines and the templates in the `downstream` directory have specific configuration to ensure stages operate as needed based on the os type of the parent image being built in the pipeline. For base images (ubi, distroless, etc.), the os type is pulled from a label (mil.dso.ironbank.os-type) in the hardening manifest. For images with at least one IB parent (openjdk, gradle-jdk, etc.), the base image in the hardening manifest is used to inspect the image in registry1 and gather the same label. This label will exist for any newly built/published images in registry1, because it will either be provided from the hardening manifest or by the parent image at build time.
 
 The list of templates is as follows:
 
-- `ubi.yaml` - this is the default template used with projects which have UBI base images. This is the template which the majority of images use. All of the pipeline steps are present.
-- `distroless.yaml` - this is the template for container builds which utilize the base distroless image, [which can be found here](https://repo1.dsop.io/dsop/google/distroless/base). The distroless template does not contain OpenSCAP scanning due to a lack of compatibility with the tool.
-- `development.yaml` - this template is for testing the `development` branch of the Iron Bank pipeline and should not be included in any project repos.
-- `ubuntu.yaml` - this template is used with projects which have Ubuntu base images. The Ubuntu template uses a custom ubuntu image for openscap scanning. Openscap requires that the image used for scanning has the same base image as the image being scanned.
+### base templates
+
+- `trigger.yaml` - The upstream pipeline definition. It's main purpose is to discover the os-type of the image being built and kick off the downstream pipeline with the appropriate template
+- `globals.yaml` - The downstream pipeline definition. This is the actual hardening pipeline that handles building, scanning, publishing, etc.
+- `setup_modules.yaml` - A single job that will setup the ironbank-modules in a before script. Used with `extends` for any job in the pipeline that uses ironbank-modules
+- `shared_vars.yaml` - Variables shared between the upstream and downstream pipelines
+
+### downstream templates
+
+> For all images that skip the oscap stage, this is due to a lack of a specific ssg for their image type and a lack of a generic ssg for us to consume.
+
+- `alpine.yaml`
+  - skips oscap stage
+- `chainguard.yaml`
+  - skips oscap stage
+- `debian.yaml`
+  - uses custom ubuntu based image for openscap scanning
+- `distroless.yaml`
+  - skips oscap stage
+  - [related ticket](https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/issues/903)
+- `suse.yaml`
+  - uses custom suse based image for openscap scanning
+- `ubi.yaml`
+  - uses default oscap-podman image for oscap scanning
+- `ubuntu.yaml`
+  - uses custom ubuntu based image for openscap scanning
