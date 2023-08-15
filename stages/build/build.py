@@ -144,8 +144,6 @@ def generate_build_env(image_details: dict, image_name: str, image: Image, diges
 
 
 # decorate main to capture all subprocess errors
-#@subprocess_error_handler(logging_message="Unexpected subprocess error caught")
-#@stack_trace_handler(logging_message="Unexpected subprocess error caught")
 @stack_trace_handler
 def main():
     """Main method."""
@@ -199,7 +197,9 @@ def main():
     if hardening_manifest.base_image_name:
         log.info("Verifying parent image signature")
         if not os.environ.get("STAGING_BASE_IMAGE"):
-            with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
+            with tempfile.TemporaryDirectory(
+                prefix="DOCKER_CONFIG-"
+            ) as docker_config_dir:
                 shutil.copy(
                     prod_auth_path,
                     Path(docker_config_dir, "config.json"),

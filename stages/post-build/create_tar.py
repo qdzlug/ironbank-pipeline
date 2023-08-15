@@ -4,8 +4,10 @@ import os
 
 from pipeline.container_tools.skopeo import Skopeo
 from pipeline.image import Image, ImageFile
+from pipeline.utils.decorators import stack_trace_handler
 
 
+@stack_trace_handler
 def main():
     """This function is the entry point for a script that copies a docker image
     from a registry and saves it as a tarball file.
