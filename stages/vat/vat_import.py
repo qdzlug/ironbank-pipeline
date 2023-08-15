@@ -509,7 +509,7 @@ def main() -> None:
     except requests.exceptions.RequestException:
         logging.exception("Error submitting data to VAT scan import API")
         sys.exit(1)
-    except Exception:  # pylint: disable=W0718
+    except Exception: # pylint: disable=W0718
         logging.exception("Exception: Unknown exception")
         sys.exit(1)
 
