@@ -1,4 +1,4 @@
-image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner@sha256:321811246b1a481ed316c98f943f2c635bf15783d32b9a206e04cfea8b6f184f
+image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.9
 stages:
   - preprocess
   - lint
