@@ -41,7 +41,7 @@ def main() -> None:
     try:
         with vat_findings_file.open(mode="r", encoding="utf-8") as f:
             vat_findings = json.load(f)
-    except Exception: # pylint: disable=W0718
+    except Exception:  # pylint: disable=W0718
         log.exception("Error reading findings file.")
         sys.exit(1)
 
