@@ -88,7 +88,7 @@ def create_trufflehog_config(
 # reenable if/when we add requests to the trufflehog image
 # this is safe for now because we catch the exception directly
 # @subprocess_error_handler("Failed to run trufflehog")
-def main() -> None:  # pylint: disable=subprocess-decorator-missing
+def main() -> None:  # pylint: disable=too-many-locals
     """Main function that runs the truffleHog secret scanning tool on a Git
     repository. The function configures the truffleHog command, checks for an
     existing trufflehog.yaml file, retrieves commit differences, and generates
