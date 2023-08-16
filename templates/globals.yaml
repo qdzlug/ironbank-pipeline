@@ -1,5 +1,5 @@
 #image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.8
-image: harbor-ib-zelda.staging.dso.mil/ironbank/ironbank-pipelines/pipeline-runner@sha256:a369e0b8353f90be5ced3273b9dec64edf1c316df948faa58cdff346996a98a1
+image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner@sha256:b20ab89b933b7f10f687767715b0b60bf13c228a614c1d2fbb54a37c49c6ba83
 stages:
   - preprocess
   - lint
