@@ -59,19 +59,19 @@ class EnvUtil:
     def twistlock(self) -> Path:
         """Location of the twistlock JSON scan file."""
         twistlock_path: str = f"{os.environ.get('ARTIFACT_STORAGE')}/scan-results/twistlock/twistlock_cve.json"
-        return Envs().artifact_storeage_twistlock
+        return Path(twistlock_path)
 
     @property
     def anchore_sec(self) -> Path:
         """Location of the anchore_security.json scan file."""
         anchore_sec_path: str = f"{os.environ.get('ARTIFACT_STORAGE')}/scan-results/anchore/anchore_security.json"
-        return Envs().artifact_storeage_anchore_sec
+        return Path(anchore_sec_path)
 
     @property
     def anchore_gates(self) -> Path:
         """Location of the anchore_gates.json scan file."""
         anchore_gates_path: str = f"{os.environ.get('ARTIFACT_STORAGE')}/scan-results/anchore/anchore_gates.json"
-        return Envs().artifact_storeage_anchore_gates
+        return Path(anchore_gates_path)
 
     @property
     def comp_link(self) -> str:
@@ -91,7 +91,7 @@ class EnvUtil:
     def oscap(self) -> Path:
         """Location of the oscap scan XML file."""
         oscap_path: str = f"{os.environ.get('ARTIFACT_STORAGE')}/scan-results/openscap/compliance_output_report.xml"
-        return Envs().vat_backend_url
+        return Path(oscap_path)
 
     @property
     def parent(self) -> str:
@@ -103,11 +103,13 @@ class EnvUtil:
         """Parent Version from VENDOR/PRODUCT/CONTAINER/VERSION format."""
         return Envs().base_tag_parent_version
 
+    # use jacobs backup
     @property
     def repo_link(self) -> str:
         """Link to container repository."""
         return Envs().ci_repo_link
 
+    # use jacobs backup
     @property
     def use_json(self) -> bool:
         """Dump payload for API to out.json file."""
