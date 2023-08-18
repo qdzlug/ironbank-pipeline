@@ -1,4 +1,7 @@
-image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner-dev:v0.0.5"
+variables:
+  BASE_REGISTRY_ROOT: registry1.dso.mil
+
+image: ${BASE_REGISTRY_ROOT}/ironbank/ironbank-pipelines/pipeline-runner-dev:v0.0.5
 
 stages:
   - secret-scanning
@@ -13,7 +16,7 @@ stages:
 
 trufflehog:
   extends: .base
-  image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6
+  image: ${BASE_REGISTRY_ROOT}/ironbank/opensource/trufflehog/trufflehog3:3.0.6
   stage: secret-scanning
   variables:
     # This forces the trufflehog job to NOT perform a shallow clone

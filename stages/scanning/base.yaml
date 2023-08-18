@@ -18,7 +18,7 @@ anchore-scan:
   variables:
     PYTHON_LOG_LEVEL: "INFO"
   extends: .scanning
-  image: "registry1.dso.mil/ironbank/anchore/enterprise/enterprise:4.4.1"
+  image: $BASE_REGISTRY_ROOT/ironbank/anchore/enterprise/enterprise:4.4.1
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/scanning/anchore/anchore_scan.py"'
   artifacts:
@@ -27,7 +27,7 @@ anchore-scan:
 
 openscap-compliance:
   extends: .scanning
-  image: registry1.dso.mil/ironbank/ironbank-pipelines/oscap-podman:v0.1.1
+  image: $BASE_REGISTRY_ROOT/ironbank-pipelines/oscap-podman:v0.1.1
   tags:
     - ironbank-dsop-privileged
   script:
@@ -43,7 +43,7 @@ twistlock-scan:
     TWISTLOCK_PASSWORD:
       aud: ${CI_SERVER_URL}
   extends: .scanning
-  image: registry1.dso.mil/ironbank-apps/rootless-twistcli:22.12.415
+  image: $BASE_REGISTRY_ROOT/ironbank-apps/rootless-twistcli:22.12.415
   variables:
     VERSION_FILE: "${TWISTLOCK_SCANS}/twistlock-version.txt"
     CVE_FILE: "${TWISTLOCK_SCANS}/twistlock_cve.json"

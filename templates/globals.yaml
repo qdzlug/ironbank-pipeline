@@ -1,4 +1,4 @@
-image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.8
+image: $BASE_REGISTRY_ROOT/ironbank/ironbank-pipelines/pipeline-runner:v0.10.8
 stages:
   - preprocess
   - lint
@@ -44,7 +44,7 @@ variables:
   GIT_SSL_NO_VERIFY: "1"
   TARGET_BRANCH: master
   # WL_TARGET_BRANCH: master
-
+  BASE_REGISTRY_ROOT: $BASE_REGISTRY_ROOT
   # Controls if ironbank-staging is the source registry for base images
   STAGING_BASE_IMAGE: ""
 

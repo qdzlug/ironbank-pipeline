@@ -1,4 +1,4 @@
-image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.8
+image: $BASE_REGISTRY_ROOT/ironbank/ironbank-pipelines/pipeline-runner:v0.10.8
 
 workflow:
   rules:
@@ -42,6 +42,7 @@ trigger:
     TARGET_BRANCH: $TARGET_BRANCH
     TEMPLATE: $TEMPLATE
     STAGING_BASE_IMAGE: $STAGING_BASE_IMAGE
+    BASE_REGISTRY_ROOT: $BASE_REGISTRY_ROOT
     SCAN_RESULTS: "${ARTIFACT_STORAGE}/scan-results"
     ANCHORE_SCANS: "${SCAN_RESULTS}/anchore"
     TWISTLOCK_SCANS: "${SCAN_RESULTS}/twistlock"
@@ -62,3 +63,4 @@ variables:
   TARGET_BRANCH: master
   # Controls if ironbank-staging is the source registry for base images
   STAGING_BASE_IMAGE: ""
+  BASE_REGISTRY_ROOT: "registry1.dso.mil"

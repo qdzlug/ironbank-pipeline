@@ -2,8 +2,9 @@ include:
   - local: templates/globals.yaml
 
 openscap-compliance:
-  image: registry.dso.mil/ironbank-tools/ironbank-pipeline/ubupodscap2004:1.3.2
+  image: $BASE_REGISTRY_ROOT/ironbank-tools/ironbank-pipeline/ubupodscap2004:1.3.2
 
 variables:
   DISTRO_REPO_DIR: "debian-repos/ironbank.list"
   DISTRO_REPO_MOUNT: "/etc/apt/sources.list"
+  BASE_REGISTRY_ROOT: "registry1.dso.mil"
