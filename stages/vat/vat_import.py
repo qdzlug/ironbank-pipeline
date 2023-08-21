@@ -12,6 +12,7 @@ from typing import Any, Generator
 
 import requests
 from requests.structures import CaseInsensitiveDict
+
 from pipeline.container_tools.cosign import Cosign
 from pipeline.hardening_manifest import (
     HardeningManifest,
@@ -23,7 +24,6 @@ from pipeline.project import DsopProject
 from pipeline.scan_report_parsers.anchore import AnchoreReportParser
 from pipeline.scan_report_parsers.oscap import OscapReportParser
 from pipeline.utils.predicates import Predicates
-
 
 parser = argparse.ArgumentParser(
     description="DCCSCR processing of CVE reports from various sources"
@@ -276,6 +276,7 @@ def generate_twistlock_findings(twistlock_cve_path: Path) -> list[dict[str, Any]
     ][0]
 
     packages = get_twistlock_package_paths(twistlock_data)
+
     findings = []
     try:
         for value in twistlock_data.get("vulnerabilities", []):
@@ -327,7 +328,6 @@ def create_api_call() -> dict:
     Returns:
     - large_data: The dictionary containing all the assembled data.
     """
-
     args = parser.parse_args()
     artifact_storage = os.environ["ARTIFACT_STORAGE"]
     keyword_list = source_values(f"{artifact_storage}/lint/keywords.txt", "keywords")
