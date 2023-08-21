@@ -1,13 +1,12 @@
-import re
-import os
 import json
+import os
+import re
 from pathlib import Path
 from threading import Thread
-from common.docker.v2_api import DockerV2Api
-from threading import Thread
+
 import requests
 import semver
-
+from common.docker.v2_api import DockerV2Api
 
 # Some spaghetti code for gathering all repos, tags (per repo), and latest tag (per repo) in the harbor ironbank project
 
