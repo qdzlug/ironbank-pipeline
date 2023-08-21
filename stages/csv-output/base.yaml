@@ -1,5 +1,7 @@
 csv-output:
   stage: csv-output
+  extends:
+    - .setup_modules
   needs:
     - load-scripts
     - lint

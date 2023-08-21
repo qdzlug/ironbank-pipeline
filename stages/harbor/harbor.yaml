@@ -1,5 +1,7 @@
 harbor:
   stage: harbor
+  extends:
+    - .setup_modules
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
   resource_group: harbor_phase
@@ -10,10 +12,6 @@ harbor:
     - create-sbom
     - scan-logic
     - vat
-    - job: ib-manifest
-      artifacts: false
-    - job: write-json-docs
-      artifacts: false
   variables:
     SBOM_DIR: ${ARTIFACT_STORAGE}/sbom
     PARENT_VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/parent_vat_response.json
@@ -33,6 +31,8 @@ harbor:
 
 update-staging-attestations:
   stage: harbor
+  extends:
+    - .setup_modules
   rules:
     - if: $CI_COMMIT_BRANCH != "master" && $PUBLISH_VAT_STAGING_PREDICATES
   resource_group: harbor_phase

@@ -1,4 +1,4 @@
-image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.8
+image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.9
 stages:
   - preprocess
   - lint
@@ -17,6 +17,8 @@ stages:
   - s3-publish
 
 include:
+  - local: templates/shared_vars.yaml
+  - local: templates/setup_modules.yaml
   - local: stages/preprocess/load-scripts.yaml
   - local: stages/lint/lint.yaml
   - local: stages/secret-scan/trufflehog.yaml
@@ -39,15 +41,11 @@ workflow:
 
 variables:
   # Gitlab CI vars
-  ARTIFACT_STORAGE: "ci-artifacts"
-  PIPELINE_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank_pipeline"
-  GIT_SSL_NO_VERIFY: "1"
-  TARGET_BRANCH: master
-  # WL_TARGET_BRANCH: master
-
-  # Controls if ironbank-staging is the source registry for base images
-  STAGING_BASE_IMAGE: ""
-
+  # several CI vars are passed from the trigger job in trigger.yaml
   # Scan reports
+  SCAN_RESULTS: "${ARTIFACT_STORAGE}/scan-results"
+  ANCHORE_SCANS: "${SCAN_RESULTS}/anchore"
+  TWISTLOCK_SCANS: "${SCAN_RESULTS}/twistlock"
+  OSCAP_SCANS: "${SCAN_RESULTS}/openscap"
   OSCAP_CVE_XML_FILENAME: "report-cve.xml"
   OSCAP_CVE_HTML_FILENAME: "report-cve.html"

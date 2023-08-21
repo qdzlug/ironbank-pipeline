@@ -1,5 +1,7 @@
 import-artifacts:
   stage: import-artifacts
+  extends:
+    - .setup_modules
   needs:
     - load-scripts
     - lint

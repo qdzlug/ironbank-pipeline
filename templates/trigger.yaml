@@ -1,4 +1,4 @@
-image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.8
+image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.9
 
 workflow:
   rules:
@@ -12,12 +12,16 @@ stages:
   - pipeline-trigger
 
 include:
+  - local: templates/shared_vars.yaml
+  - local: templates/setup_modules.yaml
   - local: stages/preprocess/load-scripts.yaml
   - local: stages/lint/validate-hardening-manifest.yaml
   - local: stages/secret-scan/trufflehog.yaml
 
 image-inspect:
   stage: os-type
+  extends:
+    - .setup_modules
   needs:
     - load-scripts
     - job: validate-hardening-manifest
@@ -35,30 +39,14 @@ trigger:
   stage: pipeline-trigger
   needs:
     - image-inspect
+  # dotenv vars can be passed but can't be used to configure the job
+  # https://docs.gitlab.com/ee/ci/pipelines/downstream_pipelines.html#pass-dotenv-variables-created-in-a-job
   variables:
-    BASE_IMAGE_TYPE: $BASE_IMAGE_TYPE
-    LOGLEVEL: $LOGLEVEL
-    STAGING_PIPELINE: $STAGING_PIPELINE
-    TARGET_BRANCH: $TARGET_BRANCH
     TEMPLATE: $TEMPLATE
-    STAGING_BASE_IMAGE: $STAGING_BASE_IMAGE
-    SCAN_RESULTS: "${ARTIFACT_STORAGE}/scan-results"
-    ANCHORE_SCANS: "${SCAN_RESULTS}/anchore"
-    TWISTLOCK_SCANS: "${SCAN_RESULTS}/twistlock"
-    OSCAP_SCANS: "${SCAN_RESULTS}/openscap"
-
+    BASE_IMAGE_TYPE: $BASE_IMAGE_TYPE
   trigger:
     include:
       - project: ironbank-tools/ironbank-pipeline
-        file: "templates/${TEMPLATE}"
+        file: "templates/downstream/${TEMPLATE}"
         ref: $TARGET_BRANCH
     strategy: depend
-
-variables:
-  # Gitlab CI vars
-  ARTIFACT_STORAGE: "ci-artifacts"
-  PIPELINE_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank_pipeline"
-  GIT_SSL_NO_VERIFY: "1"
-  TARGET_BRANCH: master
-  # Controls if ironbank-staging is the source registry for base images
-  STAGING_BASE_IMAGE: ""

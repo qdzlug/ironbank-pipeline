@@ -1,5 +1,7 @@
 scan-logic:
   stage: scan-logic
+  extends:
+    - .setup_modules
   needs:
     - load-scripts
     - lint
