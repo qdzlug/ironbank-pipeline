@@ -2,7 +2,7 @@ include:
   - local: templates/globals.yaml
 
 openscap-compliance:
-  image: registry1.dso.mil/ironbank-apps/sle-bci/oscap-podman:15.4
+  image: $BASE_REGISTRY_ROOT/ironbank-apps/sle-bci/oscap-podman:15.4
 variables:
   DISTRO_REPO_DIR: "zypper-repos"
   DISTRO_REPO_MOUNT: "/etc/zypp/repos.d"

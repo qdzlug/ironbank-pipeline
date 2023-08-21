@@ -70,6 +70,7 @@ def parse_packages(sbom: Path | dict, access_log: Path | list[str]) -> list[Pack
 def download_artifacts(image: Image, output_dir: Path, docker_config_dir: Path) -> bool:
     """Download cosign attestation and save predicates for sbom & hardening
     manifest to files."""
+    dsop_config_dir = f"https://{os.environ.get('BASE_REGISTRY_ROOT', '')}/dsop/dccscr/-/raw/master/hardening%20manifest/README.md"
     try:
         log.info(f"Downloading artifacts for image: {image}")
         # Download syft sbom (json) & hardening manifest (json)
@@ -79,7 +80,7 @@ def download_artifacts(image: Image, output_dir: Path, docker_config_dir: Path) 
             docker_config_dir,
             [
                 "https://github.com/anchore/syft#output-formats",
-                "https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md",
+                dsop_config_dir,
             ],
             log_cmd=True,
         )
