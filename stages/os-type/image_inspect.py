@@ -74,8 +74,8 @@ def main():
             base_img_inspect = skopeo.inspect(base_image, log_cmd=True)
         except GenericSubprocessError:
             log.error(
-                "Failed to inspect IMAGE:TAG provided in hardening_manifest. \
-                    Please validate this image exists in the registry1.dso.mil/ironbank project."
+                f"Failed to inspect IMAGE:TAG provided in hardening_manifest. \
+                    Please validate this image exists in the {registry}/ironbank project."
             )
             log.error("Failed 'skopeo inspect' of image: %s", base_image)
             sys.exit(1)
