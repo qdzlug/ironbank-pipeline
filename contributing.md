@@ -988,7 +988,7 @@ If you're making any refactoring or feature changes to this code base, you'll ne
 
 ### Type Checking with MyPy
 
-In `.gitlab-ci.yml` , there's a job that is part of our initial linting stage and enforces type checking/hinting with MyPy. The current implementation checks for untyped function and method definitions, warns about unreachable code, and performs extra checks for code quality issues.
+There's a job that is part of our initial linting stage and enforces type checking/hinting with MyPy. The current implementation checks for untyped function and method definitions, warns about unreachable code, and performs extra checks for code quality issues.
 
 <!-- Add information about the kickoff_staging_pipeline dir -->
 

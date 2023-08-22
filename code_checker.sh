@@ -110,6 +110,15 @@ run_pylint() {
   echo -e "\n"
 }
 
+run_mypy() {
+  python3 -m pip install mypy
+  echo "*********************"
+  echo "Running mypy..."
+  echo "*********************"
+  find . -name "*.py" -not -path "./venv/*" -print0 | xargs -0 mypy --follow-imports skip --check-untyped-defs --warn-unreachable --ignore-missing-imports || true
+
+}
+
 run_shfmt() {
   echo "*****************"
   echo "Running shfmt..."
@@ -165,6 +174,7 @@ lint_all() {
   run_pylint
   run_shellcheck
   run_radon
+  run_mypy
 }
 
 format_check_all() {

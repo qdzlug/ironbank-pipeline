@@ -58,12 +58,3 @@ unit-testing:
         path: coverage.xml
     paths:
       - ./coverage.xml
-
-type-checking:
-  extends: .base
-  stage: lint
-  script:
-    - |
-      pip install mypy
-      find . -name "*.py" -not -path "./venv/*" -print0 |
-      xargs -0 mypy --follow-imports skip --check-untyped-defs --warn-unreachable --extra-checks --ignore-missing-imports || true
