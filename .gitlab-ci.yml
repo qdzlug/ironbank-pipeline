@@ -66,6 +66,4 @@ type-checking:
     - |
       pip install mypy
       find . -name "*.py" -not -path "./venv/*" -print0 |
-      xargs -0 mypy --ignore-missing-imports || true
-
-  
+      xargs -0 mypy --follow-imports skip --check-untyped-defs --warn-unreachable --extra-checks --ignore-missing-imports || true
