@@ -3,15 +3,12 @@
 import os
 import sys
 from pathlib import Path
-from common.utils import logger
 
 # pylint: disable=C0413
 sys.path.append(Path(__file__).absolute().parents[2].as_posix())
 from ironbank_py39_modules.scanner_api_handlers.anchore import (
     Anchore,
 )
-
-log = logger.setup("generate_sbom")
 
 
 def main() -> None:
@@ -49,7 +46,6 @@ def main() -> None:
     anchore_scan.generate_sbom(image, artifacts_path, "spdx-tag-value", "txt")
     anchore_scan.generate_sbom(image, artifacts_path, "spdx-json", "json")
     anchore_scan.generate_sbom(image, artifacts_path, "json", "json", "syft")
-    log.info("Generated SBOMs")
 
 
 if __name__ == "__main__":

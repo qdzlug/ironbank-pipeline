@@ -19,4 +19,3 @@ def test_main(monkeypatch, caplog):
     monkeypatch.setenv("IMAGE_FULLTAG", "mock_IMAGE_FULLTAG")
 
     generate_sbom.main()
-    assert "Generated SBOMs" in caplog.text
