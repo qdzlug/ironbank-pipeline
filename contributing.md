@@ -986,9 +986,9 @@ Currently, this code base doesn't contain any integration tests. However, you ca
 
 If you're making any refactoring or feature changes to this code base, you'll need to run a pipeline in staging as an end to end test. To do this, you'll need to be a member of the POPs team and need to get setup in our staging environment first. Once you're setup, you'll want to follow the `README.md` in the `kickoff_staging_pipeline` to get create the necessary config files to kick these pipelines off in staging in an automated fashion.
 
-#### Type Checking with MyPy
+### Type Checking with MyPy
 
-In `.gitlab-ci.yml` , there's a job that is part of our initial linting stage and enforces type checking/hinting with MyPy. The current implementation checks for untyped function and method definitions, warns about unreachable code, and performs extra checks for code quality issues. 
+In `.gitlab-ci.yml` , there's a job that is part of our initial linting stage and enforces type checking/hinting with MyPy. The current implementation checks for untyped function and method definitions, warns about unreachable code, and performs extra checks for code quality issues.
 
 <!-- Add information about the kickoff_staging_pipeline dir -->
 

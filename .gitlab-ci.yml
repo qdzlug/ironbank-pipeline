@@ -62,7 +62,7 @@ unit-testing:
 type-checking:
   extends: .base
   stage: lint
-  script: 
+  script:
     - |
       pip install mypy
       find . -name "*.py" -not -path "./venv/*" -print0 |
