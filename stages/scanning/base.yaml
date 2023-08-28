@@ -26,12 +26,18 @@ anchore-scan:
       - "${ANCHORE_SCANS}/"
 
 openscap-compliance:
-  extends: .scanning
+  extends:
+    - .scanning
   image: registry1.dso.mil/ironbank/ironbank-pipelines/oscap-podman:v0.1.1
   tags:
     - ironbank-dsop-privileged
   script:
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/scanning/openscap/main.py"'
+    - "curl -sSL https://install.python-poetry.org | python3 -"
+    - "poetry shell"
+    # - 'export PATH="/etc/poetry/bin:$PATH"'
+    # - "cd ${PIPELINE_REPO_DIR}; poetry install"
+    # - "ls"
+    - 'poetry shell; python3 "stages/scanning/openscap/main.py"'
   artifacts:
     paths:
       - "${OSCAP_SCANS}"
