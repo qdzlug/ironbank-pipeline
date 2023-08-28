@@ -38,7 +38,7 @@ openscap-compliance:
     # - 'export PATH="/etc/poetry/bin:$PATH"'
     # - "cd ${PIPELINE_REPO_DIR}; poetry install"
     # - "ls"
-    # - 'poetry shell; python3 "stages/scanning/openscap/main.py"'
+    - 'python stages/scanning/openscap/main.py'
   artifacts:
     paths:
       - "${OSCAP_SCANS}"
