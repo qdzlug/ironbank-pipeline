@@ -67,6 +67,7 @@ def promote_tags(
             dest_authfile=Path(os.environ["DOCKER_AUTH_FILE_PUBLISH"]),
             log_cmd=True,
         )
+        log.info(f"Successfully copied {staging_image} to {production_image}")
 
 
 def _convert_artifacts_to_hardening_manifest(
@@ -83,6 +84,7 @@ def _convert_artifacts_to_hardening_manifest(
         "w", encoding="utf-8"
     ) as f:
         json.dump(hm_object, f)
+        log.info("Converting artifacts to hardening manifest")
 
 
 def _generate_vat_response_lineage_file():
@@ -96,6 +98,7 @@ def _generate_vat_response_lineage_file():
     lineage_vat_response = {"images": []}
     if (parent_vat_response_file := Path(os.environ["PARENT_VAT_RESPONSE"])).exists():
         with parent_vat_response_file.open("r", encoding="utf-8") as f:
+            log.info("parent VAT response exists")
             parent_vat_response = json.load(f)
             # parent_vat_response.json will not be a list when we release this, make sure to convert it to one
             lineage_vat_response["images"] += parent_vat_response.get("images") or [
@@ -204,6 +207,7 @@ def main():
                 )
                 # Sign image
                 cosign.sign(production_image, log_cmd=True)
+                log.info("Promoting images and tags from staging and signing image")
             log.info("Adding attestations")
             for predicate in attestation_predicates:
                 cosign.attest(
@@ -217,5 +221,49 @@ def main():
         sys.exit(1)
 
 
+def publish_vat_staging_predicates():
+    """Publishes a VAT (Verified Access Token) on a staging image using the
+    cosign tool.
+
+    Reads various details from environment variables for this process. If the attestation fails,
+    the function exits with a non-zero status code.
+
+    Raises:
+        GenericSubprocessError: If an error occurs during the cosign attest command.
+
+    Returns:
+        None
+    """
+    staging_image = Image(
+        registry=os.environ["REGISTRY_PRE_PUBLISH_URL"],
+        name=os.environ["IMAGE_NAME"],
+        digest=os.environ["IMAGE_PODMAN_SHA"],
+        transport="docker://",
+    )
+
+    predicates = Predicates()
+    vat_predicate = _generate_vat_response_lineage_file()
+
+    with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
+        shutil.copy(
+            os.environ["DOCKER_AUTH_FILE_PRE_PUBLISH"],
+            Path(docker_config_dir, "config.json"),
+        )
+        cosign = Cosign(docker_config_dir=docker_config_dir)
+        try:
+            cosign.attest(
+                image=staging_image,
+                predicate_path=vat_predicate.as_posix(),
+                predicate_type=predicates.types[vat_predicate.name],
+                replace=True,
+                log_cmd=True,
+            )
+        except GenericSubprocessError:
+            sys.exit(1)
+
+
 if __name__ == "__main__":
-    main()
+    if os.environ.get("PUBLISH_VAT_STAGING_PREDICATES"):
+        publish_vat_staging_predicates()
+    else:
+        main()

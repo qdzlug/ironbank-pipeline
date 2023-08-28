@@ -1,5 +1,7 @@
-.documentation:
+generate-documents:
   stage: documentation
+  extends:
+    - .setup_modules
   rules:
     - if: $CI_COMMIT_TAG
   variables:
@@ -16,28 +18,14 @@
     - twistlock-scan
     - openscap-compliance
     - vat
-  before_script:
+  script:
     - 'mkdir -p "${ARTIFACT_DIR}/reports"'
+    - '"${PIPELINE_REPO_DIR}/stages/documentation/ib-manifest-run.sh"'
+    - '"${PIPELINE_REPO_DIR}/stages/documentation/write-json-docs-run.sh"'
   artifacts:
     paths:
       - $ARTIFACT_DIR
     expire_in: 1 week
-  retry:
-    max: 2
-    when: runner_system_failure
-
-ib-manifest:
-  extends: .documentation
-  script:
-    - '"${PIPELINE_REPO_DIR}/stages/documentation/ib-manifest-run.sh"'
-  retry:
-    max: 2
-    when: runner_system_failure
-
-write-json-docs:
-  extends: .documentation
-  script:
-    - '"${PIPELINE_REPO_DIR}/stages/documentation/write-json-docs-run.sh"'
   retry:
     max: 2
     when: runner_system_failure

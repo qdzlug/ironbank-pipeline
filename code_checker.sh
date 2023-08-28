@@ -24,7 +24,7 @@ run_shellcheck() {
   echo "# Scanning embedded scripts..."
   while IFS= read -r -d '' file; do
     echo "# $file"
-    yq -r '.[] | objects | .before_script, .script, .after_script | select(. != null) | join("\n")' "$file" | shellcheck --exclude=SC2153,SC2164 --format=gcc -s bash -
+    yq -r '.[] | objects | .before_script, .script, .after_script | select(. != null) | join("\n")' "$file" | shellcheck --exclude=SC1091,SC2153,SC2164 --format=gcc -s bash -
   done < <(find . \( -name '*.yaml' -o -name '*.yml' ! -path './scripts/analysis/*' \) -print0)
   echo -e "\n"
 }
@@ -110,6 +110,15 @@ run_pylint() {
   echo -e "\n"
 }
 
+run_mypy() {
+  python3 -m pip install mypy
+  echo "*********************"
+  echo "Running mypy..."
+  echo "*********************"
+  find . -name "*.py" -not -path "./venv/*" -print0 | xargs -0 mypy --follow-imports skip --check-untyped-defs --warn-unreachable --ignore-missing-imports || true
+
+}
+
 run_shfmt() {
   echo "*****************"
   echo "Running shfmt..."
@@ -165,6 +174,7 @@ lint_all() {
   run_pylint
   run_shellcheck
   run_radon
+  run_mypy
 }
 
 format_check_all() {

@@ -147,7 +147,7 @@ The formats are:
 
 | SBOM format    | File type |
 | -------------- | --------- |
-| cyclonedx      | xml       |
+| cyclonedx      | json      |
 | spdx-tag-value | txt       |
 | spdx-json      | json      |
 | json           | json      |

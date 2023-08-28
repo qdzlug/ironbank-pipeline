@@ -1,5 +1,7 @@
 check-cves:
   stage: check-cves
+  extends:
+    - .setup_modules
   allow_failure:
     exit_codes: 100
   needs:

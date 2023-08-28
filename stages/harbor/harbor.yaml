@@ -1,5 +1,7 @@
 harbor:
   stage: harbor
+  extends:
+    - .setup_modules
   rules:
     - if: $CI_COMMIT_TAG
   resource_group: harbor_phase
@@ -10,10 +12,37 @@ harbor:
     - create-sbom
     - scan-logic
     - vat
-    - job: ib-manifest
-      artifacts: false
-    - job: write-json-docs
-      artifacts: false
+  variables:
+    SBOM_DIR: ${ARTIFACT_STORAGE}/sbom
+    PARENT_VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/parent_vat_response.json
+    VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/vat_response.json
+    ACCESS_LOG_DIR: ${ARTIFACT_STORAGE}/build
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/harbor
+  script:
+    - 'mkdir -p "${ARTIFACT_DIR}"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/harbor/upload_to_harbor.py"'
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_DIR}/"
+  retry:
+    max: 2
+    when: runner_system_failure
+
+update-staging-attestations:
+  stage: harbor
+  extends:
+    - .setup_modules
+  rules:
+    - if: $CI_COMMIT_BRANCH != "master" && $PUBLISH_VAT_STAGING_PREDICATES
+  resource_group: harbor_phase
+  needs:
+    - load-scripts
+    - lint
+    - build
+    - create-sbom
+    - scan-logic
+    - vat
   variables:
     SBOM_DIR: ${ARTIFACT_STORAGE}/sbom
     PARENT_VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/parent_vat_response.json

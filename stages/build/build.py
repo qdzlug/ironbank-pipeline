@@ -13,7 +13,6 @@ from pipeline.project import DsopProject
 from pipeline.hardening_manifest import HardeningManifest
 from pipeline.container_tools.skopeo import Skopeo
 from pipeline.container_tools.buildah import Buildah
-from pipeline.container_tools.cosign import Cosign
 from pipeline.image import Image, ImageFile
 from pipeline.utils.decorators import subprocess_error_handler
 from common.utils import logger
@@ -197,11 +196,6 @@ def main():
 
     if hardening_manifest.base_image_name:
         log.info("Verifying parent image signature")
-        parent_image = Image(
-            registry=base_registry,
-            name=hardening_manifest.base_image_name,
-            tag=hardening_manifest.base_image_tag,
-        )
         if not os.environ.get("STAGING_BASE_IMAGE"):
             with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
                 shutil.copy(
@@ -209,16 +203,16 @@ def main():
                     Path(docker_config_dir, "config.json"),
                 )
                 # TODO: Find a workaround for getting Cosign Verify passing with no network
-                if not Cosign.verify(
-                    image=parent_image,
-                    docker_config_dir=docker_config_dir,
-                    use_key=False,
-                    log_cmd=True,
-                ):
-                    log.debug("Failed to verify parent image signature")
-                    log.debug(
-                        "Cosign is unable to initialize properly without network access"
-                    )
+                # if not Cosign.verify(
+                #     image=parent_image,
+                #     docker_config_dir=docker_config_dir,
+                #     use_key=False,
+                #     log_cmd=True,
+                # ):
+                #     log.debug("Failed to verify parent image signature")
+                #     log.debug(
+                #         "Cosign is unable to initialize properly without network access"
+                #     )
 
     ib_labels = {
         "maintainer": "ironbank@dsop.io",
