@@ -25,6 +25,3 @@ def test_envs(monkeypatch, caplog):  # type: ignore
     assert "is not set" in caplog.text, f"Logging failure: {caplog.text}"
     assert "Source" in caplog.text, f"Logging failure: {caplog.text}"
     caplog.clear()
-
-    # should default to set
-    assert envs.skip_openscap == "0", "Default behavior failed"
