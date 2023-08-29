@@ -73,5 +73,6 @@ class Artifacts:
     def _save_job_url(self) -> None:
         env_path: Path = Path("oscap-compliance.env")
         ci_job_url = Envs().ci_job_url
+        text_to_write = f"OSCAP_COMPLIANCE_URL={ci_job_url}"
         log.info(ci_job_url)
-        env_path.write_text(ci_job_url, encoding="utf-8")
+        env_path.write_text(text_to_write, encoding="utf-8")
