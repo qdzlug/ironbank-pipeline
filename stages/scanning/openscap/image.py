@@ -58,7 +58,7 @@ class Image:
         supported_images = {
             image: {
                 PROFILE_KEY: "xccdf_org.ssgproject.content_profile_stig",
-                SECURITY_GUIDE_KEY: f"scap-security-guide-{self._oscap.version}/ssg-{'rhel' if image.startswith('ubi') else image.rsplit('-', maxsplit=1)[0]}-ds.xml",
+                SECURITY_GUIDE_KEY: f"scap-security-guide-{self._oscap.version}/ssg-{image.replace('ubi', 'rhel').rsplit('-', maxsplit=1)[0]}-ds.xml",
             }
             # TODO: should be a subset of list in image_inspect.py
             for image in [
@@ -126,7 +126,7 @@ class Image:
             log.error(f"{GET_IMAGE_PATH_ERROR}: {exc}")
             raise
 
-        log.info(f"Docker image path: {docker_image_path}")
+        log.info(f"Image ID: {docker_image_path}")
         return docker_image_path
 
     def _set_security_guide_path(self) -> Path:
