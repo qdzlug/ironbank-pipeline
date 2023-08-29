@@ -1,13 +1,7 @@
 vat:
-  # checks if project is a pipeline-test-project and if so, prevents job from running
-  # else, checks if the branch is development and if so, runs the job if all prior jobs succeed
   stage: vat
   extends:
     - .setup_modules
-  rules:
-    - if: $CI_PROJECT_PATH =~ /pipeline-test-project/
-      when: never
-    - when: "on_success"
   id_tokens:
     VAT_TOKEN:
       aud: ${CI_SERVER_URL}
