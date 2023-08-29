@@ -1,0 +1,3 @@
+test-image:
+  image: registry1.dso.mil/ironbank-staging/ironbank-pipelines/oscap-podman:ibci-2151717
+  script: "poetry --version"
