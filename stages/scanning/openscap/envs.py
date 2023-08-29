@@ -130,7 +130,7 @@ class Envs:
         varible set in the dsop group
         """
 
-    @ci_var(default="0")
+    @ci_var
     def skip_openscap(self) -> str:
         """If the OpenSCAP scans should be skipped.
 

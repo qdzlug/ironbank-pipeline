@@ -33,15 +33,10 @@ openscap-compliance:
     - ironbank-dsop-privileged
   script:
     - 'curl -sSL https://install.python-poetry.org | python3 -'
-    - 'cd ${PIPELINE_REPO_DIR}; poetry shell'
     - 'poetry install -C ${PIPELINE_REPO_DIR}'
-    # - 'export PATH="/etc/poetry/bin:$PATH"'
-    # - 'source "$(poetry env info -C "${MODULES_DEPS_PATH}" --path)"/bin/activate'
+    - 'source "$(poetry env info -C "${PIPELINE_REPOS_DIR}" --path)"/bin/activate'
     - 'poetry install -C "${MODULES_PACKAGE_PATH}" --only-root'
-    # - "poetry shell"
-    # - "cd ${PIPELINE_REPO_DIR}; poetry install"
-    # - "ls"
-    - 'python stages/scanning/openscap/main.py'
+    - 'python "${PIPELINE_REPOS_DIR}"/stages/scanning/openscap/main.py'
   artifacts:
     paths:
       - "${OSCAP_SCANS}"
