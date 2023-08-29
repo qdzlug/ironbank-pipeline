@@ -11,6 +11,7 @@ validate-hardening-manifest:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/validate_hardening_manifest.py"'
 
 test-image:
+  stage: lint
   extends: .setup_modules
   needs:
     - load-scripts
