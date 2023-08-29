@@ -37,8 +37,8 @@ class Scanner:
         try:
             self._run_subprocess()
             log.info("Command completed successfully.")
-        except GenericSubprocessError:
-            log.error("The scan failed: {exc}")
+        except GenericSubprocessError as exc:
+            log.error(f"The scan failed: {exc}")
             raise
 
     @subprocess_error_handler("Scan failed.")
@@ -68,7 +68,14 @@ class Scanner:
             f"{scap_content}/{security_guide}",
         ]
 
-        return subprocess.run(
+        log.info(f"Executing: {command}")
+
+        result = subprocess.run(
             command,
             check=True,
+            stderr=subprocess.PIPE
         )
+
+        log.warning(result.stderr)
+
+        return result
