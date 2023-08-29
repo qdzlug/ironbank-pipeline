@@ -32,7 +32,7 @@ openscap-compliance:
   tags:
     - ironbank-dsop-privileged
   script:
-    - 'curl -sSL https://install.python-poetry.org | python3 -'
+    - "curl -sSL https://install.python-poetry.org | python3 -"
     - 'poetry install -C "${PIPELINE_REPO_DIR}"'
     - 'source "$(poetry env info -C "${PIPELINE_REPO_DIR}" --path)"/bin/activate'
     - 'poetry install -C "${MODULES_PACKAGE_PATH}" --only-root'
