@@ -109,8 +109,8 @@ class Image:
     @subprocess_error_handler(GET_IMAGE_PATH_ERROR)
     def _get_image_path(self) -> Path:
         docker_image_path_cmd = ["podman", "images", "-q"]
-        result = subprocess.run(docker_image_path_cmd, check=True)
-        result_as_path: Path = Path(result.stdout.decode())
+        result = subprocess.run(docker_image_path_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        result_as_path: Path = Path(result.stdout.decode().strip())
         return result_as_path
 
     def _pull(self) -> Path:
