@@ -35,7 +35,7 @@ openscap-compliance:
     - "curl -sSL https://install.python-poetry.org | python3 -"
     - 'poetry install -C "${PIPELINE_REPO_DIR}"'
     - 'source "$(poetry env info -C "${PIPELINE_REPO_DIR}" --path)"/bin/activate'
-    - 'poetry install -C "${MODULES_PACKAGE_PATH}" --only-root'
+    - 'poetry install -C "${MODULES_DEPS_PATH}" --only-root'
     - 'python "${PIPELINE_REPO_DIR}"/stages/scanning/openscap/main.py'
   artifacts:
     paths:
