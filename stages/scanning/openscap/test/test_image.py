@@ -48,7 +48,7 @@ def test_image_image_type(monkeypatch, caplog, openscap):  # type: ignore
 def test_security_guide(monkeypatch, openscap):  # type: ignore
     monkeypatch.setattr(Envs, "base_image_type", "ubi9-container")
     image = MockImage(openscap)
-    expected: Path = Path("scap-security-guide-test-version/ssg-container-ds.xml")
+    expected: Path = Path("scap-security-guide-test-version/ssg-rhel9-ds.xml")
     assert image.security_guide_path == expected
 
 
@@ -66,7 +66,7 @@ def test_image_path(monkeypatch, caplog, openscap):  # type: ignore
 
     image = MockImage(openscap)
 
-    assert "Docker image path:" in caplog.text
+    assert "Image ID:" in caplog.text
     assert isinstance(image.path, Path), "Variable 'my_path' is not a Path object."
     assert image.path != Path(""), "The value of 'my_path' is the default value"
     caplog.clear()
