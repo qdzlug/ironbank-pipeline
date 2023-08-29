@@ -1,5 +1,4 @@
 include:
-  - local: stages/preprocess/test.yaml
   - local: stages/preprocess/base.yaml
 
 # clone templates repo as an artifact so it can be used with other jobs
