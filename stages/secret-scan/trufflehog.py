@@ -119,7 +119,7 @@ def main() -> None:  # pylint: disable=subprocess-decorator-missing
         "PIPELINE_REPO_DIR",
         os.environ["CI_PROJECT_DIR"],
     )
-    branch_name = os.environ["CI_COMMIT_BRANCH"]
+    ref_name = os.environ.get("CI_COMMIT_BRANCH") or os.environ.get("CI_COMMIT_TAG")
     job_image = os.environ["CI_JOB_IMAGE"]
     config_variable = os.environ.get("TRUFFLEHOG_CONFIG")
 
@@ -144,7 +144,7 @@ def main() -> None:  # pylint: disable=subprocess-decorator-missing
         diff_branch = "origin/master"
     else:
         diff_branch = (
-            "origin/development" if branch_name != "development" else "origin/master"
+            "origin/development" if ref_name != "development" else "origin/master"
         )
 
     # Check if trufflehog.yaml file exists and exit(1) if it does

@@ -164,15 +164,15 @@ def test_main(monkeypatch, caplog):
     assert "Skip Logic: Force scan new image" in caplog.text
     caplog.clear()
 
-    log.info("Test CI_COMMIT_BRANCH not master")
+    log.info("Test CI_COMMIT_TAG not master")
     monkeypatch.setenv("FORCE_SCAN_NEW_IMAGE", "")
-    monkeypatch.setenv("CI_COMMIT_BRANCH", "test")
+    monkeypatch.setenv("CI_COMMIT_TAG", "test")
     scan_logic_jobs.main()
     assert "Skip Logic: Non-master branch" in caplog.text
     caplog.clear()
 
     log.info("Test unable to verify image")
-    monkeypatch.setenv("CI_COMMIT_BRANCH", "master")
+    monkeypatch.setenv("CI_COMMIT_TAG", "1.0.0")
     monkeypatch.setenv("DOCKER_AUTH_FILE_PULL", "example")
     monkeypatch.setattr(image_verify, "diff_needed", lambda x: None)
     with pytest.raises(SystemExit):

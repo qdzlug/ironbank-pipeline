@@ -163,8 +163,8 @@ def main():
 
     if os.environ.get("FORCE_SCAN_NEW_IMAGE"):
         log.info("Skip Logic: Force scan new image")
-    elif os.environ["CI_COMMIT_BRANCH"] != "master":
-        log.info("Skip Logic: Non-master branch")
+    elif not os.environ.get("CI_COMMIT_TAG"):
+        log.info(f"Skip Logic: Skip scanning for branch {os.environ['CI_COMMIT_BRANCH']}")
     else:
         # STAGING_BASE_IMAGE not checked here - Only used for feature branches
         pull_auth = Path(os.environ["DOCKER_AUTH_FILE_PULL"])
