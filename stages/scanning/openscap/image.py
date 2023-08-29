@@ -2,9 +2,9 @@ import subprocess
 from typing import Dict
 from dataclasses import dataclass, field
 from pathlib import Path
-from envs import Envs
 from oscap import OpenSCAP
 from log import log
+from pipeline.utils.envs import Envs
 from pipeline.utils.decorators import subprocess_error_handler
 from pipeline.utils.exceptions import GenericSubprocessError
 

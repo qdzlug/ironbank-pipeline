@@ -6,8 +6,9 @@ import re
 import xml.etree.ElementTree as etree
 from dataclasses import dataclass, field
 from pathlib import Path
-from envs import Envs
 from log import log
+
+from pipeline.utils.envs import Envs
 
 VERSION_PATH: Path = Path("stages/scanning/oscap-version.json")
 SCAP_GUIDE_ZIP_PATH: Path = Path("scap-security-guide.zip")
@@ -79,7 +80,9 @@ class OpenSCAP:
 
     def _get_download_url(self) -> str:
         scap_url: str = Envs().scap_url
-        if scap_url:
+        # pylint does not understand ci_var decorator
+        # pylint: disable=comparison-with-callable
+        if scap_url != "":
             return scap_url
         return f"{BASE_URL}/v{self.version}/scap-security-guide-{self.version}.zip"
 

@@ -1,8 +1,9 @@
 import pytest
 import sys
 from pathlib import Path
-from envs import Envs
 from scanner import Scanner
+
+from pipeline.utils.envs import Envs
 
 from mocks import MockImage, MockOpenSCAP
 

@@ -1,7 +1,7 @@
 import shutil
 from pathlib import Path
 from dataclasses import dataclass, field
-from envs import Envs
+from pipeline.utils.envs import Envs
 from log import log
 
 SCAP_CONTENT = "scap-content"

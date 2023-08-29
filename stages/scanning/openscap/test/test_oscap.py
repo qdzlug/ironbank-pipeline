@@ -1,7 +1,8 @@
 import pytest
 from oscap import OpenSCAP
-from envs import Envs
 from pathlib import Path
+
+from pipeline.utils.envs import Envs
 
 
 class MockEnvs(Envs):

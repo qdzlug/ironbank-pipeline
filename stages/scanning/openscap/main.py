@@ -1,8 +1,8 @@
 import sys
 from artifacts import Artifacts
-from envs import Envs
 from oscap import OpenSCAP
 from image import Image
+from pipeline.utils.envs import Envs
 from pipeline.utils.exceptions import GenericSubprocessError
 from scanner import Scanner
 from log import log
@@ -11,7 +11,9 @@ from log import log
 def main() -> None:
     """This function runs the OpenSCAP scans."""
 
-    if Envs().skip_openscap:
+    # pylint does not understand ci_var decorator
+    # pylint: disable=comparison-with-callable
+    if Envs().skip_openscap != "":
         log.info("Skipping OpenSCAP scan.")
         sys.exit()
 

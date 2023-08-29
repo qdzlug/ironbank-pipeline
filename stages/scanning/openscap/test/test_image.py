@@ -2,10 +2,10 @@ import pytest
 
 import sys
 from pathlib import Path
+from pipeline.utils.envs import Envs
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 from image import PULL_COMMAND_ERROR, GET_IMAGE_PATH_ERROR
-from envs import Envs
 from oscap import OpenSCAP
 from pipeline.utils.exceptions import GenericSubprocessError
 from mocks import MockImage
