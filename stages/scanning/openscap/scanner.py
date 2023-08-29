@@ -72,10 +72,14 @@ class Scanner:
 
         result = subprocess.run(
             command,
-            check=True,
-            stderr=subprocess.PIPE
-        )
-
-        log.warning(result.stderr)
+            stderr=subprocess.PIPE, check=False)
+        
+        if result.returncode == 0:
+            log.info("All rules passed.")
+        elif result.returncode == 1:
+            log.error(f"An error occurred during evaluation: {result.stderr}")
+            raise GenericSubprocessError("An error occurred during evaluation.")
+        elif result.returncode ==2:
+            log.warning(f"At least one rule with either fail or unknown result: {result.stderr}")
 
         return result
