@@ -58,7 +58,7 @@ class Image:
         supported_images = {
             image: {
                 PROFILE_KEY: "xccdf_org.ssgproject.content_profile_stig",
-                SECURITY_GUIDE_KEY: f"scap-security-guide-{self._oscap.version}/ssg-{image.rsplit('-', maxsplit=1)[-1]}-ds.xml",
+                SECURITY_GUIDE_KEY: f"scap-security-guide-{self._oscap.version}/ssg-{'rhel' if image.startswith('ubi') else image.rsplit('-', maxsplit=1)[0]}-ds.xml",
             }
             # TODO: should be a subset of list in image_inspect.py
             for image in [
