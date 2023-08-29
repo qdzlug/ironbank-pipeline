@@ -32,10 +32,15 @@ class Artifacts:
 
     def prepare(self, oscap_version: str) -> None:
         """Prepares the OSCAP artifacts."""
+        self._make_directory(self.directory)
         self._remove_scap_content()
         self._save_oscap_version(oscap_version)
         self._move_reports()
         self._save_job_url()
+
+    def _make_directory(self, path: Path) -> None:
+        log.info(f"Initializing directory: {self.directory}")
+        path.mkdir(parents=True, exist_ok=True)
 
     def _remove_scap_content(self) -> None:
         scap_content_dir = SCAP_CONTENT
