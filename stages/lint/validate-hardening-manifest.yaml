@@ -12,8 +12,11 @@ validate-hardening-manifest:
 
 test-image:
   stage: lint
-  extends: .setup_modules
+  # extends: .setup_modules
   needs:
     - load-scripts
   image: registry1.dso.mil/ironbank-staging/ironbank-pipelines/oscap-podman:ibci-2152749
-  script: "oscap -V"
+  script:
+    - 'cp -rf /home/python/.cache /root'
+    - 'source "$(poetry env info -C "${MODULES_DEPS_PATH}" --path)"/bin/activate'
+    - 'poetry install -C "${MODULES_PACKAGE_PATH}" --only-root'
