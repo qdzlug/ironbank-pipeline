@@ -118,7 +118,6 @@ def main() -> None:  # pylint: disable=subprocess-decorator-missing
         "PIPELINE_REPO_DIR",
         os.environ["CI_PROJECT_DIR"],
     )
-    ref_name = os.environ["CI_COMMIT_BRANCH"]
     config_variable = os.environ.get("TRUFFLEHOG_CONFIG")
 
     trufflehog_conf_path = (
@@ -160,8 +159,6 @@ def main() -> None:  # pylint: disable=subprocess-decorator-missing
         "trufflehog3",
         "--no-entropy",
         "--ignore-nosecret",
-        "--branch",
-        ref_name,
         *history_cmd,
         "--config",
         trufflehog_conf_path.as_posix(),
