@@ -296,7 +296,7 @@ def main():
 
     if (
         os.environ.get("STAGING_BASE_IMAGE")
-        or os.environ["CI_COMMIT_BRANCH"] == "development"
+        or os.environ.get("CI_COMMIT_BRANCH") == "development"
     ):
         for tag in hardening_manifest.image_tags:
             dest = dest.from_image(tag=tag)
