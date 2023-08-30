@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 from pathlib import Path
+from unittest.mock import patch
 from common.utils import logger
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
@@ -17,5 +18,8 @@ def test_main(monkeypatch, caplog):
     monkeypatch.setenv("ANCHORE_VERIFY", "mock_ANCHORE_VERIFY")
     monkeypatch.setenv("SBOM_DIR", "mock_SBOM_DIR")
     monkeypatch.setenv("IMAGE_FULLTAG", "mock_IMAGE_FULLTAG")
+
+    with patch("Anchore.generate_sbom") as generate_sbom_call:
+        generate_sbom_call.assert_called_with(output_format="spdx-tag-value")
 
     generate_sbom.main()
