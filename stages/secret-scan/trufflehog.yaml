@@ -1,9 +1,6 @@
 trufflehog:
   stage: secret-scan
   image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6
-  rules:
-    - if: $CI_COMMIT_TAG
-      when: never
   needs:
     - load-scripts
   variables:
