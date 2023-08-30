@@ -7,6 +7,7 @@ import-artifacts:
     - lint
     - job: trufflehog
       artifacts: false
+      optional: true
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/import-artifacts"
     REQUESTS_CA_BUNDLE: "/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt"
