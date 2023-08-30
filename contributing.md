@@ -24,7 +24,7 @@
       1. [Reading and writing from files](#reading-and-writing-from-files)
    1. [Using `with`](#using-with)
    1. [Use dataclasses](#use-dataclasses)
-   1. [Provide a logger for each file and class](#provide-a-logger-for-each-file-and-class)
+   1. [Provide a logger for each job](#provide-a-logger-for-each-job)
 1. [Testing guide](#testing-guide)
    1. [Unit testing](#unit-testing)
       1. [Basic Example](#basic-example)
@@ -433,26 +433,18 @@ class Project:
     return self.metadata
 ```
 
-### Provide a logger for each file and class
+### Provide a logger for each job
 
-Every file should provide a `log` object and every class should have a `_log` class attribute. You should use the `ironbank.pipeline.utils.logger` module for creating these
+Create a module for a logger and import it into your other modules to avoid circular imports.
 
 For example:
 
 ```python
-from common.utils import logger
 import logging
-from typing import ClassVar
+from common.utils import logger
 
-log: logging.Logger = logger.setup("example")
-
-@dataclass
-class ExampleClass:
-    _log: ClassVar[logging.Logger] = logger.setup("ExampleClass")
-
+log: logging.Logger = logger.setup("Example")
 ```
-
----
 
 ## Testing guide
 
