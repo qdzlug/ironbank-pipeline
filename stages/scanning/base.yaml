@@ -28,7 +28,7 @@ anchore-scan:
 openscap-compliance:
   extends:
     - .scanning
-  image: registry1.dso.mil/ironbank-staging/ironbank-pipelines/oscap-podman:ibci-2152749
+  image: registry1.dso.mil/ironbank-staging/ironbank-pipelines/oscap-podman:ibci-2153323
   tags:
     - ironbank-dsop-privileged
   script:
