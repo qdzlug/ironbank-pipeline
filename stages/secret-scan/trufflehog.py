@@ -104,6 +104,7 @@ def main() -> None:  # pylint: disable=subprocess-decorator-missing
         CI_PROJECT_DIR (str): The directory of the project in question.
         PIPELINE_REPO_DIR (str): The directory of the pipeline repository.
         CI_COMMIT_BRANCH (str): The branch on which the scan is performed.
+        CI_JOB_IMAGE (str): The docker image used for the job.
         TRUFFLEHOG_CONFIG (str): The environment variable for trufflehog configuration.
         TRUFFLEHOG_TARGET (str): The origin target for trufflehog.
 
@@ -118,6 +119,8 @@ def main() -> None:  # pylint: disable=subprocess-decorator-missing
         "PIPELINE_REPO_DIR",
         os.environ["CI_PROJECT_DIR"],
     )
+    branch_name = os.environ["CI_COMMIT_BRANCH"]
+    job_image = os.environ["CI_JOB_IMAGE"]
     config_variable = os.environ.get("TRUFFLEHOG_CONFIG")
 
     trufflehog_conf_path = (
@@ -141,7 +144,7 @@ def main() -> None:  # pylint: disable=subprocess-decorator-missing
         diff_branch = "origin/master"
     else:
         diff_branch = (
-            "origin/development" if ref_name != "development" else "origin/master"
+            "origin/development" if branch_name != "development" else "origin/master"
         )
 
     # Check if trufflehog.yaml file exists and exit(1) if it does
@@ -159,6 +162,8 @@ def main() -> None:  # pylint: disable=subprocess-decorator-missing
         "trufflehog3",
         "--no-entropy",
         "--ignore-nosecret",
+        "--branch",
+        branch_name,
         *history_cmd,
         "--config",
         trufflehog_conf_path.as_posix(),
