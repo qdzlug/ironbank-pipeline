@@ -35,7 +35,6 @@ include:
   - local: stages/harbor/harbor.yaml
   - local: stages/s3/upload-to-s3.yaml
 
-
 # only run if non-master branch or protected tag
 workflow:
   rules:

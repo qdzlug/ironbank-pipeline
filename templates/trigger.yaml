@@ -1,6 +1,6 @@
 image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.9
 
-workflow:
+.default-rules:
   rules:
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master"
     - if: $CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"
@@ -13,11 +13,24 @@ stages:
   - pipeline-trigger
 
 include:
+  - local: templates/cut_tag.yaml
+    rules:
+      - if: $CI_COMMIT_BRANCH == "master"
   - local: templates/shared_vars.yaml
+    rules:
+      - !reference [.default_rules, rules]
   - local: templates/setup_modules.yaml
+    rules:
+      - !reference [.default_rules, rules]
   - local: stages/preprocess/load-scripts.yaml
+    rules:
+      - !reference [.default_rules, rules]
   - local: stages/lint/validate-hardening-manifest.yaml
+    rules:
+      - !reference [.default_rules, rules]
   - local: stages/secret-scan/trufflehog.yaml
+    rules:
+      - !reference [.default_rules, rules]
 
 image-inspect:
   stage: os-type

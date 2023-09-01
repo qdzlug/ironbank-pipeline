@@ -55,7 +55,10 @@ def main():
     # Colorize justifications for output_file
     _colorize_full(workbook)
     _set_all_column_widths(workbook)
-    if os.environ.get("CI_COMMIT_BRANCH") not in ["development", "master"] and not os.environ.get("CI_COMMIT_TAG"):
+    if os.environ.get("CI_COMMIT_BRANCH") not in [
+        "development",
+        "master",
+    ] and not os.environ.get("CI_COMMIT_TAG"):
         _add_sheet_banners(workbook)
     workbook.save(output_file)
 
