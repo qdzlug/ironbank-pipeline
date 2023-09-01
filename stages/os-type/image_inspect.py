@@ -19,7 +19,8 @@ def template_type(os_type: str) -> None:
     template_dict = {
         "alpine317-container": "alpine.yaml",
         "chainguard-container": "chainguard.yaml",
-        "debian11-container": "debian.yaml",
+        "debian11-container": "debian11.yaml",
+        "debian12-container": "debian12.yaml",
         "distroless-container": "distroless.yaml",
         "scratch-container": "distroless.yaml",
         "sle15-bci-container": "suse.yaml",
