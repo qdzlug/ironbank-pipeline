@@ -1,0 +1,7 @@
+include:
+  - project: "ironbank-tools/ironbank-modules"
+    ref: main
+    file: "/stages/release/gitlab-release.yaml"
+
+version:
+  when: always
