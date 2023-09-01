@@ -166,17 +166,17 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "boto3"
-version = "1.28.38"
+version = "1.28.39"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "boto3-1.28.38-py3-none-any.whl", hash = "sha256:dae0bc5548b39d8dfcf4167d9a238ab899a0491c11c5e77934db71b3ecf34752"},
-    {file = "boto3-1.28.38.tar.gz", hash = "sha256:cdb466e51ebe4c99640269d88d5450328271437d58e6ce089690d0485bef6174"},
+    {file = "boto3-1.28.39-py3-none-any.whl", hash = "sha256:48d1ea0918088df0e59a37a88ce53de7f4500108638c81255f5b1cb8edea28f4"},
+    {file = "boto3-1.28.39.tar.gz", hash = "sha256:3ac38ad8afafc6ed6c8dd6cc58ddd22b6352c6a413b969aef928c6aacf555c56"},
 ]
 
 [package.dependencies]
-botocore = ">=1.31.38,<1.32.0"
+botocore = ">=1.31.39,<1.32.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.6.0,<0.7.0"
 
@@ -185,13 +185,13 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.31.38"
+version = "1.31.39"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "botocore-1.31.38-py3-none-any.whl", hash = "sha256:86a4c253bba046f775e07f6585ff6c3d75c21a21c171e5bfcf68bc59f29d7b4c"},
-    {file = "botocore-1.31.38.tar.gz", hash = "sha256:b02de7898f0a7de0f6569be1c87046035a974006c31fd641f4b97a8dba1fad21"},
+    {file = "botocore-1.31.39-py3-none-any.whl", hash = "sha256:8ce716925284c1c0d04c796016a1e0e9c29ca3e196afefacacc16bc4e80c978f"},
+    {file = "botocore-1.31.39.tar.gz", hash = "sha256:61aefac8b44f86a4581d4128cce30806f633357e8d8efc4f73367a8e62009e70"},
 ]
 
 [package.dependencies]
@@ -593,23 +593,26 @@ description = ""
 optional = false
 python-versions = "^3.10"
 files = []
-develop = true
+develop = false
 
 [package.dependencies]
 boto3 = "^1.26.135"
 gitpython = "^3.1.27"
+isort = "^5.12.0"
 jsonschema = "^4.6.0"
 openpyxl = "^3.0.10"
 pandas = "^1.4.2"
-pylint-pytest = "^1.1.2"
 python-gitlab = "^3.5.0"
 pyyaml = "^6.0"
 requests = "^2.28.0"
 yq = "^3.2.2"
 
 [package.source]
-type = "directory"
-url = "../ironbank-modules/ironbank"
+type = "git"
+url = "https://repo1.dso.mil/ironbank-tools/ironbank-modules.git"
+reference = "0.0.5"
+resolved_reference = "3dacd1c7a88e1f039716e0c08062f1058b1cc2e5"
+subdirectory = "ironbank"
 
 [[package]]
 name = "idna"
@@ -1278,20 +1281,6 @@ spelling = ["pyenchant (>=3.2,<4.0)"]
 testutils = ["gitpython (>3)"]
 
 [[package]]
-name = "pylint-pytest"
-version = "1.1.2"
-description = "A Pylint plugin to suppress pytest-related false positives."
-optional = false
-python-versions = ">=3.6"
-files = [
-    {file = "pylint_pytest-1.1.2-py2.py3-none-any.whl", hash = "sha256:fb20ef318081cee3d5febc631a7b9c40fa356b05e4f769d6e60a337e58c8879b"},
-]
-
-[package.dependencies]
-pylint = "*"
-pytest = ">=4.6"
-
-[[package]]
 name = "pysocks"
 version = "1.7.1"
 description = "A Python SOCKS client module. See https://github.com/Anorov/PySocks for more information."
@@ -1629,13 +1618,13 @@ crt = ["botocore[crt] (>=1.20.29,<2.0a.0)"]
 
 [[package]]
 name = "selenium"
-version = "4.11.2"
+version = "4.12.0"
 description = ""
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "selenium-4.11.2-py3-none-any.whl", hash = "sha256:98e72117b194b3fa9c69b48998f44bf7dd4152c7bd98544911a1753b9f03cc7d"},
-    {file = "selenium-4.11.2.tar.gz", hash = "sha256:9f9a5ed586280a3594f7461eb1d9dab3eac9d91e28572f365e9b98d9d03e02b5"},
+    {file = "selenium-4.12.0-py3-none-any.whl", hash = "sha256:b2c48b1440db54a0653300d9955f5421390723d53b36ec835e18de8e13bbd401"},
+    {file = "selenium-4.12.0.tar.gz", hash = "sha256:95be6aa449a0ab4ac1198bb9de71bbe9170405e04b9752f4b450dc7292a21828"},
 ]
 
 [package.dependencies]
@@ -2010,4 +1999,4 @@ tests = ["build", "coverage", "mypy", "ruff", "wheel"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "3705f62e09f688888bd9f7a95df712d0a0ef256248501aa8ef20f98e36f8d6c2"
+content-hash = "24987087f9ea590b9ad61af7c345d3189528726d95ce31005341c97bdedc5d76"

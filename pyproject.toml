@@ -7,8 +7,7 @@ packages = [{include = "stages"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-# ibmodules = { git = "https://repo1.dso.mil/ironbank-tools/ironbank-modules.git", subdirectory = "ironbank", tag = "0.0.5", python = ">=3.10"}
-ibmodules = { path = "../ironbank-modules/ironbank", develop=true }
+ibmodules = { git = "https://repo1.dso.mil/ironbank-tools/ironbank-modules.git", subdirectory = "ironbank", tag = "0.0.5", python = ">=3.10"}
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.1.0"
