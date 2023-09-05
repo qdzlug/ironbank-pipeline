@@ -33,6 +33,9 @@ include:
       - if: $CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"
 
 image-inspect:
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master"
+    - if: $CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"
   stage: os-type
   extends:
     - .setup_modules
@@ -52,6 +55,9 @@ image-inspect:
 
 trigger:
   stage: pipeline-trigger
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master"
+    - if: $CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"
   needs:
     - image-inspect
   # dotenv vars can be passed but can't be used to configure the job
