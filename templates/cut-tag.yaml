@@ -1,6 +1,6 @@
 include:
   - project: "ironbank-tools/ironbank-modules"
-    ref: main
+    ref: 898_n-2_pipeline_updates
     file: "stages/release/gitlab-release.yaml"
 
 version:
