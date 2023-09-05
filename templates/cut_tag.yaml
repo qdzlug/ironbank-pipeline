@@ -3,7 +3,7 @@ include:
     ref: main
     file: "stages/release/gitlab-release.yaml"
 
-# version:
-#   when: always
-#   before_script:
-#     - echo "Using custom ci versioning script, skipping download"
+version:
+  when: always
+  before_script:
+    - echo "Using custom ci versioning script, skipping download"
