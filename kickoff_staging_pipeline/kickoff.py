@@ -21,6 +21,12 @@ from gitlab.v4.objects import Project as GLProject
 from gitlab.v4.objects import ProjectPipeline as GLPipeline
 from jinja2 import Environment, FileSystemLoader, Template
 
+# only import selenium stuff if geckodriver is available
+if shutil.which("geckodriver"):
+    from selenium import webdriver
+    from selenium.webdriver.common.proxy import Proxy
+    from selenium.webdriver.firefox.options import Options
+
 
 def git_error_handler(func: Callable) -> Callable:
     @functools.wraps(func)
@@ -65,6 +71,8 @@ class Project:
     remote: Remote | Any = None
     gl_project: GLProject | Any = None
     pipeline: GLPipeline | Any = None
+    push_tag: bool = False
+    new_tag: str = ""
     changes_pushed: bool = False
 
     def __post_init__(self) -> None:
@@ -311,6 +319,14 @@ def push_branches(project: Project, repo: Repo, remote: Remote) -> None:
         print(branch)
         repo.git.checkout(branch)
         remote.push(force=True).raise_if_error()
+    if project.push_tag:
+        repo.git.checkout(project.branch)
+        tags = repo.tags
+        next_tag_inc = int(tags[-1].path.split("-")[-1]) + 1 if tags else 1
+        new_tag = f"1.0.0-ib-test-{next_tag_inc}"
+        repo.git.tag("-f", new_tag)
+        remote.push(new_tag, force=True).raise_if_error()
+        project.new_tag = new_tag
 
 
 @git_error_handler
@@ -406,9 +422,11 @@ def kickoff_pipelines(config: Config) -> Config:
         # prevent kicking off second pipeline if ci changes were pushed to remote
         if not project.changes_pushed:
             print(f"Kicking off pipeline for {project.dest_project_name}")
-            project.pipeline = project.gl_project.pipelines.create(
-                {"ref": project.branch}
-            )
+            ref = project.branch
+            if project.push_tag:
+                ref = project.new_tag or project.repo.tags[-1].path.split("/")[-1]
+                print(ref)
+            project.pipeline = project.gl_project.pipelines.create({"ref": ref})
         else:
             # pipeline should've been created when changes were pushed
             print(
@@ -419,9 +437,6 @@ def kickoff_pipelines(config: Config) -> Config:
 
 def open_urls(config: Config) -> None:
     # need to do imports here to avoid breaking this for people who don't have selenium/geckodriver installed
-    from selenium import webdriver
-    from selenium.webdriver.common.proxy import Proxy
-    from selenium.webdriver.firefox.options import Options
 
     options = Options()
     # options.headless = True

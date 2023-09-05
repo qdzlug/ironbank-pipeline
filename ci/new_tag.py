@@ -39,12 +39,12 @@ def main() -> None:
     tags = []
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
-    ib_tag, hm_tag = ("ib_tag", "hm_tag")
+    ib_group, hm_group = ("ib_tag", "hm_tag")
     for tag in repo.tags:
         tag_details: dict[str, Any] = extract_tag_details(
-            tag, rf"^(?P<{ib_tag}>\d+\.\d+\.\d+)-ib-(?P<{hm_tag}>.*)$"
+            tag, rf"^(?P<{ib_group}>\d+\.\d+\.\d+)-ib-(?P<{hm_group}>.*)$"
         )
-        tag_details[ib_tag] = semver.Version.parse(tag_details[ib_tag])
+        tag_details[ib_group] = semver.Version.parse(tag_details[ib_group])
         tags.append(tag_details)
 
     # repo.tags should be sorted, but re-sorting just in case
