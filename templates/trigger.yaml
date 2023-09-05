@@ -6,6 +6,7 @@ stages:
   - secret-scan
   - os-type
   - pipeline-trigger
+  - release
 
 include:
   - local: templates/cut_tag.yaml
