@@ -5,3 +5,5 @@ include:
 
 version:
   when: always
+  before_script:
+    - echo "Using custom ci versioning script, skipping download"
