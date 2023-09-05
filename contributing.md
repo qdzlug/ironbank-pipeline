@@ -15,7 +15,7 @@
    1. [Subprocess usage](#subprocess-usage)
       1. [Subprocess decorator](#subprocess-decorator)
       1. [Subprocess arguments](#subprocess-arguments)
-      1. [Use `with` when using Popen](#use-with-when-using-popen)
+      1. [Use `with` when using `Popen`](#use-with-when-using-popen)
    1. [Type hinting](#type-hinting)
    1. [File I/O](#file-io)
       1. [Importing Path](#importing-path)
@@ -26,6 +26,11 @@
    1. [Use dataclasses](#use-dataclasses)
    1. [Provide a logger for each job](#provide-a-logger-for-each-job)
 1. [Testing guide](#testing-guide)
+   1. [Local (manual) testing](#local-manual-testing)
+      1. [Import artifacts](#import-artifacts)
+         1. [Running downloader.py](#running-downloaderpy)
+      1. [Build](#build)
+         1. [Running simple build](#running-simple-build)
    1. [Unit testing](#unit-testing)
       1. [Basic Example](#basic-example)
       1. [Test order](#test-order)
@@ -43,6 +48,7 @@
          1. [Patching paths are affected when using `from <module> import <something>`](#patching-paths-are-affected-when-using-from-module-import-something)
    1. [Integration Testing](#integration-testing)
    1. [E2E Testing](#e2e-testing)
+   1. [Type Checking with MyPy](#type-checking-with-mypy)
    1. [Merge Request (MR) Guide](#merge-request-mr-guide)
       1. [Creating a MR](#creating-a-mr)
       1. [General MR Review](#general-mr-review)
@@ -447,6 +453,27 @@ log: logging.Logger = logger.setup("Example")
 ```
 
 ## Testing guide
+
+### Local (manual) testing
+
+#### Import artifacts
+
+##### Running downloader.py
+
+- Clone down the CHT project you'd like to test with
+- `cd` to the dir where you cloned the project down
+- Run `source ~/ironbank-pipeline/stages/import-artifacts/local_import.sh`
+- Run `python3 ~/ironbank-pipeline/stages/import-artifacts/downloader.py`
+
+#### Build
+
+##### Running simple build
+
+- Run the steps in [Import artifacts](#import-artifacts)
+- Start the build container and mount the files in the project with `docker run -it --user=root --privileged --entrypoint=bash -v $PWD:/home/python registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:latest`
+- Copy any images from the hardening_manifest into the buildah api with `skopeo copy docker-archive:<image_file>.tar containers-storage:<tag_value_from_dockerfile>`
+- Login to registry1 with `buildah login registry1.dso.mil`
+- Build the image with `buildah build -t <image_name>:<image_tag> .`
 
 ### Unit testing
 
