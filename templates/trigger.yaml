@@ -9,7 +9,7 @@ stages:
   - release
 
 include:
-  - local: templates/cut_tag.yaml
+  - local: templates/cut-tag.yaml
     rules:
       - if: $CI_COMMIT_BRANCH == "master"
   - local: templates/shared_vars.yaml
@@ -26,43 +26,7 @@ include:
     rules:
       - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master"
       - if: $CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"
-
-image-inspect:
-  rules:
-    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master"
-    - if: $CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"
-  stage: os-type
-  extends:
-    - .setup_modules
-  needs:
-    - load-scripts
-    - job: validate-hardening-manifest
-      artifacts: false
-    - job: trufflehog
-      artifacts: false
-      optional: true
-  script:
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/os-type/image_inspect.py"'
-  artifacts:
-    when: always
-    reports:
-      dotenv: template.env
-
-trigger:
-  stage: pipeline-trigger
-  rules:
-    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master"
-    - if: $CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"
-  needs:
-    - image-inspect
-  # dotenv vars can be passed but can't be used to configure the job
-  # https://docs.gitlab.com/ee/ci/pipelines/downstream_pipelines.html#pass-dotenv-variables-created-in-a-job
-  variables:
-    TEMPLATE: $TEMPLATE
-    BASE_IMAGE_TYPE: $BASE_IMAGE_TYPE
-  trigger:
-    include:
-      - project: ironbank-tools/ironbank-pipeline
-        file: "templates/downstream/${TEMPLATE}"
-        ref: $TARGET_BRANCH
-    strategy: depend
+  - local: templates/trigger-jobs.yaml
+    rules:
+      - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master"
+      - if: $CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"
