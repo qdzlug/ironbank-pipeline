@@ -58,3 +58,27 @@ twistlock-scan:
   artifacts:
     paths:
       - "${TWISTLOCK_SCANS}/"
+
+
+rapidfort-scan:
+  extends: .scanning
+  tags:
+    - ironbank-dsop-privileged
+  image: registry1.dso.mil/ironbank/rapidfort/runner:1.1.24-rfhardened
+  variables:
+    RF_ROOT_URL: $RF_ROOT_URL
+    RF_ACCESS_ID: $RF_ACCESS_ID
+    RF_SECRET_ACCESS_KEY: $RF_SECRET_ACCESS_KEY
+  script:
+    - 'podman pull --authfile "${DOCKER_AUTH_FILE_PULL}" "${IMAGE_TO_SCAN}"'
+    - 'rfstub  "${IMAGE_TO_SCAN}"'
+    - podman run --rm --name "${IMAGE_TO_SCAN}-rfstub" -p9999:443 --cap-add=SYS_PTRACE -d "${IMAGE_TO_SCAN}-rfstub"
+    - | 
+      STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:9999 || /bin/true)
+      until [ "${STATUS_CODE}" == 200 ]; do
+        sleep 1
+        STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:9999 || /bin/true)
+      done
+      podman stop "${IMAGE_TO_SCAN}-rfstub"
+    - rfharden  "${IMAGE_TO_SCAN}-rfstub" && echo "Hardened Done" || echo "Hardened Failed"
+    - podman images
