@@ -30,8 +30,9 @@ class MockGit:
             return ""
         if args[0] == "feature_branch..":
             return "commit_sha_1\ncommit_sha_2\ncommit_sha_3"
-        elif args[0] == "development..":
+        if args[0] == "development..":
             return "commit_sha_4\ncommit_sha_5"
+        return ""
 
 
 @dataclass
@@ -113,13 +114,13 @@ def test_create_trufflehog_config(monkeypatch):
     result = trufflehog.create_trufflehog_config(
         MockPath("project"), MockPath("default"), "/path/to/repo"
     )
-    assert result == False
+    assert result is False
     log.info("Setting the is_file function to true for code coverage")
     monkeypatch.setattr(MockPath, "is_file", lambda *args, **kwargs: True)
     result = trufflehog.create_trufflehog_config(
         MockPath("project"), MockPath("default"), "/path/to/repo", "True"
     )
-    assert result == True
+    assert result is True
 
 
 @patch("trufflehog.Path", new=MockPath)

@@ -15,7 +15,6 @@ from pipeline.test.mocks.mock_classes import (
     MockResponse,
 )
 from pipeline.utils import s3upload
-from pipeline.utils.exceptions import GenericSubprocessError
 from common.utils import logger
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
@@ -116,9 +115,9 @@ def test_main(monkeypatch, mock_responses, caplog, raise_):
         "run",
         lambda *args, **kwargs: raise_(subprocess.CalledProcessError(1, [])),
     )
-    with pytest.raises(GenericSubprocessError) as e:
+    with pytest.raises(SystemExit) as e:
         upload_artifacts.main()
-    assert "Failed to compress file" in caplog.text
+    assert "Failed calling <lambda>, error: Failed to compress file" in caplog.text
     caplog.clear()
 
     log.info("Test successful upload to VAT API")

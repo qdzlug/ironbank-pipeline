@@ -15,7 +15,7 @@ from pipeline.container_tools.skopeo import Skopeo
 from pipeline.hardening_manifest import HardeningManifest
 from pipeline.image import Image
 from pipeline.project import DsopProject
-from pipeline.utils.decorators import subprocess_error_handler
+from pipeline.utils.decorators import subprocess_error_handler, stack_trace_handler
 from pipeline.utils.exceptions import GenericSubprocessError
 from pipeline.utils.predicates import Predicates
 from common.utils import logger
@@ -141,6 +141,7 @@ def generate_attestation_predicates(predicates):
     return attestation_predicates
 
 
+@stack_trace_handler
 def main():
     """Main function to perform image promotion, signing, and attestation
     process in a secure software supply chain.

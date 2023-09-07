@@ -8,12 +8,13 @@ import sys
 from pipeline.file_parser import DockerfileParser
 from pipeline.hardening_manifest import HardeningManifest
 from pipeline.project import DsopProject
-from pipeline.utils.decorators import subprocess_error_handler
+from pipeline.utils.decorators import subprocess_error_handler, stack_trace_handler
 from common.utils import logger
 
 log = logger.setup(name="lint.dockerfile_validation")
 
 
+@stack_trace_handler
 async def main():
     """Asynchronous main function that validates the Dockerfile of a DSOP (Data
     Standard for Operational Parameters) project against a hardening manifest.
