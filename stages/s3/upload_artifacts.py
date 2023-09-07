@@ -14,7 +14,7 @@ import requests
 from pipeline.hardening_manifest import HardeningManifest
 from pipeline.project import DsopProject
 from pipeline.utils import s3upload
-from pipeline.utils.decorators import subprocess_error_handler
+from pipeline.utils.decorators import subprocess_error_handler, stack_trace_handler
 from common.utils import logger
 
 log: logging.Logger = logger.setup("vat_artifact_post")
@@ -56,6 +56,7 @@ def post_artifact_data_vat(
     return post_resp
 
 
+@stack_trace_handler
 def main() -> None:
     """Upload tar file to s3 and hit VAT endpoint to provide path to tar file
     After this stage finishes, IBFE is able to display new metadata for the

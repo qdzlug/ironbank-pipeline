@@ -1,4 +1,4 @@
-image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner-dev:v0.0.5"
+image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner-dev:v0.0.7"
 
 stages:
   - secret-scanning
@@ -46,11 +46,18 @@ unit-testing:
   extends: .base
   stage: test
   script:
+    # TODO: Use load script
+    - cd "${PIPELINE_REPO_DIR}"
+    - 'source "$(poetry env info -C "${MODULES_PACKAGE_PATH}" --path)"/bin/activate'
+    - 'poetry install -C "${MODULES_PACKAGE_PATH}" --only-root'
+    - pip install pytest-cov
     - make run_unit_tests
   coverage: '/^TOTAL.+?(\d+\%)$/'
   variables:
     ARTIFACT_DIR: "stages/lint/tests/mock"
     CI_COMMIT_BRANCH: "development"
+    MODULES_PACKAGE_PATH: "/home/python/ironbank-modules/ironbank"
+    PIPELINE_REPO_DIR: "/builds/ironbank-tools/ironbank-pipeline"
   artifacts:
     reports:
       coverage_report:

@@ -1,4 +1,4 @@
-FROM registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner-dev:v0.0.5
+FROM registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner-dev:v0.0.7
 
 ENV GECKO_VERSION="0.33.0" \
     VENV=/home/python/.work \

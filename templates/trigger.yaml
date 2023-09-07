@@ -1,4 +1,4 @@
-image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.9
+image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.11
 
 workflow:
   rules:
