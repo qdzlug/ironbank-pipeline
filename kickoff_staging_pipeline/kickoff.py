@@ -20,6 +20,11 @@ from gitlab.v4.objects import Group as GLGroup
 from gitlab.v4.objects import Project as GLProject
 from gitlab.v4.objects import ProjectPipeline as GLPipeline
 from jinja2 import Environment, FileSystemLoader, Template
+from pipeline.hardening_manifest import HardeningManifest
+from pipeline.project import DsopProject
+from pipeline.utils.decorators import subprocess_error_handler
+
+from ci import new_tag
 
 # only import selenium stuff if geckodriver is available
 if shutil.which("geckodriver"):
@@ -72,7 +77,7 @@ class Project:
     gl_project: GLProject | Any = None
     pipeline: GLPipeline | Any = None
     push_tag: bool = False
-    new_tag: str = ""
+    next_tag: str = ""
     changes_pushed: bool = False
 
     def __post_init__(self) -> None:
@@ -320,13 +325,14 @@ def push_branches(project: Project, repo: Repo, remote: Remote) -> None:
         repo.git.checkout(branch)
         remote.push(force=True).raise_if_error()
     if project.push_tag:
+        # skip needing to run master branch to cut the tag for testing
         repo.git.checkout(project.branch)
-        tags = repo.tags
-        next_tag_inc = int(tags[-1].path.split("-")[-1]) + 1 if tags else 1
-        new_tag = f"1.0.0-ib-test-{next_tag_inc}"
-        repo.git.tag("-f", new_tag)
-        remote.push(new_tag, force=True).raise_if_error()
-        project.new_tag = new_tag
+        dsop_project = DsopProject()
+        hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
+        next_tag = new_tag.get_next_ib_tag(hardening_manifest, repo)
+        repo.git.tag("-f", next_tag)
+        remote.push(next_tag, force=True).raise_if_error()
+        project.next_tag = next_tag
 
 
 @git_error_handler
@@ -424,7 +430,7 @@ def kickoff_pipelines(config: Config) -> Config:
             print(f"Kicking off pipeline for {project.dest_project_name}")
             ref = project.branch
             if project.push_tag:
-                ref = project.new_tag or project.repo.tags[-1].path.split("/")[-1]
+                ref = project.next_tag or project.repo.tags[-1].path.split("/")[-1]
                 print(ref)
             project.pipeline = project.gl_project.pipelines.create({"ref": ref})
         else:
@@ -474,9 +480,12 @@ def generate_config_file(config_file: str) -> dict:
     # write values to appropriate yaml file and return return_args
     with Path(config_file).open("w", encoding="utf-8") as f:
         yaml.safe_dump(return_args, f)
+
+    assert isinstance(return_args, dict)
     return return_args
 
 
+@subprocess_error_handler
 def main() -> None:
     """
     Main function

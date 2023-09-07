@@ -3,7 +3,7 @@ name = "ibpipeline"
 version = "0.1.0"
 description = ""
 authors = ["Iron Bank Pipelines and Operations <ironbank@dsop.io>"]
-packages = [{include = "stages"}]
+packages = [{include = "stages"}, {include = "ci"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
