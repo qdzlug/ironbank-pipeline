@@ -485,7 +485,7 @@ def generate_config_file(config_file: str) -> dict:
     return return_args
 
 
-@subprocess_error_handler
+@subprocess_error_handler("Subprocess error occurred while kicking off pipelines")
 def main() -> None:
     """
     Main function
