@@ -149,6 +149,7 @@ def test_main(monkeypatch, caplog):
     monkeypatch.setenv("IMAGE_FULLTAG", "example/test:1.0")
     monkeypatch.setenv("REGISTRY_PUBLISH_URL", "example")
     monkeypatch.setenv("ARTIFACT_STORAGE", ".")
+    monkeypatch.setenv("DOCKER_AUTH_FILE_PULL", "/example/path")
 
     log.info("Test FORCE_SCAN_NEW_IMAGE saves new digest and build date")
     monkeypatch.setattr(
@@ -166,9 +167,11 @@ def test_main(monkeypatch, caplog):
 
     log.info("Test CI_COMMIT_TAG not master")
     monkeypatch.setenv("FORCE_SCAN_NEW_IMAGE", "")
-    monkeypatch.setenv("CI_COMMIT_TAG", "test")
+    mock_commit_branch = "example"
+    monkeypatch.setenv("CI_COMMIT_BRANCH", mock_commit_branch)
+    monkeypatch.setenv("CI_COMMIT_TAG", "")
     scan_logic_jobs.main()
-    assert "Skip Logic: Non-master branch" in caplog.text
+    assert f"Skip Logic: Skip scanning for branch {mock_commit_branch}" in caplog.text
     caplog.clear()
 
     log.info("Test unable to verify image")

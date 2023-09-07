@@ -12,7 +12,7 @@ from pipeline.project import DsopProject
 def extract_tag_details(
     tag: TagReference | str,
     format_regex: re.Pattern | str,
-) -> dict[str, Any]:
+) -> dict[str, Any] | None:
     """
     Extracts partial tag from a Git tag using a regular expression.
 
@@ -28,8 +28,7 @@ def extract_tag_details(
     if isinstance(tag, TagReference):
         tag = Path(tag.path).name
     tag_match = format_regex.match(tag)
-    assert tag_match, f"No match found for {tag} with regex {format_regex}"
-    return tag_match.groupdict()
+    return tag_match.groupdict() if tag_match else None
 
 
 def main() -> None:
@@ -41,11 +40,14 @@ def main() -> None:
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     ib_group, hm_group = ("ib_tag", "hm_tag")
     for tag in repo.tags:
-        tag_details: dict[str, Any] = extract_tag_details(
+        # for tag 1.0.0-ib-8.8, <ib_group>=1.0.0, <hm_group>=8.8
+        tag_details = extract_tag_details(
             tag, rf"^(?P<{ib_group}>\d+\.\d+\.\d+)-ib-(?P<{hm_group}>.*)$"
         )
-        tag_details[ib_group] = semver.Version.parse(tag_details[ib_group])
-        tags.append(tag_details)
+        # skip unmatched tags
+        if tag_details:
+            tag_details[ib_group] = semver.Version.parse(tag_details[ib_group])
+            tags.append(tag_details)
 
     # repo.tags should be sorted, but re-sorting just in case
     latest_tag = sorted(tags, key=lambda tag: tag["ib_tag"])[-1]
