@@ -45,7 +45,7 @@ def get_next_ib_tag(hardening_manifest: HardeningManifest, repo: Repo) -> str:
     ib_group, hm_group = ("ib_tag", "hm_tag")
 
     if not repo.tags:
-        return "1.0.0"
+        return f"{hardening_manifest.image_tag}-ib-1.0.0"
 
     for tag in repo.tags:
         # for tag 8.8-ib-1.0.0, <hm_group>=8.8, <ib_group>=1.0.0
@@ -58,8 +58,9 @@ def get_next_ib_tag(hardening_manifest: HardeningManifest, repo: Repo) -> str:
             tags.append(tag_details)
 
     # repo.tags should be sorted, but re-sorting just in case
+    assert tags
     latest_tag = sorted(tags, key=lambda tag: tag["ib_tag"])[-1]
-    assert isinstance(latest_tag, semver.Version)
+    assert isinstance(latest_tag["ib_tag"], semver.Version)
     next_tag = (
         latest_tag["ib_tag"].bump_minor()
         if hardening_manifest.image_tag != latest_tag["hm_tag"]

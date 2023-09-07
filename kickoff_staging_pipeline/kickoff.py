@@ -327,10 +327,12 @@ def push_branches(project: Project, repo: Repo, remote: Remote) -> None:
     if project.push_tag:
         # skip needing to run master branch to cut the tag for testing
         repo.git.checkout(project.branch)
-        dsop_project = DsopProject()
+        remote.fetch(tags=True)
+        dsop_project = DsopProject(repo.working_dir)
         hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
         next_tag = new_tag.get_next_ib_tag(hardening_manifest, repo)
         repo.git.tag("-f", next_tag)
+        print(next_tag)
         remote.push(next_tag, force=True).raise_if_error()
         project.next_tag = next_tag
 
@@ -430,7 +432,7 @@ def kickoff_pipelines(config: Config) -> Config:
             print(f"Kicking off pipeline for {project.dest_project_name}")
             ref = project.branch
             if project.push_tag:
-                ref = project.next_tag or project.repo.tags[-1].path.split("/")[-1]
+                ref = project.next_tag or project.repo.tags[-1].name
                 print(ref)
             project.pipeline = project.gl_project.pipelines.create({"ref": ref})
         else:
