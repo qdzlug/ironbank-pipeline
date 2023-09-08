@@ -8,4 +8,5 @@ validate-hardening-manifest:
     max: 2
     when: runner_system_failure
   script:
+    - "ls $CI_PROJECT_DIR"
     - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/validate_hardening_manifest.py"'
