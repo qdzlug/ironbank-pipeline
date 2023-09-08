@@ -35,12 +35,6 @@ include:
   - local: stages/harbor/harbor.yaml
   - local: stages/s3/upload-to-s3.yaml
 
-# only run if non-master branch or protected tag
-workflow:
-  rules:
-    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master"
-    - if: $CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"
-
 variables:
   # Gitlab CI vars
   # several CI vars are passed from the trigger job in trigger.yaml
