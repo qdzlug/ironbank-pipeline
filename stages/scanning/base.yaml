@@ -72,13 +72,13 @@ rapidfort-scan:
   script:
     - 'podman pull --authfile "${DOCKER_AUTH_FILE_PULL}" "${IMAGE_TO_SCAN}"'
     - 'rfstub "${IMAGE_TO_SCAN}" --verbose'
-    - podman run --rm --name "${IMAGE_TO_SCAN}-rfstub" -p9999:443 --cap-add=SYS_PTRACE -d "${IMAGE_TO_SCAN}-rfstub"
+    - podman run --rm --name "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}" -p9999:443 --cap-add=SYS_PTRACE -d "${IMAGE_TO_SCAN}-rfstub"
     - | 
       STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:9999 || /bin/true)
       until [ "${STATUS_CODE}" == 200 ]; do
         sleep 1
         STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:9999 || /bin/true)
       done
-      podman stop "${IMAGE_TO_SCAN}-rfstub"
+      podman stop "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
     - rfharden "${IMAGE_TO_SCAN}-rfstub" && echo "Hardened Done" || echo "Hardened Failed"
     - podman images
