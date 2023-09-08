@@ -8,6 +8,12 @@ stages:
   - pipeline-trigger
   - release
 
+# only run if non-master branch or protected tag
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+
 include:
   - local: templates/cut-tag.yaml
     rules:
