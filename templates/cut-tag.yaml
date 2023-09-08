@@ -3,9 +3,5 @@ include:
     ref: 898_n-2_pipeline_updates
     file: "stages/release/gitlab-release.yaml"
 
-workflow:
-  rules:
-    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH == "master"
-
 version:
   when: always
