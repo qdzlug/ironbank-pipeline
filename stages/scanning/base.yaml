@@ -72,8 +72,9 @@ rapidfort-scan:
   script:
     - 'podman pull --authfile "${DOCKER_AUTH_FILE_PULL}" "${IMAGE_TO_SCAN}"'
     - 'rfstub "${IMAGE_TO_SCAN}" --verbose'
-    - podman run --rm -d --name "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}" --cap-add=SYS_PTRACE "${IMAGE_TO_SCAN}-rfstub"
-    - podman exec -d "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}" redis-cli ping
+    - podman run --rm -d --name "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}" --volume=/tests/:/tmp --cap-add=SYS_PTRACE "${IMAGE_TO_SCAN}-rfstub"
+    - podman exec "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}" bash -c "/tmp/dc_coverage.sh"
+    - podman exec "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}" bash -c "/tmp/redis_coverage.sh"
     - podman stop "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
     - rfharden "${IMAGE_TO_SCAN}-rfstub" && echo "Hardened Done" || echo "Hardened Failed"
     - podman images
