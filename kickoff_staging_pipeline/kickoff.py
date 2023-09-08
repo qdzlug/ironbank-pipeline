@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Callable
+from argparse import ArgumentParser
 
 import gitlab
 import requests
@@ -88,8 +89,11 @@ class Config:
     config.yaml
     - tester: name of the tester using this script, used to create a group in destination
     - pipeline_branch: pipeline branch to test against
+    - modules_branch: ironbank modules branch to test against
+    - modules_project: ironbank modules project path
     - src_gitlab_url: source url to retrieve repos from (examples: https://repo1.dso.mil or repo1.dso.mil -- both should work)
     - dest_gitlab_url: dest url to use for running test pipelines (examples: https://code-ib-zelda.staging.dso.mil or code-ib-zelda.staging.dso.mil -- both should work)
+    - dest_harbor_url: dest harbor url to push built ib-modules image to (examples: https://harbor-ib-zelda.staging.dso.mil or harbor-ib-zelda.staging.dso.mil -- both should work)
     - group: top level group to gather projects from and push to, should be "dsop" in most cases, but could be changed to something like ironbank-tools if testing automation against those projects
     - template: template directory used for jinja templating the .gitlab-ci.yml file
     - default_project_branch: default branch to use for each project if no branch is specified
@@ -106,8 +110,10 @@ class Config:
 
     tester: str
     pipeline_branch: str
+    modules_branch: str
     src_gitlab_url: str
     dest_gitlab_url: str
+    dest_harbor_url: str
     group: str
     clone_dir: Path
     ci_file: str
@@ -217,6 +223,10 @@ def clone_from_src(config: Config) -> Config:
             project.repo = Repo(dest_dir)
     return config
 
+def build_ib_modules_image(config: Config):
+    config.clone_dir.mkdir(parents=True, exist_ok=True)
+
+    return
 
 def template_ci_file(config: Config) -> Path:
     """
@@ -473,7 +483,13 @@ def main() -> None:
     - Update destination repo permissions
     - Kickoff pipelines for anything that didn't push changes
     """
-    config_files = ["config.yaml", "secrets.yaml"]
+    parser = ArgumentParser(description="Kickoff pipelines in mario or zelda")
+    parser.add_argument('-c', '--config', default="config.yaml")
+    parser.add_argument('-s', '--secrets', default="secrets.yaml")
+    parser.add_argument('-p', '--push-modules', action='store_true')
+    args = parser.parse_args()
+
+    config_files = [args["config"], args["secrets"]]
     config_args = []
     for conf in config_files:
         config_path = Path(conf)
@@ -528,6 +544,10 @@ def main() -> None:
         subprocess.run(
             ["git", "config", "--global", "--unset", "http.proxy"], check=True
         )
+
+    if args.push_modules:
+      print("\n Bulding ib-modules image...")
+      build_ib_modules_image(config)
 
     print("\nKicking off Pipelines...")
     config = kickoff_pipelines(config)

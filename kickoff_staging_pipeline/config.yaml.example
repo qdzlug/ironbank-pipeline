@@ -2,9 +2,12 @@
 # all projects will exist in this group at https://<staging_url>/dsop/<tester>
 tester: <replace_me>
 
+modules_branch: <replace_me>
+modules_project: ironbank-tools/ironbank-modules
 pipeline_branch: <replace_me>
 src_gitlab_url: repo1.dso.mil
 dest_gitlab_url: <replace_me>
+dest_harbor_url: <replace_me>
 group: dsop
 clone_dir: staging_projects
 ci_file: .gitlab-ci.yml
