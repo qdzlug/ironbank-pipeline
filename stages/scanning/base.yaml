@@ -71,7 +71,7 @@ rapidfort-scan:
     RF_SECRET_ACCESS_KEY: $RF_SECRET_ACCESS_KEY
   script:
     - 'podman pull --authfile "${DOCKER_AUTH_FILE_PULL}" "${IMAGE_TO_SCAN}"'
-    - 'rfstub  "${IMAGE_TO_SCAN}"'
+    - 'rfstub "${IMAGE_TO_SCAN}" --verbose'
     - podman run --rm --name "${IMAGE_TO_SCAN}-rfstub" -p9999:443 --cap-add=SYS_PTRACE -d "${IMAGE_TO_SCAN}-rfstub"
     - | 
       STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:9999 || /bin/true)
@@ -80,5 +80,5 @@ rapidfort-scan:
         STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:9999 || /bin/true)
       done
       podman stop "${IMAGE_TO_SCAN}-rfstub"
-    - rfharden  "${IMAGE_TO_SCAN}-rfstub" && echo "Hardened Done" || echo "Hardened Failed"
+    - rfharden "${IMAGE_TO_SCAN}-rfstub" && echo "Hardened Done" || echo "Hardened Failed"
     - podman images
