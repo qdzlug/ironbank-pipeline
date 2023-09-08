@@ -9,4 +9,6 @@ validate-hardening-manifest:
     when: runner_system_failure
   script:
     - "ls $CI_PROJECT_DIR"
+    - "ls ."
+    - "pwd"
     - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/validate_hardening_manifest.py"'
