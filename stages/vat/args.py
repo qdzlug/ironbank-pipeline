@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from pathlib import Path
 
-from envs import ENVS
+from env import Environment
 
 
 class EnvUtil:
@@ -18,42 +18,43 @@ class EnvUtil:
     @property
     def job_id(self) -> str:
         """Pipeline job ID."""
-        return Envs().ci_job_id
+        return Environment().ci_job_id()
 
     @property
     def timestamp(self) -> str:
         """Timestamp for current pipeline run."""
-        return Envs().timestamp
+        return self._timestamp
 
     @property
     def scan_date(self) -> str:
         """Scan date for pipeline run."""
-        return Envs().build_date_scan_date
+        return Environment().build_date()
 
     @property
     def build_date(self) -> str:
         """Build date for pipeline run."""
-        return Envs().build_date_to_scan
+        return Environment().build_date_to_scan()
 
     @property
     def commit_hash(self) -> str:
         """Commit hash for container build."""
-        return Envs().commit_sha
+        commit_sha: str = Environment().commit_sha_to_scan()
+        return commit_sha
 
     @property
     def container(self) -> str:
         """Container VENDOR/PRODUCT/CONTAINER."""
-        return Envs().image_name
+        return Environment().image_name()
 
     @property
     def version(self) -> str:
         """Container Version from VENDOR/PRODUCT/CONTAINER/VERSION format."""
-        return Envs().image_version
+        return Environment().image_version()
 
     @property
     def digest(self) -> str:
         """Container Digest as SHA256 Hash."""
-        return Envs().digest_to_scan
+        return Environment().digest_to_scan()
 
     @property
     def twistlock(self) -> Path:
@@ -76,7 +77,7 @@ class EnvUtil:
     @property
     def comp_link(self) -> str:
         """Link to openscap compliance reports directory."""
-        return Envs().oscap_compliance_url
+        return Environment().oscap_compliance_url()
 
     ###
     # Optional
@@ -85,7 +86,9 @@ class EnvUtil:
     @property
     def api_url(self) -> str:
         """Url for API POST."""
-        return Envs().artifact_storage
+        backend_url = Environment().vat_backend_url()
+        api_url = f"{backend_url}/internal/import/scan"
+        return api_url
 
     @property
     def oscap(self) -> Path:
@@ -96,21 +99,19 @@ class EnvUtil:
     @property
     def parent(self) -> str:
         """Parent VENDOR/PRODUCT/CONTAINER."""
-        return Envs().base_image
+        return Environment().base_image()
 
     @property
     def parent_version(self) -> str:
         """Parent Version from VENDOR/PRODUCT/CONTAINER/VERSION format."""
-        return Envs().base_tag_parent_version
+        return Environment().base_tag_parent_version()
 
-    # use jacobs backup
     @property
     def repo_link(self) -> str:
         """Link to container repository."""
-        return Envs().ci_repo_link
+        return Environment().ci_project_url()
 
-    # use jacobs backup
     @property
-    def use_json(self) -> bool:
-        """Dump payload for API to out.json file."""
-        return Envs().use_json
+    def use_json(self) -> str:
+        """Whether to use predefined payload."""
+        return Environment().use_json_for_vat()
