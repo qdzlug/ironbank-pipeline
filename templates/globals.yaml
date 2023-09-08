@@ -16,6 +16,12 @@ stages:
   - harbor
   - s3-publish
 
+# only run if non-master branch or protected tag
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master"
+    - if: $CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"
+
 include:
   - local: templates/shared_vars.yaml
   - local: templates/setup_modules.yaml
