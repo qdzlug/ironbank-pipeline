@@ -294,6 +294,14 @@ def update_force_push_rules(project: GLProject) -> None:
         }
     )
 
+def add_tag_protection(project: GLProject) -> None:
+    """
+    Add protection for `*-ib-*` tags if not present
+    """
+    try:
+        project.protectedtags.get("*-ib-*")
+    except gitlab.GitlabGetError:
+        project.protectedtags.create({"name": "*-ib-*", "create_access_level": "30"})
 
 def generate_remote(project: Project, repo: Repo, config: Config) -> Remote:
     """
@@ -393,6 +401,7 @@ def update_dest_project_permissions(gl: gitlab.Gitlab, config: Config) -> Config
     Instatiates each project's gl_project object
     - Make project public
     - Allow force push for branch
+    - Add tag protection
     - Add LABEL_ALLOWLIST_REGEX for base images
     """
     assert "repo1" not in gl.api_url
@@ -406,6 +415,7 @@ def update_dest_project_permissions(gl: gitlab.Gitlab, config: Config) -> Config
         gl_project.visibility = "public"
         gl_project.save()
         update_force_push_rules(gl_project)
+        add_tag_protection(gl_project)
         if project.base_image:
             variable_exists = "LABEL_ALLOWLIST_REGEX" in [
                 var.key for var in gl_project.variables.list()
