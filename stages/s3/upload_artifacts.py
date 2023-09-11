@@ -74,7 +74,7 @@ def main() -> None:
     )
     # remove dsop from project_path (e.g. dsop/redhat/ubi/ubi8 becomes redhat/ubi/ubi8)
     image_path: None | str | re.Match[str] = re.match(
-        r"^(?:.*dsop\/)(.*)$", dsop_proj.project_path.as_posix()
+        r"^(?:.*dsop\/)(.*)$", os.environ["CI_PROJECT_DIR"]
     )
     assert isinstance(image_path, re.Match), "No match found for image path"
     image_path = image_path.group(1)
