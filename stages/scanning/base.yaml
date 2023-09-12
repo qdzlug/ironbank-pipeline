@@ -32,9 +32,6 @@ openscap-compliance:
   tags:
     - ironbank-dsop-privileged
   script:
-    - 'cp -rf /home/python/.cache /root'
-    - 'source "$(poetry env info -C "${MODULES_DEPS_PATH}" --path)"/bin/activate'
-    - 'poetry install -C "${MODULES_PACKAGE_PATH}" --only-root'
     - 'python "${PIPELINE_REPO_DIR}"/stages/scanning/openscap/main.py'
   artifacts:
     paths:
