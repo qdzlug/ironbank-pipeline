@@ -99,7 +99,7 @@ class OpenSCAP:
         result = subprocess.run(
             ["oscap", "--version"], stdout=subprocess.PIPE, check=True
         )
-        return result
+        return result.stdout
 
     def _read_file_version(self, version_file_path: Path) -> str:
         with version_file_path.open(encoding="utf-8") as file:
