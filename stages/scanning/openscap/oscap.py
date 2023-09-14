@@ -1,3 +1,4 @@
+import subprocess
 import urllib.request
 import urllib.error
 import zipfile
@@ -9,6 +10,7 @@ from pathlib import Path
 from log import log
 
 from pipeline.utils.envs import Envs
+from pipeline.utils.decorators import subprocess_error_handler
 
 VERSION_PATH: Path = Path("stages/scanning/oscap-version.json")
 SCAP_GUIDE_ZIP_PATH: Path = Path("scap-security-guide.zip")
@@ -71,6 +73,33 @@ class OpenSCAP:
         if not version:
             raise ValueError("Version not found in the version file.")
         return version
+
+    @classmethod
+    def get_scap_version(cls):
+        """Get the SCAP version used by the CLI tool"""
+        result = cls.oscap_version_cli_command()
+        scap_version_pattern = r"SCAP Version: ([\d.]+)"
+        scap_version_match = re.search(scap_version_pattern, result)
+        scap_version = scap_version_match.group(1) if scap_version_match else None
+        return scap_version
+
+    @classmethod
+    def get_cli_version(cls):
+        """Get the version of the CLI tool"""
+        result = cls.oscap_version_cli_command()
+        oscap_version_pattern = r"OpenSCAP command line tool \(oscap\) ([\d.]+)"
+        oscap_version_match = re.search(oscap_version_pattern, result)
+        oscap_version = oscap_version_match.group(1) if oscap_version_match else None
+        return oscap_version
+
+    @classmethod
+    @subprocess_error_handler("Failed to get version")
+    def oscap_version_cli_command(cls):
+        """Wraps the 'oscap --version' command"""
+        result = subprocess.run(
+            ["oscap", "--version"], stdout=subprocess.PIPE, check=True
+        )
+        return result
 
     def _read_file_version(self, version_file_path: Path) -> str:
         with version_file_path.open(encoding="utf-8") as file:

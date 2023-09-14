@@ -3,6 +3,7 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from pipeline.utils.envs import Envs
 from log import log
+from oscap import OpenSCAP
 
 SCAP_CONTENT = "scap-content"
 
@@ -36,7 +37,7 @@ class Artifacts:
         self._remove_scap_content()
         self._save_oscap_version(oscap_version)
         self._move_reports()
-        self._save_job_url()
+        self._save_dynamic_ci_vars()
 
     def _make_directory(self, path: Path) -> None:
         log.info(f"Initializing directory: {self.directory}")
@@ -70,9 +71,13 @@ class Artifacts:
             else:
                 log.warning(f"{file_name} does not exist.")
 
-    def _save_job_url(self) -> None:
+    def _save_dynamic_ci_vars(self) -> None:
         env_path: Path = Path("oscap-compliance.env")
         ci_job_url = Envs().ci_job_url
-        text_to_write = f"OSCAP_COMPLIANCE_URL={ci_job_url}"
-        log.info(ci_job_url)
+        scap_verion = OpenSCAP.get_scap_version()
+        cli_version = OpenSCAP.get_cli_version()
+        text_to_write = f"""OSCAP_COMPLIANCE_URL={ci_job_url}
+SCAP_VERSION={scap_verion}
+OSCAP_CLI_VERSION={cli_version}"""
+        log.info(OpenSCAP.oscap_version_cli_command())
         env_path.write_text(text_to_write, encoding="utf-8")
