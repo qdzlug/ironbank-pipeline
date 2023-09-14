@@ -2,12 +2,12 @@ import pytest
 
 import sys
 from pathlib import Path
-from pipeline.utils.envs import Envs
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 from image import PULL_COMMAND_ERROR, GET_IMAGE_PATH_ERROR
 from oscap import OpenSCAP
 from pipeline.utils.exceptions import GenericSubprocessError
+from pipeline.utils.environment import Environment
 from mocks import MockImage
 
 
@@ -33,12 +33,12 @@ class MockImagePathError(MockImage):
 
 def test_image_image_type(monkeypatch, caplog, openscap):  # type: ignore
     # should get the correct image type based on the environmant variable
-    monkeypatch.setattr(Envs, "base_image_type", "ubi9-container")
+    monkeypatch.setattr(Environment, "base_image_type", lambda self: "ubi9-container")
     image = MockImage(openscap)
     assert image.base_type == "ubi9-container"
 
     # should raise an error if the base image environmental variable is invalid
-    monkeypatch.setattr(Envs, "base_image_type", "invalid")
+    monkeypatch.setattr(Environment, "base_image_type", lambda self: "invalid")
     with pytest.raises(ValueError):
         image = MockImage(openscap)
         assert "not supported" in caplog.text
@@ -46,14 +46,16 @@ def test_image_image_type(monkeypatch, caplog, openscap):  # type: ignore
 
 
 def test_security_guide(monkeypatch, openscap):  # type: ignore
-    monkeypatch.setattr(Envs, "base_image_type", "ubi9-container")
+    monkeypatch.setattr(Environment, "base_image_type", lambda self: "ubi9-container")
     image = MockImage(openscap)
     expected: Path = Path("scap-security-guide-test-version/ssg-rhel9-ds.xml")
     assert image.security_guide_path == expected
 
 
 def test_profile(monkeypatch, openscap):  # type: ignore
-    monkeypatch.setattr(Envs, "base_image_type", "debian11-container")
+    monkeypatch.setattr(
+        Environment, "base_image_type", lambda self: "debian11-container"
+    )
     image = MockImage(openscap)
     expected = "xccdf_org.ssgproject.content_profile_anssi_np_nt28_average"
     assert image.profile == expected
@@ -62,7 +64,7 @@ def test_profile(monkeypatch, openscap):  # type: ignore
 def test_image_path(monkeypatch, caplog, openscap):  # type: ignore
     # class should log the image path and return a path object that is not Path(".")
 
-    monkeypatch.setattr(Envs, "base_image_type", "ubi9-container")
+    monkeypatch.setattr(Environment, "base_image_type", lambda self: "ubi9-container")
 
     image = MockImage(openscap)
 

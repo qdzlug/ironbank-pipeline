@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from oscap import OpenSCAP
 from log import log
-from pipeline.utils.envs import Envs
+from pipeline.utils.environment import Environment
 from pipeline.utils.decorators import subprocess_error_handler
 from pipeline.utils.exceptions import GenericSubprocessError
 
@@ -83,7 +83,7 @@ class Image:
 
     def _get_type(self) -> str:
         try:
-            base_type = Envs().base_image_type
+            base_type = Environment().base_image_type()
             if base_type not in self._supported_images:
                 raise ValueError(
                     f"The base image type {base_type} provided in the environmental variable 'BASE_IMAGE_TYPE' is not supported. Unable to perform OpenSCAP scan."
@@ -95,8 +95,8 @@ class Image:
 
     @subprocess_error_handler(PULL_COMMAND_ERROR)
     def _pull_image(self) -> None:
-        docker_auth_file_pull = Envs().docker_auth_file_pull
-        image_to_scan = Envs().image_to_scan
+        docker_auth_file_pull = Environment().docker_auth_file_pull()
+        image_to_scan = Environment().image_to_scan()
         pull_cmd = [
             "podman",
             "pull",

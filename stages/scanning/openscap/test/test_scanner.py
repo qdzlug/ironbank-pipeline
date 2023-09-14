@@ -3,12 +3,11 @@ import sys
 from pathlib import Path
 from scanner import Scanner
 
-from pipeline.utils.envs import Envs
-
 from mocks import MockImage, MockOpenSCAP
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 from pipeline.utils.exceptions import GenericSubprocessError
+from pipeline.utils.environment import Environment
 
 
 class MockScanner(Scanner):
@@ -22,7 +21,7 @@ class MockScannerError(Scanner):
 
 
 def test_scanner_scan(monkeypatch, caplog):  # type: ignore
-    monkeypatch.setattr(Envs, "base_image_type", "ubi9-container")
+    monkeypatch.setattr(Environment, "base_image_type", lambda self: "ubi9-container")
     image = MockImage(MockOpenSCAP())
     scanner = MockScanner(image)
 

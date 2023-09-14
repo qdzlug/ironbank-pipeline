@@ -3,18 +3,18 @@ import re
 from oscap import OpenSCAP
 from pathlib import Path
 
-from pipeline.utils.envs import Envs
+from pipeline.utils.environment import Environment
 
 
-class MockEnvs(Envs):
+class MockEnvironment(Environment):
     pipeline_repo_dir: Path = Path("tmp/pipeline_repo_dir")
     scap_content_dir: Path = Path(".")
     scap_url: str = "https://download_url.com"
 
 
 @pytest.fixture(scope="module")
-def envs() -> Envs:
-    return MockEnvs()
+def envs() -> Environment:
+    return MockEnvironment()
 
 
 class MockOpenSCAP(OpenSCAP):

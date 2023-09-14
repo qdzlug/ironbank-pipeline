@@ -1,7 +1,7 @@
 import shutil
 from pathlib import Path
 from dataclasses import dataclass, field
-from pipeline.utils.envs import Envs
+from pipeline.utils.environment import Environment
 from log import log
 from oscap import OpenSCAP
 
@@ -29,7 +29,7 @@ class Artifacts:
     directory: Path = field(init=False)
 
     def __post_init__(self) -> None:
-        self.directory = Path(Envs().oscap_scans)
+        self.directory = Path(Environment().oscap_scans())
 
     def prepare(self, oscap_version: str) -> None:
         """Prepares the OSCAP artifacts."""
@@ -73,7 +73,7 @@ class Artifacts:
 
     def _save_dynamic_ci_vars(self) -> None:
         env_path: Path = Path("oscap-compliance.env")
-        ci_job_url = Envs().ci_job_url
+        ci_job_url = Environment().ci_job_url()
         scap_verion = OpenSCAP.get_scap_version()
         cli_version = OpenSCAP.get_cli_version()
         text_to_write = f"""OSCAP_COMPLIANCE_URL={ci_job_url}

@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from log import log
 
-from pipeline.utils.envs import Envs
+from pipeline.utils.environment import Environment
 from pipeline.utils.decorators import subprocess_error_handler
 
 VERSION_PATH: Path = Path("stages/scanning/oscap-version.json")
@@ -68,7 +68,7 @@ class OpenSCAP:
             raise ValueError(NO_VERSION_ERROR) from exc
 
     def _get_openscap_version(self) -> str:
-        version_file_path: Path = Path(Envs().pipeline_repo_dir) / VERSION_PATH
+        version_file_path: Path = Path(Environment().pipeline_repo_dir()) / VERSION_PATH
         version: str = self._read_file_version(version_file_path)
         if not version:
             raise ValueError("Version not found in the version file.")
@@ -108,7 +108,7 @@ class OpenSCAP:
         return version
 
     def _get_download_url(self) -> str:
-        scap_url: str = Envs().scap_url
+        scap_url: str = Environment().scap_url()
         # pylint does not understand ci_var decorator
         # pylint: disable=comparison-with-callable
         if scap_url != "":
