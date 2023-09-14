@@ -29,6 +29,8 @@ export GPG_VERSION_INFO
 export CI_COMMIT_BRANCH
 export TWISTLOCK_VERSION
 export OPENSCAP_VERSION
+export SCAP_VERSION
+export OSCAP_CLI_VERSION
 export ANCHORE_VERSION
 export CI_PIPELINE_ID
 TIMESTAMP="$(date --utc '+%FT%T.%3NZ')"
@@ -55,7 +57,9 @@ jq -n '
       "version": env.TWISTLOCK_VERSION
     },
     "openSCAP": {
-      "version": env.OPENSCAP_VERSION
+      "version": env.OPENSCAP_VERSION,
+      "scapVersion": env.SCAP_VERSION,
+      "cliVersion": env.OSCAP_CLI_VERSION
     },
     "anchore": {
       "version": env.ANCHORE_VERSION
@@ -87,7 +91,9 @@ jq -n '
       "version": env.TWISTLOCK_VERSION
     },
     "openSCAP": {
-      "version": env.OPENSCAP_VERSION
+      "version": env.OPENSCAP_VERSION,
+      "scapVersion": env.SCAP_VERSION,
+      "cliVersion": env.OSCAP_CLI_VERSION
     }
   }
 }' >"${ARTIFACT_DIR}/reports/documentation.json"
