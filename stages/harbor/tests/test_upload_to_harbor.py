@@ -205,3 +205,6 @@ def test_main(monkeypatch, caplog, raise_):
             lambda *args, **kwargs: raise_(GenericSubprocessError),
         )
         upload_to_harbor.main()
+        
+        
+        
