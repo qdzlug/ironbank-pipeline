@@ -1,6 +1,7 @@
 image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner-dev:v0.0.7"
 
 stages:
+  - load-scripts
   - secret-scanning
   - format
   - lint
@@ -11,20 +12,34 @@ stages:
   tags:
     - ironbank-tools
 
+include:
+  - templates/shared_vars.yaml
+  - templates/setup_modules.yaml
+
+load-scripts:
+  stage: load-scripts
+  script:
+    - 'git clone -q --depth 1 --branch "${MODULES_TAG}" "${CI_SERVER_URL}/ironbank-tools/${MODULES_PROJECT}.git" "${MODULES_CLONE_DIR}"'
+    - 'rm -rf "${MODULES_CLONE_DIR}/.git"'
+
 trufflehog:
-  extends: .base
+  extends:
+    - .base
   image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6
   stage: secret-scanning
   variables:
     # This forces the trufflehog job to NOT perform a shallow clone
     GIT_DEPTH: 0
   script:
-    - python3 -m pip install --user .
     - 'git config --global --add safe.directory "${CI_PROJECT_DIR}"'
     - python3 stages/secret-scan/trufflehog.py
 
 lint:
-  extends: .base
+  needs:
+    - load-scripts
+  extends:
+    - .base
+    - .setup_modules
   stage: lint
   script:
     - make lint_all
@@ -37,20 +52,23 @@ lint:
       - ./ironbank_1.stats
 
 format:
-  extends: .base
+  needs:
+    - load-scripts
+  extends:
+    - .base
+    - .setup_modules
   stage: format
   script:
     - make format_check_all
 
 unit-testing:
-  extends: .base
+  needs:
+    - load-scripts
+  extends:
+    - .base
+    - .setup_modules
   stage: test
   script:
-    # TODO: Use load script
-    - cd "${PIPELINE_REPO_DIR}"
-    - 'source "$(poetry env info -C "${MODULES_PACKAGE_PATH}" --path)"/bin/activate'
-    - 'poetry install -C "${MODULES_PACKAGE_PATH}" --only-root'
-    - pip install pytest-cov
     - make run_unit_tests
   coverage: '/^TOTAL.+?(\d+\%)$/'
   variables:
