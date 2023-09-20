@@ -22,7 +22,12 @@
         "python.defaultInterpreterPath": "~/.work/bin/python",
         "python.testing.pytestEnabled": true
       },
-      "extensions": ["ms-python.python", "ms-python.pylint", "my-python.mypy"]
+      "extensions": [
+		"ms-python.python",
+		"ms-python.pylint",
+		"my-python.mypy",
+		"bierner.markdown-mermaid"
+	]
     }
   }
 }
