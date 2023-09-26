@@ -29,8 +29,6 @@ image-inspect:
     - job: trufflehog
       artifacts: false
   script:
-    - 'echo $CI_COMMIT_BRANCH'
-    - 'cat "${PIPELINE_REPO_DIR}/stages/os-type/image_inspect.py"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/os-type/image_inspect.py"'
   artifacts:
     when: always
