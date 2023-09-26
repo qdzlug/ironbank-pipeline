@@ -30,6 +30,7 @@ def template_type(os_type: str) -> None:
         "ubuntu2004-container": "ubuntu.yaml",
     }
     template = template_dict.get(os_type)
+    print(template_dict)
     if not template:
         log.error("Unknown template type for os-type: %s", os_type)
         sys.exit(1)
