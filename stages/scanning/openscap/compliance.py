@@ -78,12 +78,6 @@ def get_oscap_guide(scap_version, image_type):
             + str(scap_version)
             + "/ssg-debian11-ds.xml",
         },
-        "debian12-container": {
-            "profile": "xccdf_org.ssgproject.content_profile_anssi_np_nt28_average",
-            "securityGuide": "scap-security-guide-"
-            + str(scap_version)
-            + "/ssg-debian12-ds.xml",
-        },
     }
     try:
         oscap_container = oscap_guides[image_type]
