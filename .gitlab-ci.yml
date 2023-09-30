@@ -68,12 +68,10 @@ unit-testing:
     - load-scripts
   extends:
     - .base
+    - .setup_modules
   stage: test
   script:
     # required until we update the dev image to use pyproject.toml dev deps
-    - source "$(poetry env info -C /home/python/ironbank-modules/ironbank --path)"/bin/activate
-    - poetry install -C ci-artifacts/ironbank-modules/ironbank --only-root
-    - python3 -m pip install . --quiet
     - pip install pytest-cov
     - make run_unit_tests
   coverage: '/^TOTAL.+?(\d+\%)$/'

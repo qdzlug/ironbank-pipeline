@@ -26,7 +26,7 @@ vat:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: vat
   script:
     - 'mkdir -p "${ARTIFACT_DIR}"'
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py"'
+    - '"${PIPELINE_REPO_DIR}/stages/vat/vat-run-api.sh"'
   artifacts:
     when: always
     paths:
