@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 
-import argparse
 import json
-import logging
 import os
 import shutil
 import sys
 from itertools import groupby
 from pathlib import Path
-from typing import Any, Generator
+from typing import Any, Generator, Tuple
+from common.utils import logger
 
 import requests
 from requests.structures import CaseInsensitiveDict
@@ -25,120 +24,9 @@ from pipeline.scan_report_parsers.anchore import AnchoreReportParser
 from pipeline.scan_report_parsers.oscap import OscapReportParser
 from pipeline.utils.predicates import Predicates
 
-parser = argparse.ArgumentParser(
-    description="DCCSCR processing of CVE reports from various sources"
-)
-parser.add_argument(
-    "-a",
-    "--api_url",
-    help="Url for API POST",
-    default="http://localhost:4000/internal/import/scan",
-    required=False,
-)
-parser.add_argument(
-    "-j",
-    "--job_id",
-    help="Pipeline job ID",
-    required=True,
-)
-parser.add_argument(
-    "-ts",
-    "--timestamp",
-    help="Timestamp for current pipeline run",
-    required=True,
-)
-parser.add_argument(
-    "-sd",
-    "--scan_date",
-    help="Scan date for pipeline run",
-    required=True,
-)
-parser.add_argument(
-    "-bd",
-    "--build_date",
-    help="Build date for pipeline run",
-    required=True,
-)
-parser.add_argument(
-    "-ch",
-    "--commit_hash",
-    help="Commit hash for container build",
-    required=True,
-)
-parser.add_argument(
-    "-c",
-    "--container",
-    help="Container VENDOR/PRODUCT/CONTAINER",
-    required=True,
-)
-parser.add_argument(
-    "-v",
-    "--version",
-    help="Container Version from VENDOR/PRODUCT/CONTAINER/VERSION format",
-    required=True,
-)
-parser.add_argument(
-    "-dg",
-    "--digest",
-    help="Container Digest as SHA256 Hash",
-    required=True,
-)
-parser.add_argument(
-    "-tl",
-    "--twistlock",
-    help="location of the twistlock JSON scan file",
-    required=True,
-)
-parser.add_argument(
-    "-oc",
-    "--oscap",
-    help="location of the oscap scan XML file",
-    required=False,
-)
-parser.add_argument(
-    "-ac",
-    "--anchore-sec",
-    help="location of the anchore_security.json scan file",
-    required=True,
-)
-parser.add_argument(
-    "-ag",
-    "--anchore-gates",
-    help="location of the anchore_gates.json scan file",
-    required=True,
-)
-parser.add_argument(
-    "-pc",
-    "--parent",
-    help="Parent VENDOR/PRODUCT/CONTAINER",
-    required=False,
-)
-parser.add_argument(
-    "-pv",
-    "--parent_version",
-    help="Parent Version from VENDOR/PRODUCT/CONTAINER/VERSION format",
-    required=False,
-)
-parser.add_argument(
-    "-cl",
-    "--comp_link",
-    help="Link to openscap compliance reports directory",
-    required=True,
-)
-parser.add_argument(
-    "-rl",
-    "--repo_link",
-    help="Link to container repository",
-    default="",
-    required=False,
-)
-parser.add_argument(
-    "-uj",
-    "--use_json",
-    help="Dump payload for API to out.json file",
-    action="store_true",
-    required=False,
-)
+from args import EnvUtil
+
+log = logger.setup("vat_import")
 
 
 def generate_anchore_cve_findings(
@@ -250,7 +138,7 @@ def get_twistlock_package_paths(twistlock_data: dict[str, Any]) -> dict:
         # Python/RPM/Go/etc package versions are in "packages"
         yield from twistlock_data.get("packages", [])
 
-    def keyfunc(key):
+    def keyfunc(key: Any) -> Tuple[str, str]:
         return key["name"], key["version"]
 
     # Sort and group by name and version
@@ -302,10 +190,10 @@ def generate_twistlock_findings(twistlock_cve_path: Path) -> list[dict[str, Any]
                     }
                 )
     except KeyError as e:
-        logging.error(
+        log.error(
             "Missing key. Please contact the Iron Bank Pipeline and Ops (POPs) team"
         )
-        logging.error(e.args)
+        log.error(e.args)
         sys.exit(1)
 
     return findings
@@ -334,7 +222,7 @@ def create_api_call() -> dict:
     label_dict = get_source_keys_values(f"{artifact_storage}/lint/labels.env")
     # get cves and justifications from VAT
     # Get all justifications
-    logging.info("Gathering list of all justifications...")
+    log.info("Gathering list of all justifications...")
 
     renovate_enabled = Path("renovate.json").is_file()
 
@@ -359,25 +247,25 @@ def create_api_call() -> dict:
     # if the SKIP_OPENSCAP variable exists, the oscap job was not run.
     # When not os.environ.get("SKIP_OPENSCAP"), this means this is not a SKIP_OPENSCAP project, and oscap findings should be imported
     if args.oscap and not os.environ.get("SKIP_OPENSCAP"):
-        logging.debug("Importing oscap findings")
+        log.debug("Importing oscap findings")
         os_findings = generate_oscap_findings(
             args.oscap, vat_finding_fields=vat_finding_fields
         )
-        logging.debug("oscap finding count: %s", len(os_findings))
+        log.debug("oscap finding count: %s", len(os_findings))
     if args.anchore_sec:
-        logging.debug("Importing anchore security findings")
+        log.debug("Importing anchore security findings")
         asec_findings = generate_anchore_cve_findings(
             args.anchore_sec, vat_finding_fields=vat_finding_fields
         )
-        logging.debug("Anchore security finding count: %s", len(asec_findings))
+        log.debug("Anchore security finding count: %s", len(asec_findings))
     if args.anchore_gates:
-        logging.debug("Importing importing anchore compliance findings")
+        log.debug("Importing importing anchore compliance findings")
         acomp_findings = generate_anchore_comp_findings(args.anchore_gates)
-        logging.debug("Anchore compliance finding count: %s", len(acomp_findings))
+        log.debug("Anchore compliance finding count: %s", len(acomp_findings))
     if args.twistlock:
-        logging.debug("Importing twistlock findings")
+        log.debug("Importing twistlock findings")
         tl_findings = generate_twistlock_findings(args.twistlock)
-        logging.debug("Twistlock finding count: %s", len(tl_findings))
+        log.debug("Twistlock finding count: %s", len(tl_findings))
     all_findings = tl_findings + asec_findings + acomp_findings + os_findings
     large_data = {
         "imageName": args.container,
@@ -399,7 +287,7 @@ def create_api_call() -> dict:
         "labels": label_dict,
         "renovateEnabled": renovate_enabled,
     }
-    logging.debug(large_data)
+    log.debug(large_data)
     return large_data
 
 
@@ -455,7 +343,7 @@ def main() -> None:
     exception during the API call.
 
     Environment Variables:
-    - LOGLEVEL: (Optional) The logging level. Defaults to 'INFO'.
+    - LOGLEVEL: (Optional) The log level. Defaults to 'INFO'.
     - ARTIFACT_DIR: The directory where artifacts will be stored.
     - VAT_TOKEN: The token used for authorization with the VAT API.
     """
@@ -469,7 +357,7 @@ def main() -> None:
         parent_vat_path = Path(f"{os.environ['ARTIFACT_DIR']}/parent_vat_response.json")
         with parent_vat_path.open("r", encoding="UTF-8") as f:
             parent_vat_response_content = {"vatAttestationLineage": json.load(f)}
-        logging.debug(parent_vat_response_content)
+        log.debug(parent_vat_response_content)
     else:
         parent_vat_response_content = {"vatAttestationLineage": None}
 
@@ -491,41 +379,38 @@ def main() -> None:
             args.api_url, headers=headers, json=large_data, timeout=(30, 30)
         )
         resp.raise_for_status()
-        logging.debug("API Response:\n%s", resp.text)
-        logging.debug("POST Response: %s", resp.status_code)
+        log.debug("API Response:\n%s", resp.text)
+        log.debug("POST Response: %s", resp.status_code)
         with Path(f"{os.environ['ARTIFACT_DIR']}/vat_response.json").open(
             "w", encoding="utf-8"
         ) as outfile:
             json.dump(resp.json(), outfile)
     except RuntimeError:
-        logging.exception("RuntimeError: API Call Failed")
+        log.exception("RuntimeError: API Call Failed")
         sys.exit(1)
     except requests.exceptions.HTTPError:
         # only include errors provided by VAT endpoint
         if resp.text and resp.status_code != 500:
-            logging.error("API Response:\n%s", resp.text)
-        logging.exception("HTTP error")
+            log.error("API Response:\n%s", resp.text)
+        log.exception("HTTP error")
         sys.exit(1)
     except requests.exceptions.RequestException:
-        logging.exception("Error submitting data to VAT scan import API")
+        log.exception("Error submitting data to VAT scan import API")
         sys.exit(1)
     except Exception:  # pylint: disable=W0718
-        logging.exception("Exception: Unknown exception")
+        log.exception("Exception: Unknown exception")
         sys.exit(1)
 
 
 if __name__ == "__main__":
-    args = parser.parse_args()
-    # Get logging level, set manually when running pipeline
-    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
-    if loglevel == "DEBUG":
-        logging.basicConfig(
-            level=loglevel,
-            filename="vat_import_logging.out",
-            format="%(levelname)s [%(filename)s:%(lineno)d]: %(message)s",
+    args = EnvUtil()
+
+    REMOTE_REPORT_DIRECTORY = f"{args.timestamp}_{args.commit_hash}"
+
+    if "pipeline-test-project" in args.repo_link:
+        log.info(
+            "Skipping vat. Cannot push to VAT when working with pipeline test projects..."
         )
-        logging.debug("Log level set to debug")
-    else:
-        logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
-        logging.info("Log level set to info")
+        sys.exit(0)
+
     main()
