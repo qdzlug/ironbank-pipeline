@@ -227,7 +227,9 @@ def template_ci_file(config: Config) -> Path:
     environment: Environment = Environment(loader=FileSystemLoader(config.templates))
 
     template: Template = environment.get_template(f"{config.ci_file}.j2")
-    ci_file_content: str = template.render(branch=config.pipeline_branch, modules_tag=config.modules_tag)
+    ci_file_content: str = template.render(
+        branch=config.pipeline_branch, modules_tag=config.modules_tag
+    )
     template_ci_file_path: Path = Path(config.templates, config.ci_file)
 
     with template_ci_file_path.open("w", encoding="utf-8") as f:
