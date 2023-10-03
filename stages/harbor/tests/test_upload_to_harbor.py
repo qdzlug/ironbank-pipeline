@@ -249,4 +249,3 @@ def test_publish_vat_staging_predicates(
         with pytest.raises(SystemExit) as excinfo:
             upload_to_harbor.publish_vat_staging_predicates()
         assert excinfo.value.code == 1
-
