@@ -374,9 +374,10 @@ def main() -> None:
     headers: CaseInsensitiveDict = CaseInsensitiveDict()
     headers["Content-Type"] = "application/json"
     headers["Authorization"] = f"Bearer {os.environ['VAT_TOKEN']}"
+    log.info("Connecting to VAT")
     try:
         resp = requests.post(
-            args.api_url, headers=headers, json=large_data, timeout=(30, 30)
+            args.api_url, headers=headers, json=large_data, timeout=(90, 90)
         )
         resp.raise_for_status()
         log.debug("API Response:\n%s", resp.text)
