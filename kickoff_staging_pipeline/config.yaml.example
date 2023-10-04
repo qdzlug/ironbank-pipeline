@@ -3,6 +3,7 @@
 tester: <replace_me>
 
 pipeline_branch: <replace_me>
+modules_tag: <replace_me>
 src_gitlab_url: repo1.dso.mil
 dest_gitlab_url: <replace_me>
 group: dsop

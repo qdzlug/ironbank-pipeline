@@ -88,6 +88,7 @@ class Config:
     config.yaml
     - tester: name of the tester using this script, used to create a group in destination
     - pipeline_branch: pipeline branch to test against
+    - modules_tag: tag of ironbank-modules to test against
     - src_gitlab_url: source url to retrieve repos from (examples: https://repo1.dso.mil or repo1.dso.mil -- both should work)
     - dest_gitlab_url: dest url to use for running test pipelines (examples: https://code-ib-zelda.staging.dso.mil or code-ib-zelda.staging.dso.mil -- both should work)
     - group: top level group to gather projects from and push to, should be "dsop" in most cases, but could be changed to something like ironbank-tools if testing automation against those projects
@@ -106,6 +107,7 @@ class Config:
 
     tester: str
     pipeline_branch: str
+    modules_tag: str
     src_gitlab_url: str
     dest_gitlab_url: str
     group: str
@@ -225,7 +227,9 @@ def template_ci_file(config: Config) -> Path:
     environment: Environment = Environment(loader=FileSystemLoader(config.templates))
 
     template: Template = environment.get_template(f"{config.ci_file}.j2")
-    ci_file_content: str = template.render(branch=config.pipeline_branch)
+    ci_file_content: str = template.render(
+        branch=config.pipeline_branch, modules_tag=config.modules_tag
+    )
     template_ci_file_path: Path = Path(config.templates, config.ci_file)
 
     with template_ci_file_path.open("w", encoding="utf-8") as f:
