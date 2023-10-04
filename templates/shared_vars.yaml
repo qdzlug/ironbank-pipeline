@@ -6,6 +6,7 @@ variables:
   STAGING_BASE_IMAGE: $STAGING_BASE_IMAGE
   STAGING_PIPELINE: ""
   TARGET_BRANCH: master
+  MULTIARCH_BUILD: "${MULTIARCH_BUILD}"
 
   # load scripts + module sourcing
   PIPELINE_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank_pipeline"
