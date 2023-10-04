@@ -17,4 +17,4 @@ variables:
   # updated modules cloned down in load scripts (used to install the package)
   MODULES_PACKAGE_PATH: "${MODULES_CLONE_DIR}/${MODULES_SUBDIR}"
   # Force rescan of "new" image, sckipping checks to see if the image scans can be run against most recently pushed image
-  FORCE_SCAN_NEW_IMAGE: "$FORCE_SCAN_NEW_IMAGE"
+  FORCE_SCAN_NEW_IMAGE: "${FORCE_SCAN_NEW_IMAGE}"
