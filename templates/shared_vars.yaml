@@ -3,8 +3,8 @@ variables:
   ARTIFACT_STORAGE: "ci-artifacts"
   GIT_SSL_NO_VERIFY: "1"
   LOGLEVEL: "INFO"
-  STAGING_BASE_IMAGE: ""
-  STAGING_PIPELINE: ""
+  STAGING_BASE_IMAGE: "${STAGING_BASE_IMAGE}"
+  STAGING_PIPELINE: "${STAGING_PIPELINE}"
   TARGET_BRANCH: master
 
   # load scripts + module sourcing
