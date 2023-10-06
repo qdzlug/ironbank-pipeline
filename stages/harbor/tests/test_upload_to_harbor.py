@@ -12,7 +12,7 @@ from unittest.mock import patch
 from pipeline.container_tools.container_tool import ContainerTool
 from pipeline.utils.exceptions import GenericSubprocessError
 from common.utils import logger
-from pipeline.test.mocks.mock_classes import (
+from pipeline.test.mocks.mock_classes import (  # pylint: disable=C0412
     MockImage,
     MockSkopeo,
     MockProject,
@@ -109,7 +109,7 @@ def test_convert_artifacts_to_hardening_manifest(monkeypatch, caplog):
         predicate_list, MockPathExtension("test")
     )
 
-    assert f"Converting artifacts to hardening manifest" in caplog.text
+    assert "Converting artifacts to hardening manifest" in caplog.text
 
 
 @patch("upload_to_harbor.Path", new=MockPath)
@@ -121,13 +121,13 @@ def test_generate_vat_response_lineage_file(monkeypatch, caplog):
     monkeypatch.setattr(json, "load", lambda *args, **kwargs: {"images": "testing"})
     monkeypatch.setattr(json, "dump", lambda *args, **kwargs: MockOutput)
     result = upload_to_harbor._generate_vat_response_lineage_file()
-    assert f"parent VAT" not in caplog.text
+    assert "parent VAT" not in caplog.text
     assert result == MockPath("test_artifact_dir/vat_response_lineage.json")
 
     log.info("Mock testing when parent_vat_response exists")
     monkeypatch.setattr(MockPath, "exists", lambda *args, **kwargs: True)
     result = upload_to_harbor._generate_vat_response_lineage_file()
-    assert f"parent VAT" in caplog.text
+    assert "parent VAT" in caplog.text
     caplog.clear()
 
 
