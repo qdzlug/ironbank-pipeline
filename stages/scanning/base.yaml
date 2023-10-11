@@ -24,6 +24,14 @@ anchore-scan:
   artifacts:
     paths:
       - "${ANCHORE_SCANS}/"
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - api_failure
+      - stuck_or_timeout_failure
+      - unknown_failure
+
 
 openscap-compliance:
   extends: .scanning
@@ -37,6 +45,13 @@ openscap-compliance:
       - "${OSCAP_SCANS}"
     reports:
       dotenv: oscap-compliance.env
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - api_failure
+      - stuck_or_timeout_failure
+      - unknown_failure
 
 twistlock-scan:
   id_tokens:
@@ -58,3 +73,10 @@ twistlock-scan:
   artifacts:
     paths:
       - "${TWISTLOCK_SCANS}/"
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - api_failure
+      - stuck_or_timeout_failure
+      - unknown_failure
