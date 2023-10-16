@@ -1,0 +1,4 @@
+# deb http://snapshot.debian.org/archive/debian/20230227T000000Z bookworm main
+deb http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/debian12 bookworm main
+# deb http://snapshot.debian.org/archive/debian/20230227T000000Z bookworm-updates main
+deb http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/debian12-updates bookworm-updates main
