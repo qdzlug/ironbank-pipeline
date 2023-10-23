@@ -32,7 +32,6 @@ anchore-scan:
       - stuck_or_timeout_failure
       - unknown_failure
 
-
 openscap-compliance:
   extends: .scanning
   image: registry1.dso.mil/ironbank/ironbank-pipelines/oscap-podman:v0.1.1
