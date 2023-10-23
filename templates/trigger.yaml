@@ -34,9 +34,6 @@ image-inspect:
     when: always
     reports:
       dotenv: template.env
-  retry:
-    max: 2
-    when: always
 
 trigger:
   stage: pipeline-trigger
