@@ -53,6 +53,9 @@ class MockPathExtension(MockPath):
     def open(self, mode, encoding="", errors=""):
         return MockOpen()
 
+    def __str__(self):
+        return self.name
+
 
 @patch("upload_to_harbor.Skopeo", new=MockSkopeo)
 def test_compare_digests(monkeypatch):
@@ -205,3 +208,44 @@ def test_main(monkeypatch, caplog, raise_):
             lambda *args, **kwargs: raise_(GenericSubprocessError),
         )
         upload_to_harbor.main()
+
+
+@patch("upload_to_harbor.Image", new=MockImage)
+@patch("upload_to_harbor.Cosign", new=MockCosign)
+@patch("upload_to_harbor.Path", new=MockPathExtension)
+@patch(
+    "upload_to_harbor._generate_vat_response_lineage_file",
+    return_value=MockPathExtension("test_vat_response.json"),
+)
+@patch("shutil.copy")
+def test_publish_vat_staging_predicates(
+    mock_copy, mock_vat_response_lineage_file, monkeypatch
+):
+    # Mocking necessary environment variables
+    monkeypatch.setenv("REGISTRY_PRE_PUBLISH_URL", "mock_REGISTRY_PRE_PUBLISH_URL")
+    monkeypatch.setenv("IMAGE_NAME", "mock_IMAGE_NAME")
+    monkeypatch.setenv("IMAGE_PODMAN_SHA", "mock_IMAGE_PODMAN_SHA")
+    monkeypatch.setenv(
+        "DOCKER_AUTH_FILE_PRE_PUBLISH", "mock_DOCKER_AUTH_FILE_PRE_PUBLISH"
+    )
+
+    # Call the function
+    upload_to_harbor.publish_vat_staging_predicates()
+
+    # Assertions
+    expected_path = MockPathExtension("config.json")
+
+    # Get the actual arguments passed to mock_copy
+    actual_args = mock_copy.call_args[
+        0
+    ]  # Extract the positional arguments used in the mock call
+
+    # Ensure the arguments match what we expect
+    assert str(actual_args[0]) == "mock_DOCKER_AUTH_FILE_PRE_PUBLISH"
+    assert str(actual_args[1]) == str(expected_path)
+
+    # Testing GenericSubprocessError exception
+    with patch("upload_to_harbor.Cosign.attest", side_effect=GenericSubprocessError):
+        with pytest.raises(SystemExit) as excinfo:
+            upload_to_harbor.publish_vat_staging_predicates()
+        assert excinfo.value.code == 1
