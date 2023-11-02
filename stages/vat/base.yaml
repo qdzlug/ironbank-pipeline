@@ -39,3 +39,4 @@ vat:
       - api_failure
       - stuck_or_timeout_failure
       - unknown_failure
+      - script_failure
