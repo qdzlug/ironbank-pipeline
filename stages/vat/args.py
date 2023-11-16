@@ -18,7 +18,7 @@ class EnvUtil:
     @property
     def job_id(self) -> str:
         """Pipeline job ID."""
-        return Environment().ci_job_id()
+        return Environment().ci_pipeline_id()
 
     @property
     def timestamp(self) -> str:
