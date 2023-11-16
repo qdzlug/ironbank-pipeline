@@ -62,7 +62,7 @@ twistlock-scan:
 load-coverage-scripts:
   stage: load-coverage-scripts
   script:
-    - 'git clone -q --depth 1 --branch master "${CI_SERVER_URL}"/ironbank-tools/ironbank-rf-content.git "${CI_PROJECT_DIR}"/tmp/ironbank-rf-content'
+    - 'git clone -q --depth 1 --branch add-redis-coverage "${CI_SERVER_URL}"/ironbank-tools/ironbank-rf-content.git "${CI_PROJECT_DIR}"/tmp/ironbank-rf-content'
     - "rm -rf ironbank-rf-content/.git"
 
 rapidfort-scan:
@@ -81,8 +81,7 @@ rapidfort-scan:
     - 'rfstub "${IMAGE_TO_SCAN}" --verbose'
     - ls -lla "${CI_PROJECT_DIR}"/tmp/ironbank-rf-content
     - podman run --rm -d --name "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}" --volume="${CI_PROJECT_DIR}"/tmp/ironbank-rf-content/:/tmp --cap-add=SYS_PTRACE "${IMAGE_TO_SCAN}-rfstub"
-    - podman exec "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}" bash -c "/tmp/dc_coverage.sh"
-    - podman exec "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}" bash -c "/tmp/redis_coverage.sh"
+    - podman exec "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}" bash -c "/tmp/${CI_PROJECT_NAME}/coverage.sh"
     - podman stop "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
     - rfharden "${IMAGE_TO_SCAN}-rfstub" && echo "Hardened Done" || echo "Hardened Failed"
     - podman images
