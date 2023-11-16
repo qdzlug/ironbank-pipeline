@@ -59,8 +59,15 @@ twistlock-scan:
     paths:
       - "${TWISTLOCK_SCANS}/"
 
+load-coverage-scripts:
+  stage: load-coverage-scripts
+  script:
+    - 'git clone -q --depth 1 --branch "master" "${CI_SERVER_URL}/ironbank-tools/ironbank-rf-content.git" "${CI_PROJECT_DIR}/tmp/ironbank-rf-content"'
+    - 'rm -rf "ironbank-rf-content/.git"'
 
 rapidfort-scan:
+needs:
+    - load-coverage-scripts
   extends: .scanning
   tags:
     - ironbank-dsop-privileged
@@ -72,7 +79,8 @@ rapidfort-scan:
   script:
     - 'podman pull --authfile "${DOCKER_AUTH_FILE_PULL}" "${IMAGE_TO_SCAN}"'
     - 'rfstub "${IMAGE_TO_SCAN}" --verbose'
-    - podman run --rm -d --name "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}" --volume=/tests/:/tmp --cap-add=SYS_PTRACE "${IMAGE_TO_SCAN}-rfstub"
+    - ls -lla "${CI_PROJECT_DIR}/tmp/ironbank-rf-content"
+    - podman run --rm -d --name "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}" --volume=${CI_PROJECT_DIR}/tmp/ironbank-rf-content/:/tmp --cap-add=SYS_PTRACE "${IMAGE_TO_SCAN}-rfstub"
     - podman exec "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}" bash -c "/tmp/dc_coverage.sh"
     - podman exec "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}" bash -c "/tmp/redis_coverage.sh"
     - podman stop "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
