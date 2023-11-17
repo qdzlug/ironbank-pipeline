@@ -17,7 +17,6 @@ generate-documents:
     - anchore-scan
     - twistlock-scan
     - openscap-compliance
-    - vat
   script:
     - 'mkdir -p "${ARTIFACT_DIR}/reports"'
     - '"${PIPELINE_REPO_DIR}/stages/documentation/ib-manifest-run.sh"'

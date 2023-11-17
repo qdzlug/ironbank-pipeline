@@ -9,7 +9,6 @@ csv-output:
     - anchore-scan
     - openscap-compliance
     - twistlock-scan
-    - vat
   variables:
     # Put generated csv report in the scan-results folder
     CSV_REPORT: "${ARTIFACT_STORAGE}/scan-results/csvs"
