@@ -76,6 +76,8 @@ rapidfort-scan:
     RF_ROOT_URL: $RF_ROOT_URL
     RF_ACCESS_ID: $RF_ACCESS_ID
     RF_SECRET_ACCESS_KEY: $RF_SECRET_ACCESS_KEY
+    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: runtime
+    RF_CONTAINER_ENGINE: podman    
   script:
     - 'podman pull --authfile "${DOCKER_AUTH_FILE_PULL}" "${IMAGE_TO_SCAN}"'
     - 'rfstub "${IMAGE_TO_SCAN}" --verbose'
