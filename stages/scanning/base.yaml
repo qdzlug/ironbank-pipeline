@@ -81,6 +81,7 @@ rapidfort-scan:
   script:
     - 'rf container engine is "${RF_CONTAINER_ENGINE}"'
     - 'podman pull --authfile "${DOCKER_AUTH_FILE_PULL}" "${IMAGE_TO_SCAN}"'
+    - 'rflogin --verbose'
     - 'rfstub "${IMAGE_TO_SCAN}" --verbose'
     - ls -lla "${CI_PROJECT_DIR}"/tmp/ironbank-rf-content
     - podman run --rm -d --name "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}" --volume="${CI_PROJECT_DIR}"/tmp/ironbank-rf-content/:/tmp --cap-add=SYS_PTRACE "${IMAGE_TO_SCAN}-rfstub"
