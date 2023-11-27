@@ -59,15 +59,14 @@ twistlock-scan:
     paths:
       - "${TWISTLOCK_SCANS}/"
 
-load-coverage-scripts:
-  stage: load-coverage-scripts
+rf-load-coverage-scripts:
   script:
     - 'git clone -q --depth 1 --branch add-redis-coverage "${CI_SERVER_URL}"/ironbank-tools/ironbank-rf-content.git "${CI_PROJECT_DIR}"/tmp/ironbank-rf-content'
     - "rm -rf ironbank-rf-content/.git"
 
 rapidfort-scan:
   needs:
-    - load-coverage-scripts
+    - rf-load-coverage-scripts
   extends: .scanning
   tags:
     - ironbank-dsop-privileged
