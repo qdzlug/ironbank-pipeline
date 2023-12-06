@@ -34,4 +34,9 @@ vat:
     expire_in: 1 week
   retry:
     max: 2
-    when: runner_system_failure
+    when:
+      - runner_system_failure
+      - api_failure
+      - stuck_or_timeout_failure
+      - unknown_failure
+      - script_failure

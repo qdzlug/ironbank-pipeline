@@ -27,7 +27,7 @@ harbor:
       - "${ARTIFACT_DIR}/"
   retry:
     max: 2
-    when: runner_system_failure
+    when: always
 
 update-staging-attestations:
   stage: harbor
@@ -58,4 +58,4 @@ update-staging-attestations:
       - "${ARTIFACT_DIR}/"
   retry:
     max: 2
-    when: runner_system_failure
+    when: always

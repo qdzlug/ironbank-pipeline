@@ -22,4 +22,8 @@ build:
       dotenv: build.env
   retry:
     max: 2
-    when: runner_system_failure
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+      - api_failure
+      - unknown_failure
