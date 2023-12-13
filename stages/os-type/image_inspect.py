@@ -28,7 +28,7 @@ def template_type(os_type: str) -> None:
         "ubi7-container": "ubi.yaml",
         "ubi8-container": "ubi.yaml",
         "ubi9-container": "ubi.yaml",
-        "ubuntu2004-container": "ubuntu.yaml",
+        "ubuntu2004-container": "ubuntu2004.yaml",
         "ubuntu2204-container": "ubuntu2204.yaml",
     }
     template = template_dict.get(os_type)
