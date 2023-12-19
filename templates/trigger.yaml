@@ -6,9 +6,10 @@ workflow:
 
 stages:
   - preprocess
-  - lint
+  # - lint
   - secret-scan
-  - os-type
+  # - os-type
+  - validate-container-metadata
   - pipeline-trigger
 
 include:
@@ -18,17 +19,37 @@ include:
   - local: stages/lint/validate-hardening-manifest.yaml
   - local: stages/secret-scan/trufflehog.yaml
 
-image-inspect:
-  stage: os-type
+# image-inspect:
+#   stage: os-type
+#   extends:
+#     - .setup_modules
+#   needs:
+#     - load-scripts
+#     - job: validate-hardening-manifest
+#       artifacts: false
+#     - job: trufflehog
+#       artifacts: false
+#   script:
+#     - 'python3 "${PIPELINE_REPO_DIR}/stages/os-type/image_inspect.py"'
+#   artifacts:
+#     when: always
+#     reports:
+#       dotenv: template.env
+#   retry:
+#     max: 2
+#     when: always
+
+
+validate-container-metadata:
+  stage: validate-container-metadata
   extends:
     - .setup_modules
   needs:
     - load-scripts
-    - job: validate-hardening-manifest
-      artifacts: false
     - job: trufflehog
       artifacts: false
   script:
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/validate_hardening_manifest.py"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/os-type/image_inspect.py"'
   artifacts:
     when: always
