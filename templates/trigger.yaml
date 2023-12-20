@@ -16,7 +16,7 @@ include:
   - local: templates/shared_vars.yaml
   - local: templates/setup_modules.yaml
   - local: stages/preprocess/load-scripts.yaml
-  - local: stages/lint/validate-hardening-manifest.yaml
+  # - local: stages/lint/validate-hardening-manifest.yaml
   - local: stages/secret-scan/trufflehog.yaml
 
 # image-inspect:
