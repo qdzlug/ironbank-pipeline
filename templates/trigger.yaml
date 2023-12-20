@@ -62,7 +62,7 @@ validate-container-metadata:
 trigger:
   stage: pipeline-trigger
   needs:
-    - image-inspect
+    - validate-container-metadata
   # dotenv vars can be passed but can't be used to configure the job
   # https://docs.gitlab.com/ee/ci/pipelines/downstream_pipelines.html#pass-dotenv-variables-created-in-a-job
   variables:
