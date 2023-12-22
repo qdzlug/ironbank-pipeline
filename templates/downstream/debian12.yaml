@@ -5,5 +5,5 @@ openscap-compliance:
   image: registry.dso.mil/ironbank-tools/ironbank-pipeline/ubupodscap2004:1.3.2
 
 variables:
-  DISTRO_REPO_DIR: "debian-repos/12-bookworm-ironbank.list"
+  DISTRO_REPO_DIR: "debian-repos/debian12"
   DISTRO_REPO_MOUNT: "/etc/apt/sources.list"
