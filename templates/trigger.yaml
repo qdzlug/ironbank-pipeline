@@ -6,9 +6,6 @@ workflow:
 
 stages:
   - preprocess
-  # - lint
-  # - secret-scan
-  # - os-type
   - validate-container-metadata
   - pipeline-trigger
 
@@ -16,55 +13,33 @@ include:
   - local: templates/shared_vars.yaml
   - local: templates/setup_modules.yaml
   - local: stages/preprocess/load-scripts.yaml
-  # - local: stages/lint/validate-hardening-manifest.yaml
-  # - local: stages/secret-scan/trufflehog.yaml
 
-# image-inspect:
-#   stage: os-type
-#   extends:
-#     - .setup_modules
-#   needs:
-#     - load-scripts
-#     - job: validate-hardening-manifest
-#       artifacts: false
-#     - job: trufflehog
-#       artifacts: false
-#   script:
-#     - 'python3 "${PIPELINE_REPO_DIR}/stages/os-type/image_inspect.py"'
-#   artifacts:
-#     when: always
-#     reports:
-#       dotenv: template.env
-#   retry:
-#     max: 2
-#     when: always
-
-
-validate-container-metadata:
+trufflehog:
   stage: validate-container-metadata
-  extends:
-    - .setup_modules
   image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6
   needs:
     - load-scripts
   variables:
-    # This forces the trufflehog script to NOT perform a shallow clone
+    # This forces the trufflehog job to NOT perform a shallow clone
     GIT_DEPTH: 0
-  
-  before-script:
-    # lint
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/validate_hardening_manifest.py"'
-    
   script:
-
-    # secret-scan / trufllehog
     - 'git config --global --add safe.directory "${CI_PROJECT_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/secret-scan/trufflehog.py"'
+  retry:
+    max: 2
+    when: runner_system_failure
 
-  after-script:
-    # os-type/image-inspect
+lint-and-image-inspect:
+  stage: validate-container-metadata
+  extends:
+    - .setup_modules
+  needs:
+    - load-scripts
+    - job: trufflehog
+      artifacts: false
+  script:
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/validate_hardening_manifest.py"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/os-type/image_inspect.py"'
-
   artifacts:
     when: always
     reports:
@@ -76,7 +51,7 @@ validate-container-metadata:
 trigger:
   stage: pipeline-trigger
   needs:
-    - validate-container-metadata
+    - lint-and-image-inspect
   # dotenv vars can be passed but can't be used to configure the job
   # https://docs.gitlab.com/ee/ci/pipelines/downstream_pipelines.html#pass-dotenv-variables-created-in-a-job
   variables:
