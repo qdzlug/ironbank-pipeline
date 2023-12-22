@@ -6,4 +6,4 @@ openscap-compliance:
 
 variables:
   DISTRO_REPO_DIR: "debian-repos/12-bookworm-ironbank.list"
-  DISTRO_REPO_MOUNT: "/etc/apt/sources.list"
+  DISTRO_REPO_MOUNT: "/etc/apt/sources.list.d/debian.sources"
