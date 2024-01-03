@@ -32,3 +32,27 @@ The list of templates is as follows:
   - uses default oscap-podman image for oscap scanning
 - `ubuntu.yaml`
   - uses custom ubuntu based image for openscap scanning
+
+### Stages
+
+#### .pre (preprocess)
+
+This stage is used to clone the `ironbank-pipeline` repository from GitLab so that the templates/stages contained within the project can be utilized in later pipeline stages.
+
+#### validate-container-metadata
+
+This stage contains two jobs, `lint-and-image-inspect` and `trufflehog`. The main goal of this stage is to check the container metadata, output environmental variables that are used by the downstream pipeline and to run the `trufflehog` python tool.
+
+##### lint-and-image-inspect
+
+- This job calls the `stages/lint/validate_hardening_manifest.py` file to make sure the _hardening_manifest_ file is in the correct format.
+- The job will then call `stages/os-type/image_inspect.py` to determine the os-type of the image being built, pull the corresponding image if needed, and wite this to an environment variable.
+
+##### trufflehog
+
+- Calls the `/stages/secret-scan/trufflehog.py` file to scan for secrets and keys in commits pushed to the remote repo.
+- If there is a finding, a command is logged to demonstrate how to run the scan locally, in order to see the finding(s).
+
+#### pipeline trigger
+
+This stage is used to kickoff the downstream pipeline using the _ironbank-tools/ironbank-pipeline_ project and the correct downstream template.
