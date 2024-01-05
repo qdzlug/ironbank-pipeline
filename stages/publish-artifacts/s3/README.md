@@ -37,7 +37,7 @@ This stage only runs on the following branches:
 
 ## Executed Scripts/Binaries
 
-- ${PIPELINE_REPO_DIR}/stages/s3/upload-to-s3-run.sh
+- ${PIPELINE_REPO_DIR}/stages/publish-artifacts/s3/upload-to-s3-run.sh
 
 ## Code Walkthroughs
 
@@ -230,14 +230,14 @@ PROJECT_README="README.md"
 PROJECT_LICENSE="LICENSE"
 VAT_FINDINGS="${ARTIFACT_STORAGE}/lint/vat_api_findings.json"
 
-# shellcheck source=./stages/s3/repo_map_vars.sh
-source "${PIPELINE_REPO_DIR}/stages/s3/repo_map_vars.sh"
+# shellcheck source=./stages/publish-artifacts/s3/repo_map_vars.sh
+source "${PIPELINE_REPO_DIR}/stages/publish-artifacts/s3/repo_map_vars.sh"
 ```
 
 Make necessary directories, set variables, and install necessary python3 modules (boto3, ushlex)
 
 ```bash
-python3 "${PIPELINE_REPO_DIR}"/stages/s3/create_repo_map_default.py --target "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/repo_map.json"
+python3 "${PIPELINE_REPO_DIR}"/stages/publish-artifacts/s3/create_repo_map_default.py --target "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/repo_map.json"
 mkdir reports
 cp -r "${DOCUMENTATION_DIRECTORY}"/reports/* reports/
 cp -r "${SCAN_DIRECTORY}"/* reports/
@@ -250,7 +250,7 @@ Run `create_repo_map_default.py` script and copy reports to local `reports` dire
 ```bash
 if [ -f "${VAT_FINDINGS}" ]; then
 cp "${VAT_FINDINGS}" reports/
-  python3 "${PIPELINE_REPO_DIR}/stages/s3/s3_upload.py" --file "${VAT_FINDINGS}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/${VAT_FINDINGS}"
+  python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/s3/s3_upload.py" --file "${VAT_FINDINGS}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/${VAT_FINDINGS}"
 else
 echo "WARNING: ${VAT_FINDINGS} does not exist, not copying into report"
 fi
@@ -261,21 +261,21 @@ ls reports
 
 tar -zcvf "${REPORT_TAR_NAME}" reports
 
-python3 "${PIPELINE_REPO_DIR}/stages/s3/s3_upload.py" --file repo_map.json --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/repo_map.json"
+python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/s3/s3_upload.py" --file repo_map.json --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/repo_map.json"
 while IFS= read -r -d '' file; do
 object_path="${file#"$ARTIFACT_STORAGE/documentation/"}"
-python3 "${PIPELINE_REPO_DIR}/stages/s3/s3_upload.py" --file "$file" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_DOCUMENTATION_DIRECTORY}/$object_path"
+python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/s3/s3_upload.py" --file "$file" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_DOCUMENTATION_DIRECTORY}/$object_path"
 done < <(find "${DOCUMENTATION_DIRECTORY}" -type f -print0)
 
 while IFS= read -r -d '' file; do
 report_name=$(echo "$file" | rev | cut -d/ -f1-2 | rev)
 echo "$file"
-  python3 "${PIPELINE_REPO_DIR}/stages/s3/s3_upload.py" --file "$file" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/$report_name"
+  python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/s3/s3_upload.py" --file "$file" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/$report_name"
 done < <(find "${SCAN_DIRECTORY}" -type f -print0)
 
-python3 "${PIPELINE_REPO_DIR}/stages/s3/s3_upload.py" --file "${PROJECT_README}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_README}"
-python3 "${PIPELINE_REPO_DIR}/stages/s3/s3_upload.py" --file "${PROJECT_LICENSE}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_LICENSE}"
-python3 "${PIPELINE_REPO_DIR}/stages/s3/s3_upload.py" --file "${REPORT_TAR_NAME}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/${REPORT_TAR_NAME}"
+python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/s3/s3_upload.py" --file "${PROJECT_README}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_README}"
+python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/s3/s3_upload.py" --file "${PROJECT_LICENSE}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/${PROJECT_LICENSE}"
+python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/s3/s3_upload.py" --file "${REPORT_TAR_NAME}" --bucket "${S3_REPORT_BUCKET}" --dest "${BASE_BUCKET_DIRECTORY}/${IMAGE_PATH}/${IMAGE_VERSION}/${REMOTE_REPORT_DIRECTORY}/${REPORT_TAR_NAME}"
 ```
 
 Check that `reports` directory exists, create tarball of the directory. Upload files to S3 `$ARTIFACT_STORAGE/documentation`
@@ -284,7 +284,7 @@ Check that `reports` directory exists, create tarball of the directory. Upload f
 # Only call IBFE POST API if pipeline is running on "master" branch
 
 if [ "${CI_COMMIT_BRANCH}" == "master" ]; then
-python3 "${PIPELINE_REPO_DIR}/stages/s3/ibfe_api_post.py"
+python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/s3/ibfe_api_post.py"
 fi
 
 ```

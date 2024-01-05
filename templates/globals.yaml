@@ -14,8 +14,6 @@ stages:
   - check-cves
   - documentation
   - publish-artifacts
-  - harbor
-  - s3-publish
 
 include:
   - local: templates/shared_vars.yaml
@@ -33,10 +31,7 @@ include:
   - local: stages/csv-output/base.yaml
   - local: stages/check-cves/base.yaml
   - local: stages/documentation/base.yaml
-
   - local: stages/publish-artifacts/base.yaml
-  # - local: stages/harbor/harbor.yaml
-  # - local: stages/s3/upload-to-s3.yaml
 
 workflow:
   rules:
