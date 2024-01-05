@@ -1,0 +1,108 @@
+harbor:
+  stage: publish-artifacts
+  extends:
+    - .setup_modules
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+  resource_group: harbor_phase
+  needs:
+    - load-scripts
+    - lint
+    - build
+    - create-sbom
+    - scan-logic
+    - vat
+  variables:
+    SBOM_DIR: ${ARTIFACT_STORAGE}/sbom
+    PARENT_VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/parent_vat_response.json
+    VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/vat_response.json
+    ACCESS_LOG_DIR: ${ARTIFACT_STORAGE}/build
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/harbor
+  script:
+    - 'mkdir -p "${ARTIFACT_DIR}"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/harbor/upload_to_harbor.py"'
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_DIR}/"
+  retry:
+    max: 2
+    when: always
+
+update-staging-attestations:
+  stage: publish-artifacts
+  extends:
+    - .setup_modules
+  rules:
+    - if: $CI_COMMIT_BRANCH != "master" && $PUBLISH_VAT_STAGING_PREDICATES
+  resource_group: harbor_phase
+  needs:
+    - load-scripts
+    - lint
+    - build
+    - create-sbom
+    - scan-logic
+    - vat
+  variables:
+    SBOM_DIR: ${ARTIFACT_STORAGE}/sbom
+    PARENT_VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/parent_vat_response.json
+    VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/vat_response.json
+    ACCESS_LOG_DIR: ${ARTIFACT_STORAGE}/build
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/harbor
+  script:
+    - 'mkdir -p "${ARTIFACT_DIR}"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/harbor/upload_to_harbor.py"'
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_DIR}/"
+  retry:
+    max: 2
+    when: always
+
+upload-to-s3:
+  stage: publish-artifacts
+  extends:
+    - .setup_modules
+  resource_group: s3_phase
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+  id_tokens:
+    VAT_TOKEN:
+      aud: ${CI_SERVER_URL}
+  variables:
+    #TODO: Put these in globals
+    SCAN_DIRECTORY: "${ARTIFACT_STORAGE}/scan-results"
+    DOCUMENTATION_DIRECTORY: "${ARTIFACT_STORAGE}/documentation"
+    BUILD_DIRECTORY: "${ARTIFACT_STORAGE}/build"
+    SBOM_DIRECTORY: "${ARTIFACT_STORAGE}/sbom"
+    VAT_DIRECTORY: "${ARTIFACT_STORAGE}/vat"
+    BASE_BUCKET_DIRECTORY: container-scan-reports
+    DOCUMENTATION_FILENAME: documentation
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
+    REPORT_TAR_NAME: ${CI_PROJECT_NAME}-${IMAGE_VERSION}-reports-signature.tar.gz
+    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: ibfe
+
+  needs:
+    - load-scripts
+    - lint
+    - build
+    - create-sbom
+    - scan-logic
+    - anchore-scan
+    - twistlock-scan
+    - openscap-compliance
+    - csv-output
+    - generate-documents
+    - vat
+    - job: harbor
+      artifacts: false
+  script:
+    - 'python "${PIPELINE_REPO_DIR}/stages/s3/upload_artifacts.py"'
+  artifacts:
+    paths:
+      - reports/
+    expire_in: 1 week
+  retry:
+    max: 2
+    when: runner_system_failure
