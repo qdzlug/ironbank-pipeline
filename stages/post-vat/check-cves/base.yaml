@@ -1,5 +1,5 @@
 check-cves:
-  stage: check-cves
+  stage: post-vat
   extends:
     - .setup_modules
   allow_failure:
@@ -13,7 +13,7 @@ check-cves:
     - vat
   script:
     - set +e
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/check-cves/vat_response_parse.py"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/post-vat/check-cves/vat_response_parse.py"'
   retry:
     max: 2
     when: runner_system_failure

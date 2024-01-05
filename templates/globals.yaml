@@ -11,7 +11,6 @@ stages:
   - post-vat
   # - generate-documentation
   - csv-output
-  - check-cves
   - documentation
   - publish-artifacts
 
@@ -29,7 +28,6 @@ include:
   - local: stages/post-vat/base.yaml
   # - local: stages/generate-documentation/base.yaml
   - local: stages/csv-output/base.yaml
-  - local: stages/check-cves/base.yaml
   - local: stages/documentation/base.yaml
   - local: stages/publish-artifacts/base.yaml
 
