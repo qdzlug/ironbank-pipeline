@@ -30,8 +30,9 @@ upload-to-s3:
     - anchore-scan
     - twistlock-scan
     - openscap-compliance
-    - csv-output
-    - generate-documents
+    - generate-documentation
+    # - csv-output
+    # - generate-documents
     - vat
     - job: harbor
       artifacts: false
