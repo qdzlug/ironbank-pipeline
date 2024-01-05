@@ -49,7 +49,7 @@ trufflehog:
     GIT_DEPTH: 0
   script:
     - 'git config --global --add safe.directory "${CI_PROJECT_DIR}"'
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/validate-container-repository/trufflehog.py"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/validate-container-repository/secret-scan/trufflehog.py"'
   retry:
     max: 2
     when: runner_system_failure
