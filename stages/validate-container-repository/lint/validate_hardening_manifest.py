@@ -16,7 +16,7 @@ def main():
     hardening_manifest = HardeningManifest(
         dsop_project.hardening_manifest_path,
         Path(
-            Path(__file__).parent.parent.parent, "schema/hardening_manifest.schema.json"
+            Path(__file__).parent.parent.parent.parent, "schema/hardening_manifest.schema.json"
         ).as_posix(),
         validate=True,
     )

@@ -32,7 +32,7 @@ trufflehog:
     GIT_DEPTH: 0
   script:
     - 'git config --global --add safe.directory "${CI_PROJECT_DIR}"'
-    - python3 stages/secret-scan/trufflehog.py
+    - python3 stages/validate-container-repository/secret-scan/trufflehog.py
 
 lint:
   needs:
@@ -78,7 +78,7 @@ unit-testing:
     - make run_unit_tests
   coverage: '/^TOTAL.+?(\d+\%)$/'
   variables:
-    ARTIFACT_DIR: "stages/lint/tests/mock"
+    ARTIFACT_DIR: "stages/validate-container-repository/lint/tests/mock"
     CI_COMMIT_BRANCH: "development"
     MODULES_PACKAGE_PATH: "/home/python/ironbank-modules/ironbank"
     PIPELINE_REPO_DIR: "/builds/ironbank-tools/ironbank-pipeline"

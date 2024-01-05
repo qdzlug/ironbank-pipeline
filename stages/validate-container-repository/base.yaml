@@ -1,5 +1,5 @@
 lint:
-  stage: lint
+  stage: validate-container-repository
   extends:
     - .setup_modules
   needs:
@@ -37,4 +37,19 @@ lint:
         exit 1
       fi
     - set +e
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/lint_jobs.py"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/validate-container-repository/lint/lint_jobs.py"'
+
+trufflehog:
+  stage: validate-container-repository
+  image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6
+  needs:
+    - load-scripts
+  variables:
+    # This forces the trufflehog job to NOT perform a shallow clone
+    GIT_DEPTH: 0
+  script:
+    - 'git config --global --add safe.directory "${CI_PROJECT_DIR}"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/validate-container-repository/trufflehog.py"'
+  retry:
+    max: 2
+    when: runner_system_failure

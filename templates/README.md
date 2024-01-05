@@ -45,12 +45,12 @@ This stage contains two jobs, `lint-and-image-inspect` and `trufflehog`. The mai
 
 ##### lint-and-image-inspect
 
-- This job calls the `stages/lint/validate_hardening_manifest.py` file to make sure the _hardening_manifest_ file is in the correct format.
+- This job calls the `stages/validate-container-repository/lint/validate_hardening_manifest.py` file to make sure the _hardening_manifest_ file is in the correct format.
 - The job will then call `stages/os-type/image_inspect.py` to determine the os-type of the image being built, pull the corresponding image if needed, and wite this to an environment variable.
 
 ##### trufflehog
 
-- Calls the `/stages/secret-scan/trufflehog.py` file to scan for secrets and keys in commits pushed to the remote repo.
+- Calls the `/stages/validate-container-repository/secret-scan/trufflehog.py` file to scan for secrets and keys in commits pushed to the remote repo.
 - If there is a finding, a command is logged to demonstrate how to run the scan locally, in order to see the finding(s).
 
 #### pipeline trigger

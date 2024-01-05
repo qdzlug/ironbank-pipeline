@@ -135,7 +135,7 @@ def main() -> None:  # pylint: disable=subprocess-decorator-missing
     )
     default_truffle_config = Path(
         pipeline_repo_dir,
-        "stages/secret-scan/default-trufflehog-config.yaml",
+        "stages/validate-container-repository/secret-scan/default-trufflehog-config.yaml",
     )
 
     project_origin = os.environ.get("TRUFFLEHOG_TARGET", "cht")

@@ -1,8 +1,7 @@
 image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.12
 stages:
   - preprocess
-  - lint
-  - secret-scan
+  - validate-container-repository  
   - import-artifacts
   - build
   - post-build
@@ -20,8 +19,7 @@ include:
   - local: templates/shared_vars.yaml
   - local: templates/setup_modules.yaml
   - local: stages/preprocess/load-scripts.yaml
-  - local: stages/lint/lint.yaml
-  - local: stages/secret-scan/trufflehog.yaml
+  - local: stages/validate-container-repository/base.yaml
   - local: stages/import-artifacts/import-artifacts.yaml
   - local: stages/build/base.yaml
   - local: stages/post-build/base.yaml

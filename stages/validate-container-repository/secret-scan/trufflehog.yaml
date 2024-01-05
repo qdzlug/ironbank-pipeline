@@ -1,5 +1,5 @@
 trufflehog:
-  stage: secret-scan
+  stage: validate-container-repository
   image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6
   needs:
     - load-scripts
@@ -8,7 +8,7 @@ trufflehog:
     GIT_DEPTH: 0
   script:
     - 'git config --global --add safe.directory "${CI_PROJECT_DIR}"'
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/secret-scan/trufflehog.py"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/validate-container-repository/secret-scan/trufflehog.py"'
   retry:
     max: 2
     when: runner_system_failure
