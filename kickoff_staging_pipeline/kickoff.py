@@ -224,7 +224,10 @@ def template_ci_file(config: Config) -> Path:
     """
     Template .gitlab-ci.yml with expected pipeline branch
     """
-    environment: Environment = Environment(loader=FileSystemLoader(config.templates))
+    # Adding autoescape=True mitigates high severity bandit issue B701:jinja2_autoescape_false
+    environment: Environment = Environment(
+        autoescape=True, loader=FileSystemLoader(config.templates)
+    )
 
     template: Template = environment.get_template(f"{config.ci_file}.j2")
     ci_file_content: str = template.render(

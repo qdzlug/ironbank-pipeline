@@ -107,7 +107,8 @@ def getManifest(project):
 def createBaseImageIssue(project, image):
     # Create the templating objects
     templateLoader = jinja2.FileSystemLoader(searchpath="./templates")
-    templateEnv = jinja2.Environment(loader=templateLoader)
+    # Adding autoescape=True mitigates high severity bandit issue B701:jinja2_autoescape_false
+    templateEnv = jinja2.Environment(autoescape=True, loader=templateLoader)
 
     # Load the template
     template = templateEnv.get_template("issue.md")

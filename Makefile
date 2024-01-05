@@ -21,5 +21,7 @@ run_shellcheck:
 	./code_checker.sh run_shellcheck
 run_unit_tests:
 	./code_checker.sh run_unit_tests
+run_bandit:
+	./code_checker.sh run_bandit
 check_secrets:
 	./code_checker.sh run_check_secrets
