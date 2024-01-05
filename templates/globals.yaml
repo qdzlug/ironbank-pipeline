@@ -9,10 +9,10 @@ stages:
   - scanning
   - vat
   - post-vat
-  - generate-documentation
-  # - csv-output
+  # - generate-documentation
+  - csv-output
   - check-cves
-  # - documentation
+  - documentation
   - harbor
   - s3-publish
 
@@ -28,10 +28,10 @@ include:
   - local: stages/scanning/base.yaml
   - local: stages/vat/base.yaml
   - local: stages/post-vat/base.yaml
-  - local: stages/generate-documentation/base.yaml
-  # - local: stages/csv-output/base.yaml
+  # - local: stages/generate-documentation/base.yaml
+  - local: stages/csv-output/base.yaml
   - local: stages/check-cves/base.yaml
-  # - local: stages/documentation/base.yaml
+  - local: stages/documentation/base.yaml
   - local: stages/harbor/harbor.yaml
   - local: stages/s3/upload-to-s3.yaml
 
