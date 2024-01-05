@@ -169,6 +169,22 @@ run_isort() {
   echo -e "\n"
 }
 
+run_bandit() {
+  echo "*********************"
+  echo "Running bandit..."
+  echo "*********************"
+  pip install bandit
+  # If bandit finds vulnerabilities the command exits with a non-zero value. This causes the job to fail in the pipeline.
+  # Therefore if bandit finds vulnerabilites the bandit report is printed to the console and the job exits with the correct error code.
+  bandit -r ./ -f txt -o ./bandit_report.txt || exit_code=$?
+  if [ "$exit_code" -ne 0 ]; then
+    cat ./bandit_report.txt
+    echo "Bandit found vulnerabilities. Exiting with $exit_code"
+    exit "$exit_code"
+  fi
+  echo "Bandit found no unaddressed vulnerabilities."
+}
+
 lint_all() {
   rm -rf pylint
   run_pylint
