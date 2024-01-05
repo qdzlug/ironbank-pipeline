@@ -1,0 +1,43 @@
+generate-documentation:
+# csv-output:
+  stage: generate-documentation
+  extends:
+    - .setup_modules
+ 
+#  Not sure if this line means that these jobs can't be combined
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+ 
+  needs:
+    - load-scripts
+    - lint
+    - build
+    - scan-logic
+    - anchore-scan
+    - openscap-compliance
+    - twistlock-scan
+    - vat
+  variables:
+    # Put generated csv report in the scan-results folder
+    CSV_REPORT: "${ARTIFACT_STORAGE}/scan-results/csvs"
+    # reusing the VAT artifact dir to prevent redownloading
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/vat"
+    ENV_FILENAME: "csv_output.env"
+    OPENSCAP_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/openscap/oscap-version.txt"
+    TWISTLOCK_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock-version.txt"
+    ANCHORE_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/anchore/anchore-version.txt"
+  script:
+    - python3 "${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py"
+    - python3 "${PIPELINE_REPO_DIR}"/stages/csv-output/excel_convert.py -i "${CSV_REPORT}"/ -o "${CSV_REPORT}"/"${CI_PROJECT_NAME}":"${IMAGE_VERSION}"-"${CI_PIPELINE_ID}"-justifications.xlsx
+    - 'mkdir -p "${ARTIFACT_DIR}/reports"'
+    - '"${PIPELINE_REPO_DIR}/stages/documentation/ib-manifest-run.sh"'
+    - '"${PIPELINE_REPO_DIR}/stages/documentation/write-json-docs-run.sh"'
+  artifacts:
+    when: always
+    paths:
+      - "${CSV_REPORT}"
+      - $ARTIFACT_DIR
+    expire_in: 1 week
+  retry:
+    max: 2
+    when: runner_system_failure
