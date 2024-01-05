@@ -1,20 +1,20 @@
 Types: deb
 # http://snapshot.debian.org/archive/debian/20230227T000000Z
-URIs: http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/debian
+URIs: http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/debian12
 Suites: bookworm
 Components: main
 Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 
 Types: deb
 # http://snapshot.debian.org/archive/debian/20230227T000000Z
-URIs: http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/debian-security
+URIs: http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/debian12-security
 Suites: bookworm-security
 Components: main
 Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 
 Types: deb
 # http://snapshot.debian.org/archive/debian/20230227T000000Z
-URIs: http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/debian-updates
+URIs: http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/debian12-updates
 Suites: bookworm-updates
 Components: main
 Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
