@@ -5,6 +5,7 @@ import subprocess
 import sys
 import typing
 import urllib
+from time import sleep
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -94,6 +95,7 @@ class Config:
     - group: top level group to gather projects from and push to, should be "dsop" in most cases, but could be changed to something like ironbank-tools if testing automation against those projects
     - template: template directory used for jinja templating the .gitlab-ci.yml file
     - default_project_branch: default branch to use for each project if no branch is specified
+    - use_socks_proxy: If using appgate set this value to false to allow git pushing to a staging gitlab instance.
     - projects: list of projects to use for testing
 
     - proxies: not currently set in the config since this script will pretty much always require a proxy, can be added to the config if needed
@@ -114,15 +116,10 @@ class Config:
     clone_dir: Path
     ci_file: str
     templates: str | Path
+    use_socks_proxy: bool
     default_project_branch: str
     # TODO: update where necessary to set this as list[Project] | list[dict[str, str]]
     projects: list[Project] | Any
-    proxies: dict[str, str] = field(
-        default_factory=lambda: {
-            "https": "socks5h://127.0.0.1:12345",
-            "http": "socks5h://127.0.0.1:12345",
-        }
-    )
     src_un: str = field(default_factory=lambda: os.environ.get("SRC_UN", ""))
     src_pw: str = field(default_factory=lambda: os.environ.get("SRC_PW", ""))
     dest_un: str = field(default_factory=lambda: os.environ.get("DEST_UN", ""))
@@ -181,6 +178,17 @@ class Config:
         for url in [self.dest_gitlab_url, self.dest_git_url, self.dest]:
             assert "repo1" not in url
         assert self.tester
+
+        # check if the socks proxy is being used.
+        if self.use_socks_proxy:
+            self.proxies: dict[str, str] = field(
+                default_factory=lambda: {
+                    "https": "socks5h://127.0.0.1:12345",
+                    "http": "socks5h://127.0.0.1:12345",
+                }
+            )
+        else:
+            self.proxies: dict[str, str] = {}
 
     @property
     def src(self) -> str:
@@ -540,14 +548,21 @@ def main() -> None:
     config = kickoff_pipelines(config)
 
     print("\nPipeline links:")
+    pipelines = []
     for project in config.projects:
         if project.changes_pushed:
-            pipelines = project.gl_project.pipelines.list(
-                updated_after=str(datetime.now() - timedelta(minutes=2))
-            )
-            assert isinstance(pipelines, list)
+            counter = 0
+            while len(pipelines) == 0 or counter < 5:
+                pipelines = project.gl_project.pipelines.list(
+                    updated_after=str(datetime.now() - timedelta(minutes=2))
+                )
+                sleep(1)
+                counter += 1
+            if len(pipelines) == 0:
+                print("\nUnable to find project pipeline, please check the project in target Gitlab instance.\n")
+                return
             project.pipeline = pipelines[0]
-        print(project.pipeline.web_url)
+            print(project.pipeline.web_url)
 
     open_urls_in_firefox = input(
         "\nDo you want to open these urls in firefox and do you have the required gecko driver installed?\n"
