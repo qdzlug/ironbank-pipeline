@@ -11,7 +11,7 @@ clone_dir: staging_projects
 ci_file: .gitlab-ci.yml
 templates: templates
 default_project_branch: master
-use_socks_proxy: <False_if_using_appgate>
+use_socks_proxy: False
 # project path in gitlab
 projects:
   - src_path: redhat/ubi/ubi8
