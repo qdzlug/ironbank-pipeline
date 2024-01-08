@@ -1,5 +1,5 @@
 generate-documents:
-  stage: documentation
+  stage: generate-documentation
   extends:
     - .setup_modules
   rules:
