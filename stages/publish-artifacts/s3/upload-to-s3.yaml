@@ -34,8 +34,8 @@ upload-to-s3:
     - csv-output
     - generate-documents
     - vat
-    - job: harbor
-      artifacts: false
+    # - job: harbor
+    #   artifacts: false
   script:
     - 'python "${PIPELINE_REPO_DIR}/stages/publish-artifacts/s3/upload_artifacts.py"'
   artifacts:

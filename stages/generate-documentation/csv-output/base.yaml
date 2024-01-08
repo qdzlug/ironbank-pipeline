@@ -17,8 +17,8 @@ csv-output:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/vat"
     ENV_FILENAME: "csv_output.env"
   script:
-    - python3 "${PIPELINE_REPO_DIR}/stages/csv-output/pipeline_csv_gen.py"
-    - python3 "${PIPELINE_REPO_DIR}"/stages/csv-output/excel_convert.py -i "${CSV_REPORT}"/ -o "${CSV_REPORT}"/"${CI_PROJECT_NAME}":"${IMAGE_VERSION}"-"${CI_PIPELINE_ID}"-justifications.xlsx
+    - python3 "${PIPELINE_REPO_DIR}/stages/generate-documentation/csv-output/pipeline_csv_gen.py"
+    - python3 "${PIPELINE_REPO_DIR}"/stages/generate-documentation/csv-output/excel_convert.py -i "${CSV_REPORT}"/ -o "${CSV_REPORT}"/"${CI_PROJECT_NAME}":"${IMAGE_VERSION}"-"${CI_PIPELINE_ID}"-justifications.xlsx
   artifacts:
     when: always
     paths:

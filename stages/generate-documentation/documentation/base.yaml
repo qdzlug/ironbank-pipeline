@@ -20,8 +20,8 @@ generate-documents:
     - vat
   script:
     - 'mkdir -p "${ARTIFACT_DIR}/reports"'
-    - '"${PIPELINE_REPO_DIR}/stages/documentation/ib-manifest-run.sh"'
-    - '"${PIPELINE_REPO_DIR}/stages/documentation/write-json-docs-run.sh"'
+    - '"${PIPELINE_REPO_DIR}/stages/generate-documentation/documentation/ib-manifest-run.sh"'
+    - '"${PIPELINE_REPO_DIR}/stages/generate-documentation/documentation/write-json-docs-run.sh"'
   artifacts:
     paths:
       - $ARTIFACT_DIR
