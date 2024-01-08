@@ -1,5 +1,5 @@
 harbor:
-  stage: harbor
+  stage: publish-artifacts
   extends:
     - .setup_modules
   rules:
@@ -30,7 +30,7 @@ harbor:
     when: always
 
 update-staging-attestations:
-  stage: harbor
+  stage: publish-artifacts
   extends:
     - .setup_modules
   rules:
