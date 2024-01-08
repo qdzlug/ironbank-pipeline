@@ -5,10 +5,10 @@ import subprocess
 import sys
 import typing
 import urllib
-from time import sleep
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
+from time import sleep
 from typing import Any, Callable
 
 import gitlab
@@ -559,7 +559,9 @@ def main() -> None:
                 sleep(1)
                 counter += 1
             if len(pipelines) == 0:
-                print("\nUnable to find project pipeline, please check the project in target Gitlab instance.\n")
+                print(
+                    "\nUnable to find project pipeline, please check the project in target Gitlab instance.\n"
+                )
                 return
             project.pipeline = pipelines[0]
             print(project.pipeline.web_url)
