@@ -232,29 +232,13 @@ The following stages will only run on master branches.
 
 ### generate-documentation
 
-#### documentation
+#### generate-documentation
 
-The `documentation` job consists of two tasks.
-
-##### ib-manifest
-
-Creates a JSON file with image digest and ID shasums.
-
-##### write-json-docs
-
-Creates JSON files with scan metadata info. Includes scan tool versions and commit shasum
+The `generate-documentation` job creates a JSON file with image digest and ID shasums for the ib-manifest. This job also creates JSON files with scan metadata info which includes scan tool versions and commit shashums. Additionally this job generates csv files for the various scans and the `<image-and-pipeline-id>-justifications.xlsx` file. 
 
 Job artifacts:
 
 - `scan_metadata.json` - provides metadata from the scans.
-
-#### csv-output
-
-The `csv-output` stage will generate CSV files for the various scans and the `<image-and-pipeline-id>-justifications.xlsx` file.
-These documents can be found in the artifacts for this stage.
-
-Job artifacts:
-
 - `all_scans.xlsx` - compilation of all scan results in Microsoft Excel format.
 - `anchore_gates.csv` - Anchore gates in CSV results.
 - `anchore_security.csv` - Anchore security results in CSV format.
