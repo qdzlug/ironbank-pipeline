@@ -52,15 +52,17 @@ A new pipeline run will need to occur in order to produce job artifacts after th
 
 This stage is used to clone the `ironbank-pipeline` repository from GitLab so that the templates/stages contained within the project can be utilized in later pipeline stages.
 
-### lint
+### validate-container-repository
 
-The `lint` stage contains two jobs, `lint` and `trufflehog`.
+The `validate-container-repository` stage contains two jobs, `lint` and `trufflehog`.
 `lint` runs a number of python scripts to validate a project's structure, and individual file structure.
 `trufflehog` is a python tool to look for secrets or passwords contained in commits pushed to Repo1 (GitLab).
 
+#### lint
+
 The `lint` scripts run, include:
 
-#### folder-structure
+##### folder-structure
 
 The `folder_structure` function will check for the required files, and validate some of these as well, excluding the hardening manifest as a separate functions will check this.
 
@@ -70,7 +72,7 @@ The `folder_structure` function will check for the required files, and validate 
 - validate_dockerfile
 - pipeline_auth_status
 
-#### hardening manifest validation
+##### hardening manifest validation
 
 The `hardening_manifest_validation` function will run jsonschema validation, as well as create an environment file with variables used later in the pipeline.
 
@@ -78,11 +80,11 @@ Job artifacts:
 
 - project variables which are used in later pipeline stages.
 
-#### docker file validation
+##### docker file validation
 
 Checks to make sure a proper `FROM` command is used for a project's base image
 
-#### base image validation
+##### base image validation
 
 If a base image is used, checks to make sure it exists in [Registry1](https://registry1.dso.mil/ironbank).
 `skopeo` is used to perform the base image inspect.
@@ -91,16 +93,12 @@ Job artifacts:
 
 - base_image.json which contains the base image digest
 
-### artifact-secrets
-
-This stage runs the trufflehog secret scan, as well as importing artifacts listed in the hardening manifest.
-
 #### trufflehog
 
 Scans for secrets and keys in commits pushed to the remote.
 If there is a finding, a command is logged to demonstrate how to run the scan locally, in order to see the finding(s).
 
-#### import artifacts
+### import artifacts
 
 The `import artifacts` stage will download the external resources and validate that the checksums calculated upon download match the checksums provided in the `hardening_manifest.yaml` file.
 
@@ -221,7 +219,36 @@ The `vat` stage uses previous pipeline artifacts (notably, from the `scanning` s
 VAT contains the list of the findings associated with the built image in the pipeline, where those with access can justify findings and provide approvals.
 For those who are attempting to get their containers approved, they will need to provide their justifications for any findings that cannot be remediated, in the VAT.
 
-### csv-output
+### post-vat
+
+#### check cves
+
+The `check cves` stage is configured to notify users of new unjustified or unreviewed findings.
+This job uses the `vat_response.json` file from the `vat` stage, to display any findings that the user should be aware of.
+
+The following stages will only run on master branches.
+
+#### check-findings
+
+### generate-documentation
+
+#### documentation
+
+The `documentation` job consists of two tasks.
+
+##### ib-manifest
+
+Creates a JSON file with image digest and ID shasums.
+
+##### write-json-docs
+
+Creates JSON files with scan metadata info. Includes scan tool versions and commit shasum
+
+Job artifacts:
+
+- `scan_metadata.json` - provides metadata from the scans.
+
+#### csv-output
 
 The `csv-output` stage will generate CSV files for the various scans and the `<image-and-pipeline-id>-justifications.xlsx` file.
 These documents can be found in the artifacts for this stage.
@@ -236,35 +263,16 @@ Job artifacts:
 - `summary.csv` - compilation of all scan results in CSV format.
 - `tl.csv` - Twistlock results in CSV format.
 
-### check cves
+### publish-artifacts
 
-The `check cves` stage is configured to notify users of new unjustified or unreviewed findings.
-This job uses the `vat_response.json` file from the `vat` stage, to display any findings that the user should be aware of.
+This stage contains two jobs, `harbor` and `upload-to-s3`.
 
-The following stages will only run on master branches.
-
-### documentation
-
-The `documentation` stage consists of two jobs.
-
-#### ib-manifest
-
-Creates a JSON file with image digest and ID shasums.
-
-#### write-json-docs
-
-Creates JSON files with scan metadata info. Includes scan tool versions and commit shasum
-
-Job artifacts:
-
-- `scan_metadata.json` - provides metadata from the scans.
-
-### Harbor
+#### Harbor
 
 Pushes built images to `registry1.dsop.io/ironbank`, as well as performing Cosign operations.
 The SBOM files, VAT response file, and Cosign signatures on the image and SBOM artifact, are all pushed to the registry in this stage.
 
-### Upload to S3
+#### Upload to S3
 
 Upload artifacts which are displayed/utilized by the [Iron Bank website](https://ironbank.dso.mil).
 The artifacts uploaded include scan reports, project README, project LICENSE, and others.
