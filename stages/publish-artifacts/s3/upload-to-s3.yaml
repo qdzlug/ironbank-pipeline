@@ -30,12 +30,8 @@ upload-to-s3:
     - anchore-scan
     - twistlock-scan
     - openscap-compliance
-    # - generate-documentation
-    - csv-output
-    - generate-documents
+    - generate-documentation
     - vat
-    # - job: harbor
-    #   artifacts: false
   script:
     - 'python "${PIPELINE_REPO_DIR}/stages/publish-artifacts/s3/upload_artifacts.py"'
   artifacts:
