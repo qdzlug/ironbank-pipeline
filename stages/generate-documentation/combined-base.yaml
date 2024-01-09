@@ -9,9 +9,11 @@ generate-documentation:
     OPENSCAP_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/openscap/oscap-version.txt"
     TWISTLOCK_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock-version.txt"
     ANCHORE_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/anchore/anchore-version.txt"
-    ENV_FILENAME: "csv_output.env"
     # Put generated csv report in the scan-results folder
     CSV_REPORT: "${ARTIFACT_STORAGE}/scan-results/csvs"
+    # reusing the VAT artifact dir to prevent redownloading
+    VAT_ARTIFACT_DIR: "${ARTIFACT_STORAGE}/vat"
+    ENV_FILENAME: "csv_output.env"
 
   needs:
     - load-scripts
