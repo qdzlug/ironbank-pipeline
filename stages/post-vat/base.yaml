@@ -13,5 +13,5 @@ check-findings:
     - job: vat
       artifacts: false
   trigger:
-    project: containers/cht-automation/bots/robotnik
+    project: ironbank-tools/containers/cht-automation/bots/robotnik
     branch: main
