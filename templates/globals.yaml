@@ -1,7 +1,7 @@
 image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.12
 stages:
   - preprocess
-  - validate-container-repository  
+  - validate-container-repository
   - import-artifacts
   - build
   - post-build
@@ -24,7 +24,7 @@ include:
   - local: stages/scanning/base.yaml
   - local: stages/vat/base.yaml
   - local: stages/post-vat/base.yaml
-  - local: stages/generate-documentation/combined-base.yaml
+  - local: stages/generate-documentation/base.yaml
   - local: stages/publish-artifacts/base.yaml
 
 workflow:
