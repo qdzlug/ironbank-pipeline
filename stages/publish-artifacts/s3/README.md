@@ -2,36 +2,36 @@
 
 # S3 Publish
 
-This stage in the pipeline uploads the metadata and scan data for the container in the `repo_map.json` file to S3 and the IBFE API directly via HTTP POST.
+This job in the pipeline uploads the metadata and scan data for the container in the `repo_map.json` file to S3 and the IBFE API directly via HTTP POST.
 
 ## Dependencies & Conditions
 
-This stage relies on the following stages completing successfully
+This job relies on the following stages completing successfully
 
 - load-scripts
-- hardening-manifest
 - lint
 - build
-- anchore-scan
-- anchore-scan
-- csv-output
-- documentation
+- create-sbom
+- scan-logic
+- scanning
+- generate-documentation
+- vat
 
-This stage only runs on the following branches:
+This job only runs on the following branches:
 
 - master
 - development
 
-## Variables required for this Stage
+## Variables required for this job
 
-- IMAGE_FILE
 - SCAN_DIRECTORY
 - DOCUMENTATION_DIRECTORY
 - BUILD_DIRECTORY
-- SIG_FILE
+- SBOM_DIRECTORY
+- VAT_DIRECTORY
 - BASE_BUCKET_DIRECTORY
 - DOCUMENTATION_FILENAME
-- ARTIFACT_FIR
+- ARTIFACT_DIR
 - REPORT_TAR_NAME
 - KUBERNETES_SERVICE_ACCOUNT_OVERWRITE
 
@@ -175,7 +175,7 @@ def upload_file(file_name, bucket, object_name=None):
 
 ## Upload to S3 Run - Overview
 
-This script is run by Gitlab because it is in the yaml configuration file as the action when this stage launches
+This script is run by Gitlab because it is in the yaml configuration file as the action when the publish-artifacts stage launches
 
 Overview of Actions:
 
@@ -188,7 +188,7 @@ Overview of Actions:
 
 ## Purpose
 
-this is essentially the entrypoint for the container when this stage runs. It collects some information and preps the container to run the python scripts, and moves output files. This is the "launcher" for all of the actions that are undertaken in this stage of the pipeline
+this is essentially the entrypoint for the container when this job runs. It collects some information and preps the container to run the python scripts, and moves output files. This is the "launcher" for all of the actions that are undertaken in this job of the pipeline
 
 ## Code - In Depth
 
