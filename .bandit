@@ -1,0 +1,5 @@
+[bandit]
+# Uncomment this line for bandit to skip all the unit tests classes.
+exclude = *test_*.py
+# This skips the B101:assert_used in all files.
+skips = B101
