@@ -234,7 +234,7 @@ The following stages will only run on master branches.
 
 #### generate-documentation
 
-The `generate-documentation` job creates a JSON file with image digest and ID shasums for the ib-manifest. This job also creates JSON files with scan metadata info which includes scan tool versions and commit shashums. Additionally this job generates csv files for the various scans and the `<image-and-pipeline-id>-justifications.xlsx` file. 
+The `generate-documentation` job creates a JSON file with image digest and ID shasums for the ib-manifest. This job also creates JSON files with scan metadata info which includes scan tool versions and commit shashums. Additionally this job generates csv files for the various scans and the `<image-and-pipeline-id>-justifications.xlsx` file.
 
 Job artifacts:
 
