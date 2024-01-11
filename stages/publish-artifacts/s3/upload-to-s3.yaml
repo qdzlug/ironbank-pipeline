@@ -1,5 +1,5 @@
 upload-to-s3:
-  stage: s3-publish
+  stage: publish-artifacts
   extends:
     - .setup_modules
   resource_group: s3_phase
@@ -30,13 +30,10 @@ upload-to-s3:
     - anchore-scan
     - twistlock-scan
     - openscap-compliance
-    - csv-output
-    - generate-documents
+    - generate-documentation
     - vat
-    - job: harbor
-      artifacts: false
   script:
-    - 'python "${PIPELINE_REPO_DIR}/stages/s3/upload_artifacts.py"'
+    - 'python "${PIPELINE_REPO_DIR}/stages/publish-artifacts/s3/upload_artifacts.py"'
   artifacts:
     paths:
       - reports/

@@ -1,0 +1,3 @@
+include:
+  - local: stages/validate-container-repository/lint/lint.yaml
+  - local: stages/validate-container-repository/secret-scan/trufflehog.yaml

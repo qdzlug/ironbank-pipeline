@@ -1,0 +1,3 @@
+include:
+  - local: stages/publish-artifacts/harbor/harbor.yaml
+  - local: stages/publish-artifacts/s3/upload-to-s3.yaml

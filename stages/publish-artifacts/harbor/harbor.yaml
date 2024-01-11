@@ -1,5 +1,5 @@
 harbor:
-  stage: harbor
+  stage: publish-artifacts
   extends:
     - .setup_modules
   rules:
@@ -20,7 +20,7 @@ harbor:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/harbor
   script:
     - 'mkdir -p "${ARTIFACT_DIR}"'
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/harbor/upload_to_harbor.py"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/harbor/upload_to_harbor.py"'
   artifacts:
     when: always
     paths:
@@ -30,7 +30,7 @@ harbor:
     when: always
 
 update-staging-attestations:
-  stage: harbor
+  stage: publish-artifacts
   extends:
     - .setup_modules
   rules:
@@ -51,7 +51,7 @@ update-staging-attestations:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/harbor
   script:
     - 'mkdir -p "${ARTIFACT_DIR}"'
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/harbor/upload_to_harbor.py"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/harbor/upload_to_harbor.py"'
   artifacts:
     when: always
     paths:

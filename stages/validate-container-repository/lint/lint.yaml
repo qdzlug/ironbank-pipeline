@@ -1,5 +1,5 @@
 lint:
-  stage: lint
+  stage: validate-container-repository
   extends:
     - .setup_modules
   needs:
@@ -37,4 +37,4 @@ lint:
         exit 1
       fi
     - set +e
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/lint/lint_jobs.py"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/validate-container-repository/lint/lint_jobs.py"'

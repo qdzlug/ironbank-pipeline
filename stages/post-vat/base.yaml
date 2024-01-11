@@ -1,3 +1,6 @@
+include:
+  - local: stages/post-vat/check-cves/base.yaml
+
 check-findings:
   variables:
     TRIGGERING_PROJECT_ID: $CI_PROJECT_ID
