@@ -10,6 +10,10 @@ import-artifacts:
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/import-artifacts"
     REQUESTS_CA_BUNDLE: "/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt"
+  hooks:
+      pre_get_sources_script:
+        - git config --global pack.packedGitLimit 512m
+        - git config --global pack.packedGitWindowSize 512m
   script:
     - 'echo "${REQUESTS_CA_BUNDLE}"'
     - 'mkdir -p "${ARTIFACT_DIR}/external-resources/" "${ARTIFACT_DIR}/images/"'
