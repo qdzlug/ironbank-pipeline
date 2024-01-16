@@ -67,4 +67,4 @@ variables:
   OSCAP_CVE_HTML_FILENAME: "report-cve.html"
 
   # This should be true when SKIP_SCAN is False AND branch is NOT development or master 
-  IS_SCANNING: "false"
+  IS_SCANNING: "true"
