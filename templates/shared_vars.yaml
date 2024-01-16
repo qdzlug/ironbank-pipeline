@@ -8,7 +8,8 @@ variables:
   TARGET_BRANCH: master
 
   # This should be true when SKIP_SCAN is False AND branch is NOT development or master 
-  IS_SCANNING: "true"
+  # IS_SCANNING: "true"
+  SKIP_SCAN: "false"
 
   # load scripts + module sourcing
   PIPELINE_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank_pipeline"
@@ -21,3 +22,10 @@ variables:
   MODULES_PACKAGE_PATH: "${MODULES_CLONE_DIR}/${MODULES_SUBDIR}"
   # Force rescan of "new" image, sckipping checks to see if the image scans can be run against most recently pushed image
   FORCE_SCAN_NEW_IMAGE: $FORCE_SCAN_NEW_IMAGE
+
+
+before_script:
+  # Determine the logic to see if stages should be skipped..
+  - if [ "$SKIP_SCAN" != "true" ] && [ "$CI_COMMIT_BRANCH" != "development" ] && [ "$CI_COMMIT_BRANCH" != "master" ] ; then
+      export IS_SCANNING="true"
+    fi
