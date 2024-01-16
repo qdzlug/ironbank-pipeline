@@ -28,13 +28,35 @@ include:
       - if: $SKIP_SCAN == "true"
         when: never
 
-  # Testing one skipped job for now
-  # - local: stages/scan-logic/base.yaml
-  # - local: stages/scanning/base.yaml
-  # - local: stages/vat/base.yaml
-  # - local: stages/post-vat/base.yaml
-  # - local: stages/generate-documentation/base.yaml
-  # - local: stages/publish-artifacts/base.yaml
+  - local: stages/scan-logic/base.yaml
+    rules:
+      - if: $SKIP_SCAN == "true"
+        when: never
+
+  - local: stages/scanning/base.yaml
+    rules:
+      - if: $SKIP_SCAN == "true"
+        when: never
+
+  - local: stages/vat/base.yaml
+    rules:
+      - if: $SKIP_SCAN == "true"
+        when: never
+
+  - local: stages/post-vat/base.yaml
+    rules:
+      - if: $SKIP_SCAN == "true"
+        when: never
+
+  - local: stages/generate-documentation/base.yaml
+    rules:
+      - if: $SKIP_SCAN == "true"
+        when: never
+
+  - local: stages/publish-artifacts/base.yaml
+    rules:
+      - if: $SKIP_SCAN == "true"
+        when: never
 
 workflow:
   rules:
