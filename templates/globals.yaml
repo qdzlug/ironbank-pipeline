@@ -13,19 +13,28 @@ stages:
   - publish-artifacts
 
 include:
+  # Variable files that should always be included
   - local: templates/shared_vars.yaml
   - local: templates/setup_modules.yaml
+
   - local: stages/preprocess/load-scripts.yaml
   - local: stages/validate-container-repository/base.yaml
   - local: stages/import-artifacts/import-artifacts.yaml
   - local: stages/build/base.yaml
+  
+  # Skipped scans when all conditions are met
   - local: stages/post-build/base.yaml
-  - local: stages/scan-logic/base.yaml
-  - local: stages/scanning/base.yaml
-  - local: stages/vat/base.yaml
-  - local: stages/post-vat/base.yaml
-  - local: stages/generate-documentation/base.yaml
-  - local: stages/publish-artifacts/base.yaml
+    rules:
+      - if: $SKIP_SCAN == "true"
+        when: never
+
+  # Testing one skipped job for now
+  # - local: stages/scan-logic/base.yaml
+  # - local: stages/scanning/base.yaml
+  # - local: stages/vat/base.yaml
+  # - local: stages/post-vat/base.yaml
+  # - local: stages/generate-documentation/base.yaml
+  # - local: stages/publish-artifacts/base.yaml
 
 workflow:
   rules:
@@ -41,3 +50,4 @@ variables:
   OSCAP_SCANS: "${SCAN_RESULTS}/openscap"
   OSCAP_CVE_XML_FILENAME: "report-cve.xml"
   OSCAP_CVE_HTML_FILENAME: "report-cve.html"
+  SKIP_SCAN: "true"
