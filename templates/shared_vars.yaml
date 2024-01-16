@@ -7,6 +7,9 @@ variables:
   STAGING_PIPELINE: ""
   TARGET_BRANCH: master
 
+  # This should be true when SKIP_SCAN is False AND branch is NOT development or master 
+  IS_SCANNING: "true"
+
   # load scripts + module sourcing
   PIPELINE_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank_pipeline"
   MODULES_PROJECT: "ironbank-modules"
