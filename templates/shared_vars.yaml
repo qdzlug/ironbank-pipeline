@@ -21,7 +21,4 @@ variables:
 
   SKIP_SCAN: "false"
   IS_SCANNING: "true"
-  rules:
-    - if: ("$SKIP_SCAN" == "true") && ("$CI_COMMIT_BRANCH" != "development") && ("$CI_COMMIT_BRANCH" != "master")
-      variables:
-        IS_SCANNING: "false"
+
