@@ -13,8 +13,8 @@ test_image:
     # need to create secret for pod to pull from registry
     # - package_auth_setup
     #- pip3 install pyyaml do not need this because it is in the image itself
-    - aws eks update-kubeconfig --name ib-zelda-runtime
-    - kubectl config view
+    # - aws eks update-kubeconfig --name ib-zelda-runtime
+    # - kubectl config view
     #- setup_k8s_resources "functional-testing" # run this as admin (this is already setup by POPS)
     # - chmod +x ${PIPELINE_REPO_DIR}/stages/functional_testing/library/run_k8s_test.sh
 
