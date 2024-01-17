@@ -21,7 +21,7 @@ include:
   - local: stages/validate-container-repository/base.yaml
   - local: stages/import-artifacts/import-artifacts.yaml
   - local: stages/build/base.yaml
-  
+
   # Skipped scans when all conditions are met
   - local: stages/post-build/base.yaml
     rules:
