@@ -19,6 +19,3 @@ variables:
   # Force rescan of "new" image, sckipping checks to see if the image scans can be run against most recently pushed image
   FORCE_SCAN_NEW_IMAGE: $FORCE_SCAN_NEW_IMAGE
 
-  SKIP_SCAN: "true"
-  IS_SCANNING: "true"
-

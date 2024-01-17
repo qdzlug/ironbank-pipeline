@@ -25,37 +25,44 @@ include:
   # Skipped scans when all conditions are met
   - local: stages/post-build/base.yaml
     rules:
-      - if: $IS_SCANNING == "true"
-
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+      
   - local: stages/scan-logic/base.yaml
     rules:
-      - if: $IS_SCANNING == "true"
-
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+      
   - local: stages/scanning/base.yaml
     rules:
-      - if: $IS_SCANNING == "true"
-
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+      
   - local: stages/vat/base.yaml
     rules:
-      - if: $IS_SCANNING == "true"
-
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+      
   - local: stages/post-vat/base.yaml
     rules:
-      - if: $IS_SCANNING == "true"
-
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+      
   - local: stages/generate-documentation/base.yaml
     rules:
-      - if: $IS_SCANNING == "true"
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
 
   - local: stages/publish-artifacts/base.yaml
     rules:
-      - if: $IS_SCANNING == "true"
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
 
 workflow:
-  rules:
-    - if: ($SKIP_SCAN == "true") && ($CI_COMMIT_BRANCH != "development") && ($CI_COMMIT_BRANCH != "master")
-      variables:
-        IS_SCANNING: "false"
+  # rules:
+  #   - if: ($SKIP_SCAN == "true") && ($CI_COMMIT_BRANCH != "development") && ($CI_COMMIT_BRANCH != "master")
+  #     variables:
+  #       IS_SCANNING: "false"
     - if: $CI_COMMIT_BRANCH
 
 variables:
