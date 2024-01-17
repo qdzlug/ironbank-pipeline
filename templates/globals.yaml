@@ -1,9 +1,10 @@
-image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.12
+image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.13
 stages:
   - preprocess
   - validate-container-repository
   - import-artifacts
   - build
+  - functional_testing
   - post-build
   - scan-logic
   - scanning
@@ -19,6 +20,7 @@ include:
   - local: stages/validate-container-repository/base.yaml
   - local: stages/import-artifacts/import-artifacts.yaml
   - local: stages/build/base.yaml
+  - local: stages/functional_testing/test.yml
   - local: stages/post-build/base.yaml
   - local: stages/scan-logic/base.yaml
   - local: stages/scanning/base.yaml
