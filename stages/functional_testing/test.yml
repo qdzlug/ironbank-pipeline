@@ -1,5 +1,6 @@
 test_image:
   stage: functional_testing
+  image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.13
   variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: runtime
   extends:
@@ -13,8 +14,8 @@ test_image:
     # need to create secret for pod to pull from registry
     # - package_auth_setup
     #- pip3 install pyyaml do not need this because it is in the image itself
-    # - aws eks update-kubeconfig --name ib-zelda-runtime
-    # - kubectl config view
+    - aws eks update-kubeconfig --name ib-zelda-runtime
+    - kubectl config view
     #- setup_k8s_resources "functional-testing" # run this as admin (this is already setup by POPS)
     # - chmod +x ${PIPELINE_REPO_DIR}/stages/functional_testing/library/run_k8s_test.sh
 
@@ -32,9 +33,9 @@ test_image:
     - ironbank-dsop-privileged
   needs:
     - load-scripts 
-  #   - lint 
-  #   - import-artifacts
-  #   - build
+    - lint 
+    - import-artifacts
+    - build
   retry:
     max: 2
     when:
