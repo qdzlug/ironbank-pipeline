@@ -23,7 +23,7 @@ test_image:
     - source ${PIPELINE_REPO_DIR}/stages/functional_testing/library/templates.sh
     - aws eks update-kubeconfig --name ib-zelda-runtime
     - kubectl config view
-    - setup_k8s_resources
+    - setup_k8s_resources "gitlab-runner-dsop"
     - python3 ${PIPELINE_REPO_DIR}/stages/functional_testing/library/test.py $CI_PROJECT_DIR
     # Check if /tmp/podmanifest.yaml exists before running the next script
     - if [[ -f "/tmp/podmanifest.yaml" ]]; then ${PIPELINE_REPO_DIR}/stages/functional_testing/library/run_k8s_test.sh; fi

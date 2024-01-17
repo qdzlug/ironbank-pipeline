@@ -82,9 +82,9 @@ function setup_k8s_resources() {
 
 
     # Patch service account if it hasn't been patched
-    if ! kubectl get serviceaccount default -n $NAMESPACE -o=jsonpath='{.imagePullSecrets[?(@.name=="my-registry-secret")].name}' | grep -q "my-registry-secret"; then
-        kubectl patch serviceaccount default -n $NAMESPACE -p '{"imagePullSecrets": [{"name": "my-registry-secret"}]}'
-    fi
+    # if ! kubectl get serviceaccount default -n $NAMESPACE -o=jsonpath='{.imagePullSecrets[?(@.name=="my-registry-secret")].name}' | grep -q "my-registry-secret"; then
+    #     kubectl patch serviceaccount default -n $NAMESPACE -p '{"imagePullSecrets": [{"name": "my-registry-secret"}]}'
+    # fi
 
     # # Create resource quota if it doesn't exist and the namespace is not "command-probe-testing"
     # if [[ "$NAMESPACE" != "command-probe-testing" ]]; then
