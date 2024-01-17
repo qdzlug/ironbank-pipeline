@@ -122,7 +122,7 @@ def read_image_from_hardening_manifest(hardening_manifest):
         print_red(f"image tag not found in hardening manifest. value for image_name was '{image_tag}'")
         return False
 
-    docker_image = "registry1.dso.mil/ironbank/" + image_name + ":" + image_tag
+    docker_image = "registry1.dso.mil/ironbank-staging/" + image_name + ":" + image_tag
 
     return docker_image
 
@@ -141,6 +141,15 @@ def generate_pod_manifest(kubernetes_test, image_name):
             "containers": [{
                 "name": "test-container",
                 "image": image_name
+            }],
+            "nodeSelector": {
+                "ironbank": "runtime"
+            },
+            "tolerations": [{
+                "key": "ironbank",
+                "operator": "Equal",
+                "value": "runtime",
+                "effect": "NoSchedule"
             }]
         }
     }

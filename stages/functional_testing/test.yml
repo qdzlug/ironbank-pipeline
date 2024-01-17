@@ -24,3 +24,5 @@ test_image:
       when: always
     - when: never
   allow_failure: true
+  tags: 
+    - ironbank-dsop-privileged
