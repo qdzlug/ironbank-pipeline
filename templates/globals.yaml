@@ -62,7 +62,6 @@ workflow:
   rules:
     - if: $CI_COMMIT_BRANCH
 
-
 variables:
   # Gitlab CI vars
   # several CI vars are passed from the trigger job in trigger.yaml
