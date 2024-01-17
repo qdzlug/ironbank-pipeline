@@ -7,17 +7,17 @@ test_image:
     - .setup_modules
 
 
-  before_script:
-    # - git clone -b ${PIPELINE_REPO_BRANCH} ${PIPELINE_REPO} ${PIPELINE_REPO_DESTINATION}
-    # - ls -al ${PIPELINE_REPO_DESTINATION}
-    - source ${PIPELINE_REPO_DIR}/stages/functional_testing/library/templates.sh
-    # need to create secret for pod to pull from registry
-    # - package_auth_setup
-    #- pip3 install pyyaml do not need this because it is in the image itself
-    - aws eks update-kubeconfig --name ib-zelda-runtime
-    - kubectl config view
-    #- setup_k8s_resources "functional-testing" # run this as admin (this is already setup by POPS)
-    # - chmod +x ${PIPELINE_REPO_DIR}/stages/functional_testing/library/run_k8s_test.sh
+  # before_script:
+  #   # - git clone -b ${PIPELINE_REPO_BRANCH} ${PIPELINE_REPO} ${PIPELINE_REPO_DESTINATION}
+  #   # - ls -al ${PIPELINE_REPO_DESTINATION}
+  #   - source ${PIPELINE_REPO_DIR}/stages/functional_testing/library/templates.sh
+  #   # need to create secret for pod to pull from registry
+  #   # - package_auth_setup
+  #   #- pip3 install pyyaml do not need this because it is in the image itself
+  #   - aws eks update-kubeconfig --name ib-zelda-runtime
+  #   - kubectl config view
+  #   #- setup_k8s_resources "functional-testing" # run this as admin (this is already setup by POPS)
+  #   # - chmod +x ${PIPELINE_REPO_DIR}/stages/functional_testing/library/run_k8s_test.sh
 
   script: 
     - python3 ${PIPELINE_REPO_DIR}/stages/functional_testing/library/test.py $CI_PROJECT_DIR
