@@ -59,11 +59,9 @@ include:
       - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
 
 workflow:
-  # rules:
-  #   - if: ($SKIP_SCAN == "true") && ($CI_COMMIT_BRANCH != "development") && ($CI_COMMIT_BRANCH != "master")
-  #     variables:
-  #       IS_SCANNING: "false"
+  rules:
     - if: $CI_COMMIT_BRANCH
+
 
 variables:
   # Gitlab CI vars
