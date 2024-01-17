@@ -15,7 +15,7 @@ test_image:
     - chmod +x ${PIPELINE_REPO_DESTINATION}/stages/functional_testing/library/run_k8s_test.sh
 
   script: 
-    - python3 ${PIPELINE_REPO_DESTINATION}/stages/functional_testing/library/test.py $CI_PROJECT_DIR
+    - poetry shell && python3 ${PIPELINE_REPO_DESTINATION}/stages/functional_testing/library/test.py $CI_PROJECT_DIR
     # Check if /tmp/podmanifest.yaml exists before running the next script
     - if [[ -f "/tmp/podmanifest.yaml" ]]; then ${PIPELINE_REPO_DESTINATION}/stages/functional_testing/library/run_k8s_test.sh; fi
   rules:
