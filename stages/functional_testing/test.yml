@@ -3,6 +3,7 @@ test_image:
   image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.13
   variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: runtime
+    NAMESPACE: gitlab-runner-dsop
   extends:
     - .setup_modules
 
