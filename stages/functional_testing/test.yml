@@ -2,8 +2,9 @@ test_image:
   stage: functional_testing
   image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.13
   variables:
-    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: runtime
-    NAMESPACE: ironbank-runtime 
+    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: "runtime"
+    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE_ALLOWED: ".*"
+    NAMESPACE: "ironbank-runtime"
   extends:
     - .setup_modules
 
