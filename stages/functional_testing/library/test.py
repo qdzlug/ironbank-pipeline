@@ -109,7 +109,7 @@ def read_image_from_hardening_manifest(hardening_manifest):
 
             image_name = data['name']
             # image_tag = data['tags'][0]
-            image_tag = str(os.environ['CI_PIPELINE_ID'])
+            image_tag = "ibci-" + str(os.environ['CI_PIPELINE_ID'])
 
     except FileNotFoundError:
         print_red("Error: hardening_manifest.yaml file not found in the project root")
