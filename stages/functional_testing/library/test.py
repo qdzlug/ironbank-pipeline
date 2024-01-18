@@ -138,6 +138,7 @@ def generate_pod_manifest(kubernetes_test, image_name):
             }
         },
         "spec": {
+            "serviceAccountName": "testpod-sa",
             "containers": [{
                 "name": "test-container",
                 "image": image_name
@@ -332,9 +333,9 @@ if __name__ == "__main__":
     git_project_root_folder = sys.argv[1]
 
     #get default gitlab value for the project
-    test_kubernetes_namespace = str(os.environ[NAMESPACE])
+    test_kubernetes_namespace = str(os.environ['NAMESPACE'])
 
     if test_kubernetes_namespace is None:
-        test_kubernetes_namespace = str(os.environ[NAMESPACE])
+        test_kubernetes_namespace = str(os.environ['NAMESPACE'])
 
     main(git_project_root_folder, test_kubernetes_namespace)
