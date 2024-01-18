@@ -108,7 +108,8 @@ def read_image_from_hardening_manifest(hardening_manifest):
             data = yaml.safe_load(file)
 
             image_name = data['name']
-            image_tag = data['tags'][0]
+            # image_tag = data['tags'][0]
+            image_tag = str(os.environ['CI_PIPELINE_ID'])
 
     except FileNotFoundError:
         print_red("Error: hardening_manifest.yaml file not found in the project root")
@@ -122,7 +123,7 @@ def read_image_from_hardening_manifest(hardening_manifest):
         print_red(f"image tag not found in hardening manifest. value for image_name was '{image_tag}'")
         return False
 
-    docker_image = "registry1.dso.mil/ironbank-staging/" + image_name + ":" + image_tag
+    docker_image = str(os.environ['REGISTRY_PRE_PUBLISH_URL']) + "/" + image_name + ":" + image_tag
 
     return docker_image
 
