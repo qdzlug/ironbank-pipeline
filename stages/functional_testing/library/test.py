@@ -210,7 +210,7 @@ def run_test(entrypoint, command_timeout, pod_name, docker_image, kubernetes_nam
         will_check_for_expected_output = True
     
     #generate the kubectl command
-    kubectl_command = f"kubectl run {pod_name} --image={docker_image} -n {kubernetes_namespace} -- {entrypoint}"
+    kubectl_command = f"kubectl run {pod_name} --image={docker_image} --serviceaccount=testpod-sa -n {kubernetes_namespace} -- {entrypoint}"
 
     #print command information
     print(f"Running test command: {kubectl_command}")
