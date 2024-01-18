@@ -209,8 +209,36 @@ def run_test(entrypoint, command_timeout, pod_name, docker_image, kubernetes_nam
     if(expected_output is not None):
         will_check_for_expected_output = True
     
+    overrides_json = """{
+        "apiVersion": "v1",
+        "spec": {
+            "serviceAccount": "testpod-sa",
+            "nodeSelector": {
+            "ironbank": "runtime"
+            },
+            "tolerations": [
+            {
+                "key": "ironbank",
+                "operator": "Equal",
+                "value": "runtime",
+                "effect": "NoSchedule"
+            }
+            ]
+        }
+        }"""
+
+# Make sure to escape inner double quotes if you're using double quotes for the string
+    overrides_json = overrides_json.replace('"', '\\"')
+
+    kubectl_command = (
+        f"kubectl run {pod_name} "
+        f"--overrides='{overrides_json}' "
+        f"--image={docker_image} -n {kubernetes_namespace} -- {entrypoint}"
+    )
+
+
     #generate the kubectl command
-    kubectl_command = f"kubectl run {pod_name} --image={docker_image} --serviceaccount=testpod-sa -n {kubernetes_namespace} -- {entrypoint}"
+    # kubectl_command = f"kubectl run {pod_name} --image={docker_image} --serviceaccount=testpod-sa -n {kubernetes_namespace} -- {entrypoint}"
 
     #print command information
     print(f"Running test command: {kubectl_command}")
