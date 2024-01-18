@@ -53,10 +53,8 @@ function setup_k8s_resources() {
     # --docker-password=$DOCKER_PASSWORD
     # echo "$DOCKER_AUTH_FILE_PRE_PUBLISH" > /tmp/.dockerconfig.json
 
-    echo "$DOCKER_AUTH_FILE_PRE_PUBLISH"
 
-
-    kubectl get secret my-registry-secret -n $NAMESPACE || kubectl -n $NAMESPACE create secret generic my-registry-secret --type=kubernetes.io/dockerconfigjson --from-literal=.dockerconfigjson="$DOCKER_AUTH_FILE_PRE_PUBLISH" --v=8
+    kubectl get secret my-registry-secret -n $NAMESPACE || kubectl -n $NAMESPACE create secret generic my-registry-secret --type=kubernetes.io/dockerconfigjson --from-file=.dockerconfigjson=$DOCKER_AUTH_FILE_PRE_PUBLISH
 
 #     # Create Role for patching service accounts # created manually
 #     kubectl -n $NAMESPACE apply -f - <<EOF
