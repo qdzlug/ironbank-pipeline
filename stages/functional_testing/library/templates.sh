@@ -45,7 +45,7 @@ function setup_k8s_resources() {
 
     # Create namespace if it doesn't exist
     # kubectl get ns $NAMESPACE || kubectl create ns $NAMESPACE #creating manually
-    kubectl delete secret my-registry-secret -n $NAMESPACE
+    # kubectl delete secret my-registry-secret -n $NAMESPACE
     # Create Docker registry secret
     # kubectl get secret my-registry-secret -n $NAMESPACE || kubectl -n $NAMESPACE create secret docker-registry my-registry-secret \
     # --docker-server=$DOCKER_REGISTRY_SERVER \
@@ -53,7 +53,7 @@ function setup_k8s_resources() {
     # --docker-password=$DOCKER_PASSWORD
     kubectl get secret my-registry-secret -n $NAMESPACE || kubectl -n $NAMESPACE create secret generic my-registry-secret \
     --type=kubernetes.io/dockerconfigjson \
-    --from-literal=.dockerconfigjson="$DOCKER_AUTH_FILE_PRE_PUBLISH"
+    --from-file=.dockerconfigjson=~/.dockercfg
 
 #     # Create Role for patching service accounts # created manually
 #     kubectl -n $NAMESPACE apply -f - <<EOF
