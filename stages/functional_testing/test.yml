@@ -3,7 +3,7 @@ test_image:
   image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.13
   variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: runtime
-    NAMESPACE: gitlab-runner-dsop
+    NAMESPACE: ironbank-runtime 
   extends:
     - .setup_modules
 
@@ -24,7 +24,7 @@ test_image:
     - source ${PIPELINE_REPO_DIR}/stages/functional_testing/library/templates.sh
     - aws eks update-kubeconfig --name ib-zelda-runtime
     - kubectl config view
-    - setup_k8s_resources "gitlab-runner-dsop"
+    - setup_k8s_resources "$NAMESPACE"
     - python3 ${PIPELINE_REPO_DIR}/stages/functional_testing/library/test.py $CI_PROJECT_DIR
     # Check if /tmp/podmanifest.yaml exists before running the next script
     - if [[ -f "/tmp/podmanifest.yaml" ]]; then ${PIPELINE_REPO_DIR}/stages/functional_testing/library/run_k8s_test.sh; fi

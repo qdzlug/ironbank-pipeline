@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Variables
-NAMESPACE="gitlab-runner-dsop"
+# NAMESPACE="gitlab-runner-dsop"
 UNIQUE_POD_NAME="test-pod-$(uuidgen | cut -c1-8)"
 
 # Functions
