@@ -214,21 +214,20 @@ def run_test(entrypoint, command_timeout, pod_name, docker_image, kubernetes_nam
         "spec": {
             "serviceAccount": "testpod-sa",
             "nodeSelector": {
-            "ironbank": "runtime"
+                "ironbank": "runtime"
             },
             "tolerations": [
-            {
-                "key": "ironbank",
-                "operator": "Equal",
-                "value": "runtime",
-                "effect": "NoSchedule"
-            }
+                {
+                    "key": "ironbank",
+                    "operator": "Equal",
+                    "value": "runtime",
+                    "effect": "NoSchedule"
+                }
             ]
         }
-        }"""
+    }"""
 
-# Make sure to escape inner double quotes if you're using double quotes for the string
-    overrides_json = overrides_json.replace('"', '\\"')
+    # overrides_json = overrides_json.replace('"', '\\"')
 
     kubectl_command = (
         f"kubectl run {pod_name} "
