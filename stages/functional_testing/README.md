@@ -289,7 +289,7 @@ The script provides utility functions to display messages in different colors, a
 4. **Pod Monitoring**: Monitors the pod's status for 3 minutes. If the pod consistently fails or runs, it breaks out of the monitoring loop early.
 5. **Pod Description**: Describes the pod to fetch details about its deployment and potential issues.
 6. **Fetch Pod Logs**: Retrieves the logs of the deployed pod.
-7. **Error Handling**: If the pod doesn't reach the "Running" or "Completed" state, the script fetches details about the Liveness and Readiness probes, if they exist.
+7. **Error Handling**: If the pod doesn't reach the "Running" or "Completed" state, scripts errors and instructs to look into pod logs, events, and exec logs
 
 ### Cleanup
 
