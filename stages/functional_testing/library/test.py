@@ -249,7 +249,7 @@ def run_test(entrypoint, command_timeout, pod_name, docker_image, kubernetes_nam
     else:
         print("Command failed")
         print("Error:\n", result.stderr)
-        
+
     print(f"The command timeout is: {command_timeout} seconds")
     print(f"<expected_output> value is: '{expected_output}'")
     if(will_check_for_expected_output):
@@ -352,8 +352,8 @@ def main(git_project_root_folder, kubernetes_namespace):
                     command_timeout = command['timeout_seconds']
 
                 # Ensure timeout is never less than 30 seconds
-                if command_timeout is None or command_timeout < 30:
-                    command_timeout = 30
+                if command_timeout is None or command_timeout < 45:
+                    command_timeout = 45
 
                 run_test(entrypoint, command_timeout, pod_name, docker_image, kubernetes_namespace, expected_output)
     

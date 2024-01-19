@@ -86,7 +86,7 @@ echo "$(kubectl describe pod $UNIQUE_POD_NAME -n $NAMESPACE)"
 
 # Fetch logs of the pod if it's up
 print_header "Fetching Pod Logs"
-echo $(kubectl logs $UNIQUE_POD_NAME -n $NAMESPACE) || print_red "Failed to fetch logs for $UNIQUE_POD_NAME. Status of the pod is $POD_STATUS"
+print_blue "$(kubectl logs $UNIQUE_POD_NAME -n $NAMESPACE)" || print_red "Failed to fetch logs for $UNIQUE_POD_NAME. Status of the pod is $POD_STATUS"
 
 
 # Fetch and print pod events
@@ -101,15 +101,15 @@ if [[ "$POD_STATUS" != "Running" && "$POD_STATUS" != "Completed" ]]; then
     # Check for LivenessProbe and print if exists
     LIVENESS_OUTPUT=$(echo "$POD_DESCRIBE" | awk '/Liveness:/,/:[[:space:]]*$/{print}' | grep -v ":$")
     if [[ ! -z "$LIVENESS_OUTPUT" ]]; then
-        print_blue "Liveness Probe Details:"
-        echo "$LIVENESS_OUTPUT"
+        print_header "Liveness Probe Details:"
+        print_blue "$LIVENESS_OUTPUT"
     fi
 
     # Check for ReadinessProbe and print if exists
     READINESS_OUTPUT=$(echo "$POD_DESCRIBE" | awk '/Readiness:/,/:[[:space:]]*$/{print}' | grep -v ":$")
     if [[ ! -z "$READINESS_OUTPUT" ]]; then
-        print_blue "Readiness Probe Details:"
-        echo "$READINESS_OUTPUT"
+        print_header "Readiness Probe Details:"
+        print_blue "$READINESS_OUTPUT"
     fi
 fi
 
