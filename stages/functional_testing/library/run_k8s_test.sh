@@ -86,14 +86,20 @@ echo "$(kubectl describe pod $UNIQUE_POD_NAME -n $NAMESPACE)"
 
 # Fetch logs of the pod if it's up
 print_header "Fetching Pod Logs"
-print_blue "$(kubectl logs $UNIQUE_POD_NAME -n $NAMESPACE)" || print_red "Failed to fetch logs for $UNIQUE_POD_NAME. Status of the pod is $POD_STATUS"
-
+# Fetch logs of the pod if it's up
+POD_LOGS=$(kubectl logs $UNIQUE_POD_NAME -n $NAMESPACE)
+if [[ -z "$POD_LOGS" ]]; then
+    print_red "Logs for $UNIQUE_POD_NAME are empty. Status of the pod is $POD_STATUS"
+else
+    print_blue "$POD_LOGS"
+fi
 
 # Fetch and print pod events
 POD_DESCRIBE=$(kubectl describe pod $UNIQUE_POD_NAME -n $NAMESPACE)
 # echo "$POD_DESCRIBE"
 
 # Check if the pod is not running and exit with an error
+print_header "Final Pod Status Check"
 if [[ "$POD_STATUS" != "Running" && "$POD_STATUS" != "Completed" ]]; then
     print_red "Error: Pod did not reach the 'Running' or 'Completed' state within the expected time."
     echo $(kubectl get pod $UNIQUE_POD_NAME -n $NAMESPACE -o=jsonpath='{.status.containerStatuses[0].state}')
