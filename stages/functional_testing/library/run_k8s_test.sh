@@ -117,6 +117,8 @@ if [[ "$POD_STATUS" != "Running" && "$POD_STATUS" != "Completed" ]]; then
         print_header "Readiness Probe Details:"
         print_blue "$READINESS_OUTPUT"
     fi
+else 
+    print_cyan "Current Pod Status: $POD_STATUS"
 fi
 
 # Cleanup at the end
@@ -145,6 +147,7 @@ fi
 # Check if either Liveness or Readiness probe has succeeded
 if [[ "$LIVENESS_SUCCESS_COUNT" -gt 0 ]] || [[ "$READINESS_SUCCESS_COUNT" -gt 0 ]]; then
     print_green "At least one of the probes has succeeded."
+    print_green "Pod status: $POD_STATUS"
     exit 0
 else
     print_red "Neither Liveness nor Readiness probe has succeeded. Please check logs and describe pod output for more details."
