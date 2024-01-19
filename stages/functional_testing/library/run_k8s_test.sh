@@ -80,15 +80,15 @@ for i in {1..18}; do  # 18 iterations * 10 seconds = 3 minutes total
     sleep 10
 done
 
-print_header "Tailing on the pod events"
-DURATION=90
-INTERVAL=10
-end=$((SECONDS+DURATION))
+# print_header "Tailing on the pod events"
+# DURATION=90
+# INTERVAL=10
+# end=$((SECONDS+DURATION))
 
-while [ $SECONDS -lt $end ]; do
-    kubectl get events -n $NAMESPACE --field-selector involvedObject.name=$UNIQUE_POD_NAME --sort-by=.metadata.creationTimestamp --watch-only
-    sleep $INTERVAL
-done
+# while [ $SECONDS -lt $end ]; do
+#     kubectl get events -n $NAMESPACE --field-selector involvedObject.name=$UNIQUE_POD_NAME --sort-by=.metadata.creationTimestamp --watch-only
+#     sleep $INTERVAL
+# done
 
 # Fetch and print pod events
 print_header "Describing Pod"
