@@ -147,7 +147,7 @@ fi
 # Check if either Liveness or Readiness probe has succeeded
 if [[ "$LIVENESS_SUCCESS_COUNT" -gt 0 ]] || [[ "$READINESS_SUCCESS_COUNT" -gt 0 ]]; then
     print_green "At least one of the probes has succeeded."
-    print_green "Pod status: $POD_STATUS"
+    print_cyan "Pod status: $POD_STATUS"
     exit 0
 else
     print_red "Neither Liveness nor Readiness probe has succeeded. Please check logs and describe pod output for more details."
