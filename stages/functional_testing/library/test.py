@@ -170,6 +170,14 @@ def generate_pod_manifest(kubernetes_test, image_name):
     if "env" in kubernetes_test:
         container_spec["env"] = kubernetes_test["env"]
 
+    # Add command if present
+    if "command" in kubernetes_test:
+        container_spec["command"] = kubernetes_test["command"]
+
+    # Add ports if present
+    if "ports" in kubernetes_test:
+        container_spec["ports"] = kubernetes_test["ports"]
+
     # Add resources (requests and limits)
     # Use values from kubernetes_test if present, otherwise use hardcoded defaults
     container_spec["resources"] = kubernetes_test.get("resources", {
