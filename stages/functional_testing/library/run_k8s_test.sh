@@ -80,6 +80,16 @@ for i in {1..18}; do  # 18 iterations * 10 seconds = 3 minutes total
     sleep 10
 done
 
+print_header "Tailing on the pod events"
+DURATION=90
+INTERVAL=10
+end=$((SECONDS+DURATION))
+
+while [ $SECONDS -lt $end ]; do
+    kubectl get events -n $NAMESPACE --field-selector involvedObject.name=$UNIQUE_POD_NAME --sort-by=.metadata.creationTimestamp --watch-only
+    sleep $INTERVAL
+done
+
 # Fetch and print pod events
 print_header "Describing Pod"
 echo "$(kubectl describe pod $UNIQUE_POD_NAME -n $NAMESPACE)"
@@ -104,55 +114,21 @@ if [[ "$POD_STATUS" != "Running" && "$POD_STATUS" != "Completed" ]]; then
     print_red "Error: Pod did not reach the 'Running' or 'Completed' state within the expected time."
     echo $(kubectl get pod $UNIQUE_POD_NAME -n $NAMESPACE -o=jsonpath='{.status.containerStatuses[0].state}')
     
-    # Check for LivenessProbe and print if exists
-    LIVENESS_OUTPUT=$(echo "$POD_DESCRIBE" | awk '/Liveness:/,/:[[:space:]]*$/{print}' | grep -v ":$")
-    if [[ ! -z "$LIVENESS_OUTPUT" ]]; then
-        print_header "Liveness Probe Details:"
-        print_blue "$LIVENESS_OUTPUT"
-    fi
-
-    # Check for ReadinessProbe and print if exists
-    READINESS_OUTPUT=$(echo "$POD_DESCRIBE" | awk '/Readiness:/,/:[[:space:]]*$/{print}' | grep -v ":$")
-    if [[ ! -z "$READINESS_OUTPUT" ]]; then
-        print_header "Readiness Probe Details:"
-        print_blue "$READINESS_OUTPUT"
-    fi
+    print_cyan "Check the pod events and logs for more details."
+    print_red "Failing ...."
+    exit 1
 else 
     print_cyan "Current Pod Status: $POD_STATUS"
 fi
 
 # Cleanup at the end
 print_header "Cleaning Up"
-print_green "Deleting pod '$UNIQUE_POD_NAME'..."
+print_yellow "Deleting pod '$UNIQUE_POD_NAME'..."
 kubectl delete -f /tmp/podmanifest.yaml -n $NAMESPACE
 
 print_header "Deployment Script Completed"
 
 
-# Extract the success counts for liveness and readiness probes
-LIVENESS_SUCCESS_COUNT=$(echo "$POD_DESCRIBE" | grep "Liveness:" | grep -oP '#success=\K\d+')
-READINESS_SUCCESS_COUNT=$(echo "$POD_DESCRIBE" | grep "Readiness:" | grep -oP '#success=\K\d+')
-
-# Check for Running or Completed status without probes
-if [ -z "$LIVENESS_SUCCESS_COUNT" ] && [ -z "$READINESS_SUCCESS_COUNT" ]; then
-    if [[ "$POD_STATUS" != "Running" && "$POD_STATUS" != "Completed" ]]; then
-        print_red "Pod is neither Running nor Completed and no probes are present. Please check logs and describe pod output for more details."
-        exit 1
-    else
-        print_green "Pod is Running or Completed without probes."
-        exit 0
-    fi
-fi
-
-# Check if either Liveness or Readiness probe has succeeded
-if [[ "$LIVENESS_SUCCESS_COUNT" -gt 0 ]] || [[ "$READINESS_SUCCESS_COUNT" -gt 0 ]]; then
-    print_green "At least one of the probes has succeeded."
-    print_cyan "Pod status: $POD_STATUS"
-    exit 0
-else
-    print_red "Neither Liveness nor Readiness probe has succeeded. Please check logs and describe pod output for more details."
-    exit 1
-fi
 
 
 
