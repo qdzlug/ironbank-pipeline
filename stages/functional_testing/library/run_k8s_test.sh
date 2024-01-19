@@ -126,11 +126,38 @@ kubectl delete -f /tmp/podmanifest.yaml -n $NAMESPACE
 
 print_header "Deployment Script Completed"
 
-# Check the final status of the pod
-if [[ "$POD_STATUS" != "Running" && "$POD_STATUS" != "Completed" ]]; then
-    print_red "Error: Pod did not reach the 'Running' or 'Completed' state. Check logs for more details."
-    exit 1
-else
-    print_green "Test passed! Pod reached the desired state."
-    exit 0
+
+# Extract the success counts for liveness and readiness probes
+LIVENESS_SUCCESS_COUNT=$(echo "$POD_DESCRIBE" | grep "Liveness:" | grep -oP '#success=\K\d+')
+READINESS_SUCCESS_COUNT=$(echo "$POD_DESCRIBE" | grep "Readiness:" | grep -oP '#success=\K\d+')
+
+# Check for Running or Completed status without probes
+if [ -z "$LIVENESS_SUCCESS_COUNT" ] && [ -z "$READINESS_SUCCESS_COUNT" ]; then
+    if [[ "$POD_STATUS" != "Running" && "$POD_STATUS" != "Completed" ]]; then
+        print_red "Pod is neither Running nor Completed and no probes are present. Please check logs and describe pod output for more details."
+        exit 1
+    else
+        print_green "Pod is Running or Completed without probes."
+        exit 0
+    fi
 fi
+
+# Check if either Liveness or Readiness probe has succeeded
+if [[ "$LIVENESS_SUCCESS_COUNT" -gt 0 ]] || [[ "$READINESS_SUCCESS_COUNT" -gt 0 ]]; then
+    print_green "At least one of the probes has succeeded."
+    exit 0
+else
+    print_red "Neither Liveness nor Readiness probe has succeeded. Please check logs and describe pod output for more details."
+    exit 1
+fi
+
+
+
+# Check the final status of the pod
+# if [[ "$POD_STATUS" != "Running" && "$POD_STATUS" != "Completed" ]]; then
+#     print_red "Error: Pod did not reach the 'Running' or 'Completed' state. Check logs for more details."
+#     exit 1
+# else
+#     print_green "Test passed! Pod reached the desired state."
+#     exit 0
+# fi
