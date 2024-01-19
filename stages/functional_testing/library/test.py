@@ -177,6 +177,10 @@ def generate_pod_manifest(kubernetes_test, image_name):
     # Add ports if present
     if "ports" in kubernetes_test:
         container_spec["ports"] = kubernetes_test["ports"]
+    
+    # Add args if present
+    if "args" in kubernetes_test:
+        container_spec["args"] = kubernetes_test["args"]
 
     # Add resources (requests and limits)
     # Use values from kubernetes_test if present, otherwise use hardcoded defaults
