@@ -236,11 +236,20 @@ def run_test(entrypoint, command_timeout, pod_name, docker_image, kubernetes_nam
     )
 
 
-    #generate the kubectl command
-    # kubectl_command = f"kubectl run {pod_name} --image={docker_image} --serviceaccount=testpod-sa -n {kubernetes_namespace} -- {entrypoint}"
+
+    # generate the kubectl command
+    # kubectl_command = f"kubectl run {pod_name} --image={docker_image} -n {kubernetes_namespace} -- {entrypoint}"
 
     #print command information
     print(f"Running test command: {kubectl_command}")
+    result = subprocess.run(kubectl_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    if result.returncode == 0:
+        print("Command executed successfully!")
+        print("Output:\n", result.stdout)
+    else:
+        print("Command failed")
+        print("Error:\n", result.stderr)
+        
     print(f"The command timeout is: {command_timeout} seconds")
     print(f"<expected_output> value is: '{expected_output}'")
     if(will_check_for_expected_output):
