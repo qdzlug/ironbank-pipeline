@@ -1,13 +1,13 @@
 {
   "dockerComposeFile": "docker-compose.yml",
   "mounts": [
-    "source=${localEnv:HOME}/.gnupg,target=/home/dev/.gnupg,consistency=cached"
+    "source=${localEnv:HOME}/.gnupg,target=/home/dev/.gnupg,consistency=cached",
   ],
   "postAttachCommand": [
     "/bin/bash",
     "--login",
     "-c",
-    "SHELL=/bin/bash PATH=$VENV/bin:$PATH VIRTUAL_ENV=$VENV poetry shell"
+    "SHELL=/bin/bash PATH=$VENV/bin:$PATH VIRTUAL_ENV=$VENV poetry shell",
   ],
   "remoteUser": "python",
   "service": "work",
@@ -20,9 +20,9 @@
         "python.linting.mypyEnabled": true,
         "python.linting.pylintEnabled": true,
         "python.defaultInterpreterPath": "~/.work/bin/python",
-        "python.testing.pytestEnabled": true
+        "python.testing.pytestEnabled": true,
       },
-      "extensions": ["ms-python.python", "ms-python.pylint", "my-python.mypy"]
-    }
-  }
+      "extensions": ["ms-python.python", "ms-python.pylint", "my-python.mypy"],
+    },
+  },
 }
