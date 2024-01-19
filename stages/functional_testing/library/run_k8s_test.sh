@@ -80,8 +80,15 @@ for i in {1..18}; do  # 18 iterations * 10 seconds = 3 minutes total
     sleep 10
 done
 
+# Find out the time to sleep to get the final pod events using describe 
+initialDelaySeconds=0
+if grep -q "initialDelaySeconds" testing_manifest.yaml; then
+    initialDelaySeconds=$(grep "initialDelaySeconds" testing_manifest.yaml | awk '{print $2}' | head -n 1)
+fi
 # Fetch and print pod events
 print_header "Describing Pod"
+print_cyan "Waiting for $initialDelaySeconds seconds to get the final pod events..."
+sleep $initialDelaySeconds
 echo "$(kubectl describe pod $UNIQUE_POD_NAME -n $NAMESPACE)"
 
 # Fetch logs of the pod if it's up
