@@ -241,7 +241,8 @@ def run_test(entrypoint, command_timeout, pod_name, docker_image, kubernetes_nam
     # kubectl_command = f"kubectl run {pod_name} --image={docker_image} -n {kubernetes_namespace} -- {entrypoint}"
 
     #print command information
-    print(f"Running test command: {kubectl_command}")
+    # print(f"Running test command: {kubectl_command}")
+    print(f"Running test command: {entrypoint}")
     result = subprocess.run(kubectl_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if result.returncode == 0:
         print("Command executed successfully!")
