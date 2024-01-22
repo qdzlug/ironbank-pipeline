@@ -113,11 +113,11 @@ if [[ "$POD_STATUS" != "Running" && "$POD_STATUS" != "Completed" ]]; then
     
     print_cyan "Check the pod events and logs for more details."
     print_red "Failing ...."
-    print_red $(kubectl get pod $UNIQUE_POD_NAME -n $NAMESPACE)
+    echo $(kubectl get pod $UNIQUE_POD_NAME -n $NAMESPACE --no-headers)
     exit 1
 else 
     print_cyan "Current Pod Status: $POD_STATUS"
-    print_green $(kubectl get pod $UNIQUE_POD_NAME -n $NAMESPACE)
+    echo $(kubectl get pod $UNIQUE_POD_NAME -n $NAMESPACE --no-headers)
 fi
 
 # Cleanup at the end
