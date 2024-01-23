@@ -78,13 +78,17 @@ To test the CI/CD gitlab integration script, Iron Bank is providing access to th
 
 Proper credentials have to be granted from the IB Pops team to access the **Zelda Staging CI/CD pipeline** environment. A standard DoD Common Access Card (CAC) can be used for authentication. However, Iron Bank does have an alternative approach for access without a CAC with a third-party Appgate SDP desktop client. Tidelif is able to read and write to the ironbank-pipleine in Repo1  using the Appgate SDK and [https://login.dso.mil](https://login.dso.mil) credentials to commit code into the ironbank-pipeline repository. 
 
-The Tidelift integration point is through the `post-build` stage, where a the`tidelift-upload` job has been created to upload the project SBOMs into Tidelift SaaS. The job will handle the Tidelift and IB environment mapping for each project and group classification using the Tidelift CLI. The Tidelift CLI SBOM alignment will process the CyclonedX SBOM first; SPDX and other formats will be included after a full production integration is completed. 
+The Tidelift integration point is through the `post-build` stage, where a the`tidelift-upload` job has been created to upload the project SBOMs into Tidelift SaaS. The job will handle the Tidelift and IB gitlab environment mapping for each project and group classification using the Tidelift CLI. The Tidelift CLI SBOM alignment will process the CyclonedX SBOM first; SPDX and other formats will be included after a full production integration is completed. 
+
+Tidelift CLI Docs
+[https://support.tidelift.com/hc/en-us/articles/4406293613588-Tidelift-CLI-reference#tidelift-cli-reference-0-0](https://support.tidelift.com/hc/en-us/articles/4406293613588-Tidelift-CLI-reference#tidelift-cli-reference-0-0)
 
 Once the Tiedelift CLI SBOM alignment is completed for the project, a Vulnerability report will be generated and requested for the project from the IB `tidelift-upload` pipeline job using the Tidelift Reports APIs (`bom_vulnerabilities`).
 
+Tidelift Reports API Docs
 [https://api.tidelift.com/docs/#tag/Reports](https://api.tidelift.com/docs/#tag/Reports)
 
-For a complete Tidelift `ironbank-pipleine` network architecture integration workflow diagram `tidelift-upload` gitlab job below.  
+For a complete Tidelift `ironbank-pipleine` network architecture integration workflow and the `tidelift-upload` gitlab job see below.  
 
  ![image info](tidelift_workflow.png)
  
