@@ -66,41 +66,41 @@ def cleanup_pod(pod_name, pod_namespace):
     print(f"Running: {stop_cmd}")
 
 #returns true if image is in local image repo, otherwise returns false
-def image_loaded(docker_image):
-    get_images_command = "docker images --format '{{.Repository}}:{{.Tag}}'"
+# def image_loaded(docker_image):
+#     get_images_command = "docker images --format '{{.Repository}}:{{.Tag}}'"
     
-    try:
-        stdout, stderr = subprocess.Popen(get_images_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate(None)
+#     try:
+#         stdout, stderr = subprocess.Popen(get_images_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate(None)
         
-        images_string = stdout.decode()
-        if docker_image in images_string:
-            return True
-        else:
-            return False
+#         images_string = stdout.decode()
+#         if docker_image in images_string:
+#             return True
+#         else:
+#             return False
     
-    #return false if timeout is exceeded
-    except Exception as e:
-        print_red(f"Command failed: {get_images_command}")
-        print(f"Exception value was {e}")
+#     #return false if timeout is exceeded
+#     except Exception as e:
+#         print_red(f"Command failed: {get_images_command}")
+#         print(f"Exception value was {e}")
     
 
-#returns true if docker image load <docker_image> succeeds; otherwise returns false
-def pull_docker_image(docker_image, timeout_seconds=60):
-    pull_command = f"docker pull {docker_image}"
+# #returns true if docker image load <docker_image> succeeds; otherwise returns false
+# def pull_docker_image(docker_image, timeout_seconds=60):
+#     pull_command = f"docker pull {docker_image}"
     
-    try:
-        stdout, stderr = subprocess.Popen(pull_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate(None, timeout_seconds)
+#     try:
+#         stdout, stderr = subprocess.Popen(pull_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate(None, timeout_seconds)
     
-    except TimeoutError as e:
-        print_red(f"'{pull_command}' failed to complete before {timeout_seconds} seconds")
-        return False
+#     except TimeoutError as e:
+#         print_red(f"'{pull_command}' failed to complete before {timeout_seconds} seconds")
+#         return False
     
-    #return false if timeout is exceeded
-    except Exception as e:
-        print(f"Exception while trying to perform '{pull_command}'.\nException value was {e}")
+#     #return false if timeout is exceeded
+#     except Exception as e:
+#         print(f"Exception while trying to perform '{pull_command}'.\nException value was {e}")
     
-    print_green(f"image '{docker_image}' was loaded succesfully")
-    return True
+#     print_green(f"image '{docker_image}' was loaded succesfully")
+#     return True
 
 def read_image_from_hardening_manifest(hardening_manifest):
     try:
@@ -305,15 +305,15 @@ def main(git_project_root_folder, kubernetes_namespace):
     docker_image = read_image_from_hardening_manifest(hardening_manifest)
 
     #make sure docker image is loaded
-    if not image_loaded(docker_image):
-        print_yellow(f"docker image '{docker_image}' was not found in the local repo.")
+    # if not image_loaded(docker_image):
+    #     print_yellow(f"docker image '{docker_image}' was not found in the local repo.")
         
-        print(f"Attempting to pull docker image '{docker_image}'")
-        if pull_docker_image(docker_image):
-            print_green(f"{docker_image} pulled successfully.")
-        else:
-            print_red(f"{docker_image} could not be pulled; exiting")
-            sys.exit(1)
+    #     print(f"Attempting to pull docker image '{docker_image}'")
+    #     if pull_docker_image(docker_image):
+    #         print_green(f"{docker_image} pulled successfully.")
+    #     else:
+    #         print_red(f"{docker_image} could not be pulled; exiting")
+    #         sys.exit(1)
 
     container_tests = None
     kubernetes_test = None

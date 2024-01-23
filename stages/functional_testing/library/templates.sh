@@ -38,10 +38,10 @@ function setup_k8s_resources() {
     local NAMESPACE=$1
 
     # Ensure Docker credentials are set in environment variables
-    if [[ -z "$DOCKER_USER" || -z "$DOCKER_PASSWORD" || -z "$DOCKER_REGISTRY_SERVER" ]]; then
-        echo "Please set DOCKER_USER, DOCKER_REGISTRY_SERVER and DOCKER_PASSWORD environment variables."
-        return 1
-    fi
+    # if [[ -z "$DOCKER_USER" || -z "$DOCKER_PASSWORD" || -z "$DOCKER_REGISTRY_SERVER" ]]; then
+    #     echo "Please set DOCKER_USER, DOCKER_REGISTRY_SERVER and DOCKER_PASSWORD environment variables."
+    #     return 1
+    # fi
 
     # Create namespace if it doesn't exist
     # kubectl get ns $NAMESPACE || kubectl create ns $NAMESPACE #creating manually
