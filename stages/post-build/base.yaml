@@ -71,4 +71,7 @@ tidelift-upload:
     - echo "Setting permission"
     - chmod +x tidelift
     - echo "-******** PRINTING ENV VARIABLES ******"
-    - env | egrep $(yq '.variables | keys | ... comments = "" | map("^" + . + "=") | @csv' .gitlab-ci.yml | tr "," "|")
+    - echo /etc/os-release
+    - echo grep '^VERSION' /etc/os-release
+    - echo grep -E '^(VERSION|NAME)=' /etc/os-release
+   #- env | egrep $(yq '.variables | keys | ... comments = "" | map("^" + . + "=") | @csv' .gitlab-ci.yml | tr "," "|")
