@@ -7,7 +7,7 @@ Iron Bank is the DoD's source for hardened containers. A hardened container allo
 **Continuous Accreditation of Hardened Images | High-Level CI/CD Pipeline Workflow**
 
 ![Continuous Accreditation of Hardened Images | CI/CD Pipeline Workflow](https://p1.dso.mil/IBVS_pipeline.e027a745.webp "Optional Title")
-[https://p1.dso.mil/IBVS_pipeline.e027a745.webp](https://p1.dso.mil/IBVS_pipeline.e027a745.webp)
+Source: [https://p1.dso.mil/IBVS_pipeline.e027a745.webp](https://p1.dso.mil/IBVS_pipeline.e027a745.webp)
 
 The CI/CD Pipeline Workflow high-level stages:
 
@@ -71,11 +71,20 @@ TIDELIFT_CVE_REPORT_NAME:  "${TIDELIFT_PROJECT_EXTERNAL_ID}_tidelift_cve_report.
 
 
 #Iron Bank Staging Pipeline Environment 
-To Test the CI/CD gitlab integration script, Iron Bank is providing access to the Staging Pipeline envornment. 
+To test the CI/CD gitlab integration script, Iron Bank is providing access to the Zelda Staging pipeline envornment. 
+
+###Zelda Staging 
 [https://code-ib-zelda.staging.dso.mil/ironbank-tools/ironbank-pipeline](https://code-ib-zelda.staging.dso.mil/ironbank-tools/ironbank-pipeline)
 
-Proper credentials have to be granted from the IB Pops team to access the **Staging CI/CD pipeline** environment. A standard DoD Common Access Card (CAC) can be used for authentication. However, IB has presented an alternative option for Tidelift to use the Appgate SDP desktop client with proper [https://login.dso.mil](https://login.dso.mil) credentials to access the Staging Iron Bank Pipeline. 
+Proper credentials have to be granted from the IB Pops team to access the **Zelda Staging CI/CD pipeline** environment. A standard DoD Common Access Card (CAC) can be used for authentication. However, Iron Bank does have an alternative approach for access without a CAC with a third-party Appgate SDP desktop client. Tidelif is able to read and write to the ironbank-pipleine in Repo1  using the Appgate SDK and [https://login.dso.mil](https://login.dso.mil) credentials to commit code into the ironbank-pipeline repository. 
 
-Once authenticated to the Staging CI/CD pipeline environment, Tidelift will be able to directly contibue to the gitlab script programming. The `tidelift-upload` job will handle the project mapping, Tidelift catalog group creation, and Tidelift CLI alignment (SBOM upload process). 
- 
+The Tidelift integration point is through the `post-build` stage, where a the`tidelift-upload` job has been created to upload the project SBOMs into Tidelift SaaS. The job will handle the Tidelift and IB environment mapping for each project and group classification using the Tidelift CLI. The Tidelift CLI SBOM alignment will process the CyclonedX SBOM first; SPDX and other formats will be included after a full production integration is completed. 
+
+Once the Tiedelift CLI SBOM alignment is completed for the project, a Vulnerability report will be generated and requested for the project from the IB `tidelift-upload` pipeline job using the Tidelift Reports APIs (`bom_vulnerabilities`).
+
+[https://api.tidelift.com/docs/#tag/Reports](https://api.tidelift.com/docs/#tag/Reports)
+
+For a complete Tidelift `ironbank-pipleine` network architecture integration workflow diagram `tidelift-upload` gitlab job below.  
+
+ ![image info](tidelift_workflow.png)
  
