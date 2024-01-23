@@ -61,8 +61,8 @@ tidelift-upload:
     TIDELIFT_CATALOG_NAME: "${TIDELIFT_PROJECT_SUPPLIER}"
     #notes ref: https://docs.gitlab.com/ee/ci/variables/predefined_variables.html 
     #Variables for Tidelift Reports
-    TIDELIFT_ALIGNMENT_ID:  TBD
-    TIDELIFT_CVE_REPORT_ID: TBD
+   # TIDELIFT_ALIGNMENT_ID:  TBD
+   # TIDELIFT_CVE_REPORT_ID: TBD
     TIDELIFT_CVE_REPORT_NAME:  "${TIDELIFT_PROJECT_EXTERNAL_ID}_tidelift_cve_report.json"
 
   script:
