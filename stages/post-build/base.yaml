@@ -52,7 +52,7 @@ tidelift-upload:
     IRONBANK_CLASSIFICATION: General  
     TIDELIFT_PROJECT_GROUP: "${IRONBANK_CLASSIFICATION}" 
     TIDELIFT_PROJECT_EXTERNAL_ID: "${IMAGE_NAME}-${IMAGE_TAG}-${CI_COMMIT_REF_NAME}"
-    SupplierName/SubGroup/projectname/tagnumber/branch/
+    #SupplierName/SubGroup/projectname/tagnumber/branch/
     #parse the supplier name from "${IMAGE_NAME}" string 
     TIDELIFT_PROJECT_SUPPLIER:  "${IMAGE_NAME}" 
     TIDELIFT_PROJECT_SUPPLIERTYPE: "${IMAGE-TAG}"
