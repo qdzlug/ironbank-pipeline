@@ -70,13 +70,5 @@ tidelift-upload:
     - curl https://download.tidelift.com/cli/tidelift -o tidelift
     - echo "Setting permission"
     - chmod +x tidelift
-    - >
-      if ./tidelift projects list --organization team/us-ironbank | grep -q $TL_IMAGE_NAME; then
-        echo "$TL_IMAGE_NAME already exists in tidelift. Skipping tidelift init.";
-      else
-        echo "$TL_IMAGE_NAME doesn't exist in tidelift. Running tidelift init.";
-        echo "y" | ./tidelift init $TL_IMAGE_NAME --organization team/us-ironbank --catalog ibtest --force 
-        cat .tidelift;
-      fi
-    - ./tidelift alignment save --recursive
-    #no forward lashes and spaces in project name
+    - echo "-******** PRINTING ENV VARIABLES ******"
+    - env | egrep $(yq '.variables | keys | ... comments = "" | map("^" + . + "=") | @csv' .gitlab-ci.yml | tr "," "|")
