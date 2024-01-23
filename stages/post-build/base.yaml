@@ -33,3 +33,50 @@ create-sbom:
   image: "registry1.dso.mil/ironbank/anchore/enterprise/enterprise:4.4.1"
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/post-build/generate_sbom.py"'
+
+    
+### Tidelift.com SaaS integration ######
+### Job will create a 1:1 container image project alignment with the Tidelift Catalog
+tidelift-upload:
+  extends:
+    - .post-build
+  needs:
+    - create-sbom
+  variables:
+    TIDELIFT_API_KEY: "${TIDELIFT_API_KEY}"
+    SBOM_DIR: "${ARTIFACT_STORAGE}/sbom" 
+    TIDELIFT_DIR: "${ARTIFACT_STORAGE}/tidelift"
+    TIDELIFT_ORG_NAME: us-ironbank
+    TIDELIFT_PROJECT_BRANCH: "${CI_COMMIT_BRANCH}"
+    #set IB Tier Group to "General" as default for now. 
+    IRONBANK_CLASSIFICATION: General  
+    TIDELIFT_PROJECT_GROUP: "${IRONBANK_CLASSIFICATION}" 
+    TIDELIFT_PROJECT_EXTERNAL_ID: "${IMAGE_NAME}-${IMAGE_TAG}-${CI_COMMIT_REF_NAME}"
+    SupplierName/SubGroup/projectname/tagnumber/branch/
+    #parse the supplier name from "${IMAGE_NAME}" string 
+    TIDELIFT_PROJECT_SUPPLIER:  "${IMAGE_NAME}" 
+    TIDELIFT_PROJECT_SUPPLIERTYPE: "${IMAGE-TAG}"
+    TIDELIFT_PROJECT_NAME: "${TIDELIFT_IMAGE_NAME}-${IMAGE_TAG}-${CI_COMMIT_BRANCH}"  
+    #notes: "${TIDELIFT_IMAGE_NAME}" uses "${CI_PROJECT_NAME}"
+    TIDELIFT_CATALOG_NAME: "${TIDELIFT_PROJECT_SUPPLIER}"
+    #notes ref: https://docs.gitlab.com/ee/ci/variables/predefined_variables.html 
+    #Variables for Tidelift Reports
+    TIDELIFT_ALIGNMENT_ID:  TBD
+    TIDELIFT_CVE_REPORT_ID: TBD
+    TIDELIFT_CVE_REPORT_NAME:  "${TIDELIFT_PROJECT_EXTERNAL_ID}_tidelift_cve_report.json"
+
+  script:
+    - cp ${SBOM_DIR}/sbom-cyclonedx-json.json cyclonedx.json
+    - curl https://download.tidelift.com/cli/tidelift -o tidelift
+    - echo "Setting permission"
+    - chmod +x tidelift
+    - >
+      if ./tidelift projects list --organization team/us-ironbank | grep -q $TL_IMAGE_NAME; then
+        echo "$TL_IMAGE_NAME already exists in tidelift. Skipping tidelift init.";
+      else
+        echo "$TL_IMAGE_NAME doesn't exist in tidelift. Running tidelift init.";
+        echo "y" | ./tidelift init $TL_IMAGE_NAME --organization team/us-ironbank --catalog ibtest --force 
+        cat .tidelift;
+      fi
+    - ./tidelift alignment save --recursive
+    #no forward lashes and spaces in project name
