@@ -71,5 +71,14 @@ tidelift-upload:
     - echo "Setting permission"
     - chmod +x tidelift
     - echo "-******** PRINTING ENV VARIABLES ******"
-    - snap install yq --channel=v3/stable
-    - env | egrep $(yq '.variables | keys | ... comments = "" | map("^" + . + "=") | @csv' .gitlab-ci.yml | tr "," "|")
+  #  - snap install yq --channel=v3/stable
+  #  - env | egrep $(yq '.variables | keys | ... comments = "" | map("^" + . + "=") | @csv' .gitlab-ci.yml | tr "," "|")
+
+    - echo TIDELIFT_PROJECT_BRANCH= $TIDELIFT_PROJECT_BRANCH
+    - echo TIDELIFT_PROJECT_GROUP= $TIDELIFT_PROJECT_GROUP
+    - echo TIDELIFT_PROJECT_EXTERNAL_ID= $TIDELIFT_PROJECT_EXTERNAL_ID
+    - echo TIDELIFT_PROJECT_SUPPLIER= $TIDELIFT_PROJECT_SUPPLIER
+    - echo TIDELIFT_PROJECT_SUPPLIERTYPE= $TIDELIFT_PROJECT_SUPPLIERTYPE
+    - echo TIDELIFT_PROJECT_NAME= $TIDELIFT_PROJECT_NAME
+    - echo TIDELIFT_CATALOG_NAME= $TIDELIFT_CATALOG_NAME
+    - echo TIDELIFT_CVE_REPORT_NAME= $TIDELIFT_CVE_REPORT_NAME
