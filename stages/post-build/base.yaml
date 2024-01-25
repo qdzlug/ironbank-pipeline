@@ -86,3 +86,5 @@ tidelift-upload:
     - echo "TIDELIFT_PROJECT_NAME= $TIDELIFT_PROJECT_NAME"
     - echo "TIDELIFT_CATALOG_NAME= $TIDELIFT_CATALOG_NAME"
     - echo "TIDELIFT_CVE_REPORT_NAME= $TIDELIFT_CVE_REPORT_NAME"
+
+    - echo `******************************************************`
