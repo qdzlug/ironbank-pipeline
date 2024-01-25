@@ -41,6 +41,8 @@ tidelift-upload:
   extends:
     - .post-build
   needs:
+    - lint
+    - build
     - create-sbom
   variables:
     TIDELIFT_API_KEY: "${TIDELIFT_API_KEY}"
@@ -55,7 +57,7 @@ tidelift-upload:
     #SupplierName/SubGroup/projectname/tagnumber/branch/
     #parse the supplier name from "${IMAGE_NAME}" string 
     TIDELIFT_PROJECT_SUPPLIER:  "${IMAGE_NAME}" 
-    TIDELIFT_PROJECT_SUPPLIERTYPE: "${IMAGE-TAG}"
+    TIDELIFT_PROJECT_SUPPLIERTYPE: "${IMAGE_FULLTAG}"
     TIDELIFT_PROJECT_NAME: "${TIDELIFT_IMAGE_NAME}-${IMAGE_TAG}-${CI_COMMIT_BRANCH}"  
     #notes: "${TIDELIFT_IMAGE_NAME}" uses "${CI_PROJECT_NAME}"
     TIDELIFT_CATALOG_NAME: "${TIDELIFT_PROJECT_SUPPLIER}"
@@ -70,9 +72,9 @@ tidelift-upload:
     - curl https://download.tidelift.com/cli/tidelift -o tidelift
     - echo "Setting permission"
     - chmod +x tidelift
-    - echo "-******** PRINTING ENV VARIABLES ******"
-    - env
-    - echo "-******** DEFINIG SCRIPT VARIABLE VALUES ******"
+  #  - echo "-******** PRINTING ENV VARIABLES ******"
+  #  - env
+    - echo "-******** DEFINING SCRIPT VARIABLE VALUES ******"
   #  - snap install yq --channel=v3/stable
   #  - env | egrep $(yq '.variables | keys | ... comments = "" | map("^" + . + "=") | @csv' .gitlab-ci.yml | tr "," "|")
     - echo `*****************************************************`
@@ -84,37 +86,3 @@ tidelift-upload:
     - echo "TIDELIFT_PROJECT_NAME= $TIDELIFT_PROJECT_NAME"
     - echo "TIDELIFT_CATALOG_NAME= $TIDELIFT_CATALOG_NAME"
     - echo "TIDELIFT_CVE_REPORT_NAME= $TIDELIFT_CVE_REPORT_NAME"
-
-    - echo "-******** Predefined ENV VARIABLES ******"
-    - echo "$CI_JOB_ID"
-    - echo "$CI_COMMIT_REF_NAME"
-    - echo "$CI_COMMIT_TAG"
-    - echo "$CI_COMMIT_REF_SLUG"
-    - echo "$CI_JOB_STAGE"
-    - echo "$CI_JOB_NAME"
-    - echo "$CI_REPOSITORY_URL"
-    - echo "$CI_PIPELINE_TRIGGERED"
-    - echo "$CI_JOB_MANUAL"
-    - echo "$CI_JOB_TOKEN"
-    - echo "$CI_RUNNER_ID"
-    - echo "$CI_RUNNER_TAGS"
-    - echo "$CI_RUNNER_VERSION"
-    - echo "$CI_PIPELINE_ID"
-    - echo "$CI_REGISTRY_USERNAME"
-    - echo "$CI_REGISTRY_PASSWORD"
-    - echo "$CI_PROJECT_DIR"
-    - echo "$CI_PROJECT_ID"
-    - echo "$CI_PROJECT_NAME"
-    - echo "$CI_PROJECT_PATH"
-    - echo "$CI_PROJECT_URL"
-    - echo "$CI_REGISTRY"
-    - echo "$CI_REGISTRY_IMAGE"
-    - echo "$CI_SERVER"
-    - echo "$CI_SERVER_NAME"
-    - echo "$CI_SERVER_VERSION"
-    - echo "$GITLAB_USER_ID"
-    - echo "$GITLAB_USER_LOGIN"
-    - echo "$GITLAB_USER_NAME"
-    - echo "$GITLAB_FEATURES"
-    - echo "$CI_PROJECT_TITLE"
-    - echo "$CI_PAGES_DOMAIN"
