@@ -66,6 +66,12 @@ def get_oscap_guide(scap_version, image_type):
             + str(scap_version)
             + "/ssg-ubuntu2004-ds.xml",
         },
+        "ubuntu2204-container": {
+            "profile": "xccdf_org.ssgproject.content_profile_stig",
+            "securityGuide": "scap-security-guide-"
+            + str(scap_version)
+            + "/ssg-ubuntu2204-ds.xml",
+        },
         "sle15-bci-container": {
             "profile": "xccdf_org.ssgproject.content_profile_stig",
             "securityGuide": "scap-security-guide-"
