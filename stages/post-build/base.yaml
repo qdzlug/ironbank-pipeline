@@ -84,9 +84,9 @@ tidelift-upload:
     - echo `*****************************************************`
     - echo "IRONBANK_IMAGE_NAME= $IRONBANK_IMAGE_NAME"
     - echo "IRONBANK_IMAGETAG= $IRONBANK_IMAGETAG"
-    - TIDELIFT_PROJECT_SUPPLIER = echo ${IRONBANK_IMAGE_NAME} | cut -d\/ -f1
-    - TIDELIFT_PROJECT_SUPPLIER_TYPE = echo ${IRONBANK_IMAGE_NAME} | cut -d\/ -f2
-    - TIDELIFT_PROJECT_NAME = echo ${IRONBANK_IMAGE_NAME} | cut -d\/ -f3
+  #  - TIDELIFT_PROJECT_SUPPLIER = echo ${IRONBANK_IMAGE_NAME} | cut -d\/ -f1
+  #  - TIDELIFT_PROJECT_SUPPLIER_TYPE = echo ${IRONBANK_IMAGE_NAME} | cut -d\/ -f2
+  #  - TIDELIFT_PROJECT_NAME = echo ${IRONBANK_IMAGE_NAME} | cut -d\/ -f3
     #- TIDELIFT_PROJECT_TAG=echo ${IRONBANK_IMAGETAG} | cut -d\":" -f2
     #- echo "TIDELIFT_PROJECT_TAG= $TIDELIFT_PROJECT_TAG"
     - echo "TIDELIFT_PROJECT_BRANCH= $TIDELIFT_PROJECT_BRANCH"
