@@ -96,3 +96,4 @@ tidelift-upload:
     - echo "TIDELIFT_PROJECT_SUPPLIER_TYPE= $TIDELIFT_PROJECT_SUPPLIERTYPE"
     - echo "TIDELIFT_PROJECT_NAME= $TIDELIFT_PROJECT_NAME"
     - echo `******************************************************`
+    - echo "done"
