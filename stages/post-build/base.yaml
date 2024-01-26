@@ -53,19 +53,21 @@ tidelift-upload:
     #set IB Tier Group to "General" as default for now. 
     IRONBANK_CLASSIFICATION: General  
     TIDELIFT_PROJECT_GROUP: "${IRONBANK_CLASSIFICATION}" 
-    TIDELIFT_PROJECT_EXTERNAL_ID: "${IMAGE_NAME}-${IMAGE_TAG}-${CI_COMMIT_REF_NAME}"
+    IRONBANK_IMAGE_NAME: "${IMAGE_NAME}"
+    IRONBANK_IMAGETAG: "${IMAGE_FULLTAG}"
     #SupplierName/SubGroup/projectname/tagnumber/branch/
     #parse the supplier name from "${IMAGE_NAME}" string 
-    TIDELIFT_PROJECT_SUPPLIER:  "${IMAGE_NAME}" 
-    TIDELIFT_PROJECT_SUPPLIERTYPE: "${IMAGE_FULLTAG}"
-    TIDELIFT_PROJECT_NAME: "${TIDELIFT_IMAGE_NAME}-${IMAGE_TAG}-${CI_COMMIT_BRANCH}"  
+    TIDELIFT_PROJECT_NAME: ""  
+    TIDELIFT_PROJECT_EXTERNAL_ID: ""
+    TIDELIFT_PROJECT_SUPPLIER:  "" 
+    TIDELIFT_PROJECT_SUPPLIERTYPE: ""
+    TIDELIFT_PROJECT_TAG: ""
     #notes: "${TIDELIFT_IMAGE_NAME}" uses "${CI_PROJECT_NAME}"
-    TIDELIFT_CATALOG_NAME: "${TIDELIFT_PROJECT_SUPPLIER}"
     #notes ref: https://docs.gitlab.com/ee/ci/variables/predefined_variables.html 
     #Variables for Tidelift Reports
    # TIDELIFT_ALIGNMENT_ID:  TBD
    # TIDELIFT_CVE_REPORT_ID: TBD
-    TIDELIFT_CVE_REPORT_NAME:  "${TIDELIFT_PROJECT_EXTERNAL_ID}_tidelift_cve_report.json"
+   # TIDELIFT_CVE_REPORT_NAME:  "${TIDELIFT_PROJECT_EXTERNAL_ID}_tidelift_cve_report.json"
 
   script:
     - cp ${SBOM_DIR}/sbom-cyclonedx-json.json cyclonedx.json
@@ -73,20 +75,22 @@ tidelift-upload:
     - echo "Setting permission"
     - chmod +x tidelift
     - ./tidelift selfupdate
-    - jq --version
+  #  - jq --version
   #  - echo "-******** PRINTING ENV VARIABLES ******"
   #  - env
-    - echo "-******** DEFINING SCRIPT VARIABLE VALUES ******"
+    - echo "-******** Variables VALUES ******"
   #  - snap install yq --channel=v3/stable
   #  - env | egrep $(yq '.variables | keys | ... comments = "" | map("^" + . + "=") | @csv' .gitlab-ci.yml | tr "," "|")
     - echo `*****************************************************`
-    - echo "TIDELIFT_PROJECT_BRANCH= $TIDELIFT_PROJECT_BRANCH"
-    - echo "TIDELIFT_PROJECT_GROUP= $TIDELIFT_PROJECT_GROUP"
-    - echo "TIDELIFT_PROJECT_EXTERNAL_ID= $TIDELIFT_PROJECT_EXTERNAL_ID"
-    - echo "TIDELIFT_PROJECT_SUPPLIER= $TIDELIFT_PROJECT_SUPPLIER"
-    - echo "TIDELIFT_PROJECT_SUPPLIERTYPE= $TIDELIFT_PROJECT_SUPPLIERTYPE"
-    - echo "TIDELIFT_PROJECT_NAME= $TIDELIFT_PROJECT_NAME"
-    - echo "TIDELIFT_CATALOG_NAME= $TIDELIFT_CATALOG_NAME"
-    - echo "TIDELIFT_CVE_REPORT_NAME= $TIDELIFT_CVE_REPORT_NAME"
+    - echo "IRONBANK_IMAGE_NAME= $IRONBANK_IMAGE_NAME"
+    - echo "IRONBANK_IMAGETAG= $IRONBANK_IMAGETAG"
+    - TIDELIFT_PROJECT_TAG=echo ${IRONBANK_IMAGETAG} | cut -d\`:` -f2
+    - echo "TIDELIFT_PROJECT_TAG= $TIDELIFT_PROJECT_TAG"
 
+   # - echo "TIDELIFT_PROJECT_BRANCH= $TIDELIFT_PROJECT_BRANCH"
+   # - echo "TIDELIFT_PROJECT_GROUP= $TIDELIFT_PROJECT_GROUP"
+   # - echo "TIDELIFT_PROJECT_EXTERNAL_ID= $TIDELIFT_PROJECT_EXTERNAL_ID"
+   # - echo "TIDELIFT_PROJECT_SUPPLIER= $TIDELIFT_PROJECT_SUPPLIER"
+   # - echo "TIDELIFT_PROJECT_SUPPLIERTYPE= $TIDELIFT_PROJECT_SUPPLIERTYPE"
+   # - echo "TIDELIFT_PROJECT_NAME= $TIDELIFT_PROJECT_NAME"
     - echo `******************************************************`
