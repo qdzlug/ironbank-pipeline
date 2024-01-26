@@ -72,7 +72,7 @@ tidelift-upload:
     - curl https://download.tidelift.com/cli/tidelift -o tidelift
     - echo "Setting permission"
     - chmod +x tidelift
-    - tidelift selftupdate
+    - ./tidelift selftupdate
     - jq --version
   #  - echo "-******** PRINTING ENV VARIABLES ******"
   #  - env
