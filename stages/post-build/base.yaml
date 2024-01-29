@@ -55,13 +55,11 @@ tidelift-upload:
     TIDELIFT_PROJECT_GROUP: "${IRONBANK_CLASSIFICATION}" 
     IRONBANK_IMAGE_NAME: "${IMAGE_NAME}"
     IRONBANK_IMAGE_TAG: "${IMAGE_FULLTAG}"
-    #SupplierName/SubGroup/projectname/tagnumber/branch/
-    #parse the supplier name from "${IMAGE_NAME}" string 
-   # TIDELIFT_PROJECT_NAME: ""  
-   # TIDELIFT_PROJECT_EXTERNAL_ID: ""
-   # TIDELIFT_PROJECT_SUPPLIER:  "" 
-   # TIDELIFT_PROJECT_SUPPLIER_TYPE: ""
-   # TIDELIFT_PROJECT_TAG: ""
+    TIDELIFT_PROJECT_NAME: ""  
+    TIDELIFT_PROJECT_EXTERNAL_ID: ""
+    TIDELIFT_PROJECT_SUPPLIER:  "" 
+    TIDELIFT_PROJECT_SUPPLIER_TYPE: ""
+    TIDELIFT_PROJECT_TAG: ""
     #notes: "${TIDELIFT_IMAGE_NAME}" uses "${CI_PROJECT_NAME}"
     #notes ref: https://docs.gitlab.com/ee/ci/variables/predefined_variables.html 
     #Variables for Tidelift Reports
@@ -71,35 +69,34 @@ tidelift-upload:
 
   script:
     - cp ${SBOM_DIR}/sbom-cyclonedx-json.json cyclonedx.json
+    - echo "Downloading Tidelift CLI binary file" 
     - curl https://download.tidelift.com/cli/tidelift -o tidelift
-    - echo "Setting permission"
+    - echo "Setting Tidelift CLI permissions and updating binary file"
     - chmod +x tidelift
     - ./tidelift selfupdate
   #  - jq --version
-    - echo "-******** PRINTING ENV VARIABLES ******"
+    - echo "-* PRINTING ENV VARIABLES *-"
   #  - env
+    - echo "TIDELIFT_PROJECT_BRANCH= $TIDELIFT_PROJECT_BRANCH"
+    - echo "TIDELIFT_PROJECT_GROUP= $TIDELIFT_PROJECT_GROUP"
+    
     - echo "IRONBANK_IMAGE_NAME=${IRONBANK_IMAGE_NAME}"
     - echo "IRONBANK_IMAGE_TAG=${IRONBANK_IMAGE_TAG}"
-    - echo "-----------------Parsing Variables Strings---------------------"
     - |
-      echo "parsing strings"
+      echo "-- Parsing IB IRONBANK_IMAGE_NAME and IRONBANK_IMAGE_TAG string values into Tidelift variable values --"
       a=($(echo "$IRONBANK_IMAGE_NAME" | tr '/' '\n'))
       b=($(echo "$IRONBANK_IMAGE_TAG" | tr ':' '\n'))
-      echo "Supplier: ${a[0]}"
-      echo "Type: ${a[1]}"
-      echo "Name: ${a[2]}"
-      echo "Tag: ${b[1]}"
-    - echo "------------------------done----------------------------------"
-    #- TIDELIFT_PROJECT_SUPPLIER=echo ${IRONBANK_IMAGE_NAME} | cut -d\/ -f1
-    #- TIDELIFT_PROJECT_SUPPLIER_TYPE=echo ${IRONBANK_IMAGE_NAME} | cut -d\/ -f2
-    #- TIDELIFT_PROJECT_NAME=echo ${IRONBANK_IMAGE_NAME} | cut -d\/ -f3
-    #- TIDELIFT_PROJECT_TAG=echo ${IRONBANK_IMAGETAG} | cut -d\":" -f2
-    #- echo "TIDELIFT_PROJECT_TAG= $TIDELIFT_PROJECT_TAG"
-    #- echo "TIDELIFT_PROJECT_BRANCH= $TIDELIFT_PROJECT_BRANCH"
-    #- echo "TIDELIFT_PROJECT_GROUP= $TIDELIFT_PROJECT_GROUP"
-    #- echo "TIDELIFT_PROJECT_EXTERNAL_ID= $TIDELIFT_PROJECT_EXTERNAL_ID"
-    #- echo "TIDELIFT_PROJECT_SUPPLIER=$TIDELIFT_PROJECT_SUPPLIER"
-    #- echo "TIDELIFT_PROJECT_SUPPLIER_TYPE=$TIDELIFT_PROJECT_SUPPLIER_TYPE"
-    #- echo "TIDELIFT_PROJECT_NAME=$TIDELIFT_PROJECT_NAME"
-    #- echo `******************************************************`
-    #- echo "done"
+      TIDELIFT_PROJECT_SUPPLIER=${a[0]}
+      TIDELIFT_PROJECT_SUPPLIER_TYPE=${a[1]}
+      TIDELIFT_PROJECT_TAG=${b[1]}
+      TIDELIFT_PROJECT_NAME="${a[2]}  ${TIDELIFT_PROJECT_TAG} ${TIDELIFT_PROJECT_BRANCH}"
+      TIDELIFT_PROJECT_EXTERNAL_ID="${TIDELIFT_PROJECT_SUPPLIER}/${TIDELIFT_PROJECT_SUPPLIER_TYPE}/${a[2]}/${TIDELIFT_PROJECT_TAG}"
+      echo "Supplier: ${TIDELIFT_PROJECT_SUPPLIER}"
+      echo "Type: ${TIDELIFT_PROJECT_SUPPLIER_TYPE}"
+      echo "Name: ${TIDELIFT_PROJECT_NAME}"
+      echo "Tag: ${TIDELIFT_PROJECT_TAG}"
+      echo "External ID: ${TIDELIFT_PROJECT_EXTERNAL_ID}"
+    - echo "-- Done --"
+    #Project Name: project-name+tagnumber+branch-name 
+    #External Prj Identifier: SupplierName/SubGroup/projectname/tagnumber/
+    - echo "-* Starting Tidelift Project Alignment w/Container Image SBOM -*"
