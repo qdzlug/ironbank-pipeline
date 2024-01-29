@@ -78,18 +78,27 @@ tidelift-upload:
   #  - jq --version
     - echo "-******** PRINTING ENV VARIABLES ******"
   #  - env
-    - echo "IRONBANK_IMAGE_NAME= $IRONBANK_IMAGE_NAME"
-    - echo "IRONBANK_IMAGE_TAG= $IRONBANK_IMAGE_TAG"
-    - TIDELIFT_PROJECT_SUPPLIER = echo ${IRONBANK_IMAGE_NAME} | cut -d\/ -f1
-    - TIDELIFT_PROJECT_SUPPLIER_TYPE = echo ${IRONBANK_IMAGE_NAME} | cut -d\/ -f2
-    - TIDELIFT_PROJECT_NAME = echo ${IRONBANK_IMAGE_NAME} | cut -d\/ -f3
+    - echo "IRONBANK_IMAGE_NAME=${IRONBANK_IMAGE_NAME}"
+    - echo "IRONBANK_IMAGE_TAG=${IRONBANK_IMAGE_TAG}"
+    - echo "-----------------Parsing Variables Strings---------------------"
+    - > 
+      a=($(echo "$IRONBANK_IMAGE_NAME" | tr '/' '\n'))
+      b=($(echo "$IRONBANK_IMAGE_TAG" | tr ':' '\n'))
+      echo "Supplier: ${a[0]}"
+      echo "Type: ${a[1]}"
+      echo "Name: ${a[2]}"
+      echo "Tag: ${b[1]}"
+    - echo "------------------------done----------------------------------"
+    #- TIDELIFT_PROJECT_SUPPLIER=echo ${IRONBANK_IMAGE_NAME} | cut -d\/ -f1
+    #- TIDELIFT_PROJECT_SUPPLIER_TYPE=echo ${IRONBANK_IMAGE_NAME} | cut -d\/ -f2
+    #- TIDELIFT_PROJECT_NAME=echo ${IRONBANK_IMAGE_NAME} | cut -d\/ -f3
     #- TIDELIFT_PROJECT_TAG=echo ${IRONBANK_IMAGETAG} | cut -d\":" -f2
     #- echo "TIDELIFT_PROJECT_TAG= $TIDELIFT_PROJECT_TAG"
-  #  - echo "TIDELIFT_PROJECT_BRANCH= $TIDELIFT_PROJECT_BRANCH"
-  #  - echo "TIDELIFT_PROJECT_GROUP= $TIDELIFT_PROJECT_GROUP"
-   # - echo "TIDELIFT_PROJECT_EXTERNAL_ID= $TIDELIFT_PROJECT_EXTERNAL_ID"
-    - echo "TIDELIFT_PROJECT_SUPPLIER= $TIDELIFT_PROJECT_SUPPLIER"
-    - echo "TIDELIFT_PROJECT_SUPPLIER_TYPE= $TIDELIFT_PROJECT_SUPPLIER_TYPE"
-    - echo "TIDELIFT_PROJECT_NAME= $TIDELIFT_PROJECT_NAME"
-  #  - echo `******************************************************`
-  #  - echo "done"
+    #- echo "TIDELIFT_PROJECT_BRANCH= $TIDELIFT_PROJECT_BRANCH"
+    #- echo "TIDELIFT_PROJECT_GROUP= $TIDELIFT_PROJECT_GROUP"
+    #- echo "TIDELIFT_PROJECT_EXTERNAL_ID= $TIDELIFT_PROJECT_EXTERNAL_ID"
+    #- echo "TIDELIFT_PROJECT_SUPPLIER=$TIDELIFT_PROJECT_SUPPLIER"
+    #- echo "TIDELIFT_PROJECT_SUPPLIER_TYPE=$TIDELIFT_PROJECT_SUPPLIER_TYPE"
+    #- echo "TIDELIFT_PROJECT_NAME=$TIDELIFT_PROJECT_NAME"
+    #- echo `******************************************************`
+    #- echo "done"
