@@ -100,3 +100,11 @@ tidelift-upload:
     #Project Name: project-name+tagnumber+branch-name 
     #External Prj Identifier: SupplierName/SubGroup/projectname/tagnumber/
     - echo "-* Starting Tidelift Project Alignment w/Container Image SBOM -*"
+    ###Tidelift Project Group Classification
+    #Create the Tidelift Project group based on Irin Bank Classification
+    - |
+      - echo "-- Creating Tidelift Project Group --"
+      ./tidelift groups new ${TIDELIFT_PROJECT_GROUP} --organization ${TIDELIFT_ORG_NAME}
+
+    #Notes: Create the new group, Success! Your group 'general' has been created with the slug 'project-group-name' will be shared 
+           #The best approach would be to create a catalog instead of checking for existing group names. Ignore - Error: that group already exists.   
