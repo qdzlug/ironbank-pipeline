@@ -81,7 +81,8 @@ tidelift-upload:
     - echo "IRONBANK_IMAGE_NAME=${IRONBANK_IMAGE_NAME}"
     - echo "IRONBANK_IMAGE_TAG=${IRONBANK_IMAGE_TAG}"
     - echo "-----------------Parsing Variables Strings---------------------"
-    - > 
+    - |
+      echo "parsing strings"
       a=($(echo "$IRONBANK_IMAGE_NAME" | tr '/' '\n'))
       b=($(echo "$IRONBANK_IMAGE_TAG" | tr ':' '\n'))
       echo "Supplier: ${a[0]}"
