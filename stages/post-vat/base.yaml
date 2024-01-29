@@ -1,11 +1,10 @@
 include:
   - local: stages/post-vat/check-cves/base.yaml
-
+#
 check-findings:
   variables:
-    TRIGGERING_PROJECT_ID: $CI_PROJECT_ID
-    ROBOTNIK_COMMAND: projectfindings
-    ROBOTNIK_SUBCOMMAND: check
+    PROJECT: $CI_PROJECT_ID
+    MODULES: project_findings
   stage: post-vat
   allow_failure: true
   rules:
@@ -16,5 +15,5 @@ check-findings:
     - job: vat
       artifacts: false
   trigger:
-    project: ironbank-tools/containers/cht-automation/bots/robotnik
-    branch: main
+    project: ironbank-tools/containers/cht-automation/bots/ib-11
+    branch: master
