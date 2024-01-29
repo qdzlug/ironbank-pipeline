@@ -103,7 +103,7 @@ tidelift-upload:
     ###Tidelift Project Group Classification
     #Create the Tidelift Project group based on Irin Bank Classification
     - |
-      - echo "-- Creating Tidelift Project Group --"
+      echo "-- Creating Tidelift Project Group --"
       ./tidelift groups new ${TIDELIFT_PROJECT_GROUP} --organization ${TIDELIFT_ORG_NAME}
 
     #Notes: Create the new group, Success! Your group 'general' has been created with the slug 'project-group-name' will be shared 
