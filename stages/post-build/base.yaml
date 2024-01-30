@@ -112,11 +112,27 @@ tidelift-upload:
     #Notes: Create the new group, Success! Your group 'general' has been created with the slug 'project-group-name' will be shared 
            #The best approach would be to create a catalog instead of checking for existing group names. Ignore - Error: that group already exists. 
            #group_msg=$(./tidelift groups new ${TIDELIFT_PROJECT_GROUP} --organization ${TIDELIFT_ORG_NAME} | jq -r '.Error: that group already exists')
-    - echo "-- Processing the SBOM --"
+    - echo "-* Processing the SBOM *-"
     - |
-      pushd ${SBOM_DIR}
-      ls -lha
-      popd
-      echo "SBOM path ${SBOM_DIR}/cyclonedx.json"
-      cat ${SBOM_DIR}/cyclonedx.json
-    - echo "-- done --"
+      echo "Coping Cyclonedx SBOM from artifacs directory"
+      echo "SBOM file copied"
+      cp ${SBOM_DIR}/sbom-cyclonedx-json.json cyclonedx.json
+      cat cyclonedx.json
+    #Tidelift will eventually need to process SPDX, JSON, XML SBOMs. 
+    #For now we are focused on CycloneDX SBOMs only
+
+    - echo ""
+    - echo "==========================="
+    - echo "Align project with Tidelift"
+    - echo "==========================="
+    - echo "*****Checking to see if $TIDELIFT_PROJECT_NAME exists in Tidelift."
+    - |
+          if ./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_CATALOG_NAME --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force; then
+            echo "*****${TIDELIFT_PROJECT_NAME} does't exist in tidelift. Aligning project in tidelift for the first time.";
+            ./tidelift alignment save --directory . $SBOM_DIR cyclondedx.json --organization $TIDELIFT_ORG_NAME --project $TIDELIFT_PROJECT_NAME --branch $TIDELIFT_PROJECT_BRANCH --wait 
+          else 
+            echo "*****${TIDELIFT_PROJECT_NAME} already exists in tidelift. Skipping tidelift init.";
+            echo "*****Attempting to save project:${TIDELIFT_PROJECT_NAME}, organization:${TIDELIFT_ORG_NAME}, branch:${TIDELIFT_CURRENT_BRANCH}"
+            ./tidelift alignment save --directory . $SBOM_OUTPUT --project $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --branch $TIDELIFT_CURRENT_BRANCH --wait 
+          fi
+    - echo "-- Tidelift Alignment Done --"
