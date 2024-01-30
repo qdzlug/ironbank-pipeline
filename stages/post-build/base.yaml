@@ -80,22 +80,22 @@ tidelift-upload:
     - echo "TIDELIFT_PROJECT_BRANCH= $TIDELIFT_PROJECT_BRANCH"
     - echo "TIDELIFT_PROJECT_GROUP= $TIDELIFT_PROJECT_GROUP"
     - |
-      echo "-- Parsing IB IRONBANK_IMAGE_NAME and IRONBANK_IMAGE_TAG string values into Tidelift variable values --"
-      a=($(echo "$IRONBANK_IMAGE_NAME" | tr '/' '\n'))
-      b=($(echo "$IRONBANK_IMAGE_TAG" | tr ':' '\n'))
-      TIDELIFT_PROJECT_SUPPLIER=${a[0]}
-      TIDELIFT_PROJECT_SUPPLIER_TYPE=${a[1]}
-      TIDELIFT_PROJECT_TAG=${b[1]}
-      TIDELIFT_PROJECT_NAME="${a[2]} ${TIDELIFT_PROJECT_TAG} ${TIDELIFT_PROJECT_BRANCH}"
-      TIDELIFT_PROJECT_EXTERNAL_ID="${TIDELIFT_PROJECT_SUPPLIER}/${TIDELIFT_PROJECT_SUPPLIER_TYPE}/${a[2]}/${TIDELIFT_PROJECT_TAG}"
-          
-      echo "IRONBANK_IMAGE_NAME=${IRONBANK_IMAGE_NAME}"
-      echo "IRONBANK_IMAGE_TAG=${IRONBANK_IMAGE_TAG}"
-      echo "Project Supplier: ${TIDELIFT_PROJECT_SUPPLIER}"
-      echo "Project Supplier Org/Type: ${TIDELIFT_PROJECT_SUPPLIER_TYPE}"
-      echo "Project Tag: ${TIDELIFT_PROJECT_TAG}"
-      echo "Project Name: ${TIDELIFT_PROJECT_NAME}"
-      echo "Project External ID: ${TIDELIFT_PROJECT_EXTERNAL_ID}"
+        echo "-- Parsing IB IRONBANK_IMAGE_NAME and IRONBANK_IMAGE_TAG string values into Tidelift variable values --"
+        a=($(echo "$IRONBANK_IMAGE_NAME" | tr '/' '\n'))
+        b=($(echo "$IRONBANK_IMAGE_TAG" | tr ':' '\n'))
+        TIDELIFT_PROJECT_SUPPLIER=${a[0]}
+        TIDELIFT_PROJECT_SUPPLIER_TYPE=${a[1]}
+        TIDELIFT_PROJECT_TAG=${b[1]}
+        TIDELIFT_PROJECT_NAME="${a[2]} ${TIDELIFT_PROJECT_TAG} ${TIDELIFT_PROJECT_BRANCH}"
+        TIDELIFT_PROJECT_EXTERNAL_ID="${TIDELIFT_PROJECT_SUPPLIER}/${TIDELIFT_PROJECT_SUPPLIER_TYPE}/${a[2]}/${TIDELIFT_PROJECT_TAG}"
+            
+        echo "IRONBANK_IMAGE_NAME=${IRONBANK_IMAGE_NAME}"
+        echo "IRONBANK_IMAGE_TAG=${IRONBANK_IMAGE_TAG}"
+        echo "Project Supplier: ${TIDELIFT_PROJECT_SUPPLIER}"
+        echo "Project Supplier Org/Type: ${TIDELIFT_PROJECT_SUPPLIER_TYPE}"
+        echo "Project Tag: ${TIDELIFT_PROJECT_TAG}"
+        echo "Project Name: ${TIDELIFT_PROJECT_NAME}"
+        echo "Project External ID: ${TIDELIFT_PROJECT_EXTERNAL_ID}"
     - echo "-- Done --"
     #Project Name: project-name+tagnumber+branch-name 
     #External Prj Identifier: SupplierName/SubGroup/projectname/tagnumber/
@@ -104,7 +104,12 @@ tidelift-upload:
     #Create the Tidelift Project group based on Irin Bank Classification
     - |
       echo "-- Creating Tidelift Project Group --"
-      ./tidelift groups new ${TIDELIFT_PROJECT_GROUP} --organization ${TIDELIFT_ORG_NAME}
-
+      #./tidelift groups new ${TIDELIFT_PROJECT_GROUP} --organization ${TIDELIFT_ORG_NAME}
     #Notes: Create the new group, Success! Your group 'general' has been created with the slug 'project-group-name' will be shared 
-           #The best approach would be to create a catalog instead of checking for existing group names. Ignore - Error: that group already exists.   
+           #The best approach would be to create a catalog instead of checking for existing group names. Ignore - Error: that group already exists. 
+           #group_msg=$(./tidelift groups new ${TIDELIFT_PROJECT_GROUP} --organization ${TIDELIFT_ORG_NAME} | jq -r '.Error: that group already exists')
+    - echo "-- Processing the SBOM --"
+    - echo "SBOM path ${SBOM_DIR}.Cyclonedx.json"
+    - |
+      cat ${SBOM_DIR}.Cyclonedx.json
+    - echo "-- done --"
