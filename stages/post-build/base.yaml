@@ -109,7 +109,10 @@ tidelift-upload:
            #The best approach would be to create a catalog instead of checking for existing group names. Ignore - Error: that group already exists. 
            #group_msg=$(./tidelift groups new ${TIDELIFT_PROJECT_GROUP} --organization ${TIDELIFT_ORG_NAME} | jq -r '.Error: that group already exists')
     - echo "-- Processing the SBOM --"
-    - echo "SBOM path ${SBOM_DIR}.Cyclonedx.json"
     - |
-      cat ${SBOM_DIR}.Cyclonedx.json
+      pushd ${SBOM_DIR}
+      ls -lha
+      popd
+      echo "SBOM path ${SBOM_DIR}/cyclonedx.json"
+      cat ${SBOM_DIR}/cyclonedx.json
     - echo "-- done --"
