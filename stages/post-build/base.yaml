@@ -66,7 +66,11 @@ tidelift-upload:
    # TIDELIFT_ALIGNMENT_ID:  TBD
    # TIDELIFT_CVE_REPORT_ID: TBD
    # TIDELIFT_CVE_REPORT_NAME:  "${TIDELIFT_PROJECT_EXTERNAL_ID}_tidelift_cve_report.json"
-
+  artifacts:
+    when: always
+    paths:
+      - "${SBOM_DIR}/"
+    expire_in: 1 week
   script:
     - cp ${SBOM_DIR}/sbom-cyclonedx-json.json cyclonedx.json
     - echo "Downloading Tidelift CLI binary file" 
