@@ -57,7 +57,7 @@ tidelift-upload:
     IRONBANK_IMAGE_TAG: "${IMAGE_FULLTAG}"
     TIDELIFT_PROJECT_NAME: ""  
     TIDELIFT_PROJECT_EXTERNAL_ID: ""
-    TIDELIFT_PROJECT_SUPPLIER:  "" 
+    TIDELIFT_PROJECT_SUPPLIER:  ""
     TIDELIFT_PROJECT_SUPPLIER_TYPE: ""
     TIDELIFT_PROJECT_TAG: ""
     #notes: "${TIDELIFT_IMAGE_NAME}" uses "${CI_PROJECT_NAME}"
@@ -117,22 +117,22 @@ tidelift-upload:
       echo "Coping Cyclonedx SBOM from artifacs directory"
       echo "SBOM file copied"
       cp ${SBOM_DIR}/sbom-cyclonedx-json.json cyclonedx.json
-      cat cyclonedx.json
+    #cat cyclonedx.json
+    - echo "SBOM copied to local working directory"
     #Tidelift will eventually need to process SPDX, JSON, XML SBOMs. 
     #For now we are focused on CycloneDX SBOMs only
 
-    - echo ""
     - echo "==========================="
     - echo "Align project with Tidelift"
     - echo "==========================="
     - echo "*****Checking to see if $TIDELIFT_PROJECT_NAME exists in Tidelift."
     - |
-          if ./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_CATALOG_NAME --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force; then
+        if ./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_PROJECT_SUPPLIER --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force; then
             echo "*****${TIDELIFT_PROJECT_NAME} does't exist in tidelift. Aligning project in tidelift for the first time.";
             ./tidelift alignment save --directory . cyclonedx.json --organization $TIDELIFT_ORG_NAME --project ${TIDELIFT_PROJECT_NAME} --branch $TIDELIFT_PROJECT_BRANCH --wait 
-          else 
+        else 
             echo "*****${TIDELIFT_PROJECT_NAME} already exists in tidelift. Skipping tidelift init.";
             echo "*****Attempting to save project:${TIDELIFT_PROJECT_NAME}, organization:${TIDELIFT_ORG_NAME}, branch:${TIDELIFT_CURRENT_BRANCH}"
             ./tidelift alignment save --directory . cyclonedx.json --project $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --branch $TIDELIFT_CURRENT_BRANCH --wait 
-          fi
+        fi
     - echo "-- Tidelift Alignment Done --"
