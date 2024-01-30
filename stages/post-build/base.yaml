@@ -127,6 +127,7 @@ tidelift-upload:
     - echo "==========================="
     - echo "*****Checking to see if $TIDELIFT_PROJECT_NAME exists in Tidelift."
     - |
+        $TIDELIFT_PROJECT_SUPPLIER="icdx"
         if ./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_PROJECT_SUPPLIER --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force; then
             echo "*****${TIDELIFT_PROJECT_NAME} does't exist in tidelift. Aligning project in tidelift for the first time.";
             ./tidelift alignment save --directory . cyclonedx.json --organization $TIDELIFT_ORG_NAME --project ${TIDELIFT_PROJECT_NAME} --branch $TIDELIFT_PROJECT_BRANCH --wait 
