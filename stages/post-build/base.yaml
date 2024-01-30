@@ -90,7 +90,7 @@ tidelift-upload:
         TIDELIFT_PROJECT_SUPPLIER=${a[0]}
         TIDELIFT_PROJECT_SUPPLIER_TYPE=${a[1]}
         TIDELIFT_PROJECT_TAG=${b[1]}
-        TIDELIFT_PROJECT_NAME="${a[2]} ${TIDELIFT_PROJECT_TAG} ${TIDELIFT_PROJECT_BRANCH}"
+        TIDELIFT_PROJECT_NAME="${a[2]}_${TIDELIFT_PROJECT_TAG}_${TIDELIFT_PROJECT_BRANCH}"
         TIDELIFT_PROJECT_EXTERNAL_ID="${TIDELIFT_PROJECT_SUPPLIER}/${TIDELIFT_PROJECT_SUPPLIER_TYPE}/${a[2]}/${TIDELIFT_PROJECT_TAG}"
             
         echo "IRONBANK_IMAGE_NAME=${IRONBANK_IMAGE_NAME}"
@@ -129,10 +129,10 @@ tidelift-upload:
     - |
           if ./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_CATALOG_NAME --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force; then
             echo "*****${TIDELIFT_PROJECT_NAME} does't exist in tidelift. Aligning project in tidelift for the first time.";
-            ./tidelift alignment save --directory . $SBOM_DIR cyclondedx.json --organization $TIDELIFT_ORG_NAME --project $TIDELIFT_PROJECT_NAME --branch $TIDELIFT_PROJECT_BRANCH --wait 
+            ./tidelift alignment save --directory . cyclonedx.json --organization $TIDELIFT_ORG_NAME --project ${TIDELIFT_PROJECT_NAME} --branch $TIDELIFT_PROJECT_BRANCH --wait 
           else 
             echo "*****${TIDELIFT_PROJECT_NAME} already exists in tidelift. Skipping tidelift init.";
             echo "*****Attempting to save project:${TIDELIFT_PROJECT_NAME}, organization:${TIDELIFT_ORG_NAME}, branch:${TIDELIFT_CURRENT_BRANCH}"
-            ./tidelift alignment save --directory . $SBOM_OUTPUT --project $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --branch $TIDELIFT_CURRENT_BRANCH --wait 
+            ./tidelift alignment save --directory . cyclonedx.json --project $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --branch $TIDELIFT_CURRENT_BRANCH --wait 
           fi
     - echo "-- Tidelift Alignment Done --"
