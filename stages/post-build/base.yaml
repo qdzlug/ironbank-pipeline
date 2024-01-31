@@ -60,10 +60,13 @@ tidelift-upload:
     TIDELIFT_PROJECT_SUPPLIER:  ""
     TIDELIFT_PROJECT_SUPPLIER_TYPE: ""
     TIDELIFT_PROJECT_TAG: ""
+    #The Tidelift catalog is to tbd at this time until IB and PI teams determine how to best capture data intellgience for their container image suppliers
+    #they do not treat the container images differently (according to CHT lead)
+    TIDELIFT_PROJECT_CATALOG: "ibtest"
     #notes: "${TIDELIFT_IMAGE_NAME}" uses "${CI_PROJECT_NAME}"
     #notes ref: https://docs.gitlab.com/ee/ci/variables/predefined_variables.html 
     #Variables for Tidelift Reports
-   # TIDELIFT_ALIGNMENT_ID:  TBD
+    TIDELIFT_ALIGNMENT_ID:  ""
    # TIDELIFT_CVE_REPORT_ID: TBD
    # TIDELIFT_CVE_REPORT_NAME:  "${TIDELIFT_PROJECT_EXTERNAL_ID}_tidelift_cve_report.json"
   artifacts:
@@ -83,6 +86,10 @@ tidelift-upload:
   #  - env
     - echo "TIDELIFT_PROJECT_BRANCH= $TIDELIFT_PROJECT_BRANCH"
     - echo "TIDELIFT_PROJECT_GROUP= $TIDELIFT_PROJECT_GROUP"
+    #Environment Variable mapping to Tidelift project and catalog requirements fields
+    #Parse the IRONBANK_IMAGE_NAME AND IRONBANK_IMAGE TAG fields for Tidelift project and catalog 
+    #Tidelift Project Name: project-Name_tag-number_branch-name 
+    #External Prj Identifier: SupplierName/SubGroup/projectname/tagnumber/ 
     - |
         echo "-- Parsing IB IRONBANK_IMAGE_NAME and IRONBANK_IMAGE_TAG string values into Tidelift variable values --"
         a=($(echo "$IRONBANK_IMAGE_NAME" | tr '/' '\n'))
@@ -101,8 +108,7 @@ tidelift-upload:
         echo "Project Name: ${TIDELIFT_PROJECT_NAME}"
         echo "Project External ID: ${TIDELIFT_PROJECT_EXTERNAL_ID}"
     - echo "-- Done --"
-    #Project Name: project-name+tagnumber+branch-name 
-    #External Prj Identifier: SupplierName/SubGroup/projectname/tagnumber/
+
     - echo "-* Starting Tidelift Project Alignment w/Container Image SBOM -*"
     ###Tidelift Project Group Classification
     #Create the Tidelift Project group based on Irin Bank Classification
@@ -120,19 +126,13 @@ tidelift-upload:
     - echo "File copied"
     #Tidelift will eventually need to process SPDX, JSON, XML SBOMs. 
     #For now we are focused on CycloneDX SBOMs only
-
+    #Delete# if ./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_PROJECT_SUPPLIER --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force; then
+       
     - echo "==========================="
     - echo "Align project with Tidelift"
     - echo "==========================="
     - echo "*****Checking to see if $TIDELIFT_PROJECT_NAME exists in Tidelift."
     - |
-        TIDELIFT_PROJECT_SUPPLIER="icdx"
-        if ./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_PROJECT_SUPPLIER --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force; then
-            echo "*****${TIDELIFT_PROJECT_NAME} does't exist in tidelift. Aligning project in tidelift for the first time.";
-            ./tidelift alignment save --directory . cyclonedx.json --organization $TIDELIFT_ORG_NAME --project ${TIDELIFT_PROJECT_NAME} --branch $TIDELIFT_PROJECT_BRANCH --wait 
-        else 
-            echo "*****${TIDELIFT_PROJECT_NAME} already exists in tidelift. Skipping tidelift init.";
-            echo "*****Attempting to save project:${TIDELIFT_PROJECT_NAME}, organization:${TIDELIFT_ORG_NAME}, branch:${TIDELIFT_CURRENT_BRANCH}"
-            ./tidelift alignment save --directory . cyclonedx.json --project $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --branch $TIDELIFT_CURRENT_BRANCH --wait 
-        fi
+        TIDELIFT_ALIGNMENT_ID=$(tidelift init $TIDELIFT_PROJECT_NAME  --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --debug --skip-dot-tidelift --force | jq -r '.Revision')
+        echo "TIDELIFT_ALIGNMENT_ID = $TIDELIFT_ALIGNMENT_ID"
     - echo "-- Tidelift Alignment Done --"
