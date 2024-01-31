@@ -35,7 +35,7 @@ create-sbom:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/post-build/generate_sbom.py"'
 
     
-### Tidelift.com SaaS integration ######
+### Tidelift.com SaaS Integration with ironbank-pipeline workflow ######
 ### Job will create a 1:1 container image project alignment with the Tidelift Catalog
 tidelift-upload:
   extends:
@@ -133,6 +133,6 @@ tidelift-upload:
     - echo "==========================="
     - echo "*****Checking to see if $TIDELIFT_PROJECT_NAME exists in Tidelift."
     - |
-        TIDELIFT_ALIGNMENT_ID=$(tidelift init $TIDELIFT_PROJECT_NAME  --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --debug --skip-dot-tidelift --force | jq -r '.Revision')
+        TIDELIFT_ALIGNMENT_ID=$(./tidelift init $TIDELIFT_PROJECT_NAME  --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --debug --skip-dot-tidelift --force | jq -r '.Revision')
         echo "TIDELIFT_ALIGNMENT_ID = $TIDELIFT_ALIGNMENT_ID"
     - echo "-- Tidelift Alignment Done --"
