@@ -127,12 +127,13 @@ tidelift-upload:
     #Tidelift will eventually need to process SPDX, JSON, XML SBOMs. 
     #For now we are focused on CycloneDX SBOMs only
     #Delete# if ./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_PROJECT_SUPPLIER --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force; then
-       
+    #TIDELIFT_ALIGNMENT_ID=$(./tidelift init $TIDELIFT_PROJECT_NAME  --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --debug --skip-dot-tidelift --force | jq -r '.Revision')
+    
     - echo "==========================="
     - echo "Align project with Tidelift"
     - echo "==========================="
     - echo "*****Checking to see if $TIDELIFT_PROJECT_NAME exists in Tidelift."
     - |
-        TIDELIFT_ALIGNMENT_ID=$(./tidelift init $TIDELIFT_PROJECT_NAME  --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --debug --skip-dot-tidelift --force | jq -r '.Revision')
-        echo "TIDELIFT_ALIGNMENT_ID = $TIDELIFT_ALIGNMENT_ID"
+        ./tidelift init $TIDELIFT_PROJECT_NAME  --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --debug --skip-dot-tidelift --force >> tidelift_alignment.log 
+        grep 'Revision:\|Error:' tidelift_alignment.log
     - echo "-- Tidelift Alignment Done --"
