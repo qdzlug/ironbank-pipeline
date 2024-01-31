@@ -132,8 +132,7 @@ tidelift-upload:
     - echo "==========================="
     - echo "Align project with Tidelift"
     - echo "==========================="
-    - echo "*****Checking to see if $TIDELIFT_PROJECT_NAME exists in Tidelift."
     - |
-        ./tidelift init $TIDELIFT_PROJECT_NAME  --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --debug --skip-dot-tidelift --force >> tidelift_alignment.log 
+        ./tidelift init $TIDELIFT_PROJECT_NAME  --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --skip-dot-tidelift --force >> tidelift_alignment.log 
         grep 'Revision:\|Error:' tidelift_alignment.log
     - echo "-- Tidelift Alignment Done --"
