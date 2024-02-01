@@ -57,3 +57,27 @@ def test_hardening_manifest_validation_main(monkeypatch, caplog):
     with pytest.raises(SystemExit) as e:
         asyncio.run(hardening_manifest_validation.main())
     assert e.value.code == 1
+
+
+@patch("hardening_manifest_validation.HardeningManifest", new=MockHardeningManifest)
+def test_hardening_manifest_architecture_validation(monkeypatch, caplog):
+    monkeypatch.setattr(HardeningManifest, "create_artifacts", lambda x: x)
+
+    # Architecture is arm64
+    log.info("Should be validated when architecture key is set")
+    assert MockHardeningManifest.architecture == ["arm64"]
+    asyncio.run(hardening_manifest_validation.main())
+    assert "Hardening manifest is validated" in caplog.text
+    assert MockHardeningManifest.architecture == ["arm64"]
+
+    # Architecture is set to both values
+    monkeypatch.setattr(MockHardeningManifest, "architecture", ["arm64", "x86"])
+    asyncio.run(hardening_manifest_validation.main())
+    assert "Hardening manifest is validated" in caplog.text
+    assert MockHardeningManifest.architecture == ["arm64", "x86"]
+
+    # Architecture is None
+    monkeypatch.setattr(MockHardeningManifest, "architecture", None)
+    asyncio.run(hardening_manifest_validation.main())
+    assert "Hardening manifest is validated" in caplog.text
+    assert MockHardeningManifest.architecture == None

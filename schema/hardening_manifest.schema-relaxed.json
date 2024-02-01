@@ -94,6 +94,16 @@
       "propertyNames": { "$ref": "#/definitions/environment-variable-name" },
       "required": ["BASE_IMAGE", "BASE_TAG"]
     },
+    "architecture": {
+      "description": "Architecture of the container",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["x86", "arm64"]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
     "labels": {
       "description": "Labels added to Iron Bank containers",
       "type": "object",
@@ -162,6 +172,16 @@
                     "pattern": "^[a-f0-9]+$"
                   }
                 },
+                "architecture": {
+                  "description": "Architecture for the resource",
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": ["x86", "arm64"]
+                  },
+                  "minItems": 1,
+                  "uniqueItems": true
+                },
                 "additionalProperties": false,
                 "required": ["type", "value"]
               },
@@ -197,6 +217,16 @@
                   "value": {
                     "type": "string",
                     "pattern": "^[a-f0-9]+$"
+                  },
+                  "architecture": {
+                    "description": "Architecture for the resource",
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": ["x86", "arm64"]
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
                   }
                 },
                 "additionalProperties": false,
@@ -229,6 +259,19 @@
             "properties": {
               "url": { "$ref": "#/definitions/docker-ReferenceRegexp-url" },
               "tag": { "$ref": "#/definitions/docker-name-and-tag" },
+              "validation": {
+                "type": "object",
+                "properties": {
+                  "architecture": {
+                    "description": "Architecture for the resource",
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": ["x86", "arm64"]
+                    }
+                  }
+                }
+              },
               "auth": {
                 "type": "object",
                 "properties": {
