@@ -40,11 +40,11 @@ test_image:
   tags: 
     # - ironbank-dsop-privileged
     - ironbank-dsop-ibec2
-  needs:
-    # - load-scripts 
-    # - lint 
-    # - import-artifacts
-    - build
+  # needs:
+  #   # - load-scripts 
+  #   # - lint 
+  #   # - import-artifacts
+  #   - build
   retry:
     max: 2
     when:
