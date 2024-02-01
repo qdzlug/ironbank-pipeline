@@ -1,0 +1,54 @@
+upload-documentation-to-s3:
+  stage: publish-artifacts
+  extends:
+    - .setup_modules
+  resource_group: s3_phase
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+  id_tokens:
+    VAT_TOKEN:
+      aud: "${CI_SERVER_URL}"
+  variables:
+    SCAN_DIRECTORY: "${ARTIFACT_STORAGE}/scan-results"
+    DOCUMENTATION_DIRECTORY: "${ARTIFACT_STORAGE}/documentation"
+    BUILD_DIRECTORY: "${ARTIFACT_STORAGE}/build"
+    SBOM_DIRECTORY: "${ARTIFACT_STORAGE}/sbom"
+    VAT_DIRECTORY: "${ARTIFACT_STORAGE}/vat"
+    BASE_BUCKET_DIRECTORY: container-scan-reports
+    DOCUMENTATION_FILENAME: documentation
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/documentation"
+    REPORT_TAR_NAME: "${CI_PROJECT_NAME}-${IMAGE_VERSION}-reports-signature.tar.gz"
+    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: ibfe
+    OPENSCAP_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/openscap/oscap-version.txt"
+    TWISTLOCK_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock-version.txt"
+    ANCHORE_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/anchore/anchore-version.txt"
+    CSV_REPORT: "${ARTIFACT_STORAGE}/scan-results/csvs"
+    VAT_ARTIFACT_DIR: "${ARTIFACT_STORAGE}/vat"
+    ENV_FILENAME: "csv_output.env"
+  needs:
+    - load-scripts
+    - lint
+    - build
+    - create-sbom
+    - scan-logic
+    - anchore-scan
+    - twistlock-scan
+    - openscap-compliance
+    - vat
+  script:
+    - 'mkdir -p "${ARTIFACT_DIR}/reports"'
+    - '"${PIPELINE_REPO_DIR}/stages/publish-artifacts/s3/ib-manifest-run.sh"'
+    - '"${PIPELINE_REPO_DIR}/stages/publish-artifacts/s3/write-json-docs-run.sh"'
+    - python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/s3/pipeline_csv_gen.py"
+    - python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/s3/excel_convert.py" -i "${CSV_REPORT}/" -o "${CSV_REPORT}/${CI_PROJECT_NAME}:${IMAGE_VERSION}-${CI_PIPELINE_ID}-justifications.xlsx"
+    - 'python "${PIPELINE_REPO_DIR}/stages/publish-artifacts/s3/upload_artifacts.py"'
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_DIR}"
+      - "${CSV_REPORT}"
+      - reports/
+    expire_in: 1 week
+  retry:
+    max: 2
+    when: runner_system_failure
