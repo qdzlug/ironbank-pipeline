@@ -9,7 +9,6 @@ stages:
   - scanning
   - vat
   - post-vat
-  - generate-documentation
   - publish-artifacts
 
 include:
@@ -45,11 +44,6 @@ include:
       - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
 
   - local: stages/post-vat/base.yaml
-    rules:
-      - if: $SKIP_SCAN != "true"
-      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
-
-  - local: stages/generate-documentation/base.yaml
     rules:
       - if: $SKIP_SCAN != "true"
       - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
