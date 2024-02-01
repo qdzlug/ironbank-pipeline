@@ -135,7 +135,7 @@ tidelift-upload:
     #echo "Tidelift Project Alignment ID: $TIDELIFT_ALIGNMENT_ID"
     #echo "Checking alignment status..."
     #./tidelift status $TIDELIFT_ALIGNMENT_ID --wait
-
+    #
     - echo "==========================="
     - echo "Align project with Tidelift"
     - echo "==========================="
