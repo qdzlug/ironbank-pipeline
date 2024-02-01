@@ -44,7 +44,7 @@ function setup_k8s_resources() {
     # fi
 
     # Create namespace if it doesn't exist
-    kubectl get ns $NAMESPACE || kubectl create ns $NAMESPACE #creating manually
+    # kubectl get ns $NAMESPACE || kubectl create ns $NAMESPACE #creating manually
     # kubectl delete secret my-registry-secret -n $NAMESPACE
     # Create Docker registry secret
     # kubectl get secret my-registry-secret -n $NAMESPACE || kubectl -n $NAMESPACE create secret docker-registry my-registry-secret \
