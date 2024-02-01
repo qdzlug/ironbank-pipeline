@@ -54,7 +54,7 @@ tidelift-upload:
     IRONBANK_CLASSIFICATION: General  
     TIDELIFT_PROJECT_GROUP: "${IRONBANK_CLASSIFICATION}" 
     IRONBANK_IMAGE_NAME: "${IMAGE_NAME}"
-    IRONBANK_IMAGE_TAG: "${IMAGE_FULLTAG}"
+    IRONBANK_IMAGE_TAG: "${IMAGE_VERSION}"
     TIDELIFT_PROJECT_NAME: ""  
     TIDELIFT_PROJECT_EXTERNAL_ID: ""
     TIDELIFT_PROJECT_SUPPLIER:  ""
@@ -94,13 +94,13 @@ tidelift-upload:
     #Parse the IRONBANK_IMAGE_NAME AND IRONBANK_IMAGE TAG fields for Tidelift project and catalog 
     #Tidelift Project Name: project-Name_tag-number_branch-name 
     #External Prj Identifier: SupplierName/SubGroup/projectname/tagnumber/ 
+    #b=($(echo "$IRONBANK_IMAGE_TAG" | tr ':' '\n'))
+    #TIDELIFT_PROJECT_TAG=${b[1]}
     - |
         echo "-- Parsing IB IRONBANK_IMAGE_NAME and IRONBANK_IMAGE_TAG string values into Tidelift variable values --"
         a=($(echo "$IRONBANK_IMAGE_NAME" | tr '/' '\n'))
-        b=($(echo "$IRONBANK_IMAGE_TAG" | tr ':' '\n'))
         TIDELIFT_PROJECT_SUPPLIER=${a[0]}
         TIDELIFT_PROJECT_SUPPLIER_TYPE=${a[1]}
-        TIDELIFT_PROJECT_TAG=${b[1]}
         TIDELIFT_PROJECT_NAME="${a[2]}_${TIDELIFT_PROJECT_TAG}_${TIDELIFT_PROJECT_BRANCH}"
         TIDELIFT_PROJECT_EXTERNAL_ID="${TIDELIFT_PROJECT_SUPPLIER}/${TIDELIFT_PROJECT_SUPPLIER_TYPE}/${a[2]}/${TIDELIFT_PROJECT_TAG}"
             
