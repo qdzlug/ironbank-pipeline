@@ -1,6 +1,6 @@
 test_image:
   stage: functional_testing
-  # image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.13
+  image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.13
   variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: "runtime"
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE_ALLOWED: ".*"
@@ -22,9 +22,9 @@ test_image:
   #   # - chmod +x ${PIPELINE_REPO_DIR}/stages/functional_testing/library/run_k8s_test.sh
 
   script: 
-    - python -m pip install pyyaml # temp solution to install pyyaml
+    # - python -m pip install pyyaml # temp solution to install pyyaml
     - source ${PIPELINE_REPO_DIR}/stages/functional_testing/library/templates.sh
-    # - aws eks --region us-gov-west-1 update-kubeconfig --name ib-zelda-runtime
+    - aws eks --region us-gov-west-1 update-kubeconfig --name ib-zelda-runtime
     # - kubectl config view
     # - kubectl get pods -n $NAMESPACE
     - setup_k8s_resources "$NAMESPACE"
@@ -38,12 +38,12 @@ test_image:
     - when: never
   allow_failure: true
   tags: 
-    # - ironbank-dsop-privileged
-    - ironbank-dsop-ibec2
+    - ironbank-dsop-privileged
+    # - ironbank-dsop-ibec2
   needs:
-    # - load-scripts 
-    # - lint 
-    # - import-artifacts
+    - load-scripts 
+    - lint 
+    - import-artifacts
     - build
   retry:
     max: 2
