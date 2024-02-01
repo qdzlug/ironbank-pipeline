@@ -230,11 +230,18 @@ The following stages will only run on master branches.
 
 #### check-findings
 
-### generate-documentation
+### publish-artifacts
 
-#### generate-documentation
+This stage contains two jobs, `harbor` and `upload-to-s3`.
 
-The `generate-documentation` job creates a JSON file with image digest and ID shasums for the ib-manifest. This job also creates JSON files with scan metadata info which includes scan tool versions and commit shashums. Additionally this job generates csv files for the various scans and the `<image-and-pipeline-id>-justifications.xlsx` file.
+#### Harbor
+
+Pushes built images to `registry1.dsop.io/ironbank`, as well as performing Cosign operations.
+The SBOM files, VAT response file, and Cosign signatures on the image and SBOM artifact, are all pushed to the registry in this stage.
+
+#### Upload Documentation to S3
+
+The `upload-documentation-to-s3` job creates a JSON file with image digest and ID shasums for the ib-manifest. This job also creates JSON files with scan metadata info which includes scan tool versions and commit shashums. Additionally this job generates csv files for the various scans and the `<image-and-pipeline-id>-justifications.xlsx` file. After generating the files they are uploaded to an S3 bucket for consumption by IBFE.
 
 Job artifacts:
 
@@ -247,19 +254,7 @@ Job artifacts:
 - `summary.csv` - compilation of all scan results in CSV format.
 - `tl.csv` - Twistlock results in CSV format.
 
-### publish-artifacts
-
-This stage contains two jobs, `harbor` and `upload-to-s3`.
-
-#### Harbor
-
-Pushes built images to `registry1.dsop.io/ironbank`, as well as performing Cosign operations.
-The SBOM files, VAT response file, and Cosign signatures on the image and SBOM artifact, are all pushed to the registry in this stage.
-
-#### Upload to S3
-
-Upload artifacts which are displayed/utilized by the [Iron Bank website](https://ironbank.dso.mil).
-The artifacts uploaded include scan reports, project README, project LICENSE, and others.
+Upload artifacts are displayed/utilized by the [Iron Bank website](https://ironbank.dso.mil).
 
 ## CI Vars Consumed Externally
 

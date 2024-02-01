@@ -14,7 +14,6 @@ This job relies on the following stages completing successfully
 - create-sbom
 - scan-logic
 - scanning
-- generate-documentation
 - vat
 
 This job only runs on the following branches:
