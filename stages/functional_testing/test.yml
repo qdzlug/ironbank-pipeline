@@ -23,7 +23,7 @@ test_image:
 
   script: 
     - source ${PIPELINE_REPO_DIR}/stages/functional_testing/library/templates.sh
-    - aws eks --region us-gov-west-1 update-kubeconfig --name ib-zelda-runtime
+    # - aws eks --region us-gov-west-1 update-kubeconfig --name ib-zelda-runtime
     # - kubectl config view
     # - kubectl get pods -n $NAMESPACE
     - setup_k8s_resources "$NAMESPACE"
@@ -37,7 +37,8 @@ test_image:
     - when: never
   allow_failure: true
   tags: 
-    - ironbank-dsop-privileged
+    # - ironbank-dsop-privileged
+    - ironbank-dsop-ibec2
   needs:
     - load-scripts 
     - lint 
