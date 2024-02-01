@@ -131,15 +131,17 @@ tidelift-upload:
     #Tidelift will eventually need to process SPDX, JSON, XML SBOMs. 
     #For now we are focused on CycloneDX SBOMs only
     #Delete# if ./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_PROJECT_SUPPLIER --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force; then
-    #TIDELIFT_ALIGNMENT_ID=$(./tidelift init $TIDELIFT_PROJECT_NAME  --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --debug --skip-dot-tidelift --force | jq -r '.Revision')
-    
+    #TIDELIFT_ALIGNMENT_ID=$(./tidelift init $TIDELIFT_PROJECT_NAME  --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --skip-dot-tidelift --force --json | jq -r '.revision')
+    #echo "Tidelift Project Alignment ID: $TIDELIFT_ALIGNMENT_ID"
+    #echo "Checking alignment status..."
+    #./tidelift status $TIDELIFT_ALIGNMENT_ID --wait
+
     - echo "==========================="
     - echo "Align project with Tidelift"
     - echo "==========================="
     - |
         echo "Starting SBOM upload..."
-        TIDELIFT_ALIGNMENT_ID=$(./tidelift init $TIDELIFT_PROJECT_NAME  --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --skip-dot-tidelift --force --json | jq -r '.revision')
-        echo "Tidelift Project Alignment ID: $TIDELIFT_ALIGNMENT_ID"
-        echo "Checking alignment status..."
-        ./tidelift status $TIDELIFT_ALIGNMENT_ID --wait
+        ./tidelift init $TIDELIFT_PROJECT_NAME  --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --skip-dot-tidelift --force --json >> tidelift_alignment_log.json
+        grep 'revision\|error' tidelift_alignment_log.json
     - echo "-- Tidelift Alignment Done --"
+    
