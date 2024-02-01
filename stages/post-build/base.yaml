@@ -141,5 +141,5 @@ tidelift-upload:
         TIDELIFT_ALIGNMENT_ID=$(./tidelift init $TIDELIFT_PROJECT_NAME  --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --skip-dot-tidelift --force --json | jq -r '.revision')
         echo "Tidelift Project Alignment ID: $TIDELIFT_ALIGNMENT_ID"
         echo "Checking alignment status..."
-        ./tidelift status $TIDELIFT_ALIGNMENT_ID
+        ./tidelift status $TIDELIFT_ALIGNMENT_ID --wait
     - echo "-- Tidelift Alignment Done --"
