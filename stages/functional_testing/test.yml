@@ -1,6 +1,6 @@
 test_image:
   stage: functional_testing
-  image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.13
+  # image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.13
   variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: "runtime"
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE_ALLOWED: ".*"
@@ -40,11 +40,11 @@ test_image:
   tags: 
     # - ironbank-dsop-privileged
     - ironbank-dsop-ibec2
-  # needs:
-  #   # - load-scripts 
-  #   # - lint 
-  #   # - import-artifacts
-  #   - build
+  needs:
+    # - load-scripts 
+    # - lint 
+    # - import-artifacts
+    - build
   retry:
     max: 2
     when:
