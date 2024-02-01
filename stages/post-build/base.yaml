@@ -76,6 +76,10 @@ tidelift-upload:
     expire_in: 1 week
   script:
     - cp ${SBOM_DIR}/sbom-cyclonedx-json.json cyclonedx.json
+    - |
+        pushd ${SBOM_DIR}
+        ls -lha
+        popd
     - echo "Downloading Tidelift CLI binary file" 
     - curl https://download.tidelift.com/cli/tidelift -o tidelift
     - echo "Setting Tidelift CLI permissions and updating binary file"
@@ -133,6 +137,9 @@ tidelift-upload:
     - echo "Align project with Tidelift"
     - echo "==========================="
     - |
-        ./tidelift init $TIDELIFT_PROJECT_NAME  --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --skip-dot-tidelift --force >> tidelift_alignment.log 
-        grep 'Revision:\|Error:' tidelift_alignment.log
+        echo "Starting SBOM upload..."
+        TIDELIFT_ALIGNMENT_ID=$(./tidelift init $TIDELIFT_PROJECT_NAME  --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --skip-dot-tidelift --force --json | jq -r '.revision')
+        echo "Tidelift Project Alignment ID: $TIDELIFT_ALIGNMENT_ID"
+        echo "Checking alignment status..."
+        ./tidelift status $TIDELIFT_ALIGNMENT_ID
     - echo "-- Tidelift Alignment Done --"
