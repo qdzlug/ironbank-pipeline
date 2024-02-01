@@ -22,6 +22,7 @@ test_image:
   #   # - chmod +x ${PIPELINE_REPO_DIR}/stages/functional_testing/library/run_k8s_test.sh
 
   script: 
+    - python -m pip install pyyaml # temp solution to install pyyaml
     - source ${PIPELINE_REPO_DIR}/stages/functional_testing/library/templates.sh
     # - aws eks --region us-gov-west-1 update-kubeconfig --name ib-zelda-runtime
     # - kubectl config view
