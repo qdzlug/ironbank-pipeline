@@ -66,6 +66,7 @@ tidelift-upload:
     #notes ref: https://docs.gitlab.com/ee/ci/variables/predefined_variables.html 
     #Variables for Tidelift Reports
     TIDELIFT_ALIGNMENT_ID:  ""
+    TIDELIFT_ALIGNMENT_ERROR:  ""
    # TIDELIFT_CVE_REPORT_ID: TBD
    # TIDELIFT_CVE_REPORT_NAME:  "${TIDELIFT_PROJECT_EXTERNAL_ID}_tidelift_cve_report.json"
   artifacts:
@@ -100,11 +101,11 @@ tidelift-upload:
         a=($(echo "$IRONBANK_IMAGE_NAME" | tr '/' '\n'))
         TIDELIFT_PROJECT_SUPPLIER=${a[0]}
         TIDELIFT_PROJECT_SUPPLIER_TYPE=${a[1]}
-        TIDELIFT_PROJECT_NAME="${a[2]}_${TIDELIFT_PROJECT_TAG}_${TIDELIFT_PROJECT_BRANCH}"
+        TIDELIFT_PROJECT_NAME="${a[2]} ${TIDELIFT_PROJECT_TAG} ${TIDELIFT_PROJECT_BRANCH}"
         TIDELIFT_PROJECT_EXTERNAL_ID="${TIDELIFT_PROJECT_SUPPLIER}/${TIDELIFT_PROJECT_SUPPLIER_TYPE}/${a[2]}/${TIDELIFT_PROJECT_TAG}"
             
         echo "IRONBANK_IMAGE_NAME=${IRONBANK_IMAGE_NAME}"
-        echo "IRONBANK_IMAGE_TAG=${IRONBANK_IMAGE_TAG}"
+        echo "IMAGE_VERSION=${IMAGE_VERSION}"
         echo "Project Supplier: ${TIDELIFT_PROJECT_SUPPLIER}"
         echo "Project Supplier Org/Type: ${TIDELIFT_PROJECT_SUPPLIER_TYPE}"
         echo "Project Tag: ${TIDELIFT_PROJECT_TAG}"
@@ -135,7 +136,6 @@ tidelift-upload:
     #echo "Checking alignment status..."
     #./tidelift status $TIDELIFT_ALIGNMENT_ID --wait
     # grep 'revision\|error' tidelift_alignment_log.json
-    #
     - echo "==========================="
     - echo "Align project with Tidelift"
     - echo "==========================="
@@ -143,12 +143,22 @@ tidelift-upload:
         echo "Starting SBOM upload..."
         ./tidelift init $TIDELIFT_PROJECT_NAME  --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --skip-dot-tidelift --force --json >> tidelift_alignment_log.json
         sed -i '1d' tidelift_alignment_log.json
-        TIDELIFT_ALIGNMENT_ID=$(jq -r '.revision' | tidelift_alignment_log.json) 
-        if [ "$TIDELIFT_ALIGNMENT_ID" != "" ]; then
-          echo "Completing alignment"
+        TIDELIFT_ALIGNMENT_ID=$(cat tidelift_alignment_log.json | jq '.revision')
+        TIDELIFT_ALIGNMENT_ERROR=$(cat tidelift_alignment_log.json | jq '.error') 
+
+        if [ ["$TIDELIFT_ALIGNMENT_ID" != ""] && [$TIDELIFT_ALIGNMENT_ID =~ ^[0-9]+$] ]; then
+          echo "A new Iron Bank project is being processed by Tidelift: ${TIDELIFT_PROJECT_NAME} with External ID: ${TIDELIFT_PROJECT_EXTERNAL_ID}"
+          echo "TIDELIFT_ALIGNMENT_ID: ${TIDELIFT_ALIGNMENT_ID}"
           ./tidelift status $TIDELIFT_ALIGNMENT_ID --wait
-        else
+        else if [[ "$TIDELIFT_ALIGNMENT_ERROR" == "existing_project" ]] && [ "$TIDELIFT_ALIGNMENT_ERROR" != "" ] then 
           echo "existing project going to run alignment save"
-        fi 
-    - echo "-- Tidelift Alignment Done --"
+          ./tidelift alignment save --directory . cyclondedx.json --organization $TIDELIFT_ORG_NAME --project $TIDELIFT_PROJECT_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --skip-dot-tidelift --force --json >> tidelift_alignment_log.json
+          TIDELIFT_ALIGNMENT_ID=$(cat tidelift_alignment_log.json | jq '.revision')
+          echo "TIDELIFT_ALIGNMENT_ID: ${TIDELIFT_ALIGNMENT_ID}"
+        else 
+          echo "Tidelift Alignment Error: system could not execute alignment init, nor could it execute alignment save."
+          echo "Iron Bank Project: $IRONBANK_IMAGE_NAME with $IMAGE_NAME could not be processed by Tidelift."
+        fi
+
+    - echo "-- Tidelift Alignment Completed --"
     
