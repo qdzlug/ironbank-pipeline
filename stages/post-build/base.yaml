@@ -102,7 +102,7 @@ tidelift-upload:
         a=($(echo "$IRONBANK_IMAGE_NAME" | tr '/' '\n'))
         TIDELIFT_PROJECT_SUPPLIER=${a[0]}
         TIDELIFT_PROJECT_SUPPLIER_TYPE=${a[1]}
-        TIDELIFT_PROJECT_NAME="${a[2]} ${TIDELIFT_PROJECT_TAG} ${TIDELIFT_PROJECT_BRANCH}"
+        TIDELIFT_PROJECT_NAME="${a[2]}-${TIDELIFT_PROJECT_TAG}-${TIDELIFT_PROJECT_BRANCH}"
         TIDELIFT_PROJECT_EXTERNAL_ID="${TIDELIFT_PROJECT_SUPPLIER}/${TIDELIFT_PROJECT_SUPPLIER_TYPE}/${a[2]}/${TIDELIFT_PROJECT_TAG}"
             
         echo "IRONBANK_IMAGE_NAME=${IRONBANK_IMAGE_NAME}"
@@ -142,7 +142,7 @@ tidelift-upload:
     - echo "==========================="
     - |
         echo "Starting SBOM upload..."
-        TL_JOB=$(./tidelift init $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --skip-dot-tidelift --force --json)
+        $TL_JOB=$(./tidelift init $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --skip-dot-tidelift --force --json)
         sed '1,2d' $TL_JOB > tidelift_alignment_log.json
         TIDELIFT_ALIGNMENT_ID=$(cat tidelift_alignment_log.json | jq '.revision')
         TIDELIFT_ALIGNMENT_ERROR=$(cat tidelift_alignment_log.json | jq '.error') 
@@ -151,7 +151,6 @@ tidelift-upload:
           echo "A new Iron Bank project is being processed by Tidelift: ${TIDELIFT_PROJECT_NAME} with External ID: ${TIDELIFT_PROJECT_EXTERNAL_ID}"
           echo "TIDELIFT_ALIGNMENT_ID: ${TIDELIFT_ALIGNMENT_ID}"
           ./tidelift status $TIDELIFT_ALIGNMENT_ID --wait
-
         else if [[ "$TIDELIFT_ALIGNMENT_ERROR" == "existing_project" ]] && [ "$TIDELIFT_ALIGNMENT_ERROR" != "" ] then 
           echo "existing project going to run alignment save"
           
@@ -162,6 +161,7 @@ tidelift-upload:
         else 
           echo "Tidelift Alignment Error: system could not execute alignment init, nor could it execute alignment save."
           echo "Iron Bank Project: $IRONBANK_IMAGE_NAME with $IMAGE_NAME could not be processed by Tidelift."
+          exit 1
         fi
 
     - echo "-- Tidelift Alignment Completed --"
