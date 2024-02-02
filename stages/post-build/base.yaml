@@ -145,7 +145,7 @@ tidelift-upload:
     - echo "==========================="
     - |
         echo "Starting SBOM upload..."
-        ./tidelift init $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --group $TIDELIFT_PROJECT_GROUP --skip-dot-tidelift/--force --debug 
+        ./tidelift init $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --group $TIDELIFT_PROJECT_GROUP --skip-dot-tidelift --force --debug 
         exit 1
 
         sed '1,2d' $TL_JOB > tidelift_alignment_log.json
