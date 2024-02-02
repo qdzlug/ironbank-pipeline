@@ -142,7 +142,7 @@ tidelift-upload:
     - |
         echo "Starting SBOM upload..."
         ./tidelift init $TIDELIFT_PROJECT_NAME  --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --skip-dot-tidelift --force --json >> tidelift_alignment_log.json
-        sed -i '1d' tidelift_alignment_log.json
+        sed -i '1,2d' tidelift_alignment_log.json
         TIDELIFT_ALIGNMENT_ID=$(cat tidelift_alignment_log.json | jq '.revision')
         TIDELIFT_ALIGNMENT_ERROR=$(cat tidelift_alignment_log.json | jq '.error') 
 
