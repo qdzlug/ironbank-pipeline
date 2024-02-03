@@ -82,9 +82,13 @@ tidelift-upload:
         ls -lha
         popd
     - echo "Downloading Tidelift CLI binary file" 
-    - curl https://download.tidelift.com/cli/tidelift -o tidelift
+    # curl https://download.tidelift.com/cli/tidelift -o tidelift
+    - curl https://download.tidelift.com/cli/prs/pr558/tidelift -o tidelift
     - echo "Setting Tidelift CLI permissions and updating binary file"
     - chmod +x tidelift
+    - |
+        ./tidelift version
+        exit 1
     - ./tidelift selfupdate
   #  - jq --version
     - echo "-* PRINTING ENV VARIABLES *-"
@@ -119,7 +123,7 @@ tidelift-upload:
     #Create the Tidelift Project group based on Irin Bank Classification
     - |
       echo "-- Creating Tidelift Project Group --"
-      #./tidelift groups new ${TIDELIFT_PROJECT_GROUP} --organization ${TIDELIFT_ORG_NAME}
+      ./tidelift groups new ${TIDELIFT_PROJECT_GROUP} --organization ${TIDELIFT_ORG_NAME}
     #Notes: Create the new group, Success! Your group 'general' has been created with the slug 'project-group-name' will be shared 
            #The best approach would be to create a catalog instead of checking for existing group names. Ignore - Error: that group already exists. 
            #group_msg=$(./tidelift groups new ${TIDELIFT_PROJECT_GROUP} --organization ${TIDELIFT_ORG_NAME} | jq -r '.Error: that group already exists')
