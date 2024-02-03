@@ -144,7 +144,7 @@ tidelift-upload:
     - echo "Align project with Tidelift"
     - echo "==========================="
     - |
-        echo "Starting SBOM upload..."
+        echo "< Starting SBOM upload >"
         ./tidelift init $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --skip-dot-tidelift --force --json >> tidelift_alignment_log.json
 
         cat tidelift_alignment_log.json
