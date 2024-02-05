@@ -83,7 +83,7 @@ tidelift-upload:
         popd
     - echo "Downloading Tidelift CLI binary file" 
     # curl https://download.tidelift.com/cli/tidelift -o tidelift
-    - curl https://download.tidelift.com/cli/prs/pr558/tidelift -o tidelift
+    - curl https://download.tidelift.com/cli/prs/pr/tidelift_darwin_arm -o tidelift
     - echo "Setting Tidelift CLI permissions and updating binary file"
     - chmod +x tidelift
     - |
@@ -153,7 +153,6 @@ tidelift-upload:
 
         cat tidelift_alignment_log.json
 
-        sed '1,2d' tidelift_alignment_log.json >> tidelift_alignment_log2.json
         TIDELIFT_ALIGNMENT_ID=$(cat tidelift_alignment_log2.json | jq '.revision')
         TIDELIFT_ALIGNMENT_ERROR=$(cat tidelift_alignment_log2.json | jq '.error') 
 
