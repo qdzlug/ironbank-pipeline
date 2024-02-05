@@ -82,14 +82,13 @@ tidelift-upload:
         ls -lha
         popd
     - echo "Downloading Tidelift CLI binary file" 
-    # curl https://download.tidelift.com/cli/tidelift -o tidelift
+    #- curl https://download.tidelift.com/cli/tidelift -o tidelift
     - curl https://download.tidelift.com/cli/prs/pr/tidelift_darwin_arm -o tidelift
     - echo "Setting Tidelift CLI permissions and updating binary file"
     - chmod +x tidelift
     - |
         ./tidelift version
-        exit 1
-    - ./tidelift selfupdate
+  #  - ./tidelift selfupdate
   #  - jq --version
     - echo "-* PRINTING ENV VARIABLES *-"
   #  - env
