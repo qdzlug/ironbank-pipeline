@@ -82,14 +82,13 @@ tidelift-upload:
         ls -lha
         popd
     - echo "Downloading Tidelift CLI binary file" 
-    #- curl https://download.tidelift.com/cli/tidelift -o tidelift
-    - curl curl https://download.tidelift.com/cli/prs/pr558/tidelift -o tidelift
+    - curl https://download.tidelift.com/cli/tidelift -o tidelift
+    #- curl curl https://download.tidelift.com/cli/prs/pr558/tidelift -o tidelift
     - echo "Setting Tidelift CLI permissions and updating binary file"
     - chmod +x tidelift
     - |
         ./tidelift version
-  #  - ./tidelift selfupdate
-  #  - jq --version
+        ./tidelift selfupdate
     - echo "-* PRINTING ENV VARIABLES *-"
   #  - env
     - echo "TIDELIFT_PROJECT_BRANCH= $TIDELIFT_PROJECT_BRANCH"
@@ -148,12 +147,19 @@ tidelift-upload:
     - echo "==========================="
     - |
         echo "< Starting SBOM upload >"
-        ./tidelift init $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --skip-dot-tidelift --force >> tidelift_alignment_log.json
 
-        cat tidelift_alignment_log.json
+        ./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --group $TIDELIFT_PROJECT_GROUP --default-branch $TIDELIFT_DEFAULT_BRANCH  --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID  --skip-dot-tidelift --force >> tl_project_log.json
+        sed -i 'NR>2' tl_project_log.json
+        cat tl_project_log.json
+        $TL_ALG_RESULTS=(cat tl_project_log.json | jq jq ."error")
 
-        TIDELIFT_ALIGNMENT_ID=$(cat tidelift_alignment_log2.json | jq '.revision')
-        TIDELIFT_ALIGNMENT_ERROR=$(cat tidelift_alignment_log2.json | jq '.error') 
+        if (TL_ALG_RESULT == "") then 
+          echo "new project $TL_ALG_RESULT"
+        elif (TL_ALG_RESULT == "existing_project")
+          echo "new project $TL_ALG_RESULT"
+        fi
+        exit 1
+
 
         if [ ["$TIDELIFT_ALIGNMENT_ID" != ""] && [$TIDELIFT_ALIGNMENT_ID =~ ^[0-9]+$] ] then
           echo "A new Iron Bank project is being processed by Tidelift: ${TIDELIFT_PROJECT_NAME} with External ID: ${TIDELIFT_PROJECT_EXTERNAL_ID}"
