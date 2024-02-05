@@ -83,7 +83,7 @@ tidelift-upload:
         popd
     - echo "Downloading Tidelift CLI binary file" 
     #- curl https://download.tidelift.com/cli/tidelift -o tidelift
-    - curl https://download.tidelift.com/cli/prs/pr/tidelift_darwin_arm -o tidelift
+    - curl curl https://download.tidelift.com/cli/prs/pr558/tidelift -o tidelift
     - echo "Setting Tidelift CLI permissions and updating binary file"
     - chmod +x tidelift
     - |
