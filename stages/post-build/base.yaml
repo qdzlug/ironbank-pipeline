@@ -145,20 +145,18 @@ tidelift-upload:
 
         echo "Tidelift creating a new project $TIDELIFT_PROJECT_NAME in catalog $TIDELIFT_PROJECT_CATALOG with group $TIDELIFT_PROJECT_GROUP"
         
-        TL_PRJ_ERROR=$(./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_PROJECT_CATALOG --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force --json) 
+        TL_PRJ_NEW_ERROR=$(./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_PROJECT_CATALOG --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force --json | jq -r ".error") 
         
-        echo "tidelift projects new error value: $TL_PRJ_ERROR"
+        echo "Tidelift projects new error value: $TL_PRJ_ERROR"
 
-        exit 1
-
-        $TL_PRJ_ERROR=(cat tl_project_log.json | jq jq ."error")
-
-        if (TL_ALG_RESULT == "") then 
+        if (TL_PRJ_NEW_ERROR == "") then 
           echo "new project $TL_ALG_RESULT"
         elif (TL_ALG_RESULT == "existing_project")
           echo "new project $TL_ALG_RESULT"
         fi
 
+        exit 1
+        
         if [ ["$TIDELIFT_ALIGNMENT_ID" != ""] && [$TIDELIFT_ALIGNMENT_ID =~ ^[0-9]+$] ] then
           echo "A new Iron Bank project is being processed by Tidelift: ${TIDELIFT_PROJECT_NAME} with External ID: ${TIDELIFT_PROJECT_EXTERNAL_ID}"
           echo "TIDELIFT_ALIGNMENT_ID: ${TIDELIFT_ALIGNMENT_ID}"
