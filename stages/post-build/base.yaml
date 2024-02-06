@@ -133,7 +133,7 @@ tidelift-upload:
     - |  
         make_request() {
           curl_output=$(curl -s -H "Accept: application/json" -H "Authorization: $TIDELIFT_API_KEY" \
-            -X POST "https://api.tidelift.com/external-api/v1/$TIDELIFT_ORG_NAME/groups?group_name=$TIDELIFT_PROJECT_GROUP"
+            -X POST "https://api.tidelift.com/external-api/v1/$TIDELIFT_ORG_NAME/groups?group_name=$TIDELIFT_PROJECT_GROUP")
             echo "$curl_output"
         }
     - response=$(make_request)
