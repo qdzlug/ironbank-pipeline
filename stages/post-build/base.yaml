@@ -126,46 +126,39 @@ tidelift-upload:
     #       The best approach would be to create a catalog instead of checking for existing group names. Ignore - Error: that group already exists. 
     #       group_msg=$(./tidelift groups new ${TIDELIFT_PROJECT_GROUP} --organization ${TIDELIFT_ORG_NAME} | jq -r '.Error: that group already exists')
     - |
-        echo "** Starting Tidelift Project Alignment w/Container Image SBOM **"
+        echo "*** Starting Tidelift Project Alignment w/Container Image SBOM ***"
         echo "Creating Tidelift Project Group: ${TIDELIFT_PROJECT_GROUP}"
         
-        TL_GROUP_ERROR=(./tidelift groups new ${TIDELIFT_PROJECT_GROUP} --organization ${TIDELIFT_ORG_NAME})
+        TL_GROUP_ERROR=$(./tidelift groups new ${TIDELIFT_PROJECT_GROUP} --organization ${TIDELIFT_ORG_NAME})
 
         echo "Group Error: $TL_GROUP_ERROR" 
 
+    #Tidelift will eventually need to process SPDX, JSON, XML SBOMs. 
+    #For now we are focused on CycloneDX SBOMs file only
+    #Notes: grep 'revision\|error' tidelift_alignment_log.json
+    - | 
+        echo "==================================="
+        echo "Tidelift Project New/Alignment Save"
+        echo "==================================="
+
         echo "Processing the SBOM with Tidelift CLI"
         ls | grep .json
+
+        echo "Tidelift creating a new project $TIDELIFT_PROJECT_NAME in catalog $TIDELIFT_PROJECT_CATALOG with group $TIDELIFT_PROJECT_GROUP"
         
+        TL_PRJ_ERROR=$(./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_PROJECT_SUPPLIER --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force | jq -r '.error') 
+        
+        echo "tidelift projects new error value: $TL_PRJ_ERROR"
+
         exit 1
 
-    #Tidelift will eventually need to process SPDX, JSON, XML SBOMs. 
-    #For now we are focused on CycloneDX SBOMs only
-    #Delete# if ./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_PROJECT_SUPPLIER --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force; then
-    #TIDELIFT_ALIGNMENT_ID=$(./tidelift init $TIDELIFT_PROJECT_NAME  --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --skip-dot-tidelift --force --json | jq -r '.revision')
-    #echo "Tidelift Project Alignment ID: $TIDELIFT_ALIGNMENT_ID"
-    #echo "Checking alignment status..."
-    #./tidelift status $TIDELIFT_ALIGNMENT_ID --wait
-    # grep 'revision\|error' tidelift_alignment_log.json
-
-    #./tidelift init $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --skip-dot-tidelift/--force --json --debug
-    - echo "==================================="
-    - echo "Tidelift Project New/Alignment Save"
-    - echo "==================================="
-    - |
-        echo "< Starting SBOM upload >"
-
-        ./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --catalog $TIDELIFT_PROJECT_CATALOG --group $TIDELIFT_PROJECT_GROUP --default-branch $TIDELIFT_DEFAULT_BRANCH  --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID  --skip-dot-tidelift --force >> tl_project_log.json
-        sed -i 'NR>2' tl_project_log.json
-        cat tl_project_log.json
-        $TL_ALG_RESULTS=(cat tl_project_log.json | jq jq ."error")
+        $TL_PRJ_ERROR=(cat tl_project_log.json | jq jq ."error")
 
         if (TL_ALG_RESULT == "") then 
           echo "new project $TL_ALG_RESULT"
         elif (TL_ALG_RESULT == "existing_project")
           echo "new project $TL_ALG_RESULT"
         fi
-        exit 1
-
 
         if [ ["$TIDELIFT_ALIGNMENT_ID" != ""] && [$TIDELIFT_ALIGNMENT_ID =~ ^[0-9]+$] ] then
           echo "A new Iron Bank project is being processed by Tidelift: ${TIDELIFT_PROJECT_NAME} with External ID: ${TIDELIFT_PROJECT_EXTERNAL_ID}"
