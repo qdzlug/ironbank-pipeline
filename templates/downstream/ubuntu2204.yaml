@@ -8,3 +8,4 @@ variables:
   UBUNTU: "1"
   DISTRO_REPO_DIR: "apt-repos/2204-jammy-ironbank.list"
   DISTRO_REPO_MOUNT: "/etc/apt/sources.list"
+  SKIP_OPENSCAP: "1"
