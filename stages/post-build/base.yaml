@@ -76,31 +76,35 @@ tidelift-upload:
       - "${SBOM_DIR}/"
     expire_in: 1 week
   script:
-    - cp ${SBOM_DIR}/sbom-cyclonedx-json.json cyclonedx.json
     - |
+        echo "List of available SBOMs for project:"
         pushd ${SBOM_DIR}
         ls -lha
         popd
-    - echo "Downloading Tidelift CLI binary file" 
-    - curl https://download.tidelift.com/cli/tidelift -o tidelift
-    #- curl curl https://download.tidelift.com/cli/prs/pr558/tidelift -o tidelift
-    - echo "Setting Tidelift CLI permissions and updating binary file"
-    - chmod +x tidelift
-    - |
-        ./tidelift version
+
+        echo "Coping Cyclonedx (sbom-cyclonedx-json.json) SBOM from Harbor artifacs directory"
+        cp ${SBOM_DIR}/sbom-cyclonedx-json.json cyclonedx.json
+
+        echo "Downloading Tidelift CLI binary file" 
+        curl https://download.tidelift.com/cli/tidelift -o tidelift
+    
+        echo "Setting Tidelift CLI permissions and updating binary file"
+        chmod +x tidelift
         ./tidelift selfupdate
-    - echo "-* PRINTING ENV VARIABLES *-"
-  #  - env
-    - echo "TIDELIFT_PROJECT_BRANCH= $TIDELIFT_PROJECT_BRANCH"
-    - echo "TIDELIFT_PROJECT_GROUP= $TIDELIFT_PROJECT_GROUP"
-    #Environment Variable mapping to Tidelift project and catalog requirements fields
-    #Parse the IRONBANK_IMAGE_NAME AND IRONBANK_IMAGE TAG fields for Tidelift project and catalog 
-    #Tidelift Project Name: project-Name_tag-number_branch-name 
-    #External Prj Identifier: SupplierName/SubGroup/projectname/tagnumber/ 
-    #b=($(echo "$IRONBANK_IMAGE_TAG" | tr ':' '\n'))
-    #TIDELIFT_PROJECT_TAG=${b[1]}
-    - |
-        echo "-- Parsing IB IRONBANK_IMAGE_NAME string values into Tidelift variable values --"
+
+        echo "-* PRINTING ENV VARIABLES *-"
+        echo "TIDELIFT_PROJECT_BRANCH= $TIDELIFT_PROJECT_BRANCH"
+        echo "TIDELIFT_PROJECT_GROUP= $TIDELIFT_PROJECT_GROUP"
+        
+        #env
+        #Environment Variable mapping to Tidelift project and catalog requirements fields
+        #Parse the IRONBANK_IMAGE_NAME AND IRONBANK_IMAGE TAG fields for Tidelift project and catalog 
+        #Tidelift Project Name: project-Name_tag-number_branch-name 
+        #External Prj Identifier: SupplierName/SubGroup/projectname/tagnumber/ 
+        #b=($(echo "$IRONBANK_IMAGE_TAG" | tr ':' '\n'))
+        #TIDELIFT_PROJECT_TAG=${b[1]}
+
+        echo "-- Parsing IRONBANK_IMAGE_NAME string values into Tidelift project variable values --"
         a=($(echo "$IRONBANK_IMAGE_NAME" | tr '/' '\n'))
         TIDELIFT_PROJECT_SUPPLIER=${a[0]}
         TIDELIFT_PROJECT_SUPPLIER_TYPE=${a[1]}
@@ -114,9 +118,9 @@ tidelift-upload:
         echo "Project Tag: ${TIDELIFT_PROJECT_TAG}"
         echo "Project Name: ${TIDELIFT_PROJECT_NAME}"
         echo "Project External ID: ${TIDELIFT_PROJECT_EXTERNAL_ID}"
-    - echo "-- Done --"
-
-    - echo "-* Starting Tidelift Project Alignment w/Container Image SBOM -*"
+        echo "-- Done --"
+        
+        echo "-* Starting Tidelift Project Alignment w/Container Image SBOM -*"
     ###Tidelift Project Group Classification
     #Create the Tidelift Project group based on Irin Bank Classification
     - |
