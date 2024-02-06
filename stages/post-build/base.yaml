@@ -127,12 +127,19 @@ tidelift-upload:
     #       group_msg=$(./tidelift groups new ${TIDELIFT_PROJECT_GROUP} --organization ${TIDELIFT_ORG_NAME} | jq -r '.Error: that group already exists')
  
     - echo "Starting Tidelift Project Alignment with Container Image SBOM"
-    - echo "Creating Tidelift Project Group w/API ${TIDELIFT_PROJECT_GROUP}"
-    - TL_GROUP_ERROR=$(./tidelift groups new ${TIDELIFT_PROJECT_GROUP} --organization ${TIDELIFT_ORG_NAME} --json)
-    - echo "Group Error |  $TL_GROUP_ERROR" 
-    - |
-        exit 1
+    - echo "Creating Tidelift Project Group w/API - ${TIDELIFT_PROJECT_GROUP}"
+    #- TL_GROUP_ERROR=$(./tidelift groups new ${TIDELIFT_PROJECT_GROUP} --organization ${TIDELIFT_ORG_NAME} --json)
+    #- echo "Group Error |  $TL_GROUP_ERROR" 
+    - |  
+        make_request() {
+          curl_output=$(curl -s -H "Accept: application/json" -H "Authorization: $TIDELIFT_API_KEY" \
+            -X POST "https://api.tidelift.com/external-api/v1/$TIDELIFT_ORG_NAME/groups?group_name=$TIDELIFT_PROJECT_GROUP"
+            echo "$curl_output"
+        }
+    - response=$(make_request)
+    - echo "response -  $response"
     - echo "created group"
+    - exit 1
     #Tidelift will eventually need to process SPDX, JSON, XML SBOMs. 
     #For now we are focused on CycloneDX SBOMs file only
     #Notes: grep 'revision\|error' tidelift_alignment_log.json
