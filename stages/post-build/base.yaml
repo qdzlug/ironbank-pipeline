@@ -145,7 +145,7 @@ tidelift-upload:
 
         echo "Tidelift creating a new project $TIDELIFT_PROJECT_NAME in catalog $TIDELIFT_PROJECT_CATALOG with group $TIDELIFT_PROJECT_GROUP"
         
-        TL_PRJ_ERROR=$(./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_PROJECT_SUPPLIER --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force) 
+        TL_PRJ_ERROR=$(./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_PROJECT_CATALOG --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force --json) 
         
         echo "tidelift projects new error value: $TL_PRJ_ERROR"
 
