@@ -77,26 +77,25 @@ tidelift-upload:
     expire_in: 1 week
   script:
     #Tidelift integration with Iron Bank Pipeline for all projects, branches, and PRs. 
-    - |
-        echo "List of available SBOMs for project:"
-        pushd ${SBOM_DIR}
-        ls -lha
-        popd
 
-        echo "Coping Cyclonedx (sbom-cyclonedx-json.json) SBOM from Harbor artifacs directory"
-        cp ${SBOM_DIR}/sbom-cyclonedx-json.json cyclonedx.json
-        echo "SBOM file copied to working directory"
+    - echo "List of available SBOMs for project:"
+    - pushd ${SBOM_DIR}
+    - ls -lha
+    - popd
 
-        echo "Downloading Tidelift CLI binary file" 
-        curl https://download.tidelift.com/cli/tidelift -o tidelift
-    
-        echo "Setting Tidelift CLI permissions and updating binary file"
+    - echo "Coping Cyclonedx (sbom-cyclonedx-json.json) SBOM from Harbor artifacs directory"
+    - cp ${SBOM_DIR}/sbom-cyclonedx-json.json cyclonedx.json
+    - echo "SBOM file copied to working directory"
+    - echo "Downloading Tidelift CLI binary file" 
+    - curl https://download.tidelift.com/cli/tidelift -o tidelift
+    - echo "Setting Tidelift CLI permissions and updating binary file"
+    - | 
         chmod +x tidelift
         ./tidelift selfupdate
 
-        echo "-* PRINTING ENV VARIABLES *-"
-        echo "TIDELIFT_PROJECT_BRANCH= $TIDELIFT_PROJECT_BRANCH"
-        echo "TIDELIFT_PROJECT_GROUP= $TIDELIFT_PROJECT_GROUP"
+    - echo "-* PRINTING ENV VARIABLES *-"
+    - echo "TIDELIFT_PROJECT_BRANCH= $TIDELIFT_PROJECT_BRANCH"
+    - echo "TIDELIFT_PROJECT_GROUP= $TIDELIFT_PROJECT_GROUP"
         
     #Environment Variable mapping to Tidelift project and catalog requirements fields
     #Parse the IRONBANK_IMAGE_NAME AND IRONBANK_IMAGE tag fields for Tidelift project
@@ -104,21 +103,22 @@ tidelift-upload:
     #External Prj Identifier: SupplierName/SubGroup/projectname/tagnumber/ 
     #b=($(echo "$IRONBANK_IMAGE_TAG" | tr ':' '\n'))
     #TIDELIFT_PROJECT_TAG=${b[1]}
+    - echo "Parsing IRONBANK_IMAGE_NAME values, assigning Tidelift project variable values"
     - |
-        echo "Parsing IRONBANK_IMAGE_NAME values, assigning Tidelift project variable values:"
         a=($(echo "$IRONBANK_IMAGE_NAME" | tr '/' '\n'))
         TIDELIFT_PROJECT_SUPPLIER=${a[0]}
         TIDELIFT_PROJECT_SUPPLIER_TYPE=${a[1]}
         TIDELIFT_PROJECT_NAME="${a[2]}-${TIDELIFT_PROJECT_TAG}-${TIDELIFT_PROJECT_BRANCH}"
         TIDELIFT_PROJECT_EXTERNAL_ID="${TIDELIFT_PROJECT_SUPPLIER}/${TIDELIFT_PROJECT_SUPPLIER_TYPE}/${a[2]}/${TIDELIFT_PROJECT_BRANCH}/${TIDELIFT_PROJECT_TAG}"
-            
-        echo "IRONBANK_IMAGE_NAME=${IRONBANK_IMAGE_NAME}"
-        echo "IMAGE_VERSION=${IMAGE_VERSION}"
-        echo "Project Supplier: ${TIDELIFT_PROJECT_SUPPLIER}"
-        echo "Project Supplier Org/Type: ${TIDELIFT_PROJECT_SUPPLIER_TYPE}"
-        echo "Project Tag: ${TIDELIFT_PROJECT_TAG}"
-        echo "Project Name: ${TIDELIFT_PROJECT_NAME}"
-        echo "Project External ID: ${TIDELIFT_PROJECT_EXTERNAL_ID}"
+
+    #delete section after testing script    
+    - echo "IRONBANK_IMAGE_NAME ${IRONBANK_IMAGE_NAME}"
+    - echo "IMAGE_VERSION ${IMAGE_VERSION}"
+    - echo "Project Supplier ${TIDELIFT_PROJECT_SUPPLIER}"
+    - echo "Project Supplier Org/Type ${TIDELIFT_PROJECT_SUPPLIER_TYPE}"
+    - echo "Project Tag ${TIDELIFT_PROJECT_TAG}"
+    - echo "Project Name ${TIDELIFT_PROJECT_NAME}"
+    - echo "Project External ID ${TIDELIFT_PROJECT_EXTERNAL_ID}"
     
     ###Tidelift Project Group Classification
     #Create the Tidelift Project group based on Iron Bank Classification
@@ -128,20 +128,11 @@ tidelift-upload:
  
     - echo "Starting Tidelift Project Alignment with Container Image SBOM"
     - echo "Creating Tidelift Project Group w/API ${TIDELIFT_PROJECT_GROUP}"
-      
-    - |  
-        make_request() {
-          curl_output=$(curl -s -H "Accept: application/json" -H "Authorization: $TIDELIFT_API_KEY" \
-            -X POST "https://api.tidelift.com/external-api/v1/$TIDELIFT_ORG_NAME/$TIDELIFT_PROJECT_GROUP")
-            echo "$curl_output"
-        }
-
-        response=$(make_request)
-        echo "response: $response"
-
-    #TL_GROUP_ERROR=$(./tidelift groups new ${TIDELIFT_PROJECT_GROUP} --organization ${TIDELIFT_ORG_NAME} --json)
-    #echo "Group Error: $TL_GROUP_ERROR" 
-
+    - TL_GROUP_ERROR=$(./tidelift groups new ${TIDELIFT_PROJECT_GROUP} --organization ${TIDELIFT_ORG_NAME} --json)
+    - echo "Group Error |  $TL_GROUP_ERROR" 
+    - |
+        exit 1
+    - echo "created group"
     #Tidelift will eventually need to process SPDX, JSON, XML SBOMs. 
     #For now we are focused on CycloneDX SBOMs file only
     #Notes: grep 'revision\|error' tidelift_alignment_log.json
