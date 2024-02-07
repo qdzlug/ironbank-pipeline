@@ -139,17 +139,17 @@ tidelift-upload:
     - response=$(make_request)
     - echo "response -  $response"
     - |
-        response_error = $(cat response | jq ".error")
+        response_error = $(cat response | jq -r ".error")
 
         echo "response_error - $response_error"
-        if [ response_error == "existing_group") ] then
+        if (response_error == "existing_group") then
             echo "Group already exist, $TIDELIFT_PROJECT_GROUP"
         elif (response_error == "") then
             echo "Created a new group, $TIDELIFT_PROJECT_GROUP"
         fi 
 
     exit 1
-    
+
     #Tidelift will eventually need to process SPDX, JSON, XML SBOMs. 
     #For now we are focused on CycloneDX SBOMs file only
     #Notes: grep 'revision\|error' tidelift_alignment_log.json 
