@@ -71,5 +71,7 @@ variables:
   ANCHORE_SCANS: "${SCAN_RESULTS}/anchore"
   TWISTLOCK_SCANS: "${SCAN_RESULTS}/twistlock"
   OSCAP_SCANS: "${SCAN_RESULTS}/openscap"
+  SCAP_CONTENT: "scap-content"
+  OSCAP_VERSION: "0.1.71"
   OSCAP_CVE_XML_FILENAME: "report-cve.xml"
   OSCAP_CVE_HTML_FILENAME: "report-cve.html"
