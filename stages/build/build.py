@@ -20,9 +20,9 @@ from common.utils import logger
 log = logger.setup("build")
 
 
-def write_dockerfile_args(dockerfile_args: list["str"]):
+def write_dockerfile_args(dockerfile_args: list["str"], dockerfile_path: Path):
     """Overwrite Dockerfile args that are defined in the hardening manifest."""
-    with Path("Dockerfile").open(
+    with dockerfile_path.open(
         mode="r+",
         encoding="utf-8",
     ) as f:
@@ -252,7 +252,8 @@ def main():
         # sublist needed for f.writelines() on arg substitution in Dockerfile
         dockerfile_args = ["\n"] + [f"ARG {k}\n" for k in build_args.keys()]
 
-    write_dockerfile_args(dockerfile_args=dockerfile_args)
+    dockerfile_path = Path("Dockerfile-arm64") if hardening_manifest.architecture == ["arm64"] else Path("Dockerfile")
+    write_dockerfile_args(dockerfile_args=dockerfile_args, dockerfile_path=dockerfile_path)
 
     # args for buildah's ulimit settings
     buildah_ulimit_args = json.loads(os.environ.get("BUILDAH_ULIMIT_ARGS", "{}")) or {
