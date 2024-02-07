@@ -109,7 +109,7 @@ tidelift-upload:
         TIDELIFT_PROJECT_SUPPLIER=${a[0]}
         TIDELIFT_PROJECT_SUPPLIER_TYPE=${a[1]}
         TIDELIFT_PROJECT_NAME="${a[2]}-${TIDELIFT_PROJECT_TAG}-${TIDELIFT_PROJECT_BRANCH}"
-        TIDELIFT_PROJECT_EXTERNAL_ID="${TIDELIFT_PROJECT_SUPPLIER}/${TIDELIFT_PROJECT_SUPPLIER_TYPE}/${a[2]}/${TIDELIFT_PROJECT_BRANCH}/${TIDELIFT_PROJECT_TAG}"
+        TIDELIFT_PROJECT_EXTERNAL_ID="${TIDELIFT_PROJECT_SUPPLIER}/${TIDELIFT_PROJECT_SUPPLIER_TYPE}/${a[2]}/${TIDELIFT_PROJECT_TAG}/${TIDELIFT_PROJECT_BRANCH}"
 
     #delete section after testing script    
     - echo "IRONBANK_IMAGE_NAME ${IRONBANK_IMAGE_NAME}"
@@ -141,7 +141,7 @@ tidelift-upload:
     - |
         if (response == "existing_group") then
             echo "Group already exist, $TIDELIFT_PROJECT_GROUP"
-        elif (response == "existing_group") then
+        elif (response == "") then
             echo "Created a new group, $TIDELIFT_PROJECT_GROUP"
         fi 
     #Tidelift will eventually need to process SPDX, JSON, XML SBOMs. 
