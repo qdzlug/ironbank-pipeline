@@ -136,31 +136,38 @@ tidelift-upload:
             -X POST "https://api.tidelift.com/external-api/v1/$TIDELIFT_ORG_NAME/groups?group_name=$TIDELIFT_PROJECT_GROUP")
             echo "$curl_output"
         }
-    - response=$(make_request)
+    - response=$(make_request | jq ".error")
     - echo "response -  $response"
-    - echo "created group"
-    - exit 1
+    - |
+        if (response == "existing_group") then
+            echo "Group already exist, $TIDELIFT_PROJECT_GROUP"
+        elif (response == "existing_group") then
+            echo "Created a new group, $TIDELIFT_PROJECT_GROUP"
+        fi 
     #Tidelift will eventually need to process SPDX, JSON, XML SBOMs. 
     #For now we are focused on CycloneDX SBOMs file only
-    #Notes: grep 'revision\|error' tidelift_alignment_log.json
-    - | 
-        echo "==================================="
-        echo "Tidelift Project New/Alignment Save"
-        echo "==================================="
+    #Notes: grep 'revision\|error' tidelift_alignment_log.json 
+    - echo "==================================="
+    - echo "Tidelift Project New/Alignment Save"
+    - echo "==================================="
 
-        echo "Processing the SBOM with Tidelift CLI"
-        ls | grep .json
+    - echo "Processing the SBOM with Tidelift CLI"
+    - ls | grep .json
 
-        echo "Tidelift creating a new project $TIDELIFT_PROJECT_NAME in catalog $TIDELIFT_PROJECT_CATALOG with group $TIDELIFT_PROJECT_GROUP"
+    - echo "Tidelift creating a new project $TIDELIFT_PROJECT_NAME in catalog $TIDELIFT_PROJECT_CATALOG with group $TIDELIFT_PROJECT_GROUP"
         
+    - |
         ./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_PROJECT_CATALOG --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force --json >> tl_cli_log.json
 
         cat tl_cli_log.json
         TL_PRJ_ERROR=$(cat tl_cli_log.json | jq ".error")
         cat TL_PRJ_ERROR
         
-        echo "Tidelift projects new error value: $TL_PRJ_ERROR"
+    - exit 1
 
+    - echo "Tidelift projects new error value $TL_PRJ_ERROR"
+
+    - | 
         if (TL_PRJ_NEW_ERROR == "") then 
           echo "new project $TL_ALG_RESULT"
         elif (TL_PRJ_ERROR == "existing_project")
