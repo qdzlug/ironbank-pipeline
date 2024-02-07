@@ -19,7 +19,7 @@ harbor:
     PARENT_VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/parent_vat_response.json
     SBOM_DIR: ${ARTIFACT_STORAGE}/sbom
     VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/vat_response.json
-    
+
   script:
     - 'mkdir -p "${ARTIFACT_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/harbor/upload_to_harbor.py"'
@@ -51,7 +51,7 @@ update-staging-attestations:
     PARENT_VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/parent_vat_response.json
     SBOM_DIR: ${ARTIFACT_STORAGE}/sbom
     VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/vat_response.json
-    
+
   script:
     - 'mkdir -p "${ARTIFACT_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/harbor/upload_to_harbor.py"'
