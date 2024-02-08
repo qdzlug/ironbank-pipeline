@@ -57,11 +57,10 @@ tidelift-upload:
     TIDELIFT_PROJECT_TAG: "${IMAGE_VERSION}"
     TIDELIFT_PROJECT_NAME: ""  
     TIDELIFT_PROJECT_EXTERNAL_ID: ""
-    TIDELIFT_PROJECT_SUPPLIER:  ""
+    TIDELIFT_PROJECT_SUPPLIER: ""
     TIDELIFT_PROJECT_SUPPLIER_TYPE: ""
     #The Tidelift catalog is to tbd at this time until IB and PI teams determine how to best capture data intellgience for their container image suppliers
     #they do not treat the container images differently (according to CHT lead)
-    TIDELIFT_PROJECT_CATALOG: "ibtest"
     #notes: "${TIDELIFT_IMAGE_NAME}" uses "${CI_PROJECT_NAME}"
     #notes ref: https://docs.gitlab.com/ee/ci/variables/predefined_variables.html 
     #Variables for Tidelift Reports
@@ -152,9 +151,9 @@ tidelift-upload:
 
     - echo "Checking to see if $TIDELIFT_PROJECT_NAME exists in Tidelift."
     - |
-      echo "tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_CATALOG_NAME --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force --skip-dot-tidelift"
+      echo "tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_PROJECT_SUPPLIER --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force --skip-dot-tidelift"
  
-      if (./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_CATALOG_NAME --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force); then
+      if (./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_PROJECT_SUPPLIER --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force); then
         echo "New Project - $TIDELIFT_PROJECT_NAME with branch $TIDELIFT_PROJECT_BRANCH revision $TIDELIFT_PROJECT_TAG in catalog $TIDELIFT_PROJECT_CATALOG"
         ./tidelift alignment save --directory . cyclonedx.json --organization $TIDELIFT_ORG_NAME --project $TIDELIFT_PROJECT_NAME --branch $TIDELIFT_PROJECT_BRANCH --revision $TIDELIFT_PROJECT_TAG --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --wait 
       else 
