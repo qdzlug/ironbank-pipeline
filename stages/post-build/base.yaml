@@ -150,45 +150,15 @@ tidelift-upload:
     - echo "Processing the project Cyclonedx SBOM with Tidelift CLI"
     - ls | grep .json
 
-    - echo "Process Project - $TIDELIFT_PROJECT_NAME in catalog $TIDELIFT_PROJECT_CATALOG with group $TIDELIFT_PROJECT_GROUP"
-        
+    - echo "Checking to see if $TIDELIFT_PROJECT_NAME exists in Tidelift."
     - |
-        ./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_PROJECT_CATALOG --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force --json >> tl_cli_log.json
+      if ./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_CATALOG_NAME --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --revision $TIDELIFT_PROJECT_TAG --force; then
+        echo "New Project - $TIDELIFT_PROJECT_NAME with branch $TIDELIFT_PROJECT_BRANCH revision $TIDELIFT_PROJECT_TAG in catalog $TIDELIFT_PROJECT_CATALOG"
+        ./tidelift alignment save --directory . cyclonedx.json --project $TIDELIFT_PROJECT_NAME --branch $TIDELIFT_PROJECT_BRANCH --revision $TIDELIFT_PROJECT_TAG --wait 
+      else 
+        echo "Existing Project - $TIDELIFT_PROJECT_NAME with branch $TIDELIFT_PROJECT_BRANCH revision $TIDELIFT_PROJECT_TAG in catalog $TIDELIFT_PROJECT_CATALOG"
+        ./tidelift alignment save --directory . cyclonedx.json --project $TIDELIFT_PROJECT_NAME --branch $TIDELIFT_PROJECT_BRANCH --revision $TIDELIFT_PROJECT_TAG --wait 
+      fi    
 
-        cat tl_cli_log.json
-        TIDELIFT_ALIGNMENT_ERROR=$(cat tl_cli_log.json | jq -r ".error")
-        cat TIDELIFT_ALIGNMENT_ERROR
-
-    - echo "Tidelift projects new error value $TIDELIFT_ALIGNMENT_ERROR"
-
-    - | 
-        if (TL_PRJ_NEW_ERROR == "") then 
-          echo "new project $TL_ALG_RESULT"
-        elif (TL_PRJ_ERROR == "existing_project")
-          echo "new project $TL_ALG_RESULT"
-        fi
-
-    - exit 1
-
-    - |
-        if [ ["$TIDELIFT_ALIGNMENT_ID" != ""] && [$TIDELIFT_ALIGNMENT_ID =~ ^[0-9]+$] ] then
-          echo "A new Iron Bank project is being processed by Tidelift: ${TIDELIFT_PROJECT_NAME} with External ID: ${TIDELIFT_PROJECT_EXTERNAL_ID}"
-          echo "TIDELIFT_ALIGNMENT_ID: ${TIDELIFT_ALIGNMENT_ID}"
-          
-          ./tidelift status $TIDELIFT_ALIGNMENT_ID --wait
-
-        elif [[ "$TIDELIFT_ALIGNMENT_ERROR" == "existing_project" ]] && [ "$TIDELIFT_ALIGNMENT_ERROR" != "" ] then 
-          echo "existing project going to run alignment save"
-          
-          ./tidelift alignment save --directory . cyclondedx.json --organization $TIDELIFT_ORG_NAME --project $TIDELIFT_PROJECT_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --skip-dot-tidelift --force --json >> tidelift_alignment_log.json
-          
-          TIDELIFT_ALIGNMENT_ID=$(cat tidelift_alignment_log.json | jq '.revision')
-          echo "TIDELIFT_ALIGNMENT_ID: ${TIDELIFT_ALIGNMENT_ID}"
-        else 
-          echo "Tidelift Alignment Error: system could not execute alignment init, nor could it execute alignment save."
-          echo "Iron Bank Project: $IRONBANK_IMAGE_NAME with $IMAGE_NAME could not be processed by Tidelift."
-          exit 1
-        fi
-
-    - echo "-- Tidelift Alignment Completed --"
-    
+    - echo "Tidelift Project Alignment Completed"
+    - echo "===================================="
