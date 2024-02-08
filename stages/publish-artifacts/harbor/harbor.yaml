@@ -22,7 +22,6 @@ harbor:
 
   script:
     - 'mkdir -p "${ARTIFACT_DIR}"'
-    - 'echo "using cosign-irsa branch"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/harbor/upload_to_harbor.py"'
   artifacts:
     when: always
