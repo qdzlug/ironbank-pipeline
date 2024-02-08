@@ -27,3 +27,32 @@ build:
       - stuck_or_timeout_failure
       - api_failure
       - unknown_failure
+
+build_arm64:
+  stage: build
+  extends:
+    - .setup_modules
+  tags:
+    - ironbank-dsop-build-arm64
+  needs:
+    - load-scripts
+    - lint
+    - import-artifacts
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
+  script:
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/build/build.py"'
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_DIR}/"
+    expire_in: 1 week
+    reports:
+      dotenv: build.env
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+      - api_failure
+      - unknown_failure
