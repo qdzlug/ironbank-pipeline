@@ -154,11 +154,10 @@ tidelift-upload:
     - |
       if ./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_CATALOG_NAME --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force --skip-dot-tidelift; then
         echo "New Project - $TIDELIFT_PROJECT_NAME with branch $TIDELIFT_PROJECT_BRANCH revision $TIDELIFT_PROJECT_TAG in catalog $TIDELIFT_PROJECT_CATALOG"
-        ./tidelift alignment save --directory . cyclonedx.json --organization $TIDELIFT_ORG_NAME --project $TIDELIFT_PROJECT_NAME --branch $TIDELIFT_PROJECT_BRANCH --revision $TIDELIFT_PROJECT_TAG --wait 
+        ./tidelift alignment save --directory . cyclonedx.json --organization $TIDELIFT_ORG_NAME --project $TIDELIFT_PROJECT_NAME --branch $TIDELIFT_PROJECT_BRANCH --revision $TIDELIFT_PROJECT_TAG --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --wait 
       else 
         echo "Existing Project - $TIDELIFT_PROJECT_NAME with branch $TIDELIFT_PROJECT_BRANCH revision $TIDELIFT_PROJECT_TAG in catalog $TIDELIFT_PROJECT_CATALOG"
-        ./tidelift alignment save --directory . cyclonedx.json --organization $TIDELIFT_ORG_NAME --project $TIDELIFT_PROJECT_NAME --branch $TIDELIFT_PROJECT_BRANCH --revision $TIDELIFT_PROJECT_TAG --wait 
-      fi    
-
+        ./tidelift alignment save --directory . cyclonedx.json --organization $TIDELIFT_ORG_NAME --project $TIDELIFT_PROJECT_NAME --branch $TIDELIFT_PROJECT_BRANCH --revision $TIDELIFT_PROJECT_TAG --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --wait 
+      fi
     - echo "Tidelift Project Alignment Completed"
     - echo "===================================="
