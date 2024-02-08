@@ -163,7 +163,3 @@ tidelift-upload:
       fi
     - echo "Tidelift Project Alignment Completed"
     - echo "===================================="
-
-
-    if ./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_CATALOG_NAME --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force --skip-dot-tidelift; then
-      
