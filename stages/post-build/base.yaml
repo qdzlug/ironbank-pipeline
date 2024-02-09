@@ -166,5 +166,7 @@ tidelift-upload:
       
       echo "TIDELIFT_ALIGNMENT_ID - $TIDELIFT_ALIGNMENT_ID"
 
+      ./tidelift status $TIDELIFT_ALIGNMENT_ID
+
     - echo "Tidelift Project Alignment Completed"
     - echo "===================================="
