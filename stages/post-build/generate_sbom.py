@@ -14,6 +14,7 @@ from ironbank_py39_modules.scanner_api_handlers.anchore import (
 
 def generate_sbom_parallel(anchore_scan, image, artifacts_path, formats):
     for fmt in formats:
+        print(f"starting: {fmt}")
         anchore_scan.generate_sbom(image, artifacts_path, fmt, "json", tool="syft")
 
 def main() -> None:
