@@ -50,6 +50,7 @@ def main() -> None:
 
     sbom_formats = ["cyclonedx-json", "spdx-tag-value", "spdx-json"]
 
+    print("beginning pool")
     with Pool(processes=len(sbom_formats)) as pool:
         partial_generate_sbom = partial(generate_sbom_parallel, anchore_scan, image, artifacts_path)
         pool.map(partial_generate_sbom, sbom_formats)
