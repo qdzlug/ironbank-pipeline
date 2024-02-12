@@ -12,10 +12,8 @@ from ironbank_py39_modules.scanner_api_handlers.anchore import (
     Anchore,
 )
 
-def generate_sbom_parallel(anchore_scan, image, artifacts_path, formats):
-    for fmt in formats:
-        print(f"starting: {fmt}")
-        anchore_scan.generate_sbom(image, artifacts_path, fmt, "json", tool="syft")
+def generate_sbom_parallel(anchore_scan, image, artifacts_path, fmt):
+    anchore_scan.generate_sbom(image, artifacts_path, fmt[0], fmt[1])
 
 def main() -> None:
     """Main function that initializes an Anchore scanner and generates Software
@@ -48,14 +46,13 @@ def main() -> None:
 
     image = os.environ["IMAGE_FULLTAG"]
 
-    sbom_formats = ["cyclonedx-json", "spdx-tag-value", "spdx-json"]
+    sbom_formats = [("cyclonedx-json", "json"), ("spdx-tag-value", "txt"), ("spdx-json", "json")]
 
     print("beginning pool")
-    with Pool(processes=len(sbom_formats)) as pool:
-        partial_generate_sbom = partial(generate_sbom_parallel, anchore_scan, image, artifacts_path)
-        pool.map(partial_generate_sbom, sbom_formats)
+    with Pool() as pool:
+        pool.map(generate_sbom_parallel, sbom_formats)
 
-    anchore_scan.generate_sbom(image, artifacts_path, "json", "json", tool="syft")
+    anchore_scan.generate_sbom(image, artifacts_path, "json", "json", "syft")
 
 if __name__ == "__main__":
     main()
