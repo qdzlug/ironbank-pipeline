@@ -3,13 +3,13 @@
 import os
 import sys
 from pathlib import Path
+from multiprocessing import Pool
 
 # pylint: disable=C0413
 sys.path.append(Path(__file__).absolute().parents[2].as_posix())
 from ironbank_py39_modules.scanner_api_handlers.anchore import (
     Anchore,
 )
-
 
 def main() -> None:
     """Main function that initializes an Anchore scanner and generates Software
@@ -42,11 +42,11 @@ def main() -> None:
 
     image = os.environ["IMAGE_FULLTAG"]
 
-    anchore_scan.generate_sbom(image, artifacts_path, "cyclonedx-json", "json")
-    anchore_scan.generate_sbom(image, artifacts_path, "spdx-tag-value", "txt")
-    anchore_scan.generate_sbom(image, artifacts_path, "spdx-json", "json")
-    anchore_scan.generate_sbom(image, artifacts_path, "json", "json", "syft")
-
+    with Pool(processes=4) as pool:
+        anchore_scan.generate_sbom(image, artifacts_path, "cyclonedx-json", "json")
+        anchore_scan.generate_sbom(image, artifacts_path, "spdx-tag-value", "txt")
+        anchore_scan.generate_sbom(image, artifacts_path, "spdx-json", "json")
+        anchore_scan.generate_sbom(image, artifacts_path, "json", "json", "syft")
 
 if __name__ == "__main__":
     main()
