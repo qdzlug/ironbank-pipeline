@@ -51,8 +51,12 @@ def main() -> None:
 
     print("beginning pool")
     with Pool() as pool:
-        pool.map(generate_sbom_parallel, sbom_formats)
+        # create intermediate function to hold arguments which are always the same (scan object, image, and artifact path)
+        partial_generate_sbom = partial(generate_sbom_parallel, anchore_scan, image, artifacts_path)
+        # map each format tuple to partial_generate_sbom and add it to the pool
+        pool.map(partial_generate_sbom, sbom_formats)
 
+    # perform odd-ball last scan
     anchore_scan.generate_sbom(image, artifacts_path, "json", "json", "syft")
 
 if __name__ == "__main__":
