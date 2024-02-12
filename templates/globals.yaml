@@ -7,10 +7,10 @@ stages:
   - post-build
   - scan-logic
   - scanning
-  - vat
-  - post-vat
-  - generate-documentation
-  - publish-artifacts
+  # - vat
+  # - post-vat
+  # - generate-documentation
+  # - publish-artifacts
 
 include:
   - local: templates/shared_vars.yaml
