@@ -12,9 +12,13 @@ from ironbank_py39_modules.scanner_api_handlers.anchore import (
     Anchore,
 )
 
-def generate_sbom_parallel(anchore_scan, image, artifacts_path, fmt):
-    print(f"generating: {fmt}")
-    anchore_scan.generate_sbom(image, artifacts_path, fmt[0], fmt[1])
+
+def generate_sbom_parallel(anchore_scan, image, artifacts_path, fmt) -> None:
+    if len(fmt) < 3:
+        anchore_scan.generate_sbom(image, artifacts_path, fmt[0], fmt[1])
+    else:
+        anchore_scan.generate_sbom(image, artifacts_path, fmt[0], fmt[1], fmt[2])
+
 
 def main() -> None:
     """Main function that initializes an Anchore scanner and generates Software
@@ -47,17 +51,22 @@ def main() -> None:
 
     image = os.environ["IMAGE_FULLTAG"]
 
-    sbom_formats = [("cyclonedx-json", "json"), ("spdx-tag-value", "txt"), ("spdx-json", "json")]
+    sbom_formats = [
+        ("cyclonedx-json", "json"),
+        ("spdx-tag-value", "txt"),
+        ("spdx-json", "json"),
+        ("json", "json", "syft"),
+    ]
 
     print("beginning pool")
     with Pool() as pool:
         # create intermediate function to hold arguments which are always the same (scan object, image, and artifact path)
-        partial_generate_sbom = partial(generate_sbom_parallel, anchore_scan, image, artifacts_path)
+        partial_generate_sbom = partial(
+            generate_sbom_parallel, anchore_scan, image, artifacts_path
+        )
         # map each format tuple to partial_generate_sbom and add it to the pool
         pool.map(partial_generate_sbom, sbom_formats)
 
-    # perform odd-ball last scan
-    anchore_scan.generate_sbom(image, artifacts_path, "json", "json", "syft")
 
 if __name__ == "__main__":
     main()
