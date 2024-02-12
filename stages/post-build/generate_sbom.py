@@ -4,6 +4,7 @@ import os
 import sys
 from pathlib import Path
 from multiprocessing import Pool
+from functools import partial
 
 # pylint: disable=C0413
 sys.path.append(Path(__file__).absolute().parents[2].as_posix())
@@ -11,6 +12,9 @@ from ironbank_py39_modules.scanner_api_handlers.anchore import (
     Anchore,
 )
 
+def generate_sbom_parallel(anchore_scan, image, artifacts_path, formats):
+    for fmt in formats:
+        anchore_scan.generate_sbom(image, artifacts_path, fmt, "json", tool="syft")
 
 def main() -> None:
     """Main function that initializes an Anchore scanner and generates Software
@@ -43,12 +47,13 @@ def main() -> None:
 
     image = os.environ["IMAGE_FULLTAG"]
 
-    with Pool(processes=4) as pool:
-        anchore_scan.generate_sbom(image, artifacts_path, "cyclonedx-json", "json")
-        anchore_scan.generate_sbom(image, artifacts_path, "spdx-tag-value", "txt")
-        anchore_scan.generate_sbom(image, artifacts_path, "spdx-json", "json")
-        anchore_scan.generate_sbom(image, artifacts_path, "json", "json", "syft")
+    sbom_formats = ["cyclonedx-json", "spdx-tag-value", "spdx-json"]
 
+    with Pool(processes=len(sbom_formats)) as pool:
+        partial_generate_sbom = partial(generate_sbom_parallel, anchore_scan, image, artifacts_path)
+        pool.map(partial_generate_sbom, sbom_formats)
+
+    anchore_scan.generate_sbom(image, artifacts_path, "json", "json", tool="syft")
 
 if __name__ == "__main__":
     main()
