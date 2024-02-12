@@ -11,6 +11,7 @@ from ironbank_py39_modules.scanner_api_handlers.anchore import (
     Anchore,
 )
 
+
 def main() -> None:
     """Main function that initializes an Anchore scanner and generates Software
     Bill of Materials (SBOM) in multiple formats for a specified image.
@@ -47,6 +48,7 @@ def main() -> None:
         anchore_scan.generate_sbom(image, artifacts_path, "spdx-tag-value", "txt")
         anchore_scan.generate_sbom(image, artifacts_path, "spdx-json", "json")
         anchore_scan.generate_sbom(image, artifacts_path, "json", "json", "syft")
+
 
 if __name__ == "__main__":
     main()
