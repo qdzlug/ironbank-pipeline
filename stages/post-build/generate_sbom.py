@@ -13,6 +13,7 @@ from ironbank_py39_modules.scanner_api_handlers.anchore import (
 )
 
 def generate_sbom_parallel(anchore_scan, image, artifacts_path, fmt):
+    print(f"generating: {fmt}")
     anchore_scan.generate_sbom(image, artifacts_path, fmt[0], fmt[1])
 
 def main() -> None:
