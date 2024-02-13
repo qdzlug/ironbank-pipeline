@@ -322,8 +322,8 @@ def main(git_project_root_folder, kubernetes_namespace):
     try:
         with open(manifest_file_path, 'r') as file:
             data = yaml.safe_load(file)
-            if 'docker_tests' in data:
-                container_tests = data['docker_tests']
+            if 'command_tests' in data:
+                container_tests = data['command_tests']
             if 'kubernetes_test' in data:
                 kubernetes_test = data['kubernetes_test']
                 
