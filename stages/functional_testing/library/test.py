@@ -244,7 +244,7 @@ def run_test(entrypoint, command_timeout, pod_name, docker_image, kubernetes_nam
     kubectl_command = (
         f"kubectl run {pod_name} "
         f"--overrides='{overrides_json}' "
-        f"--image={docker_image} -n {kubernetes_namespace} -- {entrypoint}"
+        f"--image={docker_image} -n {kubernetes_namespace} --command -- {entrypoint}"
     )
 
 
@@ -357,6 +357,8 @@ def main(git_project_root_folder, kubernetes_namespace):
                 expected_output = None
                 command_timeout = None
                 entrypoint = command['command']
+
+
 
                 if 'expected_output' in command:
                     expected_output = command['expected_output']
