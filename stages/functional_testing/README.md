@@ -236,10 +236,10 @@ The `testing_manifest.yaml` file plays a crucial role in the functional testing 
 ## Command Probe Tests
 
 ```yaml
-docker_tests:
+command_tests:
 ```
 
-- **docker_tests**: List of tests to be executed within Docker containers.
+- **command_tests**: List of tests to be executed within Docker containers.
 
   - **name** (Optional): 
     - Description: A descriptive name for the test.
@@ -304,7 +304,7 @@ kubernetes_test:
 
 ## Example testing_manifest.yaml template
 ```yaml
-docker_tests:
+command_tests:
   - name: Descriptive name for this test #Optional field
     description: Description for the test #Optional field
     commands: 
