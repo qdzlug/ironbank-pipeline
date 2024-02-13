@@ -119,7 +119,7 @@ tidelift-upload:
     - echo "Project Tag ${TIDELIFT_PROJECT_TAG}"
     - echo "Project Name ${TIDELIFT_PROJECT_NAME}"
     - echo "Project External ID ${TIDELIFT_PROJECT_EXTERNAL_ID}"
-    - ech "CI_COMMIT_SHA - ${CI_COMMIT_SHA}"
+    - echo "CI_COMMIT_SHA - ${CI_COMMIT_SHA}"
     
     ###Tidelift Project Group Classification
     #Create the Tidelift Project group based on Iron Bank Classification
