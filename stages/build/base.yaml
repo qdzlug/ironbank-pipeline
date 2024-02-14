@@ -41,6 +41,7 @@ build_arm64:
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
     BUILD_ARM64 : "True"
+    KUBERNETES_NODE_SELECTOR_IRONBANK: "ironbank=gitlab-runner-arm64"
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/build/build.py"'
   artifacts:
