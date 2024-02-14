@@ -1,0 +1,10 @@
+AWS_PROFILE=il2-staging aws ssm start-session --target i-0ce47aea65dad9dda
+
+# Building the google/distroless/base image
+https://code-ib-mario.staging.dso.mil/dsop/arm64-bootstrap/base/-/pipelines/31822
+docker image inspect harbor-ib-mario.staging.dso.mil/ironbank/google/distroless/base:nonroot-arm64
+
+- base_image: true
+  src_path: google/distroless/base
+- base_image: false
+  src_path: Opensource/istio/1.19/proxyv2
