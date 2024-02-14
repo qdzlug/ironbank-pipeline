@@ -34,7 +34,7 @@ build_arm64:
   extends:
     - .setup_modules
   tags:
-    - ironbank-dsop-build-arm64
+    - ironbank-dsop-build
   needs:
     - load-scripts
     - lint
