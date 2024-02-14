@@ -254,7 +254,7 @@ def main():
         # sublist needed for f.writelines() on arg substitution in Dockerfile
         dockerfile_args = ["\n"] + [f"ARG {k}\n" for k in build_args.keys()]
 
-    dockerfile = "Dockerfile-arm64" if "arm64" in hardening_manifest.architecture and "BUILD_ARM64" in os.environ else "Dockerfile"
+    dockerfile = "Dockerfile.arm64" if "arm64" in hardening_manifest.architecture and "BUILD_ARM64" in os.environ else "Dockerfile"
     dockerfile_path = Path(dockerfile)
     write_dockerfile_args(dockerfile_args=dockerfile_args, dockerfile_path=dockerfile_path)
 
