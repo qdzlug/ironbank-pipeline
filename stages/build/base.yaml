@@ -30,6 +30,7 @@ build:
 
 build_arm64:
   stage: build
+  image: ${IAM_ACCOUNT_ID}.dkr.ecr.us-gov-west-1.amazonaws.com/ironbank/ironbank-pipelines/pipeline-runner:v0.10.12
   extends:
     - .setup_modules
   tags:

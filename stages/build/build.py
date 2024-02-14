@@ -76,7 +76,7 @@ def load_resources(
         if resource_file_obj.is_file() and not resource_file_obj.is_symlink():
             if resource_type == "image" and skopeo:
                 manifest = subprocess.run(
-                    ["tar", "-xf", resource_file_obj.as_posix(), "-O", "manifest.json"],
+                    ["cat", f"{Path(resource_dir, resource_file)}/manifest.json"],
                     capture_output=True,
                     check=True,
                 )
@@ -84,7 +84,7 @@ def load_resources(
                 image_url = manifest_json[0]["RepoTags"][0]
                 log.info("loading image %s", resource_file_obj)
                 skopeo.copy(
-                    ImageFile(file_path=resource_file_obj, transport="docker-archive:"),
+                    ImageFile(file_path=resource_file_obj, transport="dir:"),
                     Image(url=image_url, transport="containers-storage:"),
                     log_cmd=True,
                 )
