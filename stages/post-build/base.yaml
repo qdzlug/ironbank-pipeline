@@ -54,7 +54,7 @@ tidelift-upload:
     IRONBANK_CLASSIFICATION: General  
     TIDELIFT_PROJECT_GROUP: "${IRONBANK_CLASSIFICATION}" 
     IRONBANK_IMAGE_NAME: "${IMAGE_NAME}"
-    TIDELIFT_PROJECT_TAG: "${IMAGE_VERSION}"
+    TIDELIFT_PROJECT_TAG: "${CI_COMMIT_SHA}"
     TIDELIFT_PROJECT_NAME: ""  
     TIDELIFT_PROJECT_EXTERNAL_ID: ""
     TIDELIFT_CATALOG: "ibtest"
@@ -119,7 +119,6 @@ tidelift-upload:
     - echo "Project Tag ${TIDELIFT_PROJECT_TAG}"
     - echo "Project Name ${TIDELIFT_PROJECT_NAME}"
     - echo "Project External ID ${TIDELIFT_PROJECT_EXTERNAL_ID}"
-    - echo "CI_COMMIT_SHA - ${CI_COMMIT_SHA}"
     
     ###Tidelift Project Group Classification
     #Create the Tidelift Project group based on Iron Bank Classification
