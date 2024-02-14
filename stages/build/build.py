@@ -149,6 +149,8 @@ def main():
     """Main method."""
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
+    if "arm64" not in hardening_manifest.architecture and "BUILD_ARM64" in os.environ:
+        sys.exit(0)
     staging_image = Image(
         registry=os.environ["REGISTRY_PRE_PUBLISH_URL"],
         name=hardening_manifest.image_name,
@@ -252,7 +254,8 @@ def main():
         # sublist needed for f.writelines() on arg substitution in Dockerfile
         dockerfile_args = ["\n"] + [f"ARG {k}\n" for k in build_args.keys()]
 
-    dockerfile_path = Path("Dockerfile-arm64") if hardening_manifest.architecture == ["arm64"] else Path("Dockerfile")
+    dockerfile = "Dockerfile-arm64" if "arm64" in hardening_manifest.architecture and "BUILD_ARM64" in os.environ else "Dockerfile"
+    dockerfile_path = Path(dockerfile)
     write_dockerfile_args(dockerfile_args=dockerfile_args, dockerfile_path=dockerfile_path)
 
     # args for buildah's ulimit settings
@@ -280,6 +283,7 @@ def main():
         ulimit_args=buildah_ulimit_args,
         tag=staging_image,
         log_cmd=True,
+        file_path=dockerfile
     )
 
     # Instantiate new objects from existing staging image attributes

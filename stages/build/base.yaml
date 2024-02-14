@@ -40,6 +40,7 @@ build_arm64:
     - import-artifacts
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
+    BUILD_ARM64 : "True"
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/build/build.py"'
   artifacts:
