@@ -1,2 +1,3 @@
-OS_TYPE: "distroless"
-OSCAP_CI_IMAGE: ""
+variables:
+ - OS_TYPE: "distroless"
+ - OSCAP_CI_IMAGE: ""

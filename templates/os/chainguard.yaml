@@ -1,2 +1,3 @@
-OS_TYPE: "chainguard"
-OSCAP_CI_IMAGE: ""
+variables:
+ - OS_TYPE: "chainguard"
+ - OSCAP_CI_IMAGE: ""

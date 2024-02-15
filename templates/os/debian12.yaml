@@ -1,4 +1,5 @@
-DISTRO_REPO_DIR: "debian-repos/12-bookworm-debian.sources"
-DISTRO_REPO_MOUNT: "/etc/apt/sources.list.d/debian.sources"
-OSCAP_CI_IMAGE: "registry.dso.mil/ironbank-tools/ironbank-pipeline/ubupodscap2004:1.3.2"
-OS_TYPE: "debian12"
+variables:
+ - DISTRO_REPO_DIR: "debian-repos/12-bookworm-debian.sources"
+ - DISTRO_REPO_MOUNT: "/etc/apt/sources.list.d/debian.sources"
+ - OSCAP_CI_IMAGE: "registry.dso.mil/ironbank-tools/ironbank-pipeline/ubupodscap2004:1.3.2"
+ - OS_TYPE: "debian12"
