@@ -6,18 +6,14 @@ default:
     max: 2
     when: runner_system_failure
 include:
-  - local: "templates/os/${OS_TYPE}.yaml"
+  - local: templates/os/${OS_TYPE}.yaml"
   - local: stages/validate-container-repository/base.yaml
   - local: stages/import-artifacts/import-artifacts.yaml
   - local: stages/build/base.yaml
-  - local: "templates/scan.yaml"
+  - local: templates/scan.yaml
     rules:
       - if: $SKIP_SCAN != "true"
       - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
-
-workflow:
-  rules:
-    - if: $CI_COMMIT_BRANCH
 
 stages:
   - .pre
@@ -69,7 +65,6 @@ load-scripts:
     - 'git clone -q --depth 1 --branch "${MODULES_TAG}" "${CI_SERVER_URL}/ironbank-tools/${MODULES_PROJECT}.git" "${MODULES_CLONE_DIR}"'
     - 'rm -rf "${PIPELINE_REPO_DIR}/.git"'
     - 'rm -rf "${MODULES_CLONE_DIR}/.git"'
-    - 'env'
 
 .setup_modules:
   before_script:
@@ -102,25 +97,34 @@ lint-and-image-inspect:
       dotenv: template.env
 
 variables:
-    ANCHORE_SCANS: "${SCAN_RESULTS}/anchore"
-    ARTIFACT_STORAGE: "ci-artifacts"
-    BASE_IMAGE_TYPE: "${OS_TYPE}-container"
-    FORCE_SCAN_NEW_IMAGE: $FORCE_SCAN_NEW_IMAGE
-    GIT_SSL_NO_VERIFY: "1"
-    LOGLEVEL: "INFO"
-    MODULES_CLONE_DIR: "${ARTIFACT_STORAGE}/${MODULES_PROJECT}"
-    MODULES_DEPS_PATH: "/home/python/${MODULES_PROJECT}/${MODULES_SUBDIR}"
-    MODULES_PACKAGE_PATH: "${MODULES_CLONE_DIR}/${MODULES_SUBDIR}"
-    MODULES_PROJECT: "ironbank-modules"
-    MODULES_SUBDIR: "ironbank"
-    OSCAP_CVE_HTML_FILENAME: "report-cve.html"
-    OSCAP_CVE_XML_FILENAME: "report-cve.xml"
-    OSCAP_SCANS: "${SCAN_RESULTS}/openscap"
-    OSCAP_VERSION: "0.1.71"
-    PIPELINE_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank_pipeline"
-    SCAN_RESULTS: "${ARTIFACT_STORAGE}/scan-results"
-    SCAP_CONTENT: "scap-content"
-    STAGING_BASE_IMAGE: $STAGING_BASE_IMAGE
-    STAGING_PIPELINE: ""
-    TARGET_BRANCH: master
-    TWISTLOCK_SCANS: "${SCAN_RESULTS}/twistlock"
+  ANCHORE_SCANS: "${SCAN_RESULTS}/anchore"
+  ARTIFACT_STORAGE: "ci-artifacts"
+  BASE_IMAGE_TYPE: "${OS_TYPE}-container"
+  FORCE_SCAN_NEW_IMAGE: $FORCE_SCAN_NEW_IMAGE
+  GIT_SSL_NO_VERIFY: "1"
+  LOGLEVEL: "INFO"
+  MODULES_CLONE_DIR: "${ARTIFACT_STORAGE}/${MODULES_PROJECT}"
+  MODULES_DEPS_PATH: "/home/python/${MODULES_PROJECT}/${MODULES_SUBDIR}"
+  MODULES_PACKAGE_PATH: "${MODULES_CLONE_DIR}/${MODULES_SUBDIR}"
+  MODULES_PROJECT: "ironbank-modules"
+  MODULES_SUBDIR: "ironbank"
+  OSCAP_CVE_HTML_FILENAME: "report-cve.html"
+  OSCAP_CVE_XML_FILENAME: "report-cve.xml"
+  OSCAP_SCANS: "${SCAN_RESULTS}/openscap"
+  OSCAP_VERSION: "0.1.71"
+  PIPELINE_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank_pipeline"
+  SCAN_RESULTS: "${ARTIFACT_STORAGE}/scan-results"
+  SCAP_CONTENT: "scap-content"
+  STAGING_BASE_IMAGE: $STAGING_BASE_IMAGE
+  STAGING_PIPELINE: ""
+  TARGET_BRANCH: master
+  TWISTLOCK_SCANS: "${SCAN_RESULTS}/twistlock"
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH && $OS_TYPE == "ubi9"
+      variables:
+        - DISTRO_REPO_DIR: "ubi-repos"
+        - DISTRO_REPO_MOUNT: "/etc/yum.repos.d"
+        - OS_TYPE: "ubi9"
+        - OSCAP_CI_IMAGE: "registry1.dso.mil/ironbank/ironbank-pipelines/oscap-podman:v0.1.1"
