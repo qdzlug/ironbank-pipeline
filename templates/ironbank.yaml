@@ -123,9 +123,64 @@ variables:
 
 workflow:
   rules:
+    - if: $CI_COMMIT_BRANCH && $OS_TYPE == "alpine3"
+      variables:
+        DISTRO_REPO_DIR: "apk-repos/repositories"
+        DISTRO_REPO_MOUNT: "/etc/apk/repositories"
+        OSCAP_CI_IMAGE: ""
+        SKIP_OENSCAP: "1"
+    - if: $CI_COMMIT_BRANCH && $OS_TYPE == "alpine317"
+      variables:
+        DISTRO_REPO_DIR: "apk-repos/repositories"
+        DISTRO_REPO_MOUNT: "/etc/apk/repositories"
+        OSCAP_CI_IMAGE: ""
+        SKIP_OENSCAP: "1"
+    - if: $CI_COMMIT_BRANCH && $OS_TYPE == "chainguard"
+      variables:
+        OS_TYPE: "chainguard"
+        OSCAP_CI_IMAGE: ""
+        SKIP_OENSCAP: "1"
+    - if: $CI_COMMIT_BRANCH && $OS_TYPE == "debian11"
+      variables:
+        DISTRO_REPO_DIR: "debian-repos/11-bullseye-ironbank.list"
+        DISTRO_REPO_MOUNT: "/etc/apt/sources.list"
+        OSCAP_CI_IMAGE: "registry.dso.mil/ironbank-tools/ironbank-pipeline/ubupodscap2004:1.3.2"
+    - if: $CI_COMMIT_BRANCH && $OS_TYPE == "debian12"
+      variables:
+        DISTRO_REPO_DIR: "debian-repos/12-bookworm-debian.sources"
+        DISTRO_REPO_MOUNT: "/etc/apt/sources.list.d/debian.sources"
+        OSCAP_CI_IMAGE: "registry.dso.mil/ironbank-tools/ironbank-pipeline/ubupodscap2004:1.3.2"
+    - if: $CI_COMMIT_BRANCH && $OS_TYPE == "distroless"
+      variables:
+        OSCAP_CI_IMAGE: ""
+        SKIP_OENSCAP: "1"
+    - if: $CI_COMMIT_BRANCH && $OS_TYPE == "sle15-bci"
+      variables:
+        DISTRO_REPO_DIR: "zypper-repos"
+        DISTRO_REPO_MOUNT: "/etc/zypp/repos.d"
+        OSCAP_CI_IMAGE: "registry1.dso.mil/ironbank-apps/sle-bci/oscap-podman:15.4"
+    - if: $CI_COMMIT_BRANCH && $OS_TYPE == "ubi7"
+      variables:
+        DISTRO_REPO_DIR: "ubi-repos"
+        DISTRO_REPO_MOUNT: "/etc/yum.repos.d"
+        OSCAP_CI_IMAGE: "registry1.dso.mil/ironbank/ironbank-pipelines/oscap-podman:v0.1.1"
+    - if: $CI_COMMIT_BRANCH && $OS_TYPE == "ubi8"
+      variables:
+        DISTRO_REPO_DIR: "ubi-repos"
+        DISTRO_REPO_MOUNT: "/etc/yum.repos.d"
+        OSCAP_CI_IMAGE: "registry1.dso.mil/ironbank/ironbank-pipelines/oscap-podman:v0.1.1"
     - if: $CI_COMMIT_BRANCH && $OS_TYPE == "ubi9"
       variables:
         DISTRO_REPO_DIR: "ubi-repos"
         DISTRO_REPO_MOUNT: "/etc/yum.repos.d"
-        OS_TYPE: "ubi9"
         OSCAP_CI_IMAGE: "registry1.dso.mil/ironbank/ironbank-pipelines/oscap-podman:v0.1.1"
+    - if: $CI_COMMIT_BRANCH && $OS_TYPE == "ubuntu2004"
+      variables:
+        DISTRO_REPO_DIR: "apt-repos/2004-focal-ironbank.list"
+        DISTRO_REPO_MOUNT: "/etc/apt/sources.list"
+        OSCAP_CI_IMAGE: "registry.dso.mil/ironbank-tools/ironbank-pipeline/ubupodscap2004:1.3.2"
+    - if: $CI_COMMIT_BRANCH && $OS_TYPE == "ubuntu2204"
+      variables:
+        DISTRO_REPO_DIR: "apt-repos/2204-jammy-ironbank.list"
+        DISTRO_REPO_MOUNT: "/etc/apt/sources.list"
+        OSCAP_CI_IMAGE: "registry.dso.mil/ironbank-tools/ironbank-pipeline/ubupodscap2004:1.3.2"

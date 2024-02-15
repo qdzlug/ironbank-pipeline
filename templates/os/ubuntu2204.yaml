@@ -1,5 +1,0 @@
-variables:
- - DISTRO_REPO_DIR: "apt-repos/2204-jammy-ironbank.list"
- - DISTRO_REPO_MOUNT: "/etc/apt/sources.list"
- - OS_TYPE: "ubuntu2004"
- - OSCAP_CI_IMAGE: "registry.dso.mil/ironbank-tools/ironbank-pipeline/ubupodscap2004:1.3.2"

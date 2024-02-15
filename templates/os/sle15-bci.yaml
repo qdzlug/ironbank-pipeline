@@ -1,5 +1,0 @@
-variables:
- - DISTRO_REPO_DIR: "zypper-repos"
- - DISTRO_REPO_MOUNT: "/etc/zypp/repos.d"
- - OS_TYPE: "sle15-bci"
- - OSCAP_CI_IMAGE: "registry1.dso.mil/ironbank-apps/sle-bci/oscap-podman:15.4"

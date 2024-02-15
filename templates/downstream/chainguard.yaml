@@ -1,5 +1,0 @@
-include:
-  - local: templates/globals.yaml
-
-variables:
-  SKIP_OPENSCAP: "1"
