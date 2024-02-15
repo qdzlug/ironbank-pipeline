@@ -1,3 +1,4 @@
+include:
   - local: stages/post-build/base.yaml
   - local: stages/scan-logic/base.yaml
   - local: stages/scanning/base.yaml
