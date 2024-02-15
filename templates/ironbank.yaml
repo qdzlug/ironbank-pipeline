@@ -69,6 +69,7 @@ load-scripts:
     - 'git clone -q --depth 1 --branch "${MODULES_TAG}" "${CI_SERVER_URL}/ironbank-tools/${MODULES_PROJECT}.git" "${MODULES_CLONE_DIR}"'
     - 'rm -rf "${PIPELINE_REPO_DIR}/.git"'
     - 'rm -rf "${MODULES_CLONE_DIR}/.git"'
+    - 'env'
 
 .setup_modules:
   before_script:
