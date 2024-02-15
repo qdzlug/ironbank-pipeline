@@ -17,7 +17,6 @@ include:
 
 stages:
   - .pre
-  - validate-container-metadata
   - validate-container-repository
   - import-artifacts
   - build
@@ -83,19 +82,6 @@ trufflehog:
   script:
     - 'git config --global --add safe.directory "${CI_PROJECT_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/validate-container-repository/secret-scan/trufflehog.py"'
-
-lint-and-image-inspect:
-  stage: validate-container-metadata
-  extends:
-    - .setup_modules
-  needs:
-    - load-scripts
-  script:
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/validate-container-repository/lint/validate_hardening_manifest.py"'
-  artifacts:
-    when: always
-    reports:
-      dotenv: template.env
 
 variables:
   ANCHORE_SCANS: "${SCAN_RESULTS}/anchore"
