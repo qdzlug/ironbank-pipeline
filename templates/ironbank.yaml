@@ -127,18 +127,15 @@ workflow:
       variables:
         DISTRO_REPO_DIR: "apk-repos/repositories"
         DISTRO_REPO_MOUNT: "/etc/apk/repositories"
-        OSCAP_CI_IMAGE: ""
         SKIP_OENSCAP: "1"
     - if: $CI_COMMIT_BRANCH && $OS_TYPE == "alpine317"
       variables:
         DISTRO_REPO_DIR: "apk-repos/repositories"
         DISTRO_REPO_MOUNT: "/etc/apk/repositories"
-        OSCAP_CI_IMAGE: ""
         SKIP_OENSCAP: "1"
     - if: $CI_COMMIT_BRANCH && $OS_TYPE == "chainguard"
       variables:
         OS_TYPE: "chainguard"
-        OSCAP_CI_IMAGE: ""
         SKIP_OENSCAP: "1"
     - if: $CI_COMMIT_BRANCH && $OS_TYPE == "debian11"
       variables:
@@ -152,7 +149,6 @@ workflow:
         OSCAP_CI_IMAGE: "registry.dso.mil/ironbank-tools/ironbank-pipeline/ubupodscap2004:1.3.2"
     - if: $CI_COMMIT_BRANCH && $OS_TYPE == "distroless"
       variables:
-        OSCAP_CI_IMAGE: ""
         SKIP_OENSCAP: "1"
     - if: $CI_COMMIT_BRANCH && $OS_TYPE == "sle15-bci"
       variables:
