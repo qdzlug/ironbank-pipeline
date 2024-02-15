@@ -118,7 +118,7 @@ tidelift-upload:
     - echo "Project Supplier ${TIDELIFT_PROJECT_SUPPLIER}"
     - echo "Project Supplier Org/Type ${TIDELIFT_PROJECT_SUPPLIER_TYPE}"
     - echo "Project Tag ${TIDELIFT_PROJECT_TAG}"
-    - echo "Project Tag ${TIDELIFT_PROJECT_REVISION}"
+    - echo "Project Revision ${TIDELIFT_PROJECT_REVISION}"
     - echo "Project Name ${TIDELIFT_PROJECT_NAME}"
     - echo "Project External ID ${TIDELIFT_PROJECT_EXTERNAL_ID}"
     
@@ -153,30 +153,25 @@ tidelift-upload:
     - ls | grep .json
 
     - echo "Checking to see if $TIDELIFT_PROJECT_NAME exists in Tidelift."
+    - echo "tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_CATALOG --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force --skip-dot-tidelift"
     - |
-      echo "tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_CATALOG --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force --skip-dot-tidelift"
- 
       if (./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_CATALOG --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force); then
         echo "New Project - $TIDELIFT_PROJECT_NAME with branch $TIDELIFT_PROJECT_BRANCH revision $TIDELIFT_PROJECT_REVISION in catalog $TIDELIFT_CATALOG"
       else 
         echo "Existing Project - $TIDELIFT_PROJECT_NAME with branch $TIDELIFT_PROJECT_BRANCH revision $TIDELIFT_PROJECT_REVISION in catalog $TIDELIFT_CATALOG --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID"
       fi
 
-    - echo "tidelift alignment save --directory . cyclonedx.json --organization $TIDELIFT_ORG_NAME --project $TIDELIFT_PROJECT_NAME --branch $TIDELIFT_PROJECT_BRANCH --revision $TIDELIFT_PROJECT_TAG --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --wait --json"
+    - echo "tidelift alignment save --directory . cyclonedx.json --organization $TIDELIFT_ORG_NAME --project $TIDELIFT_PROJECT_NAME --branch $TIDELIFT_PROJECT_BRANCH --revision $TIDELIFT_PROJECT_REVISION --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --wait --json"
       
-      ./tidelift alignment save --directory . cyclonedx.json --organization $TIDELIFT_ORG_NAME --project $TIDELIFT_PROJECT_NAME --branch $TIDELIFT_PROJECT_BRANCH --revision $TIDELIFT_PROJECT_REVISION --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --wait --json > output.json
+      ./tidelift alignment save --directory . cyclonedx.json --organization $TIDELIFT_ORG_NAME --project $TIDELIFT_PROJECT_NAME --branch $TIDELIFT_PROJECT_BRANCH --revision $TIDELIFT_PROJECT_REVISION --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --json > output.json
       
+    - echo "output.json results - "
     - cat output.json 
-    - echo " --------------- "
-
+    - echo "Checking for the Tidelift Alignment ID from output.json file"
     - |
-      
       TIDELIFT_ALIGNMENT_ID=$(cat output.json | jq -r '.revision')
-
       echo "TIDELIFT_ALIGNMENT_ID - $TIDELIFT_ALIGNMENT_ID"
-
     - |
         ./tidelift status $TIDELIFT_ALIGNMENT_ID
-
     - echo "Tidelift Project Alignment Completed"
     - echo "===================================="
