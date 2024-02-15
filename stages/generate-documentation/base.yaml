@@ -36,6 +36,3 @@ generate-documentation:
       - $ARTIFACT_DIR
       - "${CSV_REPORT}"
     expire_in: 1 week
-  retry:
-    max: 2
-    when: runner_system_failure

@@ -1,0 +1,4 @@
+DISTRO_REPO_DIR: "ubi-repos"
+DISTRO_REPO_MOUNT: "/etc/yum.repos.d"
+OS_TYPE: "ubi7"
+OSCAP_CI_IMAGE: "registry1.dso.mil/ironbank/ironbank-pipelines/oscap-podman:v0.1.1"

@@ -19,9 +19,6 @@ lint:
     when: always
     reports:
       dotenv: "${ARTIFACT_DIR}/variables.env"
-  retry:
-    max: 2
-    when: runner_system_failure
   script:
     - 'mkdir -p "${ARTIFACT_DIR}"'
     - |

@@ -1,0 +1,4 @@
+DISTRO_REPO_DIR: "apk-repos/repositories"
+DISTRO_REPO_MOUNT: "/etc/apk/repositories"
+OS_TYPE: "alpine"
+OSCAP_CI_IMAGE: ""

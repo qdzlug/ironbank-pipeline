@@ -14,6 +14,3 @@ scan-logic:
       dotenv: scan_logic.env
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/scan-logic/scan_logic_jobs.py"'
-  retry:
-    max: 2
-    when: runner_system_failure

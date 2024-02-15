@@ -27,9 +27,6 @@ harbor:
     when: always
     paths:
       - "${ARTIFACT_DIR}/"
-  retry:
-    max: 2
-    when: always
 
 update-staging-attestations:
   stage: publish-artifacts
@@ -59,6 +56,3 @@ update-staging-attestations:
     when: always
     paths:
       - "${ARTIFACT_DIR}/"
-  retry:
-    max: 2
-    when: always

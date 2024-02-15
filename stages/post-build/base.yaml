@@ -3,9 +3,6 @@
   needs:
     - load-scripts
     - build
-  retry:
-    max: 2
-    when: runner_system_failure
 
 create-tar:
   extends:

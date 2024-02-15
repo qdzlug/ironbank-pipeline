@@ -1,6 +1,0 @@
-.setup_modules:
-  before_script:
-    # activate virtual env before installing the modules
-    # needed to ensure modules exist in the same env as their deps
-    - 'source "$(poetry env info -C "${MODULES_DEPS_PATH}" --path)"/bin/activate'
-    - 'poetry install -C "${MODULES_PACKAGE_PATH}" --only-root'

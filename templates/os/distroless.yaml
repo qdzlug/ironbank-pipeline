@@ -1,0 +1,2 @@
+OS_TYPE: "distroless"
+OSCAP_CI_IMAGE: ""

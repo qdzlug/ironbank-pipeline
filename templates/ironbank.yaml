@@ -1,0 +1,124 @@
+# https://ironbank.dso.mil
+
+default:
+  image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.12
+  retry:
+    max: 2
+    when: runner_system_failure
+  variables:
+    ANCHORE_SCANS: "${SCAN_RESULTS}/anchore"
+    ARTIFACT_STORAGE: "ci-artifacts"
+    BASE_IMAGE_TYPE: "${OS_TYPE}-container"
+    FORCE_SCAN_NEW_IMAGE: $FORCE_SCAN_NEW_IMAGE
+    GIT_SSL_NO_VERIFY: "1"
+    LOGLEVEL: "INFO"
+    MODULES_CLONE_DIR: "${ARTIFACT_STORAGE}/${MODULES_PROJECT}"
+    MODULES_DEPS_PATH: "/home/python/${MODULES_PROJECT}/${MODULES_SUBDIR}"
+    MODULES_PACKAGE_PATH: "${MODULES_CLONE_DIR}/${MODULES_SUBDIR}"
+    MODULES_PROJECT: "ironbank-modules"
+    MODULES_SUBDIR: "ironbank"
+    OSCAP_CVE_HTML_FILENAME: "report-cve.html"
+    OSCAP_CVE_XML_FILENAME: "report-cve.xml"
+    OSCAP_SCANS: "${SCAN_RESULTS}/openscap"
+    OSCAP_VERSION: "0.1.71"
+    PIPELINE_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank_pipeline"
+    SCAN_RESULTS: "${ARTIFACT_STORAGE}/scan-results"
+    SCAP_CONTENT: "scap-content"
+    STAGING_BASE_IMAGE: $STAGING_BASE_IMAGE
+    STAGING_PIPELINE: ""
+    TARGET_BRANCH: master
+    TWISTLOCK_SCANS: "${SCAN_RESULTS}/twistlock"
+include:
+  - local: "templates/os-type/${OS_TYPE}.yaml"
+  - local: stages/validate-container-repository/base.yaml
+  - local: stages/import-artifacts/import-artifacts.yaml
+  - local: stages/build/base.yaml
+  - local: "templates/scan.yaml"
+    rules:
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
+stages:
+  - .pre
+  - validate-container-metadata
+  - validate-container-repository
+  - import-artifacts
+  - build
+  - post-build
+  - scan-logic
+  - scanning
+  - vat
+  - post-vat
+  - generate-documentation
+  - publish-artifacts
+
+load-scripts:
+  stage: .pre
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - "${PIPELINE_REPO_DIR}"
+      - "${MODULES_CLONE_DIR}"
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - when: on_success
+  script:
+    - |
+      if [[ -z "${STAGING_PIPELINE:-}" ]]; then
+        echo "Searching for ci-artifacts dir"
+        files_found=$(find . -name "ci-artifacts" -type d)
+        echo "Searching for symlinks"
+        links_found=$(find . -type l)
+        echo "Validating symlinks"
+        if [[ $links_found != "" ]]; then exit 1; fi
+        echo "Validating files"
+        if [[ $files_found != "" ]]; then echo "${files_found} was found"; fi
+      else
+        echo "STAGING_PIPELINE var exists, skipping pre-check"
+      fi
+    - 'mkdir -p "${PIPELINE_REPO_DIR}"'
+    - |
+      if [[ ${LOGLEVEL:-} == "DEBUG" ]]; then
+        echo "Running pipeline for project branch: ${CI_COMMIT_BRANCH}";
+        echo "Cloning pipeline branch: ${TARGET_BRANCH}";
+      fi
+    - 'git clone -q --depth 1 --branch "${TARGET_BRANCH}" "${CI_SERVER_URL}/ironbank-tools/ironbank-pipeline.git" "${PIPELINE_REPO_DIR}"'
+    - 'git clone -q --depth 1 --branch "${MODULES_TAG}" "${CI_SERVER_URL}/ironbank-tools/${MODULES_PROJECT}.git" "${MODULES_CLONE_DIR}"'
+    - 'rm -rf "${PIPELINE_REPO_DIR}/.git"'
+    - 'rm -rf "${MODULES_CLONE_DIR}/.git"'
+
+.setup_modules:
+  before_script:
+    - 'source "$(poetry env info -C "${MODULES_DEPS_PATH}" --path)"/bin/activate'
+    - 'poetry install -C "${MODULES_PACKAGE_PATH}" --only-root'
+
+trufflehog:
+  stage: validate-container-metadata
+  image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6
+  needs:
+    - load-scripts
+  variables:
+    # This forces the trufflehog job to NOT perform a shallow clone
+    GIT_DEPTH: 0
+  script:
+    - 'git config --global --add safe.directory "${CI_PROJECT_DIR}"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/validate-container-repository/secret-scan/trufflehog.py"'
+
+lint-and-image-inspect:
+  stage: validate-container-metadata
+  extends:
+    - .setup_modules
+  needs:
+    - load-scripts
+  script:
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/validate-container-repository/lint/validate_hardening_manifest.py"'
+  artifacts:
+    when: always
+    reports:
+      dotenv: template.env

@@ -1,0 +1,7 @@
+  - local: stages/post-build/base.yaml
+  - local: stages/scan-logic/base.yaml
+  - local: stages/scanning/base.yaml
+  - local: stages/vat/base.yaml
+  - local: stages/post-vat/base.yaml
+  - local: stages/generate-documentation/base.yaml
+  - local: stages/publish-artifacts/base.yaml
