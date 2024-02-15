@@ -5,29 +5,6 @@ default:
   retry:
     max: 2
     when: runner_system_failure
-  variables:
-    ANCHORE_SCANS: "${SCAN_RESULTS}/anchore"
-    ARTIFACT_STORAGE: "ci-artifacts"
-    BASE_IMAGE_TYPE: "${OS_TYPE}-container"
-    FORCE_SCAN_NEW_IMAGE: $FORCE_SCAN_NEW_IMAGE
-    GIT_SSL_NO_VERIFY: "1"
-    LOGLEVEL: "INFO"
-    MODULES_CLONE_DIR: "${ARTIFACT_STORAGE}/${MODULES_PROJECT}"
-    MODULES_DEPS_PATH: "/home/python/${MODULES_PROJECT}/${MODULES_SUBDIR}"
-    MODULES_PACKAGE_PATH: "${MODULES_CLONE_DIR}/${MODULES_SUBDIR}"
-    MODULES_PROJECT: "ironbank-modules"
-    MODULES_SUBDIR: "ironbank"
-    OSCAP_CVE_HTML_FILENAME: "report-cve.html"
-    OSCAP_CVE_XML_FILENAME: "report-cve.xml"
-    OSCAP_SCANS: "${SCAN_RESULTS}/openscap"
-    OSCAP_VERSION: "0.1.71"
-    PIPELINE_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank_pipeline"
-    SCAN_RESULTS: "${ARTIFACT_STORAGE}/scan-results"
-    SCAP_CONTENT: "scap-content"
-    STAGING_BASE_IMAGE: $STAGING_BASE_IMAGE
-    STAGING_PIPELINE: ""
-    TARGET_BRANCH: master
-    TWISTLOCK_SCANS: "${SCAN_RESULTS}/twistlock"
 include:
   - local: "templates/os/${OS_TYPE}.yaml"
   - local: stages/validate-container-repository/base.yaml
@@ -122,3 +99,27 @@ lint-and-image-inspect:
     when: always
     reports:
       dotenv: template.env
+
+variables:
+    ANCHORE_SCANS: "${SCAN_RESULTS}/anchore"
+    ARTIFACT_STORAGE: "ci-artifacts"
+    BASE_IMAGE_TYPE: "${OS_TYPE}-container"
+    FORCE_SCAN_NEW_IMAGE: $FORCE_SCAN_NEW_IMAGE
+    GIT_SSL_NO_VERIFY: "1"
+    LOGLEVEL: "INFO"
+    MODULES_CLONE_DIR: "${ARTIFACT_STORAGE}/${MODULES_PROJECT}"
+    MODULES_DEPS_PATH: "/home/python/${MODULES_PROJECT}/${MODULES_SUBDIR}"
+    MODULES_PACKAGE_PATH: "${MODULES_CLONE_DIR}/${MODULES_SUBDIR}"
+    MODULES_PROJECT: "ironbank-modules"
+    MODULES_SUBDIR: "ironbank"
+    OSCAP_CVE_HTML_FILENAME: "report-cve.html"
+    OSCAP_CVE_XML_FILENAME: "report-cve.xml"
+    OSCAP_SCANS: "${SCAN_RESULTS}/openscap"
+    OSCAP_VERSION: "0.1.71"
+    PIPELINE_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank_pipeline"
+    SCAN_RESULTS: "${ARTIFACT_STORAGE}/scan-results"
+    SCAP_CONTENT: "scap-content"
+    STAGING_BASE_IMAGE: $STAGING_BASE_IMAGE
+    STAGING_PIPELINE: ""
+    TARGET_BRANCH: master
+    TWISTLOCK_SCANS: "${SCAN_RESULTS}/twistlock"
