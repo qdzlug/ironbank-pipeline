@@ -1,6 +1,6 @@
 [ubi]
 name = Red Hat Universal Base Image (RPMs)
-baseurl = http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/ubigroup-$releasever/
+baseurl = http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/ubigroup-$releasever-$basearch/
 enabled = 1
 gpgkey = file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
 gpgcheck = 1
