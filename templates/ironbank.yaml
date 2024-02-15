@@ -29,7 +29,7 @@ default:
     TARGET_BRANCH: master
     TWISTLOCK_SCANS: "${SCAN_RESULTS}/twistlock"
 include:
-  - local: "templates/os-type/${OS_TYPE}.yaml"
+  - local: "templates/os/${OS_TYPE}.yaml"
   - local: stages/validate-container-repository/base.yaml
   - local: stages/import-artifacts/import-artifacts.yaml
   - local: stages/build/base.yaml
