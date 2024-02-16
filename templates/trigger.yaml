@@ -35,8 +35,6 @@ lint-and-image-inspect:
     - .setup_modules
   needs:
     - load-scripts
-  variables:
-    BASE_REGISTRY: harbor-ib-mario.staging.dso.mil/ironbank
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/validate-container-repository/lint/validate_hardening_manifest.py"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/os-type/image_inspect.py"'
