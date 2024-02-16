@@ -29,10 +29,8 @@ def pull_image(image_name, image_tag, url, artifact_dir) -> None:
 @stack_trace_handler
 @subprocess_error_handler("Failed upload to cds s3 bucket")
 def main() -> None:
-    """Pulls the signed image image Harbor and contert it to a tar.gz file.
-
-    Then pushes that file to the CDS S3 bucket.
-    """
+    """Pulls the signed image from Harbor, converts it to a tar.gz file, and
+    pushes it to the CDS S3 bucket."""
 
     cds_source_bucket = os.environ.get("CDS_SOURCE_BUCKET")
     registry_url = os.environ["REGISTRY_PUBLISH_URL"]
@@ -63,7 +61,7 @@ def main() -> None:
     except subprocess.CalledProcessError as e:
         log.info(e)
 
-    # Push that tar.gz to the cds pipeline bucket
+    # Push that tar.gz to the CDS S3 bucket
     log.info("Uploading tar file to CDS S3 bucket")
     s3upload.upload_file(
         file_name=f"{artifact_dir}/tmp.tar.gz",
