@@ -6,6 +6,7 @@ variables:
   STAGING_BASE_IMAGE: $STAGING_BASE_IMAGE
   STAGING_PIPELINE: ""
   TARGET_BRANCH: master
+  BASE_REGISTRY: harbor-ib-mario.staging.dso.mil/ironbank
 
   # load scripts + module sourcing
   PIPELINE_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank_pipeline"
