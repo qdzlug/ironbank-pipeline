@@ -1,0 +1,105 @@
+image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.12
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
+stages:
+  - preprocess
+  - validate-container-metadata
+  - import-artifacts
+  - build
+  - post-build
+  - scan-logic
+  - scanning
+  - vat
+  - post-vat
+  - generate-documentation
+  - publish-artifacts
+
+
+trufflehog:
+  stage: validate-container-metadata
+  image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6
+  needs:
+    - load-scripts
+  variables:
+    # This forces the trufflehog job to NOT perform a shallow clone
+    GIT_DEPTH: 0
+  script:
+    - 'git config --global --add safe.directory "${CI_PROJECT_DIR}"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/validate-container-repository/secret-scan/trufflehog.py"'
+  retry:
+    max: 2
+    when: runner_system_failure
+
+lint:
+  stage: validate-container-metadata
+  extends:
+    - .setup_modules
+  needs:
+    - load-scripts
+  script:
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/validate-container-repository/lint/validate_hardening_manifest.py"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/os-type/image_inspect_aio.py"'
+  artifacts:
+    when: always
+    reports:
+      dotenv: template.env
+  retry:
+    max: 2
+    when: always
+
+include:
+  - local: stages/build/base.yaml
+  - local: stages/import-artifacts/import-artifacts.yaml
+  - local: stages/preprocess/load-scripts.yaml
+  - local: stages/validate-container-repository/base.yaml
+  - local: templates/setup_modules.yaml
+  - local: templates/shared_vars.yaml
+
+  # These stages are only included if:
+  # - SKIP_SCAN is false (or does not exist)
+  # - OR if SKIP_SCAN is true and the commit branch is "master" or "development"
+  - local: stages/post-build/base.yaml
+    rules:
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+
+  - local: stages/scan-logic/base.yaml
+    rules:
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+
+  - local: stages/scanning/base.yaml
+    rules:
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+
+  - local: stages/vat/base.yaml
+    rules:
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+
+  - local: stages/post-vat/base.yaml
+    rules:
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+
+  - local: stages/generate-documentation/base.yaml
+    rules:
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+
+  - local: stages/publish-artifacts/base.yaml
+    rules:
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+
+variables:
+  SCAN_RESULTS: "${ARTIFACT_STORAGE}/scan-results"
+  ANCHORE_SCANS: "${SCAN_RESULTS}/anchore"
+  TWISTLOCK_SCANS: "${SCAN_RESULTS}/twistlock"
+  OSCAP_SCANS: "${SCAN_RESULTS}/openscap"
+  OSCAP_CVE_XML_FILENAME: "report-cve.xml"
+  OSCAP_CVE_HTML_FILENAME: "report-cve.html"
