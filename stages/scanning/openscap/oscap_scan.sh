@@ -22,7 +22,7 @@ podman run \
   -it \
   --privileged \
   -v /opt:/opt \
-  -v "${OSCAP_SCANS}":/tmp/openscap \
+  -v "/${OSCAP_SCANS}":/tmp/openscap \
   -v "${DOCKER_AUTH_FILE_PULL}":/run/containers/0/auth.json \
   "ib-oscap-${SCANNER}:0.1" \
     bash -c "podman pull ${IMAGE_TO_SCAN} && \
