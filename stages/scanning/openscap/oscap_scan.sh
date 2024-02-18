@@ -12,7 +12,7 @@ else
   echo "INFO: 'oscap_profiler.py ${OS_TYPE}' returned '${OSCAP_PROFILE}' begin scan"
 fi
 
-mkdir -p "/${OSCAP_SCANS}"
+mkdir -p /"${OSCAP_SCANS}"
 PROFILE=$(echo "${OSCAP_PROFILE}" | grep -o '"profile": "[^"]*' | grep -o '[^"]*$')
 SECURITY_GUIDE=$(echo "${OSCAP_PROFILE}" | grep -o '"securityGuide": "[^"]*' | grep -o '[^"]*$')
 SCANNER=$(echo "${OSCAP_PROFILE}" | grep -o '"scanner": "[^"]*' | grep -o '[^"]*$')
@@ -21,7 +21,7 @@ podman load -q -i "/opt/$SCANNER.tar" > /dev/null
 podman run \
   --privileged \
   -v /opt:/opt \
-  -v "/${OSCAP_SCANS}":/tmp/openscap \
+  -v /"${OSCAP_SCANS}":/tmp/openscap \
   -v "${DOCKER_AUTH_FILE_PULL}":/run/containers/0/auth.json \
   "ib-oscap-${SCANNER}:0.1" \
     bash -c "podman pull ${IMAGE_TO_SCAN} && \
