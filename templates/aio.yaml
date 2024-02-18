@@ -33,7 +33,7 @@ trufflehog:
     max: 2
     when: runner_system_failure
 
-lint:
+inspect:
   stage: validate-container-metadata
   extends:
     - .setup_modules
