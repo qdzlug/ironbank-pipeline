@@ -19,7 +19,6 @@ SCANNER=$(echo "${OSCAP_PROFILE}" | grep -o '"scanner": "[^"]*' | grep -o '[^"]*
 
 podman load -q -i "/opt/$SCANNER.tar" > /dev/null
 podman run \
-  -it \
   --privileged \
   -v /opt:/opt \
   -v "/${OSCAP_SCANS}":/tmp/openscap \
