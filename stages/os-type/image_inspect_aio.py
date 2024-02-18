@@ -17,62 +17,62 @@ log = logger.setup("pipeline_trigger")
 def template_type(os_type: str) -> None:
     """Writes the template type to an env file, based on the os_type var."""
     template_dict = {
-        "alpine317-container": """
+        "alpine317-container": """\
 DISTRO_REPO_DIR="apk-repos/repositories"
 DISTRO_REPO_MOUNT="/etc/apk/repositories"
 OS_TYPE="alpine317-container"
 """,
-        "alpine3-container": """
+        "alpine3-container": """\
 DISTRO_REPO_DIR="apk-repos/repositories"
 DISTRO_REPO_MOUNT="/etc/apk/repositories"
 OS_TYPE="alpine3-container"
 """,
-        "chainguard-container": """
+        "chainguard-container": """\
 OS_TYPE="chainguard"
 """,
-        "debian11-container": """
+        "debian11-container": """\
 DISTRO_REPO_DIR="debian-repos/11-bullseye-ironbank.list"
 DISTRO_REPO_MOUNT="/etc/apt/sources.list"
 OS_TYPE="debian11-container"
 """,
-        "debian12-container": """
+        "debian12-container": """\
 DISTRO_REPO_DIR="debian-repos/12-bookworm-debian.sources"
 DISTRO_REPO_MOUNT="/etc/apt/sources.list.d/debian.sources"
 OS_TYPE="debian12-container"
 """,
-        "distroless-container": """
+        "distroless-container": """\
 OS_TYPE="distroless-container"
 """,
-        "scratch-container": """
+        "scratch-container": """\
 OS_TYPE="scratch-container"
 """,
-        "sle15-bci-container": """
+        "sle15-bci-container": """\
 DISTRO_REPO_DIR="zypper-repos"
 DISTRO_REPO_MOUNT="/etc/zypp/repos.d"
 OS_TYPE="sle15-bci-container"
 """,
-        "ubi7-container": """
+        "ubi7-container": """\
 DISTRO_REPO_DIR="ubi-repos"
 DISTRO_REPO_MOUNT="/etc/yum.repos.d"
 OS_TYPE="ubi7-container"
 """,
-        "ubi8-container": """
+        "ubi8-container": """\
 DISTRO_REPO_DIR="ubi-repos"
 DISTRO_REPO_MOUNT="/etc/yum.repos.d"
 OS_TYPE="ubi8-container"
 """,
-        "ubi9-container": """
+        "ubi9-container": """\
 DISTRO_REPO_DIR="ubi-repos"
 DISTRO_REPO_MOUNT="/etc/yum.repos.d"
 OS_TYPE="ubi9-container"
 """,
-        "ubuntu2004-container": """
+        "ubuntu2004-container": """\
 DISTRO_REPO_DIR="apt-repos/2004-focal-ironbank.list"
 DISTRO_REPO_MOUNT="/etc/apt/sources.list"
 OS_TYPE="ubuntu2004-container"
 UBUNTU="1"
 """,
-        "ubuntu2204-container": """
+        "ubuntu2204-container": """\
 DISTRO_REPO_DIR="apt-repos/2204-jammy-ironbank.list"
 DISTRO_REPO_MOUNT="/etc/apt/sources.list"
 OS_TYPE="ubuntu2204-container"
