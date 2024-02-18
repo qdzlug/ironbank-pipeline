@@ -17,7 +17,7 @@ SECURITY_GUIDE=$(echo "${OSCAP_PROFILE}" | grep -o '"securityGuide": "[^"]*' | g
 SCANNER=$(echo "${OSCAP_PROFILE}" | grep -o '"scanner": "[^"]*' | grep -o '[^"]*$')
 
 echo "SLEEPING"
-sleep 900
+sleep 60
 
 # if redhat, natively scan
 if [ "${SCANNER}" = 'redhat' ]; then
