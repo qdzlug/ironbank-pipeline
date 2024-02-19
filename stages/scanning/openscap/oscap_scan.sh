@@ -17,7 +17,7 @@ SECURITY_GUIDE=$(echo "${OSCAP_PROFILE}" | grep -o '"securityGuide": "[^"]*' | g
 SCANNER=$(echo "${OSCAP_PROFILE}" | grep -o '"scanner": "[^"]*' | grep -o '[^"]*$')
 
 # scan artifact(s)
-mkdir -p "${CI_PROJECT_DIR}/${OSCAP_SCANS}"
+mkdir -p "${CI_PROJECT_DIR}"/"${OSCAP_SCANS}"
 cp /opt/oscap-version.txt "${CI_PROJECT_DIR}/${OSCAP_SCANS}/oscap-version.txt"
 
 # env artifact(s)
@@ -29,15 +29,15 @@ if [ "${SCANNER}" = 'redhat' ]; then
   mkdir -p /run/containers/0
   cp "${DOCKER_AUTH_FILE_PULL}" /run/containers/0/auth.json
   /opt/oscap-podman "${IMAGE_TO_SCAN}" \
-        xccdf \
-        eval \
-        --verbose ERROR \
-        --profile "${PROFILE}" \
-        --stig-viewer "${CI_PROJECT_DIR}/${OSCAP_SCANS}"/compliance_output_report_stigviewer.xml \
-        --results "${CI_PROJECT_DIR}/${OSCAP_SCANS}"/compliance_output_report.xml \
-        --report "${CI_PROJECT_DIR}/${OSCAP_SCANS}"/report.html \
-        --local-files /opt/ \
-        /opt/scap-security-guide/"${SECURITY_GUIDE}" || true
+    xccdf \
+    eval \
+    --verbose ERROR \
+    --profile "${PROFILE}" \
+    --stig-viewer "${CI_PROJECT_DIR}/${OSCAP_SCANS}/compliance_output_report_stigviewer.xml" \
+    --results "${CI_PROJECT_DIR}/${OSCAP_SCANS}/compliance_output_report.xml" \
+    --report "${CI_PROJECT_DIR}/${OSCAP_SCANS}/report.html" \
+    --local-files /opt/ \
+    /opt/scap-security-guide/"${SECURITY_GUIDE}" || true
 
 # if debian/suse, use a scanner pod
 else
@@ -49,18 +49,28 @@ else
     -v /opt:/opt \
     -v "${CI_PROJECT_DIR}/${OSCAP_SCANS}":"${CI_PROJECT_DIR}/${OSCAP_SCANS}" \
     -v "${DOCKER_AUTH_FILE_PULL}":/run/containers/0/auth.json \
-    "ib-oscap-${SCANNER}:0.1" sleep 900
+    "ib-oscap-${SCANNER}:0.1"
   podman exec scanner podman pull "${IMAGE_TO_SCAN}"
   podman exec scanner /opt/oscap-podman "${IMAGE_TO_SCAN}" \
-        xccdf \
-        eval \
-        --verbose ERROR \
-        --profile "${PROFILE}" \
-        --stig-viewer "${CI_PROJECT_DIR}/${OSCAP_SCANS}"/compliance_output_report_stigviewer.xml \
-        --results "${CI_PROJECT_DIR}/${OSCAP_SCANS}"/compliance_output_report.xml \
-        --report "${CI_PROJECT_DIR}/${OSCAP_SCANS}"/report.html \
-        --local-files /opt/ \
-        /opt/scap-security-guide/"${SECURITY_GUIDE}" || true
+    xccdf \
+    eval \
+    --verbose ERROR \
+    --profile "${PROFILE}" \
+    --stig-viewer "${CI_PROJECT_DIR}/${OSCAP_SCANS}/compliance_output_report_stigviewer.xml" \
+    --results "${CI_PROJECT_DIR}/${OSCAP_SCANS}/compliance_output_report.xml" \
+    --report "${CI_PROJECT_DIR}/${OSCAP_SCANS}/report.html" \
+    --local-files /opt/ \
+    /opt/scap-security-guide/"${SECURITY_GUIDE}" || true
 fi
 
-echo "INFO complete"
+# IMPORTANT oscap-podman completes successfully with a nonzero RC, hence '|| true' ..
+# or it may segfault before producing artifacts, so test
+if \
+  [ -f "${CI_PROJECT_DIR}/${OSCAP_SCANS}/compliance_output_report_stigviewer.xml" ] && \
+  [ -f "${CI_PROJECT_DIR}/${OSCAP_SCANS}/compliance_output_report.xml" ] && \
+  [ -f "${CI_PROJECT_DIR}/${OSCAP_SCANS}/report.html" ]
+then
+  echo "INFO scan complete"
+else
+  echo "ERROR artifacts missing!"
+fi
