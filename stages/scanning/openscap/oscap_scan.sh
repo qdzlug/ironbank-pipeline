@@ -73,4 +73,5 @@ then
   echo "INFO scan complete"
 else
   echo "ERROR artifacts missing!"
+  exit 1
 fi
