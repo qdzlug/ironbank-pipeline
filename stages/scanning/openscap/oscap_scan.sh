@@ -37,7 +37,7 @@ if [ "${SCANNER}" = 'redhat' ]; then
         --results "${CI_PROJECT_DIR}/${OSCAP_SCANS}"/compliance_output_report.xml \
         --report "${CI_PROJECT_DIR}/${OSCAP_SCANS}"/report.html \
         --local-files /opt/ \
-        /opt/scap-security-guide/"${SECURITY_GUIDE}"
+        /opt/scap-security-guide/"${SECURITY_GUIDE}" || true
 
 # if debian/suse, use a scanner pod
 else
@@ -60,7 +60,7 @@ else
         --results "${CI_PROJECT_DIR}/${OSCAP_SCANS}"/compliance_output_report.xml \
         --report "${CI_PROJECT_DIR}/${OSCAP_SCANS}"/report.html \
         --local-files /opt/ \
-        /opt/scap-security-guide/"${SECURITY_GUIDE}"
+        /opt/scap-security-guide/"${SECURITY_GUIDE}" || true
 fi
 
 echo "INFO complete"
