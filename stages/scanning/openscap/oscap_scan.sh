@@ -61,5 +61,4 @@ fi
 
 # etc
 cp /opt/oscap-version.txt "${REPORT_DIR}/oscap-version.txt"
-echo "OSCAP_COMPLIANCE_URL=${CI_JOB_URL}" > oscap-compliance.env
-sleep 60
+echo "OSCAP_COMPLIANCE_URL=${CI_JOB_URL}" > "${REPORT_DIR}/oscap-compliance.env"
