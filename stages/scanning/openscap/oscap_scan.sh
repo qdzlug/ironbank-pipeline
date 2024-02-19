@@ -62,6 +62,3 @@ else
         --local-files /opt/ \
         /opt/scap-security-guide/"${SECURITY_GUIDE}"
 fi
-
-# etc
-
