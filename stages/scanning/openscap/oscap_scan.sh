@@ -18,7 +18,7 @@ SCANNER=$(echo "${OSCAP_PROFILE}" | grep -o '"scanner": "[^"]*' | grep -o '[^"]*
 
 # scan artifact(s)
 mkdir -p "${CI_PROJECT_DIR}"/"${OSCAP_SCANS}"
-cp /opt/oscap-version.txt "${CI_PROJECT_DIR}/${OSCAP_SCANS}/oscap-version.txt"
+cp /opt/version.txt "${CI_PROJECT_DIR}/${OSCAP_SCANS}/oscap-version.txt"
 
 # env artifact(s)
 echo "OSCAP_COMPLIANCE_URL=${CI_JOB_URL}" > "${CI_PROJECT_DIR}/oscap-compliance.env"
