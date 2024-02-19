@@ -15,6 +15,7 @@ fi
 PROFILE=$(echo "${OSCAP_PROFILE}" | grep -o '"profile": "[^"]*' | grep -o '[^"]*$')
 SECURITY_GUIDE=$(echo "${OSCAP_PROFILE}" | grep -o '"securityGuide": "[^"]*' | grep -o '[^"]*$')
 SCANNER=$(echo "${OSCAP_PROFILE}" | grep -o '"scanner": "[^"]*' | grep -o '[^"]*$')
+REPORT_DIR="${CI_PROJECT_DIR}/${OSCAP_SCANS}"
 
 # if redhat, natively scan
 if [ "${SCANNER}" = 'redhat' ]; then
@@ -25,9 +26,9 @@ if [ "${SCANNER}" = 'redhat' ]; then
         eval \
         --verbose ERROR \
         --profile "${PROFILE}" \
-        --stig-viewer /opt/reports/compliance_output_report_stigviewer.xml \
-        --results /opt/reports/compliance_output_report.xml \
-        --report /opt/reports/report.html \
+        --stig-viewer ${REPORT_DIR}/compliance_output_report_stigviewer.xml \
+        --results ${REPORT_DIR}/compliance_output_report.xml \
+        --report ${REPORT_DIR}/report.html \
         --local-files /opt/ \
         /opt/scap-security-guide/"${SECURITY_GUIDE}"
 
@@ -39,6 +40,7 @@ else
     --privileged \
     --name scanner \
     -v /opt:/opt \
+    -v "${REPORT_DIR}":"${REPORT_DIR}" \
     -v "${DOCKER_AUTH_FILE_PULL}":/run/containers/0/auth.json \
     "ib-oscap-${SCANNER}:0.1" sleep 900
   podman exec scanner podman pull "${IMAGE_TO_SCAN}"
@@ -47,18 +49,13 @@ else
         eval \
         --verbose ERROR \
         --profile "${PROFILE}" \
-        --stig-viewer /opt/reports/compliance_output_report_stigviewer.xml \
-        --results /opt/reports/compliance_output_report.xml \
-        --report /opt/reports/report.html \
+        --stig-viewer ${REPORT_DIR}/compliance_output_report_stigviewer.xml \
+        --results ${REPORT_DIR}/compliance_output_report.xml \
+        --report ${REPORT_DIR}/report.html \
         --local-files /opt/ \
         /opt/scap-security-guide/"${SECURITY_GUIDE}"
 fi
 
-# artifacts
-cp /opt/reports/* "${OSCAP_SCANS}"/
-cp /opt/oscap-version.txt "${OSCAP_SCANS}/oscap-version.txt"
+# etc
+cp /opt/oscap-version.txt "${REPORT_DIR}/oscap-version.txt"
 echo "OSCAP_COMPLIANCE_URL=${CI_JOB_URL}" > oscap-compliance.env
-cat oscap-compliance.env
-
-echo "SLEEPING2"
-sleep 180
