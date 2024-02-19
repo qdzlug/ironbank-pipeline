@@ -16,8 +16,13 @@ PROFILE=$(echo "${OSCAP_PROFILE}" | grep -o '"profile": "[^"]*' | grep -o '[^"]*
 SECURITY_GUIDE=$(echo "${OSCAP_PROFILE}" | grep -o '"securityGuide": "[^"]*' | grep -o '[^"]*$')
 SCANNER=$(echo "${OSCAP_PROFILE}" | grep -o '"scanner": "[^"]*' | grep -o '[^"]*$')
 
-# artifacts
+# scan artifact(s)
 mkdir -p "${CI_PROJECT_DIR}/${OSCAP_SCANS}"
+cp /opt/oscap-version.txt "${CI_PROJECT_DIR}/${OSCAP_SCANS}/oscap-version.txt"
+
+# env artifact(s)
+echo "OSCAP_COMPLIANCE_URL=${CI_JOB_URL}" > "${CI_PROJECT_DIR}/oscap-compliance.env"
+chmod 644 "${CI_PROJECT_DIR}/oscap-compliance.env"
 
 # if redhat, natively scan
 if [ "${SCANNER}" = 'redhat' ]; then
@@ -59,5 +64,4 @@ else
 fi
 
 # etc
-cp /opt/oscap-version.txt "${CI_PROJECT_DIR}/${OSCAP_SCANS}/oscap-version.txt"
-echo "OSCAP_COMPLIANCE_URL=${CI_JOB_URL}" > "${CI_PROJECT_DIR}/${OSCAP_SCANS}/oscap-compliance.env"
+
