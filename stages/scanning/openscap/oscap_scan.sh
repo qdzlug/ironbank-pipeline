@@ -26,9 +26,9 @@ if [ "${SCANNER}" = 'redhat' ]; then
         eval \
         --verbose ERROR \
         --profile "${PROFILE}" \
-        --stig-viewer ${REPORT_DIR}/compliance_output_report_stigviewer.xml \
-        --results ${REPORT_DIR}/compliance_output_report.xml \
-        --report ${REPORT_DIR}/report.html \
+        --stig-viewer "${REPORT_DIR}"/compliance_output_report_stigviewer.xml \
+        --results "${REPORT_DIR}"/compliance_output_report.xml \
+        --report "${REPORT_DIR}"/report.html \
         --local-files /opt/ \
         /opt/scap-security-guide/"${SECURITY_GUIDE}"
 
@@ -49,9 +49,9 @@ else
         eval \
         --verbose ERROR \
         --profile "${PROFILE}" \
-        --stig-viewer ${REPORT_DIR}/compliance_output_report_stigviewer.xml \
-        --results ${REPORT_DIR}/compliance_output_report.xml \
-        --report ${REPORT_DIR}/report.html \
+        --stig-viewer "${REPORT_DIR}"/compliance_output_report_stigviewer.xml \
+        --results "${REPORT_DIR}"/compliance_output_report.xml \
+        --report "${REPORT_DIR}"/report.html \
         --local-files /opt/ \
         /opt/scap-security-guide/"${SECURITY_GUIDE}"
 fi
