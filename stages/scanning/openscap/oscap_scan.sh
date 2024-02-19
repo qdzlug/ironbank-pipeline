@@ -16,9 +16,6 @@ PROFILE=$(echo "${OSCAP_PROFILE}" | grep -o '"profile": "[^"]*' | grep -o '[^"]*
 SECURITY_GUIDE=$(echo "${OSCAP_PROFILE}" | grep -o '"securityGuide": "[^"]*' | grep -o '[^"]*$')
 SCANNER=$(echo "${OSCAP_PROFILE}" | grep -o '"scanner": "[^"]*' | grep -o '[^"]*$')
 
-echo "SLEEPING"
-sleep 60
-
 # if redhat, natively scan
 if [ "${SCANNER}" = 'redhat' ]; then
   mkdir -p /run/containers/0
@@ -58,7 +55,10 @@ else
 fi
 
 # artifacts
-cp /opt/reports/* "${OSCAP_SCANS}/"
+cp /opt/reports/* "${OSCAP_SCANS}"/
 cp /opt/oscap-version.txt "${OSCAP_SCANS}/oscap-version.txt"
 echo "OSCAP_COMPLIANCE_URL=${CI_JOB_URL}" > oscap-compliance.env
 cat oscap-compliance.env
+
+echo "SLEEPING2"
+sleep 180
