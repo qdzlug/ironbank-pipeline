@@ -49,7 +49,7 @@ else
     -v /opt:/opt \
     -v "${CI_PROJECT_DIR}/${OSCAP_SCANS}":"${CI_PROJECT_DIR}/${OSCAP_SCANS}" \
     -v "${DOCKER_AUTH_FILE_PULL}":/run/containers/0/auth.json \
-    "ib-oscap-${SCANNER}:0.1"
+    "ib-oscap-${SCANNER}:0.1" sleep 900
   podman exec scanner podman pull "${IMAGE_TO_SCAN}"
   podman exec scanner /opt/oscap-podman "${IMAGE_TO_SCAN}" \
     xccdf \
