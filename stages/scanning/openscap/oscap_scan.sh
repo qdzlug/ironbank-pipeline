@@ -6,10 +6,10 @@ OSCAP_PROFILE=$(python3 "${PIPELINE_REPO_DIR}/stages/scanning/openscap/oscap_pro
 
 # if OS_TYPE has a 'none' OSCAP_PROFILE, exit gracefully
 if [ "$OSCAP_PROFILE" = '{"profile": "none", "securityGuide": "none", "scanner": "none"}' ]; then
-  echo "INFO: 'oscap_profiler.py ${OS_TYPE}' returned '${OSCAP_PROFILE}' nothing to do"
+  echo "INFO 'oscap_profiler.py ${OS_TYPE}' returned '${OSCAP_PROFILE}' nothing to do"
   exit 0
 else
-  echo "INFO: 'oscap_profiler.py ${OS_TYPE}' returned '${OSCAP_PROFILE}' begin scan"
+  echo "INFO 'oscap_profiler.py ${OS_TYPE}' returned '${OSCAP_PROFILE}' begin scan"
 fi
 
 PROFILE=$(echo "${OSCAP_PROFILE}" | grep -o '"profile": "[^"]*' | grep -o '[^"]*$')
@@ -62,3 +62,5 @@ else
         --local-files /opt/ \
         /opt/scap-security-guide/"${SECURITY_GUIDE}"
 fi
+
+echo "INFO complete"
