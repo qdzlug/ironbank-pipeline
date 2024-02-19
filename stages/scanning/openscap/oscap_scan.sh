@@ -21,6 +21,8 @@ sleep 60
 
 # if redhat, natively scan
 if [ "${SCANNER}" = 'redhat' ]; then
+  mkdir -p /run/containers/0
+  copy "${DOCKER_AUTH_FILE_PULL}" /run/containers/0/auth.json
   /opt/oscap-podman "${IMAGE_TO_SCAN}" \
         xccdf \
         eval \
