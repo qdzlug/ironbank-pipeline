@@ -15,7 +15,10 @@ fi
 PROFILE=$(echo "${OSCAP_PROFILE}" | grep -o '"profile": "[^"]*' | grep -o '[^"]*$')
 SECURITY_GUIDE=$(echo "${OSCAP_PROFILE}" | grep -o '"securityGuide": "[^"]*' | grep -o '[^"]*$')
 SCANNER=$(echo "${OSCAP_PROFILE}" | grep -o '"scanner": "[^"]*' | grep -o '[^"]*$')
+
+# artifacts
 REPORT_DIR="${CI_PROJECT_DIR}/${OSCAP_SCANS}"
+mkdir -p "${REPORT_DIR}"
 
 # if redhat, natively scan
 if [ "${SCANNER}" = 'redhat' ]; then
