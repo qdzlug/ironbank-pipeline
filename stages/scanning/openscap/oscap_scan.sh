@@ -17,8 +17,7 @@ SECURITY_GUIDE=$(echo "${OSCAP_PROFILE}" | grep -o '"securityGuide": "[^"]*' | g
 SCANNER=$(echo "${OSCAP_PROFILE}" | grep -o '"scanner": "[^"]*' | grep -o '[^"]*$')
 
 # artifacts
-REPORT_DIR="${CI_PROJECT_DIR}/${OSCAP_SCANS}"
-mkdir -p "${REPORT_DIR}"
+mkdir -p "${CI_PROJECT_DIR}/${OSCAP_SCANS}"
 
 # if redhat, natively scan
 if [ "${SCANNER}" = 'redhat' ]; then
@@ -29,9 +28,9 @@ if [ "${SCANNER}" = 'redhat' ]; then
         eval \
         --verbose ERROR \
         --profile "${PROFILE}" \
-        --stig-viewer "${REPORT_DIR}"/compliance_output_report_stigviewer.xml \
-        --results "${REPORT_DIR}"/compliance_output_report.xml \
-        --report "${REPORT_DIR}"/report.html \
+        --stig-viewer "${CI_PROJECT_DIR}/${OSCAP_SCANS}"/compliance_output_report_stigviewer.xml \
+        --results "${CI_PROJECT_DIR}/${OSCAP_SCANS}"/compliance_output_report.xml \
+        --report "${CI_PROJECT_DIR}/${OSCAP_SCANS}"/report.html \
         --local-files /opt/ \
         /opt/scap-security-guide/"${SECURITY_GUIDE}"
 
@@ -43,7 +42,7 @@ else
     --privileged \
     --name scanner \
     -v /opt:/opt \
-    -v "${REPORT_DIR}":"${REPORT_DIR}" \
+    -v "${CI_PROJECT_DIR}/${OSCAP_SCANS}":"${CI_PROJECT_DIR}/${OSCAP_SCANS}" \
     -v "${DOCKER_AUTH_FILE_PULL}":/run/containers/0/auth.json \
     "ib-oscap-${SCANNER}:0.1" sleep 900
   podman exec scanner podman pull "${IMAGE_TO_SCAN}"
@@ -52,13 +51,13 @@ else
         eval \
         --verbose ERROR \
         --profile "${PROFILE}" \
-        --stig-viewer "${REPORT_DIR}"/compliance_output_report_stigviewer.xml \
-        --results "${REPORT_DIR}"/compliance_output_report.xml \
-        --report "${REPORT_DIR}"/report.html \
+        --stig-viewer "${CI_PROJECT_DIR}/${OSCAP_SCANS}"/compliance_output_report_stigviewer.xml \
+        --results "${CI_PROJECT_DIR}/${OSCAP_SCANS}"/compliance_output_report.xml \
+        --report "${CI_PROJECT_DIR}/${OSCAP_SCANS}"/report.html \
         --local-files /opt/ \
         /opt/scap-security-guide/"${SECURITY_GUIDE}"
 fi
 
 # etc
-cp /opt/oscap-version.txt "${REPORT_DIR}/oscap-version.txt"
-echo "OSCAP_COMPLIANCE_URL=${CI_JOB_URL}" > "${REPORT_DIR}/oscap-compliance.env"
+cp /opt/oscap-version.txt "${CI_PROJECT_DIR}/${OSCAP_SCANS}/oscap-version.txt"
+echo "OSCAP_COMPLIANCE_URL=${CI_JOB_URL}" > "${CI_PROJECT_DIR}/${OSCAP_SCANS}/oscap-compliance.env"
