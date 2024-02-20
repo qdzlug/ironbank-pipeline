@@ -168,7 +168,7 @@ tidelift-upload:
 
     - echo "tidelift alignment save --directory . cyclonedx.json --organization $TIDELIFT_ORG_NAME --project $TIDELIFT_PROJECT_NAME --branch $TIDELIFT_PROJECT_BRANCH --revision $TIDELIFT_PROJECT_REVISION --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --json"
       
-      ./tidelift alignment save --directory . cyclonedx.json --organization $TIDELIFT_ORG_NAME --project $TIDELIFT_PROJECT_NAME --branch $TIDELIFT_PROJECT_BRANCH --revision $TIDELIFT_PROJECT_REVISION --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --json > output.json
+      ./tidelift alignment save --directory . cyclonedx.json --organization $TIDELIFT_ORG_NAME --project $TIDELIFT_PROJECT_NAME --branch $TIDELIFT_PROJECT_BRANCH --revision $TIDELIFT_PROJECT_REVISION --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --json --wait > output.json
       
     - echo "output.json results - "
     - cat output.json 
