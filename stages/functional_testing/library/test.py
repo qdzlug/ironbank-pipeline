@@ -144,15 +144,15 @@ def generate_pod_manifest(kubernetes_test, image_name):
                 "name": "test-container",
                 "image": image_name
             }],
-            "nodeSelector": {
-                "ironbank": "runtime"
-            },
-            "tolerations": [{
-                "key": "ironbank",
-                "operator": "Equal",
-                "value": "runtime",
-                "effect": "NoSchedule"
-            }]
+            # "nodeSelector": {
+            #     "ironbank": "runtime"
+            # },
+            # "tolerations": [{
+            #     "key": "ironbank",
+            #     "operator": "Equal",
+            #     "value": "runtime",
+            #     "effect": "NoSchedule"
+            # }]
         }
     }
 
@@ -221,21 +221,28 @@ def run_test(entrypoint, command_timeout, pod_name, docker_image, kubernetes_nam
     if(expected_output is not None):
         will_check_for_expected_output = True
     
+    # overrides_json = """{
+    #     "apiVersion": "v1",
+    #     "spec": {
+    #         "serviceAccount": "testpod-sa",
+    #         "nodeSelector": {
+    #             "ironbank": "runtime"
+    #         },
+    #         "tolerations": [
+    #             {
+    #                 "key": "ironbank",
+    #                 "operator": "Equal",
+    #                 "value": "runtime",
+    #                 "effect": "NoSchedule"
+    #             }
+    #         ]
+    #     }
+    # }"""
+
     overrides_json = """{
         "apiVersion": "v1",
         "spec": {
             "serviceAccount": "testpod-sa",
-            "nodeSelector": {
-                "ironbank": "runtime"
-            },
-            "tolerations": [
-                {
-                    "key": "ironbank",
-                    "operator": "Equal",
-                    "value": "runtime",
-                    "effect": "NoSchedule"
-                }
-            ]
         }
     }"""
 
