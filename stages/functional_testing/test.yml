@@ -9,7 +9,9 @@ test_image:
     - .setup_modules
 
 
-  # before_script:
+  before_script:
+      - python -m pip install poetry==1.7.1 # temp solution to install poetry
+
   #   # - git clone -b ${PIPELINE_REPO_BRANCH} ${PIPELINE_REPO} ${PIPELINE_REPO_DESTINATION}
   #   # - ls -al ${PIPELINE_REPO_DESTINATION}
   #   - source ${PIPELINE_REPO_DIR}/stages/functional_testing/library/templates.sh
@@ -23,7 +25,6 @@ test_image:
 
   script: 
     # - python -m pip install pyyaml # temp solution to install pyyaml
-    - python -m pip install poetry==1.7.1 # temp solution to install poetry
     - source ${PIPELINE_REPO_DIR}/stages/functional_testing/library/templates.sh
     # - aws eks --region us-gov-west-1 update-kubeconfig --name ib-zelda-runtime
     # - kubectl config view
