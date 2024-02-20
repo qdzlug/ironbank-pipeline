@@ -84,7 +84,7 @@ def load_resources(
                 image_url = manifest_json[0]["RepoTags"][0]
                 log.info("loading image %s", resource_file_obj)
                 skopeo.copy(
-                    ImageFile(file_path=resource_file_obj, transport="dir:"),
+                    ImageFile(file_path=resource_file_obj, transport="docker-archive:"),
                     Image(url=image_url, transport="containers-storage:"),
                     log_cmd=True,
                 )
