@@ -177,6 +177,6 @@ tidelift-upload:
       TIDELIFT_ALIGNMENT_ID=$(cat output.json | jq -r '.revision')
       echo "TIDELIFT_ALIGNMENT_ID - $TIDELIFT_ALIGNMENT_ID"
     - |
-        ./tidelift status $TIDELIFT_ALIGNMENT_ID
+        ./tidelift status $TIDELIFT_ALIGNMENT_ID --organization $TIDELIFT_ORG_NAME
     - echo "Tidelift Project Alignment Completed"
     - echo "===================================="
