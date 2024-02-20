@@ -9,7 +9,7 @@ create-manifest:
     - lint
     - import-artifacts
   variables:
-    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build-manifests"
     CREATE_MANIFEST : "True"
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/build/build.py"'
@@ -38,6 +38,7 @@ build:
     - load-scripts
     - lint
     - import-artifacts
+    - create-manifest
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
   script:
@@ -68,6 +69,7 @@ build-arm64:
     - load-scripts
     - lint
     - import-artifacts
+    - create-manifest
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
     BUILD_ARM64 : "True"
