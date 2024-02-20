@@ -32,7 +32,7 @@ test_image:
     - setup_k8s_resources "$NAMESPACE"
     - ls -al 
     - ls -al ${CI_PROJECT_DIR}
-    - echo "CI_PROJECT_DIR: $CI_PROJECT_DIR"
+    - echo "$CI_PROJECT_DIR"
     - python3 ${PIPELINE_REPO_DIR}/stages/functional_testing/library/test.py $CI_PROJECT_DIR
     # Check if /tmp/podmanifest.yaml exists before running the next script
     - if [[ -f "/tmp/podmanifest.yaml" ]]; then ${PIPELINE_REPO_DIR}/stages/functional_testing/library/run_k8s_test.sh; fi
