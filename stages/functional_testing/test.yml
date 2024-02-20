@@ -31,9 +31,9 @@ test_image:
     # - kubectl get pods -n $NAMESPACE
     - setup_k8s_resources "$NAMESPACE"
     - ls -al 
-    - ls -al ${CI_PROJECT_DIR}
-    - echo "$CI_PROJECT_DIR"
-    - python3 ${PIPELINE_REPO_DIR}/stages/functional_testing/library/test.py $CI_PROJECT_DIR
+    - echo ${PIPELINE_REPO_DIR}
+    # - python3 ${PIPELINE_REPO_DIR}/stages/functional_testing/library/test.py $CI_PROJECT_DIR
+    - python3 ${PIPELINE_REPO_DIR}/stages/functional_testing/library/test.py ./
     # Check if /tmp/podmanifest.yaml exists before running the next script
     - if [[ -f "/tmp/podmanifest.yaml" ]]; then ${PIPELINE_REPO_DIR}/stages/functional_testing/library/run_k8s_test.sh; fi
   rules:
