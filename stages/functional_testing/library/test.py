@@ -242,7 +242,7 @@ def run_test(entrypoint, command_timeout, pod_name, docker_image, kubernetes_nam
     overrides_json = """{
         "apiVersion": "v1",
         "spec": {
-            "serviceAccount": "testpod-sa",
+            "serviceAccount": "testpod-sa"
         }
     }"""
 
