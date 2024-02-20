@@ -91,6 +91,7 @@ def load_resources(
             else:
                 shutil.move(resource_file_obj, Path(resource_file))
         else:
+            log.info(f"Resource type is {resource_type}")
             log.error("Resource type is invalid")
             sys.exit(1)
 
