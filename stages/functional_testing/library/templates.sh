@@ -44,7 +44,7 @@ function setup_k8s_resources() {
     # fi
 
     # Create namespace if it doesn't exist
-    # kubectl get ns $NAMESPACE || kubectl create ns $NAMESPACE #creating manually
+    kubectl get ns $NAMESPACE || kubectl create ns $NAMESPACE #creating manually
     # kubectl delete secret my-registry-secret -n $NAMESPACE
     # Create Docker registry secret
     # kubectl get secret my-registry-secret -n $NAMESPACE || kubectl -n $NAMESPACE create secret docker-registry my-registry-secret \
@@ -86,7 +86,7 @@ function setup_k8s_resources() {
 
 
     # Create and Patch service account if it hasn't been patched
-    # kubectl get serviceaccount testpod-sa -n $NAMESPACE || kubectl create serviceaccount testpod-sa -n $NAMESPACE
+    kubectl get serviceaccount testpod-sa -n $NAMESPACE || kubectl create serviceaccount testpod-sa -n $NAMESPACE
 
     if ! kubectl get serviceaccount testpod-sa -n $NAMESPACE -o=jsonpath='{.imagePullSecrets[?(@.name=="my-registry-secret")].name}' | grep -q "my-registry-secret"; then
         kubectl patch serviceaccount testpod-sa  -n $NAMESPACE -p '{"imagePullSecrets": [{"name": "my-registry-secret"}]}'
