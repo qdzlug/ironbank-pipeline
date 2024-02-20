@@ -181,7 +181,9 @@ def main():
 
     buildah = Buildah(authfile=prod_auth_path)
     skopeo = Skopeo()
-
+    manifest_test = "manifest_test"
+    if "CREATE_MANIFEST" in os.environ:
+        buildah.manifest(verb="create", manifest=manifest_test)
     # gather files and subpaths
     log.info("Load any images used in Dockerfile build")
     load_resources(resource_dir=image_dir, resource_type="image", skopeo=skopeo)
