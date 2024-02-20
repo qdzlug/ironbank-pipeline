@@ -184,7 +184,8 @@ def main():
     manifest_test = "manifest_test"
     if "CREATE_MANIFEST" in os.environ:
         log.info("Creating image manifest used for multi-arch builds")
-        buildah.manifest(verb="create", manifest=manifest_test)
+        buildah.manifest(verb="create", manifest=manifest_test, log_cmd=True)
+        buildah.manifest(verb="inspect", manifest=manifest_test, log_cmd=True)
         sys.exit(0)
     # gather files and subpaths
     log.info("Load any images used in Dockerfile build")
