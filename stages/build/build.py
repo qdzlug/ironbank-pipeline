@@ -183,7 +183,9 @@ def main():
     skopeo = Skopeo()
     manifest_test = "manifest_test"
     if "CREATE_MANIFEST" in os.environ:
+        log.info("Creating image manifest used for multi-arch builds")
         buildah.manifest(verb="create", manifest=manifest_test)
+        sys.exit(0)
     # gather files and subpaths
     log.info("Load any images used in Dockerfile build")
     load_resources(resource_dir=image_dir, resource_type="image", skopeo=skopeo)
