@@ -43,6 +43,7 @@ if [ "${SCANNER}" = 'redhat' ]; then
 else
   podman load -q -i "/opt/$SCANNER.tar" > /dev/null
   podman run \
+    -e CONTAINER_STORAGE=vfs \
     --detach \
     --privileged \
     --name scanner \
@@ -50,8 +51,8 @@ else
     -v "${DOCKER_AUTH_FILE_PULL}":/run/containers/0/auth.json \
     -v /opt:/opt \
     "ib-oscap-${SCANNER}:0.1" sleep 900
-  podman exec scanner CONTAINER_STORAGE=vfs podman pull "${IMAGE_TO_SCAN}"
-  podman exec scanner CONTAINER_STORAGE=vfs /opt/oscap-podman "${IMAGE_TO_SCAN}" \
+  podman exec scanner podman pull "${IMAGE_TO_SCAN}"
+  podman exec scanner /opt/oscap-podman "${IMAGE_TO_SCAN}" \
     xccdf \
     eval \
     --verbose ERROR \
