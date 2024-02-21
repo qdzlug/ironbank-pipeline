@@ -5,12 +5,12 @@ test_image:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: "runtime"
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE_ALLOWED: ".*"
     NAMESPACE: "ironbank-runtime"
-  extends:
-    - .setup_modules
+  # extends:
+  #   - .setup_modules
 
 
   before_script:
-      - python -m pip install poetry==1.7.1 # temp solution to install poetry
+      # - python -m pip install poetry==1.7.1 # temp solution to install poetry
 
   #   # - git clone -b ${PIPELINE_REPO_BRANCH} ${PIPELINE_REPO} ${PIPELINE_REPO_DESTINATION}
   #   # - ls -al ${PIPELINE_REPO_DESTINATION}
