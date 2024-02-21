@@ -46,9 +46,9 @@ test_image:
     # - ironbank-dsop-privileged
     - ironbank-dsop-ibec2
   needs:
-    - load-scripts 
-    - lint 
-    - import-artifacts
+    # - load-scripts 
+    # - lint 
+    # - import-artifacts
     - build
   retry:
     max: 2
