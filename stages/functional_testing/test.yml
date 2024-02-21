@@ -48,7 +48,7 @@ test_image:
   needs:
     # - load-scripts 
     # - lint 
-    # - import-artifacts
+    - import-artifacts
     - build
   retry:
     max: 2
