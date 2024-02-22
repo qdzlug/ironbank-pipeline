@@ -161,7 +161,7 @@ tidelift-upload:
     - echo "Checking to see if $TIDELIFT_PROJECT_NAME exists in Tidelift."
     - echo "tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_CATALOG --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force --skip-dot-tidelift"
     - |
-      if (./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_CATALOG --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force); then
+      if ( ./tidelift projects new $TIDELIFT_PROJECT_NAME --organization $TIDELIFT_ORG_NAME --default-branch $TIDELIFT_PROJECT_BRANCH --catalog $TIDELIFT_CATALOG --group $TIDELIFT_PROJECT_GROUP --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --force ); then
         echo "New Project - $TIDELIFT_PROJECT_NAME with branch $TIDELIFT_PROJECT_BRANCH revision $TIDELIFT_PROJECT_REVISION in catalog $TIDELIFT_CATALOG"
       else 
         echo "Existing Project - $TIDELIFT_PROJECT_NAME with branch $TIDELIFT_PROJECT_BRANCH revision $TIDELIFT_PROJECT_REVISION in catalog $TIDELIFT_CATALOG --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID"
@@ -174,10 +174,16 @@ tidelift-upload:
       if ( ./tidelift alignment save --directory . cyclonedx.json --organization $TIDELIFT_ORG_NAME --project $TIDELIFT_PROJECT_NAME --branch $TIDELIFT_PROJECT_BRANCH --revision $TIDELIFT_PROJECT_REVISION --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --json > output.json ); then
         echo "output.json content"
         cat output.json
-        echo "Checking for the Tidelift Alignment ID from output.json file"
+        echo "\nChecking for the Tidelift Alignment ID from output.json file\n"
         TIDELIFT_ALIGNMENT_ID=$(cat output.json | jq -r '.revision')
         echo "TIDELIFT_ALIGNMENT_ID - $TIDELIFT_ALIGNMENT_ID"
-        ./tidelift status $TIDELIFT_ALIGNMENT_ID --organization $TIDELIFT_ORG_NAME
+        
+          if ( ./tidelift status $TIDELIFT_ALIGNMENT_ID --organization $TIDELIFT_ORG_NAME ); then
+            echo "waiting for alignment"
+          else
+            echo "no alignment"
+          if 
+          
       else
         echo "CLI alignment save failed."
         echo "TIDELIFT_ALIGNMENT_ID - $TIDELIFT_ALIGNMENT_ID"
