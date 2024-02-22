@@ -46,7 +46,7 @@ test_image:
     # - ironbank-dsop-privileged
     - ironbank-dsop-ibec2
   needs:
-    # - load-scripts 
+    - load-scripts 
     # - lint 
     - import-artifacts
     - build
