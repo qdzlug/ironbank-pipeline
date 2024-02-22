@@ -178,12 +178,12 @@ tidelift-upload:
         TIDELIFT_ALIGNMENT_ID=$(cat output.json | jq -r '.revision')
         echo "TIDELIFT_ALIGNMENT_ID - $TIDELIFT_ALIGNMENT_ID"
         
-          if ( ./tidelift status $TIDELIFT_ALIGNMENT_ID --organization $TIDELIFT_ORG_NAME ); then
-            echo "waiting for alignment"
-          else
-            echo "no alignment"
-          if 
-          
+        if ( ./tidelift status $TIDELIFT_ALIGNMENT_ID --organization $TIDELIFT_ORG_NAME ); then
+          echo "waiting for alignment"
+        else 
+          echo "no alignment"
+        if 
+
       else
         echo "CLI alignment save failed."
         echo "TIDELIFT_ALIGNMENT_ID - $TIDELIFT_ALIGNMENT_ID"
