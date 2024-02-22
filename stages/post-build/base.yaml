@@ -168,15 +168,17 @@ tidelift-upload:
 
     - echo "tidelift alignment save --directory . cyclonedx.json --organization $TIDELIFT_ORG_NAME --project $TIDELIFT_PROJECT_NAME --branch $TIDELIFT_PROJECT_BRANCH --revision $TIDELIFT_PROJECT_REVISION --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --json"
       
-      ./tidelift alignment save --directory . cyclonedx.json --organization $TIDELIFT_ORG_NAME --project $TIDELIFT_PROJECT_NAME --branch $TIDELIFT_PROJECT_BRANCH --revision $TIDELIFT_PROJECT_REVISION --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --json > output.json
-      
-    - echo "output.json results - "
-    - cat output.json 
-    - echo "Checking for the Tidelift Alignment ID from output.json file"
     - |
-      TIDELIFT_ALIGNMENT_ID=$(cat output.json | jq -r '.revision')
-      echo "TIDELIFT_ALIGNMENT_ID - $TIDELIFT_ALIGNMENT_ID"
-    - |
+      if [./tidelift alignment save --directory . cyclonedx.json --organization $TIDELIFT_ORG_NAME --project $TIDELIFT_PROJECT_NAME --branch $TIDELIFT_PROJECT_BRANCH --revision $TIDELIFT_PROJECT_REVISION --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --json > output.json]; then
+        echo "output.json content"
+        cat output.json
+        echo "Checking for the Tidelift Alignment ID from output.json file"
+        TIDELIFT_ALIGNMENT_ID=$(cat output.json | jq -r '.revision')
+        echo "TIDELIFT_ALIGNMENT_ID - $TIDELIFT_ALIGNMENT_ID"
         ./tidelift status $TIDELIFT_ALIGNMENT_ID --organization $TIDELIFT_ORG_NAME
-    - echo "Tidelift Project Alignment Completed"
+      else
+        echo "Unable to process the SBOM, CLI alignment save failed."
+        echo "TIDELIFT_ALIGNMENT_ID - $TIDELIFT_ALIGNMENT_ID"
+      fi
+    - echo "Tidelift CLI Alignment Completed"
     - echo "===================================="
