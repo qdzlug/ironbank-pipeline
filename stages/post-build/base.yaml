@@ -172,20 +172,28 @@ tidelift-upload:
     
     - |
       if ( ./tidelift alignment save --directory . cyclonedx.json --organization $TIDELIFT_ORG_NAME --project $TIDELIFT_PROJECT_NAME --branch $TIDELIFT_PROJECT_BRANCH --revision $TIDELIFT_PROJECT_REVISION --external-identifier $TIDELIFT_PROJECT_EXTERNAL_ID --json --wait > output.json ); then
-        echo "output.json content"
-        cat output.json
-        echo "\nChecking for the Tidelift Alignment ID from output.json file\n"
+        echo "CLI Tidelift alignment ran successfully"
         TIDELIFT_ALIGNMENT_ID=$(cat output.json | jq -r '.revision')
         echo "TIDELIFT_ALIGNMENT_ID - $TIDELIFT_ALIGNMENT_ID"
+        echo "output.json content"
+        cat output.json
       else
-        echo "CLI alignment save failed."
+        echo "CLI alignment returned an error"
+        echo "TIDELIFT_ALIGNMENT_ID - $TIDELIFT_ALIGNMENT_ID"
+        TIDELIFT_ALIGNMENT_ID=$(cat output.json | jq -r '.revision')
         echo "TIDELIFT_ALIGNMENT_ID - $TIDELIFT_ALIGNMENT_ID"
         echo "output.json content"
         cat output.json
       fi
+    
+    #copy Vulnerability Report file to TIDELIFT_DIR directory
+    - |
+       echo "Saving Vulnerability Report to $TIDELIFT_DIR"
+       scp output.json $TIDELIFT_DIR/cve_report.json
+       pushd $TIDELIFT_DIR
+       ls -lha
+       cat cve_report.json
+       popd
+
     - echo "Tidelift CLI Alignment Completed"
     - echo "===================================="
-
-    - echo "========================="
-    - echo "Report Retrieval"
-    - echo "========================="
