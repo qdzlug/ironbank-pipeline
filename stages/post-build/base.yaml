@@ -179,7 +179,6 @@ tidelift-upload:
         cat output.json
       else
         echo "CLI alignment returned an error"
-        echo "TIDELIFT_ALIGNMENT_ID - $TIDELIFT_ALIGNMENT_ID"
         TIDELIFT_ALIGNMENT_ID=$(cat output.json | jq -r '.revision')
         echo "TIDELIFT_ALIGNMENT_ID - $TIDELIFT_ALIGNMENT_ID"
         echo "output.json content"
@@ -189,11 +188,12 @@ tidelift-upload:
     #copy Vulnerability Report file to TIDELIFT_DIR directory
     - |
        echo "Saving Vulnerability Report to $TIDELIFT_DIR"
+       mkdir $TIDELIFT_DIR
        scp output.json $TIDELIFT_DIR/cve_report.json
        pushd $TIDELIFT_DIR
+       pwd
        ls -lha
        cat cve_report.json
-       popd
 
     - echo "Tidelift CLI Alignment Completed"
     - echo "===================================="
