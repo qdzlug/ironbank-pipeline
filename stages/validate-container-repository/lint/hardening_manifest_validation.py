@@ -46,11 +46,6 @@ async def main():
             "Please update these labels to appropriately describe your container before rerunning this pipeline"
         )
         sys.exit(1)
-    elif hardening_manifest.invalid_image_sources:
-        log.warning(
-            "Please update these tags to ensure they do not contain registry1.dso.mil"
-        )
-        sys.exit(100)
     log.info("Hardening manifest is validated")
 
 
