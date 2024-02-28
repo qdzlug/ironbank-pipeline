@@ -1,9 +1,6 @@
 include:
   - local: templates/globals.yaml
 
-openscap-compliance:
-  image: registry1.dso.mil/ironbank/ironbank-pipelines/ib-oscap-redhat:1.0.0
-
 variables:
   UBUNTU: "1"
   DISTRO_REPO_DIR: "apt-repos/2204-jammy-ironbank.list"

@@ -1,9 +1,6 @@
 include:
   - local: templates/globals.yaml
 
-openscap-compliance:
-  image: registry1.dso.mil/ironbank/ironbank-pipelines/ib-oscap-redhat:1.0.0
-
 variables:
   DISTRO_REPO_DIR: "debian-repos/11-bullseye-ironbank.list"
   DISTRO_REPO_MOUNT: "/etc/apt/sources.list"
