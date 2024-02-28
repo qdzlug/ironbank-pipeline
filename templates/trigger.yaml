@@ -8,11 +8,61 @@ stages:
   - preprocess
   - validate-container-metadata
   - pipeline-trigger
+  - validate-container-repository
+  - import-artifacts
+  - build
+  - post-build
+  - scan-logic
+  - scanning
+  - vat
+  - post-vat
+  - generate-documentation
+  - publish-artifacts
 
 include:
   - local: templates/shared_vars.yaml
   - local: templates/setup_modules.yaml
   - local: stages/preprocess/load-scripts.yaml
+  - local: stages/validate-container-repository/base.yaml
+  - local: stages/import-artifacts/import-artifacts.yaml
+  - local: stages/build/base.yaml
+  # These stages are only included if:
+  # - SKIP_SCAN is false (or does not exist)
+  # - OR if SKIP_SCAN is true and the commit branch is "master" or "development"
+  - local: stages/post-build/base.yaml
+    rules:
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+
+  - local: stages/scan-logic/base.yaml
+    rules:
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+
+  - local: stages/scanning/base.yaml
+    rules:
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+
+  - local: stages/vat/base.yaml
+    rules:
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+
+  - local: stages/post-vat/base.yaml
+    rules:
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+
+  - local: stages/generate-documentation/base.yaml
+    rules:
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+
+  - local: stages/publish-artifacts/base.yaml
+    rules:
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
 
 trufflehog:
   stage: validate-container-metadata
@@ -46,18 +96,15 @@ lint-and-image-inspect:
     max: 2
     when: always
 
-trigger:
-  stage: pipeline-trigger
-  needs:
-    - lint-and-image-inspect
-  # dotenv vars can be passed but can't be used to configure the job
-  # https://docs.gitlab.com/ee/ci/pipelines/downstream_pipelines.html#pass-dotenv-variables-created-in-a-job
-  variables:
-    TEMPLATE: $TEMPLATE
-    OS_TYPE: $OS_TYPE
-  trigger:
-    include:
-      - project: ironbank-tools/ironbank-pipeline
-        file: "templates/downstream/${TEMPLATE}"
-        ref: $TARGET_BRANCH
-    strategy: depend
+variables:
+  # Gitlab CI vars
+  # several CI vars are passed from the trigger job in trigger.yaml
+  # Scan reports
+  SCAN_RESULTS: "${ARTIFACT_STORAGE}/scan-results"
+  ANCHORE_SCANS: "${SCAN_RESULTS}/anchore"
+  TWISTLOCK_SCANS: "${SCAN_RESULTS}/twistlock"
+  OSCAP_SCANS: "${SCAN_RESULTS}/openscap"
+  # OSCAP_CVE_HTML_FILENAME: "report-cve.html"
+  # OSCAP_CVE_XML_FILENAME: "report-cve.xml"
+  # OSCAP_VERSION: "0.1.71"
+  # SCAP_CONTENT: "scap-content"
