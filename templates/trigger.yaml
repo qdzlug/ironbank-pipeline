@@ -1,4 +1,4 @@
-image: registry1.dso.mil/ironbank-apps/ironbank-pipelines/pipeline-runner:v0.10.14
+image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.12
 
 workflow:
   rules:
@@ -54,7 +54,7 @@ trigger:
   # https://docs.gitlab.com/ee/ci/pipelines/downstream_pipelines.html#pass-dotenv-variables-created-in-a-job
   variables:
     TEMPLATE: $TEMPLATE
-    OS_TYPE: $OS_TYPE
+    BASE_IMAGE_TYPE: $BASE_IMAGE_TYPE
   trigger:
     include:
       - project: ironbank-tools/ironbank-pipeline
