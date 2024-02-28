@@ -34,15 +34,11 @@ anchore-scan:
 
 openscap-compliance:
   extends: .scanning
-  image: registry1.dso.mil/ironbank/ironbank-pipelines/oscap-podman:v0.1.1
+  image: registry1.dso.mil/ironbank/ironbank-pipelines/ib-oscap-redhat:1.0.0
   tags:
     - ironbank-dsop-privileged
   script:
-    - '"${PIPELINE_REPO_DIR}/stages/scanning/openscap/oscap-compliance-run.sh"'
-  cache:
-    - key: scap-security-guide-${OSCAP_VERSION}
-      paths:
-        - "${SCAP_CONTENT}/scap-security-guide-${OSCAP_VERSION}.zip"
+    - '"${PIPELINE_REPO_DIR}/stages/scanning/openscap/oscap_scan.sh"'
   artifacts:
     paths:
       - "${OSCAP_SCANS}"
@@ -61,7 +57,6 @@ twistlock-scan:
     TWISTLOCK_PASSWORD:
       aud: ${CI_SERVER_URL}
   extends: .scanning
-  image: registry1.dso.mil/ironbank-apps/rootless-twistcli:22.12.415
   variables:
     VERSION_FILE: "${TWISTLOCK_SCANS}/twistlock-version.txt"
     CVE_FILE: "${TWISTLOCK_SCANS}/twistlock_cve.json"
@@ -70,7 +65,7 @@ twistlock-scan:
     - 'mkdir -p "${TWISTLOCK_SCANS}"'
     - 'podman pull --authfile "${DOCKER_AUTH_FILE_PULL}" "${IMAGE_TO_SCAN}"'
     - 'twistcli --version >"${VERSION_FILE}"'
-    - 'twistcli images scan --address "${TWISTLOCK_URL}" --podman-path podman --custom-labels --output-file "${CVE_FILE}" --details "${IMAGE_TO_SCAN}" | tee "${DETAIL_FILE}"'
+    - 'twistcli images scan --containerized --address "${TWISTLOCK_URL}" --podman-path podman --custom-labels --output-file "${CVE_FILE}" --details "${IMAGE_TO_SCAN}" | tee "${DETAIL_FILE}"'
     - 'ls "${CVE_FILE}"'
     - 'chmod 0644 "${CVE_FILE}"'
   artifacts:
