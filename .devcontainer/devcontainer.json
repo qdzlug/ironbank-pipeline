@@ -7,7 +7,7 @@
     "/bin/bash",
     "--login",
     "-c",
-    "SHELL=/bin/bash PATH=$VENV/bin:$PATH VIRTUAL_ENV=$VENV poetry shell",
+    "SHELL=/bin/bash PATH=$VENV/bin:$PATH VIRTUAL_ENV=$VENV poetry shell"
   ],
   "remoteUser": "python",
   "service": "work",
