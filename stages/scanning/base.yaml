@@ -65,7 +65,7 @@ twistlock-scan:
     - 'mkdir -p "${TWISTLOCK_SCANS}"'
     - 'podman pull --authfile "${DOCKER_AUTH_FILE_PULL}" "${IMAGE_TO_SCAN}"'
     - 'twistcli --version >"${VERSION_FILE}"'
-    - 'twistcli images scan --address "${TWISTLOCK_URL}" --podman-path podman --custom-labels --output-file "${CVE_FILE}" --details "${IMAGE_TO_SCAN}" | tee "${DETAIL_FILE}"'
+    - 'twistcli images scan --containerized --address "${TWISTLOCK_URL}" --podman-path podman --custom-labels --output-file "${CVE_FILE}" --details "${IMAGE_TO_SCAN}" | tee "${DETAIL_FILE}"'
     - 'ls "${CVE_FILE}"'
     - 'chmod 0644 "${CVE_FILE}"'
   artifacts:
