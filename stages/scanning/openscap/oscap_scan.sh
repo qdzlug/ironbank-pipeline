@@ -21,7 +21,7 @@ mkdir -p "${CI_PROJECT_DIR}"/"${OSCAP_SCANS}"
 cp /opt/version.txt "${CI_PROJECT_DIR}/${OSCAP_SCANS}/oscap-version.txt"
 
 # env artifact(s)
-echo "OSCAP_COMPLIANCE_URL=${CI_JOB_URL}" > "${CI_PROJECT_DIR}/oscap-compliance.env"
+echo "OSCAP_COMPLIANCE_URL=${CI_JOB_URL}" >"${CI_PROJECT_DIR}/oscap-compliance.env"
 chmod 644 "${CI_PROJECT_DIR}/oscap-compliance.env"
 
 # auth
@@ -46,7 +46,7 @@ if [ "${SCANNER}" = 'redhat' ]; then
 else
   # load the scanner
   echo "INFO loading scanner"
-  podman load -q -i "/opt/$SCANNER.tar" > /dev/null
+  podman load -q -i "/opt/$SCANNER.tar" >/dev/null
 
   # save the target, scanners may not have ca certs
   echo "INFO pulling target"
@@ -67,7 +67,7 @@ else
 
   # load the saved target
   echo "INFO scanner load target"
-  podman exec scanner podman load -q -i /opt/target.tar > /dev/null
+  podman exec scanner podman load -q -i /opt/target.tar >/dev/null
 
   # scanner scan target
   echo "INFO performing scan"
@@ -85,10 +85,10 @@ fi
 
 # IMPORTANT oscap-podman completes successfully with a nonzero RC, hence '|| true' ..
 # or it may segfault before producing artifacts, so test
-if \
-  [ -f "${CI_PROJECT_DIR}/${OSCAP_SCANS}/compliance_output_report_stigviewer.xml" ] && \
-  [ -f "${CI_PROJECT_DIR}/${OSCAP_SCANS}/compliance_output_report.xml" ] && \
-  [ -f "${CI_PROJECT_DIR}/${OSCAP_SCANS}/report.html" ]
+if
+  [ -f "${CI_PROJECT_DIR}/${OSCAP_SCANS}/compliance_output_report_stigviewer.xml" ] &&
+    [ -f "${CI_PROJECT_DIR}/${OSCAP_SCANS}/compliance_output_report.xml" ] &&
+    [ -f "${CI_PROJECT_DIR}/${OSCAP_SCANS}/report.html" ]
 then
   echo "INFO scan complete"
 else
