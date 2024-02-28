@@ -54,7 +54,7 @@ trigger:
   # https://docs.gitlab.com/ee/ci/pipelines/downstream_pipelines.html#pass-dotenv-variables-created-in-a-job
   variables:
     TEMPLATE: $TEMPLATE
-    BASE_IMAGE_TYPE: $BASE_IMAGE_TYPE
+    OS_TYPE: $OS_TYPE
   trigger:
     include:
       - project: ironbank-tools/ironbank-pipeline
