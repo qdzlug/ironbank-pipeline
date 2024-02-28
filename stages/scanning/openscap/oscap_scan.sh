@@ -41,7 +41,14 @@ if [ "${SCANNER}" = 'redhat' ]; then
 
 # if debian/suse, use a scanner pod
 else
+  # load the scanner
   podman load -q -i "/opt/$SCANNER.tar" > /dev/null
+
+  # save the target, scanners may not have ca certs
+  podman pull "${IMAGE_TO_SCAN}"
+  podman image save -q -o /opt/target.tar "${IMAGE_TO_SCAN}"
+
+  # sleep
   podman run \
     -e CONTAINER_STORAGE=vfs \
     --detach \
@@ -51,7 +58,11 @@ else
     -v "${DOCKER_AUTH_FILE_PULL}":/run/containers/0/auth.json \
     -v /opt:/opt \
     "ib-oscap-${SCANNER}:1.0.0" sleep 900
-  podman exec scanner podman pull "${IMAGE_TO_SCAN}"
+
+  # load the saved target
+  podman exec scanner podman load -q -i /opt/target.tar > /dev/null
+
+  # scanner scan target
   podman exec scanner /opt/oscap-podman "${IMAGE_TO_SCAN}" \
     xccdf \
     eval \
@@ -73,6 +84,6 @@ if \
 then
   echo "INFO scan complete"
 else
-  echo "ERROR artifacts missing!"
+  echo "ERROR scan artifacts missing!"
   exit 1
 fi
