@@ -25,11 +25,11 @@ echo "OSCAP_COMPLIANCE_URL=${CI_JOB_URL}" > "${CI_PROJECT_DIR}/oscap-compliance.
 chmod 644 "${CI_PROJECT_DIR}/oscap-compliance.env"
 
 # auth
+mkdir -p /run/containers/0
 cp "${DOCKER_AUTH_FILE_PULL}" /run/containers/0/auth.json
 
 # if redhat, natively scan
 if [ "${SCANNER}" = 'redhat' ]; then
-  mkdir -p /run/containers/0
   echo "INFO performing scan"
   /opt/oscap-podman "${IMAGE_TO_SCAN}" \
     xccdf \
