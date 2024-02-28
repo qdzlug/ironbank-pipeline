@@ -28,6 +28,7 @@ chmod 644 "${CI_PROJECT_DIR}/oscap-compliance.env"
 if [ "${SCANNER}" = 'redhat' ]; then
   mkdir -p /run/containers/0
   cp "${DOCKER_AUTH_FILE_PULL}" /run/containers/0/auth.json
+  echo "INFO performing scan"
   /opt/oscap-podman "${IMAGE_TO_SCAN}" \
     xccdf \
     eval \
@@ -42,10 +43,13 @@ if [ "${SCANNER}" = 'redhat' ]; then
 # if debian/suse, use a scanner pod
 else
   # load the scanner
+  echo "INFO loading scanner"
   podman load -q -i "/opt/$SCANNER.tar" > /dev/null
 
   # save the target, scanners may not have ca certs
+  echo "INFO pulling target"
   podman pull "${IMAGE_TO_SCAN}"
+  echo "INFO saving target"
   podman image save -q -o /opt/target.tar "${IMAGE_TO_SCAN}"
 
   # sleep
@@ -60,9 +64,11 @@ else
     "ib-oscap-${SCANNER}:1.0.0" sleep 900
 
   # load the saved target
+  echo "INFO scanner load target"
   podman exec scanner podman load -q -i /opt/target.tar > /dev/null
 
   # scanner scan target
+  echo "INFO performing scan"
   podman exec scanner /opt/oscap-podman "${IMAGE_TO_SCAN}" \
     xccdf \
     eval \
