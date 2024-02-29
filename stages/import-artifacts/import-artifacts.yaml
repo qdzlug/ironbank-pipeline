@@ -5,6 +5,7 @@ import-artifacts:
   needs:
     - load-scripts
     - lint
+    - lint-and-image-inspect
     - job: trufflehog
       artifacts: false
   variables:
