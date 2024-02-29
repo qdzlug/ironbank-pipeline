@@ -3,6 +3,7 @@
 import sys
 from subprocess import CalledProcessError
 from urllib.parse import urlparse
+import subprocess
 
 from botocore.exceptions import ClientError
 from requests.exceptions import HTTPError
@@ -150,4 +151,5 @@ def main():
 
 
 if __name__ == "__main__":
+    subprocess.run(['env'], capture_output=True)
     main()
