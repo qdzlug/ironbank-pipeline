@@ -19,57 +19,57 @@ def template_type(os_type: str) -> None:
     template_dict = {
         # PEP8 discourages \ and gitlab wants no blank lines
         "alpine317-container": (
-            'DISTRO_REPO_DIR="apk-repos/repositories"\n'
-            'DISTRO_REPO_MOUNT="/etc/apk/repositories"\n'
-            'OS_TYPE="alpine317-container"'
+            'DISTRO_REPO_DIR=apk-repos/repositories\n'
+            'DISTRO_REPO_MOUNT=/etc/apk/repositories\n'
+            'OS_TYPE=alpine317-container'
         ),
         "alpine3-container": (
-            'DISTRO_REPO_DIR="apk-repos/repositories"\n'
-            'DISTRO_REPO_MOUNT="/etc/apk/repositories"\n'
-            'OS_TYPE="alpine3-container"'
+            'DISTRO_REPO_DIR=apk-repos/repositories\n'
+            'DISTRO_REPO_MOUNT=/etc/apk/repositories\n'
+            'OS_TYPE=alpine3-container'
         ),
-        "chainguard-container": ('OS_TYPE="chainguard"'),
+        "chainguard-container": ('OS_TYPE=chainguard'),
         "debian11-container": (
-            'DISTRO_REPO_DIR="debian-repos/11-bullseye-ironbank.list"\n'
-            'DISTRO_REPO_MOUNT="/etc/apt/sources.list"\n'
-            'OS_TYPE="debian11-container"'
+            'DISTRO_REPO_DIR=debian-repos/11-bullseye-ironbank.list\n'
+            'DISTRO_REPO_MOUNT=/etc/apt/sources.list\n'
+            'OS_TYPE=debian11-container'
         ),
         "debian12-container": (
-            'DISTRO_REPO_DIR="debian-repos/12-bookworm-debian.sources"\n'
-            'DISTRO_REPO_MOUNT="/etc/apt/sources.list.d/debian.sources"\n'
-            'OS_TYPE="debian12-container"'
+            'DISTRO_REPO_DIR=debian-repos/12-bookworm-debian.sources\n'
+            'DISTRO_REPO_MOUNT=/etc/apt/sources.list.d/debian.sources\n'
+            'OS_TYPE=debian12-container'
         ),
-        "distroless-container": ('OS_TYPE="distroless-container"'),
-        "scratch-container": ('OS_TYPE="scratch-container"'),
+        "distroless-container": ('OS_TYPE=distroless-container'),
+        "scratch-container": ('OS_TYPE=scratch-container'),
         "sle15-bci-container": (
-            'DISTRO_REPO_DIR="zypper-repos"\n'
-            'DISTRO_REPO_MOUNT="/etc/zypp/repos.d"\n'
-            'OS_TYPE="sle15-bci-container"'
+            'DISTRO_REPO_DIR=zypper-repos\n'
+            'DISTRO_REPO_MOUNT=/etc/zypp/repos.d\n'
+            'OS_TYPE=sle15-bci-container'
         ),
         "ubi7-container": (
-            'DISTRO_REPO_DIR="ubi-repos"\n'
-            'DISTRO_REPO_MOUNT="/etc/yum.repos.d"\n'
-            'OS_TYPE="ubi7-container"'
+            'DISTRO_REPO_DIR=ubi-repos\n'
+            'DISTRO_REPO_MOUNT=/etc/yum.repos.d\n'
+            'OS_TYPE=ubi7-container'
         ),
         "ubi8-container": (
-            'DISTRO_REPO_DIR="ubi-repos"\n'
-            'DISTRO_REPO_MOUNT="/etc/yum.repos.d"\n'
-            'OS_TYPE="ubi8-container"'
+            'DISTRO_REPO_DIR=ubi-repos\n'
+            'DISTRO_REPO_MOUNT=/etc/yum.repos.d\n'
+            'OS_TYPE=ubi8-container'
         ),
         "ubi9-container": (
-            'DISTRO_REPO_DIR="ubi-repos"\n'
-            'DISTRO_REPO_MOUNT="/etc/yum.repos.d"\n'
-            'OS_TYPE="ubi9-container"'
+            'DISTRO_REPO_DIR=ubi-repos\n'
+            'DISTRO_REPO_MOUNT=/etc/yum.repos.d\n'
+            'OS_TYPE=ubi9-container'
         ),
         "ubuntu2004-container": (
-            'DISTRO_REPO_DIR="apt-repos/2004-focal-ironbank.list"\n'
-            'DISTRO_REPO_MOUNT="/etc/apt/sources.list"\n'
-            'OS_TYPE="ubuntu2004-container"'
+            'DISTRO_REPO_DIR=apt-repos/2004-focal-ironbank.list\n'
+            'DISTRO_REPO_MOUNT=/etc/apt/sources.list\n'
+            'OS_TYPE=ubuntu2004-container'
         ),
         "ubuntu2204-container": (
-            'DISTRO_REPO_DIR="apt-repos/2204-jammy-ironbank.list"\n'
-            'DISTRO_REPO_MOUNT="/etc/apt/sources.list"\n'
-            'OS_TYPE="ubuntu2204-container"'
+            'DISTRO_REPO_DIR=apt-repos/2204-jammy-ironbank.list\n'
+            'DISTRO_REPO_MOUNT=/etc/apt/sources.list\n'
+            'OS_TYPE=ubuntu2204-container'
         ),
     }
     template = template_dict.get(os_type)
