@@ -7,7 +7,6 @@ workflow:
 stages:
   - preprocess
   - validate-container-metadata
-  - pipeline-trigger
   - validate-container-repository
   - import-artifacts
   - build
