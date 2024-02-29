@@ -6,7 +6,6 @@ workflow:
 
 stages:
   - preprocess
-  - validate-container-metadata
   - validate-container-repository
   - import-artifacts
   - build
@@ -64,7 +63,7 @@ include:
       - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
 
 trufflehog:
-  stage: validate-container-metadata
+  stage: validate-container-repository
   image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6
   needs:
     - load-scripts
@@ -79,7 +78,7 @@ trufflehog:
     when: runner_system_failure
 
 lint-and-image-inspect:
-  stage: validate-container-metadata
+  stage: validate-container-repository
   extends:
     - .setup_modules
   needs:
