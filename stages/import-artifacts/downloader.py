@@ -151,5 +151,4 @@ def main():
 
 
 if __name__ == "__main__":
-    subprocess.run(['env'], capture_output=True)
     main()
