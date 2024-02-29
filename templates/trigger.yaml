@@ -91,7 +91,7 @@ lint-and-image-inspect:
   artifacts:
     when: always
     reports:
-      dotenv: template.env
+      dotenv: os.env
   retry:
     max: 2
     when: always
