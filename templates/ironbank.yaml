@@ -14,12 +14,11 @@ stages:
   - pre-build
   - build
   - post-build
-  - scan-logic
-  - scanning
-  - vat
-  - post-vat
-  - generate-documentation
-  - publish-artifacts
+  - pre-scan
+  - scan
+  - pre-publish
+  - publish
+  - post-publish
 
 .setup_modules:
   before_script:
