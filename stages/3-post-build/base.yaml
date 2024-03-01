@@ -1,0 +1,15 @@
+create-sbom:
+  stage: post-build
+  image: "registry1.dso.mil/ironbank/anchore/enterprise/enterprise:4.4.1"
+  needs:
+    - setup
+    - build
+  variables:
+    SBOM_DIR: "${ARTIFACT_STORAGE}/sbom"
+  artifacts:
+    when: always
+    paths:
+      - "${SBOM_DIR}/"
+    expire_in: 1 week
+  script:
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/3-post-build/generate_sbom.py"'

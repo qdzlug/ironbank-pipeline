@@ -1,0 +1,24 @@
+# IMPORTANT: The name of this stage/job is must not be changed from "build" without first reconfiguring runners in the bootstrap
+build:
+  stage: build
+  extends:
+    - .setup_modules
+  tags:
+    - ironbank-dsop-build
+  needs:
+    - setup
+    - import-artifacts
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
+    IMAGE_FILE: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
+  script:
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/2-build/build.py"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/2-build/create_tar.py"'
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_DIR}/"
+      - ${IMAGE_FILE}.tar
+    expire_in: 1 week
+    reports:
+      dotenv: build.env

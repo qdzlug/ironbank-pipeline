@@ -1,0 +1,90 @@
+image: registry1.dso.mil/ironbank-apps/ironbank-pipelines/pipeline-runner:v0.10.14
+
+default:
+  retry:
+    max: 2
+    when: runner_system_failure
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
+stages:
+  - setup
+  - pre-build
+  - build
+  - post-build
+  - scan-logic
+  - scanning
+  - vat
+  - post-vat
+  - generate-documentation
+  - publish-artifacts
+
+.setup_modules:
+  before_script:
+    # activate virtual env before installing the modules
+    # needed to ensure modules exist in the same env as their deps
+    - 'source "$(poetry env info -C "${MODULES_DEPS_PATH}" --path)"/bin/activate'
+    - 'poetry install -C "${MODULES_PACKAGE_PATH}" --only-root'
+
+include:
+  - local: stages/0-setup/base.yaml
+  - local: stages/1-pre-build/base.yaml
+  - local: stages/2-build/base.yaml
+
+  # SKIP_SCAN false || master || development
+  - local: stages/3-post-build/base.yaml
+    rules:
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+
+  - local: stages/4-pre-scan/base.yaml
+    rules:
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+
+  - local: stages/5-scan/base.yaml
+    rules:
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+
+  - local: stages/6-pre-publish/base.yaml
+    rules:
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+
+  - local: stages/7-publish/base.yaml
+    rules:
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+
+  - local: stages/8-post-publish/base.yaml
+    rules:
+      - if: $SKIP_SCAN != "true"
+      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
+
+variables:
+  # general
+  ARTIFACT_STORAGE: "ci-artifacts"
+  GIT_SSL_NO_VERIFY: "1"
+  LOGLEVEL: "INFO"
+  STAGING_BASE_IMAGE: $STAGING_BASE_IMAGE
+  STAGING_PIPELINE: ""
+  TARGET_BRANCH: master
+  # load scripts + module sourcing
+  MODULES_CLONE_DIR: "${ARTIFACT_STORAGE}/${MODULES_PROJECT}"
+  MODULES_PROJECT: "ironbank-modules"
+  MODULES_SUBDIR: "ironbank"
+  PIPELINE_REPO_DIR: "${ARTIFACT_STORAGE}/ironbank_pipeline"
+  # modules path in image (used to get venv for the deps)
+  MODULES_DEPS_PATH: "/home/python/${MODULES_PROJECT}/${MODULES_SUBDIR}"
+  # updated modules cloned down in load scripts (used to install the package)
+  MODULES_PACKAGE_PATH: "${MODULES_CLONE_DIR}/${MODULES_SUBDIR}"
+  # Force rescan of "new" image, skipping checks to see if the image scans can be run against most recently pushed image
+  FORCE_SCAN_NEW_IMAGE: $FORCE_SCAN_NEW_IMAGE
+  # scanning
+  SCAN_RESULTS: "${ARTIFACT_STORAGE}/scan-results"
+  ANCHORE_SCANS: "${SCAN_RESULTS}/anchore"
+  OSCAP_SCANS: "${SCAN_RESULTS}/openscap"
+  TWISTLOCK_SCANS: "${SCAN_RESULTS}/twistlock"

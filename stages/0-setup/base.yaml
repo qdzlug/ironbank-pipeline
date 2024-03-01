@@ -1,7 +1,27 @@
-load-scripts:
-  stage: .pre
-  cache: {}
-  needs: []
+secret-scan:
+  stage: setup
+  image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6
+  variables:
+    # This forces the trufflehog job to NOT perform a shallow clone
+    GIT_DEPTH: 0
+  script:
+    - 'git config --global --add safe.directory "${CI_PROJECT_DIR}"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/0-setup/trufflehog.py"'
+
+setup:
+  stage: setup
+  allow_failure:
+    exit_codes: 100
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - "${PIPELINE_REPO_DIR}"
+      - "${MODULES_CLONE_DIR}"
+    reports:
+      dotenv:
+        - os.env
+        - "${ARTIFACT_DIR}/variables.env"
   id_tokens:
     VAT_TOKEN:
       aud: ${CI_SERVER_URL}
@@ -51,19 +71,9 @@ load-scripts:
     - 'source "$(poetry env info -C "${MODULES_DEPS_PATH}" --path)"/bin/activate'
     - 'poetry install -C "${MODULES_PACKAGE_PATH}" --only-root'
     # validate_hardening_manifest.py
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/validate-container-repository/lint/validate_hardening_manifest.py"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/0-setup/validate_hardening_manifest.py"'
     # image_inspect.py
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/os-type/image_inspect.py"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/0-setup/image_inspect.py"'
     # lint
     - set +e
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/validate-container-repository/lint/lint_jobs.py"'
-  artifacts:
-    when: always
-    expire_in: 1 week
-    paths:
-      - "${PIPELINE_REPO_DIR}"
-      - "${MODULES_CLONE_DIR}"
-    reports:
-      dotenv:
-        - os.env
-        - "${ARTIFACT_DIR}/variables.env"
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/0-setup/lint_jobs.py"'

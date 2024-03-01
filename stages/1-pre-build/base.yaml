@@ -1,0 +1,19 @@
+import-artifacts:
+  stage: pre-build
+  extends:
+    - .setup_modules
+  needs:
+    - setup
+    - secret-scan
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/import-artifacts"
+    REQUESTS_CA_BUNDLE: "/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt"
+  script:
+    - 'echo "${REQUESTS_CA_BUNDLE}"'
+    - 'mkdir -p "${ARTIFACT_DIR}/external-resources/" "${ARTIFACT_DIR}/images/"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/1-pre-build/downloader.py"'
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_DIR}/"
+    expire_in: 1 week

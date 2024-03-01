@@ -1,0 +1,58 @@
+.scan:
+  stage: scan
+  needs:
+    - setup
+    - build
+    - scan-logic
+  artifacts:
+    when: always
+    expire_in: 1 week
+
+anchore-scan:
+  id_tokens:
+    ANCHORE_PASSWORD:
+      aud: ${CI_SERVER_URL}
+  variables:
+    PYTHON_LOG_LEVEL: "INFO"
+  extends: .scan
+  image: "registry1.dso.mil/ironbank/anchore/enterprise/enterprise:4.4.1"
+  script:
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/5-scan/anchore_scan.py"'
+  artifacts:
+    paths:
+      - "${ANCHORE_SCANS}/"
+
+openscap-compliance:
+  extends: .scan
+  image: registry1.dso.mil/ironbank/ironbank-pipelines/ib-oscap-redhat:1.0.0
+  tags:
+    - ironbank-dsop-privileged
+  script:
+    - '"${PIPELINE_REPO_DIR}/stages/5-scan/openscap/oscap_scan.sh"'
+  artifacts:
+    paths:
+      - "${OSCAP_SCANS}"
+    reports:
+      dotenv: oscap-compliance.env
+
+twistlock-scan:
+  id_tokens:
+    TWISTLOCK_PASSWORD:
+      aud: ${CI_SERVER_URL}
+  extends: .scan
+  tags:
+    - ironbank-dsop-privileged
+  variables:
+    VERSION_FILE: "${TWISTLOCK_SCANS}/twistlock-version.txt"
+    CVE_FILE: "${TWISTLOCK_SCANS}/twistlock_cve.json"
+    DETAIL_FILE: "${TWISTLOCK_SCANS}/twistcli-details.txt"
+  script:
+    - 'mkdir -p "${TWISTLOCK_SCANS}"'
+    - 'podman pull --authfile "${DOCKER_AUTH_FILE_PULL}" "${IMAGE_TO_SCAN}"'
+    - 'twistcli --version >"${VERSION_FILE}"'
+    - 'twistcli images scan --address "${TWISTLOCK_URL}" --podman-path podman --custom-labels --output-file "${CVE_FILE}" --details "${IMAGE_TO_SCAN}" | tee "${DETAIL_FILE}"'
+    - 'ls "${CVE_FILE}"'
+    - 'chmod 0644 "${CVE_FILE}"'
+  artifacts:
+    paths:
+      - "${TWISTLOCK_SCANS}/"
