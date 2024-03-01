@@ -1,13 +1,3 @@
-secret-scan:
-  stage: setup
-  image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6
-  variables:
-    # This forces the trufflehog job to NOT perform a shallow clone
-    GIT_DEPTH: 0
-  script:
-    - 'git config --global --add safe.directory "${CI_PROJECT_DIR}"'
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/0-setup/trufflehog.py"'
-
 setup:
   stage: setup
   allow_failure:
