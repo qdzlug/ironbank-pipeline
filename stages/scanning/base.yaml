@@ -4,6 +4,7 @@
     - load-scripts
     - build
     - scan-logic
+    - lint-and-image-inspect
   retry:
     max: 2
     when: runner_system_failure
