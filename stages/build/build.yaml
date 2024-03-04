@@ -1,5 +1,5 @@
 # IMPORTANT: The name of this stage/job is must not be changed from "build" without first reconfiguring runners in the bootstrap
-build:
+build_x86:
   stage: build
   extends:
     - .setup_modules
@@ -11,6 +11,36 @@ build:
     - import-artifacts
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
+  script:
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/build/build.py"'
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_DIR}/"
+    expire_in: 1 week
+    reports:
+      dotenv: build.env
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+      - api_failure
+      - unknown_failure
+
+build_arm64:
+  stage: build
+  extends:
+    - .setup_modules
+  tags:
+    - ironbank-dsop-build
+  needs:
+    - load-scripts
+    - lint
+    - import-artifacts
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
+    KUBERNETES_NODE_SELECTOR_IRONBANK: "ironbank=gitlab-runner-arm64"
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/build/build.py"'
   artifacts:
