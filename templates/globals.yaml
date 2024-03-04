@@ -19,7 +19,7 @@ include:
   - local: stages/preprocess/load-scripts.yaml
   - local: stages/validate-container-repository/base.yaml
   - local: stages/import-artifacts/import-artifacts.yaml
-  - local: stages/build/base.yaml
+  - local: stages/build/build.yaml
 
   # These stages are only included if:
   # - SKIP_SCAN is false (or does not exist)
