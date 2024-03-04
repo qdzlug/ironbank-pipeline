@@ -1,5 +1,5 @@
-# IMPORTANT: The name of this stage/job is must not be changed from "build" without first reconfiguring runners in the bootstrap
-build_x86:
+build_arm64:
+  image: ${IAM_ACCOUNT_ID}.dkr.ecr.us-gov-west-1.amazonaws.com/ironbank/ironbank-pipelines/pipeline-runner:v0.10.13
   stage: build
   extends:
     - .setup_modules
@@ -11,6 +11,7 @@ build_x86:
     - import-artifacts
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
+    KUBERNETES_NODE_SELECTOR_IRONBANK: "ironbank=gitlab-runner-arm64"
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/build/build.py"'
   artifacts:
