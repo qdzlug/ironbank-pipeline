@@ -20,6 +20,7 @@ include:
   - local: stages/validate-container-repository/base.yaml
   - local: stages/import-artifacts/import-artifacts.yaml
   - local: stages/build/build.yaml
+  - local: stages/build/build-arm64.yaml
 
   # These stages are only included if:
   # - SKIP_SCAN is false (or does not exist)
