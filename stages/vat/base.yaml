@@ -16,7 +16,7 @@ vat:
   needs:
     - load-scripts
     - lint
-    - build
+    - build_x86
     - scan-logic
     - anchore-scan
     - openscap-compliance

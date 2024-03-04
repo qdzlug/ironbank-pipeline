@@ -2,7 +2,7 @@ upload-to-cds:
   stage: publish-artifacts
   needs:
     - load-scripts
-    - build
+    - build_x86
     - scan-logic
     - vat
     - harbor

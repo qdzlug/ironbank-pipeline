@@ -2,7 +2,7 @@
   stage: post-build
   needs:
     - load-scripts
-    - build
+    - build_x86
   retry:
     max: 2
     when: runner_system_failure

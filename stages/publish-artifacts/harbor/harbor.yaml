@@ -8,7 +8,7 @@ harbor:
   needs:
     - load-scripts
     - lint
-    - build
+    - build_x86
     - create-sbom
     - scan-logic
     - vat
@@ -41,7 +41,7 @@ update-staging-attestations:
   needs:
     - load-scripts
     - lint
-    - build
+    - build_x86
     - create-sbom
     - scan-logic
     - vat

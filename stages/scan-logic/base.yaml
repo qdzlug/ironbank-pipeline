@@ -5,7 +5,7 @@ scan-logic:
   needs:
     - load-scripts
     - lint
-    - build
+    - build_x86
     - create-sbom
   artifacts:
     when: always
