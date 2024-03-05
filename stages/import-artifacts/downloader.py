@@ -111,12 +111,12 @@ def main():
             artifact = set_artifact_path(artifact_type)
             
             # Printing what's going on. TODO: Remove me.
-            log.info(f"resource: ${resource}")
-            log.info(f"parsed_url: ${parsed_url}")
-            log.info(f"scheme: ${scheme}")
-            log.info(f"netloc: ${netloc}")
-            log.info(f"artifact_type: ${artifact_type}")
-            log.info(f"artifact: ${artifact}")
+            log.info(f"resource: {resource}")
+            log.info(f"parsed_url: {parsed_url}")
+            log.info(f"scheme: {scheme}")
+            log.info(f"netloc: {netloc}")
+            log.info(f"artifact_type: {artifact_type}")
+            log.info(f"artifact: {artifact}")
 
             # download also gathers any relevant auth and runs any pre download validation
             artifact.download()
