@@ -22,7 +22,7 @@ if [ "$OVAL" = 'none' ]; then
   echo "INFO no oval, skipping"
 else
   echo "INFO oval $OVAL, retrieving"
-  aws s3 cp --quiet s3://${CI_FILES_BUCKET}/gitlab-runner-dsop-privileged/oscap/"$OSCAP_OVAL" /opt/oscap/"$OSCAP_OVAL"
+  aws s3 cp --quiet s3://${CI_FILES_BUCKET}/gitlab-runner-dsop-privileged/oscap/"$OVAL" /opt/oscap/"$OVAL"
 fi
 
 # scan artifact(s)
