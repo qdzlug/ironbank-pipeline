@@ -40,12 +40,9 @@ build_arm64:
     - import-artifacts
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
-    # Either using this or passing a CLI.
-    # Giving this variable any value will work because the python script just checks that the var exists (I think)
-    ARM64_BUILD: "true"
     KUBERNETES_NODE_SELECTOR_IRONBANK: "ironbank=gitlab-runner-arm64"
   script:
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/build/build.py"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/build/build.py" "--arm64-build"'
   artifacts:
     when: always
     paths:

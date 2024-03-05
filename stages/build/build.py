@@ -162,7 +162,7 @@ def main():
     imports_dir = artifact_storage_dir / "import-artifacts"
     image_dir = imports_dir / "images"
     resource_dir = imports_dir / "external-resources"
-    if os.environ["ARM64_BUILD"] is not None:
+    if len(sys.argv) > 0 and "--arm64-build" in sys.argv:
       image_dir = image_dir / "arm64"
       resource_dir = resource_dir / "arm64"
     pipeline_build_dir = Path(
