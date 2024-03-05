@@ -90,6 +90,8 @@ def load_resources(
                 )
             else:
                 shutil.move(resource_file_obj, Path(resource_file))
+        elif resource_file_obj.is_dir():
+            continue
         else:
             log.error("Resource type is invalid")
             sys.exit(1)
