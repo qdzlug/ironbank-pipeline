@@ -172,6 +172,16 @@
               "filename": {
                 "$ref": "#/definitions/printable-characters-without-newlines-or-slashes"
               },
+              "architecture": {
+                "description": "Architecture for the resource",
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["x86", "arm64"]
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
               "validation": {
                 "type": "object",
                 "properties": {
@@ -183,16 +193,6 @@
                     "type": "string",
                     "pattern": "^[a-f0-9]+$"
                   }
-                },
-                "architecture": {
-                  "description": "Architecture for the resource",
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "enum": ["x86", "arm64"]
-                  },
-                  "minItems": 1,
-                  "uniqueItems": true
                 },
                 "additionalProperties": false,
                 "required": ["type", "value"]
@@ -219,6 +219,16 @@
               "filename": {
                 "$ref": "#/definitions/printable-characters-without-newlines-or-slashes"
               },
+              "architecture": {
+                "description": "Architecture for the resource",
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["x86", "arm64"]
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
               "validation": {
                 "type": "object",
                 "properties": {
@@ -229,16 +239,6 @@
                   "value": {
                     "type": "string",
                     "pattern": "^[a-f0-9]+$"
-                  },
-                  "architecture": {
-                    "description": "Architecture for the resource",
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "enum": ["x86", "arm64"]
-                    },
-                    "minItems": 1,
-                    "uniqueItems": true
                   }
                 },
                 "additionalProperties": false,
@@ -271,17 +271,12 @@
             "properties": {
               "url": { "$ref": "#/definitions/docker-ReferenceRegexp-url" },
               "tag": { "$ref": "#/definitions/docker-name-and-tag" },
-              "validation": {
-                "type": "object",
-                "properties": {
-                  "architecture": {
-                    "description": "Architecture for the resource",
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "enum": ["x86", "arm64"]
-                    }
-                  }
+              "architecture": {
+                "description": "Architecture for the resource",
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["x86", "arm64"]
                 }
               },
               "auth": {
@@ -304,17 +299,12 @@
             "properties": {
               "url": { "$ref": "#/definitions/github-ReferenceRegexp-url" },
               "tag": { "$ref": "#/definitions/docker-name-and-tag" },
-              "validation": {
-                "type": "object",
-                "properties": {
-                  "architecture": {
-                    "description": "Architecture for the resource",
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "enum": ["x86", "arm64"]
-                    }
-                  }
+              "architecture": {
+                "description": "Architecture for the resource",
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["x86", "arm64"]
                 }
               }
             },
@@ -331,6 +321,16 @@
               "filename": {
                 "$ref": "#/definitions/printable-characters-without-newlines-or-slashes"
               },
+              "architecture": {
+                "description": "Architecture for the resource",
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["x86", "arm64"]
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
               "validation": {
                 "type": "object",
                 "properties": {
@@ -341,16 +341,6 @@
                   "value": {
                     "type": "string",
                     "pattern": "^[a-f0-9]+$"
-                  },
-                  "architecture": {
-                    "description": "Architecture for the resource",
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "enum": ["x86", "arm64"]
-                    },
-                    "minItems": 1,
-                    "uniqueItems": true
                   }
                 },
                 "additionalProperties": false,
