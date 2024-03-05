@@ -163,7 +163,6 @@ def main():
     image_dir = imports_dir / "images"
     resource_dir = imports_dir / "external-resources"
     if os.environ["ARM64_BUILD"] == True:
-      imports_dir = imports_dir / "arm64"
       image_dir = image_dir / "arm64"
       resource_dir = resource_dir / "arm64"
     pipeline_build_dir = Path(
