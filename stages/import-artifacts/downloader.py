@@ -73,12 +73,12 @@ def set_artifact_path(artifact):
     """
     if isinstance(artifact, AbstractFileArtifact):
         artifact.dest_path = artifact.dest_path / "external-resources"
-        if "arm64" in artifact["architecture"]:
+        if "arm64" in artifact.architecture:
             artifact.dest_path = artifact.dest_path / "arm64"
         artifact.artifact_path = artifact.dest_path / artifact.filename
     elif isinstance(artifact, ContainerArtifact):
         artifact.dest_path = artifact.dest_path / "images"
-        if "arm64" in artifact["architecture"]:
+        if "arm64" in artifact.architecture:
             artifact.dest_path = artifact.dest_path / "arm64"
         artifact.artifact_path = (
             artifact.dest_path
