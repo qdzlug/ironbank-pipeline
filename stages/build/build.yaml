@@ -42,7 +42,8 @@ build_arm64:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
     KUBERNETES_NODE_SELECTOR_IRONBANK: "ironbank=gitlab-runner-arm64"
   script:
-    - 'python3 "${PIPELINE_REPO_DIR}/stages/build/build.py"'
+    - 'echo "Hi im running on the arm64 node."'
+    # - 'python3 "${PIPELINE_REPO_DIR}/stages/build/build.py"'
   artifacts:
     when: always
     paths:
