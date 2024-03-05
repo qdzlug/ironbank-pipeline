@@ -98,8 +98,13 @@ def main():
     exit_code = 1
     artifact = None
     try:
+        log.info(f"hardening_manifest.resources: {hardening_manifest.resources}")
         # TODO: refactor into a separate function
         for resource in hardening_manifest.resources:
+            
+            # Printing what's going on. TODO: Remove me.
+            log.info(f"resource: {resource}")
+
             parsed_url = (
                 urlparse(resource["url"])
                 if "url" in resource
@@ -110,13 +115,13 @@ def main():
             artifact_type = get_artifact_type(resource, scheme, netloc)
             artifact = set_artifact_path(artifact_type)
             
-            # Printing what's going on. TODO: Remove me.
-            log.info(f"resource: {resource}")
-            log.info(f"parsed_url: {parsed_url}")
-            log.info(f"scheme: {scheme}")
-            log.info(f"netloc: {netloc}")
-            log.info(f"artifact_type: {artifact_type}")
-            log.info(f"artifact: {artifact}")
+            # # Printing what's going on. TODO: Remove me.
+            # log.info(f"resource: {resource}")
+            # log.info(f"parsed_url: {parsed_url}")
+            # log.info(f"scheme: {scheme}")
+            # log.info(f"netloc: {netloc}")
+            # log.info(f"artifact_type: {artifact_type}")
+            # log.info(f"artifact: {artifact}")
 
             # download also gathers any relevant auth and runs any pre download validation
             artifact.download()
