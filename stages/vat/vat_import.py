@@ -286,6 +286,7 @@ def create_api_call() -> dict:
         "tags": tag_list,
         "labels": label_dict,
         "renovateEnabled": renovate_enabled,
+        "registryLocation": os.environ.get("REGISTRY_PUBLISH_URL", ""),
     }
     log.debug(large_data)
     return large_data
