@@ -42,7 +42,7 @@ build_arm64:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
     # Either using this or passing a CLI.
     # Giving this variable any value will work because the python script just checks that the var exists (I think)
-    ARM64_BUILD: true
+    ARM64_BUILD: "true"
     KUBERNETES_NODE_SELECTOR_IRONBANK: "ironbank=gitlab-runner-arm64"
   script:
     - 'echo "Hi im running on the arm64 node."'
