@@ -98,30 +98,26 @@ def main():
     exit_code = 1
     artifact = None
     try:
+        # TODO: Remove me
         log.info(f"hardening_manifest.resources: {hardening_manifest.resources}")
+
         # TODO: refactor into a separate function
         for resource in hardening_manifest.resources:
-            
-            # Printing what's going on. TODO: Remove me.
-            log.info(f"resource: {resource}")
-
+            log.info(f"resource: {resource}") # TODO: Remove me.
             parsed_url = (
                 urlparse(resource["url"])
                 if "url" in resource
                 else urlparse(resource["urls"][0])
             )
+            log.info(f"parsed_url: {parsed_url}") # TODO: Remove me
             scheme = parsed_url.scheme
+            log.info(f"scheme: {scheme}") # TODO: Remove me
             netloc = parsed_url.netloc
+            log.info(f"netloc: {netloc}") # TODO: Remove me
             artifact_type = get_artifact_type(resource, scheme, netloc)
+            log.info(f"artifact_type: {artifact_type}")# TODO: Remove me
             artifact = set_artifact_path(artifact_type)
-            
-            # # Printing what's going on. TODO: Remove me.
-            # log.info(f"resource: {resource}")
-            # log.info(f"parsed_url: {parsed_url}")
-            # log.info(f"scheme: {scheme}")
-            # log.info(f"netloc: {netloc}")
-            # log.info(f"artifact_type: {artifact_type}")
-            # log.info(f"artifact: {artifact}")
+            log.info(f"artifact: {artifact}") # TODO: Remove me
 
             # download also gathers any relevant auth and runs any pre download validation
             artifact.download()
@@ -157,6 +153,7 @@ def main():
         log.error("Unexpected runtime error occurred.")
     except Exception as e:  # pylint:  disable=broad-except
         log.error("Unexpected error occurred. Exception class: %s", e.__class__)
+        log.error("Unexpected error occurred. Exception class: %s", e) # TODO: Remove me
     finally:
         if artifact is not None and exit_code == 1:
             artifact.delete_artifact()
