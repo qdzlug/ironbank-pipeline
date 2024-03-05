@@ -126,16 +126,3 @@ print_yellow "Deleting pod '$UNIQUE_POD_NAME'..."
 kubectl delete -f /tmp/podmanifest.yaml -n $NAMESPACE
 
 print_header "Deployment Script Completed"
-
-
-
-
-
-# Check the final status of the pod
-# if [[ "$POD_STATUS" != "Running" && "$POD_STATUS" != "Completed" ]]; then
-#     print_red "Error: Pod did not reach the 'Running' or 'Completed' state. Check logs for more details."
-#     exit 1
-# else
-#     print_green "Test passed! Pod reached the desired state."
-#     exit 0
-# fi

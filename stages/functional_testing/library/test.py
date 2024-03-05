@@ -65,43 +65,6 @@ def cleanup_pod(pod_name, pod_namespace):
     os.system(stop_cmd)
     print(f"Running: {stop_cmd}")
 
-#returns true if image is in local image repo, otherwise returns false
-# def image_loaded(docker_image):
-#     get_images_command = "docker images --format '{{.Repository}}:{{.Tag}}'"
-    
-#     try:
-#         stdout, stderr = subprocess.Popen(get_images_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate(None)
-        
-#         images_string = stdout.decode()
-#         if docker_image in images_string:
-#             return True
-#         else:
-#             return False
-    
-#     #return false if timeout is exceeded
-#     except Exception as e:
-#         print_red(f"Command failed: {get_images_command}")
-#         print(f"Exception value was {e}")
-    
-
-# #returns true if docker image load <docker_image> succeeds; otherwise returns false
-# def pull_docker_image(docker_image, timeout_seconds=60):
-#     pull_command = f"docker pull {docker_image}"
-    
-#     try:
-#         stdout, stderr = subprocess.Popen(pull_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate(None, timeout_seconds)
-    
-#     except TimeoutError as e:
-#         print_red(f"'{pull_command}' failed to complete before {timeout_seconds} seconds")
-#         return False
-    
-#     #return false if timeout is exceeded
-#     except Exception as e:
-#         print(f"Exception while trying to perform '{pull_command}'.\nException value was {e}")
-    
-#     print_green(f"image '{docker_image}' was loaded succesfully")
-#     return True
-
 def read_image_from_hardening_manifest(hardening_manifest):
     try:
         with open(hardening_manifest, 'r') as file:
@@ -144,15 +107,6 @@ def generate_pod_manifest(kubernetes_test, image_name):
                 "name": "test-container",
                 "image": image_name
             }],
-            # "nodeSelector": {
-            #     "ironbank": "runtime"
-            # },
-            # "tolerations": [{
-            #     "key": "ironbank",
-            #     "operator": "Equal",
-            #     "value": "runtime",
-            #     "effect": "NoSchedule"
-            # }]
         }
     }
 
@@ -220,24 +174,6 @@ def run_test(entrypoint, command_timeout, pod_name, docker_image, kubernetes_nam
     
     if(expected_output is not None):
         will_check_for_expected_output = True
-    
-    # overrides_json = """{
-    #     "apiVersion": "v1",
-    #     "spec": {
-    #         "serviceAccount": "testpod-sa",
-    #         "nodeSelector": {
-    #             "ironbank": "runtime"
-    #         },
-    #         "tolerations": [
-    #             {
-    #                 "key": "ironbank",
-    #                 "operator": "Equal",
-    #                 "value": "runtime",
-    #                 "effect": "NoSchedule"
-    #             }
-    #         ]
-    #     }
-    # }"""
 
     overrides_json = """{
         "apiVersion": "v1",
@@ -253,11 +189,6 @@ def run_test(entrypoint, command_timeout, pod_name, docker_image, kubernetes_nam
         f"--overrides='{overrides_json}' "
         f"--image={docker_image} -n {kubernetes_namespace} --command -- {entrypoint}"
     )
-
-
-
-    # generate the kubectl command
-    # kubectl_command = f"kubectl run {pod_name} --image={docker_image} -n {kubernetes_namespace} -- {entrypoint}"
 
     #print command information
     # print(f"Running test command: {kubectl_command}")
@@ -310,17 +241,6 @@ def main(git_project_root_folder, kubernetes_namespace):
     # Check for presence of hardenening_manifest.yaml
 
     docker_image = read_image_from_hardening_manifest(hardening_manifest)
-
-    #make sure docker image is loaded
-    # if not image_loaded(docker_image):
-    #     print_yellow(f"docker image '{docker_image}' was not found in the local repo.")
-        
-    #     print(f"Attempting to pull docker image '{docker_image}'")
-    #     if pull_docker_image(docker_image):
-    #         print_green(f"{docker_image} pulled successfully.")
-    #     else:
-    #         print_red(f"{docker_image} could not be pulled; exiting")
-    #         sys.exit(1)
 
     container_tests = None
     kubernetes_test = None
