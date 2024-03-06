@@ -19,7 +19,7 @@ generate-documentation:
     - load-scripts
     - lint
     - build_x86
-    - scan-logic
+    - scan-logic-x86
     - anchore-scan
     - twistlock-scan
     - openscap-compliance

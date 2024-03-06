@@ -3,7 +3,7 @@
   needs:
     - load-scripts
     - build_x86
-    - scan-logic
+    - scan-logic-x86
   retry:
     max: 2
     when: runner_system_failure

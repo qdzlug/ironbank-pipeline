@@ -3,7 +3,7 @@ upload-to-cds:
   needs:
     - load-scripts
     - build_x86
-    - scan-logic
+    - scan-logic-x86
     - vat
     - harbor
   when: manual

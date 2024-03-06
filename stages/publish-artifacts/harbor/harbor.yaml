@@ -10,7 +10,7 @@ harbor:
     - lint
     - build_x86
     - create-sbom-x86
-    - scan-logic
+    - scan-logic-x86
     - vat
   variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: sign
@@ -43,7 +43,7 @@ update-staging-attestations:
     - lint
     - build_x86
     - create-sbom-x86
-    - scan-logic
+    - scan-logic-x86
     - vat
   variables:
     ACCESS_LOG_DIR: ${ARTIFACT_STORAGE}/build

@@ -12,7 +12,7 @@ This job relies on the following stages completing successfully
 - lint
 - build
 - create-sbom-x86
-- scan-logic
+- scan-logic-x86
 - scanning
 - generate-documentation
 - vat

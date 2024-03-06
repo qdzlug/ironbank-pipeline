@@ -17,7 +17,7 @@ vat:
     - load-scripts
     - lint
     - build_x86
-    - scan-logic
+    - scan-logic-x86
     - anchore-scan
     - openscap-compliance
     - twistlock-scan

@@ -5,7 +5,7 @@ stages:
   - import-artifacts
   - build
   - post-build
-  - scan-logic
+  - scan-logic-x86
   - scanning
   - vat
   - post-vat
