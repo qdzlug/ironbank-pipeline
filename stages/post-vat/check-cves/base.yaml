@@ -7,9 +7,9 @@ check-cves:
   needs:
     - load-scripts
     - lint
-    - twistlock-scan
-    - openscap-compliance
-    - anchore-scan
+    - twistlock-scan-x86
+    - openscap-compliance-x86
+    - anchore-scan-x86
     - vat
   script:
     - set +e

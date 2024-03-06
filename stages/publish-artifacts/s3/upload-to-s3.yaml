@@ -27,9 +27,9 @@ upload-to-s3:
     - build-x86
     - create-sbom-x86
     - scan-logic-x86
-    - anchore-scan
-    - twistlock-scan
-    - openscap-compliance
+    - anchore-scan-x86
+    - twistlock-scan-x86
+    - openscap-compliance-x86
     - generate-documentation
     - vat
   script:
