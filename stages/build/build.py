@@ -154,7 +154,7 @@ def main():
     staging_image = Image(
         registry=os.environ["REGISTRY_PRE_PUBLISH_URL"],
         name=hardening_manifest.image_name,
-        tag=f"ibci-{os.environ['CI_PIPELINE_ID']}",
+        tag=f"ibci-{os.environ['CI_PIPELINE_ID']}-{os.environ['CI_JOB_ID']}",
     )
     base_registry = os.environ["BASE_REGISTRY"]
     artifact_storage_dir = Path(os.environ["ARTIFACT_STORAGE"])
