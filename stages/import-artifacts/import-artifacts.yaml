@@ -13,7 +13,7 @@ import-artifacts:
   script:
     - 'echo "${REQUESTS_CA_BUNDLE}"'
     - 'mkdir -p "${ARTIFACT_DIR}/external-resources/" "${ARTIFACT_DIR}/images/"'
-    - 'mkdir -p "${ARTIFACT_DIR}/external-resources/arm64" "${ARTIFACT_DIR}/images/arm64"'
+    # - 'mkdir -p "${ARTIFACT_DIR}/external-resources/arm64" "${ARTIFACT_DIR}/images/arm64"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/import-artifacts/downloader.py"'
   artifacts:
     when: always
