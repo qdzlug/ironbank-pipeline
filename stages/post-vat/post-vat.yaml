@@ -1,0 +1,38 @@
+include:
+  - local: stages/post-vat/check-cves/check-cves.yaml
+
+check-findings-x86:
+  variables:
+    TRIGGERING_PROJECT_ID: $CI_PROJECT_ID
+    ROBOTNIK_COMMAND: projectfindings
+    ROBOTNIK_SUBCOMMAND: check
+  stage: post-vat
+  allow_failure: true
+  rules:
+    - if: $SKIP_FINDINGS_TRIGGER
+      when: never
+    - if: $CI_COMMIT_BRANCH == "master"
+  needs:
+    - job: vat-x86
+      artifacts: false
+  trigger:
+    project: ironbank-tools/containers/cht-automation/bots/robotnik
+    branch: main
+
+check-findings-arm64:
+  variables:
+    TRIGGERING_PROJECT_ID: $CI_PROJECT_ID
+    ROBOTNIK_COMMAND: projectfindings
+    ROBOTNIK_SUBCOMMAND: check
+  stage: post-vat
+  allow_failure: true
+  rules:
+    - if: $SKIP_FINDINGS_TRIGGER
+      when: never
+    - if: $CI_COMMIT_BRANCH == "master"
+  needs:
+    - job: vat-arm64
+      artifacts: false
+  trigger:
+    project: ironbank-tools/containers/cht-automation/bots/robotnik
+    branch: main

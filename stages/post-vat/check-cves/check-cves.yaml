@@ -1,0 +1,39 @@
+check-cves-x86:
+  stage: post-vat
+  extends:
+    - .setup_modules
+  allow_failure:
+    exit_codes: 100
+  needs:
+    - load-scripts
+    - lint
+    - twistlock-scan-x86
+    - openscap-compliance-x86
+    - anchore-scan-x86
+    - vat-x86
+  script:
+    - set +e
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/post-vat/check-cves/vat_response_parse.py"'
+  retry:
+    max: 2
+    when: runner_system_failure
+
+check-cves-arm64:
+  stage: post-vat
+  extends:
+    - .setup_modules
+  allow_failure:
+    exit_codes: 100
+  needs:
+    - load-scripts
+    - lint
+    - twistlock-scan-arm64
+    - openscap-compliance-arm64
+    - anchore-scan-arm64
+    - vat-arm64
+  script:
+    - set +e
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/post-vat/check-cves/vat_response_parse.py"'
+  retry:
+    max: 2
+    when: runner_system_failure
