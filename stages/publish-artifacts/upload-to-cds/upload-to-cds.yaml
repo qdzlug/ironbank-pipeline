@@ -4,7 +4,7 @@ upload-to-cds:
     - load-scripts
     - build-x86
     - scan-logic-x86
-    - vat
+    - vat-x86
     - harbor
   when: manual
   extends:

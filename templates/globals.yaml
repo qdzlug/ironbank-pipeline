@@ -7,7 +7,7 @@ stages:
   - post-build
   - scan-logic
   - scanning
-  - vat
+  - vat-x86
   - post-vat
   - generate-documentation
   - publish-artifacts
@@ -39,7 +39,7 @@ include:
       - if: $SKIP_SCAN != "true"
       - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
 
-  - local: stages/vat/base.yaml
+  - local: stages/vat/vat.yaml
     rules:
       - if: $SKIP_SCAN != "true"
       - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"

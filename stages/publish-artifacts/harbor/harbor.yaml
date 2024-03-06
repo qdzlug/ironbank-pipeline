@@ -11,7 +11,7 @@ harbor:
     - build-x86
     - create-sbom-x86
     - scan-logic-x86
-    - vat
+    - vat-x86
   variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: sign
     ACCESS_LOG_DIR: ${ARTIFACT_STORAGE}/build
@@ -44,7 +44,7 @@ update-staging-attestations:
     - build-x86
     - create-sbom-x86
     - scan-logic-x86
-    - vat
+    - vat-x86
   variables:
     ACCESS_LOG_DIR: ${ARTIFACT_STORAGE}/build
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/harbor

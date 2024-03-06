@@ -23,7 +23,7 @@ generate-documentation:
     - anchore-scan-x86
     - twistlock-scan-x86
     - openscap-compliance-x86
-    - vat
+    - vat-x86
   script:
     - 'mkdir -p "${ARTIFACT_DIR}/reports"'
     - '"${PIPELINE_REPO_DIR}/stages/generate-documentation/ib-manifest-run.sh"'

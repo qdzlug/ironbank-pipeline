@@ -15,7 +15,7 @@ This job relies on the following stages completing successfully
 - scan-logic-x86
 - scanning
 - generate-documentation
-- vat
+- vat-x86
 
 This job only runs on the following branches:
 

@@ -31,7 +31,7 @@ upload-to-s3:
     - twistlock-scan-x86
     - openscap-compliance-x86
     - generate-documentation
-    - vat
+    - vat-x86
   script:
     - 'python "${PIPELINE_REPO_DIR}/stages/publish-artifacts/s3/upload_artifacts.py"'
   artifacts:

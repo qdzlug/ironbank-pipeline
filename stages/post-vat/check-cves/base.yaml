@@ -10,7 +10,7 @@ check-cves:
     - twistlock-scan-x86
     - openscap-compliance-x86
     - anchore-scan-x86
-    - vat
+    - vat-x86
   script:
     - set +e
     - 'python3 "${PIPELINE_REPO_DIR}/stages/post-vat/check-cves/vat_response_parse.py"'

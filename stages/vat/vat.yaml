@@ -1,0 +1,85 @@
+vat-x86:
+  # checks if project is a pipeline-test-project and if so, prevents job from running
+  # else, checks if the branch is development and if so, runs the job if all prior jobs succeed
+  stage: vat
+  extends:
+    - .setup_modules
+  rules:
+    - if: $CI_PROJECT_PATH =~ /pipeline-test-project/
+      when: never
+    - when: "on_success"
+  id_tokens:
+    VAT_TOKEN:
+      aud: ${CI_SERVER_URL}
+
+  # Load in the IMAGE_VERSION variable from load-scripts env
+  needs:
+    - load-scripts
+    - lint
+    - build-x86
+    - scan-logic-x86
+    - anchore-scan-x86
+    - openscap-compliance-x86
+    - twistlock-scan-x86
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/vat"
+    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: vat
+  script:
+    - 'mkdir -p "${ARTIFACT_DIR}"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py"'
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_DIR}/"
+    expire_in: 1 week
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - api_failure
+      - stuck_or_timeout_failure
+      - unknown_failure
+      - script_failure
+
+vat-arm64:
+  # checks if project is a pipeline-test-project and if so, prevents job from running
+  # else, checks if the branch is development and if so, runs the job if all prior jobs succeed
+  stage: vat
+  extends:
+    - .setup_modules
+  rules:
+    - if: $CI_PROJECT_PATH =~ /pipeline-test-project/
+      when: never
+    - when: "on_success"
+  id_tokens:
+    VAT_TOKEN:
+      aud: ${CI_SERVER_URL}
+
+  # Load in the IMAGE_VERSION variable from load-scripts env
+  needs:
+    - load-scripts
+    - lint
+    - build-arm64
+    - scan-logic-arm64
+    - anchore-scan-arm64
+    - openscap-compliance-arm64
+    - twistlock-scan-arm64
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/vat"
+    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: vat
+  script:
+    - 'mkdir -p "${ARTIFACT_DIR}"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/vat/vat_import.py"'
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_DIR}/"
+    expire_in: 1 week
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - api_failure
+      - stuck_or_timeout_failure
+      - unknown_failure
+      - script_failure
