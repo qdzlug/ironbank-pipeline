@@ -12,7 +12,6 @@ log = logger.setup("test generate_sbom.main")
 
 
 def test_main(monkeypatch, caplog):
-    # monkeypatch.setattr(Anchore, "generate_sbom", lambda *args, **kwargs: None)
     monkeypatch.setenv("ANCHORE_URL", "mock_ANCHORE_URL")
     monkeypatch.setenv("ANCHORE_USERNAME", "mock_ANCHORE_USERNAME")
     monkeypatch.setenv("ANCHORE_VERIFY", True)

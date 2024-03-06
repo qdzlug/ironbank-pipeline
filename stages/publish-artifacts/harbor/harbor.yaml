@@ -13,11 +13,13 @@ harbor:
     - scan-logic
     - vat
   variables:
-    SBOM_DIR: ${ARTIFACT_STORAGE}/sbom
-    PARENT_VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/parent_vat_response.json
-    VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/vat_response.json
+    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: sign
     ACCESS_LOG_DIR: ${ARTIFACT_STORAGE}/build
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/harbor
+    PARENT_VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/parent_vat_response.json
+    SBOM_DIR: ${ARTIFACT_STORAGE}/sbom
+    VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/vat_response.json
+
   script:
     - 'mkdir -p "${ARTIFACT_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/harbor/upload_to_harbor.py"'
@@ -44,11 +46,12 @@ update-staging-attestations:
     - scan-logic
     - vat
   variables:
-    SBOM_DIR: ${ARTIFACT_STORAGE}/sbom
-    PARENT_VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/parent_vat_response.json
-    VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/vat_response.json
     ACCESS_LOG_DIR: ${ARTIFACT_STORAGE}/build
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/harbor
+    PARENT_VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/parent_vat_response.json
+    SBOM_DIR: ${ARTIFACT_STORAGE}/sbom
+    VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/vat_response.json
+
   script:
     - 'mkdir -p "${ARTIFACT_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/harbor/upload_to_harbor.py"'

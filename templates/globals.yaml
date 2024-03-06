@@ -1,4 +1,4 @@
-image: registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:v0.10.12
+image: registry1.dso.mil/ironbank-apps/ironbank-pipelines/pipeline-runner:v0.10.14
 stages:
   - preprocess
   - validate-container-repository
@@ -71,5 +71,7 @@ variables:
   ANCHORE_SCANS: "${SCAN_RESULTS}/anchore"
   TWISTLOCK_SCANS: "${SCAN_RESULTS}/twistlock"
   OSCAP_SCANS: "${SCAN_RESULTS}/openscap"
+  SCAP_CONTENT: "scap-content"
+  OSCAP_VERSION: "0.1.71"
   OSCAP_CVE_XML_FILENAME: "report-cve.xml"
   OSCAP_CVE_HTML_FILENAME: "report-cve.html"

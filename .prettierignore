@@ -3,3 +3,4 @@
 .vscode/
 htmlcov/
 **/staging_projects**
+.devcontainer/devcontainer.json
