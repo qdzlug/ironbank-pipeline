@@ -1,15 +1,24 @@
-.post-build:
+.post-build-x86:
   stage: post-build
   needs:
     - load-scripts
+    - build_x86
+  retry:
+    max: 2
+    when: runner_system_failure
+
+.post-build-arm64:
+  stage: post-build
+  needs:
+    - load-scripts
+    - build_arm64
   retry:
     max: 2
     when: runner_system_failure
 
 create-tar-x86:
-  needs:
-    - build_x86
   extends:
+    - .post-build-x86
     - .setup_modules
   variables:
     IMAGE_FILE: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
@@ -22,9 +31,8 @@ create-tar-x86:
     expire_in: 1 week
 
 create-tar-arm64:
-  needs:
-    - build_arm64
   extends:
+    - .post-build-arm64
     - .setup_modules
   variables:
     IMAGE_FILE: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
@@ -37,9 +45,7 @@ create-tar-arm64:
     expire_in: 1 week
 
 create-sbom-x86:
-  needs:
-    - build_x86
-  extends: .post-build
+  extends: .post-build-x86
   variables:
     SBOM_DIR: "${ARTIFACT_STORAGE}/sbom"
   artifacts:
@@ -52,9 +58,7 @@ create-sbom-x86:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/post-build/generate_sbom.py"'
 
 create-sbom-arm64:
-  needs:
-    - build_arm64
-  extends: .post-build
+  extends: .post-build-arm64
   variables:
     SBOM_DIR: "${ARTIFACT_STORAGE}/sbom"
   artifacts:
