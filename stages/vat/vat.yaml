@@ -83,3 +83,6 @@ vat-arm64:
       - stuck_or_timeout_failure
       - unknown_failure
       - script_failure
+  only:
+    variables:
+      - $ARM64_BUILD 

@@ -37,3 +37,6 @@ scan-logic-arm64:
   retry:
     max: 2
     when: runner_system_failure
+  only:
+    variables:
+      - $ARM64_BUILD 
