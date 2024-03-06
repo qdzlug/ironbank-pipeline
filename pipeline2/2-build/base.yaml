@@ -1,0 +1,22 @@
+# IMPORTANT: The name of this stage/job is must not be changed from "build" without first reconfiguring runners in the bootstrap
+build:
+  stage: build
+  extends:
+    - .setup_modules
+  tags:
+    - ironbank-dsop-build
+  needs:
+    - setup
+    - import-artifacts
+    - secret-scan
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
+  script:
+    - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/2-build/build.py"'
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_DIR}/"
+    expire_in: 1 week
+    reports:
+      dotenv: build.env

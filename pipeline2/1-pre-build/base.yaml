@@ -1,0 +1,30 @@
+import-artifacts:
+  stage: pre-build
+  extends:
+    - .setup_modules
+  needs:
+    - setup
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/import-artifacts"
+    REQUESTS_CA_BUNDLE: "/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt"
+  script:
+    - 'echo "${REQUESTS_CA_BUNDLE}"'
+    - 'mkdir -p "${ARTIFACT_DIR}/external-resources/" "${ARTIFACT_DIR}/images/"'
+    - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/1-pre-build/downloader.py"'
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_DIR}/"
+    expire_in: 1 week
+
+secret-scan:
+  stage: pre-build
+  needs:
+    - setup
+  image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6
+  variables:
+    # This forces the trufflehog job to NOT perform a shallow clone
+    GIT_DEPTH: 0
+  script:
+    - 'git config --global --add safe.directory "${CI_PROJECT_DIR}"'
+    - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/1-pre-build/trufflehog.py"'
