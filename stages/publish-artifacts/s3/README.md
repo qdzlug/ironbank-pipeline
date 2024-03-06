@@ -11,7 +11,7 @@ This job relies on the following stages completing successfully
 - load-scripts
 - lint
 - build
-- create-sbom
+- create-sbom-x86
 - scan-logic
 - scanning
 - generate-documentation

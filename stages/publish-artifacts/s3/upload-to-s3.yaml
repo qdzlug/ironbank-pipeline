@@ -25,7 +25,7 @@ upload-to-s3:
     - load-scripts
     - lint
     - build_x86
-    - create-sbom
+    - create-sbom-x86
     - scan-logic
     - anchore-scan
     - twistlock-scan
