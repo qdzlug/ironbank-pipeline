@@ -2,10 +2,17 @@
 
 import logging
 import os
+import sys
 import subprocess
+import shutil
+from pathlib import Path
+import tempfile
+
 
 from common.utils import logger
+from pipeline.container_tools.cosign import Cosign
 from pipeline.hardening_manifest import HardeningManifest
+from pipeline.image import Image
 from pipeline.project import DsopProject
 from pipeline.utils import s3upload
 from pipeline.utils.decorators import stack_trace_handler, subprocess_error_handler
@@ -14,12 +21,12 @@ log: logging.Logger = logger.setup("upload_to_cds_s3_bucket")
 
 
 @subprocess_error_handler("Failed to pull image from harbor.")
-def pull_image(image_name, image_tag, url, artifact_dir) -> None:
+def pull_image(image_name, image_tag, url, artifact_dir, docker_pull_auth) -> None:
     """Use skopeo to copy the docker image from harbor."""
 
     image = f"docker://{url}/{image_name}:{image_tag}"
     dest = f"oci:{artifact_dir}:{image_tag}"
-    auth = "--authfile=" + os.environ["DOCKER_AUTH_FILE_PULL"]
+    auth = f"--authfile={docker_pull_auth}"
 
     log.info(f"Copying {image}")
 
@@ -36,13 +43,37 @@ def main() -> None:
     registry_url = os.environ["REGISTRY_PUBLISH_URL"]
     image_name = os.environ.get("IMAGE_NAME")
     artifact_dir = os.environ.get("ARTIFACT_DIR")
+    docker_pull_auth = Path(os.environ["DOCKER_AUTH_FILE_PULL"])
+
     project = DsopProject()
     hardening_manifest = HardeningManifest(project.hardening_manifest_path)
-
     image_tag = hardening_manifest.image_tags[0]
 
+    # Skip cosign verify in staging as it will fail
+    if "repo1.dso.mil" in os.environ["CI_SERVER_URL"]:
+        with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
+            log.info("Verifying image signature")
+            shutil.copy(
+                src=docker_pull_auth, dst=Path(docker_config_dir, "config.json")
+            )
+
+            # Verify the signature of the signed image
+            if not Cosign.verify(
+                image=Image(
+                    registry=registry_url, name=image_name, tag=image_tag, transport=""
+                ),
+                docker_config_dir=docker_config_dir,
+                use_key=True,
+                log_cmd=True,
+            ):
+                log.error("Failed to verify image signature, exiting.")
+                sys.exit(1)
+
+    else:
+        log.info("Image signature is not verified in staging.")
+
     # Pull the signed docker image that was pushed to harbor in the harbor job
-    pull_image(image_name, image_tag, registry_url, artifact_dir)
+    pull_image(image_name, image_tag, registry_url, artifact_dir, docker_pull_auth)
 
     # create tar file
     tar_file = f"{image_name}:{image_tag}.tar.gz"
