@@ -36,6 +36,6 @@ check-findings-arm64:
   trigger:
     project: ironbank-tools/containers/cht-automation/bots/robotnik
     branch: main
-  only:
-    variables:
-      - $ARM64_BUILD 
+  # only:
+  #   variables:
+  #     - $ARM64_BUILD 
