@@ -2,7 +2,7 @@
   stage: scanning
   needs:
     - load-scripts
-    - build_x86
+    - build-x86
     - scan-logic-x86
   retry:
     max: 2

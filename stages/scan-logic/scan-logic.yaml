@@ -5,7 +5,7 @@ scan-logic-x86:
   needs:
     - load-scripts
     - lint
-    - build_x86
+    - build-x86
     - create-sbom-x86
   artifacts:
     when: always
@@ -25,7 +25,7 @@ scan-logic-arm64:
   needs:
     - load-scripts
     - lint
-    - build_arm64
+    - build-arm64
     - create-sbom-arm64
   artifacts:
     when: always

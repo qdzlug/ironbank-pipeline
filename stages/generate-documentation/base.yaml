@@ -18,7 +18,7 @@ generate-documentation:
   needs:
     - load-scripts
     - lint
-    - build_x86
+    - build-x86
     - scan-logic-x86
     - anchore-scan
     - twistlock-scan
