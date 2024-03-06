@@ -26,10 +26,10 @@ check-findings-arm64:
     ROBOTNIK_SUBCOMMAND: check
   stage: post-vat
   allow_failure: true
-  rules:
-    - if: $SKIP_FINDINGS_TRIGGER
-      when: never
-    - if: $CI_COMMIT_BRANCH == "master"
+  # rules:
+  #   - if: $SKIP_FINDINGS_TRIGGER
+  #     when: never
+  #   - if: $CI_COMMIT_BRANCH == "master"
   needs:
     - job: vat-arm64
       artifacts: false
