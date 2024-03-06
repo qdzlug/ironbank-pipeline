@@ -1,4 +1,4 @@
-image: registry1.dso.mil/ironbank-apps/ironbank-pipelines/pipeline-runner:v0.10.14
+image: registry1.dso.mil/ironbank-staging/ironbank-pipelines/pipeline-runner@sha256:5a41e704f3e624592991b94f9122c0d1f00e176544edea3b55413eeff0230da6
 stages:
   - preprocess
   - validate-container-repository
