@@ -21,7 +21,7 @@ create-tar-x86:
     - .post-build-x86
     - .setup_modules
   variables:
-    IMAGE_FILE: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
+    IMAGE_FILE: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}-${CI_JOB_ID}"
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/post-build/create_tar.py"'
   artifacts:
