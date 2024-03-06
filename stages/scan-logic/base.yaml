@@ -6,7 +6,7 @@ scan-logic:
     - load-scripts
     - lint
     - build_x86
-    - create-sbom
+    - create-sbom-x86
   artifacts:
     when: always
     expire_in: 1 week
