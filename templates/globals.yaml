@@ -24,7 +24,7 @@ include:
   # These stages are only included if:
   # - SKIP_SCAN is false (or does not exist)
   # - OR if SKIP_SCAN is true and the commit branch is "master" or "development"
-  - local: stages/post-build/base.yaml
+  - local: stages/post-build/post-build.yaml
     rules:
       - if: $SKIP_SCAN != "true"
       - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
