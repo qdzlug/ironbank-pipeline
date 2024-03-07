@@ -74,6 +74,8 @@ def load_resources(
     - skopeo: (Optional) An instance of the Skopeo class. Required if the resource_type is 'image'.
     """
     for resource_file in os.listdir(resource_dir):
+        log.info(f"resource_file -> {resource_file}") #TODO: Remove me
+        log.info(f"CI_JOB_NAME - > {os.environ['CI_JOB_NAME']}") #TODO: REMOVE ME
         resource_file_obj = Path(resource_dir, resource_file)
         if resource_file_obj.is_file() and not resource_file_obj.is_symlink():
             if "arm64" in resource_file and os.environ['CI_JOB_NAME'] == "build_arm64" and resource_type == "image" and skopeo:
