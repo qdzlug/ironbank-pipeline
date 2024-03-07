@@ -75,12 +75,20 @@ def load_resources(
     for resource_file in os.listdir(resource_dir):
         resource_file_obj = Path(resource_dir, resource_file)
         if resource_file_obj.is_file() and not resource_file_obj.is_symlink():
-            if "arm64" in resource_file_obj.name and os.environ['CI_JOB_NAME'] == "build_arm64" and resource_type == "image" and skopeo:
+            if "arm64" in resource_file_obj and os.environ['CI_JOB_NAME'] == "build_arm64" and resource_type == "image" and skopeo:
                 log.info(f"resource_file_obj.name -> {resource_file_obj.name}")
                 manifest = subprocess.run(
                     ["tar", "-xf", resource_file_obj.as_posix(), "-O", "manifest.json"],
                     capture_output=True,
                     check=True,
+                )
+                manifest_json = json.loads(manifest.stdout)
+                image_url = manifest_json[0]["RepoTags"][0]
+                log.info("loading image %s", resource_file_obj)
+                skopeo.copy(
+                    ImageFile(file_path=resource_file_obj, transport="docker-archive:"),
+                    Image(url=image_url, transport="containers-storage:"),
+                    log_cmd=True,
                 )
                 return 
             elif resource_type == "image" and skopeo:
