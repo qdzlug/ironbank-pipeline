@@ -197,7 +197,9 @@ def main():
     if hardening_manifest.base_image_name:
         log.info("Verifying parent image signature")
         if not os.environ.get("STAGING_BASE_IMAGE"):
-            with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
+            with tempfile.TemporaryDirectory(
+                prefix="DOCKER_CONFIG-"
+            ) as docker_config_dir:
                 shutil.copy(
                     prod_auth_path,
                     Path(docker_config_dir, "config.json"),
@@ -326,6 +328,7 @@ def main():
     #   Should we check for symlinks, even though we are creating this file?
     access_log.chmod(0o644)
     shutil.copy(access_log, Path(build_artifact_dir, "access_log"))
+
 
 if __name__ == "__main__":
     main()
