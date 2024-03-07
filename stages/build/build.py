@@ -75,7 +75,6 @@ def load_resources(
     for resource_file in os.listdir(resource_dir):
         resource_file_obj = Path(resource_dir, resource_file)
         if resource_file_obj.is_file() and not resource_file_obj.is_symlink():
-            # I added this if block
             if "arm64" in resource_file_obj.name and os.environ['CI_JOB_NAME'] == "build_arm64" and resource_type == "image" and skopeo:
                 log.info(f"resource_file_obj.name -> {resource_file_obj.name}")
                 manifest = subprocess.run(
@@ -83,7 +82,7 @@ def load_resources(
                     capture_output=True,
                     check=True,
                 )
-            # This was the original if block
+                return 
             elif resource_type == "image" and skopeo:
                 manifest = subprocess.run(
                     ["tar", "-xf", resource_file_obj.as_posix(), "-O", "manifest.json"],
@@ -98,6 +97,7 @@ def load_resources(
                     Image(url=image_url, transport="containers-storage:"),
                     log_cmd=True,
                 )
+                return
             else:
                 shutil.move(resource_file_obj, Path(resource_file))
         elif resource_file_obj.is_dir():
