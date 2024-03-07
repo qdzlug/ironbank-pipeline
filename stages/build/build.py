@@ -78,8 +78,22 @@ def load_resources(
         log.info(f"CI_JOB_NAME - > {os.environ['CI_JOB_NAME']}") #TODO: REMOVE ME
         resource_file_obj = Path(resource_dir, resource_file)
         if resource_file_obj.is_file() and not resource_file_obj.is_symlink():
-            if "arm64" in resource_file and os.environ['CI_JOB_NAME'] == "build-arm64" and resource_type == "image" and skopeo:
-                log.info(f"resource_file_obj.name -> {resource_file_obj.name}") # TODO: Remove me
+            # if "arm64" in resource_file and os.environ['CI_JOB_NAME'] == "build-arm64" and resource_type == "image" and skopeo:
+            #     log.info(f"resource_file_obj.name -> {resource_file_obj.name}") # TODO: Remove me
+            #     manifest = subprocess.run(
+            #         ["tar", "-xf", resource_file_obj.as_posix(), "-O", "manifest.json"],
+            #         capture_output=True,
+            #         check=True,
+            #     )
+            #     manifest_json = json.loads(manifest.stdout)
+            #     image_url = manifest_json[0]["RepoTags"][0]
+            #     log.info("loading image %s", resource_file_obj)
+            #     skopeo.copy(
+            #         ImageFile(file_path=resource_file_obj, transport="docker-archive:"),
+            #         Image(url=image_url, transport="containers-storage:"),
+            #         log_cmd=True,
+            #     )
+            if resource_type == "image" and skopeo:
                 manifest = subprocess.run(
                     ["tar", "-xf", resource_file_obj.as_posix(), "-O", "manifest.json"],
                     capture_output=True,
@@ -93,26 +107,8 @@ def load_resources(
                     Image(url=image_url, transport="containers-storage:"),
                     log_cmd=True,
                 )
-                return 
-            elif resource_type == "image" and skopeo:
-                manifest = subprocess.run(
-                    ["tar", "-xf", resource_file_obj.as_posix(), "-O", "manifest.json"],
-                    capture_output=True,
-                    check=True,
-                )
-                manifest_json = json.loads(manifest.stdout)
-                image_url = manifest_json[0]["RepoTags"][0]
-                log.info("loading image %s", resource_file_obj)
-                skopeo.copy(
-                    ImageFile(file_path=resource_file_obj, transport="docker-archive:"),
-                    Image(url=image_url, transport="containers-storage:"),
-                    log_cmd=True,
-                )
-                return
             else:
                 shutil.move(resource_file_obj, Path(resource_file))
-        elif resource_file_obj.is_dir():
-            continue
         else:
             log.error("Resource type is invalid")
             sys.exit(1)
@@ -201,6 +197,16 @@ def main():
 
     buildah = Buildah(authfile=prod_auth_path)
     skopeo = Skopeo()
+
+    # Removing amd64 tars or arm64 tars depending on the build.
+    if os.environ['CI_JOB_NAME'] == "build-arm64":
+        for file in os.listdir(image_dir):
+            if "arm64" not in file:
+                os.remove(os.path.join(image_dir, file))
+    else:
+        for file in os.listdir(image_dir):
+            if "arm64" in file:
+                os.remove(os.path.join(image_dir, file))
 
     # gather files and subpaths
     log.info("Load any images used in Dockerfile build")
