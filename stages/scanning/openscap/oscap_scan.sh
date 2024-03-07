@@ -2,66 +2,57 @@
 
 set -euo pipefail
 
-OSCAP_PROFILE=$(python3 "${PIPELINE_REPO_DIR}/stages/scanning/openscap/oscap_profiler.py" "${OS_TYPE}")
+python3 "${PIPELINE_REPO_DIR}/stages/scanning/openscap/oscap_profiler.py" "${OS_TYPE}"
+source oscap_profile.txt
 
-# if OS_TYPE has a 'none' OSCAP_PROFILE, exit gracefully
-if [ "$OSCAP_PROFILE" = '{"oval": "none", "profile": "none", "securityGuide": "none", "scanner": "none"}' ]; then
-  echo "INFO 'oscap_profiler.py ${OS_TYPE}' returned '${OSCAP_PROFILE}' nothing to do"
+# check OSCAP_DATASTREAM
+if [ -n "${OSCAP_DATASTREAM:-}" ]; then
+  echo "INFO found datastream $OSCAP_DATASTREAM"
+else
+  echo "INFO no datastream, nothing to do."
   exit 0
-else
-  echo "INFO 'oscap_profiler.py ${OS_TYPE}' returned '${OSCAP_PROFILE}' begin scan"
 fi
 
-OVAL=$(echo "${OSCAP_PROFILE}" | grep -o '"oval": "[^"]*' | grep -o '[^"]*$')
-PROFILE=$(echo "${OSCAP_PROFILE}" | grep -o '"profile": "[^"]*' | grep -o '[^"]*$')
-SECURITY_GUIDE=$(echo "${OSCAP_PROFILE}" | grep -o '"securityGuide": "[^"]*' | grep -o '[^"]*$')
-SCANNER=$(echo "${OSCAP_PROFILE}" | grep -o '"scanner": "[^"]*' | grep -o '[^"]*$')
-
-# if OVAL fetch from ci-files
-if [ "$OVAL" = 'none' ]; then
-  echo "INFO no oval, skipping"
-else
-  echo "INFO oval $OVAL, retrieving"
-  aws s3 cp --quiet s3://${CI_FILES_BUCKET}/gitlab-runner-dsop-privileged/oscap/"$OVAL" /opt/oscap/"$OVAL"
+# check OSCAP_OVAL retrieve from CI_FILES_BUCKET
+if [ -n "${OSCAP_OVAL:-}" ]; then
+  echo "INFO found oval $OSCAP_OVAL, retrieving"
+  aws s3 cp --quiet s3://"${CI_FILES_BUCKET}"/gitlab-runner-dsop-privileged/oscap/"$OSCAP_OVAL" /opt/oscap/"$OSCAP_OVAL"
 fi
 
-# scan artifact(s)
+# setup artifact(s)
 mkdir -p "${CI_PROJECT_DIR}"/"${OSCAP_SCANS}"
-cp /opt//oscap/version.txt "${CI_PROJECT_DIR}/${OSCAP_SCANS}/oscap-version.txt"
-
-# env artifact(s)
+cp /opt/oscap/version.txt "${CI_PROJECT_DIR}/${OSCAP_SCANS}/oscap-version.txt"
 echo "OSCAP_COMPLIANCE_URL=${CI_JOB_URL}" >"${CI_PROJECT_DIR}/oscap-compliance.env"
 chmod 644 "${CI_PROJECT_DIR}/oscap-compliance.env"
 
-# auth
+# setup auth
 mkdir -p /run/containers/0
 cp "${DOCKER_AUTH_FILE_PULL}" /run/containers/0/auth.json
 
-# if redhat, natively scan
-if [ "${SCANNER}" = 'redhat' ]; then
-  echo "INFO performing scan"
+# if no scanner, scan natively
+if [ -z "${OSCAP_SCANNER:-}" ]; then
+  echo "INFO begin native scan"
   /usr/local/bin/oscap-podman "${IMAGE_TO_SCAN}" \
     xccdf \
     eval \
     --verbose ERROR \
-    --profile "${PROFILE}" \
+    --profile "${OSCAP_PROFILE}" \
     --stig-viewer "${CI_PROJECT_DIR}/${OSCAP_SCANS}/compliance_output_report_stigviewer.xml" \
     --results "${CI_PROJECT_DIR}/${OSCAP_SCANS}/compliance_output_report.xml" \
     --report "${CI_PROJECT_DIR}/${OSCAP_SCANS}/report.html" \
     --local-files /opt/oscap/ \
-    /opt/oscap/scap-security-guide/"${SECURITY_GUIDE}" || true
+    /opt/oscap/scap-security-guide/"${OSCAP_DATASTREAM}" || true
 
 # if debian/suse, use a scanner pod
 else
   # load the scanner
-  echo "INFO loading scanner"
-  podman load -q -i "/opt/oscap/$SCANNER.tar" >/dev/null
+  echo "INFO non-native scan $OSCAP_SCANNER, loading"
+  podman load -q -i "/opt/oscap/$OSCAP_SCANNER.tar" >/dev/null
 
-  # save the target, scanners may not have ca certs
-  echo "INFO pulling target"
+  # save the target, scanner may not have ca certs
   skopeo copy docker://"${IMAGE_TO_SCAN}" docker-archive:/opt/oscap/target.tar
 
-  # sleep
+  # start detached scanner
   podman run \
     -e CONTAINER_STORAGE=vfs \
     --detach \
@@ -71,24 +62,24 @@ else
     -v "${CI_PROJECT_DIR}/${OSCAP_SCANS}":"${CI_PROJECT_DIR}/${OSCAP_SCANS}" \
     -v "${DOCKER_AUTH_FILE_PULL}":/run/containers/0/auth.json \
     -v /opt:/opt \
-    "ib-oscap-${SCANNER}:1.0.0" sleep 900
+    "ib-oscap-${OSCAP_SCANNER}:1.0.0" sleep 900
 
-  # load the saved target
-  echo "INFO scanner load target"
+  # scanner load target
+  echo "INFO loading target"
   TARGET_SHA=$(podman exec scanner podman load -q -i /opt/oscap/target.tar 2>/dev/null | awk '/sha256/ { print $3 }')
 
   # scanner scan target
-  echo "INFO performing scan"
+  echo "INFO begin ${OSCAP_SCANNER} scan"
   podman exec scanner /usr/local/bin/oscap-podman "${TARGET_SHA}" \
     xccdf \
     eval \
     --verbose ERROR \
-    --profile "${PROFILE}" \
+    --profile "${OSCAP_PROFILE}" \
     --stig-viewer "${CI_PROJECT_DIR}/${OSCAP_SCANS}/compliance_output_report_stigviewer.xml" \
     --results "${CI_PROJECT_DIR}/${OSCAP_SCANS}/compliance_output_report.xml" \
     --report "${CI_PROJECT_DIR}/${OSCAP_SCANS}/report.html" \
     --local-files /opt/oscap/ \
-    /opt/oscap/scap-security-guide/"${SECURITY_GUIDE}" || true
+    /opt/oscap/scap-security-guide/"${OSCAP_DATASTREAM}" || true
 fi
 
 # IMPORTANT oscap-podman completes successfully with a nonzero RC, hence '|| true' ..

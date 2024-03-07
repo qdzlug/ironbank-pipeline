@@ -21,24 +21,15 @@ def template_type(os_type: str) -> None:
         "alpine317-container": (
             'DISTRO_REPO_DIR=apk-repos/repositories\n'
             'DISTRO_REPO_MOUNT=/etc/apk/repositories\n'
-            'OS_TYPE=alpine317-container\n'
-            'OSCAP_PROFILE=none\n'
-            'OSCAP_DATASTREAM=none\n'
-            'OSCAP_SCANNER=none'
+            'OS_TYPE=alpine317-container'
         ),
         "alpine3-container": (
             'DISTRO_REPO_DIR=apk-repos/repositories\n'
             'DISTRO_REPO_MOUNT=/etc/apk/repositories\n'
-            'OS_TYPE=alpine3-container\n'
-            'OSCAP_PROFILE=none\n'
-            'OSCAP_DATASTREAM=none\n'
-            'OSCAP_SCANNER=none'
+            'OS_TYPE=alpine3-container'
         ),
         "chainguard-container": (
-            'OS_TYPE=chainguard\n'
-            'OSCAP_PROFILE=none\n'
-            'OSCAP_DATASTREAM=none\n'
-            'OSCAP_SCANNER=none'
+            'OS_TYPE=chainguard'
         ),
         "debian11-container": (
             'DISTRO_REPO_DIR=debian-repos/11-bullseye-ironbank.list\n'
@@ -57,16 +48,10 @@ def template_type(os_type: str) -> None:
             'OSCAP_SCANNER=debian'
         ),
         "distroless-container": (
-            'OS_TYPE=distroless-container\n'
-            'OSCAP_PROFILE=none\n'
-            'OSCAP_DATASTREAM=none\n'
-            'OSCAP_SCANNER=none'
+            'OS_TYPE=distroless-container'
         ),
         "scratch-container": (
-            'OS_TYPE=scratch-container\n'
-            'OSCAP_PROFILE=none\n'
-            'OSCAP_DATASTREAM=none\n'
-            'OSCAP_SCANNER=none'
+            'OS_TYPE=scratch-container'
         ),
         "sle15-bci-container": (
             'DISTRO_REPO_DIR=zypper-repos\n'

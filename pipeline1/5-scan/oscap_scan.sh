@@ -2,37 +2,33 @@
 
 set -euo pipefail
 
-# if OS_TYPE has a 'none' OSCAP_PROFILE, exit gracefully
-if [ "$OSCAP_PROFILE" = 'none' ]; then
-  echo "INFO OSCAP_PROFILE none, nothing to do"
+# check OSCAP_DATASTREAM
+if [ -n "${OSCAP_DATASTREAM:-}" ]; then
+  echo "INFO found datastream $OSCAP_DATASTREAM"
+else
+  echo "INFO no datastream, nothing to do."
   exit 0
-else
-  echo "INFO OSCAP_PROFILE $OSCAP_PROFILE OSCAP_DATASTREAM $OSCAP_DATASTREAM OSCAP_OVAL ${OSCAP_OVAL:-'none'}"
 fi
 
-# if OSCAP_OVAL fetch from ci-files
-if [ -z "{$OSCAP_OVAL:-}" ]; then
-  echo "INFO OSCAP_OVAL not found, skipping"
-else
-  echo "INFO retrieving $OSCAP_OVAL"
-  aws s3 cp --quiet s3://${CI_FILES_BUCKET}/gitlab-runner-dsop-privileged/oscap/"$OSCAP_OVAL" /opt/oscap/"$OSCAP_OVAL"
+# check OSCAP_OVAL retrieve from CI_FILES_BUCKET
+if [ -n "${OSCAP_OVAL:-}" ]; then
+  echo "INFO found oval $OSCAP_OVAL, retrieving"
+  aws s3 cp --quiet s3://"${CI_FILES_BUCKET}"/gitlab-runner-dsop-privileged/oscap/"$OSCAP_OVAL" /opt/oscap/"$OSCAP_OVAL"
 fi
 
-# scan artifact(s)
+# setup artifact(s)
 mkdir -p "${CI_PROJECT_DIR}"/"${OSCAP_SCANS}"
 cp /opt/oscap/version.txt "${CI_PROJECT_DIR}/${OSCAP_SCANS}/oscap-version.txt"
-
-# env artifact(s)
 echo "OSCAP_COMPLIANCE_URL=${CI_JOB_URL}" >"${CI_PROJECT_DIR}/oscap-compliance.env"
 chmod 644 "${CI_PROJECT_DIR}/oscap-compliance.env"
 
-# auth
+# setup auth
 mkdir -p /run/containers/0
 cp "${DOCKER_AUTH_FILE_PULL}" /run/containers/0/auth.json
 
-# if redhat, natively scan
-if [ "${OSCAP_SCANNER}" = 'redhat' ]; then
-  echo "INFO performing scan"
+# if no scanner, scan natively
+if [ -z "${OSCAP_SCANNER:-}" ]; then
+  echo "INFO begin native scan"
   /usr/local/bin/oscap-podman "${IMAGE_TO_SCAN}" \
     xccdf \
     eval \
@@ -47,14 +43,13 @@ if [ "${OSCAP_SCANNER}" = 'redhat' ]; then
 # if debian/suse, use a scanner pod
 else
   # load the scanner
-  echo "INFO loading scanner"
+  echo "INFO non-native scan $OSCAP_SCANNER, loading"
   podman load -q -i "/opt/oscap/$OSCAP_SCANNER.tar" >/dev/null
 
-  # save the target, scanners may not have ca certs
-  echo "INFO pulling target"
+  # save the target, scanner may not have ca certs
   skopeo copy docker://"${IMAGE_TO_SCAN}" docker-archive:/opt/oscap/target.tar
 
-  # sleep
+  # start detached scanner
   podman run \
     -e CONTAINER_STORAGE=vfs \
     --detach \
@@ -66,12 +61,12 @@ else
     -v /opt:/opt \
     "ib-oscap-${OSCAP_SCANNER}:1.0.0" sleep 900
 
-  # load the saved target
-  echo "INFO scanner load target"
+  # scanner load target
+  echo "INFO loading target"
   TARGET_SHA=$(podman exec scanner podman load -q -i /opt/oscap/target.tar 2>/dev/null | awk '/sha256/ { print $3 }')
 
   # scanner scan target
-  echo "INFO performing scan"
+  echo "INFO begin ${OSCAP_SCANNER} scan"
   podman exec scanner /usr/local/bin/oscap-podman "${TARGET_SHA}" \
     xccdf \
     eval \

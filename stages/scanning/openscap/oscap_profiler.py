@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-import json
 import logging
 import os
 import sys
@@ -12,114 +11,59 @@ def get_oscap_guide(os_type):
         f"Determining OSCAP profile and security guide for os_type: {os_type}"
     )
 
-    oscap_guides = {}
-    oscap_guides = {
-        "ubi9-container": {
-            "oval": "security-data-oval-v2-RHEL9-rhel-9.oval.xml.bz2",
-            "profile": "xccdf_org.ssgproject.content_profile_stig",
-            "securityGuide": "ssg-rhel9-ds.xml",
-            "scanner": "redhat",
-        },
-        "ubi9-minimal-container": {
-            "oval": "security-data-oval-v2-RHEL9-rhel-9.oval.xml.bz2",
-            "profile": "xccdf_org.ssgproject.content_profile_stig",
-            "securityGuide": "ssg-rhel9-ds.xml",
-            "scanner": "redhat",
-        },
-        "ubi9-micro-container": {
-            "oval": "security-data-oval-v2-RHEL9-rhel-9.oval.xml.bz2",
-            "profile": "xccdf_org.ssgproject.content_profile_stig",
-            "securityGuide": "ssg-rhel9-ds.xml",
-            "scanner": "redhat",
-        },
-        "ubi8-container": {
-            "oval": "security-data-oval-v2-RHEL8-rhel-8.oval.xml.bz2",
-            "profile": "xccdf_org.ssgproject.content_profile_stig",
-            "securityGuide": "ssg-rhel8-ds.xml",
-            "scanner": "redhat",
-        },
-        "ubi8-minimal-container": {
-            "oval": "security-data-oval-v2-RHEL8-rhel-8.oval.xml.bz2",
-            "profile": "xccdf_org.ssgproject.content_profile_stig",
-            "securityGuide": "ssg-rhel8-ds.xml",
-            "scanner": "redhat",
-        },
-        "ubi8-micro-container": {
-            "oval": "security-data-oval-v2-RHEL8-rhel-8.oval.xml.bz2",
-            "profile": "xccdf_org.ssgproject.content_profile_stig",
-            "securityGuide": "ssg-rhel8-ds.xml",
-            "scanner": "redhat",
-        },
-        "ubi7-container": {
-            "oval": "security-data-oval-v2-RHEL7-rhel-7.oval.xml.bz2",
-            "profile": "xccdf_org.ssgproject.content_profile_stig",
-            "securityGuide": "ssg-rhel7-ds.xml",
-            "scanner": "redhat",
-        },
-        "ubi7-minimal-container": {
-            "oval": "security-data-oval-v2-RHEL7-rhel-7.oval.xml.bz2",
-            "profile": "xccdf_org.ssgproject.content_profile_stig",
-            "securityGuide": "ssg-rhel7-ds.xml",
-            "scanner": "redhat",
-        },
-        "ubuntu2004-container": {
-            "oval": "none",
-            "profile": "xccdf_org.ssgproject.content_profile_stig",
-            "securityGuide": "ssg-ubuntu2004-ds.xml",
-            "scanner": "debian",
-        },
-        "sle15-bci-container": {
-            "oval": "pub-projects-security-oval-suse.linux.enterprise.15.xml",
-            "profile": "xccdf_org.ssgproject.content_profile_stig",
-            "securityGuide": "ssg-sle15-ds.xml",
-            "scanner": "suse",
-        },
-        "debian11-container": {
-            "oval": "none",
-            "profile": "xccdf_org.ssgproject.content_profile_anssi_np_nt28_average",
-            "securityGuide": "ssg-debian11-ds.xml",
-            "scanner": "debian",
-        },
-        "debian12-container": {
-            "oval": "none",
-            "profile": "xccdf_org.ssgproject.content_profile_anssi_np_nt28_average",
-            "securityGuide": "ssg-debian12-ds.xml",
-            "scanner": "debian",
-        },
-        "alpine317-container": {
-            "oval": "none",
-            "profile": "none",
-            "securityGuide": "none",
-            "scanner": "none",
-        },
-        "alpine3-container": {
-            "oval": "none",
-            "profile": "none",
-            "securityGuide": "none",
-            "scanner": "none",
-        },
-        "chainguard-container": {
-            "oval": "none",
-            "profile": "none",
-            "securityGuide": "none",
-            "scanner": "none",
-        },
-        "distroless-container": {
-            "oval": "none",
-            "profile": "none",
-            "securityGuide": "none",
-            "scanner": "none",
-        },
-        "scratch-container": {
-            "oval": "none",
-            "profile": "none",
-            "securityGuide": "none",
-            "scanner": "none",
-        },
+    oscap_profiles = {
+        "alpine317-container": (),
+        "alpine3-container": (),
+        "chainguard-container": (),
+        "debian11-container": (
+            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_anssi_np_nt28_average\n"
+            "OSCAP_DATASTREAM=ssg-debian11-ds.xml\n"
+            "OSCAP_SCANNER=debian"
+        ),
+        "debian12-container": (
+            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_anssi_np_nt28_average\n"
+            "OSCAP_DATASTREAM=ssg-debian12-ds.xml\n"
+            "OSCAP_SCANNER=debian"
+        ),
+        "distroless-container": (),
+        "scratch-container": (),
+        "sle15-bci-container": (
+            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_stig\n"
+            "OSCAP_DATASTREAM=ssg-sle15-ds.xml\n"
+            "OSCAP_OVAL=pub-projects-security-oval-suse.linux.enterprise.15.xml\n"
+            "OSCAP_SCANNER=suse"
+        ),
+        "ubi7-container": (
+            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_stig\n"
+            "OSCAP_DATASTREAM=ssg-rhel7-ds.xml\n"
+            "OSCAP_OVAL=security-data-oval-v2-RHEL7-rhel-7.oval.xml.bz2"
+        ),
+        "ubi8-container": (
+            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_stig\n"
+            "OSCAP_DATASTREAM=ssg-rhel8-ds.xml\n"
+            "OSCAP_OVAL=security-data-oval-v2-RHEL8-rhel-8.oval.xml.bz2"
+        ),
+        "ubi9-container": (
+            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_stig\n"
+            "OSCAP_DATASTREAM=ssg-rhel9-ds.xml\n"
+            "OSCAP_OVAL=security-data-oval-v2-RHEL9-rhel-9.oval.xml.bz2"
+        ),
+        "ubuntu2004-container": (
+            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_anssi_np_nt28_average\n"
+            "OSCAP_DATASTREAM=ssg-ubuntu2004-ds.xml\n"
+            "OSCAP_SCANNER=debian"
+        ),
+        "ubuntu2204-container": (
+            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_anssi_np_nt28_average\n"
+            "OSCAP_DATASTREAM=ssg-ubuntu2204-ds.xml\n"
+            "OSCAP_SCANNER=debian"
+        ),
     }
     try:
-        oscap_guide = oscap_guides[os_type]
-        print(json.dumps(oscap_guide))
+        oscap_profile = oscap_profiles[os_type]
+        print(oscap_profiles)
+        f = open("oscap_profile.txt", "w")
+        f.write(oscap_profile)
     except KeyError:
         print(f"OS_TYPE {os_type} not found!")
         sys.exit(1)
