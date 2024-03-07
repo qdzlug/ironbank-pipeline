@@ -11,7 +11,7 @@ else
 fi
 
 # if OSCAP_OVAL fetch from ci-files
-if [ -z "$OSCAP_OVAL" ]; then
+if [ -z "{$OSCAP_OVAL:-}" ]; then
   echo "INFO OSCAP_OVAL not found, skipping"
 else
   echo "INFO retrieving $OSCAP_OVAL"
