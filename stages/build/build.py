@@ -22,9 +22,9 @@ log = logger.setup("build")
 
 def write_dockerfile_args(dockerfile_args: list["str"]):
     """Overwrite Dockerfile args that are defined in the hardening manifest."""
-    dockerfile = "Dockerfile_arm64" if os.environ.get('CI_JOB_NAME') == "build-arm64" else "Dockerfile"
-    log.info(f"Using the following Dockerfile -> {dockerfile}") # TODO: Remove me
-    with Path(dockerfile).open(
+    # dockerfile = "Dockerfile_arm64" if os.environ.get('CI_JOB_NAME') == "build-arm64" else "Dockerfile" # TODO: REMOVE Me if renaming the dockerfile works
+    # log.info(f"Using the following Dockerfile -> {dockerfile}") # TODO: Remove me
+    with Path("Dockerfile").open(
         mode="r+",
         encoding="utf-8",
     ) as f:
@@ -275,6 +275,11 @@ def main():
         # create list of lists, with each sublist containing an arg
         # sublist needed for f.writelines() on arg substitution in Dockerfile
         dockerfile_args = ["\n"] + [f"ARG {k}\n" for k in build_args.keys()]
+
+    # Deleting the amd64 Dockerfile and renaming the arm64 Dockerfile
+    if os.environ['CI_JOB_NAME'] == "build-arm64":
+        os.remove("Dockerfile")
+        os.rename("Dockerfile_arm64", "Dockerfile")
 
     write_dockerfile_args(dockerfile_args=dockerfile_args)
 
