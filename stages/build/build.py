@@ -23,6 +23,7 @@ log = logger.setup("build")
 def write_dockerfile_args(dockerfile_args: list["str"]):
     """Overwrite Dockerfile args that are defined in the hardening manifest."""
     dockerfile = "Dockerfile_arm64" if os.environ.get('CI_JOB_NAME') == "build_arm64" else "Dockerfile"
+    log.info(f"Using the following Dockerfile -> {dockerfile}") # TODO: Remove me
     with Path(dockerfile).open(
         mode="r+",
         encoding="utf-8",
@@ -76,7 +77,7 @@ def load_resources(
         resource_file_obj = Path(resource_dir, resource_file)
         if resource_file_obj.is_file() and not resource_file_obj.is_symlink():
             if "arm64" in resource_file_obj and os.environ['CI_JOB_NAME'] == "build_arm64" and resource_type == "image" and skopeo:
-                log.info(f"resource_file_obj.name -> {resource_file_obj.name}")
+                log.info(f"resource_file_obj.name -> {resource_file_obj.name}") # TODO: Remove me
                 manifest = subprocess.run(
                     ["tar", "-xf", resource_file_obj.as_posix(), "-O", "manifest.json"],
                     capture_output=True,
