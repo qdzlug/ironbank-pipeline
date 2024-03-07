@@ -59,9 +59,7 @@ else
 
   # save the target, scanners may not have ca certs
   echo "INFO pulling target"
-  podman pull "${IMAGE_TO_SCAN}"
-  echo "INFO saving target"
-  podman image save -q -o /opt/oscap/target.tar "${IMAGE_TO_SCAN}"
+  skopeo copy docker://"${IMAGE_TO_SCAN}" docker-archive:/opt/oscap/target.tar
 
   # sleep
   podman run \
@@ -77,11 +75,11 @@ else
 
   # load the saved target
   echo "INFO scanner load target"
-  podman exec scanner podman load -q -i /opt/oscap/target.tar >/dev/null
+  TARGET_SHA=$(podman exec scanner podman load -q -i /opt/oscap/target.tar 2>/dev/null | awk '/sha256/ { print $3 }')
 
   # scanner scan target
   echo "INFO performing scan"
-  podman exec scanner /usr/local/bin/oscap-podman "${IMAGE_TO_SCAN}" \
+  podman exec scanner /usr/local/bin/oscap-podman "${TARGET_SHA}" \
     xccdf \
     eval \
     --verbose ERROR \

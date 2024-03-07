@@ -48,7 +48,7 @@ if [ "${OSCAP_SCANNER}" = 'redhat' ]; then
 else
   # load the scanner
   echo "INFO loading scanner"
-  podman load -q -i "/opt/$OSCAP_SCANNER.tar" >/dev/null
+  podman load -q -i "/opt/oscap/$OSCAP_SCANNER.tar" >/dev/null
 
   # save the target, scanners may not have ca certs
   echo "INFO pulling target"
