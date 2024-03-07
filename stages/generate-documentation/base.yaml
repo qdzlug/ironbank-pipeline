@@ -1,4 +1,4 @@
-generate-documentation:
+generate-documentation-x86:
   stage: generate-documentation
   extends:
     - .setup_modules
@@ -24,6 +24,48 @@ generate-documentation:
     - twistlock-scan-x86
     - openscap-compliance-x86
     - vat-x86
+  script:
+    - 'mkdir -p "${ARTIFACT_DIR}/reports"'
+    - '"${PIPELINE_REPO_DIR}/stages/generate-documentation/ib-manifest-run.sh"'
+    - '"${PIPELINE_REPO_DIR}/stages/generate-documentation/write-json-docs-run.sh"'
+    - python3 "${PIPELINE_REPO_DIR}/stages/generate-documentation/pipeline_csv_gen.py"
+    - python3 "${PIPELINE_REPO_DIR}"/stages/generate-documentation/excel_convert.py -i "${CSV_REPORT}"/ -o "${CSV_REPORT}"/"${CI_PROJECT_NAME}":"${IMAGE_VERSION}"-"${CI_PIPELINE_ID}"-justifications.xlsx
+  artifacts:
+    when: always
+    paths:
+      - $ARTIFACT_DIR
+      - "${CSV_REPORT}"
+    expire_in: 1 week
+  retry:
+    max: 2
+    when: runner_system_failure
+
+generate-documentation-arm64:
+  stage: generate-documentation
+  extends:
+    - .setup_modules
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/documentation"
+    OPENSCAP_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/openscap/oscap-version.txt"
+    TWISTLOCK_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock-version.txt"
+    ANCHORE_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/anchore/anchore-version.txt"
+    # Put generated csv report in the scan-results folder
+    CSV_REPORT: "${ARTIFACT_STORAGE}/scan-results/csvs"
+    # reusing the VAT artifact dir to prevent redownloading
+    VAT_ARTIFACT_DIR: "${ARTIFACT_STORAGE}/vat"
+    ENV_FILENAME: "csv_output.env"
+
+  needs:
+    - load-scripts
+    - lint
+    - build-arm64
+    - scan-logic-arm64
+    - anchore-scan-arm64
+    - twistlock-scan-arm64
+    - openscap-compliance-arm64
+    - vat-arm64
   script:
     - 'mkdir -p "${ARTIFACT_DIR}/reports"'
     - '"${PIPELINE_REPO_DIR}/stages/generate-documentation/ib-manifest-run.sh"'

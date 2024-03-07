@@ -1,4 +1,4 @@
-harbor:
+harbor-x86:
   stage: publish-artifacts
   extends:
     - .setup_modules
@@ -19,7 +19,6 @@ harbor:
     PARENT_VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/parent_vat_response.json
     SBOM_DIR: ${ARTIFACT_STORAGE}/sbom
     VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/vat_response.json
-
   script:
     - 'mkdir -p "${ARTIFACT_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/harbor/upload_to_harbor.py"'
@@ -31,7 +30,7 @@ harbor:
     max: 2
     when: always
 
-update-staging-attestations:
+update-staging-attestations-x86:
   stage: publish-artifacts
   extends:
     - .setup_modules
@@ -51,7 +50,69 @@ update-staging-attestations:
     PARENT_VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/parent_vat_response.json
     SBOM_DIR: ${ARTIFACT_STORAGE}/sbom
     VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/vat_response.json
+  script:
+    - 'mkdir -p "${ARTIFACT_DIR}"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/harbor/upload_to_harbor.py"'
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_DIR}/"
+  retry:
+    max: 2
+    when: always
 
+harbor-arm64:
+  stage: publish-artifacts
+  extends:
+    - .setup_modules
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+  resource_group: harbor_phase
+  needs:
+    - load-scripts
+    - lint
+    - build-arm64
+    - create-sbom-arm64
+    - scan-logic-arm64
+    - vat-arm64
+  variables:
+    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: sign
+    ACCESS_LOG_DIR: ${ARTIFACT_STORAGE}/build
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/harbor
+    PARENT_VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/parent_vat_response.json
+    SBOM_DIR: ${ARTIFACT_STORAGE}/sbom
+    VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/vat_response.json
+  script:
+    - 'mkdir -p "${ARTIFACT_DIR}"'
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/harbor/upload_to_harbor.py"'
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_DIR}/"
+  retry:
+    max: 2
+    when: always
+
+update-staging-attestations-arm64:
+  stage: publish-artifacts
+  extends:
+    - .setup_modules
+  rules:
+    - if: $CI_COMMIT_BRANCH != "master" && $PUBLISH_VAT_STAGING_PREDICATES
+  resource_group: harbor_phase
+  needs:
+    - load-scripts
+    - lint
+    - build-arm64
+    - create-sbom-arm64
+    - scan-logic-arm64
+    - vat-arm64
+  variables:
+    ACCESS_LOG_DIR: ${ARTIFACT_STORAGE}/build
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/harbor
+    PARENT_VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/parent_vat_response.json
+    SBOM_DIR: ${ARTIFACT_STORAGE}/sbom
+    VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/vat_response.json
   script:
     - 'mkdir -p "${ARTIFACT_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/harbor/upload_to_harbor.py"'

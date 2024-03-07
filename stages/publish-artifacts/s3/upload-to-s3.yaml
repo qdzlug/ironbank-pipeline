@@ -1,4 +1,4 @@
-upload-to-s3:
+upload-to-s3-x86:
   stage: publish-artifacts
   extends:
     - .setup_modules
@@ -20,7 +20,6 @@ upload-to-s3:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
     REPORT_TAR_NAME: ${CI_PROJECT_NAME}-${IMAGE_VERSION}-reports-signature.tar.gz
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: ibfe
-
   needs:
     - load-scripts
     - lint
@@ -30,8 +29,51 @@ upload-to-s3:
     - anchore-scan-x86
     - twistlock-scan-x86
     - openscap-compliance-x86
-    - generate-documentation
+    - generate-documentation-x86
     - vat-x86
+  script:
+    - 'python "${PIPELINE_REPO_DIR}/stages/publish-artifacts/s3/upload_artifacts.py"'
+  artifacts:
+    paths:
+      - reports/
+    expire_in: 1 week
+  retry:
+    max: 2
+    when: runner_system_failure
+
+upload-to-s3-arm64:
+  stage: publish-artifacts
+  extends:
+    - .setup_modules
+  resource_group: s3_phase
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+  id_tokens:
+    VAT_TOKEN:
+      aud: ${CI_SERVER_URL}
+  variables:
+    #TODO: Put these in globals
+    SCAN_DIRECTORY: "${ARTIFACT_STORAGE}/scan-results"
+    DOCUMENTATION_DIRECTORY: "${ARTIFACT_STORAGE}/documentation"
+    BUILD_DIRECTORY: "${ARTIFACT_STORAGE}/build"
+    SBOM_DIRECTORY: "${ARTIFACT_STORAGE}/sbom"
+    VAT_DIRECTORY: "${ARTIFACT_STORAGE}/vat"
+    BASE_BUCKET_DIRECTORY: container-scan-reports
+    DOCUMENTATION_FILENAME: documentation
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
+    REPORT_TAR_NAME: ${CI_PROJECT_NAME}-${IMAGE_VERSION}-reports-signature.tar.gz
+    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: ibfe
+  needs:
+    - load-scripts
+    - lint
+    - build-arm64
+    - create-sbom-arm64
+    - scan-logic-arm64
+    - anchore-scan-arm64
+    - twistlock-scan-arm64
+    - openscap-compliance-arm64
+    - generate-documentation-arm64
+    - vat-arm64
   script:
     - 'python "${PIPELINE_REPO_DIR}/stages/publish-artifacts/s3/upload_artifacts.py"'
   artifacts:
