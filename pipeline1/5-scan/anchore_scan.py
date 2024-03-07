@@ -7,7 +7,7 @@ import sys
 # need to keep this path append until this repo migrates to using ironbank-modules
 sys.path.append(Path(__file__).absolute().parents[2].as_posix())
 
-from anchore import Anchore # pylint: disable=C0413
+from anchore import Anchore  # pylint: disable=C0413
 
 
 def main() -> None:

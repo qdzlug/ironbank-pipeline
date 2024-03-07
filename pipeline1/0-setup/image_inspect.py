@@ -19,88 +19,82 @@ def template_type(os_type: str) -> None:
     template_dict = {
         # PEP8 discourages \ and gitlab wants no blank lines
         "alpine317-container": (
-            'DISTRO_REPO_DIR=apk-repos/repositories\n'
-            'DISTRO_REPO_MOUNT=/etc/apk/repositories\n'
-            'OS_TYPE=alpine317-container'
+            "DISTRO_REPO_DIR=apk-repos/repositories\n"
+            "DISTRO_REPO_MOUNT=/etc/apk/repositories\n"
+            "OS_TYPE=alpine317-container"
         ),
         "alpine3-container": (
-            'DISTRO_REPO_DIR=apk-repos/repositories\n'
-            'DISTRO_REPO_MOUNT=/etc/apk/repositories\n'
-            'OS_TYPE=alpine3-container'
+            "DISTRO_REPO_DIR=apk-repos/repositories\n"
+            "DISTRO_REPO_MOUNT=/etc/apk/repositories\n"
+            "OS_TYPE=alpine3-container"
         ),
-        "chainguard-container": (
-            'OS_TYPE=chainguard'
-        ),
+        "chainguard-container": ("OS_TYPE=chainguard"),
         "debian11-container": (
-            'DISTRO_REPO_DIR=debian-repos/11-bullseye-ironbank.list\n'
-            'DISTRO_REPO_MOUNT=/etc/apt/sources.list\n'
-            'OS_TYPE=debian11-container\n'
-            'OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_anssi_np_nt28_average\n'
-            'OSCAP_DATASTREAM=ssg-debian11-ds.xml\n'
-            'OSCAP_SCANNER=debian'
+            "DISTRO_REPO_DIR=debian-repos/11-bullseye-ironbank.list\n"
+            "DISTRO_REPO_MOUNT=/etc/apt/sources.list\n"
+            "OS_TYPE=debian11-container\n"
+            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_anssi_np_nt28_average\n"
+            "OSCAP_DATASTREAM=ssg-debian11-ds.xml\n"
+            "OSCAP_SCANNER=debian"
         ),
         "debian12-container": (
-            'DISTRO_REPO_DIR=debian-repos/12-bookworm-debian.sources\n'
-            'DISTRO_REPO_MOUNT=/etc/apt/sources.list.d/debian.sources\n'
-            'OS_TYPE=debian12-container\n'
-            'OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_anssi_np_nt28_average\n'
-            'OSCAP_DATASTREAM=ssg-debian12-ds.xml\n'
-            'OSCAP_SCANNER=debian'
+            "DISTRO_REPO_DIR=debian-repos/12-bookworm-debian.sources\n"
+            "DISTRO_REPO_MOUNT=/etc/apt/sources.list.d/debian.sources\n"
+            "OS_TYPE=debian12-container\n"
+            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_anssi_np_nt28_average\n"
+            "OSCAP_DATASTREAM=ssg-debian12-ds.xml\n"
+            "OSCAP_SCANNER=debian"
         ),
-        "distroless-container": (
-            'OS_TYPE=distroless-container'
-        ),
-        "scratch-container": (
-            'OS_TYPE=scratch-container'
-        ),
+        "distroless-container": ("OS_TYPE=distroless-container"),
+        "scratch-container": ("OS_TYPE=scratch-container"),
         "sle15-bci-container": (
-            'DISTRO_REPO_DIR=zypper-repos\n'
-            'DISTRO_REPO_MOUNT=/etc/zypp/repos.d\n'
-            'OS_TYPE=sle15-bci-container\n'
-            'OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_stig\n'
-            'OSCAP_DATASTREAM=ssg-sle15-ds.xml\n'
-            'OSCAP_OVAL=pub-projects-security-oval-suse.linux.enterprise.15.xml\n'
-            'OSCAP_SCANNER=suse'
+            "DISTRO_REPO_DIR=zypper-repos\n"
+            "DISTRO_REPO_MOUNT=/etc/zypp/repos.d\n"
+            "OS_TYPE=sle15-bci-container\n"
+            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_stig\n"
+            "OSCAP_DATASTREAM=ssg-sle15-ds.xml\n"
+            "OSCAP_OVAL=pub-projects-security-oval-suse.linux.enterprise.15.xml\n"
+            "OSCAP_SCANNER=suse"
         ),
         "ubi7-container": (
-            'DISTRO_REPO_DIR=ubi-repos\n'
-            'DISTRO_REPO_MOUNT=/etc/yum.repos.d\n'
-            'OS_TYPE=ubi7-container\n'
-            'OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_stig\n'
-            'OSCAP_DATASTREAM=ssg-rhel7-ds.xml\n'
-            'OSCAP_OVAL=security-data-oval-v2-RHEL7-rhel-7.oval.xml.bz2'
+            "DISTRO_REPO_DIR=ubi-repos\n"
+            "DISTRO_REPO_MOUNT=/etc/yum.repos.d\n"
+            "OS_TYPE=ubi7-container\n"
+            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_stig\n"
+            "OSCAP_DATASTREAM=ssg-rhel7-ds.xml\n"
+            "OSCAP_OVAL=security-data-oval-v2-RHEL7-rhel-7.oval.xml.bz2"
         ),
         "ubi8-container": (
-            'DISTRO_REPO_DIR=ubi-repos\n'
-            'DISTRO_REPO_MOUNT=/etc/yum.repos.d\n'
-            'OS_TYPE=ubi8-container\n'
-            'OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_stig\n'
-            'OSCAP_DATASTREAM=ssg-rhel8-ds.xml\n'
-            'OSCAP_OVAL=security-data-oval-v2-RHEL8-rhel-8.oval.xml.bz2'
+            "DISTRO_REPO_DIR=ubi-repos\n"
+            "DISTRO_REPO_MOUNT=/etc/yum.repos.d\n"
+            "OS_TYPE=ubi8-container\n"
+            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_stig\n"
+            "OSCAP_DATASTREAM=ssg-rhel8-ds.xml\n"
+            "OSCAP_OVAL=security-data-oval-v2-RHEL8-rhel-8.oval.xml.bz2"
         ),
         "ubi9-container": (
-            'DISTRO_REPO_DIR=ubi-repos\n'
-            'DISTRO_REPO_MOUNT=/etc/yum.repos.d\n'
-            'OS_TYPE=ubi9-container\n'
-            'OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_stig\n'
-            'OSCAP_DATASTREAM=ssg-rhel9-ds.xml\n'
-            'OSCAP_OVAL=security-data-oval-v2-RHEL9-rhel-9.oval.xml.bz2'
+            "DISTRO_REPO_DIR=ubi-repos\n"
+            "DISTRO_REPO_MOUNT=/etc/yum.repos.d\n"
+            "OS_TYPE=ubi9-container\n"
+            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_stig\n"
+            "OSCAP_DATASTREAM=ssg-rhel9-ds.xml\n"
+            "OSCAP_OVAL=security-data-oval-v2-RHEL9-rhel-9.oval.xml.bz2"
         ),
         "ubuntu2004-container": (
-            'DISTRO_REPO_DIR=apt-repos/2004-focal-ironbank.list\n'
-            'DISTRO_REPO_MOUNT=/etc/apt/sources.list\n'
-            'OS_TYPE=ubuntu2004-container\n'
-            'OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_anssi_np_nt28_average\n'
-            'OSCAP_DATASTREAM=ssg-ubuntu2004-ds.xml\n'
-            'OSCAP_SCANNER=debian'
+            "DISTRO_REPO_DIR=apt-repos/2004-focal-ironbank.list\n"
+            "DISTRO_REPO_MOUNT=/etc/apt/sources.list\n"
+            "OS_TYPE=ubuntu2004-container\n"
+            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_anssi_np_nt28_average\n"
+            "OSCAP_DATASTREAM=ssg-ubuntu2004-ds.xml\n"
+            "OSCAP_SCANNER=debian"
         ),
         "ubuntu2204-container": (
-            'DISTRO_REPO_DIR=apt-repos/2204-jammy-ironbank.list\n'
-            'DISTRO_REPO_MOUNT=/etc/apt/sources.list\n'
-            'OS_TYPE=ubuntu2204-container\n'
-            'OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_anssi_np_nt28_average\n'
-            'OSCAP_DATASTREAM=ssg-ubuntu2204-ds.xml\n'
-            'OSCAP_SCANNER=debian'
+            "DISTRO_REPO_DIR=apt-repos/2204-jammy-ironbank.list\n"
+            "DISTRO_REPO_MOUNT=/etc/apt/sources.list\n"
+            "OS_TYPE=ubuntu2204-container\n"
+            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_anssi_np_nt28_average\n"
+            "OSCAP_DATASTREAM=ssg-ubuntu2204-ds.xml\n"
+            "OSCAP_SCANNER=debian"
         ),
     }
     template = template_dict.get(os_type)

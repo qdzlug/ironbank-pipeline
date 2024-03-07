@@ -62,8 +62,8 @@ def get_oscap_guide(os_type):
     try:
         oscap_profile = oscap_profiles[os_type]
         print(oscap_profiles)
-        f = open("oscap_profile.txt", "w")
-        f.write(oscap_profile)
+        with open(file="oscap_profile.txt", mode="w", encoding="UTF-8") as f:
+          f.write(oscap_profile)
     except KeyError:
         print(f"OS_TYPE {os_type} not found!")
         sys.exit(1)
