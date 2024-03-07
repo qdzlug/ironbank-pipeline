@@ -76,7 +76,7 @@ def load_resources(
     for resource_file in os.listdir(resource_dir):
         resource_file_obj = Path(resource_dir, resource_file)
         if resource_file_obj.is_file() and not resource_file_obj.is_symlink():
-            if "arm64" in resource_file_obj and os.environ['CI_JOB_NAME'] == "build_arm64" and resource_type == "image" and skopeo:
+            if "arm64" in resource_file and os.environ['CI_JOB_NAME'] == "build_arm64" and resource_type == "image" and skopeo:
                 log.info(f"resource_file_obj.name -> {resource_file_obj.name}") # TODO: Remove me
                 manifest = subprocess.run(
                     ["tar", "-xf", resource_file_obj.as_posix(), "-O", "manifest.json"],
