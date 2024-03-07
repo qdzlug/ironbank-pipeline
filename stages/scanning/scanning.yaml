@@ -67,7 +67,7 @@ anchore-scan-arm64:
       - unknown_failure
   # only:
   #   variables:
-  #     - $ARM64_BUILD 
+  #     - $ARM64_BUILD
 
 openscap-compliance-x86:
   extends: .scanning-x86
@@ -110,7 +110,7 @@ openscap-compliance-arm64:
       - unknown_failure
   # only:
   #   variables:
-  #     - $ARM64_BUILD 
+  #     - $ARM64_BUILD
 
 twistlock-scan-x86:
   image: registry1.dso.mil/ironbank-apps/ironbank-pipelines/pipeline-runner:v0.10.14
@@ -173,4 +173,4 @@ twistlock-scan-arm64:
       - unknown_failure
   # only:
   #   variables:
-  #     - $ARM64_BUILD 
+  #     - $ARM64_BUILD

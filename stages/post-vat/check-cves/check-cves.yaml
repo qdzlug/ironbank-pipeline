@@ -39,4 +39,4 @@ check-cves-arm64:
     when: runner_system_failure
   # only:
   #   variables:
-  #     - $ARM64_BUILD 
+  #     - $ARM64_BUILD

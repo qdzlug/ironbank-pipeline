@@ -45,7 +45,7 @@ create-tar-arm64:
     expire_in: 1 week
   # only:
   #   variables:
-  #     - $ARM64_BUILD 
+  #     - $ARM64_BUILD
 
 create-sbom-x86:
   extends: .post-build-x86
@@ -74,4 +74,4 @@ create-sbom-arm64:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/post-build/generate_sbom.py"'
   # only:
   #   variables:
-  #     - $ARM64_BUILD 
+  #     - $ARM64_BUILD

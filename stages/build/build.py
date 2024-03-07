@@ -22,7 +22,8 @@ log = logger.setup("build")
 
 def write_dockerfile_args(dockerfile_args: list["str"]):
     """Overwrite Dockerfile args that are defined in the hardening manifest."""
-    with Path("Dockerfile").open(
+    dockerfile = "Dockerfile_arm64" if os.environ.get('CI_JOB_NAME') == "build_arm64" else "Dockerfile"
+    with Path(dockerfile).open(
         mode="r+",
         encoding="utf-8",
     ) as f:
@@ -74,7 +75,16 @@ def load_resources(
     for resource_file in os.listdir(resource_dir):
         resource_file_obj = Path(resource_dir, resource_file)
         if resource_file_obj.is_file() and not resource_file_obj.is_symlink():
-            if resource_type == "image" and skopeo:
+            # I added this if block
+            if "arm64" in resource_file_obj.name and os.environ['CI_JOB_NAME'] == "build_arm64" and resource_type == "image" and skopeo:
+                log.info(f"resource_file_obj.name -> {resource_file_obj.name}")
+                manifest = subprocess.run(
+                    ["tar", "-xf", resource_file_obj.as_posix(), "-O", "manifest.json"],
+                    capture_output=True,
+                    check=True,
+                )
+            # This was the original if block
+            elif resource_type == "image" and skopeo:
                 manifest = subprocess.run(
                     ["tar", "-xf", resource_file_obj.as_posix(), "-O", "manifest.json"],
                     capture_output=True,
@@ -162,9 +172,6 @@ def main():
     imports_dir = artifact_storage_dir / "import-artifacts"
     image_dir = imports_dir / "images"
     resource_dir = imports_dir / "external-resources"
-    if len(sys.argv) > 0 and "--arm64-build" in sys.argv:
-      image_dir = image_dir / "arm64"
-      resource_dir = resource_dir / "arm64"
     pipeline_build_dir = Path(
         os.environ["PIPELINE_REPO_DIR"], "stages", "build"
     ).absolute()
@@ -187,6 +194,7 @@ def main():
     # gather files and subpaths
     log.info("Load any images used in Dockerfile build")
     load_resources(resource_dir=image_dir, resource_type="image", skopeo=skopeo)
+    # Both an arm64 build and amd64 build will have all the same resources available.
     log.info("Load HTTP and S3 external resources")
     load_resources(resource_dir=resource_dir)
 
