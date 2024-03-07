@@ -68,8 +68,7 @@ def template_type(os_type: str) -> None:
             'OS_TYPE=ubi7-container\n'
             'OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_stig\n'
             'OSCAP_DATASTREAM=ssg-rhel7-ds.xml\n'
-            'OSCAP_OVAL=security-data-oval-v2-RHEL7-rhel-7.oval.xml.bz2\n'
-            'OSCAP_SCANNER=redhat'
+            'OSCAP_OVAL=security-data-oval-v2-RHEL7-rhel-7.oval.xml.bz2'
         ),
         "ubi8-container": (
             'DISTRO_REPO_DIR=ubi-repos\n'
@@ -77,8 +76,7 @@ def template_type(os_type: str) -> None:
             'OS_TYPE=ubi8-container\n'
             'OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_stig\n'
             'OSCAP_DATASTREAM=ssg-rhel8-ds.xml\n'
-            'OSCAP_OVAL=security-data-oval-v2-RHEL8-rhel-8.oval.xml.bz2\n'
-            'OSCAP_SCANNER=redhat'
+            'OSCAP_OVAL=security-data-oval-v2-RHEL8-rhel-8.oval.xml.bz2'
         ),
         "ubi9-container": (
             'DISTRO_REPO_DIR=ubi-repos\n'
@@ -86,8 +84,7 @@ def template_type(os_type: str) -> None:
             'OS_TYPE=ubi9-container\n'
             'OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_stig\n'
             'OSCAP_DATASTREAM=ssg-rhel9-ds.xml\n'
-            'OSCAP_OVAL=security-data-oval-v2-RHEL9-rhel-9.oval.xml.bz2\n'
-            'OSCAP_SCANNER=redhat'
+            'OSCAP_OVAL=security-data-oval-v2-RHEL9-rhel-9.oval.xml.bz2'
         ),
         "ubuntu2004-container": (
             'DISTRO_REPO_DIR=apt-repos/2004-focal-ironbank.list\n'
