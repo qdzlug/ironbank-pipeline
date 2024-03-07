@@ -1,11 +1,30 @@
-upload-to-cds:
+upload-to-cds-x86:
   stage: publish-artifacts
   needs:
     - load-scripts
     - build-x86
     - scan-logic-x86
     - vat-x86
-    - harbor
+    - harbor-x86
+  when: manual
+  extends:
+    - .setup_modules
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master" && $UPLOAD_TO_CDS == "True"
+  variables:
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/cds
+    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: cds
+  script:
+    - 'python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/upload-to-cds/upload_to_cds.py"'
+
+upload-to-cds-arm64:
+  stage: publish-artifacts
+  needs:
+    - load-scripts
+    - build-arm64
+    - scan-logic-arm64
+    - vat-arm64
+    - harbor-arm64
   when: manual
   extends:
     - .setup_modules
