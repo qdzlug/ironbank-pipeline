@@ -144,4 +144,3 @@ create-manifest-list:
     - harbor-arm64
   script: 
     - 'env'
-    - 'podman manifest create ${REGISTRY_PUBLISH_URL}/${IMAGE_NAME}: '
