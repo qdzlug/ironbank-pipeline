@@ -153,8 +153,10 @@ def write_env_vars(tags: list[str]) -> None:
             "digest_to_scan": "DIGEST_TO_SCAN_X86"
         }
     }
-    log.info(f"write_env_vars 156 -> {tags[0]}")
-    tags_string = ', '.join(tags)
+    log.info(f"write_env_vars 156 -> {tags}")
+    log.info(f"write_env_vars 157 -> {tags[0]}")
+    tags_string = ','.join(tags)
+    log.info(f"write_env_vars 159 tags_string--> {tags_string}")
     env_variables_dict = env_variables_dicts.get(os.environ['CI_JOB_NAME'])
     digest_to_scan = env_variables_dict["digest_to_scan"]
     with Path("upload_to_harbor.env").open("w", encoding="utf-8") as f:
