@@ -21,6 +21,7 @@ harbor-x86:
     VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/vat_response.json
   script:
     - 'mkdir -p "${ARTIFACT_DIR}"'
+    - 'env'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/harbor/upload_to_harbor.py"'
   artifacts:
     when: always
@@ -52,6 +53,7 @@ update-staging-attestations-x86:
     VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/vat_response.json
   script:
     - 'mkdir -p "${ARTIFACT_DIR}"'
+    - 'env'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/publish-artifacts/harbor/upload_to_harbor.py"'
   artifacts:
     when: always
