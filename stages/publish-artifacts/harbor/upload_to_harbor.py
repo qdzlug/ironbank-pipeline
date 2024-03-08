@@ -140,6 +140,36 @@ def generate_attestation_predicates(predicates):
     attestation_predicates.append(_generate_vat_response_lineage_file())
     return attestation_predicates
 
+def write_env_vars() -> None:
+    """Writes environment variables into a file named 'upload_to_harbor.env'.
+    Used by the create-manifest-list job. 
+    """
+    log.info("Writing env variables to file")
+    env_variables_dicts = {
+        "harbor-arm64": {
+            "registry_publish_url": "REGISTRY_PUBLISH_URL_ARM64",
+            "image_name": "IMAGE_NAME_ARM64",
+            "digest_to_scan": "DIGEST_TO_SCAN_ARM64"
+        },
+        "harbor-x86": {
+            "registry_publish_url": "REGISTRY_PUBLISH_URL_X86",
+            "image_name": "IMAGE_NAME_X86",
+            "digest_to_scan": "DIGEST_TO_SCAN_X86"
+        }
+    }
+    env_variables_dict = env_variables_dicts.get(os.environ['CI_JOB_NAME'])
+    registry_publish_url = env_variables_dict["registry_publish_url"]
+    image_name = env_variables_dict["image_name"]
+    digest_to_scan = env_variables_dict["digest_to_scan"]
+    with Path("upload_to_harbor.env").open("w", encoding="utf-8") as f:
+        f.writelines(
+            [
+                f"{registry_publish_url}={os.environ["REGISTRY_PUBLISH_URL"]}\n",
+                f"{image_name}={os.environ["IMAGE_NAME"]}\n",
+                f"{digest_to_scan}={os.environ["DIGEST_TO_SCAN"]}\n",
+            ]
+        )
+
 
 @stack_trace_handler
 def main():
@@ -218,6 +248,7 @@ def main():
                     replace=True,
                     log_cmd=True,
                 )
+            write_env_vars()
     except GenericSubprocessError:
         sys.exit(1)
 

@@ -27,6 +27,8 @@ harbor-x86:
     when: always
     paths:
       - "${ARTIFACT_DIR}/"
+    reports:
+      dotenv: upload_to_harbor.env
   retry:
     max: 2
     when: always
@@ -91,6 +93,8 @@ harbor-arm64:
     when: always
     paths:
       - "${ARTIFACT_DIR}/"
+    reports:
+      dotenv: upload_to_harbor.env
   retry:
     max: 2
     when: always
@@ -125,3 +129,16 @@ update-staging-attestations-arm64:
   retry:
     max: 2
     when: always
+
+create-manifest-list:
+  stage: publish-artifacts
+  extends:
+    - .setup_modules
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+  needs:
+    - load-scripts
+    - lint
+    - harbor-x86
+    - harbor-arm64
+  script: 'env'
