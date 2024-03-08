@@ -164,9 +164,9 @@ def write_env_vars() -> None:
     with Path("upload_to_harbor.env").open("w", encoding="utf-8") as f:
         f.writelines(
             [
-                f"{registry_publish_url}={os.environ["REGISTRY_PUBLISH_URL"]}\n",
-                f"{image_name}={os.environ["IMAGE_NAME"]}\n",
-                f"{digest_to_scan}={os.environ["DIGEST_TO_SCAN"]}\n",
+                f"{registry_publish_url}={os.environ['REGISTRY_PUBLISH_URL']}\n",
+                f"{image_name}={os.environ['IMAGE_NAME']}\n",
+                f"{digest_to_scan}={os.environ['DIGEST_TO_SCAN']}\n",
             ]
         )
 
