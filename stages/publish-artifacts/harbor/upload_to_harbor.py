@@ -224,6 +224,8 @@ def main():
                 Path(docker_config_dir, "config.json"),
             )
             cosign = Cosign(docker_config_dir=docker_config_dir)
+
+            log.info(f"hardening_manifest.image_tags --> {hardening_manifest.image_tags}") # TODO: Delete me
             # if the new image was scanned
             if "ironbank-staging" in os.environ["IMAGE_TO_SCAN"]:
                 # Promote image and tags from staging project
