@@ -131,7 +131,6 @@ update-staging-attestations-arm64:
     when: always
 
 create-manifest-list:
-  image: 
   stage: publish-artifacts
   extends:
     - .setup_modules
