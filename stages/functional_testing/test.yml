@@ -12,10 +12,8 @@ test_image:
     - setup_k8s_resources "$NAMESPACE" | tee /home/ci/job.log
     - package_auth_setup | tee /home/ci/job.log
     - python3 ${PIPELINE_REPO_DIR}/stages/functional_testing/library/test.py ./ | tee /home/ci/job.log
-    - systemctl status docker || service docker status 
-    - systemctl start docker || service docker start 
-    - systemctl enable docker 
-    - systemctl status docker || service docker status
+    - service docker start 
+
     - docker pull $(cat /tmp/image)
     # Check if /tmp/structure.yaml exists before running the next script
     - if [[ -f "/tmp/structure.yaml" ]]; then /tmp/container-structure-test test --image $(cat /tmp/image) --config /tmp/structure.yaml  | tee /home/ci/job.log; fi
