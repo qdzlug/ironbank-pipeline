@@ -24,7 +24,7 @@ trap 'echo ❌ exit at ${0}:${LINENO}, command was: ${BASH_COMMAND} 1>&2' ERR
 
 package_auth_setup () {
   mkdir -p ~/.docker
-  echo $DOCKER_AUTH_FILE_PRE_PUBLISH > ~/.docker/config.json
+  cp $DOCKER_AUTH_FILE_PRE_PUBLISH ~/.docker/config.json
 }
 
 
