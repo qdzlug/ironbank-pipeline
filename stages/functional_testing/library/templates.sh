@@ -22,14 +22,9 @@ fi
 
 trap 'echo ❌ exit at ${0}:${LINENO}, command was: ${BASH_COMMAND} 1>&2' ERR
 
-
-package_auth_setup() {
-   mkdir -p ~/.docker
-   jq -n '{"auths": {"registry.dso.mil": {"auth": $bb_registry_auth}, "registry1.dso.mil": {"auth": $registry1_auth}, "registry.il2.dso.mil": {"auth": $il2_registry_auth}, "docker.io": {"auth": $bb_docker_auth} } }' \
-     --arg bb_registry_auth ${BB_REGISTRY_AUTH} \
-     --arg registry1_auth ${REGISTRY1_AUTH} \
-     --arg il2_registry_auth ${IL2_REGISTRY_AUTH} \
-     --arg bb_docker_auth ${DOCKER_AUTH} > ~/.docker/config.json
+package_auth_setup () {
+  mkdir -p ~/.docker
+  echo $DOCKER_AUTH_FILE_PRE_PUBLISH > ~/.docker/config.json
 }
 
 
