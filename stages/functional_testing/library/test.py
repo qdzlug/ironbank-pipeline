@@ -241,6 +241,8 @@ def main(git_project_root_folder, kubernetes_namespace):
     # Check for presence of hardenening_manifest.yaml
 
     docker_image = read_image_from_hardening_manifest(hardening_manifest)
+    with open("/tmp/image", "w") as file:
+        file.write(docker_image)
 
     container_tests = None
     kubernetes_test = None
@@ -315,9 +317,12 @@ def extract_and_write_structure_test(source_file_path='testing_manifest.yaml', d
         pod_manifest_yaml = generate_pod_manifest(kubernetes_test, docker_image)
         with open("/tmp/podmanifest.yaml", "w") as file:
             file.write(pod_manifest_yaml)
-            
+
     if structure_test is not None: 
         extract_and_write_structure_test()
+        
+    
+    
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
