@@ -3,46 +3,17 @@ test_image:
   variables:
     NAMESPACE: "ironbank-runtime"
 
-  script: 
-    - source ${PIPELINE_REPO_DIR}/stages/functional_testing/library/templates.sh | tee /home/ci/job.log
-    - setup_k8s_resources "$NAMESPACE" | tee /home/ci/job.log
-    - python3 ${PIPELINE_REPO_DIR}/stages/functional_testing/library/test.py ./ | tee /home/ci/job.log
-    # Check if /tmp/podmanifest.yaml exists before running the next script
-    - if [[ -f "/tmp/podmanifest.yaml" ]]; then ${PIPELINE_REPO_DIR}/stages/functional_testing/library/run_k8s_test.sh | tee /home/ci/job.log; fi
-  rules:
-    - exists:
-        - testing_manifest.yaml
-      when: always
-      if: '$CI_COMMIT_BRANCH == "development"'
-    - when: never
-  allow_failure: true
-  tags: 
-    - ironbank-dsop-ibec2
-  needs:
-    - lint
-    - load-scripts 
-    - import-artifacts
-    - build
-  retry:
-    max: 2
-    when:
-      - runner_system_failure
-      - stuck_or_timeout_failure
-      - api_failure
-      - unknown_failure
-
-structure_test:
-  stage: functional_testing
-  variables:
-    NAMESPACE: "ironbank-runtime"
-
   before_script:
     - echo "Setting up Container Structure test"
     - curl -LO https://github.com/GoogleContainerTools/container-structure-test/releases/latest/download/container-structure-test-linux-amd64 && chmod +x container-structure-test-linux-amd64 && sudo mv container-structure-test-linux-amd64 /usr/local/bin/container-structure-test
+
   script: 
     - source ${PIPELINE_REPO_DIR}/stages/functional_testing/library/templates.sh
+    - setup_k8s_resources "$NAMESPACE" | tee /home/ci/job.log
     - package_auth_setup | tee /home/ci/job.log
     - python3 ${PIPELINE_REPO_DIR}/stages/functional_testing/library/test.py ./ | tee /home/ci/job.log
+    # Check if /tmp/structure.yaml exists before running the next script
+    - if [[ -f "/tmp/structure.yaml" ]]; then ${PIPELINE_REPO_DIR}/stages/functional_testing/library/structure_test.sh | tee /home/ci/job.log; fi
     # Check if /tmp/podmanifest.yaml exists before running the next script
     - if [[ -f "/tmp/podmanifest.yaml" ]]; then ${PIPELINE_REPO_DIR}/stages/functional_testing/library/run_k8s_test.sh | tee /home/ci/job.log; fi
   rules:

@@ -258,7 +258,19 @@ def main(git_project_root_folder, kubernetes_namespace):
         print_red("Error: testing_manifest.yaml file not found in the project root")
         sys.exit(1)
 
-    #iterate through each docker test
+
+def extract_and_write_structure_test(source_file_path='testing_manifest.yaml', destination_file_path='/tmp/structure.yaml'):
+    
+    with open(source_file_path, 'r') as source_file:
+        content = yaml.safe_load(source_file)  
+
+    structure_test = content.get('structure_test', {})
+    
+    with open(destination_file_path, 'w') as destination_file:
+        yaml.dump(structure_test, destination_file, default_flow_style=False)
+    print(f"structure_test content has been written to {destination_file_path}")
+
+
     if container_tests is not None:
         test_number = 0
 
@@ -303,6 +315,9 @@ def main(git_project_root_folder, kubernetes_namespace):
         pod_manifest_yaml = generate_pod_manifest(kubernetes_test, docker_image)
         with open("/tmp/podmanifest.yaml", "w") as file:
             file.write(pod_manifest_yaml)
+            
+    if structure_test is not None: 
+        extract_and_write_structure_test()
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
