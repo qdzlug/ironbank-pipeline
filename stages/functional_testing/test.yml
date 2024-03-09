@@ -5,7 +5,7 @@ test_image:
 
   before_script:
     - echo "Setting up Container Structure test"
-    - curl -LO https://github.com/GoogleContainerTools/container-structure-test/releases/latest/download/container-structure-test-linux-amd64 && chmod +x container-structure-test-linux-amd64 && mv container-structure-test-linux-amd64 /usr/local/bin/container-structure-test
+    - curl -LO https://github.com/GoogleContainerTools/container-structure-test/releases/latest/download/container-structure-test-linux-amd64 && chmod +x container-structure-test-linux-amd64 && mv container-structure-test-linux-amd64 /tmp/container-structure-test
 
   script: 
     - source ${PIPELINE_REPO_DIR}/stages/functional_testing/library/templates.sh
@@ -14,7 +14,7 @@ test_image:
     - python3 ${PIPELINE_REPO_DIR}/stages/functional_testing/library/test.py ./ | tee /home/ci/job.log
     - docker pull $(cat /tmp/image)
     # Check if /tmp/structure.yaml exists before running the next script
-    - if [[ -f "/tmp/structure.yaml" ]]; then container-structure-test test --image $(cat /tmp/image) --config /tmp/structure.yaml  | tee /home/ci/job.log; fi
+    - if [[ -f "/tmp/structure.yaml" ]]; then /tmp/container-structure-test test --image $(cat /tmp/image) --config /tmp/structure.yaml  | tee /home/ci/job.log; fi
     # Check if /tmp/podmanifest.yaml exists before running the next script
     - if [[ -f "/tmp/podmanifest.yaml" ]]; then ${PIPELINE_REPO_DIR}/stages/functional_testing/library/run_k8s_test.sh | tee /home/ci/job.log; fi
   rules:
