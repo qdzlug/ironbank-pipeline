@@ -2,6 +2,33 @@
 
 CST_BINARY="/tmp/container-structure-test"
 
+# Functions
+print_header() {
+    echo -e "\n\n\033[1;33m-----------------------------------------"
+    echo -e "$1"
+    echo -e "-----------------------------------------\033[0m\n"
+}
+
+print_green() {
+    echo -e "\033[1;32m$1\033[0m"
+}
+
+print_red() {
+    echo -e "\033[1;31m$1\033[0m"
+}
+
+print_blue() {
+    echo -e "\033[1;34m$1\033[0m"
+}
+
+print_yellow() {
+    echo -e "\033[1;33m$1\033[0m"
+}
+
+print_cyan() {
+    echo -e "\033[1;36m$1\033[0m"
+}
+
 if [[ -f "/tmp/structure.yaml" ]]; then
     print_header "Running Container Structure Test"
     $CST_BINARY test --image "$(cat /tmp/image)" --config "/tmp/structure.yaml" --output junit --test-report /home/ci/report.xml | tee /home/ci/job.log
