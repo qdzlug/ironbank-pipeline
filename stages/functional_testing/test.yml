@@ -9,7 +9,6 @@ test_image:
     - until systemctl is-active --quiet --user docker.service; do sleep 1; echo 'INFO waiting for docker'; done
     - export DOCKER_HOST=unix:///run/user/1001/docker.sock
     - chmod +x ${PIPELINE_REPO_DIR}/stages/functional_testing/library/structure_test.sh 
-    - chmod +x ${PIPELINE_REPO_DIR}/stages/functional_testing/library/merge_report.sh 
 
   script: 
     - source ${PIPELINE_REPO_DIR}/stages/functional_testing/library/templates.sh
@@ -21,7 +20,6 @@ test_image:
     - ${PIPELINE_REPO_DIR}/stages/functional_testing/library/structure_test.sh | tee /home/ci/job.log
     # Check if /tmp/podmanifest.yaml exists before running the next script
     - if [[ -f "/tmp/podmanifest.yaml" ]]; then ${PIPELINE_REPO_DIR}/stages/functional_testing/library/run_k8s_test.sh | tee /home/ci/job.log; fi
-    - ${PIPELINE_REPO_DIR}/stages/functional_testing/library/merge_report.sh | tee /home/ci/job.log
   rules:
     - exists:
         - testing_manifest.yaml
@@ -33,7 +31,9 @@ test_image:
     - ironbank-dsop-ibec2
   artifacts:
     reports:
-      junit: report.xml 
+      junit: 
+        - report.xml 
+        - kubernetes-test-results.xml
 
   needs:
     - lint

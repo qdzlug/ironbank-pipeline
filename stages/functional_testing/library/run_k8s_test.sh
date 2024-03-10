@@ -4,7 +4,7 @@
 # NAMESPACE="gitlab-runner-dsop"
 UNIQUE_POD_NAME="test-pod-$(uuidgen | cut -c1-8)"
 
-JUNIT_OUTPUT="/tmp/kubernetes-test-results.xml"
+JUNIT_OUTPUT="kubernetes-test-results.xml"
 echo "<testsuites>" > $JUNIT_OUTPUT
 
 # Functions
