@@ -34,7 +34,7 @@ test_image:
     - ironbank-dsop-ibec2
   artifacts:
     reports:
-      junit: /home/ci/report.xml 
+      junit: /tmp/report.xml 
 
   needs:
     - lint
