@@ -19,10 +19,10 @@ test_image:
     - cat /tmp/structure.yaml
     - cat /tmp/podmanifest.yaml
     - docker pull $(cat /tmp/image)
+    # Check if /tmp/structure.yaml exists before running the next structure test script
+    - ${PIPELINE_REPO_DIR}/stages/functional_testing/library/structure_test.sh | tee /home/ci/job.log
     # Check if /tmp/podmanifest.yaml exists before running the next script
     - if [[ -f "/tmp/podmanifest.yaml" ]]; then ${PIPELINE_REPO_DIR}/stages/functional_testing/library/run_k8s_test.sh | tee /home/ci/job.log; fi
-    # Check if /tmp/structure.yaml exists before running the next structure test script
-    - ${PIPELINE_REPO_DIR}/stages/functional_testing/library/structure_test.sh
   rules:
     - exists:
         - testing_manifest.yaml
