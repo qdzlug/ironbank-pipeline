@@ -4,34 +4,6 @@
 # NAMESPACE="gitlab-runner-dsop"
 UNIQUE_POD_NAME="test-pod-$(uuidgen | cut -c1-8)"
 
-# Functions
-print_header() {
-    echo -e "\n\n\033[1;33m-----------------------------------------"
-    echo -e "$1"
-    echo -e "-----------------------------------------\033[0m\n"
-}
-
-print_green() {
-    echo -e "\033[1;32m$1\033[0m"
-}
-
-print_red() {
-    echo -e "\033[1;31m$1\033[0m"
-}
-
-print_blue() {
-    echo -e "\033[1;34m$1\033[0m"
-}
-
-print_yellow() {
-    echo -e "\033[1;33m$1\033[0m"
-}
-
-print_cyan() {
-    echo -e "\033[1;36m$1\033[0m"
-}
-
-
 # Script Start
 print_header "Starting Deployment Script"
 
