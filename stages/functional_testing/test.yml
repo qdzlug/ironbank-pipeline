@@ -20,8 +20,6 @@ test_image:
     - ${PIPELINE_REPO_DIR}/stages/functional_testing/library/structure_test.sh | tee /home/ci/job.log
     # Check if /tmp/podmanifest.yaml exists before running the next script
     - if [[ -f "/tmp/podmanifest.yaml" ]]; then ${PIPELINE_REPO_DIR}/stages/functional_testing/library/run_k8s_test.sh | tee /home/ci/job.log; fi
-    - cat report.xml 
-    - cat kubernetes-test-results.xml
   rules:
     - exists:
         - testing_manifest.yaml

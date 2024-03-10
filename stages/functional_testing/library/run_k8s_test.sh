@@ -112,6 +112,7 @@ POD_DESCRIBE=$(kubectl describe pod $UNIQUE_POD_NAME -n $NAMESPACE)
 print_header "Final Pod Status Check"
 if [[ "$POD_STATUS" != "Running" && "$POD_STATUS" != "Completed" ]]; then
     print_red "Error: Pod did not reach the 'Running' or 'Completed' state within the expected time."
+    POD_EVENTS=$(kubectl describe pod $UNIQUE_POD_NAME -n $NAMESPACE | awk '/Events:/{flag=1;next}/^[[:space:]]*$/{flag=0}flag' | tail -n 8)
     FAILURE_REASON=$(kubectl describe pod $UNIQUE_POD_NAME -n $NAMESPACE | grep -oP 'Reason:\s+\K.*')
     CONTAINER_STATUS=$(kubectl get pod $UNIQUE_POD_NAME -n $NAMESPACE -o=jsonpath='{.status.containerStatuses[0].state}')
     echo $CONTAINER_STATUS
