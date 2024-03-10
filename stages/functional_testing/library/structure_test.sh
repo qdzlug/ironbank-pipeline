@@ -1,7 +1,8 @@
 #!/bin/bash
-
+set -x 
 CST_BINARY="/tmp/container-structure-test"
-
+cat /tmp/structure.yaml
+cat /tmp/podmanifest.yaml
 # Functions
 print_header() {
     echo -e "\n\n\033[1;33m-----------------------------------------"
