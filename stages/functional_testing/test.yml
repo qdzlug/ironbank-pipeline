@@ -8,6 +8,8 @@ test_image:
     - curl -LO https://github.com/GoogleContainerTools/container-structure-test/releases/latest/download/container-structure-test-linux-amd64 && chmod +x container-structure-test-linux-amd64 && mv container-structure-test-linux-amd64 /tmp/container-structure-test
     - until systemctl is-active --quiet --user docker.service; do sleep 1; echo 'INFO waiting for docker'; done
     - export DOCKER_HOST=unix:///run/user/1001/docker.sock
+    - ls -al ${PIPELINE_REPO_DIR}/stages/functional_testing/library/ 
+    - chmod +x ${PIPELINE_REPO_DIR}/stages/functional_testing/library/structure_test.sh 
 
   script: 
     - source ${PIPELINE_REPO_DIR}/stages/functional_testing/library/templates.sh
