@@ -120,7 +120,7 @@ if [[ "$POD_STATUS" != "Running" && "$POD_STATUS" != "Completed" ]]; then
     print_cyan "Check the pod events and logs for more details."
     print_red "Failing ...."
     echo $(kubectl get pod $UNIQUE_POD_NAME -n $NAMESPACE --no-headers)
-    echo "<testsuite name='Kubernetes Test'><testcase classname='PodDeployment' name='Pod Status Check'><failure message='Pod failed to reach Running or Completed state. Failure Reason: $FAILURE_REASON, Container Status: $CONTAINER_STATUS'>$POD_STATUS</failure></testcase></testsuite>" >> $JUNIT_OUTPUT
+    echo "<testsuite name='Kubernetes Test'><testcase classname='KubernetesTest' name='Pod Status Check'><system-out><![CDATA[Pod Status: $POD_STATUS\nContainer Status: $CONTAINER_STATUS\nPod Logs:\n$POD_LOGS]]></system-out></testcase></testsuite>" >> $JUNIT_OUTPUT
     echo "</testsuites>" >> $JUNIT_OUTPUT
     exit 1
 else 
@@ -128,7 +128,7 @@ else
     CONTAINER_STATUS=$(kubectl get pod $UNIQUE_POD_NAME -n $NAMESPACE -o=jsonpath='{.status.containerStatuses[0].state}')
     echo $CONTAINER_STATUS
     echo $(kubectl get pod $UNIQUE_POD_NAME -n $NAMESPACE --no-headers)
-    echo "<testsuite name='Kubernetes Test'><testcase classname='PodDeployment' name='Pod Status Check'><system-out>Pod Status: $POD_STATUS, Container Status: $CONTAINER_STATUS</system-out></testcase></testsuite>" >> $JUNIT_OUTPUT
+    echo "<testsuite name='Kubernetes Test'><testcase classname='KubernetesTest' name='Pod Status Check'><system-out>Pod Status: $POD_STATUS, Container Status: $CONTAINER_STATUS</system-out></testcase></testsuite>" >> $JUNIT_OUTPUT
     echo "</testsuites>" >> $JUNIT_OUTPUT
 fi
 
