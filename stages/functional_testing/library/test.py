@@ -234,6 +234,17 @@ def run_test(entrypoint, command_timeout, pod_name, docker_image, kubernetes_nam
     #clean up container
     cleanup_pod(pod_name, kubernetes_namespace)
 
+def extract_and_write_structure_test(source_file_path='testing_manifest.yaml', destination_file_path='/tmp/structure.yaml'):
+    
+    with open(source_file_path, 'r') as source_file:
+        content = yaml.safe_load(source_file)  
+
+    structure_test = content.get('structure_test', {})
+    
+    with open(destination_file_path, 'w') as destination_file:
+        yaml.dump(structure_test, destination_file, default_flow_style=False)
+    print(f"structure_test content has been written to {destination_file_path}")
+
 def main(git_project_root_folder, kubernetes_namespace):
     manifest_file_path = f"{git_project_root_folder}/testing_manifest.yaml"
 
@@ -259,18 +270,6 @@ def main(git_project_root_folder, kubernetes_namespace):
     except FileNotFoundError:
         print_red("Error: testing_manifest.yaml file not found in the project root")
         sys.exit(1)
-
-
-def extract_and_write_structure_test(source_file_path='testing_manifest.yaml', destination_file_path='/tmp/structure.yaml'):
-    
-    with open(source_file_path, 'r') as source_file:
-        content = yaml.safe_load(source_file)  
-
-    structure_test = content.get('structure_test', {})
-    
-    with open(destination_file_path, 'w') as destination_file:
-        yaml.dump(structure_test, destination_file, default_flow_style=False)
-    print(f"structure_test content has been written to {destination_file_path}")
 
 
     if container_tests is not None:
