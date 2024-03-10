@@ -128,6 +128,8 @@ if [[ "$POD_STATUS" != "Running" && "$POD_STATUS" != "Completed" ]]; then
     echo "</testcase>" >> $JUNIT_OUTPUT
 
     # Close testsuite
+    echo "</testsuite>" >> $JUNIT_OUTPUT
+
     echo "</testsuites>" >> $JUNIT_OUTPUT
     exit 1
 else 
