@@ -4,6 +4,9 @@
 # NAMESPACE="gitlab-runner-dsop"
 UNIQUE_POD_NAME="test-pod-$(uuidgen | cut -c1-8)"
 
+JUNIT_OUTPUT="/tmp/kubernetes-test-results.xml"
+echo "<testsuites>" > $JUNIT_OUTPUT
+
 # Functions
 print_header() {
     echo -e "\n\n\033[1;33m-----------------------------------------"
@@ -108,15 +111,23 @@ POD_DESCRIBE=$(kubectl describe pod $UNIQUE_POD_NAME -n $NAMESPACE)
 print_header "Final Pod Status Check"
 if [[ "$POD_STATUS" != "Running" && "$POD_STATUS" != "Completed" ]]; then
     print_red "Error: Pod did not reach the 'Running' or 'Completed' state within the expected time."
-    echo $(kubectl get pod $UNIQUE_POD_NAME -n $NAMESPACE -o=jsonpath='{.status.containerStatuses[0].state}')
+    FAILURE_REASON=$(kubectl describe pod $UNIQUE_POD_NAME -n $NAMESPACE | grep -oP 'Reason:\s+\K.*')
+    CONTAINER_STATUS=$(kubectl get pod $UNIQUE_POD_NAME -n $NAMESPACE -o=jsonpath='{.status.containerStatuses[0].state}')
+    echo $CONTAINER_STATUS
+    print_red "Reason: $FAILURE_REASON"
     
     print_cyan "Check the pod events and logs for more details."
     print_red "Failing ...."
     echo $(kubectl get pod $UNIQUE_POD_NAME -n $NAMESPACE --no-headers)
+    echo "<testsuite name='Kubernetes Test'><testcase classname='PodDeployment' name='Pod Status Check'><failure message='Pod failed to reach Running or Completed state. Failure Reason: $FAILURE_REASON, Container Status: $CONTAINER_STATUS'>$POD_STATUS</failure></testcase></testsuite>" >> $JUNIT_OUTPUT
     exit 1
 else 
     print_cyan "Current Pod Status: $POD_STATUS"
+    CONTAINER_STATUS=$(kubectl get pod $UNIQUE_POD_NAME -n $NAMESPACE -o=jsonpath='{.status.containerStatuses[0].state}')
+    echo $CONTAINER_STATUS
     echo $(kubectl get pod $UNIQUE_POD_NAME -n $NAMESPACE --no-headers)
+    echo "<testsuite name='Kubernetes Test'><testcase classname='PodDeployment' name='Pod Status Check'><system-out>Pod Status: $POD_STATUS, Container Status: $CONTAINER_STATUS</system-out></testcase></testsuite>" >> $JUNIT_OUTPUT
+else
 fi
 
 # Cleanup at the end

@@ -9,18 +9,19 @@ test_image:
     - until systemctl is-active --quiet --user docker.service; do sleep 1; echo 'INFO waiting for docker'; done
     - export DOCKER_HOST=unix:///run/user/1001/docker.sock
     - chmod +x ${PIPELINE_REPO_DIR}/stages/functional_testing/library/structure_test.sh 
+    - chmod +x ${PIPELINE_REPO_DIR}/stages/functional_testing/library/merge_report.sh 
 
   script: 
     - source ${PIPELINE_REPO_DIR}/stages/functional_testing/library/templates.sh
     - setup_k8s_resources "$NAMESPACE" | tee /home/ci/job.log
     - package_auth_setup | tee /home/ci/job.log
     - python3 ${PIPELINE_REPO_DIR}/stages/functional_testing/library/test.py ./ | tee /home/ci/job.log
-    - whoami
     - docker pull $(cat /tmp/image) > /dev/null 2>&1
     # Check if /tmp/structure.yaml exists before running the next structure test script
-    - ${PIPELINE_REPO_DIR}/stages/functional_testing/library/structure_test.sh
+    - ${PIPELINE_REPO_DIR}/stages/functional_testing/library/structure_test.sh | tee /home/ci/job.log
     # Check if /tmp/podmanifest.yaml exists before running the next script
     - if [[ -f "/tmp/podmanifest.yaml" ]]; then ${PIPELINE_REPO_DIR}/stages/functional_testing/library/run_k8s_test.sh | tee /home/ci/job.log; fi
+    - ${PIPELINE_REPO_DIR}/stages/functional_testing/library/merge_report.sh | tee /home/ci/job.log
   rules:
     - exists:
         - testing_manifest.yaml
