@@ -12,11 +12,8 @@ test_image:
     - setup_k8s_resources "$NAMESPACE" | tee /home/ci/job.log
     - package_auth_setup | tee /home/ci/job.log
     - python3 ${PIPELINE_REPO_DIR}/stages/functional_testing/library/test.py ./ | tee /home/ci/job.log
-    # - service docker start 
     - whoami
-    # - minikube docker-env 
-    # - eval $(minikube docker-env)
-    - systemctl start docker 
+    - echo $(cat /tmp/image)
     - docker ps 
     - docker pull $(cat /tmp/image)
     # Check if /tmp/structure.yaml exists before running the next script
