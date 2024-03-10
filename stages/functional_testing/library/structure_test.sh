@@ -1,8 +1,5 @@
 #!/bin/bash
-set -x 
 CST_BINARY="/tmp/container-structure-test"
-cat /tmp/structure.yaml
-cat /tmp/podmanifest.yaml
 # Functions
 print_header() {
     echo -e "\n\n\033[1;33m-----------------------------------------"
@@ -32,10 +29,10 @@ print_cyan() {
 
 if [[ -f "/tmp/structure.yaml" ]]; then
     print_header "Running Container Structure Test"
-    $CST_BINARY test --image "$(cat /tmp/image)" --config "/tmp/structure.yaml" --output junit --test-report /tmp/report.xml || true
+    $CST_BINARY test --image "$(cat /tmp/image)" --config "/tmp/structure.yaml" --output junit --test-report report.xml || true
 else
     # Create a dummy JUnit report indicating no structure tests were defined
-    cat <<EOF > /tmp/report.xml
+    cat <<EOF > report.xml
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
   <testsuite name="Container Structure Test" tests="1" errors="0" failures="0" skip="0">

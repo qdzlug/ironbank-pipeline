@@ -32,7 +32,7 @@ print_cyan() {
 }
 
 # Script Start
-print_header "Starting Deployment Script"
+print_header "Running Kubernetes Test. Starting Deployment Script"
 
 # Ensure the testing namespace exists
 print_green "Trusting namespace '$NAMESPACE' exists..."
