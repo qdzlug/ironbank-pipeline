@@ -125,7 +125,7 @@ if [[ "$POD_STATUS" != "Running" && "$POD_STATUS" != "Completed" ]]; then
 
     # Include the failure testcase
     echo "<testcase name='Kubernetes Test'>" >> $JUNIT_OUTPUT
-    echo "<failure><![CDATA[Pod failed to reach Running or Completed state. Failure Reason: $FAILURE_REASON, Container Status: $CONTAINER_STATUS, Pod Events: $POD_EVENTS, Pod Logs: $POD_LOGS]]></failure>" >> $JUNIT_OUTPUT
+    echo "<failure><![CDATA[Pod failed to reach Running or Completed state. \n\nFailure Reason: $FAILURE_REASON, \n\nContainer Status: $CONTAINER_STATUS, \n\nPod Events: $POD_EVENTS, \n\nPod Logs: $POD_LOGS]]></failure>" >> $JUNIT_OUTPUT
     echo "</testcase>" >> $JUNIT_OUTPUT
 
     # Close testsuite
