@@ -257,6 +257,7 @@ def main(git_project_root_folder, kubernetes_namespace):
 
     container_tests = None
     kubernetes_test = None
+    structure_test = None 
 
     # Check for presence of testing_manifest.yaml
     try:
@@ -266,6 +267,8 @@ def main(git_project_root_folder, kubernetes_namespace):
                 container_tests = data['command_tests']
             if 'kubernetes_test' in data:
                 kubernetes_test = data['kubernetes_test']
+            if 'structure_test' in data:
+                structure_test = data['structure_test']
                 
     except FileNotFoundError:
         print_red("Error: testing_manifest.yaml file not found in the project root")
