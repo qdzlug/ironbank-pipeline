@@ -14,8 +14,10 @@ test_image:
     - python3 ${PIPELINE_REPO_DIR}/stages/functional_testing/library/test.py ./ | tee /home/ci/job.log
     # - service docker start 
     - whoami
-    - minikube docker-env 
-    - eval $(minikube docker-env)
+    # - minikube docker-env 
+    # - eval $(minikube docker-env)
+    - systemctl start docker 
+    - docker ps 
     - docker pull $(cat /tmp/image)
     # Check if /tmp/structure.yaml exists before running the next script
     - if [[ -f "/tmp/structure.yaml" ]]; then /tmp/container-structure-test test --image $(cat /tmp/image) --config /tmp/structure.yaml  | tee /home/ci/job.log; fi
