@@ -38,6 +38,7 @@ else
   <testsuite name="Container Structure Test" tests="1" errors="0" failures="0" skip="0">
     <testcase classname="structureTest" name="No Structure Test Present">
       <skipped message="No structure_test is defined in testing_manifest.yaml"/>
+      <system-out>Check the job logs for other tests executed on this stage.</system-out>
     </testcase>
   </testsuite>
 </testsuites>

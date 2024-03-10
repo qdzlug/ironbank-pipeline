@@ -16,8 +16,6 @@ test_image:
     - package_auth_setup | tee /home/ci/job.log
     - python3 ${PIPELINE_REPO_DIR}/stages/functional_testing/library/test.py ./ | tee /home/ci/job.log
     - whoami
-    - echo $(cat /tmp/image)
-
     - docker pull $(cat /tmp/image) > /dev/null 2>&1
     # Check if /tmp/structure.yaml exists before running the next structure test script
     - ${PIPELINE_REPO_DIR}/stages/functional_testing/library/structure_test.sh

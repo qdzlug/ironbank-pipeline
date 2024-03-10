@@ -63,7 +63,6 @@ def cleanup_pod(pod_name, pod_namespace):
     # Ensure to clean up: silently stop the container
     stop_cmd = f"kubectl delete po {pod_name} -n {pod_namespace} --force > /dev/null 2>&1"
     os.system(stop_cmd)
-    print(f"Running: {stop_cmd}")
 
 def read_image_from_hardening_manifest(hardening_manifest):
     try:
@@ -192,11 +191,10 @@ def run_test(entrypoint, command_timeout, pod_name, docker_image, kubernetes_nam
 
     #print command information
     # print(f"Running test command: {kubectl_command}")
-    print(f"Running test command: {entrypoint}")
+    print_yellow(f"Running test command: {entrypoint}")
     result = subprocess.run(kubectl_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if result.returncode == 0:
         print("Command executed successfully!")
-        print("Output:\n", result.stdout)
     else:
         print("Command failed")
         print("Error:\n", result.stderr)
@@ -219,9 +217,9 @@ def run_test(entrypoint, command_timeout, pod_name, docker_image, kubernetes_nam
 
     #print the pod logs
     pod_logs = get_pod_logs(pod_name, kubernetes_namespace)
-    print(f"Command log dump for pod: <{pod_name}>")
+    print_yellow(f"Command log dump for pod: <{pod_name}>")
     print_blue(f"\n {pod_logs} \n")
-    print(f"end Command log dump for pod: <{pod_name}>")
+    print_yellow(f"end Command log dump for pod: <{pod_name}>")
 
     #check if expected_output was in logs
     if(will_check_for_expected_output):
@@ -243,7 +241,7 @@ def extract_and_write_structure_test(source_file_path='testing_manifest.yaml', d
     
     with open(destination_file_path, 'w') as destination_file:
         yaml.dump(structure_test, destination_file, default_flow_style=False)
-    print(f"structure_test content has been written to {destination_file_path}")
+    print_green(f"structure_test content has been written to {destination_file_path}. Container Structure Test will be run next.")
 
 def main(git_project_root_folder, kubernetes_namespace):
     manifest_file_path = f"{git_project_root_folder}/testing_manifest.yaml"
@@ -285,8 +283,8 @@ def main(git_project_root_folder, kubernetes_namespace):
             
             print_yellow("---------------------------------------")
             print_green(f"Beginning Container Test #{test_number}")
-            print(f"Test name: {container_test_name}")
-            print(f"Test description: {container_test['description']}")
+            print_yellow(f"Test name: {container_test_name}")
+            print_yellow(f"Test description: {container_test['description']}")
 
             # Loop through the commands and print command, expected output and timeout
 
@@ -294,7 +292,6 @@ def main(git_project_root_folder, kubernetes_namespace):
                 
                 #generate a unique pod name
                 pod_name = uuid.uuid4()
-                print(f"Pod name: {pod_name}")
 
                 #handle expected_output
                 expected_output = None
