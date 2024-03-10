@@ -15,8 +15,11 @@ test_image:
     - whoami
     - echo $(cat /tmp/image)
     - until systemctl is-active --quiet --user docker.service; do sleep 1; echo 'INFO waiting for docker'; done
+    - systemctl --user status docker.service 
+    - echo $DOCKER_HOST 
+    - systemctl --user cat docker.service
     - docker ps 
-    - docker pull $(cat /tmp/image)
+    # - docker pull $(cat /tmp/image)
     # Check if /tmp/structure.yaml exists before running the next script
     - if [[ -f "/tmp/structure.yaml" ]]; then /tmp/container-structure-test test --image $(cat /tmp/image) --config /tmp/structure.yaml  | tee /home/ci/job.log; fi
     # Check if /tmp/podmanifest.yaml exists before running the next script
