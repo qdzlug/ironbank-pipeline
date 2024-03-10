@@ -30,6 +30,10 @@ print_cyan() {
 if [[ -f "/tmp/structure.yaml" ]]; then
     print_header "Running Container Structure Test"
     $CST_BINARY test --image "$(cat /tmp/image)" --config "/tmp/structure.yaml" --output junit --test-report /tmp/report.xml || true
+    print_cyan "\n\n-----------------------------------------\n\n"
+    $CST_BINARY test --image "$(cat /tmp/image)" --config "/tmp/structure.yaml" || true
+
+    print_header "End Container Structure Test"
 else
     # Create a dummy JUnit report indicating no structure tests were defined
     cat <<EOF > /tmp/report.xml
@@ -43,5 +47,5 @@ else
   </testsuite>
 </testsuites>
 EOF
-    print_yellow "No structure tests found in testing_manifest.yaml." | tee /home/ci/job.log
+    print_header "No structure tests found in testing_manifest.yaml." | tee /home/ci/job.log
 fi

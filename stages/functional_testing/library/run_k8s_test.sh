@@ -127,7 +127,6 @@ else
     echo $CONTAINER_STATUS
     echo $(kubectl get pod $UNIQUE_POD_NAME -n $NAMESPACE --no-headers)
     echo "<testsuite name='Kubernetes Test'><testcase classname='PodDeployment' name='Pod Status Check'><system-out>Pod Status: $POD_STATUS, Container Status: $CONTAINER_STATUS</system-out></testcase></testsuite>" >> $JUNIT_OUTPUT
-else
 fi
 
 # Cleanup at the end
