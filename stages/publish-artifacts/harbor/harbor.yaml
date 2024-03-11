@@ -133,8 +133,6 @@ update-staging-attestations-arm64:
 create-manifest-list:
   image: registry1.dso.mil/ironbank/opensource/containers/podman:4.6.1
   stage: publish-artifacts
-  extends:
-    - .setup_modules
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
   needs:
