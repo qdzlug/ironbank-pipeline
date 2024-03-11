@@ -4,6 +4,7 @@ env
 
 # Creating a manifest list for each tag specified in the hardening_manifest.
 # The images created by this pipeline are added to the manifest list and then the manifest list is pushed to harbor.
+echo $DOCKER_AUTH_FILE_PUBLISH
 IFS=','
 read -ra tags_array <<< "$TAGS_ARM64"
 for tag in "${tags_array[@]}"; do 
