@@ -249,7 +249,11 @@ class Anchore:
             logging.info(f"{image} added to Anchore")
             logging.info(image_add.stdout)
 
-            return yaml.safe_load(image_add.stdout)["Image"]["digest"]
+            # replace the first stdout line as it contains control characters
+            stdout_lines = image_add.stdout.split("\n")
+            stdout_lines[0] = "image:"
+            stdout_lines = "\n".join(stdout_lines)
+            return yaml.safe_load(stdout_lines)["image"]["digest"]
         else:
             logging.error(image_add.stdout)
             logging.error(image_add.stderr)
