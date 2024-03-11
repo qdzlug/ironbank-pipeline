@@ -1,6 +1,4 @@
 #!/bin/bash
-# Listing environment variables available to the job.
-env
 
 # Creating a manifest list for each tag specified in the hardening_manifest.
 # The images created by this pipeline are added to the manifest list and then the manifest list is pushed to harbor.
