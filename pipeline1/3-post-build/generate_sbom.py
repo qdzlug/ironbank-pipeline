@@ -8,9 +8,7 @@ from functools import partial
 
 # pylint: disable=C0413
 sys.path.append(Path(__file__).absolute().parents[2].as_posix())
-from ironbank_py39_modules.scanner_api_handlers.anchore import (
-    Anchore,
-)
+from anchore import Anchore  # pylint: disable=C0413
 
 
 def generate_sbom_parallel(anchore_scan, image, artifacts_path, fmt) -> None:
