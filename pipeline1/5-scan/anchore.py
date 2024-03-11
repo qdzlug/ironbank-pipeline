@@ -225,6 +225,7 @@ class Anchore:
         add_cmd = ["anchorectl", "image", "add"]
 
         if Path("./Dockerfile").is_file():
+            os.environ["ANCHORECTL_FORCE="] = "true"
             add_cmd += ["--dockerfile", "./Dockerfile"]
 
         add_cmd.append(image)
