@@ -140,7 +140,7 @@ def generate_attestation_predicates(predicates):
     attestation_predicates.append(_generate_vat_response_lineage_file())
     return attestation_predicates
 
-def write_env_vars(tags: list[str]) -> None:
+def write_env_vars(tags: list[str]) -> None: # TODO: Clean this function up.
     """Writes environment variables into a file named 'upload_to_harbor.env'.
     Used by the create-manifest-list job. 
     """
@@ -167,10 +167,10 @@ def write_env_vars(tags: list[str]) -> None:
         build = "ARM64"
     log.info(f"env_file_name --> {env_file_name}")
     with Path(env_file_name).open("w", encoding="utf-8") as f:
-        f.write(f"REGISTRY_PUBLISH_URL_{build}={os.environ['REGISTRY_PUBLISH_URL']}")
-        f.write(f"IMAGE_NAME_{build}={os.environ['IMAGE_NAME']}")
-        f.write(f"{digest_to_scan}_{build}={os.environ['DIGEST_TO_SCAN']}")
-        f.write(f"TAGS_{build}={tags_string}")
+        f.write(f"REGISTRY_PUBLISH_URL_{build}={os.environ['REGISTRY_PUBLISH_URL']}\n")
+        f.write(f"IMAGE_NAME_{build}={os.environ['IMAGE_NAME']}\n")
+        f.write(f"{digest_to_scan}_{build}={os.environ['DIGEST_TO_SCAN']}\n")
+        f.write(f"TAGS_{build}={tags_string}\n")
         
 
 
