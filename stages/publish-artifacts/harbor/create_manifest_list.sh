@@ -7,8 +7,15 @@ env
 IFS=','
 read -ra tags_array <<< "$TAGS_ARM64"
 for tag in "${tags_array[@]}"; do 
+  echo "podman manifest create $REGISTRY_PUBLISH_URL_ARM64:$tag"
   podman manifest create $REGISTRY_PUBLISH_URL_ARM64:$tag
+
+  echo "podman manifest add $REGISTRY_PUBLISH_URL_ARM64/$IMAGE_NAME_ARM64:$tag docker://$REPO@$DIGEST_TO_SCAN_X86"
   podman manifest add $REGISTRY_PUBLISH_URL_ARM64/$IMAGE_NAME_ARM64:$tag docker://$REPO@$DIGEST_TO_SCAN_X86
+
+  echo "podman manifest add $REGISTRY_PUBLISH_URL_ARM64/$IMAGE_NAME_ARM64:$tag docker://$REPO@$DIGEST_TO_SCAN_ARM64"
   podman manifest add $REGISTRY_PUBLISH_URL_ARM64/$IMAGE_NAME_ARM64:$tag docker://$REPO@$DIGEST_TO_SCAN_ARM64
+  
+  echo "podman manifest push --all $REPO:$tag"
   podman manifest push --all $REPO:$tag
 done
