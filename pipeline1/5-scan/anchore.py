@@ -212,7 +212,7 @@ class Anchore:
         """
         # shim for deprecated env vars
         os.environ["ANCHORECTL_PASSWORD"] = self.password
-        os.environ["ANCHORECTL_URL"] = self.url.replace("/v1/","")
+        os.environ["ANCHORECTL_URL"] = self.url.replace("/v1/", "")
         os.environ["ANCHORECTL_USERNAME"] = self.username
 
         # new envvars
