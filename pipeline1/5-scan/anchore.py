@@ -220,7 +220,7 @@ class Anchore:
         os.environ["ANCHORECTL_IMAGE_WAIT"] = "true"
 
         logging.info("sending image to anchore for analysis, please wait..")
-        add_cmd = ["anchorectl", "image", "add", "--wait"]
+        add_cmd = ["anchorectl", "image", "add", "--wait", "--no-auto-subscribe"]
 
         if Path("./Dockerfile").is_file():
             add_cmd += ["--dockerfile", "./Dockerfile"]
