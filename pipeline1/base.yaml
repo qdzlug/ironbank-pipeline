@@ -1,6 +1,6 @@
 # Iron Bank CI Pipeline
 #image: registry1.dso.mil/ironbank-apps/ironbank-pipelines/pipeline-runner:v0.10.15
-image: registry1.dso.mil/ironbank-staging/ironbank-pipelines/pipeline-runner:ibci-2971730
+image: registry1.dso.mil/ironbank-staging/ironbank-pipelines/pipeline-runner:ibci-2971905
 
 default:
   retry:
