@@ -159,11 +159,18 @@ def write_env_vars(tags: list[str]) -> None:
     log.info(f"write_env_vars 159 tags_string--> {tags_string}")
     env_variables_dict = env_variables_dicts.get(os.environ['CI_JOB_NAME'])
     digest_to_scan = env_variables_dict["digest_to_scan"]
-    with Path("upload_to_harbor.env").open("w", encoding="utf-8") as f:
-        f.write(f"REGISTRY_PUBLISH_URL={os.environ['REGISTRY_PUBLISH_URL']}")
-        f.write(f"IMAGE_NAME={os.environ['IMAGE_NAME']}")
-        f.write(f"{digest_to_scan}={os.environ['DIGEST_TO_SCAN']}")
-        f.write(f"TAGS={tags_string}")
+    if os.environ['CI_JOB_NAME'] == "harbor-x86":
+        env_file_name = "upload_to_harbor_x86.env"
+        build = "X86"
+    else:
+        env_file_name = "upload_to_harbor_arm64.env"
+        build = "ARM64"
+    log.info(f"env_file_name --> {env_file_name}")
+    with Path(env_file_name).open("w", encoding="utf-8") as f:
+        f.write(f"REGISTRY_PUBLISH_URL_{build}={os.environ['REGISTRY_PUBLISH_URL']}")
+        f.write(f"IMAGE_NAME_{build}={os.environ['IMAGE_NAME']}")
+        f.write(f"{digest_to_scan}_{build}={os.environ['DIGEST_TO_SCAN']}")
+        f.write(f"TAGS_{build}={tags_string}")
         
 
 
