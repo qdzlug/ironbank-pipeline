@@ -159,7 +159,7 @@ def main() -> None:  # pylint: disable=subprocess-decorator-missing
     )
 
     cmd = [
-        "trufflehog3",
+        "trufflehog",
         "--no-entropy",
         "--ignore-nosecret",
         "--branch",
