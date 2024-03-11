@@ -212,15 +212,17 @@ class Anchore:
         """
         # shim for deprecated env vars
         os.environ["ANCHORECTL_PASSWORD"] = self.password
-        os.environ["ANCHORECTL_URL"] = self.url
+        os.environ["ANCHORECTL_URL"] = self.url.replace("/v1/","")
         os.environ["ANCHORECTL_USERNAME"] = self.username
+
+        # new envvars
         os.environ["ANCHORECTL_UPDATE_CHECK"] = "false"
         os.environ["ANCHORECTL_SKIP_API_VERSION_CHECK"] = "true"
         os.environ["ANCHORECTL_IMAGE_NO_AUTO_SUBSCRIBE"] = "true"
         os.environ["ANCHORECTL_IMAGE_WAIT"] = "true"
 
         logging.info("sending image to anchore for analysis, please wait..")
-        add_cmd = ["anchorectl", "image", "add", "--wait", "--no-auto-subscribe"]
+        add_cmd = ["anchorectl", "image", "add"]
 
         if Path("./Dockerfile").is_file():
             add_cmd += ["--dockerfile", "./Dockerfile"]
