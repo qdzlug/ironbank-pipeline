@@ -15,7 +15,6 @@ anchore-scan:
   variables:
     PYTHON_LOG_LEVEL: "INFO"
   extends: .scan
-  image: "${IAM_ACCOUNT_ID}.dkr.ecr.us-gov-west-1.amazonaws.com/ironbank/anchore/enterprise/enterprise:4.4.1"
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/5-scan/anchore_scan.py"'
   artifacts:
