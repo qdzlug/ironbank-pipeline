@@ -140,7 +140,7 @@ def generate_attestation_predicates(predicates):
     attestation_predicates.append(_generate_vat_response_lineage_file())
     return attestation_predicates
 
-def write_env_vars(tags: list[str]) -> None: # TODO: Clean this function up.
+def write_env_vars(tags: list[str]) -> None: # TODO: Clean this function up. # TODO: Do I need to write unit tests for this?
     """Writes environment variables into a file named 'upload_to_harbor.env'.
     Used by the create-manifest-list job. 
     """
