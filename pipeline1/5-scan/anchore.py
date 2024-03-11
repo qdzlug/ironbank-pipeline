@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 import requests
+import yaml
 
 logging.basicConfig(level=os.environ.get("PYTHON_LOG_LEVEL", "INFO"))
 
@@ -248,7 +249,7 @@ class Anchore:
             logging.info(f"{image} added to Anchore")
             logging.info(image_add.stdout)
 
-            return json.loads(image_add.stdout)[0]["imageDigest"]
+            return yaml.safe_load(image_add.stdout)["Image"]["digest"]
         else:
             logging.error(image_add.stdout)
             logging.error(image_add.stderr)
