@@ -253,33 +253,3 @@ class Anchore:
             logging.error(image_add.stdout)
             logging.error(image_add.stderr)
             sys.exit(image_add.returncode)
-
-    def generate_sbom(
-        self, image, artifacts_path, output_format, file_type, filename=None
-    ):
-        """
-        Grab the SBOM from Anchore
-
-        """
-        if not filename:
-            filename = output_format
-        else:
-            filename = f"{filename}-{output_format}"
-
-        cmd = ["syft", image, "--scope", "all-layers", "-o", f"{output_format}"]
-
-        sbom_dir = Path(artifacts_path)
-        sbom_dir.mkdir(parents=True, exist_ok=True)
-        with (sbom_dir / f"sbom-{filename}.{file_type}").open("wb") as f:
-            try:
-                logging.info(" ".join(cmd))
-                subprocess.run(
-                    cmd,
-                    check=True,
-                    encoding="utf-8",
-                    stderr=sys.stderr,
-                    stdout=f,
-                )
-            except subprocess.SubprocessError:
-                logging.error("Could not generate sbom of image")
-                sys.exit(1)
