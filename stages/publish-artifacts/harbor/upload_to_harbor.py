@@ -140,39 +140,23 @@ def generate_attestation_predicates(predicates):
     attestation_predicates.append(_generate_vat_response_lineage_file())
     return attestation_predicates
 
-def write_env_vars(tags: list[str]) -> None: # TODO: Clean this function up. # TODO: Do I need to write unit tests for this?
+def write_env_vars(tags: list[str]) -> None: # TODO: Do I need to write unit tests for this?
     """Writes environment variables into a file named 'upload_to_harbor.env'.
     Used by the create-manifest-list job. 
     """
     log.info("Writing env variables to file")
-    env_variables_dicts = {
-        "harbor-arm64": {
-            "digest_to_scan": "DIGEST_TO_SCAN_ARM64"
-        },
-        "harbor-x86": {
-            "digest_to_scan": "DIGEST_TO_SCAN_X86"
-        }
-    }
-    log.info(f"write_env_vars 156 -> {tags}")
-    log.info(f"write_env_vars 157 -> {tags[0]}")
     tags_string = ','.join(tags)
-    log.info(f"write_env_vars 159 tags_string--> {tags_string}")
-    env_variables_dict = env_variables_dicts.get(os.environ['CI_JOB_NAME'])
-    digest_to_scan = env_variables_dict["digest_to_scan"]
     if os.environ['CI_JOB_NAME'] == "harbor-x86":
         env_file_name = "upload_to_harbor_x86.env"
         build = "X86"
     else:
         env_file_name = "upload_to_harbor_arm64.env"
         build = "ARM64"
-    log.info(f"env_file_name --> {env_file_name}")
     with Path(env_file_name).open("w", encoding="utf-8") as f:
         f.write(f"REGISTRY_PUBLISH_URL_{build}={os.environ['REGISTRY_PUBLISH_URL']}\n")
         f.write(f"IMAGE_NAME_{build}={os.environ['IMAGE_NAME']}\n")
-        f.write(f"{digest_to_scan}_{build}={os.environ['DIGEST_TO_SCAN']}\n")
+        f.write(f"DIGEST_TO_SCAN_{build}={os.environ['DIGEST_TO_SCAN']}\n")
         f.write(f"TAGS_{build}={tags_string}\n")
-        
-
 
 @stack_trace_handler
 def main():

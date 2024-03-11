@@ -142,5 +142,5 @@ create-manifest-list:
     - harbor-x86
     - harbor-arm64
   script: 
-    - 'env'
-    - 'echo $TAGS_ARM64'
+    - '"${PIPELINE_REPO_DIR}/stages/publish-artifacts/harbor/create_manifest_list.sh"'
+    
