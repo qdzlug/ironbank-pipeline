@@ -55,7 +55,7 @@ trigger:
   variables:
     TEMPLATE: $TEMPLATE
     OS_TYPE: $OS_TYPE
-    BUILD_ARM64: "True"
+    BUILD_ARM64: "True" # If this is set the ARM64 jobs are created in gitlab, otherwise it is not.
   trigger:
     include:
       - project: ironbank-tools/ironbank-pipeline
