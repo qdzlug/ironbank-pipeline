@@ -22,6 +22,8 @@ log = logger.setup("build")
 
 def write_dockerfile_args(dockerfile_args: list["str"]):
     """Overwrite Dockerfile args that are defined in the hardening manifest."""
+    # dockerfile = "Dockerfile_arm64" if os.environ.get('CI_JOB_NAME') == "build-arm64" else "Dockerfile" # TODO: REMOVE Me if renaming the dockerfile works
+    # log.info(f"Using the following Dockerfile -> {dockerfile}") # TODO: Remove me
     with Path("Dockerfile").open(
         mode="r+",
         encoding="utf-8",
@@ -72,6 +74,8 @@ def load_resources(
     - skopeo: (Optional) An instance of the Skopeo class. Required if the resource_type is 'image'.
     """
     for resource_file in os.listdir(resource_dir):
+        log.info(f"resource_file -> {resource_file}") #TODO: Remove me
+        log.info(f"CI_JOB_NAME - > {os.environ['CI_JOB_NAME']}") #TODO: REMOVE ME
         resource_file_obj = Path(resource_dir, resource_file)
         if resource_file_obj.is_file() and not resource_file_obj.is_symlink():
             if resource_type == "image" and skopeo:
@@ -142,6 +146,10 @@ def generate_build_env(image_details: dict, image_name: str, image: Image, diges
     ) as f:
         f.writelines(build_envs)
 
+def remove_not_used_tars(image_dir):
+    for file in os.listdir(image_dir):
+        if os.environ['CI_JOB_NAME'] == "build-arm64" != ("arm64" in file):
+            os.remove(os.path.join(image_dir, file))
 
 # decorate main to capture all subprocess errors
 @stack_trace_handler
@@ -152,7 +160,7 @@ def main():
     staging_image = Image(
         registry=os.environ["REGISTRY_PRE_PUBLISH_URL"],
         name=hardening_manifest.image_name,
-        tag=f"ibci-{os.environ['CI_PIPELINE_ID']}",
+        tag=f"ibci-{os.environ['CI_PIPELINE_ID']}-{os.environ['CI_JOB_ID']}",
     )
     base_registry = os.environ["BASE_REGISTRY"]
     artifact_storage_dir = Path(os.environ["ARTIFACT_STORAGE"])
@@ -161,7 +169,7 @@ def main():
     image_dir = imports_dir / "images"
     resource_dir = imports_dir / "external-resources"
     pipeline_build_dir = Path(
-        os.environ["PIPELINE_REPO_DIR"], "pipeline1", "2-build"
+        os.environ["PIPELINE_REPO_DIR"], "stages", "build"
     ).absolute()
     mount_conf_path = Path().home().joinpath(".config", "containers", "mounts.conf")
 
@@ -179,9 +187,12 @@ def main():
     buildah = Buildah(authfile=prod_auth_path)
     skopeo = Skopeo()
 
+    # Removing amd64 image tars or arm64 image tars depending on the build's architecture.
+    remove_not_used_tars(image_dir)
     # gather files and subpaths
     log.info("Load any images used in Dockerfile build")
     load_resources(resource_dir=image_dir, resource_type="image", skopeo=skopeo)
+    # Both an arm64 build and amd64 build will have all the same resources available.
     log.info("Load HTTP and S3 external resources")
     load_resources(resource_dir=resource_dir)
 
@@ -197,9 +208,7 @@ def main():
     if hardening_manifest.base_image_name:
         log.info("Verifying parent image signature")
         if not os.environ.get("STAGING_BASE_IMAGE"):
-            with tempfile.TemporaryDirectory(
-                prefix="DOCKER_CONFIG-"
-            ) as docker_config_dir:
+            with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
                 shutil.copy(
                     prod_auth_path,
                     Path(docker_config_dir, "config.json"),
@@ -253,6 +262,11 @@ def main():
         # create list of lists, with each sublist containing an arg
         # sublist needed for f.writelines() on arg substitution in Dockerfile
         dockerfile_args = ["\n"] + [f"ARG {k}\n" for k in build_args.keys()]
+
+    # Deleting the amd64 Dockerfile and renaming the arm64 Dockerfile
+    if os.environ['CI_JOB_NAME'] == "build-arm64":
+        os.remove("Dockerfile")
+        os.rename("Dockerfile_arm64", "Dockerfile")
 
     write_dockerfile_args(dockerfile_args=dockerfile_args)
 

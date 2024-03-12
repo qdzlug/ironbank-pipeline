@@ -19,3 +19,25 @@ build:
     expire_in: 1 week
     reports:
       dotenv: build.env
+
+build:
+  stage: build
+  extends:
+    - .setup_modules
+  tags:
+    - ironbank-dsop-build
+  needs:
+    - setup
+    - import-artifacts
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
+    KUBERNETES_NODE_SELECTOR_IRONBANK: "ironbank=gitlab-runner-arm64"
+  script:
+    - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/2-build/build.py" "--arm64-build"'
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_DIR}/"
+    expire_in: 1 week
+    reports:
+      dotenv: build.env
