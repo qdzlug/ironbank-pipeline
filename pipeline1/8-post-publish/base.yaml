@@ -71,7 +71,9 @@ upload-to-cds-arm64:
   extends:
     - .setup_modules
   rules:
-    - if: $CI_COMMIT_BRANCH == "master" && $UPLOAD_TO_CDS == "True" && -e Dockerfile_arm64
+    - if: $CI_COMMIT_BRANCH == "master" && $UPLOAD_TO_CDS == "True"
+      exists:
+        - Dockerfile_arm64
   variables:
     ARTIFACT_DIR: ${ARTIFACT_STORAGE}/cds
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: cds
@@ -84,7 +86,9 @@ upload-to-s3-arm64:
     - .setup_modules
   resource_group: s3_phase
   rules:
-    - if: $CI_COMMIT_BRANCH == "master" && -e Dockerfile_arm64
+    - if: $CI_COMMIT_BRANCH == "master"
+      exists:
+        - Dockerfile_arm64
   id_tokens:
     VAT_TOKEN:
       aud: ${CI_SERVER_URL}
