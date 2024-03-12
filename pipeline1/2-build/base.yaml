@@ -34,8 +34,8 @@ build-arm64:
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
     KUBERNETES_NODE_SELECTOR_IRONBANK: "ironbank=gitlab-runner-arm64"
-    RUN_THIS_JOB: $BUILD_ARM64
   script:
+    - 'cp Dockerfile Dockerfile_arm64'
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/2-build/build.py" "--arm64-build"'
   artifacts:
     when: always
@@ -45,4 +45,4 @@ build-arm64:
     reports:
       dotenv: build.env
   rules:
-    - if: $RUN_THIS_JOB == "True"
+    - exists: Dockerfile_arm64

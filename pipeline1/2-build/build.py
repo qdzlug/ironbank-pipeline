@@ -263,10 +263,10 @@ def main():
         # sublist needed for f.writelines() on arg substitution in Dockerfile
         dockerfile_args = ["\n"] + [f"ARG {k}\n" for k in build_args.keys()]
 
-    # Deleting the amd64 Dockerfile and renaming the arm64 Dockerfile
-    if os.environ['CI_JOB_NAME'] == "build-arm64":
-        os.remove("Dockerfile")
-        os.rename("Dockerfile_arm64", "Dockerfile")
+    # # Deleting the amd64 Dockerfile and renaming the arm64 Dockerfile
+    # if os.environ['CI_JOB_NAME'] == "build-arm64":
+    #     os.remove("Dockerfile")
+    #     os.rename("Dockerfile_arm64", "Dockerfile")
 
     write_dockerfile_args(dockerfile_args=dockerfile_args)
 
