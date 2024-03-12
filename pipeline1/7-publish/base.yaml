@@ -54,7 +54,6 @@ generate-documentation:
   needs:
     - setup
     - build
-    - scan-logic
     - anchore-scan
     - twistlock-scan
     - openscap-compliance
@@ -82,8 +81,6 @@ harbor:
   needs:
     - setup
     - build
-    - create-sbom
-    - scan-logic
     - vat
   variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: sign
@@ -111,8 +108,6 @@ update-staging-attestations:
   needs:
     - setup
     - build
-    - create-sbom
-    - scan-logic
     - vat
   variables:
     ACCESS_LOG_DIR: ${ARTIFACT_STORAGE}/build

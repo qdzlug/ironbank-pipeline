@@ -3,7 +3,6 @@ upload-to-cds:
   needs:
     - setup
     - build
-    - scan-logic
     - vat
     - harbor
   when: manual
@@ -42,8 +41,6 @@ upload-to-s3:
   needs:
     - setup
     - build
-    - create-sbom
-    - scan-logic
     - anchore-scan
     - twistlock-scan
     - openscap-compliance

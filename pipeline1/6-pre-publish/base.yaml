@@ -6,7 +6,6 @@ vat:
   needs:
     - setup
     - build
-    - scan-logic
     - anchore-scan
     - openscap-compliance
     - twistlock-scan

@@ -1,18 +1,3 @@
-create-sbom:
-  stage: post-build
-  needs:
-    - setup
-    - build
-  variables:
-    SBOM_DIR: "${ARTIFACT_STORAGE}/sbom"
-  artifacts:
-    when: always
-    paths:
-      - "${SBOM_DIR}/"
-    expire_in: 1 week
-  script:
-    - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/3-post-build/generate_sbom.py"'
-
 create-tar:
   stage: post-build
   needs:

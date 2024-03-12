@@ -15,7 +15,6 @@ stages:
   - pre-build
   - build
   - post-build
-  - pre-scan
   - scan
   - pre-publish
   - publish
@@ -35,11 +34,6 @@ include:
 
   # SKIP_SCAN != true && (master || development)
   - local: pipeline1/3-post-build/base.yaml
-    rules:
-      - if: $SKIP_SCAN != "true"
-      - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
-
-  - local: pipeline1/4-pre-scan/base.yaml
     rules:
       - if: $SKIP_SCAN != "true"
       - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "development"
