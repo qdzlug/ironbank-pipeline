@@ -55,6 +55,7 @@ trigger:
   variables:
     TEMPLATE: $TEMPLATE
     OS_TYPE: $OS_TYPE
+    BUILD_ARM64: "True"
   trigger:
     include:
       - project: ironbank-tools/ironbank-pipeline
