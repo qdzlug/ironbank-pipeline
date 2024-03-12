@@ -68,7 +68,7 @@ check-findings-arm64:
     - if: $SKIP_FINDINGS_TRIGGER
       when: never
     - if: $CI_COMMIT_BRANCH == "master"
-      - exists:
+      exists:
         - Dockerfile_arm64
   needs:
     - job: vat-arm64
