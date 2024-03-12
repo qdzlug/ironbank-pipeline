@@ -35,9 +35,11 @@ The presence of a trigger increases complexity, adds redundant CI jobs (because 
 
 The openscap distro packages are specific to each distro (redhat, debian, or suse). The solution is a pipeline-runner image capable of using all three. This is done by running debian or suse based openscap images inside pipeline-runner (via podman) when needed. Redhat images are scanned natively by pipeline-runner (pipeline-runner is redhat based).
 
+![Alt text](image-1.png)
+
 ## naming/image/jobs outline
 
-Each stage now versus previous. If a unique image was previously used, its shown in parenthesis.
+Each stage now versus previous. If a unique image was previously used, its shown in parenthesis. The major change is `0-setup`, see image above.
 
 0. setup
 - now:
