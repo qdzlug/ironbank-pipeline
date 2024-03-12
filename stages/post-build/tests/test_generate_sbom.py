@@ -6,7 +6,6 @@ from common.utils import logger
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import generate_sbom
-from ironbank_py39_modules.scanner_api_handlers.anchore import Anchore  # noqa: E402
 
 log = logger.setup("test generate_sbom.main")
 
