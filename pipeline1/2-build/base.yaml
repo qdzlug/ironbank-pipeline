@@ -12,6 +12,7 @@ build:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/2-build/build.py"'
+    - 'source build.env'
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/2-build/generate_sbom.py"'
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/2-build/scan_logic_jobs.py"'
   artifacts:
