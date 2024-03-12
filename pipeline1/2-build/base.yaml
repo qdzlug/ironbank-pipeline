@@ -12,9 +12,9 @@ build:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/2-build/build.py"'
-    - 'cat build.env'
-    - 'source build.env; python3 "${PIPELINE_REPO_DIR}/pipeline1/2-build/generate_sbom.py"'
-    - 'source build.env; python3 "${PIPELINE_REPO_DIR}/pipeline1/2-build/scan_logic_jobs.py"'
+    - 'set -o allexport; source build.env; set +o allexport'
+    - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/2-build/generate_sbom.py"'
+    - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/2-build/scan_logic_jobs.py"'
   artifacts:
     when: always
     paths:
