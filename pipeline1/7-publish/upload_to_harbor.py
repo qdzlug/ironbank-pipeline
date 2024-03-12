@@ -140,13 +140,14 @@ def generate_attestation_predicates(predicates):
     attestation_predicates.append(_generate_vat_response_lineage_file())
     return attestation_predicates
 
-def write_env_vars(tags: list[str]) -> None: # TODO: Write a unit test
+
+def write_env_vars(tags: list[str]) -> None:  # TODO: Write a unit test
     """Writes environment variables into a file named 'upload_to_harbor.env'.
-    Used by the create-manifest-list job. 
+    Used by the create-manifest-list job.
     """
     log.info("Writing env variables to file")
-    tags_string = ','.join(tags)
-    if os.environ['CI_JOB_NAME'] == "harbor-x86":
+    tags_string = ",".join(tags)
+    if os.environ["CI_JOB_NAME"] == "harbor-x86":
         env_file_name = "upload_to_harbor_x86.env"
         build = "X86"
     else:
@@ -157,6 +158,7 @@ def write_env_vars(tags: list[str]) -> None: # TODO: Write a unit test
         f.write(f"IMAGE_NAME_{build}={os.environ['IMAGE_NAME']}\n")
         f.write(f"DIGEST_TO_SCAN_{build}={os.environ['DIGEST_TO_SCAN']}\n")
         f.write(f"TAGS_{build}={tags_string}\n")
+
 
 @stack_trace_handler
 def main():

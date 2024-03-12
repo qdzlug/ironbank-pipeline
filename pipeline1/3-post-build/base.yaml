@@ -45,8 +45,8 @@ create-sbom-arm64:
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/3-post-build/generate_sbom.py"'
   rules:
-    - exists: 
-      - Dockerfile_arm64
+    - exists:
+        - Dockerfile_arm64
 
 create-tar-arm64:
   stage: post-build
@@ -65,5 +65,5 @@ create-tar-arm64:
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/3-post-build/create_tar.py"'
   rules:
-    - exists: 
-      - Dockerfile_arm64
+    - exists:
+        - Dockerfile_arm64

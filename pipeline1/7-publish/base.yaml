@@ -37,7 +37,7 @@ check-cves-arm64:
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/7-publish/vat_response_parse.py"'
   rules:
     - exists:
-      - Dockerfile_arm64
+        - Dockerfile_arm64
 
 check-findings:
   variables:

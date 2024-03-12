@@ -46,7 +46,7 @@ vat-arm64:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: vat
   rules:
     - exists:
-      - Dockerfile_arm64
+        - Dockerfile_arm64
   id_tokens:
     VAT_TOKEN:
       aud: ${CI_SERVER_URL}

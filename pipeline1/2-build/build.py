@@ -142,10 +142,12 @@ def generate_build_env(image_details: dict, image_name: str, image: Image, diges
     ) as f:
         f.writelines(build_envs)
 
+
 def remove_not_used_tars(image_dir):
     for file in os.listdir(image_dir):
-        if os.environ['CI_JOB_NAME'] == "build-arm64" != ("arm64" in file):
+        if os.environ["CI_JOB_NAME"] == "build-arm64" != ("arm64" in file):
             os.remove(os.path.join(image_dir, file))
+
 
 # decorate main to capture all subprocess errors
 @stack_trace_handler
@@ -204,7 +206,9 @@ def main():
     if hardening_manifest.base_image_name:
         log.info("Verifying parent image signature")
         if not os.environ.get("STAGING_BASE_IMAGE"):
-            with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
+            with tempfile.TemporaryDirectory(
+                prefix="DOCKER_CONFIG-"
+            ) as docker_config_dir:
                 shutil.copy(
                     prod_auth_path,
                     Path(docker_config_dir, "config.json"),

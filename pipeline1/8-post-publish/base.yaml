@@ -134,5 +134,5 @@ create-manifest-list:
     - setup
     - harbor
     - harbor-arm64
-  script: 
+  script:
     - '"${PIPELINE_REPO_DIR}/pipeline1/8-post-publish/create_manifest_list.sh"'

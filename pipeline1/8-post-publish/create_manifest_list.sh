@@ -3,8 +3,8 @@
 # Creating a manifest list for each tag specified in the hardening_manifest.
 # The images created by this pipeline are added to the manifest list and then the manifest list is pushed to harbor.
 IFS=','
-read -ra tags_array <<< "$TAGS_ARM64"
-for tag in "${tags_array[@]}"; do 
+read -ra tags_array <<<"$TAGS_ARM64"
+for tag in "${tags_array[@]}"; do
   echo "Creating manifest list for $REGISTRY_PUBLISH_URL/$IMAGE_NAME_ARM64:$tag"
   podman manifest create $REGISTRY_PUBLISH_URL/$IMAGE_NAME_ARM64:$tag
   podman manifest add $REGISTRY_PUBLISH_URL/$IMAGE_NAME_ARM64:$tag docker://$REGISTRY_PUBLISH_URL/$IMAGE_NAME_ARM64@$DIGEST_TO_SCAN_X86 --authfile $DOCKER_AUTH_FILE_PULL

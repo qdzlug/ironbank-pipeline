@@ -36,5 +36,5 @@ scan-logic-arm64:
     max: 2
     when: runner_system_failure
   rules:
-    - exists: 
-      - Dockerfile_arm64
+    - exists:
+        - Dockerfile_arm64
