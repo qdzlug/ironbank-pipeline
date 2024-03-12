@@ -165,7 +165,7 @@ def main():
     image_dir = imports_dir / "images"
     resource_dir = imports_dir / "external-resources"
     pipeline_build_dir = Path(
-        os.environ["PIPELINE_REPO_DIR"], "stages", "build"
+        os.environ["PIPELINE_REPO_DIR"], "pipeline1", "2-build"
     ).absolute()
     mount_conf_path = Path().home().joinpath(".config", "containers", "mounts.conf")
 
@@ -258,11 +258,6 @@ def main():
         # create list of lists, with each sublist containing an arg
         # sublist needed for f.writelines() on arg substitution in Dockerfile
         dockerfile_args = ["\n"] + [f"ARG {k}\n" for k in build_args.keys()]
-
-    # # Deleting the amd64 Dockerfile and renaming the arm64 Dockerfile
-    # if os.environ['CI_JOB_NAME'] == "build-arm64":
-    #     os.remove("Dockerfile")
-    #     os.rename("Dockerfile_arm64", "Dockerfile")
 
     write_dockerfile_args(dockerfile_args=dockerfile_args)
 
