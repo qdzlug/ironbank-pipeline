@@ -10,6 +10,7 @@ build:
     - import-artifacts
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
+    SBOM_DIR: "${ARTIFACT_STORAGE}/sbom"
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/2-build/build.py"'
     - 'set -o allexport; source build.env; set +o allexport'
