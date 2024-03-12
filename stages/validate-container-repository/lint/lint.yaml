@@ -38,3 +38,4 @@ lint:
       fi
     - set +e
     - 'python3 "${PIPELINE_REPO_DIR}/stages/validate-container-repository/lint/lint_jobs.py"'
+    - 'env' # TODO: Remove me
