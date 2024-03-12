@@ -6,7 +6,7 @@ test_image:
   script: 
     - source ${PIPELINE_REPO_DIR}/stages/functional_testing/library/templates.sh
     - setup_k8s_resources "$NAMESPACE" | tee /home/ci/job.log
-    - python3 ${PIPELINE_REPO_DIR}/stages/functional_testing/library/test.py ./ | tee /home/ci/job.log
+    - python3 ${PIPELINE_REPO_DIR}/stages/functional_testing/library/functional_testing.py ./ | tee /home/ci/job.log
     # Check if /tmp/podmanifest.yaml exists before running the next script
     - if [[ -f "/tmp/podmanifest.yaml" ]]; then ${PIPELINE_REPO_DIR}/stages/functional_testing/library/run_k8s_test.sh | tee /home/ci/job.log; fi
   rules:
