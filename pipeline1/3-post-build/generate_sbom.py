@@ -1,25 +1,53 @@
 #!/usr/bin/env python3
 
+import logging
 import os
+import subprocess
 import sys
-from pathlib import Path
-from multiprocessing.pool import ThreadPool as Pool
 from functools import partial
+from multiprocessing.pool import ThreadPool as Pool
+from pathlib import Path
 
 # pylint: disable=C0413
 sys.path.append(Path(__file__).absolute().parents[2].as_posix())
-from ironbank_py39_modules.scanner_api_handlers.anchore import (
-    Anchore,
-)
 
 
-def generate_sbom_parallel(anchore_scan, image, artifacts_path, fmt) -> None:
+def generate_sbom(image, artifacts_path, output_format, file_type, filename=None):
+    """
+    Grab the SBOM from Anchore
+
+    """
+    if not filename:
+        filename = output_format
+    else:
+        filename = f"{filename}-{output_format}"
+
+    cmd = ["syft", image, "--scope", "all-layers", "-o", f"{output_format}"]
+
+    sbom_dir = Path(artifacts_path)
+    sbom_dir.mkdir(parents=True, exist_ok=True)
+    with (sbom_dir / f"sbom-{filename}.{file_type}").open("wb") as f:
+        try:
+            logging.info(" ".join(cmd))
+            subprocess.run(
+                cmd,
+                check=True,
+                encoding="utf-8",
+                stderr=sys.stderr,
+                stdout=f,
+            )
+        except subprocess.SubprocessError:
+            logging.error("Could not generate sbom of image")
+            sys.exit(1)
+
+
+def generate_sbom_parallel(image, artifacts_path, fmt) -> None:
     """Helper function which selects the appropriate args when calling
     generate_sbom."""
     if len(fmt) < 3:
-        anchore_scan.generate_sbom(image, artifacts_path, fmt[0], fmt[1])
+        generate_sbom(image, artifacts_path, fmt[0], fmt[1])
     else:
-        anchore_scan.generate_sbom(image, artifacts_path, fmt[0], fmt[1], fmt[2])
+        generate_sbom(image, artifacts_path, fmt[0], fmt[1], fmt[2])
 
 
 def main() -> None:
@@ -42,13 +70,6 @@ def main() -> None:
     """
     # Get logging level, set manually when running pipeline
 
-    anchore_scan = Anchore(
-        url=os.environ["ANCHORE_URL"],
-        username=os.environ["ANCHORE_USERNAME"],
-        password="",  # No password required for syft
-        verify=os.environ.get("ANCHORE_VERIFY", default=True),
-    )
-
     artifacts_path = os.environ.get("SBOM_DIR", default="/tmp/sbom_dir")
 
     image = os.environ["IMAGE_FULLTAG"]
@@ -62,9 +83,7 @@ def main() -> None:
 
     with Pool() as pool:
         # create intermediate function to hold arguments which are always the same (scan object, image, and artifact path)
-        partial_generate_sbom = partial(
-            generate_sbom_parallel, anchore_scan, image, artifacts_path
-        )
+        partial_generate_sbom = partial(generate_sbom_parallel, image, artifacts_path)
         # map each format tuple to partial_generate_sbom and add it to the pool
         pool.map(partial_generate_sbom, sbom_formats)
 

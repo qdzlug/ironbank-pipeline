@@ -135,7 +135,7 @@ def main() -> None:  # pylint: disable=subprocess-decorator-missing
     )
     default_truffle_config = Path(
         pipeline_repo_dir,
-        "pipeline1/validate-container-repository/secret-scan/default-trufflehog-config.yaml",
+        "pipeline1/0-setup/default-trufflehog-config.yaml",
     )
 
     project_origin = os.environ.get("TRUFFLEHOG_TARGET", "cht")
@@ -193,7 +193,7 @@ def main() -> None:  # pylint: disable=subprocess-decorator-missing
         assert findings.returncode == 0
     except subprocess.CalledProcessError as e:
         if e.returncode == 2 and e.stdout:
-            log.error(f"Return code: {e.returncode}")
+            log.error(f"Return code: {e.returncode} {e.stderr}")
             log.error("truffleHog found secrets")
             msg = f"docker run -it --rm -v $(pwd):/proj {job_image} {th_flags} /proj"
             log.error("=" * len(msg))
@@ -206,7 +206,7 @@ def main() -> None:  # pylint: disable=subprocess-decorator-missing
             )
             log.error(msg)
         else:
-            log.error(f"Return code: {e.returncode}")
+            log.error(f"Return code: {e.returncode} {e.stderr} {e.stderr}")
             log.error("truffleHog scan failed")
         sys.exit(1)
     except AssertionError:

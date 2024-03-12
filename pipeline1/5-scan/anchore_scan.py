@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import os
-from pathlib import Path
 import sys
+from pathlib import Path
 
 # need to keep this path append until this repo migrates to using ironbank-modules
 sys.path.append(Path(__file__).absolute().parents[2].as_posix())
@@ -46,7 +46,6 @@ def main() -> None:
     image = os.environ["IMAGE_TO_SCAN"]
 
     digest = anchore_scan.image_add(image)
-    anchore_scan.image_wait(digest=digest)
     anchore_scan.get_vulns(digest=digest, image=image, artifacts_path=artifacts_path)
     anchore_scan.get_compliance(
         digest=digest, image=image, artifacts_path=artifacts_path
