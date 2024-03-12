@@ -11,6 +11,7 @@ import-artifacts:
     - 'echo "${REQUESTS_CA_BUNDLE}"'
     - 'mkdir -p "${ARTIFACT_DIR}/external-resources/" "${ARTIFACT_DIR}/images/"'
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/1-pre-build/downloader.py"'
+    - 'env'
   artifacts:
     when: always
     paths:
