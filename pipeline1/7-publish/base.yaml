@@ -24,9 +24,6 @@ check-findings:
     ROBOTNIK_SUBCOMMAND: check
   stage: publish
   allow_failure: true
-  retry:
-    max: 1
-    when: runner_system_failure
   rules:
     - if: $SKIP_FINDINGS_TRIGGER
       when: never
