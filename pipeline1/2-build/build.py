@@ -22,8 +22,6 @@ log = logger.setup("build")
 
 def write_dockerfile_args(dockerfile_args: list["str"]):
     """Overwrite Dockerfile args that are defined in the hardening manifest."""
-    # dockerfile = "Dockerfile_arm64" if os.environ.get('CI_JOB_NAME') == "build-arm64" else "Dockerfile" # TODO: REMOVE Me if renaming the dockerfile works
-    # log.info(f"Using the following Dockerfile -> {dockerfile}") # TODO: Remove me
     with Path("Dockerfile").open(
         mode="r+",
         encoding="utf-8",
@@ -74,8 +72,6 @@ def load_resources(
     - skopeo: (Optional) An instance of the Skopeo class. Required if the resource_type is 'image'.
     """
     for resource_file in os.listdir(resource_dir):
-        log.info(f"resource_file -> {resource_file}") #TODO: Remove me
-        log.info(f"CI_JOB_NAME - > {os.environ['CI_JOB_NAME']}") #TODO: REMOVE ME
         resource_file_obj = Path(resource_dir, resource_file)
         if resource_file_obj.is_file() and not resource_file_obj.is_symlink():
             if resource_type == "image" and skopeo:

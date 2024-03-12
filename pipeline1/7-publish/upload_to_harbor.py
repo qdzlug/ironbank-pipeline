@@ -140,7 +140,7 @@ def generate_attestation_predicates(predicates):
     attestation_predicates.append(_generate_vat_response_lineage_file())
     return attestation_predicates
 
-def write_env_vars(tags: list[str]) -> None: # TODO: Do I need to write unit tests for this?
+def write_env_vars(tags: list[str]) -> None: # TODO: Write a unit test
     """Writes environment variables into a file named 'upload_to_harbor.env'.
     Used by the create-manifest-list job. 
     """
@@ -218,7 +218,6 @@ def main():
             )
             cosign = Cosign(docker_config_dir=docker_config_dir)
 
-            log.info(f"hardening_manifest.image_tags --> {hardening_manifest.image_tags}") # TODO: Delete me
             # if the new image was scanned
             if "ironbank-staging" in os.environ["IMAGE_TO_SCAN"]:
                 # Promote image and tags from staging project
