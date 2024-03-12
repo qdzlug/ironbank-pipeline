@@ -21,6 +21,7 @@ build:
       dotenv: build.env
 
 build-arm64:
+  image: ${IAM_ACCOUNT_ID}.dkr.ecr.us-gov-west-1.amazonaws.com/ironbank/ironbank-pipelines/pipeline-runner:v0.10.13
   stage: build
   extends:
     - .setup_modules
