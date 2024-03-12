@@ -48,9 +48,10 @@ vat-arm64:
   extends:
     - .setup_modules
   rules:
-    - if: $CI_PROJECT_PATH =~ /pipeline-test-project/ && $BUILD_ARM64 == "True"
+    - if: $CI_PROJECT_PATH =~ /pipeline-test-project/ 
       when: never
-    - when: "on_success"
+    - if: $BUILD_ARM64 == "True"
+      when: "on_success"
   id_tokens:
     VAT_TOKEN:
       aud: ${CI_SERVER_URL}
