@@ -23,6 +23,8 @@
   artifacts:
     when: always
     expire_in: 1 week
+  rules:
+    - if: $BUILD_ARM64 == "True"
 
 anchore-scan-x86:
   id_tokens:
@@ -65,9 +67,8 @@ anchore-scan-arm64:
       - api_failure
       - stuck_or_timeout_failure
       - unknown_failure
-  # only:
-  #   variables:
-  #     - $ARM64_BUILD
+  rules:
+    - if: $BUILD_ARM64 == "True"
 
 openscap-compliance-x86:
   extends: .scanning-x86
@@ -108,9 +109,8 @@ openscap-compliance-arm64:
       - api_failure
       - stuck_or_timeout_failure
       - unknown_failure
-  # only:
-  #   variables:
-  #     - $ARM64_BUILD
+  rules:
+    - if: $BUILD_ARM64 == "True"
 
 twistlock-scan-x86:
   image: registry1.dso.mil/ironbank-apps/ironbank-pipelines/pipeline-runner:v0.10.14
@@ -171,6 +171,5 @@ twistlock-scan-arm64:
       - api_failure
       - stuck_or_timeout_failure
       - unknown_failure
-  # only:
-  #   variables:
-  #     - $ARM64_BUILD
+  rules:
+    - if: $BUILD_ARM64 == "True"

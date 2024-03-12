@@ -70,7 +70,7 @@ harbor-arm64:
   extends:
     - .setup_modules
   rules:
-    - if: $CI_COMMIT_BRANCH == "master"
+    - if: $CI_COMMIT_BRANCH == "master" && $BUILD_ARM64 == "True"
   resource_group: harbor_phase
   needs:
     - load-scripts
@@ -104,7 +104,7 @@ update-staging-attestations-arm64:
   extends:
     - .setup_modules
   rules:
-    - if: $CI_COMMIT_BRANCH != "master" && $PUBLISH_VAT_STAGING_PREDICATES
+    - if: $CI_COMMIT_BRANCH != "master" && $PUBLISH_VAT_STAGING_PREDICATES && $BUILD_ARM64 == "True"
   resource_group: harbor_phase
   needs:
     - load-scripts
@@ -134,7 +134,7 @@ create-manifest-list:
   image: registry1.dso.mil/ironbank/opensource/containers/podman:4.6.1
   stage: publish-artifacts
   rules:
-    - if: $CI_COMMIT_BRANCH == "master"
+    - if: $CI_COMMIT_BRANCH == "master" && $BUILD_ARM64 == "True"
   needs:
     - load-scripts
     - lint

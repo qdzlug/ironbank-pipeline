@@ -15,6 +15,8 @@
   retry:
     max: 2
     when: runner_system_failure
+  rules:
+    - if: $BUILD_ARM64 == "True"
 
 create-tar-x86:
   extends:
@@ -43,9 +45,8 @@ create-tar-arm64:
     paths:
       - ${IMAGE_FILE}.tar
     expire_in: 1 week
-  # only:
-  #   variables:
-  #     - $ARM64_BUILD
+  rules:
+    - if: $BUILD_ARM64 == "True"
 
 create-sbom-x86:
   extends: .post-build-x86
@@ -72,6 +73,5 @@ create-sbom-arm64:
   image: "registry1.dso.mil/ironbank/anchore/enterprise/enterprise:4.4.1"
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/stages/post-build/generate_sbom.py"'
-  # only:
-  #   variables:
-  #     - $ARM64_BUILD
+  rules:
+    - if: $BUILD_ARM64 == "True"

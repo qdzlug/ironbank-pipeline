@@ -47,7 +47,7 @@ upload-to-s3-arm64:
     - .setup_modules
   resource_group: s3_phase
   rules:
-    - if: $CI_COMMIT_BRANCH == "master"
+    - if: $CI_COMMIT_BRANCH == "master" && $BUILD_ARM64 == "True"
   id_tokens:
     VAT_TOKEN:
       aud: ${CI_SERVER_URL}
