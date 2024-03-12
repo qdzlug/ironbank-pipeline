@@ -15,10 +15,6 @@ vat:
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/vat"
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: vat
-  rules:
-    - if: $CI_PROJECT_PATH =~ /pipeline-test-project/
-      when: never
-    - when: "on_success"
   id_tokens:
     VAT_TOKEN:
       aud: ${CI_SERVER_URL}
@@ -49,9 +45,6 @@ vat:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/vat"
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: vat
   rules:
-    - if: $CI_PROJECT_PATH =~ /pipeline-test-project/
-      when: never
-    - when: "on_success"
     - exists:
       - Dockerfile_arm64
   id_tokens:
