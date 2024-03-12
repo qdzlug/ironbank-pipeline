@@ -140,6 +140,23 @@ def generate_attestation_predicates(predicates):
     attestation_predicates.append(_generate_vat_response_lineage_file())
     return attestation_predicates
 
+def write_env_vars(tags: list[str]) -> None: # TODO: Do I need to write unit tests for this?
+    """Writes environment variables into a file named 'upload_to_harbor.env'.
+    Used by the create-manifest-list job. 
+    """
+    log.info("Writing env variables to file")
+    tags_string = ','.join(tags)
+    if os.environ['CI_JOB_NAME'] == "harbor-x86":
+        env_file_name = "upload_to_harbor_x86.env"
+        build = "X86"
+    else:
+        env_file_name = "upload_to_harbor_arm64.env"
+        build = "ARM64"
+    with Path(env_file_name).open("w", encoding="utf-8") as f:
+        f.write(f"REGISTRY_PUBLISH_URL_{build}={os.environ['REGISTRY_PUBLISH_URL']}\n")
+        f.write(f"IMAGE_NAME_{build}={os.environ['IMAGE_NAME']}\n")
+        f.write(f"DIGEST_TO_SCAN_{build}={os.environ['DIGEST_TO_SCAN']}\n")
+        f.write(f"TAGS_{build}={tags_string}\n")
 
 @stack_trace_handler
 def main():
@@ -200,6 +217,8 @@ def main():
                 Path(docker_config_dir, "config.json"),
             )
             cosign = Cosign(docker_config_dir=docker_config_dir)
+
+            log.info(f"hardening_manifest.image_tags --> {hardening_manifest.image_tags}") # TODO: Delete me
             # if the new image was scanned
             if "ironbank-staging" in os.environ["IMAGE_TO_SCAN"]:
                 # Promote image and tags from staging project
@@ -218,6 +237,7 @@ def main():
                     replace=True,
                     log_cmd=True,
                 )
+            write_env_vars(hardening_manifest.image_tags)
     except GenericSubprocessError:
         sys.exit(1)
 
