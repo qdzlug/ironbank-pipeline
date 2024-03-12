@@ -14,6 +14,7 @@ import-artifacts:
     - 'echo "${REQUESTS_CA_BUNDLE}"'
     - 'mkdir -p "${ARTIFACT_DIR}/external-resources/" "${ARTIFACT_DIR}/images/"'
     - 'python3 "${PIPELINE_REPO_DIR}/stages/import-artifacts/downloader.py"'
+    - 'env' # TODO: Remove me
   artifacts:
     when: always
     paths:
