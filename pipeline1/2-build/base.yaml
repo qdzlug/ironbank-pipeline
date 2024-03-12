@@ -21,6 +21,7 @@ build:
       dotenv: build.env
 
 build-arm64:
+  # This is the only job that NEEDS to run on an arm64 node. Its easy to just specify it until I create an arm64 pipeline image.
   image: ${IAM_ACCOUNT_ID}.dkr.ecr.us-gov-west-1.amazonaws.com/ironbank/ironbank-pipelines/pipeline-runner:v0.10.13-arm64
   stage: build
   extends:
@@ -42,3 +43,5 @@ build-arm64:
     expire_in: 1 week
     reports:
       dotenv: build.env
+  rules:
+    - if: $BUILD_ARM64 == "True"
