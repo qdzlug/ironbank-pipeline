@@ -123,3 +123,16 @@ upload-to-s3-arm64:
   retry:
     max: 2
     when: runner_system_failure
+
+create-manifest-list:
+  stage: post-publish
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      exists:
+        - Dockerfile_arm64
+  needs:
+    - setup
+    - harbor
+    - harbor-arm64
+  script: 
+    - '"${PIPELINE_REPO_DIR}/pipeline1/8-post-publish/create_manifest_list.sh"'
