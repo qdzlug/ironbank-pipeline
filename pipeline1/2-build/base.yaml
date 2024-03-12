@@ -20,7 +20,7 @@ build:
     reports:
       dotenv: build.env
 
-build:
+build-arm64:
   stage: build
   extends:
     - .setup_modules
