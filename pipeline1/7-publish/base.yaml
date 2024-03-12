@@ -119,7 +119,9 @@ generate-documentation-arm64:
   extends:
     - .setup_modules
   rules:
-    - if: $CI_COMMIT_BRANCH == "master" && -e Dockerfile_arm64
+    - if: $CI_COMMIT_BRANCH == "master"
+      exists:
+        - Dockerfile_arm64
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/documentation"
     OPENSCAP_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/openscap/oscap-version.txt"
@@ -184,7 +186,9 @@ harbor-arm64:
   extends:
     - .setup_modules
   rules:
-    - if: $CI_COMMIT_BRANCH == "master" && -e Dockerfile_arm64
+    - if: $CI_COMMIT_BRANCH == "master"
+      exists:
+        - Dockerfile_arm64
   resource_group: harbor_phase
   needs:
     - setup
@@ -239,7 +243,9 @@ update-staging-attestations-arm64:
   extends:
     - .setup_modules
   rules:
-    - if: $CI_COMMIT_BRANCH != "master" && $PUBLISH_VAT_STAGING_PREDICATES && -e Dockerfile_arm64
+    - if: $CI_COMMIT_BRANCH != "master" && $PUBLISH_VAT_STAGING_PREDICATES
+      exists:
+        - Dockerfile_arm64
   resource_group: harbor_phase
   needs:
     - setup
