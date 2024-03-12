@@ -3,10 +3,12 @@
 import json
 import logging
 import os
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
+
 import requests
+import yaml
 
 logging.basicConfig(level=os.environ.get("PYTHON_LOG_LEVEL", "INFO"))
 
@@ -16,7 +18,7 @@ class Anchore:
     """
     Anchore Scanner
 
-    Wrapper for the anchore-cli and syft tools
+    Wrapper for the anchorectl and syft tools
     Both tools must be installed for this module to function correctly
     """
 
@@ -209,27 +211,28 @@ class Anchore:
         a reanalysis of the image on pipeline reruns where the digest has not changed.
 
         """
-        add_cmd = [
-            "anchore-cli",
-            "--json",
-            "--u",
-            self.username,
-            "--p",
-            self.password,
-            "--url",
-            self.url,
-            "image",
-            "add",
-            "--noautosubscribe",
-        ]
+        # shim for deprecated env vars
+        os.environ["ANCHORECTL_PASSWORD"] = self.password
+        os.environ["ANCHORECTL_URL"] = self.url.replace("/v1/", "")
+        os.environ["ANCHORECTL_USERNAME"] = self.username
+
+        # new envvars
+        os.environ["ANCHORECTL_UPDATE_CHECK"] = "false"
+        os.environ["ANCHORECTL_SKIP_API_VERSION_CHECK"] = "true"
+        os.environ["ANCHORECTL_IMAGE_NO_AUTO_SUBSCRIBE"] = "true"
+        os.environ["ANCHORECTL_IMAGE_WAIT"] = "true"
+
+        logging.info("sending image to anchore for analysis, please wait..")
+        add_cmd = ["anchorectl", "image", "add"]
 
         if Path("./Dockerfile").is_file():
+            os.environ["ANCHORECTL_FORCE"] = "true"
             add_cmd += ["--dockerfile", "./Dockerfile"]
 
         add_cmd.append(image)
 
         try:
-            logging.info(f"{' '.join(add_cmd[0:3])} {' '.join(add_cmd[5:])}")
+            logging.info(f"{' '.join(add_cmd)}")
             image_add = subprocess.run(
                 add_cmd,
                 stdout=subprocess.PIPE,
@@ -246,90 +249,12 @@ class Anchore:
             logging.info(f"{image} added to Anchore")
             logging.info(image_add.stdout)
 
-            return json.loads(image_add.stdout)[0]["imageDigest"]
-        elif image_add.returncode == 1:
-            logging.info(
-                f"{image} already exists in Anchore. Pulling current scan data."
-            )
-            return json.loads(image_add.stdout)["detail"]["digest"]
+            # replace the first stdout line as it contains control characters
+            stdout_lines = image_add.stdout.split("\n")
+            stdout_lines[0] = "image:"
+            stdout_lines = "\n".join(stdout_lines)
+            return yaml.safe_load(stdout_lines)["image"]["digest"]
         else:
             logging.error(image_add.stdout)
             logging.error(image_add.stderr)
             sys.exit(image_add.returncode)
-
-    def image_wait(self, digest):
-        """
-        Wait for Anchore to scan the image.
-
-        """
-        logging.info(f"Waiting for Anchore to scan {digest}")
-        wait_cmd = [
-            "anchore-cli",
-            "--u",
-            self.username,
-            "--p",
-            self.password,
-            "--url",
-            self.url,
-            "image",
-            "wait",
-            "--interval",
-            "5",
-            "--timeout",
-            os.environ.get("ANCHORE_TIMEOUT", default="2400"),
-            digest,
-        ]
-        try:
-            os.environ["PYTHONUNBUFFERED"] = "1"
-            logging.info(f"{' '.join(wait_cmd[0:2])} {' '.join(wait_cmd[4:])}")
-            with subprocess.Popen(
-                wait_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                encoding="utf-8",
-            ) as image_wait:
-                while image_wait.poll() is None:
-                    line = image_wait.stdout.readline().strip()
-                    if line:
-                        logging.info(line)
-                os.environ["PYTHONUNBUFFERED"] = "0"
-
-        except subprocess.SubprocessError:
-            logging.error("Failed while waiting for Anchore to scan image")
-            sys.exit(1)
-
-        # Check return code
-        if image_wait.returncode != 0:
-            logging.error(image_wait.stdout)
-            logging.error(image_wait.stderr)
-            sys.exit(image_wait.returncode)
-
-    def generate_sbom(
-        self, image, artifacts_path, output_format, file_type, filename=None
-    ):
-        """
-        Grab the SBOM from Anchore
-
-        """
-        if not filename:
-            filename = output_format
-        else:
-            filename = f"{filename}-{output_format}"
-
-        cmd = ["syft", image, "--scope", "all-layers", "-o", f"{output_format}"]
-
-        sbom_dir = Path(artifacts_path)
-        sbom_dir.mkdir(parents=True, exist_ok=True)
-        with (sbom_dir / f"sbom-{filename}.{file_type}").open("wb") as f:
-            try:
-                logging.info(" ".join(cmd))
-                subprocess.run(
-                    cmd,
-                    check=True,
-                    encoding="utf-8",
-                    stderr=sys.stderr,
-                    stdout=f,
-                )
-            except subprocess.SubprocessError:
-                logging.error("Could not generate sbom of image")
-                sys.exit(1)

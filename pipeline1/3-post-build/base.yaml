@@ -1,6 +1,5 @@
 create-sbom:
   stage: post-build
-  image: "${IAM_ACCOUNT_ID}.dkr.ecr.us-gov-west-1.amazonaws.com/ironbank/anchore/enterprise/enterprise:4.4.1"
   needs:
     - setup
     - build

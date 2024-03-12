@@ -18,6 +18,7 @@ setup:
       aud: ${CI_SERVER_URL}
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/lint"
+    GIT_DEPTH: 0
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: vat
   script:
     # branch-check
@@ -66,3 +67,6 @@ setup:
     # lint
     - set +e
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/0-setup/lint_jobs.py"'
+    # trufflehog
+    - 'git config --global --add safe.directory "${CI_PROJECT_DIR}"'
+    - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/0-setup/trufflehog.py"'
