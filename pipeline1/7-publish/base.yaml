@@ -4,6 +4,9 @@ check-cves:
     - .setup_modules
   allow_failure:
     exit_codes: 100
+  retry:
+    max: 1
+    when: runner_system_failure
   needs:
     - setup
     - anchore-scan
@@ -21,6 +24,9 @@ check-findings:
     ROBOTNIK_SUBCOMMAND: check
   stage: publish
   allow_failure: true
+  retry:
+    max: 1
+    when: runner_system_failure
   rules:
     - if: $SKIP_FINDINGS_TRIGGER
       when: never
