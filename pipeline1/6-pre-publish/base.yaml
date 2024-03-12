@@ -27,7 +27,7 @@ vat:
       - "${ARTIFACT_DIR}/"
     expire_in: 1 week
 
-vat:
+vat-arm64:
   # checks if project is a pipeline-test-project and if so, prevents job from running
   # else, checks if the branch is development and if so, runs the job if all prior jobs succeed
   stage: pre-publish
