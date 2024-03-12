@@ -58,3 +58,64 @@ upload-to-s3:
   retry:
     max: 2
     when: runner_system_failure
+
+upload-to-cds-arm64:
+  stage: post-publish
+  needs:
+    - setup
+    - build-arm64
+    - scan-logic-arm64
+    - vat-arm64
+    - harbor-arm64
+  when: manual
+  extends:
+    - .setup_modules
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master" && $UPLOAD_TO_CDS == "True" && -e Dockerfile_arm64
+  variables:
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/cds
+    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: cds
+  script:
+    - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/8-post-publish/upload_to_cds.py"'
+
+upload-to-s3-arm64:
+  stage: post-publish
+  extends:
+    - .setup_modules
+  resource_group: s3_phase
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master" && -e Dockerfile_arm64
+  id_tokens:
+    VAT_TOKEN:
+      aud: ${CI_SERVER_URL}
+  variables:
+    #TODO: Put these in globals
+    SCAN_DIRECTORY: "${ARTIFACT_STORAGE}/scan-results"
+    DOCUMENTATION_DIRECTORY: "${ARTIFACT_STORAGE}/documentation"
+    BUILD_DIRECTORY: "${ARTIFACT_STORAGE}/build"
+    SBOM_DIRECTORY: "${ARTIFACT_STORAGE}/sbom"
+    VAT_DIRECTORY: "${ARTIFACT_STORAGE}/vat"
+    BASE_BUCKET_DIRECTORY: container-scan-reports
+    DOCUMENTATION_FILENAME: documentation
+    ARTIFACT_DIR: ${ARTIFACT_STORAGE}/documentation
+    REPORT_TAR_NAME: ${CI_PROJECT_NAME}-${IMAGE_VERSION}-reports-signature.tar.gz
+    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: ibfe
+  needs:
+    - setup
+    - build-arm64
+    - create-sbom-arm64
+    - scan-logic-arm64
+    - anchore-scan-arm64
+    - twistlock-scan-arm64
+    - openscap-compliance-arm64
+    - generate-documentation-arm64
+    - vat-arm64
+  script:
+    - 'python "${PIPELINE_REPO_DIR}/pipeline1/8-post-publish/upload_artifacts.py"'
+  artifacts:
+    paths:
+      - reports/
+    expire_in: 1 week
+  retry:
+    max: 2
+    when: runner_system_failure
