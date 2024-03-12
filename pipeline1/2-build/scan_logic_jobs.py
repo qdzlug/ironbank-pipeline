@@ -147,7 +147,7 @@ def main():
     """
     image_name = os.environ["IMAGE_NAME"]
     image_name_tag = os.environ["IMAGE_FULLTAG"]
-    new_sbom = Path(os.environ["ARTIFACT_STORAGE"], "sbom/sbom-syft-json.json")
+    new_sbom = Path(os.environ["SBOM_DIR"], "sbom-syft-json.json")
     new_access_log = Path(os.environ["ARTIFACT_STORAGE"], "build/access_log")
 
     write_env_vars(
