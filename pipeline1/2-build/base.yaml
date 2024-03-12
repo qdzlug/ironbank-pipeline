@@ -34,6 +34,7 @@ build-arm64:
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
     KUBERNETES_NODE_SELECTOR_IRONBANK: "ironbank=gitlab-runner-arm64"
+    RUN_THIS_JOB: $BUILD_ARM64
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/2-build/build.py" "--arm64-build"'
   artifacts:
@@ -44,4 +45,4 @@ build-arm64:
     reports:
       dotenv: build.env
   rules:
-    - if: $BUILD_ARM64 == "True"
+    - if: $RUN_THIS_JOB == "True"

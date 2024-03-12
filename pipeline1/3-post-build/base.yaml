@@ -30,38 +30,38 @@ create-tar:
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/3-post-build/create_tar.py"'
 
-create-sbom-arm64:
-  stage: post-build
-  needs:
-    - setup
-    - build-arm64
-  variables:
-    SBOM_DIR: "${ARTIFACT_STORAGE}/sbom"
-  artifacts:
-    when: always
-    paths:
-      - "${SBOM_DIR}/"
-    expire_in: 1 week
-  script:
-    - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/3-post-build/generate_sbom.py"'
-  rules:
-    - if: $BUILD_ARM64 == "True"
+# create-sbom-arm64:
+#   stage: post-build
+#   needs:
+#     - setup
+#     - build-arm64
+#   variables:
+#     SBOM_DIR: "${ARTIFACT_STORAGE}/sbom"
+#   artifacts:
+#     when: always
+#     paths:
+#       - "${SBOM_DIR}/"
+#     expire_in: 1 week
+#   script:
+#     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/3-post-build/generate_sbom.py"'
+#   rules:
+#     - if: $BUILD_ARM64 == "True"
 
-create-tar-arm64:
-  stage: post-build
-  needs:
-    - setup
-    - build-arm64
-  extends:
-    - .setup_modules
-  variables:
-    IMAGE_FILE: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
-  artifacts:
-    when: always
-    paths:
-      - ${IMAGE_FILE}.tar
-    expire_in: 1 week
-  script:
-    - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/3-post-build/create_tar.py"'
-  rules:
-    - if: $BUILD_ARM64 == "True"
+# create-tar-arm64:
+#   stage: post-build
+#   needs:
+#     - setup
+#     - build-arm64
+#   extends:
+#     - .setup_modules
+#   variables:
+#     IMAGE_FILE: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
+#   artifacts:
+#     when: always
+#     paths:
+#       - ${IMAGE_FILE}.tar
+#     expire_in: 1 week
+#   script:
+#     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/3-post-build/create_tar.py"'
+#   rules:
+#     - if: $BUILD_ARM64 == "True"
