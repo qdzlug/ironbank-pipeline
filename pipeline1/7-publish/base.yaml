@@ -181,7 +181,7 @@ harbor:
     paths:
       - "${ARTIFACT_DIR}/"
     reports:
-      dotenv: upload_to_harbor_arm64.env
+      dotenv: upload_to_harbor_x86.env
 
 harbor-arm64:
   stage: publish
