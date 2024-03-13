@@ -180,6 +180,8 @@ harbor:
     when: always
     paths:
       - "${ARTIFACT_DIR}/"
+    reports:
+      dotenv: upload_to_harbor_arm64.env
 
 harbor-arm64:
   stage: publish
@@ -210,6 +212,8 @@ harbor-arm64:
     when: always
     paths:
       - "${ARTIFACT_DIR}/"
+    reports:
+      dotenv: upload_to_harbor_arm64.env
 
 update-staging-attestations:
   stage: publish
@@ -237,6 +241,8 @@ update-staging-attestations:
     when: always
     paths:
       - "${ARTIFACT_DIR}/"
+    reports:
+      dotenv: upload_to_harbor_arm64.env
 
 update-staging-attestations-arm64:
   stage: publish
@@ -266,3 +272,5 @@ update-staging-attestations-arm64:
     when: always
     paths:
       - "${ARTIFACT_DIR}/"
+    reports:
+      dotenv: upload_to_harbor_arm64.env
