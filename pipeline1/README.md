@@ -32,7 +32,7 @@ A [gitlab trigger (downstream pipeline)](https://docs.gitlab.com/ee/ci/pipelines
 - Gitlab does not support modifying a pipeline during execution (CI job A cannot set the image used in CI job B)
 - Gitlab does support modifying a downstream pipeline via variables (CI job A sets the image var used in `trigger:` and the trigger pipeline runs CI job B)
 
-The presence of a trigger increases complexity, adds redundant CI jobs (because artifact sharing is not implemented), and burdens users (the UI requires extra effort to view an entire pipeline)
+The removal of a trigger decreases complexity, removes redundant CI jobs (because artifact sharing is not implemented), and unburdens users (the UI requires less effort to view an entire pipeline)
 
 The openscap distro packages are specific to each distro (redhat, debian, or suse). The solution is a pipeline-runner image capable of using all three. This is done by running debian or suse based openscap images inside pipeline-runner (via podman) when needed. Redhat images are scanned natively by pipeline-runner (pipeline-runner is redhat based).
 
