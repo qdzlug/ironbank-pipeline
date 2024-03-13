@@ -147,12 +147,12 @@ def write_env_vars(tags: list[str]) -> None:  # TODO: Write a unit test
     """
     log.info("Writing env variables to file")
     tags_string = ",".join(tags)
-    if os.environ["CI_JOB_NAME"] == "harbor-x86":
-        env_file_name = "upload_to_harbor_x86.env"
-        build = "X86"
-    else:
+    if os.environ["CI_JOB_NAME"] == "harbor-arm64":
         env_file_name = "upload_to_harbor_arm64.env"
         build = "ARM64"
+    else:
+        env_file_name = "upload_to_harbor_x86.env"
+        build = "X86"
     with Path(env_file_name).open("w", encoding="utf-8") as f:
         f.write(f"REGISTRY_PUBLISH_URL_{build}={os.environ['REGISTRY_PUBLISH_URL']}\n")
         f.write(f"IMAGE_NAME_{build}={os.environ['IMAGE_NAME']}\n")
