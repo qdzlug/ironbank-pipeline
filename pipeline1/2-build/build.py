@@ -146,7 +146,8 @@ def generate_build_env(image_details: dict, image_name: str, image: Image, diges
 def remove_not_used_tars(image_dir):
     for file in os.listdir(image_dir):
         if os.environ["CI_JOB_NAME"] == "build-arm64" != ("arm64" in file):
-            os.remove(os.path.join(image_dir, file))
+            file_to_remove = os.path.join(image_dir, file)
+            os.remove(file_to_remove)
 
 
 # decorate main to capture all subprocess errors
@@ -186,6 +187,7 @@ def main():
     skopeo = Skopeo()
 
     # Removing amd64 image tars or arm64 image tars depending on the build's architecture.
+    log.info("Calling function 'remove_not_used_tars'")
     remove_not_used_tars(image_dir)
     # gather files and subpaths
     log.info("Load any images used in Dockerfile build")
