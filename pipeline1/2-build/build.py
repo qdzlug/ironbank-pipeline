@@ -147,6 +147,7 @@ def remove_not_used_tars(image_dir):
     for file in os.listdir(image_dir):
         if os.environ["CI_JOB_NAME"] == "build-arm64" != ("arm64" in file):
             file_to_remove = os.path.join(image_dir, file)
+            log.info(f"The file to remove: {file_to_remove}")
             os.remove(file_to_remove)
 
 
