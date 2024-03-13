@@ -82,11 +82,13 @@ def load_resources(
                 )
                 manifest_json = json.loads(manifest.stdout)
                 image_url = manifest_json[0]["RepoTags"][0]
+                # These two if statements make sure the arm64 build only gets arm64 tars
+                # and the x86 build only gets x86 tars.
                 if (
                     os.environ["CI_JOB_NAME"] == "build-arm64"
                     and "arm64" in resource_file_obj.name
                 ):
-                    log.info("loading image %s", resource_file_obj)
+                    log.info("loading arm64 image %s", resource_file_obj)
                     skopeo.copy(
                         ImageFile(
                             file_path=resource_file_obj, transport="docker-archive:"
