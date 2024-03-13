@@ -9,11 +9,11 @@
   - [Overview](#overview-1)
   - [Detailed Explanation](#detailed-explanation)
   - [Usage](#usage)
-- [test.py Script Documentation](#testpy-script-documentation)
+- [functional_testing.py Script Documentation](#testpy-script-documentation)
   - [Overview](#overview-2)
   - [Detailed Explanation](#detailed-explanation-1)
   - [Usage](#usage-1)
-- [Creation of podmanifest.yaml in test.py](#creation-of-podmanifestyaml-in-testpy)
+- [Creation of podmanifest.yaml in functional_testing.py](#creation-of-podmanifestyaml-in-testpy)
   - [How it's Achieved](#how-its-achieved)
 - [run_k8s_test.sh Script Documentation](#run_k8s_testssh-script-documentation)
   - [Overview](#overview-3)
@@ -23,9 +23,6 @@
   - [Command Probe Tests](#command-probe-tests)
   - [Kubernetes Test](#kubernetes-test)
   - [Example testing_manifest.yaml template](#example-testing_manifestyaml-template)
-- [Variables set on CI/CD Vars Gitlab](#variables-set-on-cicd-vars-gitlab)
-  - [Admin Level](#admin-level)
-  - [Group Level](#group-level)
 
 
 # Functional Testing Stage Documentation
@@ -43,57 +40,31 @@ In this stage, the pipeline:
 6. Executes the main testing script.
 7. Optionally runs a Kubernetes test if a specific manifest file exists.
 
-## Workflow Diagram
+## Architecture Diagram
 
-Here is a flowchart representation:
+Here is a architecture diagram
 
-```mermaid
-graph TD
-A[Start: Check if testing_manifest.yaml is present at root] --> B[Clone pipeline repo]
-B --> C[Setup Kubernetes cluster authentication]
-C --> D[Setup namespace and create the imagepullsecret if not already present]
-D --> E[Setup Kubernetes resources]
-E --> F[Execute the test script]
-F --> G[Execute command probe test from docker_test section in testing_manifest]
-G --> H[Create podmanifest.yaml if kubernetes_test is present in testing_manifest]
-H --> I[Check for podmanifest.yaml]
-I --> J[Run Kubernetes Test, if kubernetes_test exists and podmanifest is created]
-J --> K[End]
-```
+![Testing Stage](images/testingstage.jpg "This is the image showing the testing stage process)
+
 
 ## Steps and Commands
 
-1. **Cloning the Repository**:
-   ```bash
-   git clone -b ${PIPELINE_REPO_BRANCH} ${PIPELINE_REPO} ${PIPELINE_REPO_DESTINATION}
-   ```
-
-2. **Listing the Contents**:
-   ```bash
-   ls -al ${PIPELINE_REPO_DESTINATION}
-   ```
-
-3. **Sourcing the Templates**:
+1. **Sourcing the Templates**:
    ```bash
    source ${PIPELINE_REPO_DESTINATION}/stages/functional_testing/library/templates.sh
    ```
 
-4. **Create Kubernetes Configuration**:
-   ```bash
-   aws eks --region us-gov-west-1 update-kubeconfig --name ib-zelda-runtime
-   ```
-
-5. **Setting up Kubernetes Resources**:
+2. **Setting up Kubernetes Resources**:
    ```bash
    setup_k8s_resources "$NAMESPACE" 
    ```
 
-6. **Executing the Main Test Script**:
+3. **Executing the Main Test Script**:
    ```bash
-   python3 ${PIPELINE_REPO_DESTINATION}/stages/functional_testing/library/test.py $CI_PROJECT_DIR
+   python3 ${PIPELINE_REPO_DESTINATION}/stages/functional_testing/library/functional_testing.py $CI_PROJECT_DIR
    ```
 
-7. **Conditional Kubernetes Test**:
+4. **Conditional Kubernetes Test**:
    ```bash
    if [[ -f "/tmp/podmanifest.yaml" ]]; then ${PIPELINE_REPO_DESTINATION}/stages/functional_testing/library/run_k8s_test.sh; fi
    ```
@@ -122,12 +93,13 @@ The `templates.sh` script provides environment settings and helper functions tha
 
 ### Kubernetes Resources (`setup_k8s_resources` function)
 
-1. **Namespace and Docker Credentials**: The function accepts a namespace argument and checks for Docker environment variables. If they're not set, it displays a message and returns.
+1. **Namespace and Docker Credentials**: The function accepts a namespace argument. If they're not set, it displays a message and creates the namespace.
 2. **Docker Registry Secret**: If a secret named `my-registry-secret` doesn't exist in the specified namespace, it creates one using the environment variables from pipeline CICD vars.
+2. **Service Account**: If a service account named `test-pod-sa` doesn't exist in the specified namespace, it creates one and annotates the service account with the secret so that it can pull image from the registry1.
 
-# `test.py` Script Documentation
+# `functional_testing.py` Script Documentation
 
-The `test.py` script is designed to test images by running them as pods in a Kubernetes environment. It performs various checks based on a testing manifest, and also ensures the Docker image is loaded and ready for testing.
+The `functional_testing.py` script is designed to test images by running them as pods in a Kubernetes environment. It performs various checks based on a testing manifest, and also ensures the Docker image is loaded and ready for testing.
 
 ## Overview
 
@@ -141,7 +113,7 @@ The `test.py` script is designed to test images by running them as pods in a Kub
 
 ### Command Execution
 
-1. `pod_commmand_passes`: Executes a command on a pod and checks if its output matches the expected output.
+1. `pod_command_passes`: Executes a command on a pod and checks if its output matches the expected output.
 2. `pod_completes`: Waits for a pod to reach the "Completed" status.
 3. `get_pod_logs`: Retrieves the logs of a specified pod.
 4. `cleanup_pod`: Deletes a specified pod from the Kubernetes cluster.
@@ -159,9 +131,9 @@ The `run_test` function is the main test execution function. It:
 3. Retrieves the pod logs.
 4. Compares the pod logs with the expected output (if specified).
 
-# Creation of `podmanifest.yaml` in `test.py`
+# Creation of `podmanifest.yaml` in `functional_testing.py`
 
-The `test.py` script encompasses an essential capability: the dynamic generation of a Kubernetes Pod manifest, specifically designed for the tests it's set to run. This manifest is subsequently written to `/tmp/podmanifest.yaml`.
+The `functional_testing.py` script encompasses an essential capability: the dynamic generation of a Kubernetes Pod manifest, specifically designed for the tests it's set to run. This manifest is subsequently written to `/tmp/podmanifest.yaml`.
 
 ## How it's Achieved:
 
@@ -178,7 +150,7 @@ This function crafts the foundational structure of a Kubernetes Pod manifest and
 - **Customization**:
   - The function subsequently adjusts this primary manifest based on the `kubernetes_test` input:
     - If defined in the `kubernetes_test`, Readiness and Liveness Probes are incorporated.
-    - If present, Environment variables (`env`) are appended and similarly ports.
+    - If present, Environment variables (`env`) are appended and similarly ports, commands, and args.
     - Resources, such as CPU and Memory requests and limits, are stipulated either from the `kubernetes_test` or through hardcoded defaults.
     - To ensure the image can be fetched from a private registry, ImagePullSecrets is appended to the Pod spec.
 

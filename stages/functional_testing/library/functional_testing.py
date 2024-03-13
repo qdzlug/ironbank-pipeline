@@ -18,7 +18,7 @@ def print_yellow(text):
     print(f"\033[1;33m{text}\033[0m")
 
 #returns true if the <command> output matches the <expected_output> and completes before the timeout 
-def pod_commmand_passes(pod_name, command, expected_output, kubernetes_namespace, timeout_seconds=90):
+def pod_command_passes(pod_name, command, expected_output, kubernetes_namespace, timeout_seconds=90):
 
     try:        
         stdout, stderr = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate(None)
@@ -209,7 +209,7 @@ def run_test(entrypoint, command_timeout, pod_name, docker_image, kubernetes_nam
         print(f'Because <expected_output> was not specified, after {command_timeout} seconds, the pod logs will be displayed')
 
     #run the test command
-    if not pod_commmand_passes(pod_name, kubectl_command, expected_output, kubernetes_namespace, command_timeout):
+    if not pod_command_passes(pod_name, kubectl_command, expected_output, kubernetes_namespace, command_timeout):
         print(f"Error during pod command execution")
     
     print_green("Waiting for pod to Complete.")
