@@ -44,7 +44,7 @@ In this stage, the pipeline:
 
 Here is a architecture diagram
 
-![Testing Stage](functional-testing/stages/functional_testing/images/testingstage.jpg)
+![Testing Stage](stages/functional_testing/images/testingstage.jpg)
 
 
 ## Steps and Commands
