@@ -19,6 +19,7 @@ vat:
     VAT_TOKEN:
       aud: ${CI_SERVER_URL}
   script:
+    - 'env'
     - 'mkdir -p "${ARTIFACT_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/6-pre-publish/vat_import.py"'
   artifacts:

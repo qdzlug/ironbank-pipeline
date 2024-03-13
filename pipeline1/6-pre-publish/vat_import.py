@@ -327,6 +327,7 @@ def get_parent_vat_response(
         output_dir=output_dir,
         docker_config_dir=docker_config_dir,
         predicate_types=[vat_response_predicate],
+        log_cmd=True
     )
     predicates = Predicates()
     predicate_path = Path(
