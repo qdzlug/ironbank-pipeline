@@ -37,8 +37,8 @@ build-arm64:
   script:
     # This job doesn't run unless the Dockerfile_arm64 file exists in the repo.
     # Also by copying the Dockerfile_arm64 over the Dockerfile the correct arguments are passed when the image is being built.
-    - "cp Dockerfile_arm64 Dockerfile"
-    - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/2-build/build.py" "--arm64-build"'
+    - "cp -f Dockerfile_arm64 Dockerfile"
+    - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/2-build/build.py"'
   artifacts:
     when: always
     paths:
