@@ -318,6 +318,7 @@ def get_parent_vat_response(
     docker_config_dir = Path("/tmp/docker_config")
     docker_config_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy(src=pull_auth, dst=Path(docker_config_dir, "config.json"))
+    log.info(f"Trying to download: {base_image}")
     Cosign.download(
         base_image,
         output_dir=output_dir,
