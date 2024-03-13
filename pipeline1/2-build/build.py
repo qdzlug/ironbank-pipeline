@@ -84,7 +84,7 @@ def load_resources(
                 image_url = manifest_json[0]["RepoTags"][0]
                 if (
                     os.environ["CI_JOB_NAME"] == "build-arm64"
-                    and "arm64" in resource_file_obj
+                    and "arm64" in resource_file_obj.name
                 ):
                     log.info("loading image %s", resource_file_obj)
                     skopeo.copy(
@@ -96,7 +96,7 @@ def load_resources(
                     )
                 if (
                     os.environ["CI_JOB_NAME"] == "build"
-                    and "arm64" not in resource_file_obj
+                    and "arm64" not in resource_file_obj.name
                 ):
                     log.info("loading image %s", resource_file_obj)
                     skopeo.copy(
