@@ -205,7 +205,7 @@ class Anchore:
         with filename.open(mode="w") as f:
             json.dump(results_dict, f)
 
-    def image_add(self, image):
+    def image_add(self, image, platform):
         """
         Add the image to Anchore along with it's Dockerfile. Use the `--force` flag to force
         a reanalysis of the image on pipeline reruns where the digest has not changed.
@@ -223,9 +223,15 @@ class Anchore:
         os.environ["ANCHORECTL_IMAGE_WAIT"] = "true"
 
         logging.info("sending image to anchore for analysis, please wait..")
-        add_cmd = ["anchorectl", "image", "add"]
+        add_cmd = ["anchorectl", "image", "add", "--platform", platform]
 
-        if Path("./Dockerfile").is_file():
+        if Path("./Dockerfile_arm64").is_file() and platform == "amd64":
+            os.environ["ANCHORECTL_FORCE"] = "true"
+            add_cmd += ["--dockerfile", "./Dockerfile"]
+        elif Path("./Dockerfile_arm64").is_file() and platform == "arm64":
+            os.environ["ANCHORECTL_FORCE"] = "true"
+            add_cmd += ["--dockerfile", "./Dockerfile_arm64"]
+        else: # Change this to a elif for other architectures.
             os.environ["ANCHORECTL_FORCE"] = "true"
             add_cmd += ["--dockerfile", "./Dockerfile"]
 

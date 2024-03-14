@@ -65,7 +65,7 @@ def main() -> None:
 
         image = scan_logic["IMAGE_TO_SCAN"]
 
-        digest = anchore_scan.image_add(image)
+        digest = anchore_scan.image_add(image, platform)
         anchore_scan.get_vulns(
             digest=digest, image=image, artifacts_path=artifacts_path
         )
