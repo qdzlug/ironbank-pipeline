@@ -309,17 +309,22 @@ def get_parent_vat_response(
     - output_dir: The directory where the output will be stored.
     - hardening_manifest: The hardening manifest for the base image.
     """
+    # 1. Test for manifest list
+    # 2. If manifest list use image sha's
+    # 3. If not manifest list use image tag.
+    # You can probably use the subprocess routine.
     base_image = Image(
         registry=os.environ["BASE_REGISTRY"],
         name=hardening_manifest.base_image_name,
-        tag=hardening_manifest.base_image_tag,
+        # tag=hardening_manifest.base_image_tag,
+        digest="sha256:a15af38a12eab4d1d478f2487ebb2c82a61065e514c4b14d4828eccaee27daba"
     )
     vat_response_predicate = "https://vat.dso.mil/api/p1/predicate/beta1"
     pull_auth = Path(os.environ["DOCKER_AUTH_FILE_PULL"])
     docker_config_dir = Path("/tmp/docker_config")
     docker_config_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy(src=pull_auth, dst=Path(docker_config_dir, "config.json"))
-    log.info(f"base_image: {base_image}")
+    log.info(f"base_image: {base_image}") # TODO: Remove all these log entries
     log.info(f"base_image.name: {base_image.name}")
     log.info(f"base_image.registry: {base_image.registry}")
     log.info(f"base_image.digest: {base_image.digest}")
