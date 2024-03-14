@@ -381,7 +381,7 @@ def main() -> None:
                 hardening_manifest.base_image_name, safe=""
             )
             url = f"https://{base_registry}/api/v2.0/projects/ironbank/repositories/{encoded_image_name}/artifacts/{hardening_manifest.base_image_tag}"
-            response = requests.get(url)
+            response = requests.get(url, headers=headers)
             response.raise_for_status()  # Raise an exception for 4xx or 5xx status codes
             json_data = response.json()
         except requests.exceptions.RequestException as e:
