@@ -17,40 +17,43 @@ def print_blue(text):
 def print_yellow(text):
     print(f"\033[1;33m{text}\033[0m")
 
-#returns true if the <command> output matches the <expected_output> and completes before the timeout 
+# returns true if the <command> output matches the <expected_output> and completes before the timeout 
 def pod_command_passes(pod_name, command, expected_output, kubernetes_namespace, timeout_seconds=90):
-
     try:        
-        stdout, stderr = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate(None)
-      
-    #return false if there is any other unhandled exception
+        stdout, stderr = subprocess.Popen(
+            command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            ).communicate(None)
+    # return false if there is any other unhandled exception
     except Exception as e:
-        print_red(f'Exception encountered running the <command>: {command}')
+        print_red(f"Exception encountered running the <command>: {command}")
         print_red(f"Exception value:\n {e}")
         return False
-    
     return True
 
 def pod_completes(pod_name, pod_namespace, max_wait_seconds, check_interval_seconds=2):
     start_time = time.time()
-    
     status_command =f"kubectl get pod {pod_name} -n {pod_namespace} --no-headers"
 
     while True:
         elapsed_seconds = time.time() - start_time
         if elapsed_seconds > max_wait_seconds:
             return False
-        
         try:
-            status, status_error = subprocess.Popen(status_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate(None)
+            status, status_error = subprocess.Popen(
+                status_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                ).communicate(None)
             
             status = status.decode().split()[2]
-            
+
             if status == "Completed":
-                print(f"{'{:.1f}'.format(elapsed_seconds)}s, {pod_name} status: {status}")
+                print(
+                    f"{'{:.1f}'.format(elapsed_seconds)}s, {pod_name} status: {status}"
+                    )
                 return True
             else:
-                print(f"{'{:.1f}'.format(elapsed_seconds)}s, {pod_name} status: {status}")
+                print(
+                    f"{'{:.1f}'.format(elapsed_seconds)}s, {pod_name} status: {status}"
+                    )
 
         except Exception as e:
             print(f"Exception when reading status of pod {pod_name}: {e}")
@@ -58,10 +61,12 @@ def pod_completes(pod_name, pod_namespace, max_wait_seconds, check_interval_seco
 
         time.sleep(check_interval_seconds)
 
-#kill and remove a pod
+# kill and remove a pod
 def cleanup_pod(pod_name, pod_namespace):
     # Ensure to clean up: silently stop the container
-    stop_cmd = f"kubectl delete po {pod_name} -n {pod_namespace} --force > /dev/null 2>&1"
+    stop_cmd = (
+        f"kubectl delete po {pod_name} -n {pod_namespace} --force > /dev/null 2>&1"
+    )
     os.system(stop_cmd)
     print(f"Running: {stop_cmd}")
 
@@ -70,23 +75,29 @@ def read_image_from_hardening_manifest(hardening_manifest):
         with open(hardening_manifest, 'r') as file:
             data = yaml.safe_load(file)
 
-            image_name = data['name']
+            image_name = data["name"]
             # image_tag = data['tags'][0]
-            image_tag = "ibci-" + str(os.environ['CI_PIPELINE_ID'])
+            image_tag = "ibci-" + str(os.environ["CI_PIPELINE_ID"])
 
     except FileNotFoundError:
         print_red("Error: hardening_manifest.yaml file not found in the project root")
         return False
     
-    if (image_name is None):
-        print_red(f"image Name not found in hardening manifest. value for image_name was '{image_name}'")
+    if image_name is None:
+        print_red(
+            f"image Name not found in hardening manifest. value for image_name was '{image_name}'"
+            )
         return False
     
-    if (image_tag is None):
-        print_red(f"image tag not found in hardening manifest. value for image_name was '{image_tag}'")
+    if image_tag is None:
+        print_red(
+            f"image tag not found in hardening manifest. value for image_name was '{image_tag}'"
+            )
         return False
 
-    docker_image = str(os.environ['REGISTRY_PRE_PUBLISH_URL']) + "/" + image_name + ":" + image_tag
+    docker_image = (
+        str(os.environ["REGISTRY_PRE_PUBLISH_URL"]) + "/" + image_name + ":" + image_tag
+    )
 
     return docker_image
 
@@ -95,18 +106,10 @@ def generate_pod_manifest(kubernetes_test, image_name):
     pod_manifest = {
         "apiVersion": "v1",
         "kind": "Pod",
-        "metadata": {
-            "name": "test-pod",
-            "labels": {
-                "app": "test-app"
-            }
-        },
+        "metadata": {"name": "test-pod", "labels": {"app": "test-app"}},
         "spec": {
             "serviceAccountName": "testpod-sa",
-            "containers": [{
-                "name": "test-container",
-                "image": image_name
-            }],
+            "containers": [{"name": "test-container", "image": image_name}],
         }
     }
 
@@ -138,16 +141,13 @@ def generate_pod_manifest(kubernetes_test, image_name):
 
     # Add resources (requests and limits)
     # Use values from kubernetes_test if present, otherwise use hardcoded defaults
-    container_spec["resources"] = kubernetes_test.get("resources", {
-        "requests": {
-            "cpu": "100m",
-            "memory": "64Mi"
-        },
-        "limits": {
-            "cpu": "500m",
-            "memory": "256Mi"
-        }
-    })
+    container_spec["resources"] = kubernetes_test.get(
+        "resources", 
+    {
+        "requests": {"cpu": "100m", "memory": "64Mi"},
+        "limits": {"cpu": "500m", "memory": "256Mi"}
+    }
+    )
     # Add imagePullSecrets to the pod spec
     pod_manifest["spec"]["imagePullSecrets"] = [{"name": "my-registry-secret"}]
 
@@ -157,22 +157,37 @@ def get_pod_logs(pod_name, pod_namespace, timeout_seconds=10):
     logs_command = f"kubectl logs {pod_name} -n {pod_namespace}"
 
     try:
-        logs, logs_error = subprocess.Popen(logs_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate(None, timeout_seconds)
+        logs, logs_error = subprocess.Popen(
+            logs_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            ).communicate(None, timeout_seconds)
     
     except TimeoutError as e:
-        print_red(f"'{logs_command}' failed to complete before {timeout_seconds} seconds")
+        print_red(
+            f"'{logs_command}' failed to complete before {timeout_seconds} seconds"
+            )
         return False
     
     except Exception as e:
-        print_red(f"unhandled exception trying to pull logs for pod {pod_name}")
-        print_red(f"Exceprion was: {e}")
+        print_red(
+            f"unhandled exception trying to pull logs for pod {pod_name}"
+            )
+        print_red(
+            f"Exception was: {e}"
+            )
 
     return logs.decode().strip()
 
-def run_test(entrypoint, command_timeout, pod_name, docker_image, kubernetes_namespace, expected_output=None):
+def run_test(
+        entrypoint, 
+        command_timeout, 
+        pod_name, 
+        docker_image, 
+        kubernetes_namespace, 
+        expected_output=None
+        ):
     will_check_for_expected_output = False
     
-    if(expected_output is not None):
+    if expected_output is not None:
         will_check_for_expected_output = True
 
     overrides_json = """{
@@ -190,10 +205,16 @@ def run_test(entrypoint, command_timeout, pod_name, docker_image, kubernetes_nam
         f"--image={docker_image} -n {kubernetes_namespace} --command -- {entrypoint}"
     )
 
-    #print command information
+    # print command information
     # print(f"Running test command: {kubectl_command}")
     print(f"Running test command: {entrypoint}")
-    result = subprocess.run(kubectl_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    result = subprocess.run(
+        kubectl_command, 
+        shell=True, 
+        stdout=subprocess.PIPE, 
+        stderr=subprocess.PIPE, 
+        text=True
+        )
     if result.returncode == 0:
         print("Command executed successfully!")
         print("Output:\n", result.stdout)
@@ -203,13 +224,23 @@ def run_test(entrypoint, command_timeout, pod_name, docker_image, kubernetes_nam
 
     print(f"The command timeout is: {command_timeout} seconds")
     print(f"<expected_output> value is: '{expected_output}'")
-    if(will_check_for_expected_output):
-        print(f'After {command_timeout} seconds, the pod logs will be checked if they contain the "expected_output"')
+    if will_check_for_expected_output:
+        print(
+            f'After {command_timeout} seconds, the pod logs will be checked if they contain the "expected_output"'
+            )
     else:
-        print(f'Because <expected_output> was not specified, after {command_timeout} seconds, the pod logs will be displayed')
+        print(
+            f'Because <expected_output> was not specified, after {command_timeout} seconds, the pod logs will be displayed'
+            )
 
-    #run the test command
-    if not pod_command_passes(pod_name, kubectl_command, expected_output, kubernetes_namespace, command_timeout):
+    # run the test command
+    if not pod_command_passes(
+        pod_name, 
+        kubectl_command, 
+        expected_output, 
+        kubernetes_namespace, 
+        command_timeout
+        ):
         print(f"Error during pod command execution")
     
     print_green("Waiting for pod to Complete.")
@@ -217,21 +248,25 @@ def run_test(entrypoint, command_timeout, pod_name, docker_image, kubernetes_nam
     if not pod_completes(pod_name, kubernetes_namespace, command_timeout):
         print_yellow(f"Pod {pod_name} did not reach 'Completed' status before timeout.")
 
-    #print the pod logs
+    # print the pod logs
     pod_logs = get_pod_logs(pod_name, kubernetes_namespace)
     print(f"Command log dump for pod: <{pod_name}>")
     print_blue(f"\n {pod_logs} \n")
     print(f"end Command log dump for pod: <{pod_name}>")
 
     #check if expected_output was in logs
-    if(will_check_for_expected_output):
+    if will_check_for_expected_output:
         expected_output = expected_output.strip()
         if expected_output in pod_logs:
-            print_green(f"Test Passed! Expected output was found in the pod logs.")
+            print_green(
+                f"Test Passed! Expected output was found in the pod logs."
+                )
         else:
-            print_red(f"Test Failed: Expected output value '{expected_output}' was not found in pod logs.")
+            print_red(
+                f"Test Failed: Expected output value '{expected_output}' was not found in pod logs."
+                )
         
-    #clean up container
+    # clean up container
     cleanup_pod(pod_name, kubernetes_namespace)
 
 def main(git_project_root_folder, kubernetes_namespace):
@@ -247,25 +282,25 @@ def main(git_project_root_folder, kubernetes_namespace):
 
     # Check for presence of testing_manifest.yaml
     try:
-        with open(manifest_file_path, 'r') as file:
+        with open(manifest_file_path, "r") as file:
             data = yaml.safe_load(file)
-            if 'command_tests' in data:
-                container_tests = data['command_tests']
-            if 'kubernetes_test' in data:
-                kubernetes_test = data['kubernetes_test']
+            if "command_tests" in data:
+                container_tests = data["command_tests"]
+            if "kubernetes_test" in data:
+                kubernetes_test = data["kubernetes_test"]
                 
     except FileNotFoundError:
         print_red("Error: testing_manifest.yaml file not found in the project root")
         sys.exit(1)
 
-    #iterate through each docker test
+    # iterate through each docker test
     if container_tests is not None:
         test_number = 0
 
         for container_test in container_tests:
-            test_number+=1
+            test_number += 1
 
-            container_test_name = container_test['name']
+            container_test_name = container_test["name"]
             
             print_yellow("---------------------------------------")
             print_green(f"Beginning Container Test #{test_number}")
@@ -276,28 +311,35 @@ def main(git_project_root_folder, kubernetes_namespace):
 
             for command in container_test["commands"]:
                 
-                #generate a unique pod name
+                # generate a unique pod name
                 pod_name = uuid.uuid4()
                 print(f"Pod name: {pod_name}")
 
-                #handle expected_output
+                # handle expected_output
                 expected_output = None
                 command_timeout = None
-                entrypoint = command['command']
+                entrypoint = command["command"]
 
 
 
-                if 'expected_output' in command:
-                    expected_output = command['expected_output']
+                if "expected_output" in command:
+                    expected_output = command["expected_output"]
 
-                if 'timeout_seconds' in command:
-                    command_timeout = command['timeout_seconds']
+                if "timeout_seconds" in command:
+                    command_timeout = command["timeout_seconds"]
 
                 # Ensure timeout is never less than 30 seconds
                 if command_timeout is None or command_timeout < 45:
                     command_timeout = 45
 
-                run_test(entrypoint, command_timeout, pod_name, docker_image, kubernetes_namespace, expected_output)
+                run_test(
+                    entrypoint, 
+                    command_timeout, 
+                    pod_name, 
+                    docker_image, 
+                    kubernetes_namespace, 
+                    expected_output
+                    )
     
     if kubernetes_test is not None:
         pod_manifest_yaml = generate_pod_manifest(kubernetes_test, docker_image)
@@ -311,10 +353,10 @@ if __name__ == "__main__":
 
     git_project_root_folder = sys.argv[1]
 
-    #get default gitlab value for the project
-    test_kubernetes_namespace = str(os.environ['NAMESPACE'])
+    # get default gitlab value for the project
+    test_kubernetes_namespace = str(os.environ["NAMESPACE"])
 
     if test_kubernetes_namespace is None:
-        test_kubernetes_namespace = str(os.environ['NAMESPACE'])
+        test_kubernetes_namespace = str(os.environ["NAMESPACE"])
 
     main(git_project_root_folder, test_kubernetes_namespace)
