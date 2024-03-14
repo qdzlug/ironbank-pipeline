@@ -173,7 +173,7 @@ def get_pod_logs(pod_name, pod_namespace, timeout_seconds=10):
             logs_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE
         ).communicate(None, timeout_seconds)
 
-    except TimeoutError as e:
+    except TimeoutError:
         print_red(
             f"'{logs_command}' failed to complete before {timeout_seconds} seconds"
         )

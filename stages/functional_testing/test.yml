@@ -3,7 +3,7 @@ test_image:
   variables:
     NAMESPACE: "ironbank-runtime"
 
-  script: 
+  script:
     - source ${PIPELINE_REPO_DIR}/stages/functional_testing/library/templates.sh
     - setup_k8s_resources "$NAMESPACE" | tee /home/ci/job.log
     - python3 ${PIPELINE_REPO_DIR}/stages/functional_testing/library/functional_testing.py ./ | tee /home/ci/job.log
@@ -16,11 +16,11 @@ test_image:
       if: '$CI_COMMIT_BRANCH == "development"'
     - when: never
   allow_failure: true
-  tags: 
+  tags:
     - ironbank-dsop-ibec2
   needs:
     - lint
-    - load-scripts 
+    - load-scripts
     - import-artifacts
     - build
   retry:

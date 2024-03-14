@@ -24,7 +24,6 @@
   - [Kubernetes Test](#kubernetes-test)
   - [Example testing_manifest.yaml template](#example-testing_manifestyaml-template)
 
-
 # Functional Testing Stage Documentation
 
 The functional testing stage is a crucial step in the Continuous Integration/Continuous Deployment (CI/CD) process. It ensures that images, once built, function as expected. This step not only assures the functionality of the images but also helps in building trust among the users.
@@ -32,6 +31,7 @@ The functional testing stage is a crucial step in the Continuous Integration/Con
 ## Overview
 
 In this stage, the pipeline:
+
 1. Clones the repository.
 2. Sets up authentication for the package.
 3. Installs necessary dependencies. (not necessary if baked into the image and in disconnected run)
@@ -46,20 +46,22 @@ Here is a architecture diagram
 
 ![Testing Stage](stages/functional_testing/images/testingstage.jpg)
 
-
 ## Steps and Commands
 
 1. **Sourcing the Templates**:
+
    ```bash
    source ${PIPELINE_REPO_DESTINATION}/stages/functional_testing/library/templates.sh
    ```
 
 2. **Setting up Kubernetes Resources**:
+
    ```bash
-   setup_k8s_resources "$NAMESPACE" 
+   setup_k8s_resources "$NAMESPACE"
    ```
 
 3. **Executing the Main Test Script**:
+
    ```bash
    python3 ${PIPELINE_REPO_DESTINATION}/stages/functional_testing/library/functional_testing.py $CI_PROJECT_DIR
    ```
@@ -70,6 +72,7 @@ Here is a architecture diagram
    ```
 
 ## Rules:
+
 - The testing stage will always run if `testing_manifest.yaml` exists.
 - Otherwise, the testing stage will never run and the pipeline continues as is.
 
@@ -95,7 +98,7 @@ The `templates.sh` script provides environment settings and helper functions tha
 
 1. **Namespace and Docker Credentials**: The function accepts a namespace argument. If they're not set, it displays a message and creates the namespace.
 2. **Docker Registry Secret**: If a secret named `my-registry-secret` doesn't exist in the specified namespace, it creates one using the environment variables from pipeline CICD vars.
-2. **Service Account**: If a service account named `test-pod-sa` doesn't exist in the specified namespace, it creates one and annotates the service account with the secret so that it can pull image from the registry1.
+3. **Service Account**: If a service account named `test-pod-sa` doesn't exist in the specified namespace, it creates one and annotates the service account with the secret so that it can pull image from the registry1.
 
 # `functional_testing.py` Script Documentation
 
@@ -142,12 +145,14 @@ The `functional_testing.py` script encompasses an essential capability: the dyna
 This function crafts the foundational structure of a Kubernetes Pod manifest and then populates it according to the provided image and any Kubernetes-specific tests present in the `testing_manifest.yaml`.
 
 - **Base Pod Manifest**:
+
   - A rudimentary structure for the Pod manifest is laid out with placeholders. This encompasses:
     - Pod API version and type.
     - Metadata such as name and labels.
     - A basic container specification with a placeholder for the image.
 
 - **Customization**:
+
   - The function subsequently adjusts this primary manifest based on the `kubernetes_test` input:
     - If defined in the `kubernetes_test`, Readiness and Liveness Probes are incorporated.
     - If present, Environment variables (`env`) are appended and similarly ports, commands, and args.
@@ -213,19 +218,17 @@ command_tests:
 
 - **command_tests**: List of tests to be executed within Docker containers.
 
-  - **name** (Optional): 
+  - **name** (Optional):
     - Description: A descriptive name for the test.
-  
-  - **description** (Optional): 
+  - **description** (Optional):
     - Description: Context or a brief about the test.
-  
-  - **commands**: 
+  - **commands**:
     - Description: List of commands to be executed within the container.
-      - **command** (Required): 
+      - **command** (Required):
         - Description: The actual command to run.
-      - **expected_output** (Optional): 
+      - **expected_output** (Optional):
         - Description: The expected output of the command.
-      - **timeout_seconds** (Optional, Default: 30 seconds): 
+      - **timeout_seconds** (Optional, Default: 30 seconds):
         - Description: Time duration before the command is considered timed out.
 
 ## Kubernetes Test
@@ -234,62 +237,69 @@ command_tests:
 kubernetes_test:
 ```
 
-- **env** (Optional): 
-  - Description: Environment variables for the container. 
+- **env** (Optional):
+
+  - Description: Environment variables for the container.
     - **name**: Name of the variable.
     - **value**: Value for the variable.
 
-- **livenessProbe** (Optional): 
+- **livenessProbe** (Optional):
+
   - Description: Specifies the container's health check.
     - Various fields based on Kubernetes liveness probes.
 
-- **readinessProbe** (Optional): 
+- **readinessProbe** (Optional):
+
   - Description: Specifies when the container is ready to serve requests.
     - Various fields based on Kubernetes readiness probes.
 
 - **command** (Optional):
-  - Command to run as soon as the pod is started 
-    - All fields under command section in k8s pod manifest 
+
+  - Command to run as soon as the pod is started
+    - All fields under command section in k8s pod manifest
 
 - **args** (Optional):
+
   - Provide additional arguments to the command
-    - All fields under command section in k8s pod manifest 
+    - All fields under command section in k8s pod manifest
 
 - **ports** (Optional):
-  - Define port for the container which will expose the ports to the outside world 
+
+  - Define port for the container which will expose the ports to the outside world
     ```yaml
     - name
       containerPort
-      hostPort 
-      protocol 
+      hostPort
+      protocol
       hostIP
-      ```
+    ```
 
-- **resources** (Optional): 
+- **resources** (Optional):
   - Description: Resource requests and limits for the container.
-    - **requests**: 
+    - **requests**:
       - **memory**: Memory request (e.g., "64Mi").
       - **cpu**: CPU request (e.g., "250m").
-    - **limits**: 
+    - **limits**:
       - **memory**: Memory limit (e.g., "128Mi").
       - **cpu**: CPU limit (e.g., "500m").
 
 ## Example testing_manifest.yaml template
+
 ```yaml
 command_tests:
   - name: Descriptive name for this test #Optional field
     description: Description for the test #Optional field
-    commands: 
+    commands:
       - command: command to run within the container #Required field
         expected_output: what is the expected stdout of the command above #Optional field
         timeout_seconds: How long a command should take in seconds #Optional field if not set the default value is 30 seconds
       - command: second command to run within the same  container #Optional
         expected_output: expected output of the second command #Optional
         timeout_seconds: How long a command should take in seconds #Optional field if not set the default value is 30 seconds
-# Can have multiple commands.
+  # Can have multiple commands.
   - name: Descriptive name for this second test#Optional field
     description: Description for the test #Optional field
-    commands: 
+    commands:
       - command: command to run within the container #Required field
         expected_output: what is the expected stdout of the command above #Optional field
         timeout_seconds: How long a command should take in seconds #Optional field if not set the default value is 30 seconds
@@ -299,7 +309,7 @@ command_tests:
 
 kubernetes_test:
   # Optional - will follow the spec of env from podSpec. Need to be relevant for the image being tested
-  env: 
+  env:
     - name: TEST
       value: "test"
     - name: ANOTHERTEST
@@ -316,9 +326,9 @@ kubernetes_test:
   readinessProbe:
     exec:
       command:
-      - sh
-      - -c
-      - exec pg_isready --host=localhost
+        - sh
+        - -c
+        - exec pg_isready --host=localhost
     initialDelaySeconds: 5
     timeoutSeconds: 1
     periodSeconds: 5
@@ -335,10 +345,9 @@ kubernetes_test:
   ports:
     - name: http
       containerPort: 8800
-      protocol: TCP 
+      protocol: TCP
 
   command: ["/this/is/mytest.sh"]
 
   args: ["--port", "8800"]
-
 ```

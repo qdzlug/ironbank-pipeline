@@ -14,7 +14,7 @@ if [[ $BASH_SOURCE == $0 ]]; then
   exit 1
 fi
 
-if [[ $DEBUG_ENABLED == "true" || "$CI_MERGE_REQUEST_TITLE" == *"DEBUG"*  || ${CI_MERGE_REQUEST_LABELS} == *"debug"* ]]; then
+if [[ $DEBUG_ENABLED == "true" || "$CI_MERGE_REQUEST_TITLE" == *"DEBUG"* || ${CI_MERGE_REQUEST_LABELS} == *"debug"* ]]; then
   echo "DEBUG_ENABLED is set to true, setting -x in bash"
   DEBUG="true"
   set -x
@@ -22,28 +22,26 @@ fi
 
 trap 'echo ❌ exit at ${0}:${LINENO}, command was: ${BASH_COMMAND} 1>&2' ERR
 
-
 package_auth_setup() {
-   mkdir -p ~/.docker
-   jq -n '{"auths": {"registry.dso.mil": {"auth": $bb_registry_auth}, "registry1.dso.mil": {"auth": $registry1_auth}, "registry.il2.dso.mil": {"auth": $il2_registry_auth}, "docker.io": {"auth": $bb_docker_auth} } }' \
-     --arg bb_registry_auth ${BB_REGISTRY_AUTH} \
-     --arg registry1_auth ${REGISTRY1_AUTH} \
-     --arg il2_registry_auth ${IL2_REGISTRY_AUTH} \
-     --arg bb_docker_auth ${DOCKER_AUTH} > ~/.docker/config.json
+  mkdir -p ~/.docker
+  jq -n '{"auths": {"registry.dso.mil": {"auth": $bb_registry_auth}, "registry1.dso.mil": {"auth": $registry1_auth}, "registry.il2.dso.mil": {"auth": $il2_registry_auth}, "docker.io": {"auth": $bb_docker_auth} } }' \
+    --arg bb_registry_auth ${BB_REGISTRY_AUTH} \
+    --arg registry1_auth ${REGISTRY1_AUTH} \
+    --arg il2_registry_auth ${IL2_REGISTRY_AUTH} \
+    --arg bb_docker_auth ${DOCKER_AUTH} >~/.docker/config.json
 }
 
+setup_k8s_resources() {
+  local NAMESPACE=$1
+  # Create namespace if it doesn't exist
+  kubectl get ns $NAMESPACE || kubectl create ns $NAMESPACE
+  # Create secret if it doesn't exist
+  kubectl get secret my-registry-secret -n $NAMESPACE || kubectl -n $NAMESPACE create secret generic my-registry-secret --type=kubernetes.io/dockerconfigjson --from-file=.dockerconfigjson=$DOCKER_AUTH_FILE_PRE_PUBLISH
 
-function setup_k8s_resources() {
-    local NAMESPACE=$1
-    # Create namespace if it doesn't exist
-    kubectl get ns $NAMESPACE || kubectl create ns $NAMESPACE 
-    # Create secret if it doesn't exist
-    kubectl get secret my-registry-secret -n $NAMESPACE || kubectl -n $NAMESPACE create secret generic my-registry-secret --type=kubernetes.io/dockerconfigjson --from-file=.dockerconfigjson=$DOCKER_AUTH_FILE_PRE_PUBLISH
+  # Create and Patch service account if it hasn't been patched
+  kubectl get serviceaccount testpod-sa -n $NAMESPACE || kubectl create serviceaccount testpod-sa -n $NAMESPACE
 
-    # Create and Patch service account if it hasn't been patched
-    kubectl get serviceaccount testpod-sa -n $NAMESPACE || kubectl create serviceaccount testpod-sa -n $NAMESPACE
-
-    if ! kubectl get serviceaccount testpod-sa -n $NAMESPACE -o=jsonpath='{.imagePullSecrets[?(@.name=="my-registry-secret")].name}' | grep -q "my-registry-secret"; then
-        kubectl patch serviceaccount testpod-sa  -n $NAMESPACE -p '{"imagePullSecrets": [{"name": "my-registry-secret"}]}'
-    fi
+  if ! kubectl get serviceaccount testpod-sa -n $NAMESPACE -o=jsonpath='{.imagePullSecrets[?(@.name=="my-registry-secret")].name}' | grep -q "my-registry-secret"; then
+    kubectl patch serviceaccount testpod-sa -n $NAMESPACE -p '{"imagePullSecrets": [{"name": "my-registry-secret"}]}'
+  fi
 }
