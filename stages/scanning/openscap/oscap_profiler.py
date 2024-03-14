@@ -11,6 +11,7 @@ def get_oscap_guide(os_type):
         f"Determining OSCAP profile and security guide for os_type: {os_type}"
     )
 
+    # this becomes an env file sourced by oscap_scan.sh to determine oscap scanning logic
     oscap_profiles = {
         "alpine317-container": (),
         "alpine3-container": (),
