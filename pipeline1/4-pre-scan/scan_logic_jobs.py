@@ -20,13 +20,13 @@ log = logger.setup("scan_logic_jobs")
 
 
 def write_env_vars(
-    image_name_tag: str, commit_sha: str, digest: str, build_date: str
+    image_name_tag: str, commit_sha: str, digest: str, build_date: str, platform: str
 ) -> None:
     """Writes environment variables into a file named 'scan_logic.env'.
 
     This function takes the image name and tag, commit SHA, image digest,
     and the build date. It then writes these as environment variables
-    into a file named 'scan_logic.env'.
+    into a file named 'scan_logic.env' and 'scan_logic.json'.
 
     Arguments:
     - image_name_tag: The name and tag of the image to scan.
@@ -34,8 +34,13 @@ def write_env_vars(
     - digest: The digest of the image to scan.
     - build_date: The date when the build was created.
     """
-    log.info("Writing env variables to file")
-    with Path("scan_logic.env").open("w", encoding="utf-8") as f:
+    log.info(f"Writing {os.environ['ARTIFACT_DIR']}/{platform}/scan_logic.env")
+    # mkdir
+    Path(f"{os.environ['ARTIFACT_DIR']}/{platform}").mkdir(parents=True, exist_ok=True)
+
+    with Path(f"{os.environ['ARTIFACT_DIR']}/{platform}/scan_logic.env").open(
+        "w", encoding="utf-8"
+    ) as f:
         f.writelines(
             [
                 f"IMAGE_TO_SCAN={image_name_tag}\n",
@@ -45,6 +50,16 @@ def write_env_vars(
             ]
         )
 
+    log.info(f"Writing {os.environ['ARTIFACT_DIR']}/{platform}/scan_logic.json")
+    with Path(f"{os.environ['ARTIFACT_DIR']}/{platform}/scan_logic.json").open(
+        "w", encoding="utf-8"
+    ) as f:
+        f.write(json.dumps({
+            "IMAGE_TO_SCAN": image_name_tag,
+            "COMMIT_SHA_TO_SCAN": commit_sha,
+            "DIGEST_TO_SCAN": digest,
+            "BUILD_DATE_TO_SCAN": build_date,
+        }))
 
 def parse_packages(sbom: Path | dict, access_log: Path | list[str]) -> list[Package]:
     """Verify sbom and access log files exist and parse packages
@@ -126,35 +141,22 @@ def get_old_pkgs(
         return []
 
 
-def main():
-    """Main function that performs package comparison between a new image and a
-    previously scanned image.
-
-    It fetches the new image's details from the environment, including its name, tag, digest, and build date.
-    It then writes these details into an environment variable file using the `write_env_vars` function.
-
-    The function also fetches the packages in the new image and checks if there are any differences
-    between the packages in the new image and a previously scanned image. If differences are found,
-    the function writes the old image details into the environment variable file.
-
-    In certain scenarios such as when the image cannot be verified, when there are no old packages to
-    compare, or when the new image is forced to be scanned, the function logs appropriate messages
-    and continues to the next step or exits.
-
-    Note:
-    This function expects certain environment variables to be set. It can exit the program based on
-    the evaluation of certain conditions.
-    """
+def scan_logic(platform, digest):
     image_name = os.environ["IMAGE_NAME"]
     image_name_tag = os.environ["IMAGE_FULLTAG"]
-    new_sbom = Path(os.environ["ARTIFACT_STORAGE"], "sbom/sbom-syft-json.json")
-    new_access_log = Path(os.environ["ARTIFACT_STORAGE"], "build/access_log")
+    new_sbom = Path(
+        os.environ["ARTIFACT_STORAGE"], f"sbom/{platform}/sbom-syft-json.json"
+    )
+    new_access_log = Path(
+        os.environ["ARTIFACT_STORAGE"], f"build/{platform}/access_log"
+    )
 
     write_env_vars(
         image_name_tag,
         os.environ["CI_COMMIT_SHA"].lower(),
-        os.environ["IMAGE_PODMAN_SHA"],
+        digest,
         os.environ["BUILD_DATE"],
+        platform,
     )
     log.info("New image name, tag, digest, and build date saved")
 
@@ -199,8 +201,50 @@ def main():
                 old_image_details["commit_sha"],
                 old_image_details["digest"],
                 old_image_details["build_date"],
+                platform,
             )
             log.info("Old image name, tag, digest, and build date saved")
+
+
+def main():
+    """Main function that performs package comparison between a new image and a
+    previously scanned image.
+
+    It fetches the new image's details from the environment, including its name, tag, digest, and build date.
+    It then writes these details into an environment variable file using the `write_env_vars` function.
+
+    The function also fetches the packages in the new image and checks if there are any differences
+    between the packages in the new image and a previously scanned image. If differences are found,
+    the function writes the old image details into the environment variable file.
+
+    In certain scenarios such as when the image cannot be verified, when there are no old packages to
+    compare, or when the new image is forced to be scanned, the function logs appropriate messages
+    and continues to the next step or exits.
+
+    Note:
+    This function expects certain environment variables to be set. It can exit the program based on
+    the evaluation of certain conditions.
+    """
+
+    potential_platforms = [
+        "amd64",
+        "arm64",
+    ]
+
+    platforms = [
+        {
+            "platform": platform,
+            "digest": Path(
+                f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/digest'
+            ).read_text(),
+        }
+        for platform in potential_platforms
+        if os.path.isfile(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/digest')
+    ]
+
+    for platform in platforms:
+        print(f"generating for {platform['platform']}..")
+        scan_logic(platform["platform"], platform["digest"])
 
 
 if __name__ == "__main__":
