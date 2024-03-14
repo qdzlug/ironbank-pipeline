@@ -5,23 +5,28 @@ import uuid
 import time
 import sys
 
+
 def print_green(text):
     print(f"\033[1;32m{text}\033[0m")
+
 
 def print_red(text):
     print(f"\033[1;31m{text}\033[0m")
 
+
 def print_blue(text):
     print(f"\033[1;34m{text}\033[0m")
+
 
 def print_yellow(text):
     print(f"\033[1;33m{text}\033[0m")
 
-# returns true if the <command> output matches the <expected_output> and completes before the timeout 
+
+# returns true if the <command> output matches the <expected_output> and completes before the timeout
 def pod_command_passes(
-        pod_name, command, expected_output, kubernetes_namespace, timeout_seconds=90
+    pod_name, command, expected_output, kubernetes_namespace, timeout_seconds=90
 ):
-    try:        
+    try:
         stdout, stderr = subprocess.Popen(
             command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE
         ).communicate(None)
@@ -31,6 +36,7 @@ def pod_command_passes(
         print_red(f"Exception value:\n {e}")
         return False
     return True
+
 
 def pod_completes(pod_name, pod_namespace, max_wait_seconds, check_interval_seconds=2):
     start_time = time.time()
@@ -44,7 +50,7 @@ def pod_completes(pod_name, pod_namespace, max_wait_seconds, check_interval_seco
             status, status_error = subprocess.Popen(
                 status_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE
             ).communicate(None)
-            
+
             status = status.decode().split()[2]
 
             if status == "Completed":
@@ -86,13 +92,13 @@ def read_image_from_hardening_manifest(hardening_manifest):
     except FileNotFoundError:
         print_red("Error: hardening_manifest.yaml file not found in the project root")
         return False
-    
+
     if image_name is None:
         print_red(
             f"image Name not found in hardening manifest. value for image_name was '{image_name}'"
         )
         return False
-    
+
     if image_tag is None:
         print_red(
             f"image tag not found in hardening manifest. value for image_name was '{image_tag}'"
@@ -139,7 +145,6 @@ def generate_pod_manifest(kubernetes_test, image_name):
     # Add ports if present
     if "ports" in kubernetes_test:
         container_spec["ports"] = kubernetes_test["ports"]
-    
 
     # Add args if present
     if "args" in kubernetes_test:
@@ -148,16 +153,17 @@ def generate_pod_manifest(kubernetes_test, image_name):
     # Add resources (requests and limits)
     # Use values from kubernetes_test if present, otherwise use hardcoded defaults
     container_spec["resources"] = kubernetes_test.get(
-        "resources", 
-    {
-        "requests": {"cpu": "100m", "memory": "64Mi"},
-        "limits": {"cpu": "500m", "memory": "256Mi"},
-    },
+        "resources",
+        {
+            "requests": {"cpu": "100m", "memory": "64Mi"},
+            "limits": {"cpu": "500m", "memory": "256Mi"},
+        },
     )
     # Add imagePullSecrets to the pod spec
     pod_manifest["spec"]["imagePullSecrets"] = [{"name": "my-registry-secret"}]
 
     return yaml.dump(pod_manifest)
+
 
 def get_pod_logs(pod_name, pod_namespace, timeout_seconds=10):
     logs_command = f"kubectl logs {pod_name} -n {pod_namespace}"
@@ -166,14 +172,13 @@ def get_pod_logs(pod_name, pod_namespace, timeout_seconds=10):
         logs, logs_error = subprocess.Popen(
             logs_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE
         ).communicate(None, timeout_seconds)
-    
 
     except TimeoutError as e:
         print_red(
             f"'{logs_command}' failed to complete before {timeout_seconds} seconds"
         )
         return False
-    
+
     except Exception as e:
         print_red(f"unhandled exception trying to pull logs for pod {pod_name}")
         print_red(f"Exception was: {e}")
@@ -182,15 +187,14 @@ def get_pod_logs(pod_name, pod_namespace, timeout_seconds=10):
 
 
 def run_test(
-    entrypoint, 
-    command_timeout, 
-    pod_name, 
-    docker_image, 
-    kubernetes_namespace, 
+    entrypoint,
+    command_timeout,
+    pod_name,
+    docker_image,
+    kubernetes_namespace,
     expected_output=None,
 ):
     will_check_for_expected_output = False
-    
 
     if expected_output is not None:
         will_check_for_expected_output = True
@@ -214,10 +218,10 @@ def run_test(
     # print(f"Running test command: {kubectl_command}")
     print(f"Running test command: {entrypoint}")
     result = subprocess.run(
-        kubectl_command, 
-        shell=True, 
-        stdout=subprocess.PIPE, 
-        stderr=subprocess.PIPE, 
+        kubectl_command,
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         text=True,
     )
     if result.returncode == 0:
@@ -240,14 +244,14 @@ def run_test(
 
     # run the test command
     if not pod_command_passes(
-        pod_name, 
-        kubectl_command, 
-        expected_output, 
-        kubernetes_namespace, 
+        pod_name,
+        kubectl_command,
+        expected_output,
+        kubernetes_namespace,
         command_timeout,
     ):
         print(f"Error during pod command execution")
-    
+
     print_green("Waiting for pod to Complete.")
 
     if not pod_completes(pod_name, kubernetes_namespace, command_timeout):
@@ -268,9 +272,10 @@ def run_test(
             print_red(
                 f"Test Failed: Expected output value '{expected_output}' was not found in pod logs."
             )
-        
+
     # clean up container
     cleanup_pod(pod_name, kubernetes_namespace)
+
 
 def main(git_project_root_folder, kubernetes_namespace):
     manifest_file_path = f"{git_project_root_folder}/testing_manifest.yaml"
@@ -333,14 +338,14 @@ def main(git_project_root_folder, kubernetes_namespace):
                     command_timeout = 45
 
                 run_test(
-                    entrypoint, 
-                    command_timeout, 
-                    pod_name, 
-                    docker_image, 
-                    kubernetes_namespace, 
+                    entrypoint,
+                    command_timeout,
+                    pod_name,
+                    docker_image,
+                    kubernetes_namespace,
                     expected_output,
                 )
-    
+
     if kubernetes_test is not None:
         pod_manifest_yaml = generate_pod_manifest(kubernetes_test, docker_image)
         with open("/tmp/podmanifest.yaml", "w") as file:
