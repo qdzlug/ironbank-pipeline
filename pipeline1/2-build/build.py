@@ -156,7 +156,7 @@ def generate_build_env(image_details: dict, image_name: str, image: Image, diges
     ]
     for env_ in build_envs:
         log.info(env_.strip())
-    with Path(f"{os.environ["ARTIFACT_DIR"]}/build.env").open(
+    with Path(f"{os.environ['ARTIFACT_DIR']}/build.env").open(
         mode="a+",
         encoding="utf-8",
     ) as f:
