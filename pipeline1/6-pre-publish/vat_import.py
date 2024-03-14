@@ -396,7 +396,7 @@ def main() -> None:
                     digest=digest,
                 )
                 parent_vat_path = Path(
-                    f"{os.environ['ARTIFACT_DIR']}/parent_vat_response.json"
+                    f"{os.environ['ARTIFACT_DIR']}/{image['platform']['architecture']}/parent_vat_response.json"
                 )
                 with parent_vat_path.open("r", encoding="UTF-8") as f:
                     parent_vat_response_content = {"parentVatResponses": json.load(f)}
@@ -408,7 +408,7 @@ def main() -> None:
                 hardening_manifest=hardening_manifest,
             )
             parent_vat_path = Path(
-                f"{os.environ['ARTIFACT_DIR']}/parent_vat_response.json"
+                f"{os.environ['ARTIFACT_DIR']}/{json_data['extra_attrs']['architecture']} parent_vat_response.json"
             )
             with parent_vat_path.open("r", encoding="UTF-8") as f:
                 parent_vat_response_content = {"parentVatResponses": json.load(f)}
