@@ -99,7 +99,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "enum": ["x86", "arm64"]
+        "enum": ["amd64", "arm64"]
       },
       "minItems": 1,
       "uniqueItems": true
@@ -177,7 +177,7 @@
                   "type": "array",
                   "items": {
                     "type": "string",
-                    "enum": ["x86", "arm64"]
+                    "enum": ["amd64", "arm64"]
                   },
                   "minItems": 1,
                   "uniqueItems": true
@@ -223,7 +223,7 @@
                     "type": "array",
                     "items": {
                       "type": "string",
-                      "enum": ["x86", "arm64"]
+                      "enum": ["amd64", "arm64"]
                     },
                     "minItems": 1,
                     "uniqueItems": true
@@ -267,7 +267,7 @@
                     "type": "array",
                     "items": {
                       "type": "string",
-                      "enum": ["x86", "arm64"]
+                      "enum": ["amd64", "arm64"]
                     }
                   }
                 }

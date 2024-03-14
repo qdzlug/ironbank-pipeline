@@ -1,48 +1,56 @@
 #!/usr/bin/env python3
 
 import os
-
-from pipeline.container_tools.skopeo import Skopeo
-from pipeline.image import Image, ImageFile
-from pipeline.utils.decorators import stack_trace_handler
+import subprocess
+from pathlib import Path
 
 
-@stack_trace_handler
 def main():
-    """This function is the entry point for a script that copies a docker image
-    from a registry and saves it as a tarball file.
+    """This function copies images to .tar files via skopeo
 
     The script requires the following environment variables to be set:
     - 'REGISTRY_PRE_PUBLISH_URL': The URL of the registry where the source image is stored.
     - 'IMAGE_NAME': The name of the image to be copied.
-    - 'IMAGE_PODMAN_SHA': The digest of the image (typically a SHA256 hash).
+    - 'ARTIFACT_DIR': The artifact directory
     - 'IMAGE_FILE': The base name of the file where the image will be saved (without the '.tar' extension).
 
     The function uses the Skopeo tool to copy the image from the source to the destination.
 
     The script does not return anything.
-
-    Raises:
-    - SkopeoException: If there's an error during the image copy operation.
-    - EnvironmentError: If one of the required environment variables is not set.
     """
-    src = Image(
-        registry=os.environ["REGISTRY_PRE_PUBLISH_URL"],
-        name=os.environ["IMAGE_NAME"],
-        digest=os.environ["IMAGE_PODMAN_SHA"],
-        transport="docker://",
-    )
-    dest = ImageFile(
-        file_path=f"{os.environ['IMAGE_FILE']}.tar",
-        transport="docker-archive:",
-    )
-    skopeo = Skopeo()
-    skopeo.copy(
-        src=src,
-        src_authfile=os.environ["DOCKER_AUTH_FILE_PRE_PUBLISH"],
-        dest=dest,
-        log_cmd=True,
-    )
+
+    # copy image to tar for platforms (if digest artifact exists)
+    potential_platforms = [
+        "amd64",
+        "arm64",
+    ]
+
+    platforms = [
+        {
+            "platform": platform,
+            "digest": Path(
+                f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/digest'
+            ).read_text(),
+        }
+        for platform in potential_platforms
+        if os.path.isfile(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/digest')
+    ]
+
+    for platform in platforms:
+        print(f"generating for {platform['platform']}..")
+        Path(f"{os.environ['ARTIFACT_DIR']}/{platform['platform']}").mkdir(
+            parents=True, exist_ok=True
+        )
+        subprocess.run(
+            [
+                "skopeo",
+                "copy",
+                "--authfile",
+                os.environ["DOCKER_AUTH_FILE_PRE_PUBLISH"],
+                f"docker://{os.environ['REGISTRY_PRE_PUBLISH_URL']}/{os.environ['IMAGE_NAME']}@{platform['digest']}",
+                f"docker-archive:{os.environ['ARTIFACT_DIR']}/{platform['platform']}/{os.environ['IMAGE_FILE']}-{platform['platform']}.tar",
+            ]
+        )
 
 
 if __name__ == "__main__":

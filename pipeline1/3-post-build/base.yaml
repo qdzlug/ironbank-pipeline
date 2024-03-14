@@ -2,13 +2,16 @@ create-sbom:
   stage: post-build
   needs:
     - setup
-    - build
+    - job: build-amd64
+      optional: true
+    - job: build-arm64
+      optional: true
   variables:
-    SBOM_DIR: "${ARTIFACT_STORAGE}/sbom"
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/sbom"
   artifacts:
     when: always
     paths:
-      - "${SBOM_DIR}/"
+      - "${ARTIFACT_DIR}/"
     expire_in: 1 week
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/3-post-build/generate_sbom.py"'
@@ -17,53 +20,19 @@ create-tar:
   stage: post-build
   needs:
     - setup
-    - build
+    - job: build-amd64
+      optional: true
+    - job: build-arm64
+      optional: true
   extends:
     - .setup_modules
   variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/tar"
     IMAGE_FILE: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
   artifacts:
     when: always
     paths:
-      - ${IMAGE_FILE}.tar
+      - "${ARTIFACT_DIR}/"
     expire_in: 1 week
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/3-post-build/create_tar.py"'
-
-create-sbom-arm64:
-  stage: post-build
-  needs:
-    - setup
-    - build-arm64
-  variables:
-    SBOM_DIR: "${ARTIFACT_STORAGE}/sbom"
-  artifacts:
-    when: always
-    paths:
-      - "${SBOM_DIR}/"
-    expire_in: 1 week
-  script:
-    - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/3-post-build/generate_sbom.py"'
-  rules:
-    - exists:
-        - Dockerfile_arm64
-
-create-tar-arm64:
-  stage: post-build
-  needs:
-    - setup
-    - build-arm64
-  extends:
-    - .setup_modules
-  variables:
-    IMAGE_FILE: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}"
-  artifacts:
-    when: always
-    paths:
-      - ${IMAGE_FILE}.tar
-    expire_in: 1 week
-  script:
-    - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/3-post-build/create_tar.py"'
-  rules:
-    - exists:
-        - Dockerfile_arm64

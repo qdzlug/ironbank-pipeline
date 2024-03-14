@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import json
 import os
 import sys
 from pathlib import Path
@@ -26,31 +27,52 @@ def main() -> None:
     - ANCHORE_PASSWORD: The password for the anchore service.
     - ANCHORE_VERIFY: (Optional) A boolean specifying whether to verify the SSL certificate
                       of the anchore service. Defaults to True.
-    - ANCHORE_SCANS: (Optional) The path where scan results will be stored. Defaults to '/tmp/anchore_scans'.
+    - ARTIFACT_DIR: (Optional) The path where scan results will be stored. Defaults to '/tmp/anchore_scans'.
     - IMAGE_TO_SCAN: The image on which the anchore scan will be performed.
     """
-    # Get logging level, set manually when running pipeline
 
-    anchore_scan = Anchore(
-        url=os.environ["ANCHORE_URL"],
-        username=os.environ["ANCHORE_USERNAME"],
-        password=os.environ["ANCHORE_PASSWORD"],
-        verify=os.environ.get("ANCHORE_VERIFY", default=True),
-    )
+    potential_platforms = [
+        "amd64",
+        "arm64",
+    ]
 
-    artifacts_path = os.environ.get("ANCHORE_SCANS", default="/tmp/anchore_scans")
+    platforms = [
+        platform
+        for platform in potential_platforms
+        if os.path.isfile(
+            f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json'
+        )
+    ]
 
-    # Create the directory if it does not exist
-    Path(artifacts_path).mkdir(parents=True, exist_ok=True)
+    for platform in platforms:
+        # load platform scan_logic.json
+        with open(
+            f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json'
+        ) as f:
+            scan_logic = json.load(f)
 
-    image = os.environ["IMAGE_TO_SCAN"]
+        anchore_scan = Anchore(
+            url=os.environ["ANCHORE_URL"],
+            username=os.environ["ANCHORE_USERNAME"],
+            password=os.environ["ANCHORE_PASSWORD"],
+            verify=os.environ.get("ANCHORE_VERIFY", default=True),
+        )
 
-    digest = anchore_scan.image_add(image)
-    anchore_scan.get_vulns(digest=digest, image=image, artifacts_path=artifacts_path)
-    anchore_scan.get_compliance(
-        digest=digest, image=image, artifacts_path=artifacts_path
-    )
-    anchore_scan.get_version(artifacts_path=artifacts_path)
+        artifacts_path = os.environ.get("ARTIFACT_DIR", default="/tmp/anchore_scans")
+
+        # Create the directory if it does not exist
+        Path(artifacts_path).mkdir(parents=True, exist_ok=True)
+
+        image = scan_logic["IMAGE_TO_SCAN"]
+
+        digest = anchore_scan.image_add(image)
+        anchore_scan.get_vulns(
+            digest=digest, image=image, artifacts_path=artifacts_path
+        )
+        anchore_scan.get_compliance(
+            digest=digest, image=image, artifacts_path=artifacts_path
+        )
+        anchore_scan.get_version(artifacts_path=artifacts_path)
 
 
 if __name__ == "__main__":

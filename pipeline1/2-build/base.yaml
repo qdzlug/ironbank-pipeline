@@ -1,5 +1,4 @@
-# IMPORTANT: The name of this stage/job is must not be changed from "build" without first reconfiguring runners in the bootstrap
-build:
+build-amd64:
   stage: build
   extends:
     - .setup_modules
@@ -9,7 +8,7 @@ build:
     - setup
     - import-artifacts
   variables:
-    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build/amd64"
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/2-build/build.py"'
   artifacts:
@@ -19,9 +18,11 @@ build:
     expire_in: 1 week
     reports:
       dotenv: build.env
+  rules:
+    - exists:
+        - Dockerfile
 
 build-arm64:
-  # This is the only job that NEEDS to run on an arm64 node. Its easy to just specify it until I create an arm64 pipeline image.
   image: ${IAM_ACCOUNT_ID}.dkr.ecr.us-gov-west-1.amazonaws.com/ironbank/ironbank-pipelines/pipeline-runner:v0.10.13-arm64
   stage: build
   extends:
@@ -32,10 +33,9 @@ build-arm64:
     - setup
     - import-artifacts
   variables:
-    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build"
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build/arm64"
     KUBERNETES_NODE_SELECTOR_IRONBANK: "ironbank=gitlab-runner-arm64"
   script:
-    # This job doesn't run unless the Dockerfile_arm64 file exists in the repo.
     # Also by copying the Dockerfile_arm64 over the Dockerfile the correct arguments are passed when the image is being built.
     - "cp -f Dockerfile_arm64 Dockerfile"
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/2-build/build.py"'

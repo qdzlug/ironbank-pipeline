@@ -12,7 +12,9 @@ from pathlib import Path
 sys.path.append(Path(__file__).absolute().parents[2].as_posix())
 
 
-def generate_sbom(image, artifacts_path, output_format, file_type, filename=None):
+def generate_sbom(
+    image, platform, artifacts_path, output_format, file_type, filename=None
+):
     """
     Grab the SBOM from Anchore
 
@@ -22,7 +24,16 @@ def generate_sbom(image, artifacts_path, output_format, file_type, filename=None
     else:
         filename = f"{filename}-{output_format}"
 
-    cmd = ["syft", image, "--scope", "all-layers", "-o", f"{output_format}"]
+    cmd = [
+        "syft",
+        image,
+        "--platform",
+        f"linux/{platform}",
+        "--scope",
+        "all-layers",
+        "-o",
+        f"{output_format}",
+    ]
 
     sbom_dir = Path(artifacts_path)
     sbom_dir.mkdir(parents=True, exist_ok=True)
@@ -41,13 +52,10 @@ def generate_sbom(image, artifacts_path, output_format, file_type, filename=None
             sys.exit(1)
 
 
-def generate_sbom_parallel(image, artifacts_path, fmt) -> None:
+def generate_sbom_parallel(image, platform, artifacts_path, fmt) -> None:
     """Helper function which selects the appropriate args when calling
     generate_sbom."""
-    if len(fmt) < 3:
-        generate_sbom(image, artifacts_path, fmt[0], fmt[1])
-    else:
-        generate_sbom(image, artifacts_path, fmt[0], fmt[1], fmt[2])
+    generate_sbom(image, platform, artifacts_path, fmt[0], fmt[1], fmt[2])
 
 
 def main() -> None:
@@ -68,24 +76,38 @@ def main() -> None:
 
     :raises KeyError: If required environment variables are not set.
     """
-    # Get logging level, set manually when running pipeline
 
-    artifacts_path = os.environ.get("SBOM_DIR", default="/tmp/sbom_dir")
+    # generate sbom for platforms (if digest artifact exists)
+    potential_platforms = [
+        "amd64",
+        "arm64",
+    ]
 
-    image = os.environ["IMAGE_FULLTAG"]
+    platforms = [
+        platform
+        for platform in potential_platforms
+        if os.path.isfile(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/digest')
+    ]
 
     sbom_formats = [
-        ("cyclonedx-json", "json"),
-        ("spdx-tag-value", "txt"),
-        ("spdx-json", "json"),
+        ("cyclonedx-json", "json", None),
+        ("spdx-tag-value", "txt", None),
+        ("spdx-json", "json", None),
         ("json", "json", "syft"),
     ]
 
-    with Pool() as pool:
-        # create intermediate function to hold arguments which are always the same (scan object, image, and artifact path)
-        partial_generate_sbom = partial(generate_sbom_parallel, image, artifacts_path)
-        # map each format tuple to partial_generate_sbom and add it to the pool
-        pool.map(partial_generate_sbom, sbom_formats)
+    for platform in platforms:
+        print(f"generating for {platform}..")
+        with Pool() as pool:
+            # create intermediate function to hold arguments which are always the same (image, platform, and artifact path)
+            partial_generate_sbom = partial(
+                generate_sbom_parallel,
+                os.environ["IMAGE_FULLTAG"],
+                platform,
+                f'{os.environ["ARTIFACT_DIR"]}/{platform}',
+            )
+            # map each format tuple to partial_generate_sbom and add it to the pool
+            pool.map(partial_generate_sbom, sbom_formats)
 
 
 if __name__ == "__main__":
