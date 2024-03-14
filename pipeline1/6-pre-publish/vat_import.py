@@ -23,6 +23,7 @@ from pipeline.project import DsopProject
 from pipeline.scan_report_parsers.anchore import AnchoreReportParser
 from pipeline.scan_report_parsers.oscap import OscapReportParser
 from pipeline.utils.predicates import Predicates
+import urllib.parse
 
 from args import EnvUtil
 
@@ -293,7 +294,7 @@ def create_api_call() -> dict:
 
 
 def get_parent_vat_response(
-    output_dir: str, hardening_manifest: HardeningManifest
+    output_dir: str, hardening_manifest: HardeningManifest, digest: str = None
 ) -> None:
     """Pulls the parent VAT response for a particular image from a registry.
 
@@ -309,22 +310,25 @@ def get_parent_vat_response(
     - output_dir: The directory where the output will be stored.
     - hardening_manifest: The hardening manifest for the base image.
     """
-    # 1. Test for manifest list
-    # 2. If manifest list use image sha's
-    # 3. If not manifest list use image tag.
-    # You can probably use the subprocess routine.
-    base_image = Image(
-        registry=os.environ["BASE_REGISTRY"],
-        name=hardening_manifest.base_image_name,
-        # tag=hardening_manifest.base_image_tag,
-        digest="sha256:a15af38a12eab4d1d478f2487ebb2c82a61065e514c4b14d4828eccaee27daba"
-    )
+    # If digest != None that means the base image was a manifest list.
+    if digest != None:
+        base_image = Image(
+            registry=os.environ["BASE_REGISTRY"],
+            name=hardening_manifest.base_image_name,
+            digest=digest,
+        )
+    else:
+        base_image = Image(
+            registry=os.environ["BASE_REGISTRY"],
+            name=hardening_manifest.base_image_name,
+            tag=hardening_manifest.base_image_tag,
+        )
     vat_response_predicate = "https://vat.dso.mil/api/p1/predicate/beta1"
     pull_auth = Path(os.environ["DOCKER_AUTH_FILE_PULL"])
     docker_config_dir = Path("/tmp/docker_config")
     docker_config_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy(src=pull_auth, dst=Path(docker_config_dir, "config.json"))
-    log.info(f"base_image: {base_image}") # TODO: Remove all these log entries
+    log.info(f"base_image: {base_image}")  # TODO: Remove all these log entries
     log.info(f"base_image.name: {base_image.name}")
     log.info(f"base_image.registry: {base_image.registry}")
     log.info(f"base_image.digest: {base_image.digest}")
@@ -333,7 +337,7 @@ def get_parent_vat_response(
         output_dir=output_dir,
         docker_config_dir=docker_config_dir,
         predicate_types=[vat_response_predicate],
-        log_cmd=True
+        log_cmd=True,
     )
     predicates = Predicates()
     predicate_path = Path(
@@ -362,13 +366,50 @@ def main() -> None:
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
 
     if hardening_manifest.base_image_name:
-        get_parent_vat_response(
-            output_dir=os.environ["ARTIFACT_DIR"], hardening_manifest=hardening_manifest
-        )
-        parent_vat_path = Path(f"{os.environ['ARTIFACT_DIR']}/parent_vat_response.json")
-        with parent_vat_path.open("r", encoding="UTF-8") as f:
-            parent_vat_response_content = {"parentVatResponses": json.load(f)}
-        log.debug(parent_vat_response_content)
+        # Check if the base image is a manifest list.
+        try:
+            base_registry = os.environ["BASE_REGISTRY"]
+            base_registry = base_registry.split("/")[0]
+            encoded_image_name = urllib.parse.quote(
+                hardening_manifest.base_image_name, safe=""
+            )
+            url = f"https://{base_registry}/api/v2.0/projects/ironbank/repositories/{encoded_image_name}/artifacts/{hardening_manifest.base_image_tag}"
+            response = requests.get(url)
+            response.raise_for_status()  # Raise an exception for 4xx or 5xx status codes
+            json_data = response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"An error occurred: {e}")
+            exit(1)
+        # 2. If manifest list use image sha's
+        if (
+            json_data["manifest_media_type"]
+            == "application/vnd.oci.image.index.v1+json"
+        ):
+            for image in json_data["references"]:
+                digest = image["child_digest"]
+                get_parent_vat_response(
+                    output_dir=os.environ["ARTIFACT_DIR"],
+                    hardening_manifest=hardening_manifest,
+                    digest=digest,
+                )
+                parent_vat_path = Path(
+                    f"{os.environ['ARTIFACT_DIR']}/parent_vat_response.json"
+                )
+                with parent_vat_path.open("r", encoding="UTF-8") as f:
+                    parent_vat_response_content = {"parentVatResponses": json.load(f)}
+                log.debug(parent_vat_response_content)
+        # 3. If not manifest list use image tag.
+        else:
+            get_parent_vat_response(
+                output_dir=os.environ["ARTIFACT_DIR"],
+                hardening_manifest=hardening_manifest,
+            )
+            parent_vat_path = Path(
+                f"{os.environ['ARTIFACT_DIR']}/parent_vat_response.json"
+            )
+            with parent_vat_path.open("r", encoding="UTF-8") as f:
+                parent_vat_response_content = {"parentVatResponses": json.load(f)}
+            log.debug(parent_vat_response_content)
     else:
         parent_vat_response_content = {"parentVatResponses": None}
 

@@ -19,7 +19,6 @@ vat:
     VAT_TOKEN:
       aud: ${CI_SERVER_URL}
   script:
-    - 'env'
     - 'mkdir -p "${ARTIFACT_DIR}"'
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/6-pre-publish/vat_import.py"'
   artifacts:
@@ -27,16 +26,6 @@ vat:
     paths:
       - "${ARTIFACT_DIR}/"
     expire_in: 1 week
-
-# [
-#      {
-#           "Id": "ec32177bbc38cc665df976138f599776838de6939b2bf39fb4e03416f3917db2",
-#           "Digest": "sha256:b64d948c603eda1173be0bd47018947893bf1c9202499e3be4e7f0468b69142f",
-#           "RepoTags": [],
-#           "RepoDigests": [
-#                "harbor-ib-mario.staging.dso.mil/ironbank/redhat/ubi/ubi9@sha256:a15af38a12eab4d1d478f2487ebb2c82a61065e514c4b14d4828eccaee27daba",
-#                "harbor-ib-mario.staging.dso.mil/ironbank/redhat/ubi/ubi9@sha256:b64d948c603eda1173be0bd47018947893bf1c9202499e3be4e7f0468b69142f"
-#           ],
 
 vat-arm64:
   # checks if project is a pipeline-test-project and if so, prevents job from running
