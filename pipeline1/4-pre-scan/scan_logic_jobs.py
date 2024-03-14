@@ -201,7 +201,7 @@ def scan_logic(platform, digest):
                 encoded_image_name = urllib.parse.quote(
                     image_name, safe=""
                 )
-                url = f"https://{base_registry}/api/v2.0/projects/ironbank/repositories/{encoded_image_name}/artifacts/{image_name}:{tag}"
+                url = f"https://{base_registry}/api/v2.0/projects/ironbank/repositories/{encoded_image_name}/artifacts/{tag}"
                 response = requests.get(url, headers=headers)
                 response.raise_for_status()  # Raise an exception for 4xx or 5xx status codes
                 json_data = response.json()
