@@ -16,8 +16,6 @@ build-amd64:
     paths:
       - "${ARTIFACT_DIR}/"
     expire_in: 1 week
-    reports:
-      dotenv: build.env
   rules:
     - exists:
         - Dockerfile
@@ -44,8 +42,6 @@ build-arm64:
     paths:
       - "${ARTIFACT_DIR}/"
     expire_in: 1 week
-    reports:
-      dotenv: build.env
   rules:
     - exists:
         - Dockerfile_arm64

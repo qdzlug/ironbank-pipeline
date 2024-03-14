@@ -161,6 +161,16 @@ def generate_build_env(image_details: dict, image_name: str, image: Image, diges
         encoding="utf-8",
     ) as f:
         f.writelines(build_envs)
+    with Path(f"{os.environ['ARTIFACT_DIR']}/build.json").open(
+        "w", encoding="utf-8"
+    ) as f:
+        f.write(json.dumps({
+            "IMAGE_ID": f"sha256:{image_details['FromImageID']}",
+            "IMAGE_PODMAN_SHA": digest,
+            "IMAGE_FULLTAG": image.from_image(transport=''),
+            "IMAGE_NAME": image_name,
+            "BUILD_DATE": datetime.datetime.utcnow().isoformat(sep='T', timespec='seconds'),
+        }))
 
 
 # decorate main to capture all subprocess errors
