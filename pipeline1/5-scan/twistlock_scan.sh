@@ -5,12 +5,11 @@ set -euo pipefail
 for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*;
 do
 
-  cat "$SCAN_LOGIC_DIR/scan_logic.env"
-  # IMAGE_TO_SCAN
-  source "$SCAN_LOGIC_DIR/scan_logic.env"
-
-  # amd64, arm64
+  # amd64, arm64, ..
   PLATFORM=$(basename "$SCAN_LOGIC_DIR")
+
+  IMAGE_TO_SCAN=$(grep 'IMAGE_TO_SCAN' "$SCAN_LOGIC_DIR/scan_logic.env")
+  DIGEST_TO_SCAN=$(grep 'DIGEST_TO_SCAN' "$SCAN_LOGIC_DIR/scan_logic.env")
 
   # scan by sha uri
   URI_BASENAME=$(echo "$IMAGE_TO_SCAN" | awk -F':' '{ print $1 }')
