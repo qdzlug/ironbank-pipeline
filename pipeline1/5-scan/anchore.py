@@ -223,7 +223,15 @@ class Anchore:
         os.environ["ANCHORECTL_IMAGE_WAIT"] = "true"
 
         logging.info("sending image to anchore for analysis, please wait..")
-        add_cmd = ["anchorectl", "image", "add", "--platform", platform]
+        add_cmd = [
+            "anchorectl",
+            "image",
+            "add",
+            "--from",
+            "registry",
+            "--platform",
+            platform,
+        ]
 
         if Path("./Dockerfile_arm64").is_file() and platform == "amd64":
             os.environ["ANCHORECTL_FORCE"] = "true"
@@ -231,7 +239,7 @@ class Anchore:
         elif Path("./Dockerfile_arm64").is_file() and platform == "arm64":
             os.environ["ANCHORECTL_FORCE"] = "true"
             add_cmd += ["--dockerfile", "./Dockerfile_arm64"]
-        else: # Change this to a elif for other architectures.
+        else:  # Change this to a elif for other architectures.
             os.environ["ANCHORECTL_FORCE"] = "true"
             add_cmd += ["--dockerfile", "./Dockerfile"]
 
