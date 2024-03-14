@@ -4,10 +4,10 @@ test_image:
     NAMESPACE: "ironbank-runtime"
 
   before_script:
-  # Make sure docker is active so that minikube comes up
+    # Make sure docker is active so that minikube comes up
     - until systemctl is-active --quiet --user docker.service; do sleep 1; echo 'INFO waiting for docker'; done
-  # Make sure minikube is up 
-    -  while ! minikube status; do sleep 5; done
+    # Make sure minikube is up
+    - while ! minikube status; do sleep 5; done
   script:
     - source ${PIPELINE_REPO_DIR}/stages/functional_testing/library/templates.sh
     - setup_k8s_resources "$NAMESPACE" | tee /home/ci/job.log
