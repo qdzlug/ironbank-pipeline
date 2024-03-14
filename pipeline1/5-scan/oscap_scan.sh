@@ -21,21 +21,19 @@ mkdir -p /run/containers/0
 cp "${DOCKER_AUTH_FILE_PULL}" /run/containers/0/auth.json
 
 # dotenv artifact
-echo "OSCAP_COMPLIANCE_URL=${CI_JOB_URL}" >"${ARTIFACT_DIR}/oscap-compliance.env"
+mkdir -p "${ARTIFACT_DIR}"
+echo "OSCAP_COMPLIANCE_URL=${CI_JOB_URL}" > "${ARTIFACT_DIR}/oscap-compliance.env"
 chmod 644 "${ARTIFACT_DIR}/oscap-compliance.env"
 
 for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*;
 do
 
   # IMAGE_TO_SCAN
-  source "$SCAN_LOGIC_DIR/scan_logic.env" 
+  URI_BASENAME=$(awk -F'=' '/IMAGE_TO_SCAN/ { print $2 }' "$SCAN_LOGIC_DIR/scan_logic.env" | awk -F':' '{ print $1 }')
+  URI_DIGEST=$(awk -F'=' '/DIGEST_TO_SCAN/ { print $2 }' "$SCAN_LOGIC_DIR/scan_logic.env")
 
-  # amd64, arm64
+  # amd64, arm64, ..
   PLATFORM=$(basename "$SCAN_LOGIC_DIR")
-
-  # scan by sha uri
-  URI_BASENAME=$(echo "$IMAGE_TO_SCAN" | awk -F':' '{ print $1 }')
-  URI_TO_SCAN="$URI_BASENAME@$DIGEST_TO_SCAN"
 
   # setup platform artifact(s)
   mkdir -p "${ARTIFACT_DIR}/${PLATFORM}"
@@ -44,7 +42,7 @@ do
   # if no scanner, scan natively
   if [ -z "${OSCAP_SCANNER:-}" ]; then
     echo "INFO begin native scan"
-    /usr/local/bin/oscap-podman "${URI_TO_SCAN}" \
+    /usr/local/bin/oscap-podman "${URI_BASENAME}@${URI_DIGEST}" \
       xccdf \
       eval \
       --verbose ERROR \
@@ -62,7 +60,7 @@ do
     podman load -q -i "/opt/oscap/$OSCAP_SCANNER.tar" >/dev/null
 
     # save the target, scanner may not have ca certs
-    skopeo copy docker://"${URI_TO_SCAN}" docker-archive:/opt/oscap/target.tar
+    skopeo copy docker://"${URI_BASENAME}@${URI_DIGEST}" docker-archive:/opt/oscap/target.tar
 
     # start detached scanner
     podman run \
