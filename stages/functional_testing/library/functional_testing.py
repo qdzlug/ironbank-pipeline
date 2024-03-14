@@ -1,9 +1,9 @@
-import yaml
 import os
 import subprocess
 import uuid
 import time
 import sys
+import yaml
 
 
 def print_green(text):
