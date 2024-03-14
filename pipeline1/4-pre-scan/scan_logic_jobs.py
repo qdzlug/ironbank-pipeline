@@ -17,6 +17,8 @@ from pipeline.utils.types import Package
 from common.utils import logger
 import urllib
 import requests
+from pipeline.hardening_manifest import HardeningManifest
+from pipeline.project import DsopProject
 
 log = logger.setup("scan_logic_jobs")
 
@@ -180,7 +182,12 @@ def scan_logic(platform, digest):
                 sys.exit(0)
 
             log.info("SBOM diff required to determine image to scan")
-
+            dsop_project = DsopProject()
+            hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
+            if hardening_manifest.base_image_name: 
+                tag = hardening_manifest.base_image_tag
+            else:
+                tag = hardening_manifest.image_tag
             try:
                 base_registry = os.environ["BASE_REGISTRY"]
                 base_registry = base_registry.split("/")[0]
@@ -194,7 +201,7 @@ def scan_logic(platform, digest):
                 encoded_image_name = urllib.parse.quote(
                     image_name, safe=""
                 )
-                url = f"https://{base_registry}/api/v2.0/projects/ironbank/repositories/{encoded_image_name}/artifacts/{image_name}:{image_name_tag}"
+                url = f"https://{base_registry}/api/v2.0/projects/ironbank/repositories/{encoded_image_name}/artifacts/{image_name}:{tag}"
                 response = requests.get(url, headers=headers)
                 response.raise_for_status()  # Raise an exception for 4xx or 5xx status codes
                 json_data = response.json()
