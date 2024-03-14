@@ -5,8 +5,9 @@ set -euo pipefail
 for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*;
 do
 
+  cat "$SCAN_LOGIC_DIR/scan_logic.env"
   # IMAGE_TO_SCAN
-  source "$SCAN_LOGIC_DIR/scan_logic.env" 
+  source "$SCAN_LOGIC_DIR/scan_logic.env"
 
   # amd64, arm64
   PLATFORM=$(basename "$SCAN_LOGIC_DIR")
