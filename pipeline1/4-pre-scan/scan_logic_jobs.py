@@ -15,6 +15,8 @@ from pipeline.image import Image
 from pipeline.utils.exceptions import CosignDownloadError
 from pipeline.utils.types import Package
 from common.utils import logger
+import urllib
+import requests
 
 log = logger.setup("scan_logic_jobs")
 
@@ -179,9 +181,38 @@ def scan_logic(platform, digest):
 
             log.info("SBOM diff required to determine image to scan")
 
+            try:
+                base_registry = os.environ["BASE_REGISTRY"]
+                base_registry = base_registry.split("/")[0]
+                with open(os.environ["DOCKER_AUTH_FILE_PULL"]) as f:
+                    auth = json.load(f)
+                encoded_credentials = auth['auths'][base_registry]['auth']
+                headers = {
+                    'Accept': 'application/json',
+                    'Authorization': f'Basic {encoded_credentials}'
+                }
+                encoded_image_name = urllib.parse.quote(
+                    image_name, safe=""
+                )
+                url = f"https://{base_registry}/api/v2.0/projects/ironbank/repositories/{encoded_image_name}/artifacts/{hardening_manifest.base_image_tag}"
+                response = requests.get(url, headers=headers)
+                response.raise_for_status()  # Raise an exception for 4xx or 5xx status codes
+                json_data = response.json()
+            except requests.exceptions.RequestException as e:
+                print(f"An error occurred: {e}")
+                exit(1)
+            if (
+                json_data["manifest_media_type"]
+                == "application/vnd.oci.image.index.v1+json"
+            ):
+                for image in json_data["references"]:
+                    if image['platform']['architecture'] == platform:
+                        digest = image["child_digest"]
+
+
             old_pkgs = get_old_pkgs(
                 image_name=image_name,
-                image_digest=old_image_details["digest"],
+                image_digest=digest, # Should just have to change this line.
                 docker_config_dir=docker_config_dir,
             )
         if not old_pkgs:
