@@ -54,11 +54,11 @@ def get_oscap_guide(os_type):
             "OSCAP_DATASTREAM=ssg-ubuntu2004-ds.xml\n"
             "OSCAP_SCANNER=debian"
         ),
-        "ubuntu2204-container": (
-            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_standard\n"
-            "OSCAP_DATASTREAM=ssg-ubuntu2204-ds.xml\n"
-            "OSCAP_SCANNER=debian"
-        ),
+        # "ubuntu2204-container": (
+        #     "OSCAP_PROFILE=#TODO STIG TYPE PROFILE\n"
+        #     "OSCAP_DATASTREAM=ssg-ubuntu2204-ds.xml\n"
+        #     "OSCAP_SCANNER=debian"
+        # ),
     }
     try:
         oscap_profile = oscap_profiles[os_type]
