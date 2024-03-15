@@ -287,7 +287,7 @@ def create_api_call(platform) -> dict:
         "scanDate": str(build_json["BUILD_DATE"]),
         "buildDate": str(scan_logic["BUILD_DATE_TO_SCAN"]),
         "repo": {
-            "url": {os.environ["CI_PROJECT_URL"]},
+            "url": os.environ["CI_PROJECT_URL"],
             "commit": str(scan_logic["COMMIT_SHA_TO_SCAN"]),
         },
         "findings": all_findings,
