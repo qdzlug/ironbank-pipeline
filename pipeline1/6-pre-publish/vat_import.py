@@ -200,7 +200,7 @@ def generate_twistlock_findings(twistlock_cve_path: Path) -> list[dict[str, Any]
     return findings
 
 
-def create_api_call(args) -> dict:
+def create_api_call() -> dict:
     """Creates the data for an API call based on various environmental
     variables and findings.
 
@@ -343,7 +343,7 @@ def get_parent_vat_response(
     shutil.move(predicate_path, parent_vat_path)
 
 
-def main(args) -> None:
+def main() -> None:
     """Main function to run the application.
 
     This function collects data for an API call and sends a POST request to the API
@@ -418,7 +418,7 @@ def main(args) -> None:
 
     vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
     if not args.use_json:
-        large_data = create_api_call(args)
+        large_data = create_api_call()
         large_data.update(parent_vat_response_content)
         with vat_request_json.open("w", encoding="utf-8") as outfile:
             json.dump(large_data, outfile)
@@ -483,4 +483,4 @@ if __name__ == "__main__":
             )
             sys.exit(0)
 
-        main(args)
+        main()
