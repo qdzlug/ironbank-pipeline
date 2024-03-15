@@ -282,13 +282,13 @@ def create_api_call(platform) -> dict:
         "parentImageName": args.parent,
         "parentImageTag": args.parent_version,
         "jobId": args.job_id,
-        "digest": scan_logic["DIGEST_TO_SCAN"].replace("sha256:", ""),
+        "digest": str(scan_logic["DIGEST_TO_SCAN"].replace("sha256:", "")),
         "timestamp": args.timestamp,
-        "scanDate": build_json["BUILD_DATE"],
-        "buildDate": scan_logic["BUILD_DATE_TO_SCAN"],
+        "scanDate": str(build_json["BUILD_DATE"]),
+        "buildDate": str(scan_logic["BUILD_DATE_TO_SCAN"]),
         "repo": {
             "url": {os.environ["CI_PROJECT_URL"]},
-            "commit": scan_logic["COMMIT_SHA_TO_SCAN"],
+            "commit": str(scan_logic["COMMIT_SHA_TO_SCAN"]),
         },
         "findings": all_findings,
         "keywords": keyword_list,
@@ -424,6 +424,7 @@ def main(platform) -> None:
             log.info(f"parent_vat_response_content for {platform} in 3 --> {parent_vat_response_content}")
     else:
         parent_vat_response_content = {"parentVatResponses": None}
+        log.info(f"parent_vat_response_content in else with platform {platform} --> {parent_vat_response_content}")
 
     vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/{platform}/vat_request.json")
     if not args.use_json:
