@@ -448,7 +448,7 @@ def main(platform) -> None:
         resp.raise_for_status()
         log.debug("API Response:\n%s", resp.text)
         log.debug("POST Response: %s", resp.status_code)
-        with Path(f"{os.environ['ARTIFACT_DIR']}/vat_response.json").open(
+        with Path(f"{os.environ['ARTIFACT_DIR']}/{platform}/vat_response.json").open(
             "w", encoding="utf-8"
         ) as outfile:
             json.dump(resp.json(), outfile)
