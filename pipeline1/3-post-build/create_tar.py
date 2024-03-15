@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import json
 import os
 import subprocess
 from pathlib import Path
@@ -37,6 +38,10 @@ def main():
     ]
 
     for platform in platforms:
+        # load platform build.json
+        with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json') as f:
+            build = json.load(f)
+
         print(f"generating for {platform['platform']}..")
         Path(f"{os.environ['ARTIFACT_DIR']}/{platform['platform']}").mkdir(
             parents=True, exist_ok=True
@@ -47,8 +52,8 @@ def main():
                 "copy",
                 "--authfile",
                 os.environ["DOCKER_AUTH_FILE_PRE_PUBLISH"],
-                f"docker://{os.environ['REGISTRY_PRE_PUBLISH_URL']}/{os.environ['IMAGE_NAME']}@{platform['digest']}",
-                f"docker-archive:{os.environ['ARTIFACT_DIR']}/{platform['platform']}/{os.environ['IMAGE_FILE']}-{platform['platform']}.tar",
+                f"docker://{os.environ['REGISTRY_PRE_PUBLISH_URL']}/{build['IMAGE_NAME']}@{platform['digest']}",
+                f"docker-archive:{os.environ['ARTIFACT_DIR']}/{platform['platform']}/{build['IMAGE_FILE']}-{platform['platform']}.tar",
             ]
         )
 
