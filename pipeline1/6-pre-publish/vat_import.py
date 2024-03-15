@@ -418,7 +418,7 @@ def main(args) -> None:
 
     vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
     if not args.use_json:
-        large_data = create_api_call()
+        large_data = create_api_call(args)
         large_data.update(parent_vat_response_content)
         with vat_request_json.open("w", encoding="utf-8") as outfile:
             json.dump(large_data, outfile)
