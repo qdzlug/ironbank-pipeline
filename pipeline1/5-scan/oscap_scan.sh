@@ -2,9 +2,6 @@
 
 set -euo pipefail
 
-python3 "${PIPELINE_REPO_DIR}/stages/scanning/openscap/oscap_profiler.py" "${OS_TYPE}"
-source oscap_profile.txt
-
 # check OSCAP_DATASTREAM
 if [ -n "${OSCAP_DATASTREAM:-}" ]; then
   echo "INFO found datastream $OSCAP_DATASTREAM"
