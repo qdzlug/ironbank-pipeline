@@ -55,7 +55,7 @@ def main():
                 "--authfile",
                 os.environ["DOCKER_AUTH_FILE_PRE_PUBLISH"],
                 f"docker://{os.environ['REGISTRY_PRE_PUBLISH_URL']}/{build['IMAGE_NAME']}@{platform['digest']}",
-                f"docker-archive:{os.environ['ARTIFACT_DIR']}/{platform['platform']}/{build['IMAGE_FILE']}-{platform['platform']}.tar",
+                f"docker-archive:{os.environ['ARTIFACT_DIR']}/{platform['platform']}/{os.environ['IMAGE_FILE']}-{platform['platform']}.tar",
             ]
         )
 
