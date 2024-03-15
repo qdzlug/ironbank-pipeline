@@ -50,12 +50,12 @@ def get_oscap_guide(os_type):
             "OSCAP_OVAL=security-data-oval-v2-RHEL9-rhel-9.oval.xml.bz2"
         ),
         "ubuntu2004-container": (
-            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_anssi_np_nt28_average\n"
+            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_stig\n"
             "OSCAP_DATASTREAM=ssg-ubuntu2004-ds.xml\n"
             "OSCAP_SCANNER=debian"
         ),
         "ubuntu2204-container": (
-            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_anssi_np_nt28_average\n"
+            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_standard\n"
             "OSCAP_DATASTREAM=ssg-ubuntu2204-ds.xml\n"
             "OSCAP_SCANNER=debian"
         ),
