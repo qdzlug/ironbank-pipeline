@@ -148,11 +148,12 @@ def start_squid(squid_conf: Path):
 
 
 def generate_build_env(image_details: dict, image_name: str, image: Image, digest: str):
+    image_fulltag = image.from_image(transport='')
     """Creates env file to be used later in pipeline."""
     build_envs = [
         f"IMAGE_ID=sha256:{image_details['FromImageID']}\n",
         f"IMAGE_PODMAN_SHA={digest}\n",
-        f"IMAGE_FULLTAG={image.from_image(transport='')}\n",
+        f"IMAGE_FULLTAG={image_fulltag}\n",
         f"IMAGE_NAME={image_name}\n",
         # using utcnow because we want to use the naive format (i.e. no tz delta of +00:00)
         f"BUILD_DATE={datetime.datetime.utcnow().isoformat(sep='T', timespec='seconds')}Z\n",
@@ -172,7 +173,7 @@ def generate_build_env(image_details: dict, image_name: str, image: Image, diges
                 {
                     "IMAGE_ID": f"sha256:{image_details['FromImageID']}",
                     "IMAGE_PODMAN_SHA": digest,
-                    "IMAGE_FULLTAG": image.from_image(transport=""),
+                    "IMAGE_FULLTAG": image_fulltag,
                     "IMAGE_NAME": image_name,
                     "BUILD_DATE": datetime.datetime.utcnow().isoformat(
                         sep="T", timespec="seconds"
