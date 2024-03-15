@@ -227,10 +227,6 @@ class Anchore:
             "anchorectl",
             "image",
             "add",
-            "--from",
-            "registry",
-            "--platform",
-            platform,
         ]
 
         if Path("./Dockerfile_arm64").is_file() and platform == "amd64":
