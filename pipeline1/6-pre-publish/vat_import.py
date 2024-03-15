@@ -426,7 +426,7 @@ def main(platform) -> None:
     else:
         parent_vat_response_content = {"parentVatResponses": None}
 
-    Path(f"{os.environ['ARTIFACT_DIR']}/{platform}").mkdir(parents=True, exist_ok=True)
+    
     vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/{platform}/vat_request.json")
     if not args.use_json:
         large_data = create_api_call(platform)
@@ -485,6 +485,7 @@ if __name__ == "__main__":
     for platform in platforms:
         args = EnvUtil(platform)
 
+        Path(f"{os.environ['ARTIFACT_DIR']}/{platform}").mkdir(parents=True, exist_ok=True)
         REMOTE_REPORT_DIRECTORY = f"{args.timestamp}_{args.commit_hash}"
 
         if "pipeline-test-project" in args.repo_link:
