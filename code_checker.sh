@@ -18,7 +18,7 @@ run_shellcheck() {
       IFS=$'\n'
       echo "${files[*]}"
     )
-    shellcheck --exclude=SC2153,SC2164 --format=gcc -- "${files[@]}"
+    shellcheck --exclude=SC2153,SC2164,SC1091 --format=gcc -- "${files[@]}"
   fi
 
   echo "# Scanning embedded scripts..."

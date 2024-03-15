@@ -1,0 +1,25 @@
+{
+  "assignees": [
+    "@david.freeman",
+    "@kenneth.maguire",
+    "@james.petersen",
+    "@seagren.tim",
+    "@andymaks",
+    "@alfontaine"
+  ],
+  "baseBranches": ["development"],
+  "packageRules": [
+    {
+      "datasources": ["github-releases"],
+      "packageNames": ["ComplianceAsCode/content"]
+    }
+  ],
+  "regexManagers": [
+    {
+      "fileMatch": ["^oscap-version.json$"],
+      "matchStrings": ["\"version\":\\s+\"(?<currentValue>.*?)\""],
+      "depNameTemplate": "ComplianceAsCode/content",
+      "datasourceTemplate": "github-releases"
+    }
+  ]
+}
