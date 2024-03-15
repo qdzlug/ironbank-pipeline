@@ -200,7 +200,7 @@ def generate_twistlock_findings(twistlock_cve_path: Path) -> list[dict[str, Any]
     return findings
 
 
-def create_api_call() -> dict:
+def create_api_call(platform) -> dict:
     """Creates the data for an API call based on various environmental
     variables and findings.
 
@@ -245,6 +245,16 @@ def create_api_call() -> dict:
     ]
     assert isinstance(vat_finding_fields, list)
 
+    with open(
+        f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json'
+    ) as f:
+        scan_logic = json.load(f)
+
+    with open(
+        f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json'
+    ) as f:
+        build_json = json.load(f)
+
     # if the SKIP_OPENSCAP variable exists, the oscap job was not run.
     # When not os.environ.get("SKIP_OPENSCAP"), this means this is not a SKIP_OPENSCAP project, and oscap findings should be imported
     if args.oscap and not os.environ.get("SKIP_OPENSCAP"):
@@ -274,13 +284,13 @@ def create_api_call() -> dict:
         "parentImageName": args.parent,
         "parentImageTag": args.parent_version,
         "jobId": args.job_id,
-        "digest": args.digest.replace("sha256:", ""),
+        "digest": scan_logic["DIGEST_TO_SCAN"].replace("sha256:", ""),
         "timestamp": args.timestamp,
-        "scanDate": args.scan_date,
-        "buildDate": args.build_date,
+        "scanDate": build_json['BUILD_DATE'],
+        "buildDate": scan_logic['BUILD_DATE_TO_SCAN'],
         "repo": {
-            "url": args.repo_link,
-            "commit": args.commit_hash,
+            "url": {os.environ['CI_PROJECT_URL']},
+            "commit": scan_logic['COMMIT_SHA_TO_SCAN'],
         },
         "findings": all_findings,
         "keywords": keyword_list,
@@ -289,7 +299,7 @@ def create_api_call() -> dict:
         "renovateEnabled": renovate_enabled,
         "registryLocation": os.environ.get("REGISTRY_PUBLISH_URL", ""),
     }
-    log.debug(large_data)
+    log.info(large_data)
     return large_data
 
 
@@ -343,7 +353,7 @@ def get_parent_vat_response(
     shutil.move(predicate_path, parent_vat_path)
 
 
-def main() -> None:
+def main(platform) -> None:
     """Main function to run the application.
 
     This function collects data for an API call and sends a POST request to the API
@@ -416,9 +426,9 @@ def main() -> None:
     else:
         parent_vat_response_content = {"parentVatResponses": None}
 
-    vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/vat_request.json")
+    vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/{platform}/vat_request.json")
     if not args.use_json:
-        large_data = create_api_call()
+        large_data = create_api_call(platform)
         large_data.update(parent_vat_response_content)
         with vat_request_json.open("w", encoding="utf-8") as outfile:
             json.dump(large_data, outfile)
@@ -459,7 +469,6 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-
     potential_platforms = [
         "amd64",
         "arm64",
@@ -483,4 +492,4 @@ if __name__ == "__main__":
             )
             sys.exit(0)
 
-        main()
+        main(platform)
