@@ -250,9 +250,7 @@ def create_api_call(platform) -> dict:
     ) as f:
         scan_logic = json.load(f)
 
-    with open(
-        f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json'
-    ) as f:
+    with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json') as f:
         build_json = json.load(f)
 
     # if the SKIP_OPENSCAP variable exists, the oscap job was not run.
@@ -286,11 +284,11 @@ def create_api_call(platform) -> dict:
         "jobId": args.job_id,
         "digest": scan_logic["DIGEST_TO_SCAN"].replace("sha256:", ""),
         "timestamp": args.timestamp,
-        "scanDate": build_json['BUILD_DATE'],
-        "buildDate": scan_logic['BUILD_DATE_TO_SCAN'],
+        "scanDate": build_json["BUILD_DATE"],
+        "buildDate": scan_logic["BUILD_DATE_TO_SCAN"],
         "repo": {
-            "url": {os.environ['CI_PROJECT_URL']},
-            "commit": scan_logic['COMMIT_SHA_TO_SCAN'],
+            "url": {os.environ["CI_PROJECT_URL"]},
+            "commit": scan_logic["COMMIT_SHA_TO_SCAN"],
         },
         "findings": all_findings,
         "keywords": keyword_list,
@@ -426,11 +424,11 @@ def main(platform) -> None:
     else:
         parent_vat_response_content = {"parentVatResponses": None}
 
-    
     vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/{platform}/vat_request.json")
     if not args.use_json:
         large_data = create_api_call(platform)
         large_data.update(parent_vat_response_content)
+        log.info(f"large_data after .update(parent_vat_response_content --> {large_data}")
         with vat_request_json.open("w", encoding="utf-8") as outfile:
             json.dump(large_data, outfile)
     else:
@@ -485,7 +483,9 @@ if __name__ == "__main__":
     for platform in platforms:
         args = EnvUtil(platform)
 
-        Path(f"{os.environ['ARTIFACT_DIR']}/{platform}").mkdir(parents=True, exist_ok=True)
+        Path(f"{os.environ['ARTIFACT_DIR']}/{platform}").mkdir(
+            parents=True, exist_ok=True
+        )
         REMOTE_REPORT_DIRECTORY = f"{args.timestamp}_{args.commit_hash}"
 
         if "pipeline-test-project" in args.repo_link:
