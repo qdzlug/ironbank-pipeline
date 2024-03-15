@@ -58,7 +58,7 @@ class Anchore:
                     f"Non-200 response from Anchore {r.status_code} - {r.text}"
                 )
 
-        logging.debug("Got response from Anchore. Testing if valid json")
+        logging.info("Got response from Anchore. Testing if valid json")
         try:
             return r.json()
         except requests.JSONDecodeError:
@@ -97,7 +97,7 @@ class Anchore:
             f"Anchore Enterprise Version: {version_json['service']['version']}"
         )
         filename = Path(artifacts_path, "anchore-version.txt")
-        logging.debug(f"Writing to {filename}")
+        logging.info(f"Writing to {filename}")
         with filename.open(mode="w") as f:
             json.dump(version_json["service"]["version"], f)
 
@@ -152,7 +152,7 @@ class Anchore:
         vuln_dict["imageFullTag"] = image
 
         filename = Path(artifacts_path, "anchore_api_security_full.json")
-        logging.debug(f"Writing to {filename}")
+        logging.info(f"Writing to {filename}")
         with filename.open(mode="w") as f:
             json.dump(vuln_dict, f)
 
@@ -163,7 +163,7 @@ class Anchore:
 
         # Create json report called anchore_security.json
         filename = Path(artifacts_path, "anchore_security.json")
-        logging.debug(f"Writing to {filename}")
+        logging.info(f"Writing to {filename}")
         with filename.open(mode="w") as f:
             json.dump(vuln_dict, f)
 
@@ -189,7 +189,7 @@ class Anchore:
 
         # Save the API response
         filename = Path(artifacts_path, "anchore_api_gates_full.json")
-        logging.debug(f"Writing to {filename}")
+        logging.info(f"Writing to {filename}")
         with filename.open(mode="w") as f:
             json.dump(body_json, f)
 
@@ -201,7 +201,7 @@ class Anchore:
         results_dict[imageid] = results[imageid]
 
         filename = Path(artifacts_path, "anchore_gates.json")
-        logging.debug(f"Writing to {filename}")
+        logging.info(f"Writing to {filename}")
         with filename.open(mode="w") as f:
             json.dump(results_dict, f)
 
@@ -253,7 +253,7 @@ class Anchore:
             logging.exception("Could not add image to Anchore")
             sys.exit(1)
 
-        logging.debug(f"Return Code: {image_add.returncode}")
+        logging.info(f"Return Code: {image_add.returncode}")
 
         if image_add.returncode == 0:
             logging.info(f"{image} added to Anchore")
