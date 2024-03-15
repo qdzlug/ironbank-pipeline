@@ -200,7 +200,7 @@ def generate_twistlock_findings(twistlock_cve_path: Path) -> list[dict[str, Any]
     return findings
 
 
-def create_api_call() -> dict:
+def create_api_call(args) -> dict:
     """Creates the data for an API call based on various environmental
     variables and findings.
 
