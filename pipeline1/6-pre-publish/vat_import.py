@@ -343,7 +343,7 @@ def get_parent_vat_response(
     shutil.move(predicate_path, parent_vat_path)
 
 
-def main() -> None:
+def main(args) -> None:
     """Main function to run the application.
 
     This function collects data for an API call and sends a POST request to the API
@@ -473,7 +473,7 @@ if __name__ == "__main__":
         )
     ]
     for platform in platforms:
-        args = EnvUtil(platform=platform)
+        args = EnvUtil(platform)
 
         REMOTE_REPORT_DIRECTORY = f"{args.timestamp}_{args.commit_hash}"
 
@@ -483,4 +483,4 @@ if __name__ == "__main__":
             )
             sys.exit(0)
 
-        main()
+        main(args)
