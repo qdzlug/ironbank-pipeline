@@ -7,18 +7,22 @@ import yaml
 
 
 def print_green(text):
+    """Print the given text in green color."""
     print(f"\033[1;32m{text}\033[0m")
 
 
 def print_red(text):
+    """Print the given text in red color."""
     print(f"\033[1;31m{text}\033[0m")
 
 
 def print_blue(text):
+    """Print the given text in blue color."""
     print(f"\033[1;34m{text}\033[0m")
 
 
 def print_yellow(text):
+    """Print the given text in yellow color."""
     print(f"\033[1;33m{text}\033[0m")
 
 
@@ -26,6 +30,7 @@ def print_yellow(text):
 def pod_command_passes(
     pod_name, command, expected_output, kubernetes_namespace, timeout_seconds=90
 ):
+    """Run a command in a pod"""
     try:
         stdout, stderr = subprocess.Popen(
             command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -39,6 +44,7 @@ def pod_command_passes(
 
 
 def pod_completes(pod_name, pod_namespace, max_wait_seconds, check_interval_seconds=2):
+    """Check if a pod has completed. Return True if it has, False if it has not."""
     start_time = time.time()
     status_command = f"kubectl get pod {pod_name} -n {pod_namespace} --no-headers"
 
@@ -72,7 +78,7 @@ def pod_completes(pod_name, pod_namespace, max_wait_seconds, check_interval_seco
 
 # kill and remove a pod
 def cleanup_pod(pod_name, pod_namespace):
-    # Ensure to clean up: silently stop the container
+    """Kill and remove a pod."""
     stop_cmd = (
         f"kubectl delete po {pod_name} -n {pod_namespace} --force > /dev/null 2>&1"
     )
@@ -81,6 +87,7 @@ def cleanup_pod(pod_name, pod_namespace):
 
 
 def read_image_from_hardening_manifest(hardening_manifest):
+    """Read the image name and tag from the hardening manifest."""
     try:
         with open(hardening_manifest, "r") as file:
             data = yaml.safe_load(file)
@@ -113,6 +120,7 @@ def read_image_from_hardening_manifest(hardening_manifest):
 
 
 def generate_pod_manifest(kubernetes_test, image_name):
+    """Generate a pod manifest from the kubernetes_test and image_name."""
     # Base pod manifest
     pod_manifest = {
         "apiVersion": "v1",
@@ -166,6 +174,7 @@ def generate_pod_manifest(kubernetes_test, image_name):
 
 
 def get_pod_logs(pod_name, pod_namespace, timeout_seconds=10):
+    """Get the logs from a pod."""
     logs_command = f"kubectl logs {pod_name} -n {pod_namespace}"
 
     try:
@@ -194,6 +203,7 @@ def run_test(
     kubernetes_namespace,
     expected_output=None,
 ):
+    """Run a test."""
     will_check_for_expected_output = False
 
     if expected_output is not None:
@@ -278,6 +288,7 @@ def run_test(
 
 
 def main(git_project_root_folder, kubernetes_namespace):
+    """Run the main function."""
     manifest_file_path = f"{git_project_root_folder}/testing_manifest.yaml"
 
     hardening_manifest = f"{git_project_root_folder}/hardening_manifest.yaml"
