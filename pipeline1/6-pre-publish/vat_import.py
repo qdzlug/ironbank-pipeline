@@ -256,25 +256,25 @@ def create_api_call(platform) -> dict:
     # if the SKIP_OPENSCAP variable exists, the oscap job was not run.
     # When not os.environ.get("SKIP_OPENSCAP"), this means this is not a SKIP_OPENSCAP project, and oscap findings should be imported
     if args.oscap and not os.environ.get("SKIP_OPENSCAP"):
-        log.debug("Importing oscap findings")
+        log.info("Importing oscap findings")
         os_findings = generate_oscap_findings(
             args.oscap, vat_finding_fields=vat_finding_fields
         )
-        log.debug("oscap finding count: %s", len(os_findings))
+        log.info("oscap finding count: %s", len(os_findings))
     if args.anchore_sec:
-        log.debug("Importing anchore security findings")
+        log.info("Importing anchore security findings")
         asec_findings = generate_anchore_cve_findings(
             args.anchore_sec, vat_finding_fields=vat_finding_fields
         )
-        log.debug("Anchore security finding count: %s", len(asec_findings))
+        log.info("Anchore security finding count: %s", len(asec_findings))
     if args.anchore_gates:
-        log.debug("Importing importing anchore compliance findings")
+        log.info("Importing importing anchore compliance findings")
         acomp_findings = generate_anchore_comp_findings(args.anchore_gates)
-        log.debug("Anchore compliance finding count: %s", len(acomp_findings))
+        log.info("Anchore compliance finding count: %s", len(acomp_findings))
     if args.twistlock:
-        log.debug("Importing twistlock findings")
+        log.info("Importing twistlock findings")
         tl_findings = generate_twistlock_findings(args.twistlock)
-        log.debug("Twistlock finding count: %s", len(tl_findings))
+        log.info("Twistlock finding count: %s", len(tl_findings))
     all_findings = tl_findings + asec_findings + acomp_findings + os_findings
     large_data = {
         "imageName": args.container,
@@ -397,18 +397,19 @@ def main(platform) -> None:
             == "application/vnd.oci.image.index.v1+json"
         ):
             for image in json_data["references"]:
-                digest = image["child_digest"]
-                get_parent_vat_response(
-                    output_dir=os.environ["ARTIFACT_DIR"],
-                    hardening_manifest=hardening_manifest,
-                    digest=digest,
-                )
-                parent_vat_path = Path(
-                    f"{os.environ['ARTIFACT_DIR']}/{image['platform']['architecture']}/parent_vat_response.json"
-                )
-                with parent_vat_path.open("r", encoding="UTF-8") as f:
-                    parent_vat_response_content = {"parentVatResponses": json.load(f)}
-                log.debug(parent_vat_response_content)
+                if image['platform']['architecture'] == platform:
+                    digest = image["child_digest"]
+                    get_parent_vat_response(
+                        output_dir=os.environ["ARTIFACT_DIR"],
+                        hardening_manifest=hardening_manifest,
+                        digest=digest,
+                    )
+                    parent_vat_path = Path(
+                        f"{os.environ['ARTIFACT_DIR']}/{image['platform']['architecture']}/parent_vat_response.json"
+                    )
+                    with parent_vat_path.open("r", encoding="UTF-8") as f:
+                        parent_vat_response_content = {"parentVatResponses": json.load(f)}
+                    log.info(f"parent_vat_response_content for {platform} in 2 --> {parent_vat_response_content}")
         # 3. If not manifest list use image tag.
         else:
             get_parent_vat_response(
@@ -420,7 +421,7 @@ def main(platform) -> None:
             )
             with parent_vat_path.open("r", encoding="UTF-8") as f:
                 parent_vat_response_content = {"parentVatResponses": json.load(f)}
-            log.debug(parent_vat_response_content)
+            log.info(f"parent_vat_response_content for {platform} in 3 --> {parent_vat_response_content}")
     else:
         parent_vat_response_content = {"parentVatResponses": None}
 
@@ -444,8 +445,8 @@ def main(platform) -> None:
             args.api_url, headers=headers, json=large_data, timeout=(90, 90)
         )
         resp.raise_for_status()
-        log.debug("API Response:\n%s", resp.text)
-        log.debug("POST Response: %s", resp.status_code)
+        log.info("API Response:\n%s", resp.text)
+        log.info("POST Response: %s", resp.status_code)
         with Path(f"{os.environ['ARTIFACT_DIR']}/{platform}/vat_response.json").open(
             "w", encoding="utf-8"
         ) as outfile:
