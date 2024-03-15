@@ -9,22 +9,24 @@ import tempfile
 from pathlib import Path
 
 import yaml
-
+from common.utils import logger
 from pipeline.container_tools.cosign import Cosign
 from pipeline.container_tools.skopeo import Skopeo
 from pipeline.hardening_manifest import HardeningManifest
 from pipeline.image import Image
 from pipeline.project import DsopProject
-from pipeline.utils.decorators import subprocess_error_handler, stack_trace_handler
+from pipeline.utils.decorators import (
+    stack_trace_handler,
+    subprocess_error_handler,
+)
 from pipeline.utils.exceptions import GenericSubprocessError
 from pipeline.utils.predicates import Predicates
-from common.utils import logger
 
 log = logger.setup("upload_to_harbor")
 
 
 @subprocess_error_handler("Failed to retrieve manifest for staged image")
-def compare_digests(image: Image) -> None:
+def compare_digests(image: Image, build) -> None:
     """Pull down image manifest to compare digest to digest from build
     environment."""
 
@@ -36,7 +38,7 @@ def compare_digests(image: Image) -> None:
         image.from_image(transport="docker://"), raw=True, log_cmd=True
     )
 
-    digest = os.environ["IMAGE_PODMAN_SHA"].split(":")[-1]
+    digest = build["IMAGE_PODMAN_SHA"].split(":")[-1]
     manifest = hashlib.sha256(remote_inspect_raw.encode())
 
     if digest == manifest.hexdigest():
@@ -141,7 +143,7 @@ def generate_attestation_predicates(predicates):
     return attestation_predicates
 
 
-def write_env_vars(tags: list[str]) -> None:  # TODO: Write a unit test
+def write_env_vars(tags: list[str], scan_logic) -> None:  # TODO: Write a unit test
     """Writes environment variables into a file named 'upload_to_harbor.env'.
     Used by the create-manifest-list job.
     """
@@ -155,13 +157,13 @@ def write_env_vars(tags: list[str]) -> None:  # TODO: Write a unit test
         build = "X86"
     with Path(env_file_name).open("w", encoding="utf-8") as f:
         f.write(f"REGISTRY_PUBLISH_URL_{build}={os.environ['REGISTRY_PUBLISH_URL']}\n")
-        f.write(f"IMAGE_NAME_{build}={os.environ['IMAGE_NAME']}\n")
-        f.write(f"DIGEST_TO_SCAN_{build}={os.environ['DIGEST_TO_SCAN']}\n")
+        f.write(f"IMAGE_NAME_{build}={build['IMAGE_NAME']}\n")
+        f.write(f"DIGEST_TO_SCAN_{build}={scan_logic['DIGEST_TO_SCAN']}\n")
         f.write(f"TAGS_{build}={tags_string}\n")
 
 
 @stack_trace_handler
-def main():
+def main(scan_logic, build):
     """Main function to perform image promotion, signing, and attestation
     process in a secure software supply chain.
 
@@ -194,8 +196,8 @@ def main():
     # staging image is always the new image
     staging_image = Image(
         registry=os.environ["REGISTRY_PRE_PUBLISH_URL"],
-        name=os.environ["IMAGE_NAME"],
-        digest=os.environ["IMAGE_PODMAN_SHA"],
+        name=build["IMAGE_NAME"],
+        digest=build["IMAGE_PODMAN_SHA"],
         transport="docker://",
     )
     # production image will have a different digest depending on which image was scanned
@@ -203,7 +205,7 @@ def main():
     production_image = Image.from_image(
         staging_image,
         registry=os.environ["REGISTRY_PUBLISH_URL"],
-        digest=os.environ["DIGEST_TO_SCAN"],
+        digest=scan_logic["DIGEST_TO_SCAN"],
     )
     project = DsopProject()
     hardening_manifest = HardeningManifest(project.hardening_manifest_path)
@@ -212,7 +214,7 @@ def main():
 
     try:
         # Compare digests to ensure image integrity
-        compare_digests(staging_image)
+        compare_digests(staging_image, build)
         with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
             shutil.copy(
                 os.environ["DOCKER_AUTH_FILE_PUBLISH"],
@@ -220,7 +222,7 @@ def main():
             )
             cosign = Cosign(docker_config_dir=docker_config_dir)
             # if the new image was scanned
-            if "ironbank-staging" in os.environ["IMAGE_TO_SCAN"]:
+            if "ironbank-staging" in scan_logic["IMAGE_TO_SCAN"]:
                 # Promote image and tags from staging project
                 promote_tags(
                     staging_image, production_image, hardening_manifest.image_tags
@@ -237,12 +239,12 @@ def main():
                     replace=True,
                     log_cmd=True,
                 )
-            write_env_vars(hardening_manifest.image_tags)
+            write_env_vars(hardening_manifest.image_tags, scan_logic)
     except GenericSubprocessError:
         sys.exit(1)
 
 
-def publish_vat_staging_predicates():
+def publish_vat_staging_predicates(build):
     """Publishes a VAT (Verified Access Token) on a staging image using the
     cosign tool.
 
@@ -257,8 +259,8 @@ def publish_vat_staging_predicates():
     """
     staging_image = Image(
         registry=os.environ["REGISTRY_PRE_PUBLISH_URL"],
-        name=os.environ["IMAGE_NAME"],
-        digest=os.environ["IMAGE_PODMAN_SHA"],
+        name=build["IMAGE_NAME"],
+        digest=build["IMAGE_PODMAN_SHA"],
         transport="docker://",
     )
 
@@ -284,7 +286,31 @@ def publish_vat_staging_predicates():
 
 
 if __name__ == "__main__":
-    if os.environ.get("PUBLISH_VAT_STAGING_PREDICATES"):
-        publish_vat_staging_predicates()
-    else:
-        main()
+    potential_platforms = [
+        "amd64",
+        "arm64",
+    ]
+
+    platforms = [
+        platform
+        for platform in potential_platforms
+        if os.path.isfile(
+            f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json'
+        )
+    ]
+
+    for platform in platforms:
+        # load platform build.json
+        with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json') as f:
+            build = json.load(f)
+
+        # load platform scan_logic.json
+        with open(
+            f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json'
+        ) as f:
+            scan_logic = json.load(f)
+
+        if os.environ.get("PUBLISH_VAT_STAGING_PREDICATES"):
+            publish_vat_staging_predicates(build)
+        else:
+            main(scan_logic, build)
