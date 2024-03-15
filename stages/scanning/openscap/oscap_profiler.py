@@ -13,9 +13,9 @@ def get_oscap_guide(os_type):
 
     # this becomes an env file sourced by oscap_scan.sh to determine oscap scanning logic
     oscap_profiles = {
-        "alpine317-container": (),
-        "alpine3-container": (),
-        "chainguard-container": (),
+        "alpine317-container": (""),
+        "alpine3-container": (""),
+        "chainguard-container": (""),
         "debian11-container": (
             "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_anssi_np_nt28_average\n"
             "OSCAP_DATASTREAM=ssg-debian11-ds.xml\n"
@@ -26,8 +26,8 @@ def get_oscap_guide(os_type):
             "OSCAP_DATASTREAM=ssg-debian12-ds.xml\n"
             "OSCAP_SCANNER=debian"
         ),
-        "distroless-container": (),
-        "scratch-container": (),
+        "distroless-container": (""),
+        "scratch-container": (""),
         "sle15-bci-container": (
             "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_stig\n"
             "OSCAP_DATASTREAM=ssg-sle15-ds.xml\n"
@@ -50,19 +50,19 @@ def get_oscap_guide(os_type):
             "OSCAP_OVAL=security-data-oval-v2-RHEL9-rhel-9.oval.xml.bz2"
         ),
         "ubuntu2004-container": (
-            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_anssi_np_nt28_average\n"
+            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_stig\n"
             "OSCAP_DATASTREAM=ssg-ubuntu2004-ds.xml\n"
             "OSCAP_SCANNER=debian"
         ),
         "ubuntu2204-container": (
-            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_anssi_np_nt28_average\n"
+            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_standard\n"
             "OSCAP_DATASTREAM=ssg-ubuntu2204-ds.xml\n"
             "OSCAP_SCANNER=debian"
         ),
     }
     try:
         oscap_profile = oscap_profiles[os_type]
-        print(oscap_profiles)
+        print(oscap_profile)
         with open(file="oscap_profile.txt", mode="w", encoding="UTF-8") as f:
             f.write(oscap_profile)
     except KeyError:

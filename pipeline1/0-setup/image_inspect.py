@@ -84,7 +84,7 @@ def template_type(os_type: str) -> None:
             "DISTRO_REPO_DIR=apt-repos/2004-focal-ironbank.list\n"
             "DISTRO_REPO_MOUNT=/etc/apt/sources.list\n"
             "OS_TYPE=ubuntu2004-container\n"
-            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_anssi_np_nt28_average\n"
+            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_stig\n"
             "OSCAP_DATASTREAM=ssg-ubuntu2004-ds.xml\n"
             "OSCAP_SCANNER=debian"
         ),
@@ -92,7 +92,7 @@ def template_type(os_type: str) -> None:
             "DISTRO_REPO_DIR=apt-repos/2204-jammy-ironbank.list\n"
             "DISTRO_REPO_MOUNT=/etc/apt/sources.list\n"
             "OS_TYPE=ubuntu2204-container\n"
-            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_anssi_np_nt28_average\n"
+            "OSCAP_PROFILE=xccdf_org.ssgproject.content_profile_standard\n"
             "OSCAP_DATASTREAM=ssg-ubuntu2204-ds.xml\n"
             "OSCAP_SCANNER=debian"
         ),
