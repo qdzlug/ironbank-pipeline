@@ -30,89 +30,95 @@ def print_yellow(text):
 def pod_command_passes(
     pod_name, command, expected_output, kubernetes_namespace, timeout_seconds=90
 ):
-    """Run a command in a pod."""
+    """Run a command in a pod"""
     try:
-        cmd_list = command.split()
         with subprocess.Popen(
-            cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE
         ) as proc:
-            stdout, stderr = proc.communicate(timeout=timeout_seconds)
+            _stdout, _stderr = proc.communicate(timeout=timeout_seconds)
     except subprocess.TimeoutExpired:
         print_red("Command timed out")
         return False
-    except Exception as e:
-        print_red(f"Exception encountered running the command: {command}")
-        print_red(f"Exception value:\n {e}")
+    except subprocess.CalledProcessError:
+        print_red(f"Command execution failed")
         return False
     return True
 
 
 def pod_completes(pod_name, pod_namespace, max_wait_seconds, check_interval_seconds=2):
-    """Check if a pod has completed within the given time."""
+    """Check if a pod has completed. Return True if it has, False if it has not."""
     start_time = time.time()
-    status_command = [
-        "kubectl",
-        "get",
-        "pod",
-        pod_name,
-        "-n",
-        pod_namespace,
-        "--no-headers",
-    ]
+    status_command = f"kubectl get pod {pod_name} -n {pod_namespace} --no-headers"
+
     while True:
         elapsed_seconds = time.time() - start_time
         if elapsed_seconds > max_wait_seconds:
             return False
         try:
-            with subprocess.Popen(
-                status_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-            ) as proc:
-                status, _ = proc.communicate()
-                status = status.decode().split()[2]
+            status, status_error = subprocess.Popen(
+                status_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            ).communicate(None)
+
+            status = status.decode().split()[2]
+
             if status == "Completed":
-                print(f"{elapsed_seconds:.1f}s, {pod_name} status: {status}")
+                print(
+                    f"{'{:.1f}'.format(elapsed_seconds)}s, {pod_name} status: {status}"
+                )
                 return True
             else:
-                print(f"{elapsed_seconds:.1f}s, {pod_name} status: {status}")
+                print(
+                    f"{'{:.1f}'.format(elapsed_seconds)}s, {pod_name} status: {status}"
+                )
+
         except Exception as e:
-            print(f"Exception when checking status of pod {pod_name}: {e}")
+            print(f"Exception when reading status of pod {pod_name}: {e}")
             return False
+
         time.sleep(check_interval_seconds)
 
 
 # kill and remove a pod
 def cleanup_pod(pod_name, pod_namespace):
     """Kill and remove a pod."""
-    stop_cmd = f"kubectl delete po {pod_name} -n {pod_namespace} --force"
-    try:
-        subprocess.run(
-            stop_cmd.split(),
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=True,
-        )
-        print(f"Pod {pod_name} in namespace {pod_namespace} deleted.")
-    except subprocess.CalledProcessError as e:
-        print_red(f"Failed to delete pod {pod_name}: {e}")
+    stop_cmd = (
+        f"kubectl delete po {pod_name} -n {pod_namespace} --force > /dev/null 2>&1"
+    )
+    os.system(stop_cmd)
+    print(f"Running: {stop_cmd}")
 
 
 def read_image_from_hardening_manifest(hardening_manifest):
     """Read the image name and tag from the hardening manifest."""
     try:
-        with open(hardening_manifest, "r", encoding="utf-8") as file:
+        with open(hardening_manifest, "r") as file:
             data = yaml.safe_load(file)
-        image_name = data["name"]
-        image_tag = "ibci-" + str(os.environ.get("CI_PIPELINE_ID", "latest"))
-        docker_image = (
-            f"{os.environ.get('REGISTRY_PRE_PUBLISH_URL')}/{image_name}:{image_tag}"
-        )
-        return docker_image
+
+            image_name = data["name"]
+            # image_tag = data['tags'][0]
+            image_tag = "ibci-" + str(os.environ["CI_PIPELINE_ID"])
+
     except FileNotFoundError:
         print_red("Error: hardening_manifest.yaml file not found in the project root")
-        return None
-    except KeyError as e:
-        print_red(f"Key {e} missing in hardening_manifest.yaml")
-        return None
+        return False
+
+    if image_name is None:
+        print_red(
+            f"image Name not found in hardening manifest. value for image_name was '{image_name}'"
+        )
+        return False
+
+    if image_tag is None:
+        print_red(
+            f"image tag not found in hardening manifest. value for image_name was '{image_tag}'"
+        )
+        return False
+
+    docker_image = (
+        str(os.environ["REGISTRY_PRE_PUBLISH_URL"]) + "/" + image_name + ":" + image_tag
+    )
+
+    return docker_image
 
 
 def generate_pod_manifest(kubernetes_test, image_name):
@@ -125,7 +131,6 @@ def generate_pod_manifest(kubernetes_test, image_name):
         "spec": {
             "serviceAccountName": "testpod-sa",
             "containers": [{"name": "test-container", "image": image_name}],
-            "imagePullSecrets": [{"name": "my-registry-secret"}],
         },
     }
 
@@ -164,24 +169,32 @@ def generate_pod_manifest(kubernetes_test, image_name):
             "limits": {"cpu": "500m", "memory": "256Mi"},
         },
     )
+    # Add imagePullSecrets to the pod spec
+    pod_manifest["spec"]["imagePullSecrets"] = [{"name": "my-registry-secret"}]
 
     return yaml.dump(pod_manifest)
 
 
 def get_pod_logs(pod_name, pod_namespace, timeout_seconds=10):
     """Get the logs from a pod."""
-    logs_command = ["kubectl", "logs", pod_name, "-n", pod_namespace]
+    logs_command = f"kubectl logs {pod_name} -n {pod_namespace}"
+
     try:
-        with subprocess.Popen(
-            logs_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        ) as proc:
-            logs, _ = proc.communicate(timeout=timeout_seconds)
-        return logs.decode().strip()
-    except subprocess.TimeoutExpired:
-        print_red(f"Fetching logs for pod {pod_name} timed out")
+        logs, logs_error = subprocess.Popen(
+            logs_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        ).communicate(None, timeout_seconds)
+
+    except TimeoutError:
+        print_red(
+            f"'{logs_command}' failed to complete before {timeout_seconds} seconds"
+        )
+        return False
+
     except Exception as e:
-        print_red(f"Exception pulling logs for pod {pod_name}: {e}")
-    return ""
+        print_red(f"unhandled exception trying to pull logs for pod {pod_name}")
+        print_red(f"Exception was: {e}")
+
+    return logs.decode().strip()
 
 
 def run_test(
