@@ -6,11 +6,11 @@ import os
 import sys
 from pathlib import Path
 
+from common.utils import logger
 from pipeline.scan_report_parsers.anchore import AnchoreReportParser
 from pipeline.scan_report_parsers.oscap import OscapReportParser
 from pipeline.scan_report_parsers.report_parser import ReportParser
 from pipeline.vat_container_status import sort_justifications
-from common.utils import logger
 
 log = logger.setup("csv_gen")
 
@@ -25,18 +25,28 @@ def main() -> None:
     """
     # Get logging level, set manually when running pipeline
 
-    anchore_cve_path = Path(f"{os.environ['ANCHORE_SCANS']}/anchore_security.json")
-    anchore_comp_path = Path(f"{os.environ['ANCHORE_SCANS']}/anchore_gates.json")
-    twistlock_cve_path = Path(f"{os.environ['TWISTLOCK_SCANS']}/twistlock_cve.json")
-    oscap_comp_path = Path(f"{os.environ['OSCAP_SCANS']}/compliance_output_report.xml")
-    csv_output_dir = Path(os.environ["CSV_REPORT"])
+    anchore_cve_path = Path(
+        f"{os.environ['ARTIFACT_STORAGE']}/scan-results/anchore/{platform}/anchore_security.json"
+    )
+    anchore_comp_path = Path(
+        f"{os.environ['ARTIFACT_STORAGE']}/scan-results/anchore/{platform}/anchore_gates.json"
+    )
+    twistlock_cve_path = Path(
+        f"{os.environ['ARTIFACT_STORAGE']}/scan-results/twistlock/{platform}/twistlock_cve.json"
+    )
+    oscap_comp_path = Path(
+        f"{os.environ['ARTIFACT_STORAGE']}/scan-results/openscap/{platform}/compliance_output_report.xml"
+    )
+    csv_output_dir = Path(
+        f"{os.environ['ARTIFACT_STORAGE']}/scan-results/{platform}/csvs"
+    )
 
     # Create the csv directory if not present
     Path(csv_output_dir).mkdir(parents=True, exist_ok=True)
 
     artifacts_path = os.environ["ARTIFACT_STORAGE"]
     # get cves and justifications from VAT
-    vat_findings_file = Path(artifacts_path, "vat", "vat_response.json")
+    vat_findings_file = Path(artifacts_path, "vat", platform, "vat_response.json")
     # load vat_findings.json file
     try:
         with vat_findings_file.open(mode="r", encoding="utf-8") as f:
@@ -418,4 +428,18 @@ def generate_blank_oscap_report(csv_output_dir: Path) -> None:
 
 
 if __name__ == "__main__":
-    main()
+    potential_platforms = [
+        "amd64",
+        "arm64",
+    ]
+
+    platforms = [
+        platform
+        for platform in potential_platforms
+        if os.path.isfile(
+            f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json'
+        )
+    ]
+
+    for platform in platforms:
+        main()

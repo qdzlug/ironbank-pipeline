@@ -52,12 +52,13 @@ def compare_digests(image: Image, build) -> None:
     "Failed to copy image from staging project to production project"
 )
 def promote_tags(
-    staging_image: Image, production_image: Image, tags: list[str]
+    staging_image: Image, production_image: Image, platform: str, tags: list[str]
 ) -> None:
     """Promote image from staging project to production project, tagging it
     according the the tags defined in tags.txt."""
 
     for tag in tags:
+        tag = f"{tag}-{platform}"
         production_image = production_image.from_image(tag=tag)
 
         log.info(f"Copy from staging to {production_image}")
@@ -151,10 +152,10 @@ def write_env_vars(tags: list[str], scan_logic) -> None:  # TODO: Write a unit t
     tags_string = ",".join(tags)
     if os.environ["CI_JOB_NAME"] == "harbor-arm64":
         env_file_name = "upload_to_harbor_arm64.env"
-        build = "ARM64"
+        build = "arm64"
     else:
-        env_file_name = "upload_to_harbor_x86.env"
-        build = "X86"
+        env_file_name = "upload_to_harbor_amd64.env"
+        build = "amd64"
     with Path(env_file_name).open("w", encoding="utf-8") as f:
         f.write(f"REGISTRY_PUBLISH_URL_{build}={os.environ['REGISTRY_PUBLISH_URL']}\n")
         f.write(f"IMAGE_NAME_{build}={build['IMAGE_NAME']}\n")
@@ -163,7 +164,7 @@ def write_env_vars(tags: list[str], scan_logic) -> None:  # TODO: Write a unit t
 
 
 @stack_trace_handler
-def main(scan_logic, build):
+def main():
     """Main function to perform image promotion, signing, and attestation
     process in a secure software supply chain.
 
@@ -225,7 +226,10 @@ def main(scan_logic, build):
             if "ironbank-staging" in scan_logic["IMAGE_TO_SCAN"]:
                 # Promote image and tags from staging project
                 promote_tags(
-                    staging_image, production_image, hardening_manifest.image_tags
+                    staging_image,
+                    production_image,
+                    platform,
+                    hardening_manifest.image_tags,
                 )
                 # Sign image
                 cosign.sign(production_image, log_cmd=True)
@@ -313,4 +317,4 @@ if __name__ == "__main__":
         if os.environ.get("PUBLISH_VAT_STAGING_PREDICATES"):
             publish_vat_staging_predicates(build)
         else:
-            main(scan_logic, build)
+            main()

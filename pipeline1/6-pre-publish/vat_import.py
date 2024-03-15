@@ -4,14 +4,14 @@ import json
 import os
 import shutil
 import sys
+import urllib.parse
 from itertools import groupby
 from pathlib import Path
 from typing import Any, Generator, Tuple
-from common.utils import logger
 
 import requests
-from requests.structures import CaseInsensitiveDict
-
+from args import EnvUtil
+from common.utils import logger
 from pipeline.container_tools.cosign import Cosign
 from pipeline.hardening_manifest import (
     HardeningManifest,
@@ -23,9 +23,7 @@ from pipeline.project import DsopProject
 from pipeline.scan_report_parsers.anchore import AnchoreReportParser
 from pipeline.scan_report_parsers.oscap import OscapReportParser
 from pipeline.utils.predicates import Predicates
-import urllib.parse
-
-from args import EnvUtil
+from requests.structures import CaseInsensitiveDict
 
 log = logger.setup("vat_import")
 
@@ -200,7 +198,7 @@ def generate_twistlock_findings(twistlock_cve_path: Path) -> list[dict[str, Any]
     return findings
 
 
-def create_api_call(platform) -> dict:
+def create_api_call() -> dict:
     """Creates the data for an API call based on various environmental
     variables and findings.
 
@@ -220,6 +218,8 @@ def create_api_call(platform) -> dict:
     artifact_storage = os.environ["ARTIFACT_STORAGE"]
     keyword_list = source_values(f"{artifact_storage}/lint/keywords.txt", "keywords")
     tag_list = source_values(f"{artifact_storage}/lint/tags.txt", "tags")
+    # append platform
+    tag_list = [f"{tag}-{platform}" for tag in tag_list]
     label_dict = get_source_keys_values(f"{artifact_storage}/lint/labels.env")
     # get cves and justifications from VAT
     # Get all justifications
@@ -319,7 +319,7 @@ def get_parent_vat_response(
     - hardening_manifest: The hardening manifest for the base image.
     """
     # If digest != None that means the base image was a manifest list.
-    if digest != None:
+    if digest is not None:
         base_image = Image(
             registry=os.environ["BASE_REGISTRY"],
             name=hardening_manifest.base_image_name,
@@ -351,7 +351,7 @@ def get_parent_vat_response(
     shutil.move(predicate_path, parent_vat_path)
 
 
-def main(platform) -> None:
+def main() -> None:
     """Main function to run the application.
 
     This function collects data for an API call and sends a POST request to the API
@@ -397,7 +397,7 @@ def main(platform) -> None:
             == "application/vnd.oci.image.index.v1+json"
         ):
             for image in json_data["references"]:
-                if image['platform']['architecture'] == platform:
+                if image["platform"]["architecture"] == platform:
                     digest = image["child_digest"]
                     get_parent_vat_response(
                         output_dir=os.environ["ARTIFACT_DIR"],
@@ -408,8 +408,12 @@ def main(platform) -> None:
                         f"{os.environ['ARTIFACT_DIR']}/{image['platform']['architecture']}/parent_vat_response.json"
                     )
                     with parent_vat_path.open("r", encoding="UTF-8") as f:
-                        parent_vat_response_content = {"parentVatResponses": json.load(f)}
-                    log.info(f"parent_vat_response_content for {platform} in 2 --> {parent_vat_response_content}")
+                        parent_vat_response_content = {
+                            "parentVatResponses": json.load(f)
+                        }
+                    log.info(
+                        f"parent_vat_response_content for {platform} in 2 --> {parent_vat_response_content}"
+                    )
         # 3. If not manifest list use image tag.
         else:
             get_parent_vat_response(
@@ -421,16 +425,22 @@ def main(platform) -> None:
             )
             with parent_vat_path.open("r", encoding="UTF-8") as f:
                 parent_vat_response_content = {"parentVatResponses": json.load(f)}
-            log.info(f"parent_vat_response_content for {platform} in 3 --> {parent_vat_response_content}")
+            log.info(
+                f"parent_vat_response_content for {platform} in 3 --> {parent_vat_response_content}"
+            )
     else:
         parent_vat_response_content = {"parentVatResponses": None}
-        log.info(f"parent_vat_response_content in else with platform {platform} --> {parent_vat_response_content}")
+        log.info(
+            f"parent_vat_response_content in else with platform {platform} --> {parent_vat_response_content}"
+        )
 
     vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/{platform}/vat_request.json")
     if not args.use_json:
-        large_data = create_api_call(platform)
+        large_data = create_api_call()
         large_data.update(parent_vat_response_content)
-        log.info(f"large_data after .update(parent_vat_response_content --> {large_data}")
+        log.info(
+            f"large_data after .update(parent_vat_response_content --> {large_data}"
+        )
         with vat_request_json.open("w", encoding="utf-8") as outfile:
             json.dump(large_data, outfile)
     else:
@@ -496,4 +506,4 @@ if __name__ == "__main__":
             )
             sys.exit(0)
 
-        main(platform)
+        main()

@@ -43,14 +43,6 @@ generate-documentation:
     - if: $CI_COMMIT_BRANCH == "master"
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/documentation"
-    OPENSCAP_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/openscap/oscap-version.txt"
-    TWISTLOCK_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/twistlock/twistlock-version.txt"
-    ANCHORE_VERSION_FILE: "${ARTIFACT_STORAGE}/scan-results/anchore/anchore-version.txt"
-    # Put generated csv report in the scan-results folder
-    CSV_REPORT: "${ARTIFACT_STORAGE}/scan-results/csvs"
-    # reusing the VAT artifact dir to prevent redownloading
-    VAT_ARTIFACT_DIR: "${ARTIFACT_STORAGE}/vat"
-    ENV_FILENAME: "csv_output.env"
   needs:
     - setup
     - job: build-amd64
@@ -63,11 +55,10 @@ generate-documentation:
     - openscap-compliance
     - vat
   script:
-    - 'mkdir -p "${ARTIFACT_DIR}/reports"'
     - '"${PIPELINE_REPO_DIR}/pipeline1/7-publish/ib-manifest-run.sh"'
     - '"${PIPELINE_REPO_DIR}/pipeline1/7-publish/write-json-docs-run.sh"'
     - python3 "${PIPELINE_REPO_DIR}/pipeline1/7-publish/pipeline_csv_gen.py"
-    - python3 "${PIPELINE_REPO_DIR}"/pipeline1/7-publish/excel_convert.py -i "${CSV_REPORT}"/ -o "${CSV_REPORT}"/"${CI_PROJECT_NAME}":"${IMAGE_VERSION}"-"${CI_PIPELINE_ID}"-justifications.xlsx
+    - python3 "${PIPELINE_REPO_DIR}"/pipeline1/7-publish/excel_convert.py"
   artifacts:
     when: always
     paths:

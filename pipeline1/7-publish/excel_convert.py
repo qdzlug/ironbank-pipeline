@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import argparse
 import logging
 import os
 import sys
@@ -31,22 +30,9 @@ def main():
         logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
         logging.info("Log level set to info")
 
-    # Process command-line arguments
-    csv_dir = ""
-    output_file = ""
-
-    parser = argparse.ArgumentParser(
-        description="Gather csv directory path and name of justification spreadsheet"
-    )
-    parser.add_argument("-i", "--csv-dir", dest="csv", help="Directory for scan csvs")
-    parser.add_argument(
-        "-o", "--output-file", dest="output", help="Name for justification excel file"
-    )
-    args = parser.parse_args()
-
     # csv_dir is the directory of the scan csvs, output_file is final xlsx file with justifications and coloring
-    csv_dir = args.csv
-    output_file = args.output
+    csv_dir = f'{os.environ["ARTIFACT_STORAGE"]}/scan-results/{platform}/csvs/'
+    output_file = f'{os.environ["ARTIFACT_STORAGE"]}/scan-results/{platform}/csvs/{os.environ["CI_PROJECT_NAME"]}:{os.environ["IMAGE_VERSION"]}-{os.environ["CI_PIPELINE_ID"]}-justifications.xlsx'
 
     # Convert all csvs to excel sheets
     # Generates two .xlsx spreadsheets, one with justifications (output_file) and one without justifications (all_scans.xlsx)
@@ -262,4 +248,18 @@ def _set_all_column_widths(workbook):
 
 
 if __name__ == "__main__":
-    main()
+    potential_platforms = [
+        "amd64",
+        "arm64",
+    ]
+
+    platforms = [
+        platform
+        for platform in potential_platforms
+        if os.path.isfile(
+            f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json'
+        )
+    ]
+
+    for platform in platforms:
+        main()
