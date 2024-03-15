@@ -58,7 +58,8 @@ def main() -> None:
             verify=os.environ.get("ANCHORE_VERIFY", default=True),
         )
 
-        artifacts_path = os.environ.get("ARTIFACT_DIR", default="/tmp/anchore_scans")
+        artifacts_path = f"os.environ['ARTIFACT_DIR']/{platform}"
+        # artifacts_path = os.environ.get("ARTIFACT_DIR", default="/tmp/anchore_scans")
 
         # Create the directory if it does not exist
         Path(artifacts_path).mkdir(parents=True, exist_ok=True)
