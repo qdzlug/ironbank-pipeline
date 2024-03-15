@@ -8,8 +8,9 @@ from pipeline.utils.environment import Environment
 class EnvUtil:
     """DCCSCR processing of CVE reports from various sources."""
 
-    def __init__(self) -> None:
+    def __init__(self, platform) -> None:
         self._timestamp = datetime.utcnow().strftime("%FT%TZ")
+        self.platform = platform
 
     ###
     # Required
@@ -57,21 +58,21 @@ class EnvUtil:
         return Environment().digest_to_scan()
 
     @property
-    def twistlock(self) -> Path:
+    def twistlock(self, platform) -> Path:
         """Location of the twistlock JSON scan file."""
-        twistlock_path: str = f"{os.environ.get('ARTIFACT_STORAGE')}/scan-results/twistlock/twistlock_cve.json"
+        twistlock_path: str = f"{os.environ.get('ARTIFACT_STORAGE')}/scan-results/twistlock/{platform}/twistlock_cve.json"
         return Path(twistlock_path)
 
     @property
-    def anchore_sec(self) -> Path:
+    def anchore_sec(self, platform) -> Path:
         """Location of the anchore_security.json scan file."""
-        anchore_sec_path: str = f"{os.environ.get('ARTIFACT_STORAGE')}/scan-results/anchore/anchore_security.json"
+        anchore_sec_path: str = f"{os.environ.get('ARTIFACT_STORAGE')}/scan-results/anchore/{platform}/anchore_security.json"
         return Path(anchore_sec_path)
 
     @property
-    def anchore_gates(self) -> Path:
+    def anchore_gates(self, platform) -> Path:
         """Location of the anchore_gates.json scan file."""
-        anchore_gates_path: str = f"{os.environ.get('ARTIFACT_STORAGE')}/scan-results/anchore/anchore_gates.json"
+        anchore_gates_path: str = f"{os.environ.get('ARTIFACT_STORAGE')}/scan-results/anchore/{platform}/anchore_gates.json"
         return Path(anchore_gates_path)
 
     @property
@@ -91,9 +92,9 @@ class EnvUtil:
         return api_url
 
     @property
-    def oscap(self) -> Path:
+    def oscap(self, platform) -> Path:
         """Location of the oscap scan XML file."""
-        oscap_path: str = f"{os.environ.get('ARTIFACT_STORAGE')}/scan-results/openscap/compliance_output_report.xml"
+        oscap_path: str = f"{os.environ.get('ARTIFACT_STORAGE')}/scan-results/openscap/{platform}/compliance_output_report.xml"
         return Path(oscap_path)
 
     @property

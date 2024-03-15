@@ -459,14 +459,28 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    args = EnvUtil()
 
-    REMOTE_REPORT_DIRECTORY = f"{args.timestamp}_{args.commit_hash}"
+    potential_platforms = [
+        "amd64",
+        "arm64",
+    ]
 
-    if "pipeline-test-project" in args.repo_link:
-        log.info(
-            "Skipping vat. Cannot push to VAT when working with pipeline test projects..."
+    platforms = [
+        platform
+        for platform in potential_platforms
+        if os.path.isfile(
+            f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json'
         )
-        sys.exit(0)
+    ]
+    for platform in platforms:
+        args = EnvUtil(platform=platform)
 
-    main()
+        REMOTE_REPORT_DIRECTORY = f"{args.timestamp}_{args.commit_hash}"
+
+        if "pipeline-test-project" in args.repo_link:
+            log.info(
+                "Skipping vat. Cannot push to VAT when working with pipeline test projects..."
+            )
+            sys.exit(0)
+
+        main()
