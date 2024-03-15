@@ -39,7 +39,9 @@ def main():
 
     for platform in platforms:
         # load platform build.json
-        with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform['platform']}/build.json') as f:
+        with open(
+            f"{os.environ['ARTIFACT_STORAGE']}/build/{platform['platform']}/build.json"
+        ) as f:
             build = json.load(f)
 
         print(f"generating for {platform['platform']}..")

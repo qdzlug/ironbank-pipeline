@@ -368,10 +368,10 @@ def main() -> None:
             base_registry = base_registry.split("/")[0]
             with open(os.environ["DOCKER_AUTH_FILE_PULL"]) as f:
                 auth = json.load(f)
-            encoded_credentials = auth['auths'][base_registry]['auth']
+            encoded_credentials = auth["auths"][base_registry]["auth"]
             headers = {
-                'Accept': 'application/json',
-                'Authorization': f'Basic {encoded_credentials}'
+                "Accept": "application/json",
+                "Authorization": f"Basic {encoded_credentials}",
             }
             encoded_image_name = urllib.parse.quote(
                 hardening_manifest.base_image_name, safe=""
