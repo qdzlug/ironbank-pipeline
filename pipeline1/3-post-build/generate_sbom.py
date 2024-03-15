@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import json
 import logging
 import os
 import subprocess
@@ -98,11 +99,16 @@ def main() -> None:
 
     for platform in platforms:
         print(f"generating for {platform}..")
+
+        # load platform build.json
+        with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json') as f:
+            build = json.load(f)
+
         with Pool() as pool:
             # create intermediate function to hold arguments which are always the same (image, platform, and artifact path)
             partial_generate_sbom = partial(
                 generate_sbom_parallel,
-                os.environ["IMAGE_FULLTAG"],
+                build["IMAGE_FULLTAG"],
                 platform,
                 f'{os.environ["ARTIFACT_DIR"]}/{platform}',
             )

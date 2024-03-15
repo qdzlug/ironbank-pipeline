@@ -1,21 +1,24 @@
+import datetime
+import json
 import os
 import re
-import sys
-import json
-import time
 import shutil
-import tempfile
-import datetime
 import subprocess
+import sys
+import tempfile
+import time
 from pathlib import Path
 
-from pipeline.project import DsopProject
-from pipeline.hardening_manifest import HardeningManifest
-from pipeline.container_tools.skopeo import Skopeo
-from pipeline.container_tools.buildah import Buildah
-from pipeline.image import Image, ImageFile
-from pipeline.utils.decorators import subprocess_error_handler, stack_trace_handler
 from common.utils import logger
+from pipeline.container_tools.buildah import Buildah
+from pipeline.container_tools.skopeo import Skopeo
+from pipeline.hardening_manifest import HardeningManifest
+from pipeline.image import Image, ImageFile
+from pipeline.project import DsopProject
+from pipeline.utils.decorators import (
+    stack_trace_handler,
+    subprocess_error_handler,
+)
 
 log = logger.setup("build")
 
@@ -164,13 +167,19 @@ def generate_build_env(image_details: dict, image_name: str, image: Image, diges
     with Path(f"{os.environ['ARTIFACT_DIR']}/build.json").open(
         "w", encoding="utf-8"
     ) as f:
-        f.write(json.dumps({
-            "IMAGE_ID": f"sha256:{image_details['FromImageID']}",
-            "IMAGE_PODMAN_SHA": digest,
-            "IMAGE_FULLTAG": image.from_image(transport=''),
-            "IMAGE_NAME": image_name,
-            "BUILD_DATE": datetime.datetime.utcnow().isoformat(sep='T', timespec='seconds'),
-        }))
+        f.write(
+            json.dumps(
+                {
+                    "IMAGE_ID": f"sha256:{image_details['FromImageID']}",
+                    "IMAGE_PODMAN_SHA": digest,
+                    "IMAGE_FULLTAG": image.from_image(transport=""),
+                    "IMAGE_NAME": image_name,
+                    "BUILD_DATE": datetime.datetime.utcnow().isoformat(
+                        sep="T", timespec="seconds"
+                    ),
+                }
+            )
+        )
 
 
 # decorate main to capture all subprocess errors

@@ -1,24 +1,25 @@
 #!/usr/bin/env python3
 
+# TODO: re-implement scanning previous
+
 import json
 import os
 import shutil
 import sys
 import tempfile
+import urllib
 from pathlib import Path
 
 import image_verify
-
+import requests
+from common.utils import logger
 from pipeline.container_tools.cosign import Cosign
 from pipeline.file_parser import AccessLogFileParser, SbomFileParser
+from pipeline.hardening_manifest import HardeningManifest
 from pipeline.image import Image
+from pipeline.project import DsopProject
 from pipeline.utils.exceptions import CosignDownloadError
 from pipeline.utils.types import Package
-from common.utils import logger
-import urllib
-import requests
-from pipeline.hardening_manifest import HardeningManifest
-from pipeline.project import DsopProject
 
 log = logger.setup("scan_logic_jobs")
 
@@ -58,12 +59,17 @@ def write_env_vars(
     with Path(f"{os.environ['ARTIFACT_DIR']}/{platform}/scan_logic.json").open(
         "w", encoding="utf-8"
     ) as f:
-        f.write(json.dumps({
-            "IMAGE_TO_SCAN": image_name_tag,
-            "COMMIT_SHA_TO_SCAN": commit_sha,
-            "DIGEST_TO_SCAN": digest,
-            "BUILD_DATE_TO_SCAN": build_date,
-        }))
+        f.write(
+            json.dumps(
+                {
+                    "IMAGE_TO_SCAN": image_name_tag,
+                    "COMMIT_SHA_TO_SCAN": commit_sha,
+                    "DIGEST_TO_SCAN": digest,
+                    "BUILD_DATE_TO_SCAN": build_date,
+                }
+            )
+        )
+
 
 def parse_packages(sbom: Path | dict, access_log: Path | list[str]) -> list[Package]:
     """Verify sbom and access log files exist and parse packages
@@ -145,27 +151,27 @@ def get_old_pkgs(
         return []
 
 
-def scan_logic(platform, digest):
-    image_name = os.environ["IMAGE_NAME"]
-    image_name_tag = os.environ["IMAGE_FULLTAG"]
-    new_sbom = Path(
-        os.environ["ARTIFACT_STORAGE"], f"sbom/{platform}/sbom-syft-json.json"
-    )
-    new_access_log = Path(
-        os.environ["ARTIFACT_STORAGE"], f"build/{platform}/access_log"
-    )
+def scan_logic(platform, digest, build):
+    image_name = build["IMAGE_NAME"]
+    image_name_tag = build["IMAGE_FULLTAG"]
+    # new_sbom = Path(
+    #     os.environ["ARTIFACT_STORAGE"], f"sbom/{platform}/sbom-syft-json.json"
+    # )
+    # new_access_log = Path(
+    #     os.environ["ARTIFACT_STORAGE"], f"build/{platform}/access_log"
+    # )
 
     write_env_vars(
         image_name_tag,
         os.environ["CI_COMMIT_SHA"].lower(),
         digest,
-        os.environ["BUILD_DATE"],
+        build["BUILD_DATE"],
         platform,
     )
     log.info("New image name, tag, digest, and build date saved")
 
     log.info("Parsing new packages")
-    new_pkgs = parse_packages(new_sbom, new_access_log)
+    # new_pkgs = parse_packages(new_sbom, new_access_log)
 
     if os.environ.get("FORCE_SCAN_NEW_IMAGE"):
         log.info("Skip Logic: Force scan new image")
@@ -184,7 +190,7 @@ def scan_logic(platform, digest):
             log.info("SBOM diff required to determine image to scan")
             dsop_project = DsopProject()
             hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
-            if hardening_manifest.base_image_name: 
+            if hardening_manifest.base_image_name:
                 tag = hardening_manifest.base_image_tag
             else:
                 tag = hardening_manifest.image_tag
@@ -193,14 +199,12 @@ def scan_logic(platform, digest):
                 base_registry = base_registry.split("/")[0]
                 with open(os.environ["DOCKER_AUTH_FILE_PULL"]) as f:
                     auth = json.load(f)
-                encoded_credentials = auth['auths'][base_registry]['auth']
+                encoded_credentials = auth["auths"][base_registry]["auth"]
                 headers = {
-                    'Accept': 'application/json',
-                    'Authorization': f'Basic {encoded_credentials}'
+                    "Accept": "application/json",
+                    "Authorization": f"Basic {encoded_credentials}",
                 }
-                encoded_image_name = urllib.parse.quote(
-                    image_name, safe=""
-                )
+                encoded_image_name = urllib.parse.quote(image_name, safe="")
                 url = f"https://{base_registry}/api/v2.0/projects/ironbank/repositories/{encoded_image_name}/artifacts/{tag}"
                 response = requests.get(url, headers=headers)
                 response.raise_for_status()  # Raise an exception for 4xx or 5xx status codes
@@ -213,35 +217,35 @@ def scan_logic(platform, digest):
                 == "application/vnd.oci.image.index.v1+json"
             ):
                 for image in json_data["references"]:
-                    if image['platform']['architecture'] == platform:
+                    if image["platform"]["architecture"] == platform:
                         digest = image["child_digest"]
 
+            # old_pkgs = get_old_pkgs(
+            #     image_name=image_name,
+            #     image_digest=digest, # Should just have to change this line.
+            #     docker_config_dir=docker_config_dir,
+            # )
 
-            old_pkgs = get_old_pkgs(
-                image_name=image_name,
-                image_digest=digest, # Should just have to change this line.
-                docker_config_dir=docker_config_dir,
-            )
-        if not old_pkgs:
-            log.info("No old pkgs to compare - Must scan new image")
-            sys.exit(0)
+        # if not old_pkgs:
+        #     log.info("No old pkgs to compare - Must scan new image")
+        #     sys.exit(0)
 
-        if new_pkgs.symmetric_difference(old_pkgs):
-            log.info(f"Packages added: {new_pkgs - old_pkgs}")
-            log.info(f"Packages removed: {old_pkgs - new_pkgs}")
-            log.info("Package(s) difference detected - Must scan new image")
-        else:
-            log.info("Package lists match - Able to scan old image")
-            # Override image to scan with old tag
-            image_name_tag = f"{os.environ['REGISTRY_PUBLISH_URL']}/{image_name}:{old_image_details['tag']}"
-            write_env_vars(
-                image_name_tag,
-                old_image_details["commit_sha"],
-                old_image_details["digest"],
-                old_image_details["build_date"],
-                platform,
-            )
-            log.info("Old image name, tag, digest, and build date saved")
+        # if new_pkgs.symmetric_difference(old_pkgs):
+        #     log.info(f"Packages added: {new_pkgs - old_pkgs}")
+        #     log.info(f"Packages removed: {old_pkgs - new_pkgs}")
+        #     log.info("Package(s) difference detected - Must scan new image")
+        # else:
+        #     log.info("Package lists match - Able to scan old image")
+        #     # Override image to scan with old tag
+        #     image_name_tag = f"{os.environ['REGISTRY_PUBLISH_URL']}/{image_name}:{old_image_details['tag']}"
+        #     write_env_vars(
+        #         image_name_tag,
+        #         old_image_details["commit_sha"],
+        #         old_image_details["digest"],
+        #         old_image_details["build_date"],
+        #         platform,
+        #     )
+        #     log.info("Old image name, tag, digest, and build date saved")
 
 
 def main():
@@ -282,7 +286,14 @@ def main():
 
     for platform in platforms:
         print(f"generating for {platform['platform']}..")
-        scan_logic(platform["platform"], platform["digest"])
+
+        # load platform build.json
+        with open(
+            f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform["platform"]}/build.json'
+        ) as f:
+            build = json.load(f)
+
+        scan_logic(platform["platform"], platform["digest"], build)
 
 
 if __name__ == "__main__":
