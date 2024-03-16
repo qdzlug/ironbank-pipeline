@@ -33,7 +33,7 @@ def pod_command_passes(
     """Run a command in a pod."""
     try:
         with subprocess.Popen(
-            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE
         ) as proc:
             _stdout, _stderr = proc.communicate(timeout=timeout_seconds)
     except subprocess.TimeoutExpired:
@@ -224,16 +224,15 @@ def run_test(
 
     # overrides_json = overrides_json.replace('"', '\\"')
 
-    kubectl_command = [
-        (
+    kubectl_command = (
             f"kubectl run {pod_name} "
             f"--overrides='{overrides_json}' "
             f"--image={docker_image} -n {kubernetes_namespace} --command -- {entrypoint}"
         )
-    ]
 
     # print command information
-    # print(f"Running test command: {kubectl_command}")
+    print(f"Running test command: {kubectl_command}")
+    print(type(kubectl_command))
     print(f"Running test command: {entrypoint}")
     result = subprocess.run(
         kubectl_command,
