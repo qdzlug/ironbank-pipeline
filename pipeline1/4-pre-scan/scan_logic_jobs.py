@@ -48,7 +48,9 @@ def write_env_vars(
         urlopen(
             Request(
                 f'{os.environ["ANCHORE_URL"]}/version',
-                headers=f"Authorization: Basic {base64.b64encode(os.environ['ANCHORE_USERNAME'].encode('utf-8'))}:{base64.b64encode(os.environ['ANCHORE_PASSWORD'].encode('utf-8'))}",
+                headers={
+                    "Authorization": f"Basic {base64.b64encode(os.environ['ANCHORE_USERNAME'].encode('utf-8'))}:{base64.b64encode(os.environ['ANCHORE_PASSWORD'].encode('utf-8'))}"
+                },
             )
         )
         .read()
