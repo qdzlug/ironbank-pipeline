@@ -89,7 +89,7 @@ def cleanup_pod(pod_name, pod_namespace):
     stop_cmd = ["kubectl", "delete", "po", pod_name, "-n", pod_namespace, "--force"]
     try:
         subprocess.run(
-            stop_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+            stop_cmd, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
         )
         print_green(
             f"Successfully deleted pod {pod_name} from namespace {pod_namespace}."
@@ -224,11 +224,11 @@ def run_test(
 
     # overrides_json = overrides_json.replace('"', '\\"')
 
-    kubectl_command = (
+    kubectl_command = [
         f"kubectl run {pod_name} "
         f"--overrides='{overrides_json}' "
         f"--image={docker_image} -n {kubernetes_namespace} --command -- {entrypoint}"
-    )
+    ]
 
     # print command information
     # print(f"Running test command: {kubectl_command}")
@@ -239,7 +239,7 @@ def run_test(
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
-        check=True,
+        check=False,
     )
     if result.returncode == 0:
         print("Command executed successfully!")
@@ -337,7 +337,7 @@ def main(project_root_dir, kubernetes_namespace):
 
             for command in container_test["commands"]:
                 # generate a unique pod name
-                pod_name = uuid.uuid4()
+                pod_name = str(uuid.uuid4())
                 print(f"Pod name: {pod_name}")
 
                 # handle expected_output
