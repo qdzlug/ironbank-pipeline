@@ -8,7 +8,9 @@ import shutil
 import sys
 import tempfile
 import urllib
+import subprocess
 from pathlib import Path
+from urllib.request import Request, urlopen
 
 import image_verify
 import requests
@@ -33,13 +35,31 @@ def write_env_vars(
     and the build date. It then writes these as environment variables
     into a file named 'scan_logic.env' and 'scan_logic.json'.
 
+    It also writes the various scanner and tool versions.
+
     Arguments:
     - image_name_tag: The name and tag of the image to scan.
     - commit_sha: The SHA of the commit to scan.
     - digest: The digest of the image to scan.
     - build_date: The date when the build was created.
     """
+
+    anchore_version = json.loads(
+        urlopen(Request(f'{os.environ["ANCHORE_URL"]}/version')).read().decode()
+    )["service"]["version"]
+
+    gpg_version = subprocess.check_output(["sh", "-c", "gpg --version"], text=True).partition('\n')[0].split(" ")[2]
+
+    openscap_version = Path("/opt/oscap/version.txt").read_text().rstrip()
+
+    twistlock_version = (
+        subprocess.check_output(["sh", "-c", "twistcli --version"], text=True)
+        .strip("\n")
+        .split(" ")[2]
+    )
+
     log.info(f"Writing {os.environ['ARTIFACT_DIR']}/{platform}/scan_logic.env")
+
     # mkdir
     Path(f"{os.environ['ARTIFACT_DIR']}/{platform}").mkdir(parents=True, exist_ok=True)
 
@@ -48,10 +68,14 @@ def write_env_vars(
     ) as f:
         f.writelines(
             [
-                f"IMAGE_TO_SCAN={image_name_tag}\n",
+                f"ANCHORE_VERSION={anchore_version}\n",
+                f"BUILD_DATE_TO_SCAN={build_date}\n",
                 f"COMMIT_SHA_TO_SCAN={commit_sha}\n",
                 f"DIGEST_TO_SCAN={digest}\n",
-                f"BUILD_DATE_TO_SCAN={build_date}",
+                f"GPG_VERSION={gpg_version}\n",
+                f"IMAGE_TO_SCAN={image_name_tag}\n",
+                f"OPENSCAP_VERSION={openscap_version}\n",
+                f"TWISTLOCK_VERSION={twistlock_version}",
             ]
         )
 
@@ -62,10 +86,14 @@ def write_env_vars(
         f.write(
             json.dumps(
                 {
-                    "IMAGE_TO_SCAN": image_name_tag,
+                    "ANCHORE_VERSION": anchore_version,
+                    "BUILD_DATE_TO_SCAN": build_date,
                     "COMMIT_SHA_TO_SCAN": commit_sha,
                     "DIGEST_TO_SCAN": digest,
-                    "BUILD_DATE_TO_SCAN": build_date,
+                    "GPG_VERSION": gpg_version,
+                    "IMAGE_TO_SCAN": image_name_tag,
+                    "OPENSCAP_VERSION": openscap_version,
+                    "TWISTLOCK_VERSION": twistlock_version,
                 }
             )
         )

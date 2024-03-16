@@ -73,7 +73,6 @@ def main() -> None:
         anchore_scan.get_compliance(
             digest=digest, image=image, artifacts_path=artifacts_path
         )
-        anchore_scan.get_version(artifacts_path=artifacts_path)
 
 
 if __name__ == "__main__":

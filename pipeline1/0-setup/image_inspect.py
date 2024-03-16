@@ -105,6 +105,93 @@ def template_type(os_type: str) -> None:
     with Path("os.env").open(mode="w", encoding="utf-8") as f:
         f.write(template)
 
+    template_json = {
+        "alpine317-container": {
+            "DISTRO_REPO_DIR": "apk-repos/repositories",
+            "DISTRO_REPO_MOUNT": "/etc/apk/repositories",
+            "OS_TYPE": "alpine317-container",
+        },
+        "alpine3-container": {
+            "DISTRO_REPO_DIR": "apk-repos/repositories",
+            "DISTRO_REPO_MOUNT": "/etc/apk/repositories",
+            "OS_TYPE": "alpine3-container",
+        },
+        "chainguard-container": {"OS_TYPE": "chainguard"},
+        "debian11-container": {
+            "DISTRO_REPO_DIR": "debian-repos/11-bullseye-ironbank.list",
+            "DISTRO_REPO_MOUNT": "/etc/apt/sources.list",
+            "OS_TYPE": "debian11-container",
+            "OSCAP_PROFILE": "xccdf_org.ssgproject.content_profile_anssi_np_nt28_average",
+            "OSCAP_DATASTREAM": "ssg-debian11-ds.xml",
+            "OSCAP_SCANNER": "debian",
+        },
+        "debian12-container": {
+            "DISTRO_REPO_DIR": "debian-repos/12-bookworm-debian.sources",
+            "DISTRO_REPO_MOUNT": "/etc/apt/sources.list.d/debian.sources",
+            "OS_TYPE": "debian12-container",
+            "OSCAP_PROFILE": "xccdf_org.ssgproject.content_profile_anssi_np_nt28_average",
+            "OSCAP_DATASTREAM": "ssg-debian12-ds.xml",
+            "OSCAP_SCANNER": "debian",
+        },
+        "distroless-container": {"OS_TYPE": "distroless-container"},
+        "scratch-container": {"OS_TYPE": "scratch-container"},
+        "sle15-bci-container": {
+            "DISTRO_REPO_DIR": "zypper-repos",
+            "DISTRO_REPO_MOUNT": "/etc/zypp/repos.d",
+            "OS_TYPE": "sle15-bci-container",
+            "OSCAP_PROFILE": "xccdf_org.ssgproject.content_profile_stig",
+            "OSCAP_DATASTREAM": "ssg-sle15-ds.xml",
+            "OSCAP_OVAL": "pub-projects-security-oval-suse.linux.enterprise.15.xml",
+            "OSCAP_SCANNER": "suse",
+        },
+        "ubi7-container": {
+            "DISTRO_REPO_DIR": "ubi-repos",
+            "DISTRO_REPO_MOUNT": "/etc/yum.repos.d",
+            "OS_TYPE": "ubi7-container",
+            "OSCAP_PROFILE": "xccdf_org.ssgproject.content_profile_stig",
+            "OSCAP_DATASTREAM": "ssg-rhel7-ds.xml",
+            "OSCAP_OVAL": "security-data-oval-v2-RHEL7-rhel-7.oval.xml.bz2",
+        },
+        "ubi8-container": {
+            "DISTRO_REPO_DIR": "ubi-repos",
+            "DISTRO_REPO_MOUNT": "/etc/yum.repos.d",
+            "OS_TYPE": "ubi8-container",
+            "OSCAP_PROFILE": "xccdf_org.ssgproject.content_profile_stig",
+            "OSCAP_DATASTREAM": "ssg-rhel8-ds.xml",
+            "OSCAP_OVAL": "security-data-oval-v2-RHEL8-rhel-8.oval.xml.bz2",
+        },
+        "ubi9-container": {
+            "DISTRO_REPO_DIR": "ubi-repos",
+            "DISTRO_REPO_MOUNT": "/etc/yum.repos.d",
+            "OS_TYPE": "ubi9-container",
+            "OSCAP_PROFILE": "xccdf_org.ssgproject.content_profile_stig",
+            "OSCAP_DATASTREAM": "ssg-rhel9-ds.xml",
+            "OSCAP_OVAL": "security-data-oval-v2-RHEL9-rhel-9.oval.xml.bz2",
+        },
+        "ubuntu2004-container": {
+            "DISTRO_REPO_DIR": "apt-repos/2004-focal-ironbank.list",
+            "DISTRO_REPO_MOUNT": "/etc/apt/sources.list",
+            "OS_TYPE": "ubuntu2004-container",
+            "OSCAP_PROFILE": "xccdf_org.ssgproject.content_profile_stig",
+            "OSCAP_DATASTREAM": "ssg-ubuntu2004-ds.xml",
+            "OSCAP_SCANNER": "debian",
+        },
+        # "ubuntu2204-container": {
+        #     "DISTRO_REPO_DIR": "apt-repos/2204-jammy-ironbank.list",
+        #     "DISTRO_REPO_MOUNT": "/etc/apt/sources.list",
+        #     "OS_TYPE": "ubuntu2204-container",
+        #     "OSCAP_PROFILE": "#TODO STIG TYPE PROFILE",
+        #     "OSCAP_DATASTREAM": "ssg-ubuntu2204-ds.xml",
+        #     "OSCAP_SCANNER": "debian",
+        # },
+    }
+    template = template_json.get(os_type)
+    if not template:
+        log.error("Unknown template for os-type: %s", os_type)
+        sys.exit(1)
+    log.info("Using pipeline template: %s", template)
+    with Path("os.json").open(mode="w", encoding="utf-8") as f:
+        f.write(template)
 
 def get_registry_info() -> tuple[str, str]:
     """Returns a tuple of pull auth file path and registry project."""

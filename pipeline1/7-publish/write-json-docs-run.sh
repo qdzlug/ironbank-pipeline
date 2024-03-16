@@ -5,25 +5,10 @@ for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*; do
 
   # amd64, arm64, ..
   PLATFORM=$(basename "$SCAN_LOGIC_DIR")
+  source "$SCAN_LOGIC_DIR"/"$PLATFORM"/scan_logic.env
+
   echo "${IB_CONTAINER_GPG_KEY}" | base64 -d >key
 
-  # Gather info for scan-metadata.json
-  GPG_VERSION_INFO=$(gpg --version | grep "gpg")
-
-  ANCHORE_VERSION_FILE="${ARTIFACT_STORAGE}/scan-results/anchore/${PLATFORM}/anchore-version.txt"
-  OPENSCAP_VERSION_FILE="${ARTIFACT_STORAGE}/scan-results/openscap/${PLATFORM}/openscap-version.txt"
-  TWISTLOCK_VERSION_FILE="${ARTIFACT_STORAGE}/scan-results/twistlock/${PLATFORM}/twistlock-version.txt"
-
-  if [[ "${SKIP_OPENSCAP:-}" ]]; then
-    ANCHORE_VERSION=$(sed 's/"//g' "${ANCHORE_VERSION_FILE}")
-    TWISTLOCK_VERSION=$(sed 's/"//g' "${TWISTLOCK_VERSION_FILE}" | cut -d" " -f3)
-  else
-    OPENSCAP_VERSION=$(<"${OPENSCAP_VERSION_FILE}")
-    ANCHORE_VERSION=$(sed 's/"//g' "${ANCHORE_VERSION_FILE}")
-    TWISTLOCK_VERSION=$(sed 's/"//g' "${TWISTLOCK_VERSION_FILE}" | cut -d" " -f3)
-  fi
-
-  #- OPENSCAP_VERSION=$(<"${OPENSCAP_VERSION}"")
   GPG_PUB_KEY=$(awk '{printf "%s\\n", $0}' "${IB_CONTAINER_GPG_PUBKEY}")
 
   # Create manifest.json
@@ -33,7 +18,7 @@ for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*; do
   export IMAGE_ACCREDITATION
   export IMAGE_PODMAN_SHA
   export GPG_PUB_KEY
-  export GPG_VERSION_INFO
+  export GPG_VERSION
   export CI_COMMIT_BRANCH
   export TWISTLOCK_VERSION
   export OPENSCAP_VERSION
@@ -52,7 +37,7 @@ for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*; do
     },
     "pgp": {
       "publicKey": env.GPG_PUB_KEY,
-      "version": env.GPG_VERSION_INFO
+      "version": env.GPG_VERSION
     },
     "git": {
       "branch": env.CI_COMMIT_BRANCH,

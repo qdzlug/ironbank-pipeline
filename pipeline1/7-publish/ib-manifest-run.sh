@@ -5,10 +5,9 @@ for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*; do
 
   # amd64, arm64, ..
   PLATFORM=$(basename "$SCAN_LOGIC_DIR")
-  GPG_VERSION=$(gpg --version | grep '(?<=gpg .GnuPG.)([^0-9]+)([0-9]+[.][0-9]+[.][0-9]+)' -oP | sed -E 's/ //g')
+  source "$SCAN_LOGIC_DIR"/"$PLATFORM"/scan_logic.env
 
   # Create manifest.json
-  export GPG_VERSION
 
   mkdir -p "${ARTIFACT_DIR}/reports/${PLATFORM}"
   jq -n '

@@ -15,7 +15,6 @@ for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*; do
   mkdir -p "${ARTIFACT_DIR}/${PLATFORM}"
 
   podman pull --authfile "${DOCKER_AUTH_FILE_PULL}" "${URI_BASENAME}@${URI_DIGEST}"
-  twistcli --version >"${ARTIFACT_DIR}/${PLATFORM}/twistlock-version.txt"
   twistcli images scan --address "${TWISTLOCK_URL}" --podman-path podman --custom-labels --output-file "${ARTIFACT_DIR}/${PLATFORM}/twistlock_cve.json" --details "${URI_BASENAME}@${URI_DIGEST}" | tee "${ARTIFACT_DIR}/${PLATFORM}/twistcli-details.txt"
   ls "${ARTIFACT_DIR}/${PLATFORM}/twistlock_cve.json"
   chmod 0644 "${ARTIFACT_DIR}/${PLATFORM}/twistlock_cve.json"

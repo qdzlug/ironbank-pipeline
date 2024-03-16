@@ -36,7 +36,6 @@ for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*; do
 
   # setup platform artifact(s)
   mkdir -p "${ARTIFACT_DIR}/${PLATFORM}"
-  cp /opt/oscap/version.txt "${ARTIFACT_DIR}/${PLATFORM}/oscap-version.txt"
 
   # if no scanner, scan natively
   if [ -z "${OSCAP_SCANNER:-}" ]; then
