@@ -18,6 +18,7 @@ anchore-scan:
   extends: .scan
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/5-scan/anchore_scan.py"'
+    - sleep 600
   artifacts:
     when: always
     paths:

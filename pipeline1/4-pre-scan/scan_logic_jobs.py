@@ -44,18 +44,18 @@ def write_env_vars(
     - build_date: The date when the build was created.
     """
 
-    anchore_version = json.loads(
-        urlopen(
-            Request(
-                f'{os.environ["ANCHORE_URL"]}/version',
-                headers={
-                    "Authorization": f"Basic {base64.b64encode(os.environ['ANCHORE_USERNAME'].encode('utf-8'))}:{base64.b64encode(os.environ['ANCHORE_PASSWORD'].encode('utf-8'))}"
-                },
-            )
-        )
-        .read()
-        .decode()
-    )["service"]["version"]
+    # anchore_version = json.loads(
+    #     urlopen(
+    #         Request(
+    #             f'{os.environ["ANCHORE_URL"]}/version',
+    #             headers={
+    #                 "Authorization": f"Basic {base64.b64encode(os.environ['ANCHORE_USERNAME'].encode('utf-8'))}:{base64.b64encode(os.environ['ANCHORE_PASSWORD'].encode('utf-8'))}"
+    #             },
+    #         )
+    #     )
+    #     .read()
+    #     .decode()
+    # )["service"]["version"]
 
     gpg_version = (
         subprocess.check_output(["sh", "-c", "gpg --version"], text=True)
