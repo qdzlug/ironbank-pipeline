@@ -5,7 +5,7 @@ for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*; do
 
   # amd64, arm64, ..
   PLATFORM=$(basename "$SCAN_LOGIC_DIR")
-  source "$SCAN_LOGIC_DIR"/"$PLATFORM"/scan_logic.env
+  source "$SCAN_LOGIC_DIR"/scan_logic.env
 
   echo "${IB_CONTAINER_GPG_KEY}" | base64 -d >key
 
