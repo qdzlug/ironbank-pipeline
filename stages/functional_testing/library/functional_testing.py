@@ -3,8 +3,8 @@ import subprocess
 import uuid
 import time
 import sys
-import yaml
 import json
+import yaml
 
 
 def print_green(text):
