@@ -29,7 +29,7 @@ def template_type(os_type: str) -> None:
         "ubi8-container": "ubi.yaml",
         "ubi9-container": "ubi.yaml",
         "ubuntu2004-container": "ubuntu2004.yaml",
-        "ubuntu2204-container": "ubuntu2204.yaml",
+        # "ubuntu2204-container": "ubuntu2204.yaml", #TODO STIG TYPE PROFILE
     }
     template = template_dict.get(os_type)
     if not template:
