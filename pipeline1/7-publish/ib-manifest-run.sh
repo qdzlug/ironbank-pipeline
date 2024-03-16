@@ -8,6 +8,7 @@ for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*; do
   source "$SCAN_LOGIC_DIR"/scan_logic.env
 
   # Create manifest.json
+  export DIGEST_TO_SCAN IMAGE_TO_SCAN GPG_VERSION
 
   mkdir -p "${ARTIFACT_DIR}/reports/${PLATFORM}"
   jq -n '

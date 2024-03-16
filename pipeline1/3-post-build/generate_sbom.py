@@ -87,7 +87,7 @@ def main() -> None:
     platforms = [
         platform
         for platform in potential_platforms
-        if os.path.isfile(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/digest')
+        if os.path.isfile(f'{os.environ["ARTIFACT_STORAGE"]}/build{platform}/digest')
     ]
 
     sbom_formats = [
@@ -101,7 +101,7 @@ def main() -> None:
         print(f"generating for {platform}..")
 
         # load platform build.json
-        with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json') as f:
+        with open(f'{os.environ["ARTIFACT_STORAGE"]}/build{platform}/build.json') as f:
             build = json.load(f)
 
         with Pool() as pool:

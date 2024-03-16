@@ -58,7 +58,7 @@ generate-documentation:
     - '"${PIPELINE_REPO_DIR}/pipeline1/7-publish/ib-manifest-run.sh"'
     - '"${PIPELINE_REPO_DIR}/pipeline1/7-publish/write-json-docs-run.sh"'
     - python3 "${PIPELINE_REPO_DIR}/pipeline1/7-publish/pipeline_csv_gen.py"
-    - python3 "${PIPELINE_REPO_DIR}"/pipeline1/7-publish/excel_convert.py"
+    - python3 "${PIPELINE_REPO_DIR}/pipeline1/7-publish/excel_convert.py"
   artifacts:
     when: always
     paths:

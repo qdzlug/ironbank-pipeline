@@ -30,17 +30,17 @@ def main():
         {
             "platform": platform,
             "digest": Path(
-                f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/digest'
+                f'{os.environ["ARTIFACT_STORAGE"]}/build{platform}/digest'
             ).read_text(),
         }
         for platform in potential_platforms
-        if os.path.isfile(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/digest')
+        if os.path.isfile(f'{os.environ["ARTIFACT_STORAGE"]}/build{platform}/digest')
     ]
 
     for platform in platforms:
         # load platform build.json
         with open(
-            f"{os.environ['ARTIFACT_STORAGE']}/build/{platform['platform']}/build.json"
+            f"{os.environ['ARTIFACT_STORAGE']}/build{platform['platform']}/build.json"
         ) as f:
             build = json.load(f)
 

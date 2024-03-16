@@ -203,7 +203,7 @@ def scan_logic(platform, digest, build):
     #     os.environ["ARTIFACT_STORAGE"], f"sbom/{platform}/sbom-syft-json.json"
     # )
     # new_access_log = Path(
-    #     os.environ["ARTIFACT_STORAGE"], f"build/{platform}/access_log"
+    #     os.environ["ARTIFACT_STORAGE"], f"build{platform}/access_log"
     # )
 
     write_env_vars(
@@ -322,11 +322,11 @@ def main():
         {
             "platform": platform,
             "digest": Path(
-                f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/digest'
+                f'{os.environ["ARTIFACT_STORAGE"]}/build{platform}/digest'
             ).read_text(),
         }
         for platform in potential_platforms
-        if os.path.isfile(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/digest')
+        if os.path.isfile(f'{os.environ["ARTIFACT_STORAGE"]}/build{platform}/digest')
     ]
 
     for platform in platforms:
@@ -334,7 +334,7 @@ def main():
 
         # load platform build.json
         with open(
-            f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform["platform"]}/build.json'
+            f'{os.environ["ARTIFACT_STORAGE"]}/build{platform["platform"]}/build.json'
         ) as f:
             build = json.load(f)
 
