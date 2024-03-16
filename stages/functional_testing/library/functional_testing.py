@@ -3,7 +3,6 @@ import subprocess
 import uuid
 import time
 import sys
-import json
 import yaml
 
 
@@ -26,7 +25,8 @@ def print_yellow(text):
     """Print the given text in yellow color."""
     print(f"\033[1;33m{text}\033[0m")
 
-# pylint: disable=subprocess-decorator-missing
+
+# pylint: disable=use-list-for-subprocess-args,using-subprocess-with-shell,subprocess-decorator-missing
 # returns true if the <command> output matches the <expected_output> and completes before the timeout
 def pod_command_passes(
     _pod_name, command, _expected_output, _kubernetes_namespace, timeout_seconds=90
@@ -34,7 +34,7 @@ def pod_command_passes(
     """Run a command in a pod."""
     try:
         with subprocess.Popen(
-            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE
         ) as proc:
             _stdout, _stderr = proc.communicate(timeout=timeout_seconds)
     except subprocess.TimeoutExpired:
@@ -67,32 +67,20 @@ def pod_completes(pod_name, pod_namespace, max_wait_seconds, check_interval_seco
         if elapsed_seconds > max_wait_seconds:
             print_red(f"Timeout waiting for pod {pod_name} to complete.")
             return False
+        try:
+            with subprocess.Popen(
+                status_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            ) as proc:
+                status_output, _ = proc.communicate()
+            status = status_output.decode().strip().split()[2]
 
-        result = subprocess.run(
-            status_command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            check=False,
-        )
-
-        if result.returncode != 0:
-            print_red(f"Error running command: {result.stderr.strip()}")
-            return False
-
-        status_output = result.stdout.strip()
-        print(f"Debug: Command Output: {status_output}")  # Debugging line
-
-        parts = status_output.split()
-        if len(parts) >= 3:
-            status = parts[2]
             if status == "Completed":
                 print_green(f"{elapsed_seconds:.1f}s, {pod_name} status: {status}")
                 return True
             print_yellow(f"{elapsed_seconds:.1f}s, {pod_name} status: {status}")
-        else:
-            print_yellow(f"Unexpected output format: {status_output}")
-
+        except subprocess.CalledProcessError as e:
+            print_red(f"Error checking status of pod {pod_name}: {e.output.decode()}")
+            return False
         time.sleep(check_interval_seconds)
 
 
@@ -203,25 +191,15 @@ def get_pod_logs(pod_name, pod_namespace, timeout_seconds=10):
             ["kubectl", "logs", pod_name, "-n", pod_namespace],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True,
         ) as proc:
-            logs, logs_error = proc.communicate(timeout=timeout_seconds)
-        if proc.returncode == 0:
-            return logs.strip()
-
-        error_msg = f"Error pulling logs for pod {pod_name}: {logs_error.strip()}"
-        print_red(error_msg)
-        return error_msg  # Return the error message instead of an empty string
+            logs, _logs_error = proc.communicate(timeout=timeout_seconds)
+        return logs.decode().strip()
     except subprocess.TimeoutExpired:
-        error_msg = f"Fetching logs for pod {pod_name} timed out"
-        print_red(error_msg)
-        return error_msg  # Return the timeout message
-    # pylint: disable=broad-except
-    except Exception as e:
-        error_msg = f"An unexpected error occurred: {e}"
-        print_red(error_msg)
-        return error_msg
-    # pylint: enable=broad-except
+        print_red(f"Fetching logs for pod {pod_name} timed out")
+        return ""
+    except subprocess.CalledProcessError:
+        print_red(f"Error pulling logs for pod {pod_name}")
+        return ""
 
 
 def run_test(
@@ -238,32 +216,28 @@ def run_test(
     if expected_output is not None:
         will_check_for_expected_output = True
 
-    overrides_json = {"apiVersion": "v1", "spec": {"serviceAccount": "testpod-sa"}}
+    overrides_json = """{
+        "apiVersion": "v1",
+        "spec": {
+            "serviceAccount": "testpod-sa"
+        }
+    }"""
 
     # overrides_json = overrides_json.replace('"', '\\"')
 
-    kubectl_command = [
-        "kubectl",
-        "run",
-        pod_name,
-        "--overrides",
-        json.dumps(overrides_json),
-        "--image",
-        docker_image,
-        "-n",
-        kubernetes_namespace,
-        "--command",
-        "--",
-        entrypoint,
-    ]
+    kubectl_command = (
+        f"kubectl run {pod_name} "
+        f"--overrides='{overrides_json}' "
+        f"--image={docker_image} -n {kubernetes_namespace} --command -- {entrypoint}"
+    )
 
     # print command information
     print(f"Running test command: {kubectl_command}")
-    print(type(kubectl_command))
-    print(f"Running test command: {entrypoint}")
+    print(f"Type: type(kubectl_command)")
+    print(f"Running Entrypoint: {entrypoint}")
     result = subprocess.run(
         kubectl_command,
-        shell=False,
+        shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
