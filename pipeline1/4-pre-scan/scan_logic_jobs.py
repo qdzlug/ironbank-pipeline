@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # TODO: re-implement scanning previous
-
+import base64
 import json
 import os
 import shutil
@@ -45,10 +45,21 @@ def write_env_vars(
     """
 
     anchore_version = json.loads(
-        urlopen(Request(f'{os.environ["ANCHORE_URL"]}/version')).read().decode()
+        urlopen(
+            Request(
+                f'{os.environ["ANCHORE_URL"]}/version',
+                headers=f"Authorization: Basic {base64.b64encode(os.environ['ANCHORE_USERNAME'].encode('utf-8'))}:{base64.b64encode(os.environ['ANCHORE_PASSWORD'].encode('utf-8'))}",
+            )
+        )
+        .read()
+        .decode()
     )["service"]["version"]
 
-    gpg_version = subprocess.check_output(["sh", "-c", "gpg --version"], text=True).partition('\n')[0].split(" ")[2]
+    gpg_version = (
+        subprocess.check_output(["sh", "-c", "gpg --version"], text=True)
+        .partition("\n")[0]
+        .split(" ")[2]
+    )
 
     openscap_version = Path("/opt/oscap/version.txt").read_text().rstrip()
 

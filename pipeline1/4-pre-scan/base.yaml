@@ -21,3 +21,6 @@ scan-logic:
     when: runner_system_failure
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-logic"
+  id_tokens:
+    ANCHORE_PASSWORD:
+      aud: ${CI_SERVER_URL}
