@@ -233,7 +233,6 @@ def run_test(
 
     # print command information
     print(f"Running test command: {kubectl_command}")
-    print(f"Type: type(kubectl_command)")
     print(f"Running Entrypoint: {entrypoint}")
     result = subprocess.run(
         kubectl_command,
