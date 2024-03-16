@@ -216,16 +216,13 @@ def run_test(
     if expected_output is not None:
         will_check_for_expected_output = True
 
-    overrides_json = {
-        "apiVersion": "v1",
-        "spec": {
-            "serviceAccount": "testpod-sa"
-        }
-    }
+    overrides_json = {"apiVersion": "v1", "spec": {"serviceAccount": "testpod-sa"}}
 
     # overrides_json = overrides_json.replace('"', '\\"')
 
-    kubectl_command = [f"""kubectl run {pod_name} --overrides={json.dumps(overrides_json)} --image={docker_image} -n {kubernetes_namespace} --command -- {entrypoint}"""]
+    kubectl_command = [
+        f"""kubectl run {pod_name} --overrides={json.dumps(overrides_json)} --image={docker_image} -n {kubernetes_namespace} --command -- {entrypoint}"""
+    ]
 
     # print command information
     print(f"Running test command: {kubectl_command}")
@@ -233,7 +230,7 @@ def run_test(
     print(f"Running test command: {entrypoint}")
     result = subprocess.run(
         kubectl_command,
-        shell=True,
+        shell=False,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
