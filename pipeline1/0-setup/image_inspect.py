@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import json
 import os
 import sys
 from pathlib import Path
@@ -191,7 +192,8 @@ def template_type(os_type: str) -> None:
         sys.exit(1)
     log.info("Using pipeline template: %s", template)
     with Path("os.json").open(mode="w", encoding="utf-8") as f:
-        f.write(template)
+        f.write(json.dumps(template, indent=2))
+
 
 def get_registry_info() -> tuple[str, str]:
     """Returns a tuple of pull auth file path and registry project."""
