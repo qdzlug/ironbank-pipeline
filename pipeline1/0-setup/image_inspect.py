@@ -196,7 +196,7 @@ def template_type(os_type: str) -> None:
     with Path(os.environ["ARTIFACT_DIR"], "os.json").open(
         mode="w", encoding="utf-8"
     ) as f:
-        f.write(json.dump(template, f, indent=2))
+        f.write(json.dumps(template, indent=2))
 
 
 def get_registry_info() -> tuple[str, str]:
