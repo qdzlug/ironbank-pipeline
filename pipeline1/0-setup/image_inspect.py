@@ -103,7 +103,9 @@ def template_type(os_type: str) -> None:
         log.error("Unknown template for os-type: %s", os_type)
         sys.exit(1)
     log.info("Using pipeline template: %s", template)
-    with Path("os.env").open(mode="w", encoding="utf-8") as f:
+    with Path(os.environ["ARTIFACT_DIR"], "os.env").open(
+        mode="w", encoding="utf-8"
+    ) as f:
         f.write(template)
 
     template_json = {
@@ -191,8 +193,10 @@ def template_type(os_type: str) -> None:
         log.error("Unknown template for os-type: %s", os_type)
         sys.exit(1)
     log.info("Using pipeline template: %s", template)
-    with Path("os.json").open(mode="w", encoding="utf-8") as f:
-        f.write(json.dumps(template, indent=2))
+    with Path(os.environ["ARTIFACT_DIR"], "os.json").open(
+        mode="w", encoding="utf-8"
+    ) as f:
+        f.write(json.dump(template, f, indent=2))
 
 
 def get_registry_info() -> tuple[str, str]:

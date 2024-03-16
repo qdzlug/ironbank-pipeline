@@ -11,7 +11,7 @@ setup:
       - "${PIPELINE_REPO_DIR}"
     reports:
       dotenv:
-        - os.env
+        - "${ARTIFACT_DIR}/os.env"
         - "${ARTIFACT_DIR}/variables.env"
   id_tokens:
     VAT_TOKEN:
