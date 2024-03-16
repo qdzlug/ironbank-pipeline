@@ -221,8 +221,13 @@ def run_test(
     # overrides_json = overrides_json.replace('"', '\\"')
 
     kubectl_command = [
-        f"""kubectl run {pod_name} --overrides={json.dumps(overrides_json)} --image={docker_image} -n {kubernetes_namespace} --command -- {entrypoint}"""
+        "kubectl", "run", pod_name,
+        "--overrides", json.dumps(overrides_json),
+        "--image", docker_image,
+        "-n", kubernetes_namespace,
+        "--command", "--", entrypoint
     ]
+
 
     # print command information
     print(f"Running test command: {kubectl_command}")
