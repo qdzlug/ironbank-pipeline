@@ -4,6 +4,7 @@ import uuid
 import time
 import sys
 import yaml
+import json
 
 
 def print_green(text):
@@ -215,20 +216,16 @@ def run_test(
     if expected_output is not None:
         will_check_for_expected_output = True
 
-    overrides_json = """{
+    overrides_json = {
         "apiVersion": "v1",
         "spec": {
             "serviceAccount": "testpod-sa"
         }
-    }"""
+    }
 
     # overrides_json = overrides_json.replace('"', '\\"')
 
-    kubectl_command = [
-            f"kubectl run {pod_name} ",
-            f"--overrides='{overrides_json}' ",
-            f"--image={docker_image} -n {kubernetes_namespace} --command -- {entrypoint}"
-    ]
+    kubectl_command = [f"""kubectl run {pod_name} --overrides={json.dumps(overrides_json)} --image={docker_image} -n {kubernetes_namespace} --command -- {entrypoint}"""]
 
     # print command information
     print(f"Running test command: {kubectl_command}")
