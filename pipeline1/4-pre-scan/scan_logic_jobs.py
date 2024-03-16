@@ -5,10 +5,10 @@ import base64
 import json
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 import urllib
-import subprocess
 from pathlib import Path
 from urllib.request import Request, urlopen
 
@@ -44,18 +44,22 @@ def write_env_vars(
     - build_date: The date when the build was created.
     """
 
-    # anchore_version = json.loads(
-    #     urlopen(
-    #         Request(
-    #             f'{os.environ["ANCHORE_URL"]}/version',
-    #             headers={
-    #                 "Authorization": f"Basic {base64.b64encode(os.environ['ANCHORE_USERNAME'].encode('utf-8'))}:{base64.b64encode(os.environ['ANCHORE_PASSWORD'].encode('utf-8'))}"
-    #             },
-    #         )
-    #     )
-    #     .read()
-    #     .decode()
-    # )["service"]["version"]
+    anchore_auth = base64.b64encode(
+        bytes(
+            f'{os.environ["ANCHORE_USERNAME"]}:{os.environ["ANCHORE_PASSWORD"]}',
+            "ascii",
+        )
+    )
+    anchore_version = json.loads(
+        urlopen(
+            Request(
+                f'{os.environ["ANCHORE_URL"]}/version',
+                headers={"Authorization": f"Basic {anchore_auth.decode('utf-8')}"},
+            )
+        )
+        .read()
+        .decode()
+    )["service"]["version"]
 
     gpg_version = (
         subprocess.check_output(["sh", "-c", "gpg --version"], text=True)
