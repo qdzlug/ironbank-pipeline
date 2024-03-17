@@ -266,30 +266,30 @@ def scan_logic(build):
                     image_digest=digest,  # Should just have to change this line.
                     docker_config_dir=docker_config_dir,
                 )
+
+                if old_pkgs:
+                    log.info("old pkgs to compare")
+                    if new_pkgs.symmetric_difference(old_pkgs):
+                        log.info(f"Packages added: {new_pkgs - old_pkgs}")
+                        log.info(f"Packages removed: {old_pkgs - new_pkgs}")
+                        log.info("Package(s) difference detected - Must scan new image")
+                    else:
+                        log.info("Package lists match - Able to scan old image")
+                        # Override image to scan with old tag
+                        image_name_tag = f"{os.environ['REGISTRY_PUBLISH_URL']}/{image_name}:{old_image_details['tag']}"
+                        write_env_vars(
+                            {
+                                "COMMIT_SHA_TO_SCAN": old_image_details["commit_sha"],
+                                "BUILD_DATE_TO_SCAN": old_image_details["build_date"],
+                                "DIGEST_TO_SCAN": old_image_details["digest"],
+                                "IMAGE_TO_SCAN": image_name_tag,
+                            }
+                        )
+                        log.info("Old image name, tag, digest, and build date saved")
+                if not old_pkgs:
+                    log.info("No old pkgs to compare - Must scan new image")
             else:
                 log.info("Image verify failed - Must scan new image")
-
-        if old_pkgs:
-            log.info("old pkgs to compare")
-            if new_pkgs.symmetric_difference(old_pkgs):
-                log.info(f"Packages added: {new_pkgs - old_pkgs}")
-                log.info(f"Packages removed: {old_pkgs - new_pkgs}")
-                log.info("Package(s) difference detected - Must scan new image")
-            else:
-                log.info("Package lists match - Able to scan old image")
-                # Override image to scan with old tag
-                image_name_tag = f"{os.environ['REGISTRY_PUBLISH_URL']}/{image_name}:{old_image_details['tag']}"
-                write_env_vars(
-                    {
-                        "COMMIT_SHA_TO_SCAN": old_image_details["commit_sha"],
-                        "BUILD_DATE_TO_SCAN": old_image_details["build_date"],
-                        "DIGEST_TO_SCAN": old_image_details["digest"],
-                        "IMAGE_TO_SCAN": image_name_tag,
-                    }
-                )
-                log.info("Old image name, tag, digest, and build date saved")
-        if not old_pkgs:
-            log.info("No old pkgs to compare - Must scan new image")
 
 
 def main():
