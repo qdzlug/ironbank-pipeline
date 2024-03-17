@@ -158,7 +158,7 @@ def generate_build_env(image_details: dict, image_name: str, image: Image, diges
         f"IMAGE_NAME={image_name}\n",
         # using utcnow because we want to use the naive format (i.e. no tz delta of +00:00)
         f"BUILD_DATE={datetime.datetime.utcnow().isoformat(sep='T', timespec='seconds')}Z\n",
-        f"PLATFORM={os.environ["PLATFORM"]}",
+        f"PLATFORM={os.environ['PLATFORM']}",
     ]
     for env_ in build_envs:
         log.info(env_.strip())
