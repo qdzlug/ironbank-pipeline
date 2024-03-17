@@ -8,7 +8,8 @@ build-amd64:
     - setup
     - import-artifacts
   variables:
-    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/buildamd64"
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build/amd64"
+    PLATFORM: "amd64"
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/2-build/build.py"'
   artifacts:
@@ -31,8 +32,9 @@ build-arm64:
     - setup
     - import-artifacts
   variables:
-    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/buildarm64"
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/build/arm64"
     KUBERNETES_NODE_SELECTOR_IRONBANK: "ironbank=gitlab-runner-arm64"
+    PLATFORM: "arm64"
   script:
     # Also by copying the Dockerfile_arm64 over the Dockerfile the correct arguments are passed when the image is being built.
     - "cp -f Dockerfile_arm64 Dockerfile"
