@@ -1,26 +1,26 @@
 #!/usr/bin/env python3
 
-import os
-import yaml
-import sys
 import json
-from pathlib import Path
-import pytest
+import os
 import shutil
-
+import sys
+from pathlib import Path
 from unittest.mock import patch
-from pipeline.container_tools.container_tool import ContainerTool
-from pipeline.utils.exceptions import GenericSubprocessError
+
+import pytest
+import yaml
 from common.utils import logger
+from pipeline.container_tools.container_tool import ContainerTool
 from pipeline.test.mocks.mock_classes import (  # pylint: disable=C0412
-    MockImage,
-    MockSkopeo,
-    MockProject,
     MockHardeningManifest,
-    MockPath,
+    MockImage,
     MockOpen,
     MockOutput,
+    MockPath,
+    MockProject,
+    MockSkopeo,
 )
+from pipeline.utils.exceptions import GenericSubprocessError
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import upload_to_harbor

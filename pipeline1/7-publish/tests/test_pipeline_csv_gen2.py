@@ -10,7 +10,7 @@ from typing import Any, Iterable
 from unittest.mock import mock_open
 
 import pytest
-
+from common.utils import logger
 from pipeline.scan_report_parsers.anchore import (
     AnchoreCVEFinding,
     AnchoreReportParser,
@@ -20,7 +20,6 @@ from pipeline.scan_report_parsers.oscap import (
     OscapReportParser,
 )
 from pipeline.scan_report_parsers.report_parser import ReportParser
-from common.utils import logger
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import pipeline_csv_gen  # noqa E402

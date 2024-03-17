@@ -52,13 +52,13 @@ def compare_digests(image: Image, build) -> None:
     "Failed to copy image from staging project to production project"
 )
 def promote_tags(
-    staging_image: Image, production_image: Image, platform: str, tags: list[str]
+    staging_image: Image, production_image: Image, tags: list[str]
 ) -> None:
     """Promote image from staging project to production project, tagging it
     according the the tags defined in tags.txt."""
 
     for tag in tags:
-        tag = f"{tag}-{platform}"
+        tag = f"{tag}-{build['PLATFORM']}"
         production_image = production_image.from_image(tag=tag)
 
         log.info(f"Copy from staging to {production_image}")
@@ -123,7 +123,7 @@ def generate_attestation_predicates(predicates):
     hm_resources = [
         Path(os.environ["CI_PROJECT_DIR"], "LICENSE"),
         Path(os.environ["CI_PROJECT_DIR"], "README.md"),
-        Path(os.environ["ACCESS_LOG_DIR"], "access_log"),
+        Path(os.environ["ACCESS_LOG_DIR"], {build["PLATFORM"]}, "access_log"),
     ]
     # Convert non-empty artifacts to hardening manifest
     _convert_artifacts_to_hardening_manifest(
@@ -132,8 +132,8 @@ def generate_attestation_predicates(predicates):
     )
 
     attestation_predicates = [
-        Path(os.environ["SBOM_DIR"], file)
-        for file in os.listdir(os.environ["SBOM_DIR"])
+        Path(os.environ["SBOM_DIR"], {build["PLATFORM"]}, file)
+        for file in os.listdir(f'{os.environ["SBOM_DIR"]}/{build["PLATFORM"]}')
         if file not in predicates.unattached_predicates
     ]
     attestation_predicates.append(
@@ -144,23 +144,23 @@ def generate_attestation_predicates(predicates):
     return attestation_predicates
 
 
-def write_env_vars(tags: list[str], scan_logic) -> None:  # TODO: Write a unit test
+def write_env_vars(tags: list[str]) -> None:  # TODO: Write a unit test
     """Writes environment variables into a file named 'upload_to_harbor.env'.
     Used by the create-manifest-list job.
     """
     log.info("Writing env variables to file")
     tags_string = ",".join(tags)
-    if os.environ["CI_JOB_NAME"] == "harbor-arm64":
-        env_file_name = "upload_to_harbor_arm64.env"
-        build = "arm64"
-    else:
-        env_file_name = "upload_to_harbor_amd64.env"
-        build = "amd64"
-    with Path(env_file_name).open("w", encoding="utf-8") as f:
+    Path(f"{os.environ['ARTIFACT_DIR']}/{build['PLATFORM']}").mkdir(
+        parents=True, exist_ok=True
+    )
+
+    with Path(f'{build["PLATFORM"]}/upload_to_harbor.env').open(
+        "w", encoding="utf-8"
+    ) as f:
         f.write(f"REGISTRY_PUBLISH_URL_{build}={os.environ['REGISTRY_PUBLISH_URL']}\n")
-        f.write(f"IMAGE_NAME_{build}={build['IMAGE_NAME']}\n")
-        f.write(f"DIGEST_TO_SCAN_{build}={scan_logic['DIGEST_TO_SCAN']}\n")
-        f.write(f"TAGS_{build}={tags_string}\n")
+        f.write(f"IMAGE_NAME={build['IMAGE_NAME']}\n")
+        f.write(f"DIGEST_TO_SCAN={scan_logic['DIGEST_TO_SCAN']}\n")
+        f.write(f"TAGS={tags_string}\n")
 
 
 @stack_trace_handler
@@ -228,7 +228,6 @@ def main():
                 promote_tags(
                     staging_image,
                     production_image,
-                    platform,
                     hardening_manifest.image_tags,
                 )
                 # Sign image
@@ -248,7 +247,7 @@ def main():
         sys.exit(1)
 
 
-def publish_vat_staging_predicates(build):
+def publish_vat_staging_predicates():
     """Publishes a VAT (Verified Access Token) on a staging image using the
     cosign tool.
 
@@ -315,6 +314,6 @@ if __name__ == "__main__":
             scan_logic = json.load(f)
 
         if os.environ.get("PUBLISH_VAT_STAGING_PREDICATES"):
-            publish_vat_staging_predicates(build)
+            publish_vat_staging_predicates()
         else:
             main()

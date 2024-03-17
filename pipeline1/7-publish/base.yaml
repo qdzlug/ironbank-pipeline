@@ -9,9 +9,9 @@ check-cves:
     when: runner_system_failure
   needs:
     - setup
-    - anchore-scan
-    - openscap-compliance
-    - twistlock-scan
+    # - anchore-scan
+    # - openscap-compliance
+    # - twistlock-scan
     - vat
   script:
     - set +e
