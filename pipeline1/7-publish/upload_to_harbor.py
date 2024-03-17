@@ -123,7 +123,7 @@ def generate_attestation_predicates(predicates):
     hm_resources = [
         Path(os.environ["CI_PROJECT_DIR"], "LICENSE"),
         Path(os.environ["CI_PROJECT_DIR"], "README.md"),
-        Path(os.environ["ACCESS_LOG_DIR"], {build["PLATFORM"]}, "access_log"),
+        Path(os.environ["ACCESS_LOG_DIR"], build["PLATFORM"], "access_log"),
     ]
     # Convert non-empty artifacts to hardening manifest
     _convert_artifacts_to_hardening_manifest(
@@ -132,7 +132,7 @@ def generate_attestation_predicates(predicates):
     )
 
     attestation_predicates = [
-        Path(os.environ["SBOM_DIR"], {build["PLATFORM"]}, file)
+        Path(os.environ["SBOM_DIR"], build["PLATFORM"], file)
         for file in os.listdir(f'{os.environ["SBOM_DIR"]}/{build["PLATFORM"]}')
         if file not in predicates.unattached_predicates
     ]
