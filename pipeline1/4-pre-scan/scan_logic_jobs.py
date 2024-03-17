@@ -225,70 +225,71 @@ def scan_logic(build):
                 dst=Path(docker_config_dir, "config.json"),
             )
             old_image_details = image_verify.diff_needed(docker_config_dir, build)
-            if not old_image_details:
-                log.info("Image verify failed - Must scan new image")
-                sys.exit(0)
+            if old_image_details:
+                log.info("SBOM diff required to determine image to scan")
+                dsop_project = DsopProject()
+                hardening_manifest = HardeningManifest(
+                    dsop_project.hardening_manifest_path
+                )
+                if hardening_manifest.base_image_name:
+                    tag = hardening_manifest.base_image_tag
+                else:
+                    tag = hardening_manifest.image_tag
+                try:
+                    base_registry = os.environ["BASE_REGISTRY"]
+                    base_registry = base_registry.split("/")[0]
+                    with open(os.environ["DOCKER_AUTH_FILE_PULL"]) as f:
+                        auth = json.load(f)
+                    encoded_credentials = auth["auths"][base_registry]["auth"]
+                    headers = {
+                        "Accept": "application/json",
+                        "Authorization": f"Basic {encoded_credentials}",
+                    }
+                    encoded_image_name = urllib.parse.quote(image_name, safe="")
+                    url = f"https://{base_registry}/api/v2.0/projects/ironbank/repositories/{encoded_image_name}/artifacts/{tag}"
+                    response = requests.get(url, headers=headers)
+                    response.raise_for_status()  # Raise an exception for 4xx or 5xx status codes
+                    json_data = response.json()
+                except requests.exceptions.RequestException as e:
+                    print(f"An error occurred: {e}")
+                    exit(1)
+                if (
+                    json_data["manifest_media_type"]
+                    == "application/vnd.oci.image.index.v1+json"
+                ):
+                    for image in json_data["references"]:
+                        if image["platform"]["architecture"] == build["PLATFORM"]:
+                            digest = image["child_digest"]
 
-            log.info("SBOM diff required to determine image to scan")
-            dsop_project = DsopProject()
-            hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
-            if hardening_manifest.base_image_name:
-                tag = hardening_manifest.base_image_tag
+                old_pkgs = get_old_pkgs(
+                    image_name=image_name,
+                    image_digest=digest,  # Should just have to change this line.
+                    docker_config_dir=docker_config_dir,
+                )
             else:
-                tag = hardening_manifest.image_tag
-            try:
-                base_registry = os.environ["BASE_REGISTRY"]
-                base_registry = base_registry.split("/")[0]
-                with open(os.environ["DOCKER_AUTH_FILE_PULL"]) as f:
-                    auth = json.load(f)
-                encoded_credentials = auth["auths"][base_registry]["auth"]
-                headers = {
-                    "Accept": "application/json",
-                    "Authorization": f"Basic {encoded_credentials}",
-                }
-                encoded_image_name = urllib.parse.quote(image_name, safe="")
-                url = f"https://{base_registry}/api/v2.0/projects/ironbank/repositories/{encoded_image_name}/artifacts/{tag}"
-                response = requests.get(url, headers=headers)
-                response.raise_for_status()  # Raise an exception for 4xx or 5xx status codes
-                json_data = response.json()
-            except requests.exceptions.RequestException as e:
-                print(f"An error occurred: {e}")
-                exit(1)
-            if (
-                json_data["manifest_media_type"]
-                == "application/vnd.oci.image.index.v1+json"
-            ):
-                for image in json_data["references"]:
-                    if image["platform"]["architecture"] == build["PLATFORM"]:
-                        digest = image["child_digest"]
+                log.info("Image verify failed - Must scan new image")
 
-            old_pkgs = get_old_pkgs(
-                image_name=image_name,
-                image_digest=digest,  # Should just have to change this line.
-                docker_config_dir=docker_config_dir,
-            )
-
+        if old_pkgs:
+            log.info("old pkgs to compare")
+            if new_pkgs.symmetric_difference(old_pkgs):
+                log.info(f"Packages added: {new_pkgs - old_pkgs}")
+                log.info(f"Packages removed: {old_pkgs - new_pkgs}")
+                log.info("Package(s) difference detected - Must scan new image")
+            else:
+                log.info("Package lists match - Able to scan old image")
+                # Override image to scan with old tag
+                image_name_tag = f"{os.environ['REGISTRY_PUBLISH_URL']}/{image_name}:{old_image_details['tag']}"
+                write_env_vars(
+                    {
+                        "COMMIT_SHA_TO_SCAN": old_image_details["commit_sha"],
+                        "BUILD_DATE_TO_SCAN": old_image_details["build_date"],
+                        "DIGEST_TO_SCAN": old_image_details["digest"],
+                        "IMAGE_TO_SCAN": image_name_tag,
+                    }
+                )
+                log.info("Old image name, tag, digest, and build date saved")
         if not old_pkgs:
             log.info("No old pkgs to compare - Must scan new image")
-            sys.exit(0)
-
-        if new_pkgs.symmetric_difference(old_pkgs):
-            log.info(f"Packages added: {new_pkgs - old_pkgs}")
-            log.info(f"Packages removed: {old_pkgs - new_pkgs}")
-            log.info("Package(s) difference detected - Must scan new image")
-        else:
-            log.info("Package lists match - Able to scan old image")
-            # Override image to scan with old tag
-            image_name_tag = f"{os.environ['REGISTRY_PUBLISH_URL']}/{image_name}:{old_image_details['tag']}"
-            write_env_vars(
-                {
-                    "COMMIT_SHA_TO_SCAN": old_image_details["commit_sha"],
-                    "BUILD_DATE_TO_SCAN": old_image_details["build_date"],
-                    "DIGEST_TO_SCAN": old_image_details["digest"],
-                    "IMAGE_TO_SCAN": image_name_tag,
-                }
-            )
-            log.info("Old image name, tag, digest, and build date saved")
 
 
 def main():
