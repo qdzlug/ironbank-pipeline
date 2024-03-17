@@ -15,7 +15,7 @@ scan-logic:
       - "${ARTIFACT_DIR}/"
     expire_in: 1 week
   script:
-    - ls -ltrh "$ARTIFACT_DIR"/build
+    - ls -ltrh "$ARTIFACT_STORAGE"/build
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/4-pre-scan/scan_logic_jobs.py"'
   retry:
     max: 2

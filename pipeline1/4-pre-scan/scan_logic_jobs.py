@@ -317,17 +317,6 @@ def main():
     ]
 
     platforms = [
-        {
-            "platform": platform,
-            "digest": Path(
-                f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/digest'
-            ).read_text(),
-        }
-        for platform in potential_platforms
-        if os.path.isfile(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/digest')
-    ]
-
-    platforms = [
         platform
         for platform in potential_platforms
         if os.path.isfile(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/digest')
