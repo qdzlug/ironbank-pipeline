@@ -88,7 +88,7 @@ def verify_image_properties(img_json: dict, manifest: HardeningManifest) -> bool
     return False
 
 
-def diff_needed(docker_config_dir: Path) -> Optional[dict]:
+def diff_needed(docker_config_dir: Path, build: dict) -> Optional[dict]:
     """Checks if a diff is needed by inspecting the old image and verifying its
     properties.
 
@@ -109,7 +109,7 @@ def diff_needed(docker_config_dir: Path) -> Optional[dict]:
         old_image = Image(
             registry=os.environ["REGISTRY_PUBLISH_URL"],
             name=manifest.image_name,
-            tag=manifest.image_tag,
+            tag=f'{manifest.image_tag}-{build['platform']}',
             transport="docker://",
         )
 

@@ -151,12 +151,14 @@ def generate_build_env(image_details: dict, image_name: str, image: Image, diges
     image_fulltag = str(image.from_image(transport=""))
     """Creates env file to be used later in pipeline."""
     build_envs = [
+        f"DIGEST={digest}\n",
         f"IMAGE_ID=sha256:{image_details['FromImageID']}\n",
         f"IMAGE_PODMAN_SHA={digest}\n",
         f"IMAGE_FULLTAG={image_fulltag}\n",
         f"IMAGE_NAME={image_name}\n",
         # using utcnow because we want to use the naive format (i.e. no tz delta of +00:00)
         f"BUILD_DATE={datetime.datetime.utcnow().isoformat(sep='T', timespec='seconds')}Z\n",
+        f"PLATFORM={os.environ["PLATFORM"]}",
     ]
     for env_ in build_envs:
         log.info(env_.strip())
@@ -171,6 +173,7 @@ def generate_build_env(image_details: dict, image_name: str, image: Image, diges
         f.write(
             json.dumps(
                 {
+                    "DIGEST": digest,
                     "IMAGE_ID": f"sha256:{image_details['FromImageID']}",
                     "IMAGE_PODMAN_SHA": digest,
                     "IMAGE_FULLTAG": image_fulltag,
@@ -178,6 +181,7 @@ def generate_build_env(image_details: dict, image_name: str, image: Image, diges
                     "BUILD_DATE": datetime.datetime.utcnow().isoformat(
                         sep="T", timespec="seconds"
                     ),
+                    "PLATFORM": os.environ["PLATFORM"],
                 }
             )
         )

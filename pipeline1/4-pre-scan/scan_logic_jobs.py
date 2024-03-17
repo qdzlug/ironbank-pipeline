@@ -26,9 +26,7 @@ from pipeline.utils.types import Package
 log = logger.setup("scan_logic_jobs")
 
 
-def write_env_vars(
-    image_name_tag: str, commit_sha: str, digest: str, build_date: str, platform: str
-) -> None:
+def write_env_vars(scan: dict) -> None:
     """Writes environment variables into a file named 'scan_logic.env'.
 
     This function takes the image name and tag, commit SHA, image digest,
@@ -38,12 +36,10 @@ def write_env_vars(
     It also writes the various scanner and tool versions.
 
     Arguments:
-    - image_name_tag: The name and tag of the image to scan.
-    - commit_sha: The SHA of the commit to scan.
-    - digest: The digest of the image to scan.
-    - build_date: The date when the build was created.
+    - build: the build json
     """
 
+    # ANCHORE_VERSION
     anchore_auth = base64.b64encode(
         bytes(
             f'{os.environ["ANCHORE_USERNAME"]}:{os.environ["ANCHORE_PASSWORD"]}',
@@ -61,54 +57,59 @@ def write_env_vars(
         .decode()
     )["service"]["version"]
 
+    # GPG_VERSION
     gpg_version = (
         subprocess.check_output(["sh", "-c", "gpg --version"], text=True)
         .partition("\n")[0]
         .split(" ")[2]
     )
 
+    # OPENSCAP_VERSION
     openscap_version = Path("/opt/oscap/version.txt").read_text().rstrip()
 
+    # TWISTLOCK_VERSION
     twistlock_version = (
         subprocess.check_output(["sh", "-c", "twistcli --version"], text=True)
         .strip("\n")
         .split(" ")[2]
     )
 
-    log.info(f"Writing {os.environ['ARTIFACT_DIR']}/{platform}/scan_logic.env")
+    log.info(f"Writing {os.environ['ARTIFACT_DIR']}/{scan['PLATFORM']}/scan_logic.env")
 
     # mkdir
-    Path(f"{os.environ['ARTIFACT_DIR']}/{platform}").mkdir(parents=True, exist_ok=True)
+    Path(f"{os.environ['ARTIFACT_DIR']}/{scan['PLATFORM']}").mkdir(
+        parents=True, exist_ok=True
+    )
 
-    with Path(f"{os.environ['ARTIFACT_DIR']}/{platform}/scan_logic.env").open(
+    with Path(f"{os.environ['ARTIFACT_DIR']}/{scan['PLATFORM']}/scan_logic.env").open(
         "w", encoding="utf-8"
     ) as f:
         f.writelines(
             [
                 f"ANCHORE_VERSION={anchore_version}\n",
-                f"BUILD_DATE_TO_SCAN={build_date}\n",
-                f"COMMIT_SHA_TO_SCAN={commit_sha}\n",
-                f"DIGEST_TO_SCAN={digest}\n",
+                f"BUILD_DATE_TO_SCAN={scan['BUILD_DATE']}\n",
+                f"COMMIT_SHA_TO_SCAN={os.environ['CI_COMMIT_SHA']}\n",
+                f"DIGEST_TO_SCAN={scan['DIGEST']}\n",
                 f"GPG_VERSION={gpg_version}\n",
-                f"IMAGE_TO_SCAN={image_name_tag}\n",
+                f"IMAGE_TO_SCAN={scan['IMAGE_FULLTAG']}\n",
                 f"OPENSCAP_VERSION={openscap_version}\n",
                 f"TWISTLOCK_VERSION={twistlock_version}",
             ]
         )
 
-    log.info(f"Writing {os.environ['ARTIFACT_DIR']}/{platform}/scan_logic.json")
-    with Path(f"{os.environ['ARTIFACT_DIR']}/{platform}/scan_logic.json").open(
+    log.info(f"Writing {os.environ['ARTIFACT_DIR']}/{scan['PLATFORM']}/scan_logic.json")
+    with Path(f"{os.environ['ARTIFACT_DIR']}/{scan['PLATFORM']}/scan_logic.json").open(
         "w", encoding="utf-8"
     ) as f:
         f.write(
             json.dumps(
                 {
                     "ANCHORE_VERSION": anchore_version,
-                    "BUILD_DATE_TO_SCAN": build_date,
-                    "COMMIT_SHA_TO_SCAN": commit_sha,
-                    "DIGEST_TO_SCAN": digest,
+                    "BUILD_DATE_TO_SCAN": scan["BUILD_DATE"],
+                    "COMMIT_SHA_TO_SCAN": os.environ["CI_COMMIT_SHA"],
+                    "DIGEST_TO_SCAN": scan["DIGEST"],
                     "GPG_VERSION": gpg_version,
-                    "IMAGE_TO_SCAN": image_name_tag,
+                    "IMAGE_TO_SCAN": scan["IMAGE_FULLTAG"],
                     "OPENSCAP_VERSION": openscap_version,
                     "TWISTLOCK_VERSION": twistlock_version,
                 }
@@ -196,27 +197,21 @@ def get_old_pkgs(
         return []
 
 
-def scan_logic(platform, digest, build):
+def scan_logic(build):
     image_name = build["IMAGE_NAME"]
-    image_name_tag = build["IMAGE_FULLTAG"]
-    # new_sbom = Path(
-    #     os.environ["ARTIFACT_STORAGE"], f"sbom/{platform}/sbom-syft-json.json"
-    # )
-    # new_access_log = Path(
-    #     os.environ["ARTIFACT_STORAGE"], f"build{platform}/access_log"
-    # )
 
-    write_env_vars(
-        image_name_tag,
-        os.environ["CI_COMMIT_SHA"].lower(),
-        digest,
-        build["BUILD_DATE"],
-        platform,
+    new_sbom = Path(
+        os.environ["ARTIFACT_STORAGE"], f"sbom/{build['PLATFORM']}/sbom-syft-json.json"
     )
+    new_access_log = Path(
+        os.environ["ARTIFACT_STORAGE"], f"build/{build['PLATFORM']}/access_log"
+    )
+
+    write_env_vars(build)
     log.info("New image name, tag, digest, and build date saved")
 
     log.info("Parsing new packages")
-    # new_pkgs = parse_packages(new_sbom, new_access_log)
+    new_pkgs = parse_packages(new_sbom, new_access_log)
 
     if os.environ.get("FORCE_SCAN_NEW_IMAGE"):
         log.info("Skip Logic: Force scan new image")
@@ -224,10 +219,12 @@ def scan_logic(platform, digest, build):
         log.info("Skip Logic: Non-master branch")
     else:
         # STAGING_BASE_IMAGE not checked here - Only used for feature branches
-        pull_auth = Path(os.environ["DOCKER_AUTH_FILE_PULL"])
         with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
-            shutil.copy(src=pull_auth, dst=Path(docker_config_dir, "config.json"))
-            old_image_details = image_verify.diff_needed(docker_config_dir)
+            shutil.copy(
+                src=Path(os.environ["DOCKER_AUTH_FILE_PULL"]),
+                dst=Path(docker_config_dir, "config.json"),
+            )
+            old_image_details = image_verify.diff_needed(docker_config_dir, build)
             if not old_image_details:
                 log.info("Image verify failed - Must scan new image")
                 sys.exit(0)
@@ -262,35 +259,36 @@ def scan_logic(platform, digest, build):
                 == "application/vnd.oci.image.index.v1+json"
             ):
                 for image in json_data["references"]:
-                    if image["platform"]["architecture"] == platform:
+                    if image["platform"]["architecture"] == build["PLATFORM"]:
                         digest = image["child_digest"]
 
-            # old_pkgs = get_old_pkgs(
-            #     image_name=image_name,
-            #     image_digest=digest, # Should just have to change this line.
-            #     docker_config_dir=docker_config_dir,
-            # )
+            old_pkgs = get_old_pkgs(
+                image_name=image_name,
+                image_digest=digest,  # Should just have to change this line.
+                docker_config_dir=docker_config_dir,
+            )
 
-        # if not old_pkgs:
-        #     log.info("No old pkgs to compare - Must scan new image")
-        #     sys.exit(0)
+        if not old_pkgs:
+            log.info("No old pkgs to compare - Must scan new image")
+            sys.exit(0)
 
-        # if new_pkgs.symmetric_difference(old_pkgs):
-        #     log.info(f"Packages added: {new_pkgs - old_pkgs}")
-        #     log.info(f"Packages removed: {old_pkgs - new_pkgs}")
-        #     log.info("Package(s) difference detected - Must scan new image")
-        # else:
-        #     log.info("Package lists match - Able to scan old image")
-        #     # Override image to scan with old tag
-        #     image_name_tag = f"{os.environ['REGISTRY_PUBLISH_URL']}/{image_name}:{old_image_details['tag']}"
-        #     write_env_vars(
-        #         image_name_tag,
-        #         old_image_details["commit_sha"],
-        #         old_image_details["digest"],
-        #         old_image_details["build_date"],
-        #         platform,
-        #     )
-        #     log.info("Old image name, tag, digest, and build date saved")
+        if new_pkgs.symmetric_difference(old_pkgs):
+            log.info(f"Packages added: {new_pkgs - old_pkgs}")
+            log.info(f"Packages removed: {old_pkgs - new_pkgs}")
+            log.info("Package(s) difference detected - Must scan new image")
+        else:
+            log.info("Package lists match - Able to scan old image")
+            # Override image to scan with old tag
+            image_name_tag = f"{os.environ['REGISTRY_PUBLISH_URL']}/{image_name}:{old_image_details['tag']}"
+            write_env_vars(
+                {
+                    "COMMIT_SHA_TO_SCAN": old_image_details["commit_sha"],
+                    "BUILD_DATE_TO_SCAN": old_image_details["build_date"],
+                    "DIGEST_TO_SCAN": old_image_details["digest"],
+                    "IMAGE_TO_SCAN": image_name_tag,
+                }
+            )
+            log.info("Old image name, tag, digest, and build date saved")
 
 
 def main():
@@ -322,23 +320,27 @@ def main():
         {
             "platform": platform,
             "digest": Path(
-                f'{os.environ["ARTIFACT_STORAGE"]}/build{platform}/digest'
+                f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/digest'
             ).read_text(),
         }
         for platform in potential_platforms
-        if os.path.isfile(f'{os.environ["ARTIFACT_STORAGE"]}/build{platform}/digest')
+        if os.path.isfile(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/digest')
+    ]
+
+    platforms = [
+        platform
+        for platform in potential_platforms
+        if os.path.isfile(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/digest')
     ]
 
     for platform in platforms:
         print(f"generating for {platform['platform']}..")
 
         # load platform build.json
-        with open(
-            f'{os.environ["ARTIFACT_STORAGE"]}/build{platform["platform"]}/build.json'
-        ) as f:
+        with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json') as f:
             build = json.load(f)
 
-        scan_logic(platform["platform"], platform["digest"], build)
+        scan_logic(build)
 
 
 if __name__ == "__main__":

@@ -305,7 +305,7 @@ if __name__ == "__main__":
 
     for platform in platforms:
         # load platform build.json
-        with open(f'{os.environ["ARTIFACT_STORAGE"]}/build{platform}/build.json') as f:
+        with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json') as f:
             build = json.load(f)
 
         # load platform scan_logic.json
