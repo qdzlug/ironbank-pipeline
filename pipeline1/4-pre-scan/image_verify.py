@@ -97,6 +97,7 @@ def diff_needed(docker_config_dir: Path, build: dict) -> Optional[dict]:
 
     :param docker_config_dir: Path object indicating the directory of
         the Docker config file.
+    :param build: build.json per platform
     :return: A dictionary containing the old image's tag, commit SHA,
         digest, and build date if no changes are found, None otherwise.
     :raises KeyError: If a key is missing in the old image's JSON
@@ -109,7 +110,7 @@ def diff_needed(docker_config_dir: Path, build: dict) -> Optional[dict]:
         old_image = Image(
             registry=os.environ["REGISTRY_PUBLISH_URL"],
             name=manifest.image_name,
-            tag=f"{manifest.image_tag}-{build['platform']}",
+            tag=f"{manifest.image_tag}-{build['PLATFORM']}",
             transport="docker://",
         )
 
