@@ -109,7 +109,7 @@ def diff_needed(docker_config_dir: Path, build: dict) -> Optional[dict]:
         old_image = Image(
             registry=os.environ["REGISTRY_PUBLISH_URL"],
             name=manifest.image_name,
-            tag=f'{manifest.image_tag}-{build['platform']}',
+            tag=f"{manifest.image_tag}-{build['platform']}",
             transport="docker://",
         )
 
