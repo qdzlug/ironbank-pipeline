@@ -278,7 +278,7 @@ def create_api_call() -> dict:
     all_findings = tl_findings + asec_findings + acomp_findings + os_findings
     large_data = {
         "imageName": args.container,
-        "imageTag": args.version,
+        "imageTag": args.version + '-' + platform,
         "parentImageName": args.parent,
         "parentImageTag": args.parent_version,
         "jobId": args.job_id,
