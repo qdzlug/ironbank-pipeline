@@ -117,9 +117,15 @@ def _generate_vat_response_lineage_file():
                 parent_vat_response
             ]
     lineage_vat_response["images"] += [pipeline_vat_response]
+
+    Path(os.environ["ARTIFACT_DIR"], build["PLATFORM"]).mkdir(
+        parents=True, exist_ok=True
+    )
+
     lineage_vat_response_file = Path(
         os.environ["ARTIFACT_DIR"], build["PLATFORM"], "vat_response_lineage.json"
     )
+
     with lineage_vat_response_file.open("w", encoding="utf-8") as f:
         json.dump(lineage_vat_response, f)
 
