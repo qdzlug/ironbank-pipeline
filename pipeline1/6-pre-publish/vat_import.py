@@ -400,7 +400,7 @@ def main() -> None:
                 if image["platform"]["architecture"] == platform:
                     digest = image["child_digest"]
                     get_parent_vat_response(
-                        output_dir=os.environ["ARTIFACT_DIR"],
+                        output_dir=f'{os.environ["ARTIFACT_DIR"]}/{platform}',
                         hardening_manifest=hardening_manifest,
                         digest=digest,
                     )
@@ -417,7 +417,7 @@ def main() -> None:
         # 3. If not manifest list use image tag.
         else:
             get_parent_vat_response(
-                output_dir=os.environ["ARTIFACT_DIR"],
+                output_dir=f'{os.environ["ARTIFACT_DIR"]}/{platform}',
                 hardening_manifest=hardening_manifest,
             )
             parent_vat_path = Path(

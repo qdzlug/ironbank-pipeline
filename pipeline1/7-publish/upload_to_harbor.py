@@ -94,12 +94,18 @@ def _generate_vat_response_lineage_file():
     """Generates a VAT response lineage using *this* pipeline run's VAT
     response and the VAT response attestation from the parent image."""
     # Load VAT response for this pipeline run, convert to list
-    with Path(os.environ["VAT_RESPONSE"]).open("r", encoding="utf-8") as f:
+    with Path(os.environ["ARTIFACT_DIR"], "vat", platform, "vat_response.json").open(
+        "r", encoding="utf-8"
+    ) as f:
         pipeline_vat_response = json.load(f)
 
     # Initialize lineage_vat_response as a dict, so we can append to it if parent_vat_response.json doesn't exist
     lineage_vat_response = {"images": []}
-    if (parent_vat_response_file := Path(os.environ["PARENT_VAT_RESPONSE"])).exists():
+    if (
+        parent_vat_response_file := Path(
+            os.environ["ARTIFACT_DIR"], "vat", platform, "parent_vat_response.json"
+        )
+    ).exists():
         with parent_vat_response_file.open("r", encoding="utf-8") as f:
             log.info("parent VAT response exists")
             parent_vat_response = json.load(f)
