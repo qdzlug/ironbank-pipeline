@@ -22,7 +22,7 @@ from common.utils import logger
 log = logger.setup(name="lint.base_image_validation")
 
 
-async def validate_base_image(platform: str):
+def validate_base_image(platform: str):
     """This script is designed to perform validation on a base image specified
     in a hardening manifest file.
 

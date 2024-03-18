@@ -62,7 +62,8 @@ async def main():
     await handle_system_exit(folder_structure.main)() # TODO: This only needs to run 1x per project. Move this.
     await handle_system_exit(hardening_manifest_validation.main)() # TODO: This only needs to run 1x per project. Move this.
     await handle_system_exit(dockerfile_validation.main)() # TODO: Validation needs to be implemented for every architecture's Dockerfile.
-    await handle_system_exit(base_image_validation.validate_base_image(platform))() # Needs to be done for every architecture.
+    # await handle_system_exit(base_image_validation.validate_base_image(platform))() # Needs to be done for every architecture.
+    base_image_validation.validate_base_image(platform) # Needs to be done for every architecture.
     if hard_fail_code not in system_exits:
         await handle_system_exit(pipeline_auth_status.main)()
     else:
