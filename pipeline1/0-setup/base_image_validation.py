@@ -139,6 +139,7 @@ if __name__ == "__main__":
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     potential_platforms = hardening_manifest.architecture
+    # The hardening_manifest doesn't have an architecture section, default to amd64.
     if hardening_manifest.architecture == None:
         platforms = ["amd64"]
     else:
@@ -147,4 +148,5 @@ if __name__ == "__main__":
             for platform in potential_platforms
         ]
     for platform in platforms:
+        log.info(f"Validating image for {platform} architecture.")
         asyncio.run(main())
