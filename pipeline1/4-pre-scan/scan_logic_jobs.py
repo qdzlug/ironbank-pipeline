@@ -6,7 +6,6 @@ import json
 import os
 import shutil
 import subprocess
-import sys
 import tempfile
 import urllib
 from pathlib import Path
@@ -278,12 +277,18 @@ def scan_logic(build):
                         # Override image to scan with old tag
                         image_name_tag = f"{os.environ['REGISTRY_PUBLISH_URL']}/{image_name}:{old_image_details['tag']}"
                         write_env_vars(
-                            {
-                                "COMMIT_SHA_TO_SCAN": old_image_details["commit_sha"],
-                                "BUILD_DATE_TO_SCAN": old_image_details["build_date"],
-                                "DIGEST_TO_SCAN": old_image_details["digest"],
-                                "IMAGE_TO_SCAN": image_name_tag,
-                            }
+                            build.update(
+                                {
+                                    "COMMIT_SHA_TO_SCAN": old_image_details[
+                                        "commit_sha"
+                                    ],
+                                    "BUILD_DATE_TO_SCAN": old_image_details[
+                                        "build_date"
+                                    ],
+                                    "DIGEST_TO_SCAN": old_image_details["digest"],
+                                    "IMAGE_TO_SCAN": image_name_tag,
+                                }
+                            )
                         )
                         log.info("Old image name, tag, digest, and build date saved")
                 if not old_pkgs:
