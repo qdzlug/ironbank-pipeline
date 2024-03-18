@@ -257,7 +257,7 @@ def main():
                     replace=True,
                     log_cmd=True,
                 )
-            write_env_vars(hardening_manifest.image_tags, scan_logic)
+            write_env_vars(hardening_manifest.image_tags)
     except GenericSubprocessError:
         sys.exit(1)
 
