@@ -1,28 +1,17 @@
 {
   "dockerComposeFile": "docker-compose.yml",
   "mounts": [
-    "source=${localEnv:HOME}/.gnupg,target=/home/dev/.gnupg,consistency=cached",
-  ],
-  "postAttachCommand": [
-    "/bin/bash",
-    "--login",
-    "-c",
-    "SHELL=/bin/bash PATH=$VENV/bin:$PATH VIRTUAL_ENV=$VENV poetry shell",
+    "source=${localEnv:HOME}/.gnupg,target=/home/dev/.gnupg,consistency=cached"
   ],
   "remoteUser": "python",
-  "service": "work",
+  "service": "ironbank-pipeline",
   "workspaceFolder": "/workspace",
   "customizations": {
     "vscode": {
       "settings": {
-        "python.linting.enabled": true,
-        "python.linting.lintOnSave": true,
-        "python.linting.mypyEnabled": true,
-        "python.linting.pylintEnabled": true,
-        "python.defaultInterpreterPath": "~/.work/bin/python",
-        "python.testing.pytestEnabled": true,
+        "python.defaultInterpreterPath": "/opt/poetry/bin/python"
       },
-      "extensions": ["ms-python.python", "ms-python.pylint", "my-python.mypy"],
-    },
-  },
+      "extensions": ["ms-python.python"]
+    }
+  }
 }
