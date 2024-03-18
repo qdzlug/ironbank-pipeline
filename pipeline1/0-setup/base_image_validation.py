@@ -96,7 +96,7 @@ def validate_base_image(platform: str):
                     tag=hardening_manifest.base_image_tag,
                     transport="docker://",
                 )
-                base_img_inspect = skopeo.inspect(base_image, log_cmd=True)
+            base_img_inspect = skopeo.inspect(base_image, log_cmd=True)
         except GenericSubprocessError:
             log.error(
                 "Failed to inspect IMAGE:TAG provided in hardening_manifest. \
