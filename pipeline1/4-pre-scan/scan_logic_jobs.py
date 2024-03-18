@@ -37,7 +37,7 @@ def write_env_vars(scan: dict) -> None:
     Arguments:
     - build: the build json
     """
-
+    log.info(f"scan dict --> {scan}")
     # ANCHORE_VERSION
     anchore_auth = base64.b64encode(
         bytes(
@@ -276,8 +276,7 @@ def scan_logic(build):
                         log.info("Package lists match - Able to scan old image")
                         # Override image to scan with old tag
                         image_name_tag = f"{os.environ['REGISTRY_PUBLISH_URL']}/{image_name}:{old_image_details['tag']}"
-                        write_env_vars(
-                            build.update(
+                        build.update(
                                 {
                                     "COMMIT_SHA_TO_SCAN": old_image_details[
                                         "commit_sha"
@@ -289,7 +288,8 @@ def scan_logic(build):
                                     "IMAGE_TO_SCAN": image_name_tag,
                                 }
                             )
-                        )
+                        log.info(f"build dict --> {build}")
+                        write_env_vars(build)
                         log.info("Old image name, tag, digest, and build date saved")
                 if not old_pkgs:
                     log.info("No old pkgs to compare - Must scan new image")
