@@ -37,7 +37,6 @@ def write_env_vars(scan: dict) -> None:
     Arguments:
     - build: the build json
     """
-    log.info(f"scan dict --> {scan}")
     # ANCHORE_VERSION
     anchore_auth = base64.b64encode(
         bytes(
@@ -288,7 +287,6 @@ def scan_logic(build):
                                     "IMAGE_TO_SCAN": image_name_tag,
                                 }
                             )
-                        log.info(f"build dict --> {build}")
                         write_env_vars(build)
                         log.info("Old image name, tag, digest, and build date saved")
                 if not old_pkgs:
