@@ -23,7 +23,7 @@ log = logger.setup(name="lint.base_image_validation")
 
 
 @stack_trace_handler
-async def main(platform):
+async def validate_base_image(platform):
     """This script is designed to perform validation on a base image specified
     in a hardening manifest file.
 
@@ -134,6 +134,5 @@ async def main(platform):
         ) as f:
             json.dump(base_image_info, f)
 
-# This should only be called from lint_jobs.py
 if __name__ == "__main__":
-    main()
+    print("This should only be called from lint_jobs.py")
