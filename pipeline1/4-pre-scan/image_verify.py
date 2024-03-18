@@ -44,7 +44,7 @@ def inspect_old_image(
         return None
 
 
-def verify_image_properties(img_json: dict, manifest: HardeningManifest) -> bool:
+def verify_image_properties(img_json: dict, manifest: HardeningManifest, platform: str) -> bool:
     """Verifies the properties of the image such as Git commit SHA and parent
     digest.
 
@@ -62,7 +62,7 @@ def verify_image_properties(img_json: dict, manifest: HardeningManifest) -> bool
 
     if manifest.base_image_name:
         json_file_path = (
-            Path(os.environ["ARTIFACT_STORAGE"]) / "lint" / "base_image.json"
+            Path(os.environ["ARTIFACT_STORAGE"]) / "lint" / platform / "base_image.json"
         )
         with json_file_path.open("r", encoding="utf-8") as f:
             data = json.load(f)
@@ -88,7 +88,7 @@ def verify_image_properties(img_json: dict, manifest: HardeningManifest) -> bool
     return False
 
 
-def diff_needed(docker_config_dir: Path, build: dict) -> Optional[dict]:
+def diff_needed(docker_config_dir: Path, build: dict, platform: str) -> Optional[dict]:
     """Checks if a diff is needed by inspecting the old image and verifying its
     properties.
 
@@ -136,7 +136,7 @@ def diff_needed(docker_config_dir: Path, build: dict) -> Optional[dict]:
         #  - parent digests match
         if (
             old_img_json
-            and verify_image_properties(old_img_json, manifest)
+            and verify_image_properties(old_img_json, manifest, platform)
             and cosign_verify
         ):
             return {

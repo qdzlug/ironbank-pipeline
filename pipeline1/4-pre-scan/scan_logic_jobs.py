@@ -195,7 +195,7 @@ def get_old_pkgs(
         return []
 
 
-def scan_logic(build):
+def scan_logic(build, platform):
     image_name = build["IMAGE_NAME"]
 
     new_sbom = Path(
@@ -222,7 +222,7 @@ def scan_logic(build):
                 src=Path(os.environ["DOCKER_AUTH_FILE_PULL"]),
                 dst=Path(docker_config_dir, "config.json"),
             )
-            old_image_details = image_verify.diff_needed(docker_config_dir, build)
+            old_image_details = image_verify.diff_needed(docker_config_dir, build, platform)
             if old_image_details:
                 log.info("SBOM diff required to determine image to scan")
                 dsop_project = DsopProject()
@@ -333,7 +333,7 @@ def main():
         with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json') as f:
             build = json.load(f)
 
-        scan_logic(build)
+        scan_logic(build, platform)
 
 
 if __name__ == "__main__":

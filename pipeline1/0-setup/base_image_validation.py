@@ -7,6 +7,8 @@ import shutil
 import sys
 import tempfile
 from pathlib import Path
+import urllib
+import requests
 
 from pipeline.container_tools.cosign import Cosign
 from pipeline.container_tools.skopeo import Skopeo
@@ -44,9 +46,7 @@ async def main():
     # At the very least the hardening_manifest.yaml should be generated if it has not been
     # merged in yet.
     #
-    dsop_project = DsopProject()
-    manifest = HardeningManifest(dsop_project.hardening_manifest_path)
-    if manifest.base_image_name:
+    if hardening_manifest.base_image_name:
         log.info("Inspect base image")
 
         if os.environ.get("STAGING_BASE_IMAGE"):
@@ -59,21 +59,43 @@ async def main():
             registry = os.environ["BASE_REGISTRY"]
 
         try:
-            # If 2 architectures are being built it will need the base image for each architecture.
-              # i.e. To build multiarch python311 it will need the arm64 and amd64 ubi9 image.
-              # Multiarch images are pushed to harbor with "-<platformType>" appended to their tags.
-            if len(potential_platforms) > 1:
-                tag = manifest.base_image_tag + "-" + platform
-            else:
-                tag = manifest.base_image_tag
-            skopeo = Skopeo(authfile=pull_auth)
-            base_image = Image(
-                registry=registry,
-                name=manifest.base_image_name,
-                tag=tag,
-                transport="docker://",
+            base_registry = os.environ["BASE_REGISTRY"]
+            base_registry = base_registry.split("/")[0]
+            with open(os.environ["DOCKER_AUTH_FILE_PULL"]) as f:
+                auth = json.load(f)
+            encoded_credentials = auth["auths"][base_registry]["auth"]
+            headers = {
+                "Accept": "application/json",
+                "Authorization": f"Basic {encoded_credentials}",
+            }
+            encoded_image_name = urllib.parse.quote(
+                hardening_manifest.base_image_name, safe=""
             )
-            base_img_inspect = skopeo.inspect(base_image, log_cmd=True)
+            url = f"https://{base_registry}/api/v2.0/projects/ironbank/repositories/{encoded_image_name}/artifacts/{hardening_manifest.base_image_tag}"
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()  # Raise an exception for 4xx or 5xx status codes
+            json_data = response.json()
+            skopeo = Skopeo(authfile=pull_auth)
+
+            # If it's a manifest-list get platform sha.
+            if (json_data["manifest_media_type"] == "application/vnd.oci.image.index.v1+json"):
+                for image in json_data["references"]:
+                    if image["platform"]["architecture"] == platform:
+                        digest = image["child_digest"]
+                base_image = Image(
+                    registry=registry,
+                    name=hardening_manifest.base_image_name,
+                    digest=digest,
+                    transport="docker://",
+                )
+            else:
+                base_image = Image(
+                    registry=registry,
+                    name=hardening_manifest.base_image_name,
+                    tag=hardening_manifest.base_image_tag,
+                    transport="docker://",
+                )
+                base_img_inspect = skopeo.inspect(base_image, log_cmd=True)
         except GenericSubprocessError:
             log.error(
                 "Failed to inspect IMAGE:TAG provided in hardening_manifest. \
@@ -81,6 +103,9 @@ async def main():
             )
             log.error(f"Failed 'skopeo inspect' of image: {base_image}")
             sys.exit(1)
+        except requests.exceptions.RequestException as e:
+            print(f"An error occurred: {e}")
+            exit(1)
         if not os.environ.get("STAGING_BASE_IMAGE"):
             with tempfile.TemporaryDirectory(
                 prefix="DOCKER_CONFIG-"
@@ -101,7 +126,7 @@ async def main():
 
         base_image_info = {"BASE_SHA": base_img_inspect["Digest"]}
         log.info("Dump SHA to file")
-        platform_artifact_dir = Path(f"{os.environ['ARTIFACT_DIR']}/{platform}").mkdir(parents=True, exist_ok=True)
+        platform_artifact_dir = Path(f"{os.environ["ARTIFACT_DIR"]}/{platform}").mkdir(parents=True, exist_ok=True)
         with Path(platform_artifact_dir, "base_image.json").open(
             "w", encoding="utf-8"
         ) as f:
@@ -109,17 +134,15 @@ async def main():
 
 
 if __name__ == "__main__":
-    potential_platforms = [
-        "amd64",
-        "arm64",
-    ]
-
-    platforms = [
-        platform
-        for platform in potential_platforms
-        if os.path.isfile(
-            f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json'
-        )
-    ]
+    dsop_project = DsopProject()
+    hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
+    potential_platforms = hardening_manifest.architecture
+    if hardening_manifest.architecture == None:
+        platforms = ["amd64"]
+    else:
+        platforms = [
+            platform
+            for platform in potential_platforms
+        ]
     for platform in platforms:
         asyncio.run(main())
