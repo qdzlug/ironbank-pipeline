@@ -127,7 +127,9 @@ def validate_base_image(platform: str):
 
         base_image_info = {"BASE_SHA": base_img_inspect["Digest"]}
         log.info("Dump SHA to file")
-        with Path(Path(f"{os.environ['ARTIFACT_DIR']}/{platform}").mkdir(parents=True, exist_ok=True), "base_image.json").open(
+        base_image_json_path = Path(f"{os.environ['ARTIFACT_DIR']}/{platform}")
+        base_image_json_path.mkdir(parents=True, exist_ok=True)
+        with Path(base_image_json_path, "base_image.json").open(
             "w", encoding="utf-8"
         ) as f:
             json.dump(base_image_info, f)
