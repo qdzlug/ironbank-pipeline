@@ -67,7 +67,7 @@ for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*; do
       --privileged \
       --name scanner \
       -v /usr/local/bin/oscap-podman:/usr/local/bin/oscap-podman \
-      -v "${CI_PROJECT_DIR}/${OSCAP_SCANS}":"${CI_PROJECT_DIR}/${OSCAP_SCANS}" \
+      -v "${ARTIFACT_DIR}/${PLATFORM}":"${ARTIFACT_DIR}/${PLATFORM}" \
       -v "${DOCKER_AUTH_FILE_PULL}":/run/containers/0/auth.json \
       -v /opt:/opt \
       "ib-oscap-${OSCAP_SCANNER}:1.0.0" sleep 900
