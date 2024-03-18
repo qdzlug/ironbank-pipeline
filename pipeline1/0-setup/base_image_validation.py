@@ -23,7 +23,7 @@ log = logger.setup(name="lint.base_image_validation")
 
 
 @stack_trace_handler
-async def main(hardening_manifest):
+async def main():
     """This script is designed to perform validation on a base image specified
     in a hardening manifest file.
 
@@ -46,6 +46,8 @@ async def main(hardening_manifest):
     # At the very least the hardening_manifest.yaml should be generated if it has not been
     # merged in yet.
     #
+    dsop_project = DsopProject()
+    hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     if hardening_manifest.base_image_name:
         log.info("Inspect base image")
 
@@ -145,4 +147,4 @@ if __name__ == "__main__":
             for platform in potential_platforms
         ]
     for platform in platforms:
-        asyncio.run(main(hardening_manifest))
+        asyncio.run(main())
