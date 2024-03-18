@@ -58,10 +58,15 @@ async def main():
     hard_fail_code = 1
     soft_fail_code = 100
 
-    await handle_system_exit(folder_structure.main)()
-    await handle_system_exit(hardening_manifest_validation.main)()
-    await handle_system_exit(dockerfile_validation.main)() # TODO: Needs to be done for every architecture's Dockerfile.
-    await handle_system_exit(base_image_validation.validate_base_image(platform))() # Needs to be done for every architecture.
+    # TODO: Might not matter but they were all async before allowing multplie architectures.
+    # await handle_system_exit(folder_structure.main)()
+    # await handle_system_exit(hardening_manifest_validation.main)()
+    # await handle_system_exit(dockerfile_validation.main)() # TODO: Needs to be done for every architecture's Dockerfile.
+    # await handle_system_exit(base_image_validation.validate_base_image(platform))() # Needs to be done for every architecture.
+    folder_structure.main()
+    hardening_manifest_validation.main()
+    dockerfile_validation.main() # TODO: Needs to be done for every architecture's Dockerfile.
+    base_image_validation.validate_base_image(platform) # Needs to be done for every architecture.
     if hard_fail_code not in system_exits:
         await handle_system_exit(pipeline_auth_status.main)()
     else:

@@ -23,7 +23,7 @@ log = logger.setup(name="lint.base_image_validation")
 
 
 @stack_trace_handler
-async def validate_base_image(platform):
+async def validate_base_image(platform: str):
     """This script is designed to perform validation on a base image specified
     in a hardening manifest file.
 
