@@ -66,7 +66,7 @@ def main() -> None:
         dsop_proj.hardening_manifest_path
     )
 
-    report_dir: Path = Path("reports")
+    report_dir: Path = Path(f"reports/{platform}")
     report_dir.mkdir(parents=True, exist_ok=True)
 
     report_tar_name: str = os.environ["REPORT_TAR_NAME"]
@@ -90,11 +90,11 @@ def main() -> None:
     tar_path: str = f"{s3_object_path}/{report_tar_name}"
 
     report_files: list[str] = [
-        f"{os.environ['DOCUMENTATION_DIRECTORY']}/reports/",
-        f"{os.environ['BUILD_DIRECTORY']}/access_log",
-        f"{os.environ['SCAN_DIRECTORY']}",
-        f"{os.environ['SBOM_DIRECTORY']}",
-        f"{os.environ['VAT_DIRECTORY']}/vat_response.json",
+        f"{os.environ['DOCUMENTATION_DIRECTORY']}/reports/{platform}/",
+        f"{os.environ['BUILD_DIRECTORY']}/{platform}/access_log",
+        f"{os.environ['SCAN_DIRECTORY']}/{platform}",
+        f"{os.environ['SBOM_DIRECTORY']}/{platform}",
+        f"{os.environ['VAT_DIRECTORY']}/{platform}/vat_response.json",
         dsop_proj.hardening_manifest_path.as_posix(),
         readme_name,
         license_name,
@@ -136,4 +136,18 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    potential_platforms = [
+        "amd64",
+        "arm64",
+    ]
+
+    platforms = [
+        platform
+        for platform in potential_platforms
+        if os.path.isfile(
+            f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json'
+        )
+    ]
+
+    for platform in platforms:
+        main()
