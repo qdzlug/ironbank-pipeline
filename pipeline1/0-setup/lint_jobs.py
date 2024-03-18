@@ -96,4 +96,4 @@ if __name__ == "__main__":
         ]
     for platform in platforms:
         log.info(f"Validating image for {platform} architecture.")
-        asyncio.run(main(platform))
+        asyncio.run(main())
