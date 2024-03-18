@@ -12,6 +12,10 @@ import pipeline_auth_status
 from common.utils import logger
 from pipeline.utils.exceptions import SymlinkFoundError
 
+from pipeline.hardening_manifest import HardeningManifest
+from pipeline.project import DsopProject
+
+
 log = logger.setup("lint_jobs")
 
 system_exits: dict = {}
@@ -56,8 +60,8 @@ async def main():
 
     await handle_system_exit(folder_structure.main)()
     await handle_system_exit(hardening_manifest_validation.main)()
-    await handle_system_exit(dockerfile_validation.main)()
-    await handle_system_exit(base_image_validation.main)()
+    await handle_system_exit(dockerfile_validation.main)() # TODO: Needs to be done for every architecture's Dockerfile.
+    await handle_system_exit(base_image_validation.main(platform=platform))() # Needs to be done for every architecture.
     if hard_fail_code not in system_exits:
         await handle_system_exit(pipeline_auth_status.main)()
     else:
@@ -79,4 +83,17 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    dsop_project = DsopProject()
+    hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
+    potential_platforms = hardening_manifest.architecture
+    # The hardening_manifest doesn't have an architecture section, default to amd64.
+    if hardening_manifest.architecture == None:
+        platforms = ["amd64"]
+    else:
+        platforms = [
+            platform
+            for platform in hardening_manifest.architecture
+        ]
+    for platform in platforms:
+        log.info(f"Validating image for {platform} architecture.")
+        asyncio.run(main(platform))
