@@ -172,7 +172,7 @@ def write_env_vars(tags: list[str]) -> None:  # TODO: Write a unit test
     with Path(
         os.environ["ARTIFACT_DIR"], build["PLATFORM"], "upload_to_harbor.env"
     ).open("w", encoding="utf-8") as f:
-        f.write(f"REGISTRY_PUBLISH_URL_{build}={os.environ['REGISTRY_PUBLISH_URL']}\n")
+        f.write(f"REGISTRY_PUBLISH_URL={os.environ['REGISTRY_PUBLISH_URL']}\n")
         f.write(f"IMAGE_NAME={build['IMAGE_NAME']}\n")
         f.write(f"DIGEST_TO_SCAN={scan_logic['DIGEST_TO_SCAN']}\n")
         f.write(f"TAGS={tags_string}\n")
