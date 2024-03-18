@@ -126,5 +126,3 @@ update-staging-attestations:
     when: always
     paths:
       - "${ARTIFACT_DIR}/"
-    reports:
-      dotenv: upload_to_harbor_arm64.env
