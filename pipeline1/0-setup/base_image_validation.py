@@ -59,11 +59,15 @@ async def main():
             registry = os.environ["BASE_REGISTRY"]
 
         try:
+            if len(potential_platforms) > 1:
+                tag = manifest.base_image_tag + "-" + platform
+            else:
+                tag = manifest.base_image_tag
             skopeo = Skopeo(authfile=pull_auth)
             base_image = Image(
                 registry=registry,
                 name=manifest.base_image_name,
-                tag=manifest.base_image_tag,
+                tag=tag,
                 transport="docker://",
             )
             base_img_inspect = skopeo.inspect(base_image, log_cmd=True)
@@ -94,11 +98,25 @@ async def main():
 
         base_image_info = {"BASE_SHA": base_img_inspect["Digest"]}
         log.info("Dump SHA to file")
-        with Path(os.environ["ARTIFACT_DIR"], "base_image.json").open(
+        platform_artifact_dir = Path(f"{os.environ["ARTIFACT_DIR"]}/{platform}").mkdir(parents=True, exist_ok=True)
+        with Path(platform_artifact_dir, "base_image.json").open(
             "w", encoding="utf-8"
         ) as f:
             json.dump(base_image_info, f)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    potential_platforms = [
+        "amd64",
+        "arm64",
+    ]
+
+    platforms = [
+        platform
+        for platform in potential_platforms
+        if os.path.isfile(
+            f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json'
+        )
+    ]
+    for platform in platforms:
+        asyncio.run(main())
