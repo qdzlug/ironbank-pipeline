@@ -66,7 +66,7 @@ def main() -> None:
         dsop_proj.hardening_manifest_path
     )
 
-    report_dir: Path = Path(f"reports/{platform}")
+    report_dir: Path = Path(f"reports/")
     report_dir.mkdir(parents=True, exist_ok=True)
 
     report_tar_name: str = os.environ["REPORT_TAR_NAME"]
