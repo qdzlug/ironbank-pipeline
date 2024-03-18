@@ -145,7 +145,7 @@ if __name__ == "__main__":
     else:
         platforms = [
             platform
-            for platform in potential_platforms
+            for platform in hardening_manifest.architecture
         ]
     for platform in platforms:
         log.info(f"Validating image for {platform} architecture.")
