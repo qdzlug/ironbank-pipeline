@@ -101,7 +101,7 @@ async def main():
 
         base_image_info = {"BASE_SHA": base_img_inspect["Digest"]}
         log.info("Dump SHA to file")
-        platform_artifact_dir = Path(f"{os.environ["ARTIFACT_DIR"]}/{platform}").mkdir(parents=True, exist_ok=True)
+        platform_artifact_dir = Path(f"{os.environ['ARTIFACT_DIR']}/{platform}").mkdir(parents=True, exist_ok=True)
         with Path(platform_artifact_dir, "base_image.json").open(
             "w", encoding="utf-8"
         ) as f:
