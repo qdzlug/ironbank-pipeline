@@ -94,16 +94,19 @@ def _generate_vat_response_lineage_file():
     """Generates a VAT response lineage using *this* pipeline run's VAT
     response and the VAT response attestation from the parent image."""
     # Load VAT response for this pipeline run, convert to list
-    with Path(os.environ["ARTIFACT_STORAGE"], "vat", build['PLATFORM'], "vat_response.json").open(
-        "r", encoding="utf-8"
-    ) as f:
+    with Path(
+        os.environ["ARTIFACT_STORAGE"], "vat", build["PLATFORM"], "vat_response.json"
+    ).open("r", encoding="utf-8") as f:
         pipeline_vat_response = json.load(f)
 
     # Initialize lineage_vat_response as a dict, so we can append to it if parent_vat_response.json doesn't exist
     lineage_vat_response = {"images": []}
     if (
         parent_vat_response_file := Path(
-            os.environ["ARTIFACT_STORAGE"], "vat", build['PLATFORM'], "parent_vat_response.json"
+            os.environ["ARTIFACT_STORAGE"],
+            "vat",
+            build["PLATFORM"],
+            "parent_vat_response.json",
         )
     ).exists():
         with parent_vat_response_file.open("r", encoding="utf-8") as f:
@@ -115,7 +118,7 @@ def _generate_vat_response_lineage_file():
             ]
     lineage_vat_response["images"] += [pipeline_vat_response]
     lineage_vat_response_file = Path(
-        os.environ["ARTIFACT_DIR"], build['PLATFORM'], "vat_response_lineage.json"
+        os.environ["ARTIFACT_DIR"], build["PLATFORM"], "vat_response_lineage.json"
     )
     with lineage_vat_response_file.open("w", encoding="utf-8") as f:
         json.dump(lineage_vat_response, f)
@@ -156,13 +159,13 @@ def write_env_vars(tags: list[str]) -> None:  # TODO: Write a unit test
     """
     log.info("Writing env variables to file")
     tags_string = ",".join(tags)
-    Path(f"{os.environ['ARTIFACT_DIR']}/{build['PLATFORM']}").mkdir(
+    Path(os.environ["ARTIFACT_DIR"], build["PLATFORM"]).mkdir(
         parents=True, exist_ok=True
     )
 
-    with Path(f'{build["PLATFORM"]}/upload_to_harbor.env').open(
-        "w", encoding="utf-8"
-    ) as f:
+    with Path(
+        os.environ["ARTIFACT_DIR"], build["PLATFORM"], "upload_to_harbor.env"
+    ).open("w", encoding="utf-8") as f:
         f.write(f"REGISTRY_PUBLISH_URL_{build}={os.environ['REGISTRY_PUBLISH_URL']}\n")
         f.write(f"IMAGE_NAME={build['IMAGE_NAME']}\n")
         f.write(f"DIGEST_TO_SCAN={scan_logic['DIGEST_TO_SCAN']}\n")
