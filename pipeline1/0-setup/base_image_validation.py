@@ -59,6 +59,9 @@ async def main():
             registry = os.environ["BASE_REGISTRY"]
 
         try:
+            # If 2 architectures are being built it will need the base image for each architecture.
+              # i.e. To build multiarch python311 it will need the arm64 and amd64 ubi9 image.
+              # Multiarch images are pushed to harbor with "-<platformType>" appended to their tags.
             if len(potential_platforms) > 1:
                 tag = manifest.base_image_tag + "-" + platform
             else:
