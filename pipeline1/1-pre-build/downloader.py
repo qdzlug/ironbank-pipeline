@@ -89,8 +89,8 @@ def set_artifact_path(artifact):
                 artifact.dest_path
                 / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar"
             )
-        log.info(f"here asdf")
-        if "arm64" in artifact.architecture:
+            log.info(f"here asdf")
+        elif "arm64" in artifact.architecture:
             artifact.artifact_path = (
                 artifact.dest_path
                 / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar.arm64"
