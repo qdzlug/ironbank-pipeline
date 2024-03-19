@@ -72,3 +72,5 @@ create-manifest-list:
     - harbor
   script:
     - '"${PIPELINE_REPO_DIR}/pipeline1/8-post-publish/create_manifest_list.sh"'
+  variables:
+    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: sign
