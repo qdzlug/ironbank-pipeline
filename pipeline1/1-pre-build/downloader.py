@@ -71,10 +71,13 @@ def set_artifact_path(artifact):
     Returns:
     The provided artifact with updated destination path and artifact path.
     """
+    log.info(f"You are in set_artifact_path.")
     if isinstance(artifact, AbstractFileArtifact):
+        log.info(f"You are a abstract artifact.")
         artifact.dest_path = artifact.dest_path / "external-resources"
         artifact.artifact_path = artifact.dest_path / artifact.filename
-    elif isinstance(artifact, ContainerArtifact):
+    if isinstance(artifact, ContainerArtifact):
+        log.info(f"You are a container artifact.")
         artifact.dest_path = artifact.dest_path / "images"
         if "arm64" in artifact.architecture:
             artifact.artifact_path = (
