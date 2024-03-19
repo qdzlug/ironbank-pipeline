@@ -26,19 +26,19 @@ def main() -> None:
     # Get logging level, set manually when running pipeline
 
     anchore_cve_path = Path(
-        f"{os.environ['ARTIFACT_STORAGE']}/scan-results/anchore/{platform}/anchore_security.json"
+        f"{os.environ['SCAN_RESULTS_DIR']}/anchore/{platform}/anchore_security.json"
     )
     anchore_comp_path = Path(
-        f"{os.environ['ARTIFACT_STORAGE']}/scan-results/anchore/{platform}/anchore_gates.json"
+        f"{os.environ['SCAN_RESULTS_DIR']}/anchore/{platform}/anchore_gates.json"
     )
     twistlock_cve_path = Path(
-        f"{os.environ['ARTIFACT_STORAGE']}/scan-results/twistlock/{platform}/twistlock_cve.json"
+        f"{os.environ['SCAN_RESULTS_DIR']}/twistlock/{platform}/twistlock_cve.json"
     )
     oscap_comp_path = Path(
-        f"{os.environ['ARTIFACT_STORAGE']}/scan-results/openscap/{platform}/compliance_output_report.xml"
+        f"{os.environ['SCAN_RESULTS_DIR']}/openscap/{platform}/compliance_output_report.xml"
     )
     csv_output_dir = Path(
-        f"{os.environ['ARTIFACT_STORAGE']}/scan-results/{platform}/csvs"
+        f"{os.environ['SCAN_RESULTS_DIR']}/{platform}/csvs"
     )
 
     # Create the csv directory if not present
