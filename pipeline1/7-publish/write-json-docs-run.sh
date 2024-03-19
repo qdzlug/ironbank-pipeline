@@ -11,6 +11,16 @@ for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*; do
 
   GPG_PUB_KEY=$(awk '{printf "%s\\n", $0}' "${IB_CONTAINER_GPG_PUBKEY}")
 
+  # These values are set from scan_logic.env
+  export ANCHORE_VERSION
+  export BUILD_DATE_TO_SCAN
+  export COMMIT_SHA_TO_SCAN
+  export DIGEST_TO_SCAN
+  export GPG_VERSION
+  export IMAGE_TO_SCAN
+  export OPENSCAP_VERSION
+  export TWISTLOCK_VERSION
+
   # Create manifest.json
   export IMAGE_VERSION
   export CI_COMMIT_SHA
@@ -18,11 +28,7 @@ for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*; do
   export IMAGE_ACCREDITATION
   export IMAGE_PODMAN_SHA
   export GPG_PUB_KEY
-  export GPG_VERSION
   export CI_COMMIT_BRANCH
-  export TWISTLOCK_VERSION
-  export OPENSCAP_VERSION
-  export ANCHORE_VERSION
   export CI_PIPELINE_ID
   TIMESTAMP="$(date --utc '+%FT%T.%3NZ')"
   export TIMESTAMP
@@ -54,8 +60,8 @@ for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*; do
         "version": env.ANCHORE_VERSION
       }
     }
-  }' >"${ARTIFACT_DIR}/scan-metadata.json"
-  cat "${ARTIFACT_DIR}/scan-metadata.json"
+  }' >"${ARTIFACT_DIR}/scan-metadata-${PLATFORM}.json"
+  cat "${ARTIFACT_DIR}/scan-metadata-${PLATFORM}.json"
   # Create manifest.json
 
   export DOCKER_REFERENCE="${IMAGE_TO_SCAN}@${DIGEST_TO_SCAN}"
