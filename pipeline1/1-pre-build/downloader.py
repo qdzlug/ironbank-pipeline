@@ -80,6 +80,7 @@ def set_artifact_path(artifact):
         log.info(f"You are a container artifact.")
         artifact.dest_path = artifact.dest_path / "images"
         log.info(f"artifact.dest_path before --> {artifact.dest_path}.")
+        log.info(f"artifact.artifact_path before --> {artifact.artifact_path}.")
         log.info(f"artifect.architecture --> {artifact.architecture}")
         log.info(f"artifact --> {artifact}")
         if "arm64" in artifact.architecture:
