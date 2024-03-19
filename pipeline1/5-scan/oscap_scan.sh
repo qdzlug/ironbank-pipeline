@@ -35,7 +35,7 @@ for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*; do
   PLATFORM=$(basename "$SCAN_LOGIC_DIR")
 
   # setup platform artifact(s)
-  ARTIFACT_DIR_REALPATH=$(realpath ${ARTIFACT_DIR}/${PLATFORM})
+  ARTIFACT_DIR_REALPATH=$(realpath "${ARTIFACT_DIR}/${PLATFORM}")
   mkdir -p "${ARTIFACT_DIR_REALPATH}"
 
   # if no scanner, scan natively
