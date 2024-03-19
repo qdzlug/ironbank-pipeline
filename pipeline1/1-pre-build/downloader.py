@@ -71,38 +71,26 @@ def set_artifact_path(artifact):
     Returns:
     The provided artifact with updated destination path and artifact path.
     """
-    log.info(f"You are in set_artifact_path.")
     if isinstance(artifact, AbstractFileArtifact):
-        log.info(f"You are a abstract artifact.")
         artifact.dest_path = artifact.dest_path / "external-resources"
         artifact.artifact_path = artifact.dest_path / artifact.filename
     if isinstance(artifact, ContainerArtifact):
-        log.info(f"You are a container artifact.")
         artifact.dest_path = artifact.dest_path / "images"
-        log.info(f"artifact.dest_path before --> {artifact.dest_path}.")
-        log.info(f"artifact.artifact_path before --> {artifact.artifact_path}.")
-        log.info(f"artifect.architecture --> {artifact.architecture}")
-        log.info(f"artifact --> {artifact}")
         if artifact.architecture is None: # If no architecture is specified for the ContainerArtifact.
-            log.info(f"here ffff")
             artifact.artifact_path = (
                 artifact.dest_path
                 / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar"
             )
-            log.info(f"here asdf")
         elif "arm64" in artifact.architecture:
             artifact.artifact_path = (
                 artifact.dest_path
                 / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar.arm64"
             )
-            log.info(f"artifact.dest_path --> {artifact.dest_path}.")
         else: # amd64. Add other if statements for additional architectures.
             artifact.artifact_path = (
                 artifact.dest_path
                 / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar"
             )
-            log.info(f"artifact.dest_path --> {artifact.dest_path}.")
-    log.info(f"Returning artifact --> {artifact}") # TODO: REMOVE ME
     return artifact
 
 
@@ -126,21 +114,15 @@ def main():
 
         # TODO: refactor into a separate function
         for resource in hardening_manifest.resources:
-            log.info(f"resource: {resource}")  # TODO: Remove me.
             parsed_url = (
                 urlparse(resource["url"])
                 if "url" in resource
                 else urlparse(resource["urls"][0])
             )
-            log.info(f"parsed_url: {parsed_url}")  # TODO: Remove me
             scheme = parsed_url.scheme
-            log.info(f"scheme: {scheme}")  # TODO: Remove me
             netloc = parsed_url.netloc
-            log.info(f"netloc: {netloc}")  # TODO: Remove me
             artifact_type = get_artifact_type(resource, scheme, netloc)
-            log.info(f"artifact_type: {artifact_type}")  # TODO: Remove me
             artifact = set_artifact_path(artifact_type)
-            log.info(f"artifact: {artifact}")  # TODO: Remove me
 
             # download also gathers any relevant auth and runs any pre download validation
             artifact.download()
@@ -176,9 +158,6 @@ def main():
         log.error("Unexpected runtime error occurred.")
     except Exception as e:  # pylint:  disable=broad-except
         log.error("Unexpected error occurred. Exception class: %s", e.__class__)
-        log.error(
-            "Unexpected error occurred. Exception class: %s", e
-        )  # TODO: Remove me
     finally:
         if artifact is not None and exit_code == 1:
             artifact.delete_artifact()
