@@ -67,6 +67,8 @@ upload-to-s3:
 
 create-manifest-list:
   stage: post-publish
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
   needs:
     - setup
     - harbor
