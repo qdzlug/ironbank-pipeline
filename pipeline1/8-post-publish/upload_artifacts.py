@@ -48,7 +48,7 @@ def post_artifact_data_vat(
         },
         json={
             "imageName": build["IMAGE_NAME"],
-            "tag": f'{os.environ["IMAGE_VERSION"]}-{scan_logic["PLATFORM"]}',
+            "tag": f'{os.environ["IMAGE_VERSION"]}-{build["PLATFORM"]}',
             "publishedTimestamp": published_timestamp,
             "readme": readme_path,
             "license": license_path,
@@ -83,7 +83,7 @@ def main() -> None:
     assert isinstance(image_path, re.Match), "No match found for image path"
     image_path = image_path.group(1)
 
-    s3_object_path = f"{image_path}/{hardening_manifest.image_tag}-{scan_logic['PLATFORM']}/{utc_datetime_now}_{os.environ['CI_PIPELINE_ID']}"
+    s3_object_path = f"{image_path}/{hardening_manifest.image_tag}-{build['PLATFORM']}/{utc_datetime_now}_{os.environ['CI_PIPELINE_ID']}"
     print(hardening_manifest.image_tag)
 
     readme_name: str = "README.md"
@@ -149,7 +149,7 @@ if __name__ == "__main__":
         platform
         for platform in potential_platforms
         if os.path.isfile(
-            f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json'
+            f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json'
         )
     ]
 
@@ -157,11 +157,5 @@ if __name__ == "__main__":
         # load platform build.json
         with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json') as f:
             build = json.load(f)
-
-        # load platform scan_logic.json
-        with open(
-            f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json'
-        ) as f:
-            scan_logic = json.load(f)
 
         main()
