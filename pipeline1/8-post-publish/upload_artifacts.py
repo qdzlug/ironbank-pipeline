@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import json
 import logging
 import os
 import re
@@ -10,12 +11,14 @@ from datetime import datetime
 from pathlib import Path
 
 import requests
-
+from common.utils import logger
 from pipeline.hardening_manifest import HardeningManifest
 from pipeline.project import DsopProject
 from pipeline.utils import s3upload
-from pipeline.utils.decorators import subprocess_error_handler, stack_trace_handler
-from common.utils import logger
+from pipeline.utils.decorators import (
+    stack_trace_handler,
+    subprocess_error_handler,
+)
 
 log: logging.Logger = logger.setup("vat_artifact_post")
 
@@ -44,8 +47,8 @@ def post_artifact_data_vat(
             "Authorization": f"Bearer {os.environ['VAT_TOKEN']}",
         },
         json={
-            "imageName": os.environ["IMAGE_NAME"],
-            "tag": os.environ["IMAGE_VERSION"],
+            "imageName": build["IMAGE_NAME"],
+            "tag": f'{os.environ["IMAGE_VERSION"]}-{scan_logic["PLATFORM"]}',
             "publishedTimestamp": published_timestamp,
             "readme": readme_path,
             "license": license_path,
@@ -66,7 +69,7 @@ def main() -> None:
         dsop_proj.hardening_manifest_path
     )
 
-    report_dir: Path = Path(f"reports/")
+    report_dir: Path = Path("reports/")
     report_dir.mkdir(parents=True, exist_ok=True)
 
     report_tar_name: str = os.environ["REPORT_TAR_NAME"]
@@ -80,7 +83,8 @@ def main() -> None:
     assert isinstance(image_path, re.Match), "No match found for image path"
     image_path = image_path.group(1)
 
-    s3_object_path = f"{image_path}/{hardening_manifest.image_tag}/{utc_datetime_now}_{os.environ['CI_PIPELINE_ID']}"
+    s3_object_path = f"{image_path}/{hardening_manifest.image_tag}-{scan_logic['PLATFORM']}/{utc_datetime_now}_{os.environ['CI_PIPELINE_ID']}"
+    print(hardening_manifest.image_tag)
 
     readme_name: str = "README.md"
     license_name: str = "LICENSE"
@@ -136,4 +140,28 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    potential_platforms = [
+        "amd64",
+        "arm64",
+    ]
+
+    platforms = [
+        platform
+        for platform in potential_platforms
+        if os.path.isfile(
+            f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json'
+        )
+    ]
+
+    for platform in platforms:
+        # load platform build.json
+        with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json') as f:
+            build = json.load(f)
+
+        # load platform scan_logic.json
+        with open(
+            f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json'
+        ) as f:
+            scan_logic = json.load(f)
+
+        main()
