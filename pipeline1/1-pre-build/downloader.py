@@ -71,25 +71,35 @@ def set_artifact_path(artifact):
     Returns:
     The provided artifact with updated destination path and artifact path.
     """
-    log.info(f"You are in set_artifact_path.")
-    if isinstance(artifact, AbstractFileArtifact):
-        log.info(f"You are a abstract artifact.")
-        artifact.dest_path = artifact.dest_path / "external-resources"
-        artifact.artifact_path = artifact.dest_path / artifact.filename
-    if isinstance(artifact, ContainerArtifact):
-        log.info(f"You are a container artifact.")
-        artifact.dest_path = artifact.dest_path / "images"
-        if "arm64" in artifact.architecture:
-            artifact.artifact_path = (
-                artifact.dest_path
-                / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar.arm64"
-            )
-        else:
-            artifact.artifact_path = (
-                artifact.dest_path
-                / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar"
-            )
-    log.info(f"Returning artifact --> {artifact}") # TODO: REMOVE ME
+    try:
+        log.info(f"You are in set_artifact_path.")
+        if isinstance(artifact, AbstractFileArtifact):
+            log.info(f"You are a abstract artifact.")
+            artifact.dest_path = artifact.dest_path / "external-resources"
+            artifact.artifact_path = artifact.dest_path / artifact.filename
+        if isinstance(artifact, ContainerArtifact):
+            log.info(f"You are a container artifact.")
+            artifact.dest_path = artifact.dest_path / "images"
+            log.info(f"artifact.dest_path before --> {artifact.dest_path}.")
+            if artifact.architecture == None: # Default pipeline build where no architecture is declared. 
+                artifact.artifact_path = (
+                    artifact.dest_path
+                    / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar"
+                )
+                log.info(f"artifact.dest_path --> {artifact.dest_path}.")
+            if "arm64" in artifact.architecture:
+                artifact.artifact_path = (
+                    artifact.dest_path
+                    / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar.arm64"
+                )
+                log.info(f"artifact.dest_path --> {artifact.dest_path}.")
+            else:
+                artifact.artifact_path = (
+                    artifact.dest_path
+                    / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar"
+                )
+                log.info(f"artifact.dest_path --> {artifact.dest_path}.")
+        log.info(f"Returning artifact --> {artifact}") # TODO: REMOVE ME
     return artifact
 
 
