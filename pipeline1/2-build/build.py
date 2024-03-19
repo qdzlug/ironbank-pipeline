@@ -100,7 +100,7 @@ def load_resources(
                         log_cmd=True,
                     )
                 if (
-                    os.environ["CI_JOB_NAME"] == "build"
+                    os.environ["CI_JOB_NAME"] == "build-amd64"
                     and "arm64" not in resource_file_obj.name
                 ):
                     log.info("loading image %s", resource_file_obj)
@@ -111,6 +111,7 @@ def load_resources(
                         Image(url=image_url, transport="containers-storage:"),
                         log_cmd=True,
                     )
+                
             else:
                 shutil.move(resource_file_obj, Path(resource_file))
         else:
