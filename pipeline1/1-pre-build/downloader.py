@@ -89,6 +89,7 @@ def set_artifact_path(artifact):
                 artifact.dest_path
                 / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar"
             )
+    log.info(f"Returning artifact --> {artifact}") # TODO: REMOVE ME
     return artifact
 
 
