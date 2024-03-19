@@ -55,10 +55,16 @@ for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*; do
   # if debian/suse, use a scanner pod
   else
     # load the scanner
-    echo "INFO non-native scan $OSCAP_SCANNER, loading"
-    podman load -q -i "/opt/oscap/$OSCAP_SCANNER.tar" >/dev/null
+
+    if podman image ls | grep -q "ib-oscap-$OSCAP_SCANNER"; then
+      echo "INFO non-native scan $OSCAP_SCANNER, loaded"
+    else
+      echo "INFO non-native scan $OSCAP_SCANNER, loading"
+      podman load -q -i "/opt/oscap/$OSCAP_SCANNER.tar" >/dev/null
+    fi
 
     # save the target, scanner may not have ca certs
+    rm -f /opt/oscap/target.tar
     skopeo copy docker://"${URI_BASENAME}@${URI_DIGEST}" docker-archive:/opt/oscap/target.tar
 
     # start detached scanner
