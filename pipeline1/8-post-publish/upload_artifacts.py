@@ -48,7 +48,7 @@ def post_artifact_data_vat(
         },
         json={
             "imageName": build["IMAGE_NAME"],
-            "tag": f'{hardening_manifest["org.opencontainers.image.version"]}-{build["PLATFORM"]}',
+            "tag": f'{hardening_manifest.labels["org.opencontainers.image.version"]}-{build["PLATFORM"]}',
             "publishedTimestamp": published_timestamp,
             "readme": readme_path,
             "license": license_path,
