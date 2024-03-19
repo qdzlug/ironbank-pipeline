@@ -83,6 +83,11 @@ def set_artifact_path(artifact):
         log.info(f"artifact.artifact_path before --> {artifact.artifact_path}.")
         log.info(f"artifect.architecture --> {artifact.architecture}")
         log.info(f"artifact --> {artifact}")
+        if artifact.architecture is None:
+            artifact.artifact_path = (
+                artifact.dest_path
+                / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar"
+            )
         if "arm64" in artifact.architecture:
             artifact.artifact_path = (
                 artifact.dest_path
