@@ -378,7 +378,7 @@ def main() -> None:
     log.info("Connecting to VAT")
     try:
         resp = requests.post(
-            args.api_url, headers=headers, json=large_data, timeout=(90, 90)
+            args.api_url, headers=headers, json=large_data, timeout=(270, 270)
         )
         resp.raise_for_status()
         log.debug("API Response:\n%s", resp.text)
