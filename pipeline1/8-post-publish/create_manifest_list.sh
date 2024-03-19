@@ -24,7 +24,7 @@ for TAG in "${TAGS_ARRAY[@]}"; do
   MANIFEST_LIST_SHA_URI=$(podman image inspect --format='{{index .RepoDigests 0}}' "$REGISTRY_PUBLISH_URL/$IMAGE_NAME:$TAG")
 
   # sign
-  mkdir -p ~/.docker && cp "$DOCKER_AUTH_FILE_PUBLISH" ~/.docker/config.json
+  mkdir -p "$HOME/.docker" && cp "$DOCKER_AUTH_FILE_PUBLISH" ~/.docker/config.json
   DOCKER_CONFIG="$HOME/.docker/config.json" cosign sign \
     --key="$KMS_KEY_SHORT_ARN" \
     --certificate="$COSIGN_CERT" \
