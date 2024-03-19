@@ -21,7 +21,7 @@ for TAG in "${TAGS_ARRAY[@]}"; do
 
   # inspect an image for manifest list sha
   podman pull "$REGISTRY_PUBLISH_URL/$IMAGE_NAME:$TAG" --authfile "$DOCKER_AUTH_FILE_PUBLISH"
-  MANIFEST_LIST_SHA_URI=$(podman image inspect --format='{{index .RepoDigests 0}}' "$REGISTRY_PUBLISH_URL/$IMAGE_NAME:$TAG")
+  MANIFEST_LIST_SHA_URI=$(podman image inspect --format='{{index .Digest}}' "$REGISTRY_PUBLISH_URL/$IMAGE_NAME:$TAG")
 
   # sign
   mkdir -p "$HOME/.docker" && cp "$DOCKER_AUTH_FILE_PUBLISH" ~/.docker/config.json
