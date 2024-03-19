@@ -35,7 +35,8 @@ for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*; do
   PLATFORM=$(basename "$SCAN_LOGIC_DIR")
 
   # setup platform artifact(s)
-  mkdir -p "${ARTIFACT_DIR}/${PLATFORM}"
+  ARTIFACT_DIR_REALPATH=$(realpath ${ARTIFACT_DIR}/${PLATFORM})
+  mkdir -p "${ARTIFACT_DIR_REALPATH}"
 
   # if no scanner, scan natively
   if [ -z "${OSCAP_SCANNER:-}" ]; then
@@ -45,9 +46,9 @@ for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*; do
       eval \
       --verbose ERROR \
       --profile "${OSCAP_PROFILE}" \
-      --stig-viewer "${ARTIFACT_DIR}/${PLATFORM}/compliance_output_report_stigviewer.xml" \
-      --results "${ARTIFACT_DIR}/${PLATFORM}/compliance_output_report.xml" \
-      --report "${ARTIFACT_DIR}/${PLATFORM}/report.html" \
+      --stig-viewer "${ARTIFACT_DIR_REALPATH}/compliance_output_report_stigviewer.xml" \
+      --results "${ARTIFACT_DIR_REALPATH}/compliance_output_report.xml" \
+      --report "${ARTIFACT_DIR_REALPATH}/report.html" \
       --local-files /opt/oscap/ \
       /opt/oscap/scap-security-guide/"${OSCAP_DATASTREAM}" || true
 
@@ -67,7 +68,7 @@ for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*; do
       --privileged \
       --name scanner \
       -v /usr/local/bin/oscap-podman:/usr/local/bin/oscap-podman \
-      -v "${ARTIFACT_DIR}/${PLATFORM}":"${ARTIFACT_DIR}/${PLATFORM}" \
+      -v "${ARTIFACT_DIR_REALPATH}":"${ARTIFACT_DIR_REALPATH}" \
       -v "${DOCKER_AUTH_FILE_PULL}":/run/containers/0/auth.json \
       -v /opt:/opt \
       "ib-oscap-${OSCAP_SCANNER}:1.0.0" sleep 900
@@ -83,9 +84,9 @@ for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*; do
       eval \
       --verbose ERROR \
       --profile "${OSCAP_PROFILE}" \
-      --stig-viewer "${ARTIFACT_DIR}/${PLATFORM}/compliance_output_report_stigviewer.xml" \
-      --results "${ARTIFACT_DIR}/${PLATFORM}/compliance_output_report.xml" \
-      --report "${ARTIFACT_DIR}/${PLATFORM}/report.html" \
+      --stig-viewer "${ARTIFACT_DIR_REALPATH}/compliance_output_report_stigviewer.xml" \
+      --results "${ARTIFACT_DIR_REALPATH}/compliance_output_report.xml" \
+      --report "${ARTIFACT_DIR_REALPATH}/report.html" \
       --local-files /opt/oscap/ \
       /opt/oscap/scap-security-guide/"${OSCAP_DATASTREAM}" || true
   fi
@@ -93,9 +94,9 @@ for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*; do
   # IMPORTANT oscap-podman completes successfully with a nonzero RC, hence '|| true' ..
   # or it may segfault before producing artifacts, so test
   if
-    [ -f "${ARTIFACT_DIR}/${PLATFORM}/compliance_output_report_stigviewer.xml" ] &&
-      [ -f "${ARTIFACT_DIR}/${PLATFORM}/compliance_output_report.xml" ] &&
-      [ -f "${ARTIFACT_DIR}/${PLATFORM}/report.html" ]
+    [ -f "${ARTIFACT_DIR_REALPATH}/compliance_output_report_stigviewer.xml" ] &&
+      [ -f "${ARTIFACT_DIR_REALPATH}/compliance_output_report.xml" ] &&
+      [ -f "${ARTIFACT_DIR_REALPATH}/report.html" ]
   then
     echo "INFO scan complete"
   else
