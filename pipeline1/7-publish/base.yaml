@@ -43,7 +43,7 @@ generate-documentation:
     - if: $CI_COMMIT_BRANCH == "master"
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/documentation"
-    CSV_REPORT: "${ARTIFACT_STORAGE}/scan-results/csvs"
+    SCAN_RESULTS_DIR: "${ARTIFACT_STORAGE}/scan-results"
   needs:
     - setup
     - job: build-amd64
@@ -64,7 +64,7 @@ generate-documentation:
     when: always
     paths:
       - $ARTIFACT_DIR
-      - $CSV_REPORT
+      - $SCAN_RESULTS_DIR
     expire_in: 1 week
 
 harbor:
