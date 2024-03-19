@@ -83,18 +83,20 @@ def set_artifact_path(artifact):
         log.info(f"artifact.artifact_path before --> {artifact.artifact_path}.")
         log.info(f"artifect.architecture --> {artifact.architecture}")
         log.info(f"artifact --> {artifact}")
-        if artifact.architecture is None:
+        if artifact.architecture is None: # If no architecture is specified for the ContainerArtifact.
+            log.info(f"here ffff")
             artifact.artifact_path = (
                 artifact.dest_path
                 / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar"
             )
+        log.info(f"here asdf")
         if "arm64" in artifact.architecture:
             artifact.artifact_path = (
                 artifact.dest_path
                 / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar.arm64"
             )
             log.info(f"artifact.dest_path --> {artifact.dest_path}.")
-        else:
+        else: # amd64. Add other if statements for additional architectures.
             artifact.artifact_path = (
                 artifact.dest_path
                 / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar"
