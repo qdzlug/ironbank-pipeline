@@ -109,4 +109,7 @@ for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*; do
     echo "ERROR scan artifacts missing!"
     exit 1
   fi
+
+  # cleanup
+  podman rm -f scanner || true
 done

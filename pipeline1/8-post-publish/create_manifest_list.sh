@@ -15,5 +15,19 @@ for TAG in "${TAGS_ARRAY[@]}"; do
     DIGEST_TO_SCAN=$(awk -F'=' '/^DIGEST_TO_SCAN/ {print $2}' "$ARTIFACT_STORAGE/harbor/$PLATFORM/upload_to_harbor.env")
     podman manifest add "$REGISTRY_PUBLISH_URL/$IMAGE_NAME:$TAG" "docker://$REGISTRY_PUBLISH_URL/$IMAGE_NAME@$DIGEST_TO_SCAN" --authfile "$DOCKER_AUTH_FILE_PULL"
   done
+
+  # push manifest
   podman manifest push --all "$REGISTRY_PUBLISH_URL/$IMAGE_NAME:$TAG" --authfile "$DOCKER_AUTH_FILE_PUBLISH"
+
+  # inspect an image for manifest list sha
+  podman pull "$REGISTRY_PUBLISH_URL/$IMAGE_NAME:$TAG" --authfile "$DOCKER_AUTH_FILE_PUBLISH"
+  MANIFEST_LIST_SHA_URI=$(podman image inspect --format='{{index .RepoDigests 0}}' "$REGISTRY_PUBLISH_URL/$IMAGE_NAME:$TAG")
+
+  # sign
+  mkdir -p ~/.docker && cp "$DOCKER_AUTH_FILE_PUBLISH" ~/.docker/config.json
+  DOCKER_CONFIG="$HOME/.docker/config.json" cosign sign \
+    --key="$KMS_KEY_SHORT_ARN" \
+    --certificate="$COSIGN_CERT" \
+    --tlog-upload=false \
+    "$MANIFEST_LIST_SHA_URI"
 done
