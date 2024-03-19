@@ -80,12 +80,7 @@ def set_artifact_path(artifact):
         log.info(f"You are a container artifact.")
         artifact.dest_path = artifact.dest_path / "images"
         log.info(f"artifact.dest_path before --> {artifact.dest_path}.")
-        if artifact.architecture == None: # Default pipeline build where no architecture is declared. 
-            artifact.artifact_path = (
-                artifact.dest_path
-                / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar"
-            )
-            log.info(f"artifact.dest_path --> {artifact.dest_path}.")
+        log.info(f"artifect.architecture --> {artifact.architecture}")
         if "arm64" in artifact.architecture:
             artifact.artifact_path = (
                 artifact.dest_path
