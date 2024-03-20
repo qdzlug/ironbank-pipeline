@@ -370,12 +370,12 @@ if __name__ == "__main__":
         print("Usage: python3 run_image_tests.py <git_project_root_folder>")
         sys.exit(1)
 
-    git_project_root_folder = sys.argv[1]
+    GIT_PROJECT_ROOT_FOLDER = sys.argv[1]
 
     # get default gitlab value for the project
-    test_kubernetes_namespace = str(os.environ["NAMESPACE"])
+    KUBERNETES_NAMESPACE = str(os.environ["NAMESPACE"])
 
-    if test_kubernetes_namespace is None:
-        test_kubernetes_namespace = str(os.environ["NAMESPACE"])
+    if KUBERNETES_NAMESPACE is None:
+        KUBERNETES_NAMESPACE = str(os.environ["NAMESPACE"])
 
-    main(git_project_root_folder, test_kubernetes_namespace)
+    main(GIT_PROJECT_ROOT_FOLDER, KUBERNETES_NAMESPACE)

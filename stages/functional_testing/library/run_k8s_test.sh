@@ -35,8 +35,8 @@ print_cyan() {
 print_header "Starting Deployment Script"
 
 # Ensure the testing namespace exists
-print_green "Trusting namespace '$NAMESPACE' exists..."
-# kubectl create namespace $NAMESPACE || print_yellow "Namespace '$NAMESPACE' already exists."
+print_green "Trusting namespace \"$NAMESPACE\" exists..."
+# kubectl create namespace "$NAMESPACE" || print_yellow "Namespace '"$NAMESPACE"' already exists."
 
 # Extract image from the pod manifest
 IMAGE_FROM_MANIFEST=$(awk '/image:/ {print $2}' /tmp/podmanifest.yaml)
@@ -44,17 +44,17 @@ IMAGE_FROM_MANIFEST=$(awk '/image:/ {print $2}' /tmp/podmanifest.yaml)
 print_header "Deploying Pod"
 print_green "Creating the '$UNIQUE_POD_NAME' pod with the image '$IMAGE_FROM_MANIFEST'..."
 sed -i "s/name: test-pod/name: $UNIQUE_POD_NAME/" /tmp/podmanifest.yaml
-kubectl apply -f /tmp/podmanifest.yaml -n $NAMESPACE
+kubectl apply -f /tmp/podmanifest.yaml -n "$NAMESPACE"
 
 # Monitor the status of the pod for 3 minutes
 print_green "Monitoring pod status for 3 minutes..."
 FAILURE_COUNTER=0
 RUNNING_COUNTER=0
 
-for i in {1..18}; do # 18 iterations * 10 seconds = 3 minutes total
-  POD_STATUS=$(kubectl get pod $UNIQUE_POD_NAME -n $NAMESPACE --no-headers | awk '{print $3}')
-  echo $(kubectl get pod $UNIQUE_POD_NAME -n $NAMESPACE)
-  echo $POD_STATUS
+for _ in {1..18}; do # 18 iterations * 10 seconds = 3 minutes total
+  POD_STATUS=$(kubectl get pod "$UNIQUE_POD_NAME" -n "$NAMESPACE" --no-headers | awk '{print $3}')
+  kubectl get pod "$UNIQUE_POD_NAME" -n "$NAMESPACE"
+  echo "$POD_STATUS"
 
   if [[ "$POD_STATUS" == "Running" ]]; then
     RUNNING_COUNTER=$((RUNNING_COUNTER + 1))
@@ -87,13 +87,13 @@ fi
 # Fetch and print pod events
 print_header "Describing Pod"
 print_cyan "Waiting for $initialDelaySeconds seconds to get the final pod events..."
-sleep $initialDelaySeconds
-echo "$(kubectl describe pod $UNIQUE_POD_NAME -n $NAMESPACE)"
+sleep "$initialDelaySeconds"
+kubectl describe pod "$UNIQUE_POD_NAME" -n "$NAMESPACE"
 
 # Fetch logs of the pod if it's up
 print_header "Fetching Pod Logs"
 # Fetch logs of the pod if it's up
-POD_LOGS=$(kubectl logs $UNIQUE_POD_NAME -n $NAMESPACE)
+POD_LOGS=$(kubectl logs "$UNIQUE_POD_NAME" -n "$NAMESPACE")
 if [[ -z "$POD_LOGS" ]]; then
   print_red "Logs for $UNIQUE_POD_NAME are empty. Status of the pod is $POD_STATUS"
 else
@@ -101,27 +101,27 @@ else
 fi
 
 # Fetch and print pod events
-POD_DESCRIBE=$(kubectl describe pod $UNIQUE_POD_NAME -n $NAMESPACE)
+# POD_DESCRIBE=$(kubectl describe pod $UNIQUE_POD_NAME -n "$NAMESPACE")
 # echo "$POD_DESCRIBE"
 
 # Check if the pod is not running and exit with an error
 print_header "Final Pod Status Check"
 if [[ "$POD_STATUS" != "Running" && "$POD_STATUS" != "Completed" ]]; then
   print_red "Error: Pod did not reach the 'Running' or 'Completed' state within the expected time."
-  echo $(kubectl get pod $UNIQUE_POD_NAME -n $NAMESPACE -o=jsonpath='{.status.containerStatuses[0].state}')
+  kubectl get pod "$UNIQUE_POD_NAME" -n "$NAMESPACE" -o=jsonpath='{.status.containerStatuses[0].state}'
 
   print_cyan "Check the pod events and logs for more details."
   print_red "Failing ...."
-  echo $(kubectl get pod $UNIQUE_POD_NAME -n $NAMESPACE --no-headers)
+  kubectl get pod "$UNIQUE_POD_NAME" -n "$NAMESPACE" --no-headers
   exit 1
 else
   print_cyan "Current Pod Status: $POD_STATUS"
-  echo $(kubectl get pod $UNIQUE_POD_NAME -n $NAMESPACE --no-headers)
+  kubectl get pod "$UNIQUE_POD_NAME" -n "$NAMESPACE" --no-headers
 fi
 
 # Cleanup at the end
 print_header "Cleaning Up"
 print_yellow "Deleting pod '$UNIQUE_POD_NAME'..."
-kubectl delete -f /tmp/podmanifest.yaml -n $NAMESPACE
+kubectl delete -f /tmp/podmanifest.yaml -n "$NAMESPACE"
 
 print_header "Deployment Script Completed"
