@@ -11,4 +11,4 @@ rm trufflehog-config.yaml || rm trufflehog-config.yml
 python3 "${PIPELINE_REPO_DIR}/pipeline1/0-setup/image_inspect.py"
 
 ## lint
-python3 "${PIPELINE_REPO_DIR}/pipeline1/0-setup/lint_jobs.py"`
+python3 "${PIPELINE_REPO_DIR}/pipeline1/0-setup/lint_jobs.py"
