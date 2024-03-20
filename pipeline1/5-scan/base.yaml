@@ -58,6 +58,7 @@ twistlock-scan-amd64:
     - ironbank-dsop-privileged
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/twistlock/amd64"
+    PLATFORM: "amd64"
   script:
     - '"${PIPELINE_REPO_DIR}/pipeline1/5-scan/twistlock_scan.sh"'
   artifacts:
@@ -83,6 +84,7 @@ twistlock-scan-arm64:
     - ironbank-dsop-privileged
   variables:
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/twistlock/arm64"
+    PLATFORM: "arm64"
     KUBERNETES_NODE_SELECTOR_IRONBANK: "ironbank=gitlab-runner-arm64"
   script:
     - '"${PIPELINE_REPO_DIR}/pipeline1/5-scan/twistlock_scan.sh"'
