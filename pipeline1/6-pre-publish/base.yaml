@@ -12,7 +12,10 @@ vat:
     - scan-logic
     - anchore-scan
     - openscap-compliance
-    - twistlock-scan
+    - job: twistlock-scan-amd64
+      optional: true
+    - job: twistlock-scan-arm64
+      optional: true
   extends:
     - .setup_modules
   variables:

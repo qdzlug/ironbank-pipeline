@@ -51,7 +51,10 @@ upload-to-s3:
     - create-sbom
     - scan-logic
     - anchore-scan
-    - twistlock-scan
+    - job: twistlock-scan-amd64
+      optional: true
+    - job: twistlock-scan-arm64
+      optional: true
     - openscap-compliance
     - generate-documentation
     - vat

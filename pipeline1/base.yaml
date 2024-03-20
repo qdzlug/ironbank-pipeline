@@ -1,5 +1,5 @@
 # Iron Bank CI Pipeline
-image: registry1.dso.mil/ironbank-apps/ironbank-pipelines/pipeline-runner:0.11.0
+image: harbor-ib-mario.staging.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:0.11.0
 
 default:
   retry:

@@ -52,7 +52,10 @@ generate-documentation:
       optional: true
     - scan-logic
     - anchore-scan
-    - twistlock-scan
+    - job: twistlock-scan-amd64
+      optional: true
+    - job: twistlock-scan-arm64
+      optional: true
     - openscap-compliance
     - vat
   script:

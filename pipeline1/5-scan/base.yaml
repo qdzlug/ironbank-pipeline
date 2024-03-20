@@ -1,4 +1,4 @@
-.scan:
+anchore-scan:
   stage: scan
   needs:
     - setup
@@ -7,15 +7,12 @@
     - job: build-arm64
       optional: true
     - scan-logic
-
-anchore-scan:
   id_tokens:
     ANCHORE_PASSWORD:
       aud: ${CI_SERVER_URL}
   variables:
     PYTHON_LOG_LEVEL: "INFO"
     ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/anchore"
-  extends: .scan
   script:
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/5-scan/anchore_scan.py"'
   artifacts:
@@ -25,7 +22,14 @@ anchore-scan:
     expire_in: 1 week
 
 openscap-compliance:
-  extends: .scan
+  stage: scan
+  needs:
+    - setup
+    - job: build-amd64
+      optional: true
+    - job: build-arm64
+      optional: true
+    - scan-logic
   tags:
     - ironbank-dsop-privileged
   script:
@@ -35,20 +39,29 @@ openscap-compliance:
   artifacts:
     when: always
     paths:
-      - "${ARTIFACT_DIR}/"
+      - "${ARTIFACT_DIR}/amd64"
     reports:
       dotenv: "${ARTIFACT_DIR}/oscap-compliance.env"
     expire_in: 1 week
+  rules:
+    - exists:
+        - Dockerfile
 
-twistlock-scan:
+twistlock-scan-arm64:
   id_tokens:
     TWISTLOCK_PASSWORD:
       aud: ${CI_SERVER_URL}
-  extends: .scan
+  stage: scan
+  needs:
+    - setup
+    - job: build-amd64
+      optional: true
+    - scan-logic
   tags:
     - ironbank-dsop-privileged
   variables:
-    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/twistlock"
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/twistlock/arm64"
+    KUBERNETES_NODE_SELECTOR_IRONBANK: "ironbank=gitlab-runner-arm64"
   script:
     - '"${PIPELINE_REPO_DIR}/pipeline1/5-scan/twistlock_scan.sh"'
   artifacts:
@@ -56,3 +69,6 @@ twistlock-scan:
     paths:
       - "${ARTIFACT_DIR}/"
     expire_in: 1 week
+  rules:
+    - exists:
+        - Dockerfile_arm64
