@@ -116,7 +116,8 @@ def validate_base_image(platform: str):
                     pull_auth,
                     Path(docker_config_dir, "config.json"),
                 )
-                if not Cosign.verify(
+                cosign = Cosign()
+                if not cosign.verify(
                     image=base_image.from_image(transport=""),
                     docker_config_dir=docker_config_dir,
                     use_key=True,

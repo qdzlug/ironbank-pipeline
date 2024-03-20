@@ -120,9 +120,11 @@ def diff_needed(docker_config_dir: Path, build: dict, platform: str) -> Optional
         cosign_verify = True
         # Skip cosign verify in staging as it will fail
         # TODO: Investigate getting cosign verify working in staging environment
-        if "repo1.dso.mil" in os.environ["CI_SERVER_URL"]:
+        prod_envs = ["repo1.dso.mil", "repo1.il5.dso.mil"]
+        if any(x in os.environ["CI_SERVER_URL"] for x in prod_envs):
             log.info("Verify old image signature")
-            cosign_verify = Cosign.verify(
+            cosign = Cosign()
+            cosign_verify = cosign.verify(
                 image=old_image.from_image(transport=""),
                 docker_config_dir=docker_config_dir,
                 use_key=True,

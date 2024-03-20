@@ -102,6 +102,10 @@ def test_diff_needed(monkeypatch, caplog, raise_):
     example_url = "http://example.com"
     monkeypatch.setenv("REGISTRY_PUBLISH_URL", example_url)
     monkeypatch.setenv("CI_SERVER_URL", "repo1.dso.mil")
+    monkeypatch.setenv("KMS_KEY_SHORT_ARN", "kmsKey")
+    monkeypatch.setenv("COSIGN_CERT", "cert")
+    monkeypatch.setenv("COSIGN_PUBLIC_KEY", "publicKey")
+    monkeypatch.setenv("COSIGN_CERTIFICATE_CHAIN", "chain")
     mock_old_img_json = {
         "Extra Key": "something",
         "Tag": IMAGE_TAG,
