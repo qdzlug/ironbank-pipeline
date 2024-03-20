@@ -43,6 +43,28 @@ openscap-compliance:
     reports:
       dotenv: "${ARTIFACT_DIR}/oscap-compliance.env"
     expire_in: 1 week
+
+twistlock-scan-amd64:
+  id_tokens:
+    TWISTLOCK_PASSWORD:
+      aud: ${CI_SERVER_URL}
+  stage: scan
+  needs:
+    - setup
+    - job: build-amd64
+      optional: true
+    - scan-logic
+  tags:
+    - ironbank-dsop-privileged
+  variables:
+    ARTIFACT_DIR: "${ARTIFACT_STORAGE}/scan-results/twistlock/amd64"
+  script:
+    - '"${PIPELINE_REPO_DIR}/pipeline1/5-scan/twistlock_scan.sh"'
+  artifacts:
+    when: always
+    paths:
+      - "${ARTIFACT_DIR}/"
+    expire_in: 1 week
   rules:
     - exists:
         - Dockerfile
@@ -54,7 +76,7 @@ twistlock-scan-arm64:
   stage: scan
   needs:
     - setup
-    - job: build-amd64
+    - job: build-arm64
       optional: true
     - scan-logic
   tags:
