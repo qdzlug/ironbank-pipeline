@@ -64,8 +64,8 @@ def get_config(config_file: Path, expand_vars: bool = False) -> list:
 
 
 def create_trufflehog_config(
-    project_config_path: Path,
-    default_config_path: Path,
+    project_truffle_config: Path,
+    default_truffle_config: Path,
     repo_dir: str,
     config_variable: Optional[str] = None,
 ) -> bool:
@@ -76,13 +76,13 @@ def create_trufflehog_config(
     to a file. Returns a boolean.     True if the config variable exists
     and a config file is found
     """
-    default_exclude_list = get_config(default_config_path, True)
-    project_exclude_list = get_config(project_config_path) if config_variable else []
+    default_exclude_list = get_config(default_truffle_config, True)
+    project_exclude_list = get_config(project_truffle_config) if config_variable else []
     config = {"exclude": default_exclude_list + project_exclude_list}
-    outfile = Path(repo_dir, project_config_path)
+    outfile = Path(repo_dir, default_truffle_config)
     with outfile.open(mode="w", encoding="utf-8") as f:
         yaml.safe_dump(config, f, indent=2, sort_keys=False)
-    return bool(config_variable and project_config_path.is_file())
+    return bool(config_variable and project_truffle_config.is_file())
 
 
 # reenable if/when we add requests to the trufflehog image
@@ -166,7 +166,7 @@ def main() -> None:  # pylint: disable=subprocess-decorator-missing
         branch_name,
         *history_cmd,
         "--config",
-        trufflehog_conf_path.as_posix(),
+        default_truffle_config.as_posix(),
         ".",
     ]
 

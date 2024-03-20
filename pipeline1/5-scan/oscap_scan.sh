@@ -20,11 +20,6 @@ fi
 mkdir -p /run/containers/0
 cp "${DOCKER_AUTH_FILE_PULL}" /run/containers/0/auth.json
 
-# dotenv artifact
-mkdir -p "${ARTIFACT_DIR}"
-echo "OSCAP_COMPLIANCE_URL=${CI_JOB_URL}" >"${ARTIFACT_DIR}/oscap-compliance.env"
-chmod 644 "${ARTIFACT_DIR}/oscap-compliance.env"
-
 for SCAN_LOGIC_DIR in "$ARTIFACT_STORAGE/scan-logic"/*; do
 
   # IMAGE_TO_SCAN
