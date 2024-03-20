@@ -40,8 +40,6 @@ openscap-compliance:
     when: always
     paths:
       - "${ARTIFACT_DIR}"
-    reports:
-      dotenv: "${ARTIFACT_DIR}/oscap-compliance.env"
     expire_in: 1 week
 
 twistlock-scan-amd64:
