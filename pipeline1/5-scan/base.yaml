@@ -39,7 +39,7 @@ openscap-compliance:
   artifacts:
     when: always
     paths:
-      - "${ARTIFACT_DIR}/amd64"
+      - "${ARTIFACT_DIR}"
     reports:
       dotenv: "${ARTIFACT_DIR}/oscap-compliance.env"
     expire_in: 1 week
