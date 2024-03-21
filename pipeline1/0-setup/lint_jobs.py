@@ -8,7 +8,7 @@ import dockerfile_validation
 import folder_structure
 import hardening_manifest_validation
 import pipeline_auth_status
-
+from pathlib import Path
 from common.utils import logger
 from pipeline.utils.exceptions import SymlinkFoundError
 
@@ -93,14 +93,12 @@ async def main():
 
 
 if __name__ == "__main__":
-    dsop_project = DsopProject()
-    hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
-    potential_platforms = hardening_manifest.architecture
-    # The hardening_manifest doesn't have an architecture section, default to amd64.
-    if hardening_manifest.architecture == None:
-        platforms = ["amd64"]
-    else:
-        platforms = [platform for platform in hardening_manifest.architecture]
+    platforms = []
+    if Path("./Dockerfile").is_file():
+        platforms.append("amd64")
+    if Path("./Dockerfile.arm64").is_file():
+        platforms.append("arm64")
+    
     for platform in platforms:
         log.info(f"Validating image for {platform} architecture.")
         asyncio.run(main())
