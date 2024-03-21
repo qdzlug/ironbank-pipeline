@@ -255,7 +255,7 @@ def create_api_call() -> dict:
 
     # OSCAP_DATASTREAM is set by image_inspect.py and the value depends on the base image
     # if OSCAP_DATASTREAM exists, oscap_scan.sh produced a report artifact and vat can import
-    if args.oscap and not os.environ.get("OSCAP_DATASTREAM"):
+    if args.oscap and os.environ.get("OSCAP_DATASTREAM"):
         log.info("Importing oscap findings")
         os_findings = generate_oscap_findings(
             args.oscap, vat_finding_fields=vat_finding_fields
