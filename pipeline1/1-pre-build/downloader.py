@@ -76,21 +76,25 @@ def set_artifact_path(artifact):
         artifact.artifact_path = artifact.dest_path / artifact.filename
     if isinstance(artifact, ContainerArtifact):
         artifact.dest_path = artifact.dest_path / "images"
-        if artifact.architecture is None: # If no architecture is specified for the ContainerArtifact.
-            artifact.artifact_path = (
-                artifact.dest_path
-                / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar"
-            )
-        elif "arm64" in artifact.architecture:
-            artifact.artifact_path = (
-                artifact.dest_path
-                / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar.arm64"
-            )
-        else: # amd64. Add other if statements for additional architectures.
-            artifact.artifact_path = (
-                artifact.dest_path
-                / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar"
-            )
+        # if artifact.architecture is None: # If no architecture is specified for the ContainerArtifact.
+        #     artifact.artifact_path = (
+        #         artifact.dest_path
+        #         / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar"
+        #     )
+        # elif "arm64" in artifact.architecture:
+        #     artifact.artifact_path = (
+        #         artifact.dest_path
+        #         / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar.arm64"
+        #     )
+        # else: # amd64. Add other if statements for additional architectures.
+        #     artifact.artifact_path = (
+        #         artifact.dest_path
+        #         / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar"
+        #     )
+        artifact.artifact_path = (
+            artifact.dest_path
+            / f"{artifact.tag.replace('/', '-').replace(':', '-')}.tar"
+        )
     return artifact
 
 
