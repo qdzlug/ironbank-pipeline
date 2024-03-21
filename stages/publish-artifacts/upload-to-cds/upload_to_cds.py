@@ -58,7 +58,8 @@ def main() -> None:
             )
 
             # Verify the signature of the signed image
-            if not Cosign.verify(
+            cosign = Cosign()
+            if not cosign.verify(
                 image=Image(
                     registry=registry_url, name=image_name, tag=image_tag, transport=""
                 ),
