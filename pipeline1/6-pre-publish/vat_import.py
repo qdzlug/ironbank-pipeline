@@ -255,7 +255,7 @@ def create_api_call() -> dict:
 
     # if the SKIP_OPENSCAP variable exists, the oscap job was not run.
     # When not os.environ.get("SKIP_OPENSCAP"), this means this is not a SKIP_OPENSCAP project, and oscap findings should be imported
-    if args.oscap and not os.environ.get("SKIP_OPENSCAP"):
+    if args.oscap and not os.environ.get("OSCAP_DATASTREAM"):
         log.info("Importing oscap findings")
         os_findings = generate_oscap_findings(
             args.oscap, vat_finding_fields=vat_finding_fields
@@ -278,7 +278,7 @@ def create_api_call() -> dict:
     all_findings = tl_findings + asec_findings + acomp_findings + os_findings
     large_data = {
         "imageName": args.container,
-        "imageTag": args.version + '-' + platform,
+        "imageTag": args.version + "-" + platform,
         "parentImageName": args.parent,
         "parentImageTag": args.parent_version,
         "jobId": args.job_id,
