@@ -105,16 +105,6 @@
       },
       "required": ["BASE_IMAGE", "BASE_TAG"]
     },
-    "architecture": {
-      "description": "Architecture of the container",
-      "type": "array",
-      "items": {
-        "type": "string",
-        "enum": ["amd64", "arm64"]
-      },
-      "minItems": 1,
-      "uniqueItems": true
-    },
     "labels": {
       "description": "Labels added to Iron Bank containers",
       "type": "object",

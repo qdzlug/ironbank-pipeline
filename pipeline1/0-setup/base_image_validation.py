@@ -79,7 +79,10 @@ def validate_base_image(platform: str):
             skopeo = Skopeo(authfile=pull_auth)
 
             # If it's a manifest-list get platform sha.
-            if (json_data["manifest_media_type"] == "application/vnd.oci.image.index.v1+json"):
+            if (
+                json_data["manifest_media_type"]
+                == "application/vnd.oci.image.index.v1+json"
+            ):
                 for image in json_data["references"]:
                     if image["platform"]["architecture"] == platform:
                         digest = image["child_digest"]
@@ -134,6 +137,7 @@ def validate_base_image(platform: str):
             "w", encoding="utf-8"
         ) as f:
             json.dump(base_image_info, f)
+
 
 if __name__ == "__main__":
     print("This should only be called from lint_jobs.py")
