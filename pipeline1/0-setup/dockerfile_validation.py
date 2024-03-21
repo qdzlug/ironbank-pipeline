@@ -5,6 +5,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+import os
 
 from pipeline.file_parser import DockerfileParser
 from pipeline.hardening_manifest import HardeningManifest
@@ -41,7 +42,7 @@ async def main():
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     # If Dockerfile_arm64 exists and the hardening_manifest doesn't have an arm64 key exit the pipeline.
-    if Path("./Dockerfile_arm64").exists():
+    if Path(f"{os.environ['CI_PROJECT_DIR']}/Dockerfile_arm64").exists():
         print("Dockerfile_arm64 exists!")
     else:
         print("Dockerfile_arm64 does not exist.")
