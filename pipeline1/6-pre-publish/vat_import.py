@@ -253,8 +253,8 @@ def create_api_call() -> dict:
     with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json') as f:
         build_json = json.load(f)
 
-    # if the SKIP_OPENSCAP variable exists, the oscap job was not run.
-    # When not os.environ.get("SKIP_OPENSCAP"), this means this is not a SKIP_OPENSCAP project, and oscap findings should be imported
+    # OSCAP_DATASTREAM is set by image_inspect.py and the value depends on the base image
+    # if OSCAP_DATASTREAM exists, oscap_scan.sh produced a report artifact and vat can import
     if args.oscap and not os.environ.get("OSCAP_DATASTREAM"):
         log.info("Importing oscap findings")
         os_findings = generate_oscap_findings(
