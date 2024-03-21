@@ -46,7 +46,7 @@ async def main():
     if dockerfile_arm64_exists and hardening_manifest.architecture == None: # The architectures must be listed if a Dockerfile_arm64 is present.
         log.error(f"Dockerfile_arm64 detected. Architectures are not listed in the hardening_manifest.")
         sys.exit(100)
-    if dockerfile_arm64_exists and "arm64" not in hardening_manifest.architecture:
+    if dockerfile_arm64_exists and "arm64" not in hardening_manifest.architecture: # Need the architecture field for an arm64 build.
         log.error("Dockerfile_arm64 exists and arm64 is not listed in the hardening_manifest's architectures.")
         log.error("Both must be present to build an arm64 image.")
         sys.exit(100)
