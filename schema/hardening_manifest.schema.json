@@ -172,16 +172,6 @@
               "filename": {
                 "$ref": "#/definitions/printable-characters-without-newlines-or-slashes"
               },
-              "architecture": {
-                "description": "Architecture for the resource",
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "enum": ["amd64", "arm64"]
-                },
-                "minItems": 1,
-                "uniqueItems": true
-              },
               "validation": {
                 "type": "object",
                 "properties": {
@@ -218,16 +208,6 @@
               "url": { "type": "string", "pattern": "^s3://.+$" },
               "filename": {
                 "$ref": "#/definitions/printable-characters-without-newlines-or-slashes"
-              },
-              "architecture": {
-                "description": "Architecture for the resource",
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "enum": ["amd64", "arm64"]
-                },
-                "minItems": 1,
-                "uniqueItems": true
               },
               "validation": {
                 "type": "object",
@@ -271,14 +251,6 @@
             "properties": {
               "url": { "$ref": "#/definitions/docker-ReferenceRegexp-url" },
               "tag": { "$ref": "#/definitions/docker-name-and-tag" },
-              "architecture": {
-                "description": "Architecture for the resource",
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "enum": ["amd64", "arm64"]
-                }
-              },
               "auth": {
                 "type": "object",
                 "properties": {
@@ -298,15 +270,7 @@
             "type": "object",
             "properties": {
               "url": { "$ref": "#/definitions/github-ReferenceRegexp-url" },
-              "tag": { "$ref": "#/definitions/docker-name-and-tag" },
-              "architecture": {
-                "description": "Architecture for the resource",
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "enum": ["amd64", "arm64"]
-                }
-              }
+              "tag": { "$ref": "#/definitions/docker-name-and-tag" }
             },
             "additionalProperties": false,
             "required": ["url"]
@@ -320,16 +284,6 @@
               },
               "filename": {
                 "$ref": "#/definitions/printable-characters-without-newlines-or-slashes"
-              },
-              "architecture": {
-                "description": "Architecture for the resource",
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "enum": ["amd64", "arm64"]
-                },
-                "minItems": 1,
-                "uniqueItems": true
               },
               "validation": {
                 "type": "object",

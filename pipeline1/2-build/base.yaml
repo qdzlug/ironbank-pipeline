@@ -36,8 +36,8 @@ build-arm64:
     KUBERNETES_NODE_SELECTOR_IRONBANK: "ironbank=gitlab-runner-arm64"
     PLATFORM: "arm64"
   script:
-    # Also by copying the Dockerfile_arm64 over the Dockerfile the correct arguments are passed when the image is being built.
-    - "cp -f Dockerfile_arm64 Dockerfile"
+    # Also by copying the Dockerfile.arm64 over the Dockerfile the correct arguments are passed when the image is being built.
+    - "cp -f Dockerfile.arm64 Dockerfile"
     - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/2-build/build.py"'
   artifacts:
     when: always
@@ -46,4 +46,4 @@ build-arm64:
     expire_in: 1 week
   rules:
     - exists:
-        - Dockerfile_arm64
+        - Dockerfile.arm64

@@ -229,12 +229,12 @@ class Anchore:
             "add",
         ]
 
-        if Path("./Dockerfile_arm64").is_file() and platform == "amd64":
+        if Path("./Dockerfile.arm64").is_file() and platform == "amd64":
             os.environ["ANCHORECTL_FORCE"] = "true"
             add_cmd += ["--dockerfile", "./Dockerfile"]
-        elif Path("./Dockerfile_arm64").is_file() and platform == "arm64":
+        elif Path("./Dockerfile.arm64").is_file() and platform == "arm64":
             os.environ["ANCHORECTL_FORCE"] = "true"
-            add_cmd += ["--dockerfile", "./Dockerfile_arm64"]
+            add_cmd += ["--dockerfile", "./Dockerfile.arm64"]
         else:  # Change this to a elif for other architectures.
             os.environ["ANCHORECTL_FORCE"] = "true"
             add_cmd += ["--dockerfile", "./Dockerfile"]

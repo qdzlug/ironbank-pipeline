@@ -93,4 +93,4 @@ twistlock-scan-arm64:
     expire_in: 1 week
   rules:
     - exists:
-        - Dockerfile_arm64
+        - Dockerfile.arm64
