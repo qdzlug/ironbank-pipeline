@@ -42,10 +42,14 @@ async def main():
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     log.info(f"{hardening_manifest.architecture}")
-    if Path(f"{os.environ['CI_PROJECT_DIR']}/Dockerfile_arm64").exists() and "arm64" in hardening_manifest.architecture:
-        print("Dockerfile_arm64 exists and arm64 in hardening_manifest.architecture.")
-    else:
-        print("Dockerfile_arm64 does not exist or arm64 is not in the hardening_manifest.architecture.")
+    dockerfile_arm64_exists = Path(f"{os.environ['CI_PROJECT_DIR']}/Dockerfile_arm64").exists()
+    if dockerfile_arm64_exists and hardening_manifest.architecture == None: # The architectures must be listed if a Dockerfile_arm64 is present.
+        log.error(f"Dockerfile_arm64 detected. Architectures are not listed in the hardening_manifest.")
+        sys.exit(100)
+    if dockerfile_arm64_exists and "arm64" not in hardening_manifest.architecture:
+        log.error("Dockerfile_arm64 exists and arm64 is not listed in the hardening_manifest's architectures.")
+        log.error("Both must be present to build an arm64 image.")
+        sys.exit(100)
 
     log.debug("Validating dockerfile contents")
     # TODO: move this decorator to main when/if we remove the async from the main func
