@@ -67,7 +67,7 @@ def main() -> None:
     anchore_cve_fail_count = 0
     anchore_comp_fail_count = 0
     image_id = ""
-    if "SKIP_OPENSCAP" not in os.environ:
+    if "OSCAP_DATASTREAM" in os.environ:
         (
             oscap_comp_fail_count,
             oscap_comp_not_checked_count,

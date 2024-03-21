@@ -82,7 +82,7 @@ def _colorize_full(workbook):
     _colorize_sheet(workbook["Anchore Compliance Results"])
     _colorize_sheet(workbook["Twistlock Vulnerability Results"])
 
-    if not os.environ.get("SKIP_OPENSCAP"):
+    if os.environ.get("OSCAP_DATASTREAM"):
         _colorize_sheet(workbook["OpenSCAP - DISA Compliance"])
 
 
@@ -209,7 +209,7 @@ def _set_all_column_widths(workbook):
     Args:
         workbook (openpyxl.workbook): The Excel workbook object to modify.
     """
-    if not os.environ.get("SKIP_OPENSCAP"):
+    if os.environ.get("OSCAP_DATASTREAM"):
         openscap_disa = workbook["OpenSCAP - DISA Compliance"]
         _set_column_width(
             openscap_disa, column_value="scanned_date", width=20

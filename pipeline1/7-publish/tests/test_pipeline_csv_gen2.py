@@ -155,11 +155,11 @@ def test_main(monkeypatch, caplog, raise_) -> None:
 
     log.info("Test sequence to generate blank oscap report")
     monkeypatch.setattr(json, "load", lambda *args, **kwargs: None)
-    monkeypatch.setenv("SKIP_OPENSCAP", "")
+    monkeypatch.setenv("OSCAP_DATASTREAM", "foo.ds.xml")
     pipeline_csv_gen.main()
 
     log.info("Test sequence to generate oscap compliance report")
-    monkeypatch.delenv("SKIP_OPENSCAP")
+    monkeypatch.delenv("OSCAP_DATASTREAM")
     pipeline_csv_gen.main()
 
 
