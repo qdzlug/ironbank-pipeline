@@ -276,9 +276,14 @@ def create_api_call() -> dict:
         tl_findings = generate_twistlock_findings(args.twistlock)
         log.info("Twistlock finding count: %s", len(tl_findings))
     all_findings = tl_findings + asec_findings + acomp_findings + os_findings
+    # Allows the multiarch pipeline1 to run legacy projects in prod until other teams are ready.
+    if platform == "amd64":
+        image_tag = args.version
+    else:
+        image_tag = args.version + "-" + platform
     large_data = {
         "imageName": args.container,
-        "imageTag": args.version + "-" + platform,
+        "imageTag": image_tag,
         "parentImageName": args.parent,
         "parentImageTag": args.parent_version,
         "jobId": args.job_id,
