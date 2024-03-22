@@ -277,6 +277,7 @@ def create_api_call() -> dict:
         log.info("Twistlock finding count: %s", len(tl_findings))
     all_findings = tl_findings + asec_findings + acomp_findings + os_findings
     # Allows the multiarch pipeline1 to run legacy projects in prod until other teams are ready.
+    # args.version ==> This value comes from args.version, which gets it from the Environment var IMAGE_VERSION which is written by the hardening_manifest_validation.py script run.
     if platform == "amd64":
         image_tag = args.version
     else:
