@@ -46,3 +46,5 @@ build-arm64:
   rules:
     - exists:
         - Dockerfile.arm64
+    # $MULTI_ARCH_BUILD_ALLOWED is a project variable to prevent unauthorized arm64 builds.
+    - if: $MULTI_ARCH_BUILD_ALLOWED == "True"
