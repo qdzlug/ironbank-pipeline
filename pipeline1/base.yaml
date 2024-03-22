@@ -1,5 +1,5 @@
 # Iron Bank CI Pipeline
-image: harbor-ib-mario.staging.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:0.11.0
+image: ${IAM_ACCOUNT_ID}.dkr.ecr.us-gov-west-1.amazonaws.com/ironbank/ironbank-pipelines/pipeline-runner:v0.12.0
 
 default:
   retry:
