@@ -92,7 +92,6 @@ twistlock-scan-arm64:
       - "${ARTIFACT_DIR}/"
     expire_in: 1 week
   rules:
-    # $MULTI_ARCH_BUILD_ALLOWED is a project variable to prevent unauthorized arm64 builds.
-    - if: $MULTI_ARCH_BUILD_ALLOWED == "True"
+    - if: $ENABLE_MULTIARCH != ""
       exists:
         - Dockerfile.arm64

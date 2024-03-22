@@ -68,16 +68,16 @@ upload-to-s3:
     max: 2
     when: runner_system_failure
 
-create-manifest-list:
+manifest:
   stage: post-publish
   rules:
-    # $MULTI_ARCH_BUILD_ALLOWED is a project variable to prevent unauthorized arm64 builds.
-    - if: $CI_COMMIT_BRANCH == "master" && $MULTI_ARCH_BUILD_ALLOWED == "True"
+    - if: $CI_COMMIT_BRANCH == "master" && $ENABLE_MULTIARCH != ""
   needs:
     - setup
+    - create-sbom
     - harbor
   script:
-    - '"${PIPELINE_REPO_DIR}/pipeline1/8-post-publish/create_manifest_list.sh"'
+    - '"${PIPELINE_REPO_DIR}/pipeline1/8-post-publish/manifest.sh"'
   variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: sign
   
