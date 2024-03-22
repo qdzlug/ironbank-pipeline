@@ -58,10 +58,14 @@ def promote_tags(
     according the the tags defined in tags.txt."""
 
     for tag in tags:
-        if build['PLATFORM'] == "amd64":
+        if os.environ["MULTI_ARCH_BUILD_ALLOWED"] == None:
             tag = f"{tag}"
         else:
-            tag = f"{tag}-{build['PLATFORM']}"
+            if os.environ["MULTI_ARCH_BUILD_ALLOWED"] == "True":
+                tag = f"{tag}-{build['PLATFORM']}"
+            else:
+                tag = f"{tag}"
+
         production_image = production_image.from_image(tag=tag)
 
         log.info(f"Copy from staging to {production_image}")
