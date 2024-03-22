@@ -22,7 +22,6 @@ build-amd64:
         - Dockerfile
 
 build-arm64:
-  image: ${IAM_ACCOUNT_ID}.dkr.ecr.us-gov-west-1.amazonaws.com/ironbank/ironbank-pipelines/pipeline-runner:v0.10.13-arm64
   stage: build
   extends:
     - .setup_modules
