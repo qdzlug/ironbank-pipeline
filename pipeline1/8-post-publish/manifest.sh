@@ -58,7 +58,7 @@ for SBOM_DIR in "$ARTIFACT_STORAGE/sbom"/*; do
   ; do
     case $(basename "$ARTIFACT_FILE") in
       "sbom-cyclonedx-json.json")
-        PREDICATE_TYPE="cyclonedx.org/bom"
+        PREDICATE_TYPE="https://cyclonedx.org/bom"
         ;;
       "sbom-spdx-json.json")
         PREDICATE_TYPE="https://spdx.dev/Document"
@@ -78,7 +78,7 @@ for SBOM_DIR in "$ARTIFACT_STORAGE/sbom"/*; do
     esac
 
     if [ -n "$PREDICATE_TYPE" ]; then
-      echo "INFO attesting $PREDICATE_TYPE $ARTIFACT_FILE ($PLATFORM)"
+      echo "INFO attesting $ARTIFACT_FILE ($PREDICATE_TYPE)"
       DOCKER_CONFIG="$HOME/.docker" cosign attest \
         --predicate="$ARTIFACT_FILE" \
         --type="$PREDICATE_TYPE" \
