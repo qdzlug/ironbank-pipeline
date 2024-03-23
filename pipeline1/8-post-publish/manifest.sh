@@ -38,11 +38,11 @@ for TAG in "${TAGS_ARRAY[@]}"; do
 done
 
 # clean existing attestations (because we're not passing --replace as there may be more than one of the same)
-echo "INFO cleaning attestations"
-DOCKER_CONFIG="$HOME/.docker" cosign clean \
-  --type attestation \
-  --force \
-  "$REGISTRY_PUBLISH_URL/$IMAGE_NAME@$MANIFEST_LIST_SHA"
+# echo "INFO cleaning attestations"
+# DOCKER_CONFIG="$HOME/.docker" cosign clean \
+#   --type attestation \
+#   --force \
+#   "$REGISTRY_PUBLISH_URL/$IMAGE_NAME@$MANIFEST_LIST_SHA"
 
 # each arch adds attestations
 for SBOM_DIR in "$ARTIFACT_STORAGE/sbom"/*; do
