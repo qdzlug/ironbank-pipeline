@@ -44,6 +44,17 @@ done
 #   --force \
 #   "$REGISTRY_PUBLISH_URL/$IMAGE_NAME@$MANIFEST_LIST_SHA"
 
+# hardening manifest attestation
+cat "$CI_PROJECT_DIR/hardening_manifest.yaml" | python -c 'import sys, yaml, json; print(json.dumps(yaml.safe_load(sys.stdin.read())))' > "$CI_PROJECT_DIR/hardening_manifest.json"
+echo "INFO attesting $CI_PROJECT_DIR/hardening_manifest.json (https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md)"
+DOCKER_CONFIG="$HOME/.docker" cosign attest \
+  --predicate="$CI_PROJECT_DIR/hardening_manifest.json" \
+  --type="https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md" \
+  --key="$KMS_KEY_SHORT_ARN" \
+  --certificate="$COSIGN_CERT" \
+  --tlog-upload=false \
+  "$REGISTRY_PUBLISH_URL/$IMAGE_NAME@$MANIFEST_LIST_SHA"
+
 # each arch adds attestations
 for SBOM_DIR in "$ARTIFACT_STORAGE/sbom"/*; do
 
@@ -54,7 +65,6 @@ for SBOM_DIR in "$ARTIFACT_STORAGE/sbom"/*; do
   for ARTIFACT_FILE in \
     "$ARTIFACT_STORAGE/sbom/$PLATFORM"/* \
     "$ARTIFACT_STORAGE/harbor/$PLATFORM/vat_response_lineage.json" \
-    "$HOME/hardening_manifest.json" \
   ; do
     case $(basename "$ARTIFACT_FILE") in
       "sbom-cyclonedx-json.json")
@@ -68,9 +78,6 @@ for SBOM_DIR in "$ARTIFACT_STORAGE/sbom"/*; do
         ;;
       "vat_response_lineage.json")
         PREDICATE_TYPE="https://vat.dso.mil/api/p1/predicate/beta1"
-        ;;
-      "hardening_manifest.json")
-        PREDICATE_TYPE="https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md"
         ;;
       *)
         PREDICATE_TYPE=""
