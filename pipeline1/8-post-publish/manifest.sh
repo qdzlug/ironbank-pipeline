@@ -37,14 +37,7 @@ for TAG in "${TAGS_ARRAY[@]}"; do
   echo "INFO mainfest sha found, URI: $REGISTRY_PUBLISH_URL/$IMAGE_NAME@$MANIFEST_LIST_SHA"
 done
 
-# clean existing attestations, sboms, and signature (because we're not passing --replace as there may be more than one of each type)
-echo "INFO cleaning manifest"
-DOCKER_CONFIG="$HOME/.docker" cosign clean \
-  --type all \
-  --force \
-  "$REGISTRY_PUBLISH_URL/$IMAGE_NAME@$MANIFEST_LIST_SHA"
-
-# hardening manifest attestation
+# hardening manifest yaml to json
 cat "$CI_PROJECT_DIR/hardening_manifest.yaml" | python -c 'import sys, yaml, json; print(json.dumps(yaml.safe_load(sys.stdin.read())))' > "$CI_PROJECT_DIR/hardening_manifest.json"
 echo "INFO attesting $CI_PROJECT_DIR/hardening_manifest.json (https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md)"
 DOCKER_CONFIG="$HOME/.docker" cosign attest \
@@ -55,17 +48,18 @@ DOCKER_CONFIG="$HOME/.docker" cosign attest \
   --tlog-upload=false \
   "$REGISTRY_PUBLISH_URL/$IMAGE_NAME@$MANIFEST_LIST_SHA"
 
-# each arch adds attestations
+# loop each arch
 for SBOM_DIR in "$ARTIFACT_STORAGE/sbom"/*; do
 
-  # amd64, arm64
+  # amd64, arm64, ..
   PLATFORM=$(basename "$SBOM_DIR")
 
   # various paths of artifacts that become attestations
   for ARTIFACT_FILE in \
     "$ARTIFACT_STORAGE/sbom/$PLATFORM"/* \
-    "$ARTIFACT_STORAGE/harbor/$PLATFORM/vat_response_lineage.json" \
-  ; do
+    "$ARTIFACT_STORAGE/harbor/$PLATFORM/vat_response_lineage.json"
+  do
+    # match the filenames to predicate types
     case $(basename "$ARTIFACT_FILE") in
       "sbom-cyclonedx-json.json")
         PREDICATE_TYPE="https://cyclonedx.org/bom"
@@ -84,6 +78,7 @@ for SBOM_DIR in "$ARTIFACT_STORAGE/sbom"/*; do
         ;;
     esac
 
+    # only attest files with a predicate type
     if [ -n "$PREDICATE_TYPE" ]; then
       echo "INFO attesting $ARTIFACT_FILE ($PREDICATE_TYPE)"
       DOCKER_CONFIG="$HOME/.docker" cosign attest \
