@@ -37,12 +37,12 @@ for TAG in "${TAGS_ARRAY[@]}"; do
   echo "INFO mainfest sha found, URI: $REGISTRY_PUBLISH_URL/$IMAGE_NAME@$MANIFEST_LIST_SHA"
 done
 
-# clean existing attestations (because we're not passing --replace as there may be more than one of the same)
-# echo "INFO cleaning attestations"
-# DOCKER_CONFIG="$HOME/.docker" cosign clean \
-#   --type attestation \
-#   --force \
-#   "$REGISTRY_PUBLISH_URL/$IMAGE_NAME@$MANIFEST_LIST_SHA"
+# clean existing attestations (because we're not passing --replace as there may be more than one of each type)
+echo "INFO cleaning attestations"
+DOCKER_CONFIG="$HOME/.docker" cosign clean \
+  --type attestation \
+  --force \
+  "$REGISTRY_PUBLISH_URL/$IMAGE_NAME@$MANIFEST_LIST_SHA"
 
 # hardening manifest attestation
 cat "$CI_PROJECT_DIR/hardening_manifest.yaml" | python -c 'import sys, yaml, json; print(json.dumps(yaml.safe_load(sys.stdin.read())))' > "$CI_PROJECT_DIR/hardening_manifest.json"
