@@ -37,10 +37,10 @@ for TAG in "${TAGS_ARRAY[@]}"; do
   echo "INFO mainfest sha found, URI: $REGISTRY_PUBLISH_URL/$IMAGE_NAME@$MANIFEST_LIST_SHA"
 done
 
-# clean existing attestations (because we're not passing --replace as there may be more than one of each type)
-echo "INFO cleaning attestations"
+# clean existing attestations, sboms, and signature (because we're not passing --replace as there may be more than one of each type)
+echo "INFO cleaning manifest"
 DOCKER_CONFIG="$HOME/.docker" cosign clean \
-  --type attestation \
+  --type all \
   --force \
   "$REGISTRY_PUBLISH_URL/$IMAGE_NAME@$MANIFEST_LIST_SHA"
 
