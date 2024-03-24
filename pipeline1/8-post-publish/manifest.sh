@@ -32,7 +32,7 @@ for TAG in "${TAGS_ARRAY[@]}"; do
   podman manifest push --all "$REGISTRY_PUBLISH_URL/$IMAGE_NAME:$TAG" --authfile "$DOCKER_AUTH_FILE_PUBLISH"
 
   # inspect an image for manifest list sha
-  if [ -z "$MANIFEST_LIST_SHA" ]; then
+  if [ -z "${MANIFEST_LIST_SHA:-}" ]; then
     echo "INFO determining manifest sha"
     podman pull "$REGISTRY_PUBLISH_URL/$IMAGE_NAME:$TAG" --authfile "$DOCKER_AUTH_FILE_PUBLISH"
     MANIFEST_LIST_SHA=$(podman image inspect --format='{{index .Digest}}' "$REGISTRY_PUBLISH_URL/$IMAGE_NAME:$TAG")
