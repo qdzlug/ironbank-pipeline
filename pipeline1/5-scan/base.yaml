@@ -92,6 +92,6 @@ twistlock-scan-arm64:
       - "${ARTIFACT_DIR}/"
     expire_in: 1 week
   rules:
-    - if: ($ENABLE_MULTIARCH != "") && ($ENABLE_MULTARCH != null)
+    - if: '$ENABLE_MULTIARCH && $ENABLE_MULTIARCH != ""'
       exists:
         - Dockerfile.arm64

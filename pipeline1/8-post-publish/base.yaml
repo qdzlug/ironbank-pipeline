@@ -71,7 +71,7 @@ upload-to-s3:
 manifest:
   stage: post-publish
   rules:
-    - if: $CI_COMMIT_BRANCH == "master" && ($ENABLE_MULTIARCH != "") && ($ENABLE_MULTARCH != null)
+    - if: $CI_COMMIT_BRANCH == "master" && '$ENABLE_MULTIARCH && $ENABLE_MULTIARCH != ""'
   needs:
     - setup
     - create-sbom
