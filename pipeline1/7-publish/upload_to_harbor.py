@@ -58,11 +58,11 @@ def promote_tags(
     according the the tags defined in tags.txt."""
 
     for tag in tags:
+        # If ENABLE_MULTIARCH has any value appended the image's architecture to the tag.
         if os.environ.get("ENABLE_MULTIARCH",""):
-            tag = f"{tag}"
-        else:
-            # a manifest will use `tag`, the images will use `tag-platform`
             tag = f"{tag}-{build['PLATFORM']}"
+        else:
+            tag = f"{tag}"
 
         production_image = production_image.from_image(tag=tag)
 
