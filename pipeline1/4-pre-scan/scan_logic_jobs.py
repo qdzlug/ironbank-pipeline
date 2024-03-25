@@ -251,6 +251,7 @@ def scan_logic(build, platform):
                 except requests.exceptions.RequestException as e:
                     print(f"An error occurred: {e}")
                     exit(1)
+                    # If it's a manifest list.
                 if (
                     json_data["manifest_media_type"]
                     == "application/vnd.oci.image.index.v1+json"
@@ -258,6 +259,8 @@ def scan_logic(build, platform):
                     for image in json_data["references"]:
                         if image["platform"]["architecture"] == build["PLATFORM"]:
                             digest = image["child_digest"]
+                else:
+                    digest = old_image_details["digest"]
 
                 old_pkgs = get_old_pkgs(
                     image_name=image_name,
