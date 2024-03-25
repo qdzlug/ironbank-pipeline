@@ -1,42 +1,73 @@
 # pipeline1
 
-pipeline1 is a major change to ironbank-pipeline, these changes come from a handful of places:
+pipeline1 is a major change to ironbank-pipeline structure, including:
 
-- a single image runs all CI jobs
-- flattened stage-based directory structure
-- removed 'downstream trigger' gitlab construct
-- removed some duplicate/redundant setup jobs
+- multi-architecture support __\*BETA*__
+- single container image for all CI jobs
+- flattened directory structure
+- streamlined stages
 
-## new image / software added
+## multi-architecture support __\*BETA*__
 
-[`registry1.dso.mil/ironbank-apps/ironbank-pipelines/pipeline-runner:0.11.0+`](https://repo1.dso.mil/dsop/ironbank-pipelines/pipeline-runner)
+Pipeline1 may build amd64, arm64, or both:
+
+- Enable w/ `ENABLE_MULTIARCH` CICD var (any non-blank value)
+  - If `Dockerfile` is present, an amd64 image is built
+  - If `Dockerfile.arm64` is present, an arm64 image is built
+  - If both files are present, both images are built
+- A manifest list (list of container images) containing the images is published to registry1
+  - If `ENABLE_MULTIARCH` is unset, an amd64 image may replace the manifest list in registry1
+- Cosign signatures and SBOM attestations continue to be provided per image; and now also provided to the manifest list
+- While in beta status, VAT and ironbank.dso.mil will reference arm64 images by tag with the `-arm64` suffix
+
+## single container image for all CI jobs
+
+[`registry1.dso.mil/ironbank-apps/ironbank-pipelines/pipeline-runner:0.12.0+`](https://repo1.dso.mil/dsop/ironbank-pipelines/pipeline-runner)
+
+To support a single container for all CI jobs, the following software has been added:
 
 - anchorectl
 - podman (w/ debian.tar and suse.tar)
 - trufflehog3
 - twistcli
 
-## flattened structure
+## flattened directory structure
 
-- CI stages are based on dependencies
-- CI stages have a single numbered directory
-- All job scripts in a stage exist within the CI stage directory
+The directory is now a single level and each directory represents a stage. This helps debug and develop the pipeline, note:
+
+- each stage is a directory and stages are based on `dependencies`
+- the directories are numbered to present in execution order
+- job scripts in a stage are found in the associated stage directory
 - example:
   - now: `7-publish/check-findings`; `7-publish/generate-documentation`; `7-publish/harbor`
   - previous: `post-vat/check-findings`; `generate-documentation/generate-documentation`; `publish-artifacts/harbor`
 
-## removal of downstream pipeline (`trigger:`)
+## streamlined stages
 
-A [gitlab trigger (downstream pipeline)](https://docs.gitlab.com/ee/ci/pipelines/downstream_pipelines.html) was used because the `image:` for openscap is variable but not known before the pipeline is run..:
+### no 'downstream pipeline' (a.k.a. gitlab `trigger:`)
 
-- Gitlab does not support modifying a pipeline during execution (CI job A cannot set the image used in CI job B)
-- Gitlab does support modifying a downstream pipeline via variables (CI job A sets the image var used in `trigger:` and the trigger pipeline runs CI job B)
+A [gitlab trigger (downstream pipeline)](https://docs.gitlab.com/ee/ci/pipelines/downstream_pipelines.html) was previously used to influence the image during OpenSCAP's scan. The `image:` is determined during pipeline execution (`image_inspect.py` examining the base container). The `image:` is not known before the pipeline runs, and:
 
-The removal of a trigger decreases complexity, removes redundant CI jobs (because artifact sharing is not implemented), and unburdens users (the UI requires less effort to view an entire pipeline)
+- Gitlab cannot modify a pipeline during execution (CI job A cannot set the image used in CI job B)
+- Gitlab can modify a 'downstream pipeline' (CI job A passes `OPENSCAP_IMAGE: debian` to `trigger:` => `trigger:` defines a CI job with `image: ${OPENSCAP_IMAGE}`)
 
-The openscap distro packages are specific to each distro (redhat, debian, or suse). The solution is a pipeline-runner image capable of using all three. This is done by running debian or suse based openscap images inside pipeline-runner (via podman) when needed. Redhat images are scanned natively by pipeline-runner (pipeline-runner is redhat based).
+Removing the downstream pipeline decreases complexity, removes redundant CI jobs (because artifact sharing is not implemented), and unburdens users (the UI requires less effort to view an entire pipeline). The removal was achieved by adding the debian and suse openscap scanner images to the pipeline-runner image. The debian or suse scanner is run (via podman) when needed in a pipeline. Redhat images are scanned natively by pipeline-runner (pipeline-runner is redhat based).
 
-## naming/image/jobs outline
+### note about reducing CI jobs
+
+CI jobs are expensive (time spent waiting). There are significant initialization and termination periods that cause a delay between one job and the next, examples:
+
+- 30-60 seconds: a new autoscaling node is created because not enough nodes exist to satisfy CI job demand, and that node must pull required container images
+- 5-10 seconds: a ci job terminates but must archive and upload CI artifacts to S3
+- 5-10 seconds: a ci job initializes but must download and unarchive CI artifacts from S3
+- 5-10 seconds: gitlab (internally) polls a pipeline, sees all dependencies succeeded, then schedules the next job in the pipeline
+
+To reduce time spent waiting:
+
+- Ensure a minimum number of nodes are available for business-hours activity
+- Use a single CI job whenever possible, e.g. one job to setup ironbank-modules AND run trufflehog AND validate hardening_manifest.yaml (instead of three separate ci jobs)
+
+### naming/image/jobs outline
 
 Each stage now versus previous. If a unique image was previously used, its shown in parenthesis. The major change is `0-setup`.
 
@@ -64,7 +95,8 @@ Each stage now versus previous. If a unique image was previously used, its shown
 2. build
 
 - now:
-  - build/build
+  - build/build-amd64
+  - build/build-arm64
 - previous:
   - build/build
 
@@ -121,19 +153,6 @@ Each stage now versus previous. If a unique image was previously used, its shown
 
 - now:
   - post-publish/upload-to-s3
+  - post-publish/manifest
 - previous:
   - publish-artifacts/upload-to-s3
-
-## note about reducing CI jobs
-
-CI jobs are expensive (time spent waiting, not financially or computationally). There are significant periods during initialization and termination that cause a delay between one job and the next, examples:
-
-- 30-60 seconds: a new autoscaling node is created because not enough nodes exist to satisfy CI job demand, and that node must pull required container images
-- 5-10 seconds: a ci job terminates but must archive and upload CI artifacts to S3
-- 5-10 seconds: a ci job initializes but must download and unarchive CI artifacts from S3
-- 5-10 seconds: gitlab (internally) polls a pipeline, sees all dependencies succeeded, then schedules the next job in the pipeline
-
-There are a few ways to reduce time spent waiting:
-
-- Ensure a minimum number of nodes are available for business-hours activity
-- Use a single CI job whenever possible, e.g. one job to setup ironbank-modules, validate hardening_manifest.yaml, and run trufflehog (instead of three separate ci jobs)
