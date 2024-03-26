@@ -43,7 +43,7 @@ def post_artifact_data_vat(
     # Allows the multiarch pipeline1 to run legacy projects in prod until other teams are ready.
     # args.version ==> This value comes from args.version, which gets it from the Environment var IMAGE_VERSION which is written by the hardening_manifest_validation.py script run.
     if platform == "amd64":
-        image_tag = f'{hardening_manifest.labels["org.opencontainers.image.version"]}
+        image_tag = f'{hardening_manifest.labels["org.opencontainers.image.version"]}'
     else:
         image_tag = f'{hardening_manifest.labels["org.opencontainers.image.version"]}-{build["PLATFORM"]}'
     post_resp = requests.post(
@@ -54,7 +54,7 @@ def post_artifact_data_vat(
         },
         json={
             "imageName": build["IMAGE_NAME"],
-            "tag": f'{hardening_manifest.labels["org.opencontainers.image.version"]}-{build["PLATFORM"]}',
+            "tag": image_tag,
             "publishedTimestamp": published_timestamp,
             "readme": readme_path,
             "license": license_path,
