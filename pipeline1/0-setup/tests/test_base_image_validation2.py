@@ -50,8 +50,8 @@ def test_base_image_validation_main(monkeypatch, caplog, raise_):
         base_image_validation.Cosign, "verify", lambda *args, **kwargs: True
     )
 
-    asyncio.run(base_image_validation.validate_base_image())
-    log.info(f"{caplog.text}") # TODO: Delete me
+    asyncio.run(base_image_validation.validate_base_image(platform="amd64"))
+    log.info(f"{caplog.text}")  # TODO: Delete me
     assert "Dump SHA to file" in caplog.text
 
     monkeypatch.delenv("STAGING_BASE_IMAGE")
@@ -64,8 +64,8 @@ def test_base_image_validation_main(monkeypatch, caplog, raise_):
     monkeypatch.setattr(
         MockSkopeo, "inspect", lambda *args, **kwargs: {"Digest": "1234qwer"}
     )
-    asyncio.run(base_image_validation.validate_base_image())
-    log.info(f"{caplog.text}") # TODO: Delete me
+    asyncio.run(base_image_validation.validate_base_image(platform="amd64"))
+    log.info(f"{caplog.text}")  # TODO: Delete me
     assert "Dump SHA to file" in caplog.text
 
     log.info("Test cosign verify fails")
@@ -73,8 +73,8 @@ def test_base_image_validation_main(monkeypatch, caplog, raise_):
         base_image_validation.Cosign, "verify", lambda *args, **kwargs: False
     )
     with pytest.raises(SystemExit) as e:
-        asyncio.run(base_image_validation.validate_base_image())
-    log.info(f"{caplog.text}") # TODO: Delete me
+        asyncio.run(base_image_validation.validate_base_image(platform="amd64"))
+    log.info(f"{caplog.text}")  # TODO: Delete me
     assert e.value.code == 1
 
     log.info("Test base image validation throws exception")
@@ -85,6 +85,6 @@ def test_base_image_validation_main(monkeypatch, caplog, raise_):
         MockSkopeo, "inspect", lambda *args, **kwargs: raise_(GenericSubprocessError)
     )
     with pytest.raises(SystemExit) as e:
-        asyncio.run(base_image_validation.validate_base_image())
-    log.info(f"{caplog.text}") # TODO: Delete me
+        asyncio.run(base_image_validation.validate_base_image(platform="amd64"))
+    log.info(f"{caplog.text}")  # TODO: Delete me
     assert e.value.code == 1
