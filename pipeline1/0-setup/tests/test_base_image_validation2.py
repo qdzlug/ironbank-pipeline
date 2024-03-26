@@ -35,6 +35,8 @@ def test_base_image_validation_main(monkeypatch, caplog, raise_):
 
     log.info("Test staging base image validation")
     monkeypatch.setenv("STAGING_BASE_IMAGE", "base")
+    # monkeypatch.setenv("BASE_REGISTRY", "theregistry.aaa.bbb/foobar")
+    # monkeypatch.setenv("DOCKER_AUTH_FILE_PULL", "test")
     monkeypatch.setenv(
         "DOCKER_AUTH_FILE_PRE_PUBLISH", "test"
     )  # staging-test -> base64 encoded value
@@ -49,6 +51,7 @@ def test_base_image_validation_main(monkeypatch, caplog, raise_):
     )
 
     asyncio.run(base_image_validation.main())
+    log.info(f"{caplog.text}")
     assert "Dump SHA to file" in caplog.text
 
     monkeypatch.delenv("STAGING_BASE_IMAGE")
