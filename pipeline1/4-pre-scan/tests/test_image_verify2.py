@@ -61,13 +61,13 @@ def test_verify_image_properties(monkeypatch, caplog, mock_hm):
             "org.opencontainers.image.revision": MOCK_SHA,
         }
     }
-    verify_result = image_verify.verify_image_properties(img_json, mock_hm)
+    verify_result = image_verify.verify_image_properties(img_json, mock_hm, "amd64")
     assert verify_result is False
     assert "New parent digest: \n" in caplog.text
 
     log.info("Test return False on mismatched shas")
     monkeypatch.setenv("CI_COMMIT_SHA", "different_sha")
-    shas_match = image_verify.verify_image_properties(img_json, mock_hm)
+    shas_match = image_verify.verify_image_properties(img_json, mock_hm, "amd64")
     assert shas_match is False
     assert "Git commit SHA difference detected" in caplog.text
     caplog.clear()
@@ -76,7 +76,7 @@ def test_verify_image_properties(monkeypatch, caplog, mock_hm):
     monkeypatch.setenv("CI_COMMIT_SHA", MOCK_SHA)
     # technically already done above, but included for clarity
     img_json["Labels"]["mil.dso.ironbank.image.parent"] = ""
-    verify_result = image_verify.verify_image_properties(img_json, mock_hm)
+    verify_result = image_verify.verify_image_properties(img_json, mock_hm, "amd64")
     assert verify_result is True
 
     log.info("Test return True if parent exists and commit shas/digests match")
@@ -90,7 +90,7 @@ def test_verify_image_properties(monkeypatch, caplog, mock_hm):
     img_json["Labels"][
         "mil.dso.ironbank.image.parent"
     ] = f"{base_registry}/{mock_hm.base_image_name}:{mock_hm.base_image_tag}@{MOCK_SHA}"
-    verify_result = image_verify.verify_image_properties(img_json, mock_hm)
+    verify_result = image_verify.verify_image_properties(img_json, mock_hm, "amd64")
     assert verify_result is True
 
 
