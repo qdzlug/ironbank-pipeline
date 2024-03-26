@@ -13,7 +13,6 @@ from common.utils import logger
 from pipeline.utils.exceptions import SymlinkFoundError
 
 
-
 log = logger.setup("lint_jobs")
 
 system_exits: dict = {}
