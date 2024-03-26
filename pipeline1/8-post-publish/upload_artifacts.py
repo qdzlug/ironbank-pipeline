@@ -40,6 +40,12 @@ def post_artifact_data_vat(
     """POST to VAT's artifacts endpoint to allow IBFE to start displaying the
     published image data."""
     vat_endpoint = f"{os.environ['VAT_BACKEND_URL']}/internal/import/artifacts"
+    # Allows the multiarch pipeline1 to run legacy projects in prod until other teams are ready.
+    # args.version ==> This value comes from args.version, which gets it from the Environment var IMAGE_VERSION which is written by the hardening_manifest_validation.py script run.
+    if platform == "amd64":
+        image_tag = f'{hardening_manifest.labels["org.opencontainers.image.version"]}
+    else:
+        image_tag = f'{hardening_manifest.labels["org.opencontainers.image.version"]}-{build["PLATFORM"]}'
     post_resp = requests.post(
         vat_endpoint,
         headers={
