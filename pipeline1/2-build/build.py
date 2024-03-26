@@ -111,7 +111,7 @@ def load_resources(
                         Image(url=image_url, transport="containers-storage:"),
                         log_cmd=True,
                     )
-                
+
             else:
                 shutil.move(resource_file_obj, Path(resource_file))
         else:

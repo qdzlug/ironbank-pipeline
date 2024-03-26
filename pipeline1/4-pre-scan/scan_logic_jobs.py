@@ -222,7 +222,9 @@ def scan_logic(build, platform):
                 src=Path(os.environ["DOCKER_AUTH_FILE_PULL"]),
                 dst=Path(docker_config_dir, "config.json"),
             )
-            old_image_details = image_verify.diff_needed(docker_config_dir, build, platform)
+            old_image_details = image_verify.diff_needed(
+                docker_config_dir, build, platform
+            )
             if old_image_details:
                 log.info("SBOM diff required to determine image to scan")
                 dsop_project = DsopProject()
@@ -279,17 +281,13 @@ def scan_logic(build, platform):
                         # Override image to scan with old tag
                         image_name_tag = f"{os.environ['REGISTRY_PUBLISH_URL']}/{image_name}:{old_image_details['tag']}"
                         build.update(
-                                {
-                                    "COMMIT_SHA_TO_SCAN": old_image_details[
-                                        "commit_sha"
-                                    ],
-                                    "BUILD_DATE_TO_SCAN": old_image_details[
-                                        "build_date"
-                                    ],
-                                    "DIGEST_TO_SCAN": old_image_details["digest"],
-                                    "IMAGE_TO_SCAN": image_name_tag,
-                                }
-                            )
+                            {
+                                "COMMIT_SHA_TO_SCAN": old_image_details["commit_sha"],
+                                "BUILD_DATE_TO_SCAN": old_image_details["build_date"],
+                                "DIGEST_TO_SCAN": old_image_details["digest"],
+                                "IMAGE_TO_SCAN": image_name_tag,
+                            }
+                        )
                         write_env_vars(build)
                         log.info("Old image name, tag, digest, and build date saved")
                 if not old_pkgs:

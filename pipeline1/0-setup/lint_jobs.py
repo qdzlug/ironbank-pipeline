@@ -12,8 +12,6 @@ from pathlib import Path
 from common.utils import logger
 from pipeline.utils.exceptions import SymlinkFoundError
 
-from pipeline.hardening_manifest import HardeningManifest
-from pipeline.project import DsopProject
 
 
 log = logger.setup("lint_jobs")
@@ -98,7 +96,7 @@ if __name__ == "__main__":
         platforms.append("amd64")
     if Path("./Dockerfile.arm64").is_file():
         platforms.append("arm64")
-    
+
     for platform in platforms:
         log.info(f"Validating image for {platform} architecture.")
         asyncio.run(main())

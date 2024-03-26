@@ -37,9 +37,7 @@ def main() -> None:
     oscap_comp_path = Path(
         f"{os.environ['SCAN_RESULTS_DIR']}/openscap/{platform}/compliance_output_report.xml"
     )
-    csv_output_dir = Path(
-        f"{os.environ['SCAN_RESULTS_DIR']}/{platform}/csvs"
-    )
+    csv_output_dir = Path(f"{os.environ['SCAN_RESULTS_DIR']}/{platform}/csvs")
 
     # Create the csv directory if not present
     Path(csv_output_dir).mkdir(parents=True, exist_ok=True)

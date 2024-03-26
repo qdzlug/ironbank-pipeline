@@ -44,7 +44,9 @@ def inspect_old_image(
         return None
 
 
-def verify_image_properties(img_json: dict, manifest: HardeningManifest, platform: str) -> bool:
+def verify_image_properties(
+    img_json: dict, manifest: HardeningManifest, platform: str
+) -> bool:
     """Verifies the properties of the image such as Git commit SHA and parent
     digest.
 

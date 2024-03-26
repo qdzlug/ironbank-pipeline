@@ -80,4 +80,3 @@ manifest:
     - '"${PIPELINE_REPO_DIR}/pipeline1/8-post-publish/manifest.sh"'
   variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: sign
-  

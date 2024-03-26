@@ -10,6 +10,7 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 from pathlib import Path
 
+
 def main():
     """Main function for CSV to Excel transformation and formatting tool.
 
@@ -36,7 +37,9 @@ def main():
 
     # Convert all csvs to excel sheets
     # Generates two .xlsx spreadsheets, one with justifications (output_file) and one without justifications (all_scans.xlsx)
-    Path(f'{os.environ["ARTIFACT_STORAGE"]}/scan-results/{platform}/csvs').mkdir(parents=True, exist_ok=True)
+    Path(f'{os.environ["ARTIFACT_STORAGE"]}/scan-results/{platform}/csvs').mkdir(
+        parents=True, exist_ok=True
+    )
     convert_to_excel(csv_dir, output_file)
     workbook = openpyxl.load_workbook(output_file)
     # Colorize justifications for output_file

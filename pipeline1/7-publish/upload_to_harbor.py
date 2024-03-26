@@ -59,7 +59,7 @@ def promote_tags(
 
     for tag in tags:
         # If ENABLE_MULTIARCH has any value appended the image's architecture to the tag.
-        if os.environ.get("ENABLE_MULTIARCH",""):
+        if os.environ.get("ENABLE_MULTIARCH", ""):
             tag = f"{tag}-{build['PLATFORM']}"
         else:
             tag = f"{tag}"

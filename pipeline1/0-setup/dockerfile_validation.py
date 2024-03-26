@@ -4,8 +4,6 @@ import asyncio
 import re
 import subprocess
 import sys
-from pathlib import Path
-import os
 
 from pipeline.file_parser import DockerfileParser
 from pipeline.hardening_manifest import HardeningManifest

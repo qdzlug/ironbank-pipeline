@@ -2,12 +2,12 @@
 
 pipeline1 is a major change to ironbank-pipeline structure, including:
 
-- multi-architecture support __\*BETA*__
+- multi-architecture support **\*BETA\***
 - single container image for all CI jobs
 - flattened directory structure
 - streamlined stages
 
-## multi-architecture support __\*BETA*__
+## multi-architecture support **\*BETA\***
 
 Pipeline1 may build amd64, arm64, or both:
 

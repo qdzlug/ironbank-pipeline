@@ -41,7 +41,7 @@ for TAG in "${TAGS_ARRAY[@]}"; do
 done
 
 # hardening manifest yaml to json
-cat "$CI_PROJECT_DIR/hardening_manifest.yaml" | python -c 'import sys, yaml, json; print(json.dumps(yaml.safe_load(sys.stdin.read())))' > "$CI_PROJECT_DIR/hardening_manifest.json"
+cat "$CI_PROJECT_DIR/hardening_manifest.yaml" | python -c 'import sys, yaml, json; print(json.dumps(yaml.safe_load(sys.stdin.read())))' >"$CI_PROJECT_DIR/hardening_manifest.json"
 echo "INFO attesting $CI_PROJECT_DIR/hardening_manifest.json (https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md)"
 DOCKER_CONFIG="$HOME/.docker" cosign attest \
   --predicate="$CI_PROJECT_DIR/hardening_manifest.json" \
@@ -60,8 +60,7 @@ for SBOM_DIR in "$ARTIFACT_STORAGE/sbom"/*; do
   # various paths of artifacts that become attestations
   for ARTIFACT_FILE in \
     "$ARTIFACT_STORAGE/sbom/$PLATFORM"/* \
-    "$ARTIFACT_STORAGE/harbor/$PLATFORM/vat_response_lineage.json"
-  do
+    "$ARTIFACT_STORAGE/harbor/$PLATFORM/vat_response_lineage.json"; do
     # match the filenames to predicate types
     case $(basename "$ARTIFACT_FILE") in
       "sbom-cyclonedx-json.json")

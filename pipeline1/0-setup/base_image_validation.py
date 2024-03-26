@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import asyncio
 import json
 import os
 import shutil
@@ -16,7 +15,6 @@ from pipeline.hardening_manifest import HardeningManifest
 from pipeline.image import Image
 from pipeline.project import DsopProject
 from pipeline.utils.exceptions import GenericSubprocessError
-from pipeline.utils.decorators import stack_trace_handler
 from common.utils import logger
 
 log = logger.setup(name="lint.base_image_validation")
