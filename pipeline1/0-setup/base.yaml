@@ -62,11 +62,4 @@ setup:
     # setup-modules
     - 'source "$(poetry env info -C "${MODULES_DEPS_PATH}" --path)"/bin/activate'
     - 'poetry install -C "${MODULES_PACKAGE_PATH}" --only-root'
-    # image_inspect.py
-    - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/0-setup/image_inspect.py"'
-    # lint
-    - set +e
-    - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/0-setup/lint_jobs.py"'
-    # trufflehog
-    - 'git config --global --add safe.directory "${CI_PROJECT_DIR}"'
-    - 'python3 "${PIPELINE_REPO_DIR}/pipeline1/0-setup/trufflehog.py"'
+    - '"${PIPELINE_REPO_DIR}/pipeline1/0-setup/setup.sh"'
