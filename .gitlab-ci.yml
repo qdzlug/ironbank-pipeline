@@ -16,6 +16,7 @@ include:
 load-scripts:
   stage: load-scripts
   script:
+    - 'echo "${MODULES_TAG}"'
     - 'git clone -q --depth 1 --branch "${MODULES_TAG}" "${CI_SERVER_URL}/ironbank-tools/${MODULES_PROJECT}.git" "${MODULES_CLONE_DIR}"'
     - 'rm -rf "${MODULES_CLONE_DIR}/.git"'
 
