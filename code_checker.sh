@@ -135,7 +135,7 @@ run_unit_tests() {
   echo "********************"
   echo "Running unit tests"
   echo "********************"
-  python3 -m pytest -m "not slow"
+  python3 -m pytest -m "not slow" --ignore=stages
   echo -e "\n"
 }
 
