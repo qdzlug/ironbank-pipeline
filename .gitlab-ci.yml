@@ -82,6 +82,7 @@ unit-testing:
   stage: code-check
   script:
     # required until we update the dev image to use pyproject.toml dev deps
+    - 'rm -rf /home/python/ironbank-modules'
     - 'git clone -q --depth 1 --branch "${MODULES_TAG}" "${CI_SERVER_URL}/ironbank-tools/${MODULES_PROJECT}.git" "/home/python/ironbank-modules"'
     - 'rm -rf "${MODULES_CLONE_DIR}/.git"'
     - source "$(poetry env info -C /home/python/ironbank-modules/ironbank --path)"/bin/activate
