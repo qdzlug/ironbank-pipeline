@@ -29,7 +29,7 @@ def template_type(os_type: str) -> None:
         "ubi8-container": "ubi.yaml",
         "ubi9-container": "ubi.yaml",
         "ubuntu2004-container": "ubuntu2004.yaml",
-        "ubuntu2204-container": "ubuntu2204.yaml",
+        # "ubuntu2204-container": "ubuntu2204.yaml", #TODO STIG TYPE PROFILE
     }
     template = template_dict.get(os_type)
     if not template:
@@ -38,7 +38,7 @@ def template_type(os_type: str) -> None:
     log.info("Using pipeline template: %s", template)
     with Path("template.env").open(mode="w", encoding="utf-8") as f:
         f.write(f"TEMPLATE={template}\n")
-        f.write(f"BASE_IMAGE_TYPE={os_type}\n")
+        f.write(f"OS_TYPE={os_type}\n")
 
 
 def get_registry_info() -> tuple[str, str]:

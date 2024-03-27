@@ -1,0 +1,6 @@
+exclude:
+  - message: Default exclude paths
+    paths:
+      - "${ARTIFACT_STORAGE}/"
+      - trufflehog-config.yaml
+      - trufflehog-config.yml

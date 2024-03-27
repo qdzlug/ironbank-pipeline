@@ -1,0 +1,2 @@
+http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/apk-main/
+http://nexus-repository-manager.nexus-repository-manager.svc.cluster.local:8081/repository/apk-community/
