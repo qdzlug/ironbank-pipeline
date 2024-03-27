@@ -90,7 +90,7 @@ tidelift-upload:
     - echo "SBOM file copied to working directory"
     - echo "Downloading Tidelift CLI binary files" 
     - curl https://download.tidelift.com/cli/tidelift -o tidelift
-    - curl https://download.tidelift.com/cli/tidelift-sbom-info/2024032701/linux-x86/tidelift-sbom-vulnerability-reporter -O tidelift-sbom-vulnerability-reporter
+    - curl -O https://download.tidelift.com/cli/tidelift-sbom-info/2024032701/linux-x86/tidelift-sbom-vulnerability-reporter
     - echo "Setting Tidelift CLI permissions and updating binary file"
     - | 
         ls -lha
