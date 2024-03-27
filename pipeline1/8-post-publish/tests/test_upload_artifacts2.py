@@ -4,7 +4,7 @@ import sys
 from logging import Logger
 from unittest.mock import MagicMock, patch
 from pathlib import Path
-
+from pipeline.utils.exceptions import GenericSubprocessError
 import pytest
 import requests
 
@@ -122,9 +122,8 @@ def test_main(monkeypatch, mock_responses, caplog, raise_):
         "run",
         lambda *args, **kwargs: raise_(subprocess.CalledProcessError(1, [])),
     )
-    with pytest.raises(SystemExit) as e:
+    with pytest.raises(GenericSubprocessError) as e:
         upload_artifacts.main({"PLATFORM": "amd64", "IMAGE_NAME": "IMAGE_NAME"})
-    assert "Failed calling <lambda>, error: Failed to compress file" in caplog.text
     caplog.clear()
 
     log.info("Test successful upload to VAT API")

@@ -73,6 +73,10 @@ def main(build) -> None:
     """Upload tar file to s3 and hit VAT endpoint to provide path to tar file
     After this stage finishes, IBFE is able to display new metadata for the
     associated image."""
+    dsop_proj: DsopProject = DsopProject()
+    hardening_manifest: HardeningManifest = HardeningManifest(
+        dsop_proj.hardening_manifest_path
+    )
     report_dir: Path = Path("reports/")
     report_dir.mkdir(parents=True, exist_ok=True)
 
@@ -146,10 +150,6 @@ def main(build) -> None:
 
 
 if __name__ == "__main__":
-    dsop_proj: DsopProject = DsopProject()
-    hardening_manifest: HardeningManifest = HardeningManifest(
-        dsop_proj.hardening_manifest_path
-    )
     potential_platforms = [
         "amd64",
         "arm64",
