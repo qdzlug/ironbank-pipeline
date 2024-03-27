@@ -15,7 +15,7 @@ from pipeline.vat_container_status import sort_justifications
 log = logger.setup("csv_gen")
 
 
-def main() -> None:
+def main(platform) -> None:
     """Main function to perform security report processing.
 
     It fetches security scan reports from different sources, segregates
@@ -440,4 +440,4 @@ if __name__ == "__main__":
     ]
 
     for platform in platforms:
-        main()
+        main(platform)

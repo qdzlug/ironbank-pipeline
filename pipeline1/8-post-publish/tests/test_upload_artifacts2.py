@@ -62,8 +62,15 @@ def test_post_artifact_data_vat(monkeypatch, mock_responses):
     monkeypatch.setattr(requests, "post", mock_responses["200"])
 
     log.info("Test successful response returned")
+    mock_hm = MockHardeningManifest
+    mock_hm.labels = {"org.opencontainers.image.version": "1"}
     resp: MockResponse = upload_artifacts.post_artifact_data_vat(
-        mock_published_timestamp, mock_tar_path, mock_readme_path, mock_license_path
+        mock_published_timestamp,
+        mock_tar_path,
+        mock_readme_path,
+        mock_license_path,
+        {"PLATFORM": "amd64", "IMAGE_NAME": "IMAGE_NAME"},
+        mock_hm,
     )
     assert resp.status_code == 200
 
@@ -86,7 +93,7 @@ def test_main(monkeypatch, mock_responses, caplog, raise_):
     )
     log.info("Test image_path decision tree")
     with pytest.raises(AssertionError) as e:
-        upload_artifacts.main()
+        upload_artifacts.main({"PLATFORM": "amd64", "IMAGE_NAME": "IMAGE_NAME"})
     assert "No match found for image path" in e.value.args[0]
 
     log.info("Test subprocessing and s3upload")
@@ -101,12 +108,12 @@ def test_main(monkeypatch, mock_responses, caplog, raise_):
 
     log.info("Test file not found error")
     with pytest.raises(FileNotFoundError) as fnfe:
-        upload_artifacts.main()
+        upload_artifacts.main({"PLATFORM": "amd64", "IMAGE_NAME": "IMAGE_NAME"})
     assert "No such file or directory" in fnfe.value.args
 
     log.info("Test os.listdir")
     monkeypatch.setattr(os, "listdir", lambda x: None)
-    upload_artifacts.main()
+    upload_artifacts.main({"PLATFORM": "amd64", "IMAGE_NAME": "IMAGE_NAME"})
     caplog.clear()
 
     log.info("Test subprocess error")
@@ -116,13 +123,13 @@ def test_main(monkeypatch, mock_responses, caplog, raise_):
         lambda *args, **kwargs: raise_(subprocess.CalledProcessError(1, [])),
     )
     with pytest.raises(SystemExit) as e:
-        upload_artifacts.main()
+        upload_artifacts.main({"PLATFORM": "amd64", "IMAGE_NAME": "IMAGE_NAME"})
     assert "Failed calling <lambda>, error: Failed to compress file" in caplog.text
     caplog.clear()
 
     log.info("Test successful upload to VAT API")
     monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: None)
-    upload_artifacts.main()
+    upload_artifacts.main({"PLATFORM": "amd64", "IMAGE_NAME": "IMAGE_NAME"})
     assert "Uploaded container data to VAT API" in caplog.text
 
     caplog.clear()
@@ -134,7 +141,7 @@ def test_main(monkeypatch, mock_responses, caplog, raise_):
         lambda *args, **kwargs: raise_(requests.exceptions.Timeout),
     )
     with pytest.raises(SystemExit) as e:
-        upload_artifacts.main()
+        upload_artifacts.main({"PLATFORM": "amd64", "IMAGE_NAME": "IMAGE_NAME"})
     assert e.value.code == 1
     assert "Unable to reach the VAT API, TIMEOUT." in caplog.text
 
@@ -145,6 +152,6 @@ def test_main(monkeypatch, mock_responses, caplog, raise_):
         upload_artifacts, "post_artifact_data_vat", mock_responses["404"]
     )
     with pytest.raises(SystemExit) as e:
-        upload_artifacts.main()
+        upload_artifacts.main({"PLATFORM": "amd64", "IMAGE_NAME": "IMAGE_NAME"})
     assert e.value.code == 1
     assert "VAT HTTP error" in caplog.text

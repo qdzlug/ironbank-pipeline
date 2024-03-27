@@ -16,7 +16,6 @@ from pipeline.hardening_manifest import HardeningManifest
 from pipeline.image import Image
 from pipeline.project import DsopProject
 from pipeline.utils.decorators import (
-    stack_trace_handler,
     subprocess_error_handler,
 )
 from pipeline.utils.exceptions import GenericSubprocessError
@@ -95,7 +94,7 @@ def _convert_artifacts_to_hardening_manifest(
         log.info("Converting artifacts to hardening manifest")
 
 
-def _generate_vat_response_lineage_file():
+def _generate_vat_response_lineage_file(build):
     """Generates a VAT response lineage using *this* pipeline run's VAT
     response and the VAT response attestation from the parent image."""
     # Load VAT response for this pipeline run, convert to list
@@ -137,7 +136,7 @@ def _generate_vat_response_lineage_file():
     return lineage_vat_response_file
 
 
-def generate_attestation_predicates(predicates):
+def generate_attestation_predicates(predicates, build):
     """Generates a list of predicates to be attached to the image as Cosign
     Attestations."""
     hm_resources = [
@@ -160,7 +159,7 @@ def generate_attestation_predicates(predicates):
         Path(os.environ["CI_PROJECT_DIR"], "hardening_manifest.json")
     )
 
-    attestation_predicates.append(_generate_vat_response_lineage_file())
+    attestation_predicates.append(_generate_vat_response_lineage_file(build))
     return attestation_predicates
 
 
@@ -183,8 +182,8 @@ def write_env_vars(tags: list[str]) -> None:  # TODO: Write a unit test
         f.write(f"TAGS={tags_string}\n")
 
 
-@stack_trace_handler
-def main():
+# @stack_trace_handler
+def main(build: dict, scan_logic: dict):
     """Main function to perform image promotion, signing, and attestation
     process in a secure software supply chain.
 
@@ -231,7 +230,7 @@ def main():
     project = DsopProject()
     hardening_manifest = HardeningManifest(project.hardening_manifest_path)
     predicates = Predicates()
-    attestation_predicates = generate_attestation_predicates(predicates)
+    attestation_predicates = generate_attestation_predicates(predicates, build)
 
     try:
         # Compare digests to ensure image integrity
@@ -267,7 +266,7 @@ def main():
         sys.exit(1)
 
 
-def publish_vat_staging_predicates():
+def publish_vat_staging_predicates(build):
     """Publishes a VAT (Verified Access Token) on a staging image using the
     cosign tool.
 
@@ -288,7 +287,7 @@ def publish_vat_staging_predicates():
     )
 
     predicates = Predicates()
-    vat_predicate = _generate_vat_response_lineage_file()
+    vat_predicate = _generate_vat_response_lineage_file(build)
 
     with tempfile.TemporaryDirectory(prefix="DOCKER_CONFIG-") as docker_config_dir:
         shutil.copy(
@@ -334,6 +333,6 @@ if __name__ == "__main__":
             scan_logic = json.load(f)
 
         if os.environ.get("PUBLISH_VAT_STAGING_PREDICATES"):
-            publish_vat_staging_predicates()
+            publish_vat_staging_predicates(build)
         else:
-            main()
+            main(build, scan_logic)

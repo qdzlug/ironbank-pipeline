@@ -118,6 +118,7 @@ def test_main(monkeypatch, caplog, raise_) -> None:
     monkeypatch.setenv("OSCAP_SCANS", "3")
     monkeypatch.setenv("CSV_REPORT", "4")
     monkeypatch.setenv("ARTIFACT_STORAGE", "4")
+    monkeypatch.setenv("SCAN_RESULTS_DIR", "4")
     monkeypatch.setattr(Path, "open", mock_open())
     monkeypatch.setattr(Path, "mkdir", lambda *args, **kwargs: None)
     monkeypatch.setattr(
@@ -150,17 +151,17 @@ def test_main(monkeypatch, caplog, raise_) -> None:
     log.info("Test exception thrown opening vat findings file")
     monkeypatch.setattr(json, "load", lambda *args, **kwargs: raise_(Exception))
     with pytest.raises(SystemExit):
-        pipeline_csv_gen.main()
+        pipeline_csv_gen.main("amd64")
     assert "Error reading findings file." in caplog.text
 
     log.info("Test sequence to generate blank oscap report")
     monkeypatch.setattr(json, "load", lambda *args, **kwargs: None)
     monkeypatch.setenv("OSCAP_DATASTREAM", "foo.ds.xml")
-    pipeline_csv_gen.main()
+    pipeline_csv_gen.main("amd64")
 
     log.info("Test sequence to generate oscap compliance report")
     monkeypatch.delenv("OSCAP_DATASTREAM")
-    pipeline_csv_gen.main()
+    pipeline_csv_gen.main("amd64")
 
 
 def test_generate_summary_report(monkeypatch) -> None:
