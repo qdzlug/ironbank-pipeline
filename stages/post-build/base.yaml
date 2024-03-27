@@ -88,12 +88,16 @@ tidelift-upload:
     - echo "Coping Cyclonedx (sbom-cyclonedx-json.json) SBOM from Harbor artifacs directory"
     - cp ${SBOM_DIR}/sbom-cyclonedx-json.json cyclonedx.json
     - echo "SBOM file copied to working directory"
-    - echo "Downloading Tidelift CLI binary file" 
+    - echo "Downloading Tidelift CLI binary files" 
     - curl https://download.tidelift.com/cli/tidelift -o tidelift
+    - curl https://download.tidelift.com/cli/tidelift-sbom-info/2024032701/linux-x86/tidelift-sbom-vulnerability-reporter -O tidelift-sbom-vulnerability-reporter
     - echo "Setting Tidelift CLI permissions and updating binary file"
     - | 
+        ls -lha
         chmod +x tidelift
+        chmod +x tidelift-sbom-vulnerability-reporter
         ./tidelift selfupdate
+        ./tidelift-sbom-vulnerability-reporter -v
 
     - echo "-* PRINTING ENV VARIABLES *-"
     - echo "TIDELIFT_PROJECT_BRANCH= $TIDELIFT_PROJECT_BRANCH"
