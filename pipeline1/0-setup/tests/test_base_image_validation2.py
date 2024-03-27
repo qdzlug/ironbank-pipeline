@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-import asyncio
 import shutil
 import sys
 from unittest.mock import patch
 from pathlib import Path
+import requests
 
 import pytest
 from pipeline.test.mocks.mock_classes import (
@@ -22,6 +22,24 @@ import base_image_validation  # noqa E402
 log = logger.setup("test_base_image_validation")
 
 
+def mock_get(url, headers):
+    # Return a mock response with a 200 status code
+    class MockResponse:
+        def __init__(self, json_data):
+            self.json_data = json_data
+
+        def json(self):
+            return self.json_data
+
+        def raise_for_status(self):
+            pass
+
+    # Simulate the JSON response data
+    json_data = {"manifest_media_type": "NotAManifest"}
+
+    return MockResponse(json_data)
+
+
 @patch("base_image_validation.Skopeo", new=MockSkopeo)
 @patch("base_image_validation.HardeningManifest", new=MockHardeningManifest)
 @patch("base_image_validation.Path", new=MockPath)
@@ -32,7 +50,8 @@ def test_base_image_validation_main(monkeypatch, caplog, raise_):
     monkeypatch.setenv("COSIGN_CERT", "cert")
     monkeypatch.setenv("COSIGN_PUBLIC_KEY", "publicKey")
     monkeypatch.setenv("COSIGN_CERTIFICATE_CHAIN", "chain")
-
+    monkeypatch.setenv("BASE_REGISTRY", "prod.com")
+    monkeypatch.setenv("DOCKER_AUTH_FILE_PULL", "README.md")
     log.info("Test staging base image validation")
     monkeypatch.setenv("STAGING_BASE_IMAGE", "base")
     monkeypatch.setenv(
@@ -48,7 +67,9 @@ def test_base_image_validation_main(monkeypatch, caplog, raise_):
         base_image_validation.Cosign, "verify", lambda *args, **kwargs: True
     )
 
-    asyncio.run(base_image_validation.main())
+    monkeypatch.setattr(requests, "get", mock_get)
+
+    base_image_validation.validate_base_image("amd64")
     assert "Dump SHA to file" in caplog.text
 
     monkeypatch.delenv("STAGING_BASE_IMAGE")
@@ -56,12 +77,11 @@ def test_base_image_validation_main(monkeypatch, caplog, raise_):
     monkeypatch.delenv("REGISTRY_PRE_PUBLISH_URL")
 
     log.info("Test prod base image validation")
-    monkeypatch.setenv("DOCKER_AUTH_FILE_PULL", "test")
-    monkeypatch.setenv("BASE_REGISTRY", "http://prod.com")
+
     monkeypatch.setattr(
         MockSkopeo, "inspect", lambda *args, **kwargs: {"Digest": "1234qwer"}
     )
-    asyncio.run(base_image_validation.main())
+    base_image_validation.validate_base_image("amd64")
     assert "Dump SHA to file" in caplog.text
 
     log.info("Test cosign verify fails")
@@ -69,7 +89,7 @@ def test_base_image_validation_main(monkeypatch, caplog, raise_):
         base_image_validation.Cosign, "verify", lambda *args, **kwargs: False
     )
     with pytest.raises(SystemExit) as e:
-        asyncio.run(base_image_validation.main())
+        base_image_validation.validate_base_image("amd64")
     assert e.value.code == 1
 
     log.info("Test base image validation throws exception")
@@ -80,5 +100,5 @@ def test_base_image_validation_main(monkeypatch, caplog, raise_):
         MockSkopeo, "inspect", lambda *args, **kwargs: raise_(GenericSubprocessError)
     )
     with pytest.raises(SystemExit) as e:
-        asyncio.run(base_image_validation.main())
+        base_image_validation.validate_base_image("amd64")
     assert e.value.code == 1
