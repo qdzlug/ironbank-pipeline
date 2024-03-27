@@ -16,7 +16,6 @@ from pipeline.hardening_manifest import HardeningManifest
 from pipeline.project import DsopProject
 from pipeline.utils import s3upload
 from pipeline.utils.decorators import (
-    stack_trace_handler,
     subprocess_error_handler,
 )
 
@@ -35,14 +34,19 @@ def copy_path(src: Path, dest: Path) -> None:
 
 
 def post_artifact_data_vat(
-    published_timestamp: str, tar_path: str, readme_path: str, license_path: str
+    published_timestamp: str,
+    tar_path: str,
+    readme_path: str,
+    license_path: str,
+    build: dict,
+    hardening_manifest: HardeningManifest,
 ) -> requests.Response:
     """POST to VAT's artifacts endpoint to allow IBFE to start displaying the
     published image data."""
     vat_endpoint = f"{os.environ['VAT_BACKEND_URL']}/internal/import/artifacts"
     # Allows the multiarch pipeline1 to run legacy projects in prod until other teams are ready.
     # args.version ==> This value comes from args.version, which gets it from the Environment var IMAGE_VERSION which is written by the hardening_manifest_validation.py script run.
-    if platform == "amd64":
+    if build["PLATFORM"] == "amd64":
         image_tag = f'{hardening_manifest.labels["org.opencontainers.image.version"]}'
     else:
         image_tag = f'{hardening_manifest.labels["org.opencontainers.image.version"]}-{build["PLATFORM"]}'
@@ -65,8 +69,7 @@ def post_artifact_data_vat(
     return post_resp
 
 
-@stack_trace_handler
-def main() -> None:
+def main(build, dsop_proj) -> None:
     """Upload tar file to s3 and hit VAT endpoint to provide path to tar file
     After this stage finishes, IBFE is able to display new metadata for the
     associated image."""
@@ -127,6 +130,8 @@ def main() -> None:
             tar_path=tar_path,
             readme_path=readme_path,
             license_path=license_path,
+            build=build,
+            hardening_manifest=hardening_manifest,
         )
         post_resp.raise_for_status()
         log.info("Uploaded container data to VAT API")
@@ -163,4 +168,4 @@ if __name__ == "__main__":
         with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json') as f:
             build = json.load(f)
 
-        main()
+        main(build, dsop_proj)

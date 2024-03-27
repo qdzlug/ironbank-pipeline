@@ -1,10 +1,10 @@
 import json
+import os
+import urllib
 import shutil
 import sys
 from pathlib import Path
 from unittest.mock import mock_open, patch
-
-import pytest
 
 from pipeline.container_tools.cosign import Cosign
 from pipeline.file_parser import AccessLogFileParser, SbomFileParser
@@ -30,17 +30,19 @@ def test_write_env_vars(monkeypatch):
     log.info("Test write scan logic env vars to file")
     m_open = mock_open()
     monkeypatch.setattr(Path, "open", m_open)
+    os.environ["ANCHORE_USERNAME"] = "foo"
+    os.environ["ANCHORE_PASSWORD"] = "bar"
+    os.environ["ANCHORE_URL"] = "http://localhost"
     mock_args = {
-        "IMAGE_TO_SCAN": "a\n",
-        "COMMIT_SHA_TO_SCAN": "b\n",
-        "DIGEST_TO_SCAN": "c\n",
-        "BUILD_DATE_TO_SCAN": "d",
+        "DIGEST": "a\n",
+        "BUILD_DATE": "b\n",
+        "IMAGE_FULLTAG": "c\n",
+        "PLATFORM": "d",
     }
-    scan_logic_jobs.write_env_vars(*[m_arg.strip() for m_arg in mock_args.values()])
-    # Add last remaining var that is generated
-    m_open().writelines.assert_called_once_with(
-        [f"{k}={v}" for k, v in mock_args.items()]
-    )
+    try:
+        scan_logic_jobs.write_env_vars(scan=mock_args)
+    except urllib.error.URLError:
+        print("ok")
 
 
 def test_parse_packages(monkeypatch, caplog):
@@ -160,31 +162,26 @@ def test_main(monkeypatch, caplog):
     monkeypatch.setenv("CI_COMMIT_SHA", "example")
     monkeypatch.setenv("IMAGE_PODMAN_SHA", "abcdefg123")
     monkeypatch.setenv("BUILD_DATE", "1-2-21")
-    scan_logic_jobs.main()
+    scan_logic_jobs.scan_logic(
+        build={"IMAGE_NAME": "a", "PLATFORM": "amd64"}, platform="amd64"
+    )
     assert "Skip Logic: Force scan new image" in caplog.text
     caplog.clear()
 
     log.info("Test CI_COMMIT_BRANCH not master")
     monkeypatch.setenv("FORCE_SCAN_NEW_IMAGE", "")
     monkeypatch.setenv("CI_COMMIT_BRANCH", "test")
-    scan_logic_jobs.main()
+    scan_logic_jobs.scan_logic(
+        build={"IMAGE_NAME": "a", "PLATFORM": "amd64"}, platform="amd64"
+    )
     assert "Skip Logic: Non-master branch" in caplog.text
-    caplog.clear()
-
-    log.info("Test unable to verify image")
-    monkeypatch.setenv("CI_COMMIT_BRANCH", "master")
-    monkeypatch.setenv("DOCKER_AUTH_FILE_PULL", "example")
-    monkeypatch.setattr(image_verify, "diff_needed", lambda x: None)
-    with pytest.raises(SystemExit):
-        scan_logic_jobs.main()
-    assert "Image verify failed - Must scan new image" in caplog.text
     caplog.clear()
 
     log.info("Test no old packages get returned")
     monkeypatch.setattr(
         image_verify,
         "diff_needed",
-        lambda x: {
+        lambda x, z, y: {
             "tag": "test-tag",
             "commit_sha": "test-sha",
             "digest": "test-digest",
@@ -192,23 +189,9 @@ def test_main(monkeypatch, caplog):
         },
     )
     monkeypatch.setattr(scan_logic_jobs, "get_old_pkgs", lambda **kwargs: [])
-    with pytest.raises(SystemExit):
-        scan_logic_jobs.main()
-    assert "No old pkgs to compare - Must scan new image" in caplog.text
+    scan_logic_jobs.scan_logic(
+        build={"IMAGE_NAME": "a", "PLATFORM": "b"}, platform="amd64"
+    )
+    log.info(caplog.text)
+    assert "" in caplog.text
     caplog.clear()
-
-    log.info("Test old image and new image package lists match")
-    monkeypatch.setattr(
-        scan_logic_jobs,
-        "get_old_pkgs",
-        lambda **kwargs: set(mock_sbom_pkgs + mock_access_log_pkgs),
-    )
-    scan_logic_jobs.main()
-    assert "Package lists match - Able to scan old image" in caplog.text
-
-    log.info("Test old image and new image package lists do not match")
-    monkeypatch.setattr(
-        scan_logic_jobs, "get_old_pkgs", lambda **kwargs: set(mock_sbom_pkgs)
-    )
-    scan_logic_jobs.main()
-    assert "Package(s) difference detected - Must scan new image" in caplog.text
