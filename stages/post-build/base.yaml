@@ -187,7 +187,10 @@ tidelift-upload:
         echo "CLI alignment returned an error"
         TIDELIFT_ALIGNMENT_ID=$(cat cli_output.json | jq -r '.revision')
         echo "TIDELIFT_ALIGNMENT_ID - $TIDELIFT_ALIGNMENT_ID"
-        echo "output.json content"
+
+        echo "Generating CLI Vulnerability Report"
+       ./tidelift-sbom-vulnerability-reporter -output output.json cyclonedx.json
+        echo "CVE Vulnerability Report - output.json content"
         cat output.json
       fi
     
