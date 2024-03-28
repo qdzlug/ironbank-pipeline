@@ -39,28 +39,29 @@ class Anchore:
         """
         logging.info(f"Fetching {url}")
         try:
-            r = requests.get(
+            response = requests.get(
                 url,
                 auth=(self.username, self.password),
                 params=payload,
                 verify=self.verify,
+                timeout=300,
             )
         except requests.RequestException as e:
             logging.error("Failed to connect with Anchore")
             raise e
 
-        if r.status_code != 200:
+        if response.status_code != 200:
             if ignore404 and r.status_code == 404:
                 logging.warning("No ancestry detected")
                 return None
             else:
                 raise ValueError(
-                    f"Non-200 response from Anchore {r.status_code} - {r.text}"
+                    f"Non-200 response from Anchore {response.status_code} - {response.text}"
                 )
 
         logging.info("Got response from Anchore. Testing if valid json")
         try:
-            return r.json()
+            return response.json()
         except requests.JSONDecodeError:
             raise json.decoder.JSONDecodeError("Got 200 response but is not valid JSON")
 
@@ -262,8 +263,8 @@ class Anchore:
             stdout_lines = image_add.stdout.split("\n")
             stdout_lines[0] = "image:"
             stdout_lines = "\n".join(stdout_lines)
-        else:
-            logging.error(image_add.stdout)
-            logging.error(image_add.stderr)
-            sys.exit(image_add.returncode)
-        return yaml.safe_load(stdout_lines)["image"]["digest"]
+            return yaml.safe_load(stdout_lines)["image"]["digest"]
+        # rc != 0
+        logging.error(image_add.stdout)
+        logging.error(image_add.stderr)
+        sys.exit(image_add.returncode)
