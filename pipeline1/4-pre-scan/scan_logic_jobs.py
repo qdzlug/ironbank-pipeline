@@ -44,16 +44,28 @@ def write_env_vars(scan: dict) -> None:
             "ascii",
         )
     )
-    anchore_version = json.loads(
-        urlopen(
-            Request(
-                f'{os.environ["ANCHORE_URL"]}/version',
-                headers={"Authorization": f"Basic {anchore_auth.decode('utf-8')}"},
-            )
-        )
-        .read()
-        .decode()
-    )["service"]["version"]
+    url = f'{os.environ["ANCHORE_URL"]}/version'
+    headers = {"Authorization": f"Basic {anchore_auth.decode('utf-8')}"}
+
+    # Open the URL and read the response
+    with urlopen(Request(url, headers=headers)) as response:
+        # Read the response data
+        data = response.read().decode()
+
+    # Parse the JSON response
+    anchore_version = json.loads(data)["service"]["version"]
+
+    # TODO: If the code above works delete me.
+    # anchore_version = json.loads(
+    #     urlopen(
+    #         Request(
+    #             f'{os.environ["ANCHORE_URL"]}/version',
+    #             headers={"Authorization": f"Basic {anchore_auth.decode('utf-8')}"},
+    #         )
+    #     )
+    #     .read()
+    #     .decode()
+    # )["service"]["version"]
 
     # GPG_VERSION
     gpg_version = (

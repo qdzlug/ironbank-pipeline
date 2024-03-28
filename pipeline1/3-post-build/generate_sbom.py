@@ -101,7 +101,7 @@ def main() -> None:
         print(f"generating for {platform}..")
 
         # load platform build.json
-        with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json') as f:
+        with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json', encoding="utf-8") as f:
             build = json.load(f)
 
         with Pool() as pool:
