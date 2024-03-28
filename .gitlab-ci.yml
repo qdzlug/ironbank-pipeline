@@ -108,6 +108,3 @@ format:
   stage: code-check
   script:
     - make format_check_all
-
-
-
