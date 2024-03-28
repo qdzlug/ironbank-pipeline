@@ -149,8 +149,8 @@ def start_squid(squid_conf: Path):
 
 
 def generate_build_env(image_details: dict, image_name: str, image: Image, digest: str):
+    """Creates the build.env and build.json files."""
     image_fulltag = str(image.from_image(transport=""))
-    """Creates env file to be used later in pipeline."""
     build_envs = [
         f"DIGEST={digest}\n",
         f"IMAGE_ID=sha256:{image_details['FromImageID']}\n",

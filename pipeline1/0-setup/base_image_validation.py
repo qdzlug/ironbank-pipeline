@@ -92,7 +92,7 @@ def validate_base_image(platform: str):
             sys.exit(1)
         except requests.exceptions.RequestException as e:
             print(f"An error occurred: {e}")
-            exit(1)
+            sys.exit(1)
         if not os.environ.get("STAGING_BASE_IMAGE"):
             with tempfile.TemporaryDirectory(
                 prefix="DOCKER_CONFIG-"

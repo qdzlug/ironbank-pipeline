@@ -3,12 +3,13 @@
 import asyncio
 import sys
 
+from pathlib import Path
 import base_image_validation
 import dockerfile_validation
 import folder_structure
 import hardening_manifest_validation
 import pipeline_auth_status
-from pathlib import Path
+
 from common.utils import logger
 from pipeline.utils.exceptions import SymlinkFoundError
 
