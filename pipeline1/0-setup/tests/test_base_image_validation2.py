@@ -4,7 +4,6 @@ import shutil
 import sys
 from unittest.mock import patch
 from pathlib import Path
-import requests
 
 import pytest
 from pipeline.test.mocks.mock_classes import (
@@ -25,6 +24,7 @@ log = logger.setup("test_base_image_validation")
 
 def mock_get_json_for_image_or_manifest_list(hardening_manifest):
     return {"manifest_media_type": "NotAManifest"}
+
 
 @patch("base_image_validation.Skopeo", new=MockSkopeo)
 @patch("base_image_validation.HardeningManifest", new=MockHardeningManifest)
@@ -53,8 +53,12 @@ def test_base_image_validation_main(monkeypatch, caplog, raise_):
         base_image_validation.Cosign, "verify", lambda *args, **kwargs: True
     )
 
-    monkeypatch.setattr(harbor, "get_json_for_image_or_manifest_list", mock_get_json_for_image_or_manifest_list)
-    
+    monkeypatch.setattr(
+        harbor,
+        "get_json_for_image_or_manifest_list",
+        mock_get_json_for_image_or_manifest_list,
+    )
+
     base_image_validation.validate_base_image("amd64")
     assert "Dump SHA to file" in caplog.text
 
