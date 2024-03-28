@@ -18,6 +18,11 @@ load-scripts:
   script:
     - 'git clone -q --depth 1 --branch "${MODULES_TAG}" "${CI_SERVER_URL}/ironbank-tools/${MODULES_PROJECT}.git" "${MODULES_CLONE_DIR}"'
     - 'rm -rf "${MODULES_CLONE_DIR}/.git"'
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - "${MODULES_CLONE_DIR}"
 
 trufflehog:
   extends:
@@ -80,11 +85,10 @@ unit-testing:
     - load-scripts
   extends:
     - .base
+    - .setup_modules
   stage: code-check
   script:
     # required until we update the dev image to use pyproject.toml dev deps
-    - source "$(poetry env info -C /home/python/ironbank-modules/ironbank --path)"/bin/activate
-    - poetry install -C ci-artifacts/ironbank-modules/ironbank --only-root
     - python3 -m pip install . --quiet
     - pip install pytest-cov
     - make run_unit_tests
