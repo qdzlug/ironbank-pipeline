@@ -246,11 +246,15 @@ def create_api_call() -> dict:
     assert isinstance(vat_finding_fields, list)
 
     with open(
-        f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json'
+        f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json',
+        encoding="utf-8",
     ) as f:
         scan_logic = json.load(f)
 
-    with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json') as f:
+    with open(
+        f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json',
+        encoding="utf-8",
+    ) as f:
         build_json = json.load(f)
 
     # OSCAP_DATASTREAM is set by image_inspect.py and the value depends on the base image
@@ -357,7 +361,7 @@ def get_parent_vat_response(
     shutil.move(predicate_path, parent_vat_path)
 
 
-def main() -> None:
+def main(platform: str) -> None:
     """Main function to run the application.
 
     This function collects data for an API call and sends a POST request to the API
@@ -381,7 +385,7 @@ def main() -> None:
             json_data = get_json_for_image_or_manifest_list(hardening_manifest)
         except requests.exceptions.RequestException as e:
             print(f"An error occurred: {e}")
-            exit(1)
+            sys.exit(1)
         # 2. If manifest list use image sha's
         if (
             json_data["manifest_media_type"]
@@ -398,7 +402,7 @@ def main() -> None:
                     parent_vat_path = Path(
                         f"{os.environ['ARTIFACT_DIR']}/{image['platform']['architecture']}/parent_vat_response.json"
                     )
-                    with parent_vat_path.open("r", encoding="UTF-8") as f:
+                    with parent_vat_path.open("r", encoding="utf-8") as f:
                         parent_vat_response_content = {
                             "parentVatResponses": json.load(f)
                         }
@@ -414,7 +418,7 @@ def main() -> None:
             parent_vat_path = Path(
                 f"{os.environ['ARTIFACT_DIR']}/{json_data['extra_attrs']['architecture']}/parent_vat_response.json"
             )
-            with parent_vat_path.open("r", encoding="UTF-8") as f:
+            with parent_vat_path.open("r", encoding="utf-8") as f:
                 parent_vat_response_content = {"parentVatResponses": json.load(f)}
             log.info(
                 f"parent_vat_response_content for {platform} in 3 --> {parent_vat_response_content}"
@@ -483,12 +487,10 @@ if __name__ == "__main__":
             f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json'
         )
     ]
-    for platform in platforms:
-        args = EnvUtil(platform)
+    for p in platforms:
+        args = EnvUtil(p)
 
-        Path(f"{os.environ['ARTIFACT_DIR']}/{platform}").mkdir(
-            parents=True, exist_ok=True
-        )
+        Path(f"{os.environ['ARTIFACT_DIR']}/{p}").mkdir(parents=True, exist_ok=True)
         REMOTE_REPORT_DIRECTORY = f"{args.timestamp}_{args.commit_hash}"
 
         if "pipeline-test-project" in args.repo_link:
@@ -497,4 +499,4 @@ if __name__ == "__main__":
             )
             sys.exit(0)
 
-        main()
+        main(p)

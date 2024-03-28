@@ -326,14 +326,14 @@ if __name__ == "__main__":
         # load platform build.json
         with open(
             f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json',
-            encoding="UTF-8",
+            encoding="utf-8",
         ) as build_artifact:
             build_json = json.load(build_artifact)
 
         # load platform scan_logic.json
         with open(
             f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json',
-            encoding="UTF-8",
+            encoding="utf-8",
         ) as scan_logic_artifact:
             scan_logic_json = json.load(scan_logic_artifact)
 
