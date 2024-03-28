@@ -15,6 +15,7 @@ from pipeline.test.mocks.mock_classes import (
 )
 from pipeline.utils.exceptions import GenericSubprocessError
 from common.utils import logger
+from pipeline import harbor
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import base_image_validation  # noqa E402
@@ -22,23 +23,8 @@ import base_image_validation  # noqa E402
 log = logger.setup("test_base_image_validation")
 
 
-def mock_get(url, headers):
-    # Return a mock response with a 200 status code
-    class MockResponse:
-        def __init__(self, json_data):
-            self.json_data = json_data
-
-        def json(self):
-            return self.json_data
-
-        def raise_for_status(self):
-            pass
-
-    # Simulate the JSON response data
-    json_data = {"manifest_media_type": "NotAManifest"}
-
-    return MockResponse(json_data)
-
+def mock_get_json_for_image_or_manifest_list(hardening_manifest):
+    return {"manifest_media_type": "NotAManifest"}
 
 @patch("base_image_validation.Skopeo", new=MockSkopeo)
 @patch("base_image_validation.HardeningManifest", new=MockHardeningManifest)
@@ -67,8 +53,8 @@ def test_base_image_validation_main(monkeypatch, caplog, raise_):
         base_image_validation.Cosign, "verify", lambda *args, **kwargs: True
     )
 
-    monkeypatch.setattr(requests, "get", mock_get)
-
+    monkeypatch.setattr(harbor, "get_json_for_image_or_manifest_list", mock_get_json_for_image_or_manifest_list)
+    
     base_image_validation.validate_base_image("amd64")
     assert "Dump SHA to file" in caplog.text
 

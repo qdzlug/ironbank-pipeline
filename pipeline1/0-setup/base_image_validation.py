@@ -14,7 +14,7 @@ from pipeline.hardening_manifest import HardeningManifest
 from pipeline.image import Image
 from pipeline.project import DsopProject
 from pipeline.utils.exceptions import GenericSubprocessError
-from pipeline.harbor import get_json_for_image_or_manifest_list
+from pipeline import harbor
 from common.utils import logger
 
 log = logger.setup(name="lint.base_image_validation")
@@ -58,7 +58,7 @@ def validate_base_image(platform: str):
             registry = os.environ["BASE_REGISTRY"]
 
         try:
-            json_data = get_json_for_image_or_manifest_list(hardening_manifest)
+            json_data = harbor.get_json_for_image_or_manifest_list(hardening_manifest)
             skopeo = Skopeo(authfile=pull_auth)
 
             # If it's a manifest-list get platform sha.
