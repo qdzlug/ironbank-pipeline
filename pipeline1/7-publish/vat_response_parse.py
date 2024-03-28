@@ -9,6 +9,8 @@ from pipeline.vat_container_status import log_unverified_findings
 
 
 def main() -> None:
+    """Calls log_findings_by_status method in
+    ironbank.pipeline.vat_container_status."""
     potential_platforms = [
         "amd64",
         "arm64",
@@ -23,8 +25,6 @@ def main() -> None:
     ]
 
     for platform in platforms:
-        """Calls log_findings_by_status method in
-        ironbank.pipeline.vat_container_status."""
         vat_response: dict = json.loads(
             Path(
                 f"{os.environ['ARTIFACT_STORAGE']}/vat/{platform}/vat_response.json"

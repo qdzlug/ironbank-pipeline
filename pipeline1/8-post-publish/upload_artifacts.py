@@ -69,7 +69,7 @@ def post_artifact_data_vat(
     return post_resp
 
 
-def main(build) -> None:
+def main(build: dict) -> None:
     """Upload tar file to s3 and hit VAT endpoint to provide path to tar file
     After this stage finishes, IBFE is able to display new metadata for the
     associated image."""
@@ -166,6 +166,6 @@ if __name__ == "__main__":
     for platform in platforms:
         # load platform build.json
         with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json') as f:
-            build = json.load(f)
+            build_json = json.load(f)
 
-        main(build)
+        main(build_json)

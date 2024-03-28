@@ -323,16 +323,20 @@ if __name__ == "__main__":
 
     for platform in platforms:
         # load platform build.json
-        with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json') as f:
-            build = json.load(f)
+        with open(
+            f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json',
+            encoding="UTF-8",
+        ) as build_artifact:
+            build_json = json.load(build_artifact)
 
         # load platform scan_logic.json
         with open(
-            f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json'
-        ) as f:
-            scan_logic = json.load(f)
+            f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json',
+            encoding="UTF-8",
+        ) as scan_logic_artifact:
+            scan_logic_json = json.load(scan_logic_artifact)
 
         if os.environ.get("PUBLISH_VAT_STAGING_PREDICATES"):
-            publish_vat_staging_predicates(build)
+            publish_vat_staging_predicates(build_json)
         else:
-            main(build, scan_logic)
+            main(build_json, scan_logic_json)

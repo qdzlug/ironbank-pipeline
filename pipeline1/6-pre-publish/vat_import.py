@@ -7,12 +7,12 @@ import sys
 from itertools import groupby
 from pathlib import Path
 from typing import Any, Generator, Tuple
-from pipeline.harbor import get_json_for_image_or_manifest_list
 
 import requests
 from args import EnvUtil
 from common.utils import logger
 from pipeline.container_tools.cosign import Cosign
+from pipeline.harbor import get_json_for_image_or_manifest_list
 from pipeline.hardening_manifest import (
     HardeningManifest,
     get_source_keys_values,
