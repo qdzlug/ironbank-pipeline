@@ -38,7 +38,6 @@ unit-testing:
     - cd ${MODULES_CLONE_DIR}/ironbank && poetry lock --no-update
     # - 'poetry install -C "${MODULES_CLONE_DIR}/ironbank" --only-root'
     - poetry install
-    - poetry shell
     - python3 -m pip install . --quiet
     - pip install pytest-cov
     - cd ${CI_PROJECT_DIR}
