@@ -25,7 +25,7 @@ run_shellcheck() {
   while IFS= read -r -d '' file; do
     echo "# $file"
     yq -r '.[] | objects | .before_script, .script, .after_script | select(. != null) | join("\n")' "$file" | shellcheck --exclude=SC1091,SC2153,SC2164 --format=gcc -s bash -
-  done < <(find . \( -name '*.yaml' -o -name '*.yml' ! -path './scripts/analysis/*' \) -print0)
+  done < <(find . \( -name '*.yaml' -o -name '*.yml' ! -path './scripts/analysis/*' \) -not -path '*/ci-artifacts/*' -print0)
   echo -e "\n"
 }
 
