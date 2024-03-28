@@ -165,7 +165,10 @@ if __name__ == "__main__":
 
     for platform in platforms:
         # load platform build.json
-        with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json', encoding="utf-8") as f:
+        with open(
+            f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json',
+            encoding="utf-8",
+        ) as f:
             build_json = json.load(f)
 
         main(build_json)

@@ -163,7 +163,9 @@ def generate_attestation_predicates(predicates, build):
     return attestation_predicates
 
 
-def write_env_vars(tags: list[str], build: dict, scan_logic: dict) -> None:  # TODO: Write a unit test
+def write_env_vars(
+    tags: list[str], build: dict, scan_logic: dict
+) -> None:  # TODO: Write a unit test
     """Writes environment variables into a file named 'upload_to_harbor.env'.
     Used by the create-manifest-list job.
     """
