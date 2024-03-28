@@ -1,4 +1,4 @@
-image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner-dev:v0.0.7"
+image: "registry1.dso.mil/ironbank/ironbank-pipelines/pipeline-runner:0.12.0"
 
 stages:
   - load-scripts
@@ -94,7 +94,6 @@ unit-testing:
     - load-scripts
   stage: code-check
   script:
-    # required until we update the dev image to use pyproject.toml dev deps
     - python3 -m pip install . --quiet
     - pip install pytest-cov
     - make run_unit_tests
