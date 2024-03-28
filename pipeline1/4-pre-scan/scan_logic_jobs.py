@@ -10,7 +10,7 @@ import tempfile
 import urllib
 from pathlib import Path
 from urllib.request import Request, urlopen
-
+import sys
 import image_verify
 import requests
 from common.utils import logger
@@ -44,16 +44,28 @@ def write_env_vars(scan: dict) -> None:
             "ascii",
         )
     )
-    anchore_version = json.loads(
-        urlopen(
-            Request(
-                f'{os.environ["ANCHORE_URL"]}/version',
-                headers={"Authorization": f"Basic {anchore_auth.decode('utf-8')}"},
-            )
-        )
-        .read()
-        .decode()
-    )["service"]["version"]
+    url = f'{os.environ["ANCHORE_URL"]}/version'
+    headers = {"Authorization": f"Basic {anchore_auth.decode('utf-8')}"}
+
+    # Open the URL and read the response
+    with urlopen(Request(url, headers=headers)) as response:
+        # Read the response data
+        data = response.read().decode()
+
+    # Parse the JSON response
+    anchore_version = json.loads(data)["service"]["version"]
+
+    # TODO: If the code above works delete me.
+    # anchore_version = json.loads(
+    #     urlopen(
+    #         Request(
+    #             f'{os.environ["ANCHORE_URL"]}/version',
+    #             headers={"Authorization": f"Basic {anchore_auth.decode('utf-8')}"},
+    #         )
+    #     )
+    #     .read()
+    #     .decode()
+    # )["service"]["version"]
 
     # GPG_VERSION
     gpg_version = (
@@ -63,7 +75,9 @@ def write_env_vars(scan: dict) -> None:
     )
 
     # OPENSCAP_VERSION
-    openscap_version = Path("/opt/oscap/version.txt").read_text().rstrip()
+    # openscap_version = Path("/opt/oscap/version.txt").read_text().rstrip()
+    with open("/opt/oscap/version.txt", "r", encoding="utf-8") as file:
+        openscap_version = file.read().rstrip()
 
     # TWISTLOCK_VERSION
     twistlock_version = (
@@ -194,8 +208,10 @@ def get_old_pkgs(
         log.info("Download attestations failed")
         return []
 
-
+# TODO: Rewrite this so we don't have to make pylint ignore it.
+# pylint: disable=R0912
 def scan_logic(build, platform):
+    """TODO Write a better docstring"""
     image_name = build["IMAGE_NAME"]
 
     new_sbom = Path(
@@ -238,7 +254,9 @@ def scan_logic(build, platform):
                 try:
                     base_registry = os.environ["BASE_REGISTRY"]
                     base_registry = base_registry.split("/")[0]
-                    with open(os.environ["DOCKER_AUTH_FILE_PULL"]) as f:
+                    with open(
+                        os.environ["DOCKER_AUTH_FILE_PULL"], encoding="utf-8"
+                    ) as f:
                         auth = json.load(f)
                     encoded_credentials = auth["auths"][base_registry]["auth"]
                     headers = {
@@ -247,12 +265,12 @@ def scan_logic(build, platform):
                     }
                     encoded_image_name = urllib.parse.quote(image_name, safe="")
                     url = f"https://{base_registry}/api/v2.0/projects/ironbank/repositories/{encoded_image_name}/artifacts/{tag}"
-                    response = requests.get(url, headers=headers)
+                    response = requests.get(url, headers=headers, timeout=600)
                     response.raise_for_status()  # Raise an exception for 4xx or 5xx status codes
                     json_data = response.json()
                 except requests.exceptions.RequestException as e:
                     print(f"An error occurred: {e}")
-                    exit(1)
+                    sys.exit(1)
                     # If it's a manifest list.
                 if (
                     json_data["manifest_media_type"]
@@ -331,7 +349,7 @@ def main():
         print(f"generating for {platform}..")
 
         # load platform build.json
-        with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json') as f:
+        with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json', encoding="utf-8") as f:
             build = json.load(f)
 
         scan_logic(build, platform)
