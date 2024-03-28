@@ -10,7 +10,7 @@ import tempfile
 import urllib
 from pathlib import Path
 from urllib.request import Request, urlopen
-
+import sys
 import image_verify
 import requests
 from common.utils import logger
@@ -75,7 +75,9 @@ def write_env_vars(scan: dict) -> None:
     )
 
     # OPENSCAP_VERSION
-    openscap_version = Path("/opt/oscap/version.txt").read_text().rstrip()
+    # openscap_version = Path("/opt/oscap/version.txt").read_text().rstrip()
+    with open("/opt/oscap/version.txt", "r", encoding="utf-8") as file:
+        openscap_version = file.read().rstrip()
 
     # TWISTLOCK_VERSION
     twistlock_version = (
@@ -208,6 +210,7 @@ def get_old_pkgs(
 
 
 def scan_logic(build, platform):
+    """TODO Write a better docstring"""
     image_name = build["IMAGE_NAME"]
 
     new_sbom = Path(
@@ -250,7 +253,9 @@ def scan_logic(build, platform):
                 try:
                     base_registry = os.environ["BASE_REGISTRY"]
                     base_registry = base_registry.split("/")[0]
-                    with open(os.environ["DOCKER_AUTH_FILE_PULL"]) as f:
+                    with open(
+                        os.environ["DOCKER_AUTH_FILE_PULL"], encoding="utf-8"
+                    ) as f:
                         auth = json.load(f)
                     encoded_credentials = auth["auths"][base_registry]["auth"]
                     headers = {
@@ -259,12 +264,12 @@ def scan_logic(build, platform):
                     }
                     encoded_image_name = urllib.parse.quote(image_name, safe="")
                     url = f"https://{base_registry}/api/v2.0/projects/ironbank/repositories/{encoded_image_name}/artifacts/{tag}"
-                    response = requests.get(url, headers=headers)
+                    response = requests.get(url, headers=headers, timeout=600)
                     response.raise_for_status()  # Raise an exception for 4xx or 5xx status codes
                     json_data = response.json()
                 except requests.exceptions.RequestException as e:
                     print(f"An error occurred: {e}")
-                    exit(1)
+                    sys.exit(1)
                     # If it's a manifest list.
                 if (
                     json_data["manifest_media_type"]
