@@ -70,10 +70,12 @@ lint:
     - load-scripts
   extends:
     - .base
-    - .setup_modules
   stage: code-check
   script:
     # required until we update the dev image to use pyproject.toml dev deps
+    - source "$(poetry env info -C "${MODULES_DEPS_PATH}" --path)"/bin/activate
+    - cd ${MODULES_CLONE_DIR}/ironbank && poetry lock --no-update
+    - poetry install --no-dev
     - pip install radon mypy
     - make lint_all
   artifacts:
