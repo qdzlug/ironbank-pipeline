@@ -47,7 +47,8 @@ def main() -> None:
     for platform in platforms:
         # load platform scan_logic.json
         with open(
-            f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json'
+            f'{os.environ["ARTIFACT_STORAGE"]}/scan-logic/{platform}/scan_logic.json',
+            encoding="utf-8",
         ) as f:
             scan_logic = json.load(f)
 
