@@ -5,7 +5,8 @@ import os
 import subprocess
 from pathlib import Path
 
-
+# TODO: Add subprocess decorator
+# pylint: disable=E1500
 def main():
     """This function copies images to .tar files via skopeo
 
