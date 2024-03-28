@@ -6,7 +6,6 @@ import shutil
 import sys
 import tempfile
 from pathlib import Path
-import urllib
 import requests
 
 from pipeline.container_tools.cosign import Cosign

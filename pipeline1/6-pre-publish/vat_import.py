@@ -4,7 +4,6 @@ import json
 import os
 import shutil
 import sys
-import urllib.parse
 from itertools import groupby
 from pathlib import Path
 from typing import Any, Generator, Tuple
