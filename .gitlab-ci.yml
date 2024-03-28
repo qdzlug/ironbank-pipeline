@@ -35,7 +35,7 @@ unit-testing:
     # required until we update the dev image to use pyproject.toml dev deps
     # Ensuring we are not in an existing shell
     # - deactivate || true
-    - poetry lock --no-update
+    - cd ${MODULES_PACKAGE_PATH} && poetry lock --no-update
     - 'poetry install -C "${MODULES_PACKAGE_PATH}" --only-root'
     - python3 -m pip install . --quiet
     - pip install pytest-cov
