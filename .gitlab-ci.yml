@@ -75,11 +75,11 @@ lint:
   stage: code-check
   script:
     # required until we update the dev image to use pyproject.toml dev deps
-    - source "$(poetry env info -C "${MODULES_DEPS_PATH}" --path)"/bin/activate
-    - cd ${MODULES_CLONE_DIR}/ironbank && poetry lock --no-update
-    - poetry install
+    # - source "$(poetry env info -C "${MODULES_DEPS_PATH}" --path)"/bin/activate
+    # - cd ${MODULES_CLONE_DIR}/ironbank && poetry lock --no-update
+    # - poetry install
     - pip install radon mypy
-    - cd ${CI_PROJECT_DIR}
+    # - cd ${CI_PROJECT_DIR}
     - make lint_all
   artifacts:
     paths:
