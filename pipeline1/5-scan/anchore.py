@@ -250,6 +250,7 @@ class Anchore:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 encoding="utf-8",
+                check=True,
             )
         except subprocess.SubprocessError:
             logging.exception("Could not add image to Anchore")
