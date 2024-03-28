@@ -90,6 +90,8 @@ unit-testing:
     - ironbank-tools
   extends:
     - .setup_modules
+  needs:
+    - load-scripts
   stage: code-check
   script:
     # required until we update the dev image to use pyproject.toml dev deps
