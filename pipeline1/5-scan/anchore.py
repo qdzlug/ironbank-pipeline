@@ -207,7 +207,9 @@ class Anchore:
         with filename.open(mode="w", encoding="utf-8") as f:
             json.dump(results_dict, f)
 
-    def image_add(self, image, platform): # pylint: disable=subprocess-decorator-missing
+    def image_add(
+        self, image, platform
+    ):  # pylint: disable=subprocess-decorator-missing
         """
         Add the image to Anchore along with it's Dockerfile. Use the `--force` flag to force
         a reanalysis of the image on pipeline reruns where the digest has not changed.
