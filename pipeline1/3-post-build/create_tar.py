@@ -31,7 +31,7 @@ def main():
             "platform": platform,
             "digest": Path(
                 f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/digest'
-            ).read_text(),
+            ).read_text(encoding="utf-8"),
         }
         for platform in potential_platforms
         if os.path.isfile(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/digest')
@@ -40,7 +40,9 @@ def main():
     for platform in platforms:
         # load platform build.json
         with open(
-            f"{os.environ['ARTIFACT_STORAGE']}/build/{platform['platform']}/build.json"
+            f"{os.environ['ARTIFACT_STORAGE']}/build/{platform['platform']}/build.json",
+            "r",
+            encoding="utf-8",
         ) as f:
             build = json.load(f)
 
@@ -56,7 +58,8 @@ def main():
                 os.environ["DOCKER_AUTH_FILE_PRE_PUBLISH"],
                 f"docker://{os.environ['REGISTRY_PRE_PUBLISH_URL']}/{build['IMAGE_NAME']}@{platform['digest']}",
                 f"docker-archive:{os.environ['ARTIFACT_DIR']}/{platform['platform']}/{os.environ['IMAGE_FILE']}-{platform['platform']}.tar",
-            ]
+            ],
+            check=True,
         )
 
 
