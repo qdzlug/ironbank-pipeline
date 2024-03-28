@@ -37,6 +37,7 @@ unit-testing:
     - cd ${MODULES_CLONE_DIR}/ironbank && poetry lock --no-update
     - python3 -m pip install . --quiet
     - pip install pytest-cov
+    - cd ${CI_PROJECT_DIR}
     - make run_unit_tests
   coverage: '/^TOTAL.+?(\d+\%)$/'
   variables:
