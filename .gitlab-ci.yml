@@ -35,8 +35,10 @@ unit-testing:
     # required until we update the dev image to use pyproject.toml dev deps
     # Ensuring we are not in an existing shell
     # - deactivate || true
-    - cd ${MODULES_CLONE_DIR} && poetry lock --no-update
-    - 'poetry install -C "${MODULES_CLONE_DIR}" --only-root'
+    - cd ${MODULES_CLONE_DIR}/ironbank && poetry lock --no-update
+    # - 'poetry install -C "${MODULES_CLONE_DIR}/ironbank" --only-root'
+    - poetry install
+    - poetry shell
     - python3 -m pip install . --quiet
     - pip install pytest-cov
     - cd ${CI_PROJECT_DIR}
