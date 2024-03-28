@@ -8,6 +8,7 @@ import urllib.parse
 from itertools import groupby
 from pathlib import Path
 from typing import Any, Generator, Tuple
+from pipeline.harbor import get_json_for_image_or_manifest_list
 
 import requests
 from args import EnvUtil
@@ -378,22 +379,7 @@ def main() -> None:
     if hardening_manifest.base_image_name:
         # Check if the base image is a manifest list.
         try:
-            base_registry = os.environ["BASE_REGISTRY"]
-            base_registry = base_registry.split("/")[0]
-            with open(os.environ["DOCKER_AUTH_FILE_PULL"]) as f:
-                auth = json.load(f)
-            encoded_credentials = auth["auths"][base_registry]["auth"]
-            headers = {
-                "Accept": "application/json",
-                "Authorization": f"Basic {encoded_credentials}",
-            }
-            encoded_image_name = urllib.parse.quote(
-                hardening_manifest.base_image_name, safe=""
-            )
-            url = f"https://{base_registry}/api/v2.0/projects/ironbank/repositories/{encoded_image_name}/artifacts/{hardening_manifest.base_image_tag}"
-            response = requests.get(url, headers=headers)
-            response.raise_for_status()  # Raise an exception for 4xx or 5xx status codes
-            json_data = response.json()
+            json_data = get_json_for_image_or_manifest_list(hardening_manifest)
         except requests.exceptions.RequestException as e:
             print(f"An error occurred: {e}")
             exit(1)
