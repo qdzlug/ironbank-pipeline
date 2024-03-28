@@ -15,6 +15,7 @@ from pipeline.hardening_manifest import HardeningManifest
 from pipeline.image import Image
 from pipeline.project import DsopProject
 from pipeline.utils.exceptions import GenericSubprocessError
+from pipeline.harbor import get_json_for_image_or_manifest_list
 from common.utils import logger
 
 log = logger.setup(name="lint.base_image_validation")
@@ -58,22 +59,7 @@ def validate_base_image(platform: str):
             registry = os.environ["BASE_REGISTRY"]
 
         try:
-            base_registry = os.environ["BASE_REGISTRY"]
-            base_registry = base_registry.split("/")[0]
-            with open(os.environ["DOCKER_AUTH_FILE_PULL"]) as f:
-                auth = json.load(f)
-            encoded_credentials = auth["auths"][base_registry]["auth"]
-            headers = {
-                "Accept": "application/json",
-                "Authorization": f"Basic {encoded_credentials}",
-            }
-            encoded_image_name = urllib.parse.quote(
-                hardening_manifest.base_image_name, safe=""
-            )
-            url = f"https://{base_registry}/api/v2.0/projects/ironbank/repositories/{encoded_image_name}/artifacts/{hardening_manifest.base_image_tag}"
-            response = requests.get(url, headers=headers)
-            response.raise_for_status()  # Raise an exception for 4xx or 5xx status codes
-            json_data = response.json()
+            json_data = get_json_for_image_or_manifest_list(hardening_manifest)
             skopeo = Skopeo(authfile=pull_auth)
 
             # If it's a manifest-list get platform sha.
