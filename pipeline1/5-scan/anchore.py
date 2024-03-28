@@ -51,19 +51,20 @@ class Anchore:
             raise e
 
         if response.status_code != 200:
-            if ignore404 and r.status_code == 404:
+            if ignore404 and response.status_code == 404:
                 logging.warning("No ancestry detected")
                 return None
-            else:
-                raise ValueError(
-                    f"Non-200 response from Anchore {response.status_code} - {response.text}"
-                )
+
+            # non 200 and/or non 200 + ignoring 404
+            raise ValueError(
+                f"Non-200 response from Anchore {response.status_code} - {response.text}"
+            )
 
         logging.info("Got response from Anchore. Testing if valid json")
         try:
             return response.json()
-        except requests.JSONDecodeError:
-            raise json.decoder.JSONDecodeError("Got 200 response but is not valid JSON")
+        except requests.JSONDecodeError as e:
+            raise ValueError("Got 200 response but is not valid JSON"), e
 
     def _get_parent_sha(self, digest):
         """
