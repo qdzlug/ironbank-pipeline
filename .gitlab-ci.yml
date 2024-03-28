@@ -29,15 +29,17 @@ unit-testing:
     - load-scripts
   extends:
     - .base
+    - .setup_modules
   stage: code-check
   script:
     # required until we update the dev image to use pyproject.toml dev deps
     # Ensuring we are not in an existing shell
     # - deactivate || true
+    - 'source "$(poetry env info -C "${MODULES_DEPS_PATH}" --path)"/bin/activate'
     - cd ${MODULES_CLONE_DIR}/ironbank && poetry lock --no-update
     - poetry install
-    # - python3 -m pip install . --quiet
-    # - pip install pytest-cov
+    - python3 -m pip install . --quiet
+    - pip install pytest-cov
     - cd ${CI_PROJECT_DIR}
     - make run_unit_tests
   coverage: '/^TOTAL.+?(\d+\%)$/'
