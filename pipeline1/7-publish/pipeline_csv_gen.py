@@ -439,5 +439,5 @@ if __name__ == "__main__":
         )
     ]
 
-    for platform in platforms:
-        main(platform)
+    for p in platforms:
+        main(p)

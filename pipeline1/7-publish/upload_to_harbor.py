@@ -25,7 +25,7 @@ log = logger.setup("upload_to_harbor")
 
 
 @subprocess_error_handler("Failed to retrieve manifest for staged image")
-def compare_digests(image: Image, build) -> None:
+def compare_digests(image: Image, build: dict) -> None:
     """Pull down image manifest to compare digest to digest from build
     environment."""
 
@@ -51,7 +51,7 @@ def compare_digests(image: Image, build) -> None:
     "Failed to copy image from staging project to production project"
 )
 def promote_tags(
-    staging_image: Image, production_image: Image, tags: list[str]
+    staging_image: Image, production_image: Image, tags: list[str], build: dict
 ) -> None:
     """Promote image from staging project to production project, tagging it
     according the the tags defined in tags.txt."""
@@ -163,7 +163,7 @@ def generate_attestation_predicates(predicates, build):
     return attestation_predicates
 
 
-def write_env_vars(tags: list[str]) -> None:  # TODO: Write a unit test
+def write_env_vars(tags: list[str], build: dict, scan_logic: dict) -> None:  # TODO: Write a unit test
     """Writes environment variables into a file named 'upload_to_harbor.env'.
     Used by the create-manifest-list job.
     """
@@ -248,6 +248,7 @@ def main(build: dict, scan_logic: dict):
                     staging_image,
                     production_image,
                     hardening_manifest.image_tags,
+                    build,
                 )
                 # Sign image
                 cosign.sign(production_image, log_cmd=True)
@@ -261,7 +262,7 @@ def main(build: dict, scan_logic: dict):
                     replace=True,
                     log_cmd=True,
                 )
-            write_env_vars(hardening_manifest.image_tags)
+            write_env_vars(hardening_manifest.image_tags, build, scan_logic)
     except GenericSubprocessError:
         sys.exit(1)
 
