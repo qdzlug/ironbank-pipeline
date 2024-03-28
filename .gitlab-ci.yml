@@ -16,15 +16,41 @@ include:
 load-scripts:
   stage: load-scripts
   script:
-    # git clone -q --depth 1 --branch 0.0.27 https://repo1.dso.mil/ironbank-tools/ironbank-modules.git ci-artifacts/ironbank-modules
     - 'git clone -q --depth 1 --branch "${MODULES_TAG}" "${CI_SERVER_URL}/ironbank-tools/${MODULES_PROJECT}.git" "${MODULES_CLONE_DIR}"'
-    # rm -rf ci-artifacts/ironbank-modules/.git
     - 'rm -rf "${MODULES_CLONE_DIR}/.git"'
   artifacts:
     when: always
     expire_in: 1 week
     paths:
       - "${MODULES_CLONE_DIR}"
+
+unit-testing:
+  needs:
+    - load-scripts
+  extends:
+    - .base
+    - .setup_modules
+  stage: code-check
+  script:
+    # required until we update the dev image to use pyproject.toml dev deps
+    # Ensuring we are not in an existing shell
+    # - deactivate || true
+    - python3 -m pip install . --quiet
+    - pip install pytest-cov
+    - make run_unit_tests
+  coverage: '/^TOTAL.+?(\d+\%)$/'
+  variables:
+    ARTIFACT_DIR: "stages/validate-container-repository/lint/tests/mock"
+    CI_COMMIT_BRANCH: "development"
+    MODULES_PACKAGE_PATH: "/home/python/ironbank-modules/ironbank"
+    PIPELINE_REPO_DIR: "/builds/ironbank-tools/ironbank-pipeline"
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    paths:
+      - ./coverage.xml
 
 trufflehog:
   extends:
@@ -83,31 +109,4 @@ format:
     - make format_check_all
 
 
-# curl -sSL https://install.python-poetry.org | python3.11 -
-unit-testing:
-  needs:
-    - load-scripts
-  extends:
-    - .base
-  stage: code-check
-  script:
-    # required until we update the dev image to use pyproject.toml dev deps
-    # Ensuring we are not in an existing shell
-    # - deactivate || true
-    - poetry shell -C ${MODULES_CLONE_DIR}/ironbank
-    - python3 -m pip install . --quiet
-    - pip install pytest-cov
-    - make run_unit_tests
-  coverage: '/^TOTAL.+?(\d+\%)$/'
-  variables:
-    ARTIFACT_DIR: "stages/validate-container-repository/lint/tests/mock"
-    CI_COMMIT_BRANCH: "development"
-    MODULES_PACKAGE_PATH: "/home/python/ironbank-modules/ironbank"
-    PIPELINE_REPO_DIR: "/builds/ironbank-tools/ironbank-pipeline"
-  artifacts:
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage.xml
-    paths:
-      - ./coverage.xml
+
