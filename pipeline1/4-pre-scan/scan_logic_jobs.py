@@ -208,7 +208,8 @@ def get_old_pkgs(
         log.info("Download attestations failed")
         return []
 
-
+# TODO: Rewrite this so we don't have to make pylint ignore it.
+# pylint: disable=R0912
 def scan_logic(build, platform):
     """TODO Write a better docstring"""
     image_name = build["IMAGE_NAME"]
@@ -348,7 +349,7 @@ def main():
         print(f"generating for {platform}..")
 
         # load platform build.json
-        with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json') as f:
+        with open(f'{os.environ["ARTIFACT_STORAGE"]}/build/{platform}/build.json', encoding="utf-8") as f:
             build = json.load(f)
 
         scan_logic(build, platform)
