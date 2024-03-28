@@ -2,10 +2,12 @@
 
 import shutil
 import sys
-from unittest.mock import patch
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
+from common.utils import logger
+from pipeline import harbor
 from pipeline.test.mocks.mock_classes import (
     MockHardeningManifest,
     MockJson,
@@ -13,8 +15,6 @@ from pipeline.test.mocks.mock_classes import (
     MockSkopeo,
 )
 from pipeline.utils.exceptions import GenericSubprocessError
-from common.utils import logger
-from pipeline import harbor
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import base_image_validation  # noqa E402
