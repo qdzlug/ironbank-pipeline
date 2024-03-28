@@ -11,7 +11,7 @@ run_shellcheck() {
   files=()
   while IFS='' read -r -d '' line; do
     files+=("$line")
-  done < <(find ./stages -name '*.sh' -print0)
+  done < <(find ./pipeline1 -name '*.sh' -print0)
   if [ -n "${files[0]}" ]; then
     echo " Scanning shell scripts..."
     (
@@ -69,7 +69,7 @@ run_radon() {
   echo "*****************"
   echo "Running radon"
   echo "*****************"
-  output=$(python3 -m radon cc -e "*test_*.py" -n "D" ironbank/ stages/)
+  output=$(python3 -m radon cc -e "*test_*.py" -n "D" ironbank/ pipeline1/)
   if [[ -z "$output" ]]; then
     echo "radon found no problems"
   else
