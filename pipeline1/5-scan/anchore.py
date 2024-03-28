@@ -64,7 +64,7 @@ class Anchore:
         try:
             return response.json()
         except requests.JSONDecodeError as e:
-            raise ValueError("Got 200 response but is not valid JSON"), e
+            raise e
 
     def _get_parent_sha(self, digest):
         """
