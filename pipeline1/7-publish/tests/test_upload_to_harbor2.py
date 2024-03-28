@@ -94,7 +94,9 @@ def test_promote_tags(monkeypatch, caplog):
     monkeypatch.setenv("DOCKER_AUTH_FILE_PRE_PUBLISH", "/path/to/staging_auth_file")
     monkeypatch.setenv("DOCKER_AUTH_FILE_PUBLISH", "/path/to/production_auth_file")
 
-    upload_to_harbor.promote_tags(staging_image, production_image, tags, {"PLATFORM": "amd64", "IMAGE_NAME": "IMAGE_NAME"})
+    upload_to_harbor.promote_tags(
+        staging_image, production_image, tags, {"PLATFORM": "amd64"}
+    )
     assert f"Successfully copied {staging_image} to {production_image}" in caplog.text
 
 
