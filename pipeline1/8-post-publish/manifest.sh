@@ -41,7 +41,7 @@ for TAG in "${TAGS_ARRAY[@]}"; do
 done
 
 # hardening manifest yaml to json
-cat "$CI_PROJECT_DIR/hardening_manifest.yaml" | python -c 'import sys, yaml, json; print(json.dumps(yaml.safe_load(sys.stdin.read())))' >"$CI_PROJECT_DIR/hardening_manifest.json"
+python -c 'import sys, yaml, json; print(json.dumps(yaml.safe_load(sys.stdin.read())))' > "$CI_PROJECT_DIR/hardening_manifest.json" < "$CI_PROJECT_DIR/hardening_manifest.yaml"
 echo "INFO attesting $CI_PROJECT_DIR/hardening_manifest.json (https://repo1.dso.mil/dsop/dccscr/-/raw/master/hardening%20manifest/README.md)"
 DOCKER_CONFIG="$HOME/.docker" cosign attest \
   --predicate="$CI_PROJECT_DIR/hardening_manifest.json" \

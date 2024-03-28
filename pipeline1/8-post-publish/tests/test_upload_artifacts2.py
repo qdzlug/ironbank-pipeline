@@ -2,12 +2,12 @@ import os
 import subprocess
 import sys
 from logging import Logger
-from unittest.mock import MagicMock, patch
 from pathlib import Path
-from pipeline.utils.exceptions import GenericSubprocessError
+from unittest.mock import MagicMock, patch
+
 import pytest
 import requests
-
+from common.utils import logger
 from pipeline.test.mocks.mock_classes import (
     MockHardeningManifest,
     MockPath,
@@ -15,7 +15,7 @@ from pipeline.test.mocks.mock_classes import (
     MockResponse,
 )
 from pipeline.utils import s3upload
-from common.utils import logger
+from pipeline.utils.exceptions import GenericSubprocessError
 
 sys.path.append(Path(__file__).absolute().parents[1].as_posix())
 import upload_artifacts  # noqa E402
