@@ -12,6 +12,7 @@ from pathlib import Path
 # pylint: disable=C0413
 sys.path.append(Path(__file__).absolute().parents[2].as_posix())
 
+
 # TODO: Add subprocess decorator
 # pylint: disable=E1500
 def generate_sbom(
