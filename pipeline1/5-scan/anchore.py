@@ -247,6 +247,7 @@ class Anchore:
 
         try:
             logging.info(f"{' '.join(add_cmd)}")
+            # pylint: disable=F1504
             image_add = subprocess.run(
                 add_cmd,
                 stdout=subprocess.PIPE,
