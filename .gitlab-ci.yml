@@ -29,6 +29,7 @@ unit-testing:
     - load-scripts
   extends:
     - .base
+    - .setup_modules
   stage: code-check
   script:
     # required until we update the dev image to use pyproject.toml dev deps
@@ -70,6 +71,7 @@ lint:
     - load-scripts
   extends:
     - .base
+    - .setup_modules
   stage: code-check
   script:
     # required until we update the dev image to use pyproject.toml dev deps
