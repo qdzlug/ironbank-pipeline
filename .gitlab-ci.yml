@@ -78,6 +78,7 @@ lint:
     - cd ${MODULES_CLONE_DIR}/ironbank && poetry lock --no-update
     - poetry install
     - pip install radon mypy
+    - cd ${CI_PROJECT_DIR}
     - make lint_all
   artifacts:
     paths:
