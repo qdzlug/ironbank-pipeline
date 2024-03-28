@@ -54,7 +54,7 @@ class Anchore:
                 logging.warning("No ancestry detected")
                 return None
             else:
-                raise Exception(
+                raise ValueError(
                     f"Non-200 response from Anchore {r.status_code} - {r.text}"
                 )
 
@@ -62,7 +62,7 @@ class Anchore:
         try:
             return r.json()
         except requests.JSONDecodeError:
-            raise Exception("Got 200 response but is not valid JSON")
+            raise json.decoder.JSONDecodeError("Got 200 response but is not valid JSON")
 
     def _get_parent_sha(self, digest):
         """
@@ -98,7 +98,7 @@ class Anchore:
         )
         filename = Path(artifacts_path, "anchore-version.txt")
         logging.info(f"Writing to {filename}")
-        with filename.open(mode="w") as f:
+        with filename.open(mode="w", encoding="utf-8") as f:
             json.dump(version_json["service"]["version"], f)
 
     def _get_extra_vuln_data(self, vulnerability):
@@ -109,7 +109,7 @@ class Anchore:
         url = f"{self.url}/query/vulnerabilities?id={vulnerability['vuln']}"
         logging.info(url)
 
-        extra = dict()
+        extra = {}
         description = "none"
 
         resp = self._get_anchore_api_json(url=url)
@@ -153,7 +153,7 @@ class Anchore:
 
         filename = Path(artifacts_path, "anchore_api_security_full.json")
         logging.info(f"Writing to {filename}")
-        with filename.open(mode="w") as f:
+        with filename.open(mode="w", encoding="utf-8") as f:
             json.dump(vuln_dict, f)
 
         # Add the extra vuln details
@@ -164,7 +164,7 @@ class Anchore:
         # Create json report called anchore_security.json
         filename = Path(artifacts_path, "anchore_security.json")
         logging.info(f"Writing to {filename}")
-        with filename.open(mode="w") as f:
+        with filename.open(mode="w", encoding="utf-8") as f:
             json.dump(vuln_dict, f)
 
     def get_compliance(self, digest, image, artifacts_path):
@@ -190,7 +190,7 @@ class Anchore:
         # Save the API response
         filename = Path(artifacts_path, "anchore_api_gates_full.json")
         logging.info(f"Writing to {filename}")
-        with filename.open(mode="w") as f:
+        with filename.open(mode="w", encoding="utf-8") as f:
             json.dump(body_json, f)
 
         results = body_json[0][digest][image][0]["detail"]["result"]["result"]
@@ -202,7 +202,7 @@ class Anchore:
 
         filename = Path(artifacts_path, "anchore_gates.json")
         logging.info(f"Writing to {filename}")
-        with filename.open(mode="w") as f:
+        with filename.open(mode="w", encoding="utf-8") as f:
             json.dump(results_dict, f)
 
     def image_add(self, image, platform):
@@ -258,13 +258,12 @@ class Anchore:
         if image_add.returncode == 0:
             logging.info(f"{image} added to Anchore")
             logging.info(image_add.stdout)
-
             # replace the first stdout line as it contains control characters
             stdout_lines = image_add.stdout.split("\n")
             stdout_lines[0] = "image:"
             stdout_lines = "\n".join(stdout_lines)
-            return yaml.safe_load(stdout_lines)["image"]["digest"]
         else:
             logging.error(image_add.stdout)
             logging.error(image_add.stderr)
             sys.exit(image_add.returncode)
+        return yaml.safe_load(stdout_lines)["image"]["digest"]

@@ -198,7 +198,7 @@ def generate_twistlock_findings(twistlock_cve_path: Path) -> list[dict[str, Any]
     return findings
 
 
-def create_api_call() -> dict:
+def create_api_call(platform) -> dict:
     """Creates the data for an API call based on various environmental
     variables and findings.
 
@@ -431,7 +431,7 @@ def main(platform: str) -> None:
 
     vat_request_json = Path(f"{os.environ['ARTIFACT_DIR']}/{platform}/vat_request.json")
     if not args.use_json:
-        large_data = create_api_call()
+        large_data = create_api_call(platform)
         large_data.update(parent_vat_response_content)
         log.info(
             f"large_data after .update(parent_vat_response_content --> {large_data}"
