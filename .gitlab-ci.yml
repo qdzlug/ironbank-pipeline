@@ -4,25 +4,32 @@ stages:
   - load-scripts
   - code-check
 
-.base:
-  needs: []
-  tags:
-    - ironbank-tools
+variables:
+  ARTIFACT_STORAGE: "ci-artifacts"
+  MODULES_CLONE_DIR: "${ARTIFACT_STORAGE}/ironbank-modules"
 
-include:
-  - templates/shared_vars.yaml
-  - templates/setup_modules.yaml
+.setup_modules:
+  before_script:
+    # activate virtual env before installing the modules
+    # needed to ensure modules exist in the same env as their deps
+    - 'source "$(poetry env info -C "${MODULES_CLONE_DIR}" --path)"/bin/activate'
+    - 'poetry install -C "${MODULES_CLONE_DIR}/ironbank" --only-root'
 
 load-scripts:
   stage: load-scripts
   script:
-    - 'echo "${MODULES_TAG}"'
-    - 'git clone -q --depth 1 --branch "${MODULES_TAG}" "${CI_SERVER_URL}/ironbank-tools/${MODULES_PROJECT}.git" "${MODULES_CLONE_DIR}"'
+    - 'echo "Pulling ironbank-modules tag ${MODULES_TAG}"'
+    - 'git clone -q --depth 1 --branch "${MODULES_TAG}" "${CI_SERVER_URL}/ironbank-tools/ironbank-modules.git" "${MODULES_CLONE_DIR}"'
     - 'rm -rf "${MODULES_CLONE_DIR}/.git"'
+  artifacts:
+    when: always
+    expire_in: 1 day
+    paths:
+      - "${MODULES_CLONE_DIR}"
 
 trufflehog:
-  extends:
-    - .base
+  tags:
+    - ironbank-tools
   image: registry1.dso.mil/ironbank/opensource/trufflehog/trufflehog3:3.0.6
   stage: code-check
   variables:
@@ -30,14 +37,15 @@ trufflehog:
     GIT_DEPTH: 0
   script:
     - 'git config --global --add safe.directory "${CI_PROJECT_DIR}"'
-    - python3 stages/validate-container-repository/secret-scan/trufflehog.py
+    - 'python3 pipeline1/0-setup/trufflehog.py'
 
 lint:
+  extends:
+    - .setup_modules
+  tags:
+    - ironbank-tools
   needs:
     - load-scripts
-  extends:
-    - .base
-    - .setup_modules
   stage: code-check
   script:
     # required until we update the dev image to use pyproject.toml dev deps
@@ -52,8 +60,8 @@ lint:
       - ./ironbank_1.stats
 
 bandit:
-  extends:
-    - .base
+  tags:
+    - ironbank-tools
   stage: code-check
   variables:
     GIT_DEPTH: 1
@@ -69,33 +77,26 @@ bandit:
 format:
   needs:
     - load-scripts
+  tags:
+    - ironbank-tools
   extends:
-    - .base
     - .setup_modules
   stage: code-check
   script:
     - make format_check_all
 
 unit-testing:
+  tags:
+    - ironbank-tools
   extends:
-    - .base
+    - .setup_modules
   stage: code-check
   script:
     # required until we update the dev image to use pyproject.toml dev deps
-    - 'rm -rf /home/python/ironbank-modules'
-    - 'git clone -q --depth 1 --branch "${MODULES_TAG}" "${CI_SERVER_URL}/ironbank-tools/${MODULES_PROJECT}.git" "/home/python/ironbank-modules"'
-    - 'rm -rf "${MODULES_CLONE_DIR}/.git"'
-    - source "$(poetry env info -C /home/python/ironbank-modules/ironbank --path)"/bin/activate
-    - poetry install -C ci-artifacts/ironbank-modules/ironbank --only-root
     - python3 -m pip install . --quiet
     - pip install pytest-cov
     - make run_unit_tests
   coverage: '/^TOTAL.+?(\d+\%)$/'
-  variables:
-    ARTIFACT_DIR: "stages/validate-container-repository/lint/tests/mock"
-    CI_COMMIT_BRANCH: "development"
-    MODULES_PACKAGE_PATH: "/home/python/ironbank-modules/ironbank"
-    PIPELINE_REPO_DIR: "/builds/ironbank-tools/ironbank-pipeline"
   artifacts:
     reports:
       coverage_report:
