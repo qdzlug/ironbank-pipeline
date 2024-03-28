@@ -34,7 +34,6 @@ anchore-scan:
 
 openscap-compliance:
   extends: .scanning
-  image: registry1.dso.mil/ironbank/ironbank-pipelines/ib-oscap-redhat:1.0.0
   tags:
     - ironbank-dsop-privileged
   script:
