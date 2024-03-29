@@ -70,8 +70,6 @@ upload-to-s3:
 
 manifest:
   stage: post-publish
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master" && $ENABLE_MULTIARCH && $ENABLE_MULTIARCH != ""'
   needs:
     - setup
     - create-sbom
@@ -80,3 +78,7 @@ manifest:
     - '"${PIPELINE_REPO_DIR}/pipeline1/8-post-publish/manifest.sh"'
   variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: sign
+  rules:
+    - if: '$ENABLE_MULTIARCH && $ENABLE_MULTIARCH != ""'
+      exists:
+        - Dockerfile.arm64
