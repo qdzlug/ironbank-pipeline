@@ -116,6 +116,7 @@ def main() -> None:  # pylint: disable=subprocess-decorator-missing
     Returns:
         None
     """
+    log.info("YOU ARE RUNNING TRUFFLEHOG.PY")
     repo_dir = os.environ["CI_PROJECT_DIR"]
     pipeline_repo_dir = os.environ.get(
         "PIPELINE_REPO_DIR",
