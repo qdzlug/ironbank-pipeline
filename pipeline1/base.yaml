@@ -66,7 +66,7 @@ include:
 
 variables:
   # general
-  ARTIFACT_STORAGE: "ci-artifacts"
+  ARTIFACT_STORAGE: "ci-artifactz"
   GIT_SSL_NO_VERIFY: "1"
   LOGLEVEL: "INFO"
   STAGING_BASE_IMAGE: $STAGING_BASE_IMAGE
