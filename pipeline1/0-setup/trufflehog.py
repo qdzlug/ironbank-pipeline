@@ -80,8 +80,6 @@ def create_trufflehog_config(
     project_exclude_list = get_config(project_truffle_config) if config_variable else []
     config = {"exclude": default_exclude_list + project_exclude_list}
     outfile = Path(repo_dir, default_truffle_config)
-    log.info("WEhrJWEHRWHERKJEWHKJR")
-    log.info(f"{str(outfile)}")
     with outfile.open(mode="w", encoding="utf-8") as f:
         yaml.safe_dump(config, f, indent=2, sort_keys=False)
     return bool(config_variable and project_truffle_config.is_file())
@@ -116,7 +114,6 @@ def main() -> None:  # pylint: disable=subprocess-decorator-missing
     Returns:
         None
     """
-    log.info("YOU ARE RUNNING TRUFFLEHOG.PY")
     repo_dir = os.environ["CI_PROJECT_DIR"]
     pipeline_repo_dir = os.environ.get(
         "PIPELINE_REPO_DIR",
