@@ -22,6 +22,7 @@ build-amd64:
         - Dockerfile
 
 build-arm64:
+  image: registry1.dso.mil/ironbank-apps/ironbank-pipelines/pipeline-runner:0.12.0-arm64
   stage: build
   extends:
     - .setup_modules
