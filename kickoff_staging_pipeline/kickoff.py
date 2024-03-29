@@ -205,6 +205,19 @@ class Config:
         return self.dest_gitlab_url
 
 
+def is_base_image(dest_dir: Path) -> bool:
+    try:
+        hardening_manifest_dir = Path(f"{dest_dir}/hardening_manifest.yaml")
+        with hardening_manifest_dir.open("r", encoding="utf-8") as f:
+            hardening_manifest = yaml.safe_load(f)
+    except FileNotFoundError:
+        print(f"error, could not find file at {hardening_manifest_dir}")
+        sys.exit(1)
+    if hardening_manifest["args"]["BASE_IMAGE"] == "":
+        return True
+    return False
+
+
 @git_error_handler
 def clone_from_src(config: Config) -> Config:
     """
@@ -225,6 +238,7 @@ def clone_from_src(config: Config) -> Config:
             repo = Repo(dest_dir)
             assert repo
             project.repo = Repo(dest_dir)
+        project.base_image = is_base_image(dest_dir)
     return config
 
 
