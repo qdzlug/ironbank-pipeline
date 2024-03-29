@@ -80,6 +80,7 @@ def create_trufflehog_config(
     project_exclude_list = get_config(project_truffle_config) if config_variable else []
     config = {"exclude": default_exclude_list + project_exclude_list}
     outfile = Path(repo_dir, default_truffle_config)
+    log.info("WEhrJWEHRWHERKJEWHKJR")
     log.info(f"{str(outfile)}")
     with outfile.open(mode="w", encoding="utf-8") as f:
         yaml.safe_dump(config, f, indent=2, sort_keys=False)
