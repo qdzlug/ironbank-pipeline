@@ -74,6 +74,7 @@ manifest:
     - setup
     - create-sbom
     - harbor
+    optional: true
   script:
     - '"${PIPELINE_REPO_DIR}/pipeline1/8-post-publish/manifest.sh"'
   variables:
