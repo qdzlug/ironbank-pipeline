@@ -73,7 +73,7 @@ manifest:
   needs:
     - setup
     - create-sbom
-    - harbor
+    - job: harbor
     optional: true
   script:
     - '"${PIPELINE_REPO_DIR}/pipeline1/8-post-publish/manifest.sh"'
