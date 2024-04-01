@@ -33,7 +33,9 @@ anchore-scan:
       - unknown_failure
 
 openscap-compliance:
-  extends: .scanning
+  extends:
+    - .scanning
+    - .setup_modules
   tags:
     - ironbank-dsop-privileged
   script:
