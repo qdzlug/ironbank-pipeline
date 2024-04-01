@@ -16,7 +16,7 @@ fi
 # check OSCAP_OVAL retrieve from CI_FILES_BUCKET
 if [ -n "${OSCAP_OVAL:-}" ]; then
   echo "INFO found oval $OSCAP_OVAL, retrieving"
-  aws s3 cp --quiet s3://"${CI_FILES_BUCKET}"/gitlab-runner-dsop-privileged/oscap/"$OSCAP_OVAL" /opt/oscap/"$OSCAP_OVAL"
+  python3 -c "import boto3; boto3.resource('s3').meta.client.download_file('${CI_FILES_BUCKET}', 'gitlab-runner-dsop-privileged/oscap/${OSCAP_OVAL}', '/opt/oscap/${OSCAP_OVAL}')"
 fi
 
 # setup artifact(s)
