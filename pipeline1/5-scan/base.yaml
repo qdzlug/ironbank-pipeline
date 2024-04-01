@@ -32,8 +32,6 @@ openscap-compliance:
     - scan-logic
   tags:
     - ironbank-dsop-privileged
-  extends:
-    - .setup_modules
   script:
     - '"${PIPELINE_REPO_DIR}/pipeline1/5-scan/oscap_scan.sh"'
   variables:

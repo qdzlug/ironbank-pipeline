@@ -13,6 +13,7 @@ fi
 # check OSCAP_OVAL retrieve from CI_FILES_BUCKET
 if [ -n "${OSCAP_OVAL:-}" ]; then
   echo "INFO found oval $OSCAP_OVAL, retrieving"
+  export PYTHONPATH="/home/python/.cache/pypoetry/virtualenvs/ibmodules-1Yr-v_-I-py3.11/lib/python3.11/site-packages/"
   python3 -c "import boto3; boto3.resource('s3').meta.client.download_file('${CI_FILES_BUCKET}', 'gitlab-runner-dsop-privileged/oscap/${OSCAP_OVAL}', '/opt/oscap/${OSCAP_OVAL}')"
 fi
 
