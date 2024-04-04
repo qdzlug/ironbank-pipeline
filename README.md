@@ -109,7 +109,7 @@ Job artifacts:
 - (if provided) - external resources provided in `hardening_manifest.yaml` such as binaries, tarballs, RPMs, etc.
 - (if provided) - images - a tar format of images pulled from public registries, as provided in `hardening_manifest.yaml`.
 
-For more information on this stage, please refer to the [import-artifacts readme](https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/-/blob/master/stages/artifacts-secrets/README.md).
+For more information on this stage, please refer to the [import-artifacts readme](https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/blob/master/stages/import-artifacts/README.md).
 
 ### build
 
@@ -125,7 +125,7 @@ Job artifacts:
 
 - image id as IMAGE_ID, image digest as IMAGE_PODMAN_SHA, staging image name (`<staging registry URL>/<image name>:<CI_PIPELINE_ID>`) as IMAGE_FULLTAG, image name as IMAGE_NAME
 
-For more information on this stage, please refer to the [build job readme](https://repo1.dsop.io/ironbank-tools/ironbank-pipeline/-/blob/master/stages/build/README.md).
+For more information on this stage, please refer to the [build job readme](https://repo1.dso.mil/ironbank-tools/ironbank-pipeline/-/blob/master/stages/build/README.md).
 
 ### post build
 
@@ -253,7 +253,7 @@ This stage contains two jobs, `harbor` and `upload-to-s3`.
 
 #### Harbor
 
-Pushes built images to `registry1.dsop.io/ironbank`, as well as performing Cosign operations.
+Pushes built images to `registry1.dso.mil/ironbank`, as well as performing Cosign operations.
 The SBOM files, VAT response file, and Cosign signatures on the image and SBOM artifact, are all pushed to the registry in this stage.
 
 #### Upload to S3
