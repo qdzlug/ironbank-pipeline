@@ -325,6 +325,8 @@ def main(project_root_dir, kubernetes_namespace):
 
     docker_image = read_image_from_hardening_manifest(hardening_manifest)
 
+    print(f" docker image is: {docker_image}")
+
     container_tests = None
     kubernetes_test = None
 
