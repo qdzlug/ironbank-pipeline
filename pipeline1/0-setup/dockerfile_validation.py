@@ -8,7 +8,7 @@ import sys
 from pipeline.file_parser import DockerfileParser
 from pipeline.hardening_manifest import HardeningManifest
 from pipeline.project import DsopProject
-from pipeline.utils.decorators import subprocess_error_handler, stack_trace_handler
+from pipeline.utils.decorators import subprocess_error_handler
 from common.utils import logger
 
 log = logger.setup(name="lint.dockerfile_validation")
@@ -54,7 +54,13 @@ def validate_docker_file(dockerfile: str):
     log.info("Hadolint results:")
     for hl_result in hadolint_results.split("\n"):
         log.info(hl_result)
-    if not re.match(r"^Dockerfile(:[0-9]+)+ (DL|SC)", result.stdout) and result.stdout:
+    if (
+        not (
+            re.match(r"^Dockerfile(:[0-9]+)+ (DL|SC)", result.stdout)
+            or re.match(r"^Dockerfile.arm64(:[0-9]+)+ (DL|SC)", result.stdout)
+        )
+        and result.stdout
+    ):
         log.warning("Unable to parse dockerfile")
         sys.exit(1)
     if hardening_manifest.base_image_name or hardening_manifest.base_image_tag:

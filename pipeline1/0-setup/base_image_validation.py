@@ -120,7 +120,7 @@ def validate_base_image(platform: str):
             "w", encoding="utf-8"
         ) as f:
             json.dump(base_image_info, f)
-        
+
         log.info("Base image validated.")
     return True
 
