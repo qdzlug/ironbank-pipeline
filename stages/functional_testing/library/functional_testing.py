@@ -33,15 +33,20 @@ def pod_command_passes(
 ):
     """Run a command in a pod."""
     try:
+        print("line 36")
         with subprocess.Popen(
             command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE
         ) as proc:
             _stdout, _stderr = proc.communicate(timeout=timeout_seconds)
     except subprocess.TimeoutExpired:
-        print_red("Command timed out")
+        print_red("line 42 Command timed out")
+        print(f"Standerd output: {proc.stdout}")
+        print(f"Standard error: {proc.stderr}")
         return False
     except subprocess.CalledProcessError:
-        print_red("Command execution failed")
+        print_red("line 45 Command execution failed")
+        print(f"Standerd output: {proc.stdout}")
+        print(f"Standard error: {proc.stderr}")
         return False
     return True
 
@@ -243,9 +248,11 @@ def run_test(
         check=False,
     )
     if result.returncode == 0:
+        print("line 246 ran")
         print("Command executed successfully!")
         print("Output:\n", result.stdout)
     else:
+        print("line 250 ran")
         print("Command failed")
         print("Error:\n", result.stderr)
 
