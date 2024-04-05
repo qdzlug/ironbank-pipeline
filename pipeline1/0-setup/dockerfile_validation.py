@@ -14,7 +14,6 @@ from common.utils import logger
 log = logger.setup(name="lint.dockerfile_validation")
 
 
-@stack_trace_handler
 def validate_docker_file(dockerfile: str):
     """Asynchronous main function that validates the Dockerfile of a DSOP (Data
     Standard for Operational Parameters) project against a hardening manifest.
