@@ -71,7 +71,7 @@ async def main():
         sys.exit(hard_fail_code)
 
     # Validates the base image a project uses if the project itself is not a base image.
-    if not base_image_validation.validate_base_image(platform):
+    if base_image_validation.validate_base_image(platform) != True:
         log.error("Here pipeline")
         sys.exit(hard_fail_code)
     if hard_fail_code not in system_exits:
