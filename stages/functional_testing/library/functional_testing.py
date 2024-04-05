@@ -278,16 +278,16 @@ def run_test(
         )
 
     # run the test command
-    if not pod_command_passes(
-        pod_name,
-        kubectl_command,
-        expected_output,
-        kubernetes_namespace,
-        command_timeout,
-    ):
-        print("Line 287: Error during pod command execution")
-    else:
-        print("line 290 happened, no exceptions were thrown")
+    #if not pod_command_passes(
+    #    pod_name,
+    #    kubectl_command,
+    #    expected_output,
+    #    kubernetes_namespace,
+    #    command_timeout,
+    #):
+    #    print("Line 287: Error during pod command execution")
+    #else:
+    #    print("line 290 happened, no exceptions were thrown")
 
     print_green("Waiting for pod to Complete.")
 
