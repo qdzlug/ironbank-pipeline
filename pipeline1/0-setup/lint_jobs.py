@@ -72,7 +72,7 @@ async def main():
 
     # Validates the base image a project uses if the project itself is not a base image.
     if not base_image_validation.validate_base_image(platform):
-        log.error("Failing pipeline")
+        log.error("Here pipeline")
         sys.exit(hard_fail_code)
     if hard_fail_code not in system_exits:
         await handle_system_exit(pipeline_auth_status.main)()
