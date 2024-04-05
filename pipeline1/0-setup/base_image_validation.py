@@ -31,7 +31,7 @@ def validate_base_image(platform: str):
     the running environment.
 
     Functions:
-        main(): Performs the main functionality of the script. It creates a DsopProject object and a
+        validate_base_image(): Performs the main functionality of the script. It creates a DsopProject object and a
                 HardeningManifest object, inspects the base image specified in the hardening manifest,
                 verifies the base image's signature, and writes the SHA of the base image to a JSON file.
 
@@ -122,7 +122,7 @@ def validate_base_image(platform: str):
             json.dump(base_image_info, f)
         
         log.info("Base image validated.")
-        return True
+    return True
 
 
 if __name__ == "__main__":
