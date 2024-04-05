@@ -9,8 +9,8 @@ from common.utils import logger
 log = logger.setup("lint.folder_structure")
 
 
-async def main():
-    """Asynchronously validates the folder structure of a DsopProject.
+def main():
+    """Validates the folder structure of a DsopProject.
 
     Initializes a DsopProject object and attempts to validate it. If
     validation fails (i.e., an AssertionError is raised), logs the error
@@ -28,4 +28,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    print("This should only be called from lint_jobs.py")

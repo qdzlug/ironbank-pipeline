@@ -58,8 +58,8 @@ async def main():
 
     # Validating the folder_structure and hardening_manifest only need to happen one time per project.
     if platform == "amd64":
-        await handle_system_exit(folder_structure.main)()
-        await handle_system_exit(hardening_manifest_validation.main)()
+        folder_structure.main()
+        hardening_manifest_validation.main()
 
     # Ensures every architecture's Dockerfile gets validated. Defaults to amd64's Dockerfile.
     if platform == "arm64":

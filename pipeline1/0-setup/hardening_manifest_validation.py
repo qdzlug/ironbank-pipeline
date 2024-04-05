@@ -10,7 +10,7 @@ from common.utils import logger
 log = logger.setup(name="lint.metadata")
 
 
-async def main():
+def main():
     """This script is used to validate the hardening manifest of a DSOP
     project.
 
@@ -22,9 +22,6 @@ async def main():
     contains invalid image sources, a warning is logged, and the script
     exits with a status code of 100. If there are no issues, the script
     will log that the hardening manifest is validated.
-
-    It is meant to be run as a standalone script and can be executed
-    with any Python 3.7+ interpreter.
     """
     dsop_project = DsopProject()
     hardening_manifest = HardeningManifest(
@@ -46,7 +43,8 @@ async def main():
         )
         sys.exit(1)
     log.info("Hardening manifest is validated")
+    sys.exit(1) # TODO: REMOVE ME, TESTING IF THIS SCRIPT EXITS IF THE PIPELINE FAILS
 
 
 if __name__ == "__main__":
-    main()
+    print("This should only be called from lint_jobs.py")
