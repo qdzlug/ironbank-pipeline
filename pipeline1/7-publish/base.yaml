@@ -120,6 +120,7 @@ update-staging-attestations:
     PARENT_VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/parent_vat_response.json
     SBOM_DIR: ${ARTIFACT_STORAGE}/sbom
     VAT_RESPONSE: ${ARTIFACT_STORAGE}/vat/vat_response.json
+    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: sign
 
   script:
     - 'mkdir -p "${ARTIFACT_DIR}"'
