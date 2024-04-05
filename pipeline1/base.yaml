@@ -71,7 +71,7 @@ variables:
   LOGLEVEL: "INFO"
   STAGING_BASE_IMAGE: $STAGING_BASE_IMAGE
   STAGING_PIPELINE: ""
-  TARGET_BRANCH: master
+  TARGET_BRANCH: lint-jobs-update
   # load scripts + module sourcing
   MODULES_CLONE_DIR: "${ARTIFACT_STORAGE}/${MODULES_PROJECT}"
   MODULES_PROJECT: "ironbank-modules"
