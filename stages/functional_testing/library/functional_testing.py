@@ -52,8 +52,8 @@ def pod_command_passes(
         rint_red("uncaught exception line 52")
         print(f"Standerd output: {proc.stdout}")
         print(f"Standard error: {proc.stderr}")
-        print e.__doc__
-        print e.message
+        print(f"55: error doc value: {e.__doc__}")
+        print(f"56: error message value:  {e.message}")
         return False
 
     print(f"52 Standerd output: {proc.stdout}")
