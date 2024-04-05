@@ -98,9 +98,6 @@ def main():
     exit_code = 1
     artifact = None
     try:
-        # TODO: Remove me
-        log.info(f"hardening_manifest.resources: {hardening_manifest.resources}")
-
         # TODO: refactor into a separate function
         for resource in hardening_manifest.resources:
             parsed_url = (

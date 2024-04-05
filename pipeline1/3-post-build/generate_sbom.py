@@ -42,6 +42,7 @@ def generate_sbom(
     sbom_dir.mkdir(parents=True, exist_ok=True)
     with (sbom_dir / f"sbom-{filename}.{file_type}").open("wb") as f:
         try:
+            logging.info(f"generating {artifacts_path}/sbom-{filename}.{file_type} ..")
             logging.info(" ".join(cmd))
             subprocess.run(
                 cmd,

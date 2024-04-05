@@ -85,8 +85,7 @@ def load_resources(
                 )
                 manifest_json = json.loads(manifest.stdout)
                 image_url = manifest_json[0]["RepoTags"][0]
-                # These two if statements make sure the arm64 build only gets arm64 tars
-                # and the x86 build only gets x86 tars.
+                # The following statements ensure the job loads only arch-specific tars
                 if (
                     os.environ["CI_JOB_NAME"] == "build-arm64"
                     and "arm64" in resource_file_obj.name

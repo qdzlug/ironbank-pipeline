@@ -48,7 +48,9 @@ def main():
         ) as f:
             build = json.load(f)
 
-        print(f"generating for {platform['platform']}..")
+        print(
+            f"generating {os.environ['ARTIFACT_DIR']}/{platform['platform']}/{os.environ['IMAGE_FILE']}-{platform['platform']}.tar .."
+        )
         Path(f"{os.environ['ARTIFACT_DIR']}/{platform['platform']}").mkdir(
             parents=True, exist_ok=True
         )
