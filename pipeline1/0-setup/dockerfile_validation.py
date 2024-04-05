@@ -15,7 +15,7 @@ log = logger.setup(name="lint.dockerfile_validation")
 
 
 @stack_trace_handler
-async def validate_docker_file(dockerfile: str):
+def validate_docker_file(dockerfile: str):
     """Asynchronous main function that validates the Dockerfile of a DSOP (Data
     Standard for Operational Parameters) project against a hardening manifest.
 
@@ -67,6 +67,7 @@ async def validate_docker_file(dockerfile: str):
             sys.exit(100)
 
     log.info("Dockerfile is validated.")
+    return True
 
 
 if __name__ == "__main__":
