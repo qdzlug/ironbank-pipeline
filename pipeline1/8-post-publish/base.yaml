@@ -81,5 +81,3 @@ manifest:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: sign
   rules:
     - if: '$ENABLE_MULTIARCH && $ENABLE_MULTIARCH != "" && "$CI_COMMIT_BRANCH" == "master"'
-      exists:
-        - Dockerfile.arm64
