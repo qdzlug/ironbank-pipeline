@@ -309,6 +309,8 @@ def run_test(
             print_red(
                 f"Test Failed: Expected output value '{expected_output}' was not found in pod logs."
             )
+    else:
+        print_green("Test Completed without error.")
 
     # clean up container
     cleanup_pod(pod_name, kubernetes_namespace)
