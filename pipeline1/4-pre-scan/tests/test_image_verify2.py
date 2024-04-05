@@ -138,19 +138,3 @@ def test_diff_needed(monkeypatch, caplog, raise_):
         image_verify.diff_needed(".", build={"PLATFORM": "amd64"}, platform="amd64")
         is None
     )
-
-    # log.info("Test None is returned on mismatched commit shas or parent digests")
-    # monkeypatch.setattr(
-    #     image_verify, "inspect_old_image", lambda x, y: mock_old_img_json
-    # )
-    # monkeypatch.setattr(image_verify, "verify_image_properties", lambda x, y: False)
-    # assert image_verify.diff_needed(".", build={"PLATFORM": "amd64"}, platform="amd64") is None
-
-    # log.info("Test sys exit on key error")
-    # monkeypatch.setattr(
-    #     image_verify, "verify_image_properties", lambda x, y: raise_(KeyError)
-    # )
-    # with pytest.raises(SystemExit):
-    #     image_verify.diff_needed(".", build={"PLATFORM": "amd64"}, platform="amd64")
-    # assert "Digest or label missing for old image" in caplog.text
-    # caplog.clear()

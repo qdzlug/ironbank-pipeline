@@ -55,18 +55,6 @@ def write_env_vars(scan: dict) -> None:
     # Parse the JSON response
     anchore_version = json.loads(data)["service"]["version"]
 
-    # TODO: If the code above works delete me.
-    # anchore_version = json.loads(
-    #     urlopen(
-    #         Request(
-    #             f'{os.environ["ANCHORE_URL"]}/version',
-    #             headers={"Authorization": f"Basic {anchore_auth.decode('utf-8')}"},
-    #         )
-    #     )
-    #     .read()
-    #     .decode()
-    # )["service"]["version"]
-
     # GPG_VERSION
     gpg_version = (
         subprocess.check_output(["sh", "-c", "gpg --version"], text=True)
@@ -209,10 +197,11 @@ def get_old_pkgs(
         return []
 
 
-# TODO: Rewrite this so we don't have to make pylint ignore it.
 # pylint: disable=R0912
 def scan_logic(build, platform):
-    """TODO Write a better docstring"""
+    """Evaluation of environment flags and previous+current build (per architecture platform) to
+    determine if the current build needs to be scanned
+    """
     image_name = build["IMAGE_NAME"]
 
     new_sbom = Path(
@@ -285,7 +274,7 @@ def scan_logic(build, platform):
 
                 old_pkgs = get_old_pkgs(
                     image_name=image_name,
-                    image_digest=digest,  # Should just have to change this line.
+                    image_digest=digest,
                     docker_config_dir=docker_config_dir,
                 )
 
