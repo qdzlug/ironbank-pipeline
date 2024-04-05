@@ -48,6 +48,16 @@ def pod_command_passes(
         print(f"Standerd output: {proc.stdout}")
         print(f"Standard error: {proc.stderr}")
         return False
+    except Exception as e:
+        rint_red("uncaught exception line 52")
+        print(f"Standerd output: {proc.stdout}")
+        print(f"Standard error: {proc.stderr}")
+        print e.__doc__
+        print e.message
+        return False
+
+    print(f"52 Standerd output: {proc.stdout}")
+    print(f"53 Standard error: {proc.stderr}")
     return True
 
 
@@ -250,11 +260,11 @@ def run_test(
     if result.returncode == 0:
         print("line 246 ran")
         print("Command executed successfully!")
-        print("Output:\n", result.stdout)
+        print(f"Output:\n", result.stdout)
     else:
         print("line 250 ran")
         print("Command failed")
-        print("Error:\n", result.stderr)
+        print(f"Error:\n", result.stderr)
 
     print(f"The command timeout is: {command_timeout} seconds")
     print(f"<expected_output> value is: '{expected_output}'")
@@ -275,7 +285,9 @@ def run_test(
         kubernetes_namespace,
         command_timeout,
     ):
-        print("Error during pod command execution")
+        print("Line 287: Error during pod command execution")
+    else:
+        print("line 290 happened, no exceptions were thrown")
 
     print_green("Waiting for pod to Complete.")
 
