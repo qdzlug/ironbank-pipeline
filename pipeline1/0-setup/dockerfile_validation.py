@@ -15,7 +15,7 @@ log = logger.setup(name="lint.dockerfile_validation")
 
 
 @stack_trace_handler
-async def main():
+async def validate_docker_file(dockerfile: str):
     """Asynchronous main function that validates the Dockerfile of a DSOP (Data
     Standard for Operational Parameters) project against a hardening manifest.
 
@@ -45,7 +45,7 @@ async def main():
     result = subprocess_error_handler(logging_message="Running hadolint failed")(
         subprocess.run
     )(
-        ["hadolint", "Dockerfile", "--no-fail"],
+        ["hadolint", dockerfile, "--no-fail"],
         check=True,
         capture_output=True,
         text=True,
@@ -70,4 +70,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(validate_docker_file("Dockerfile"))

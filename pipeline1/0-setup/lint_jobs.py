@@ -56,15 +56,14 @@ async def main():
     hard_fail_code = 1
     soft_fail_code = 100
 
-    await handle_system_exit(
-        folder_structure.main
-    )()  # TODO: Move out of the per-architecture loop (run once per pipeline)
-    await handle_system_exit(
-        hardening_manifest_validation.main
-    )()  # TODO: Move out of the per-architecture loop (run once per pipeline)
-    await handle_system_exit(
-        dockerfile_validation.main
-    )()  # TODO: Validation needs to be implemented for every architecture's Dockerfile.
+    if platform == "amd64":
+        await handle_system_exit(folder_structure.main)()
+        await handle_system_exit(hardening_manifest_validation.main)()
+    if platform == "arm64":
+        dockerfile = "Dockerfile.arm64"
+    else:
+        dockerfile = "Dockerfile"
+    await handle_system_exit(dockerfile_validation.validate_docker_file(dockerfile))()
     base_image_validation.validate_base_image(platform)  # Per arch
     if hard_fail_code not in system_exits:
         await handle_system_exit(pipeline_auth_status.main)()
