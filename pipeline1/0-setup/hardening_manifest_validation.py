@@ -41,7 +41,7 @@ def main():
         log.error(
             "Please update these labels to appropriately describe your container before rerunning this pipeline"
         )
-        sys.exit(1) # This causes the "setup" job to fail.
+        sys.exit(1)  # This causes the "setup" job to fail.
     log.info("Hardening manifest is validated")
 
 
