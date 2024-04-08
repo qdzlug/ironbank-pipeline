@@ -58,6 +58,7 @@ async def main():
 
     # Validating the folder_structure and hardening_manifest only need to happen one time per project.
     if validate_folder_structure_and_hardening_manifest:
+        log.info(f"Validating the project's folder_structure and hardening_manifest")
         folder_structure.main()
         hardening_manifest_validation.main()
 
