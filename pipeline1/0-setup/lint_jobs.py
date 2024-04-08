@@ -57,7 +57,7 @@ async def main():
     soft_fail_code = 100
 
     # Validating the folder_structure and hardening_manifest only need to happen one time per project.
-    if platform == "amd64":
+    if validate_folder_structure_and_hardening_manifest:
         folder_structure.main()
         hardening_manifest_validation.main()
 
@@ -101,6 +101,8 @@ if __name__ == "__main__":
     if Path("./Dockerfile.arm64").is_file():
         platforms.append("arm64")
 
+    validate_folder_structure_and_hardening_manifest = True
     for platform in platforms:
         log.info(f"Validating image for {platform} architecture.")
         asyncio.run(main())
+        validate_folder_structure_and_hardening_manifest = False
