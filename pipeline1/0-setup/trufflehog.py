@@ -158,6 +158,7 @@ def main() -> None:  # pylint: disable=subprocess-decorator-missing
         project_truffle_config, default_truffle_config, repo_dir, config_variable
     )
 
+    log.info(default_truffle_config) # TODO: Remove me
     cmd = [
         "trufflehog3",
         "--no-entropy",
