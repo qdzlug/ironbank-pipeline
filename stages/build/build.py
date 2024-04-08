@@ -169,7 +169,6 @@ def main():
 
     log.info("Determine source registry based on branch")
     if os.environ.get("STAGING_BASE_IMAGE"):
-        base_registry += "-staging"
         prod_auth_path = Path(os.environ["DOCKER_AUTH_FILE_PRE_PUBLISH"])
     else:
         prod_auth_path = Path(os.environ["DOCKER_AUTH_FILE_PULL"])
