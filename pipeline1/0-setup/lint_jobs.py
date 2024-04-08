@@ -101,6 +101,8 @@ if __name__ == "__main__":
     if Path("./Dockerfile.arm64").is_file():
         platforms.append("arm64")
 
+    # TODO: Remove me
+    log.info(platforms)
     for platform in platforms:
         log.info(f"Validating image for {platform} architecture.")
         asyncio.run(main())
