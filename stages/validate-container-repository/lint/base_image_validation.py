@@ -48,15 +48,14 @@ async def main():
     manifest = HardeningManifest(dsop_project.hardening_manifest_path)
     if manifest.base_image_name:
         log.info("Inspect base image")
+        registry = os.environ["BASE_REGISTRY"]
 
         if os.environ.get("STAGING_BASE_IMAGE"):
             # Grab staging pull docker auth
             pull_auth = Path(os.environ["DOCKER_AUTH_FILE_PRE_PUBLISH"])
-            registry = os.environ["REGISTRY_PRE_PUBLISH_URL"]
         else:
             # Grab prod docker auth
             pull_auth = Path(os.environ["DOCKER_AUTH_FILE_PULL"])
-            registry = os.environ["BASE_REGISTRY"]
 
         try:
             skopeo = Skopeo(authfile=pull_auth)
